@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T08:09:20.465Z",
+  "generatedAt": "2026-11-04T09:17:20.663Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -496,43 +496,6 @@
       "needsTicket": true
     },
     {
-      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
-      "line": null,
-      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 0,
-      "count30": 9,
-      "countAll": 10,
-      "runs30": 5,
-      "flakyRuns30": 0,
-      "branches30": 5,
-      "nightlyRuns30": 0,
-      "openBranches30": 5,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-15T11:35:38Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38723491741/attempts/2",
-        "branch": "feature/DEV-3431_Theme-types-exports-subpath",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
@@ -672,6 +635,43 @@
         "leg": "UMD (theme: horizon)",
         "status": "failed",
         "error": "Expected 94 to be 97.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
+      "line": null,
+      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "count7": 0,
+      "count30": 8,
+      "countAll": 10,
+      "runs30": 4,
+      "flakyRuns30": 0,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-15T11:35:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38723491741/attempts/2",
+        "branch": "feature/DEV-3431_Theme-types-exports-subpath",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
       },
       "needsTicket": true
