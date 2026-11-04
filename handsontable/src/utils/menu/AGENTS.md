@@ -362,3 +362,7 @@ parent opens its submenu from the tap's `mouseover`. Ending every tap broke both
 the filter search took no focus, checkboxes and OK did nothing, and no submenu opened. A tap on a link or a form control that an item renderer puts in a row (`TAP_ACTIVATED_CONTROLS`: `a[href]`, `button`, `input`, `select`, `textarea`, `label`) is left alone too: the browser follows the link or toggles the control from the tap's `click`. A test that counts
 `click`s after a menu tap reads 0 for the tap (`tests/e2e/touch-tap-to-edit.spec.ts`, #12803);
 pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`, which also taps the Filters controls and a submenu parent.
+
+## The menu grid copies `injectCoreCss` from the host grid
+
+`Menu` passes the host grid's `themeName`, `layoutDirection` and `injectCoreCss` to the grid it builds for each menu and submenu, which reads only its own settings. Leaving `injectCoreCss` out injected the core stylesheet on the first menu open of a grid set to `false`. The rule for every nested grid is in the core `AGENTS.md` ("A nested grid built from `hot.constructor`"); pinned by `tests/e2e/nested-grid-inject-core-css.spec.ts`.

@@ -381,6 +381,7 @@ export class MultipleSelectUI extends BaseUI {
       fragmentSelection: 'cell',
       tabMoves: { row: 1, col: 0 },
       themeName: hot.getCurrentThemeName(),
+      injectCoreCss: hot.getSettings().injectCoreCss,
       layoutDirection: hot.isRtl() ? 'rtl' : 'ltr',
     });
     // The list is a nested instance, so it never gets a ThemeManager of its own (`core.ts` builds

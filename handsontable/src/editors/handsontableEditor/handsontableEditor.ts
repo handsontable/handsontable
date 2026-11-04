@@ -283,6 +283,7 @@ export class HandsontableEditor extends TextEditor {
       autoWrapRow: false,
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
+      injectCoreCss: this.hot.getSettings().injectCoreCss,
       afterOnCellMouseDown(this: HotInstance, _: Event, coords: Record<string, number>) {
         if (coords.row < 0 || coords.col < 0) {
           return;
