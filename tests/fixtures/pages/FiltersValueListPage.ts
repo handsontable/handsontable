@@ -276,27 +276,43 @@ export class FiltersValueListPage {
    */
   async allListedValues(): Promise<{ checked: boolean; label: string }[]> {
     const holder = this.menu.locator('.htUIMultipleSelect .ht_master .wtHolder');
-    const readPage = () => this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody').evaluate(
-      tbody => Array.from(tbody.querySelectorAll('tr')).map(row => ({
-        checked: (row.querySelector('input[type="checkbox"]') as HTMLInputElement).checked,
-        label: (row.querySelector('label') as HTMLElement).innerText.trim(),
-      })));
-    const metrics = () => holder.evaluate(el => ({
-      top: el.scrollTop, height: el.clientHeight, total: el.scrollHeight,
+    // One evaluation per page, so a row's checkbox and label always come from the same node: Walkontable
+    // recycles `<tr>` nodes on scroll. The list table is `role="presentation"` and carries no
+    // `aria-rowcount`, so "last item rendered" cannot be read from the DOM; the end is found instead
+    // from the scroll position clamping (set synchronously by the browser). Each scroll waits until the
+    // rendered rows cover the whole viewport again: a repaint that has not happened yet leaves the old
+    // rows scrolled out of view and a gap at the bottom.
+    const readRows = () => holder.evaluate(el => Array.from(el.querySelectorAll('.htCore tbody tr')).map((row) => {
+      const checkbox = row.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+      const label = row.querySelector('label') as HTMLElement | null;
+
+      if (!checkbox || !label) {
+        throw new Error('A rendered row of the filter-by-value list has no checkbox or label.');
+      }
+
+      return { checked: checkbox.checked, label: label.innerText.trim() };
     }));
+    const viewportCovered = () => holder.evaluate((el) => {
+      const rows = el.querySelectorAll('.htCore tbody tr');
+      const first = rows[0]?.getBoundingClientRect();
+      const last = rows[rows.length - 1]?.getBoundingClientRect();
+      const box = el.getBoundingClientRect();
+
+      return !!first && !!last && first.top <= box.top + 1 && box.bottom - last.bottom < last.height;
+    });
     const scrollTo = (top: number) => holder.evaluate((el, value) => {
       el.scrollTop = value;
+
+      return el.scrollTop;
     }, top);
     const collected: { checked: boolean; label: string }[] = [];
     const MAX_PAGES = 200;
 
     await scrollTo(0);
-    await expect.poll(async () => (await readPage()).length).toBeGreaterThan(0);
-
-    let previous = '';
+    await expect.poll(async () => (await readRows()).length).toBeGreaterThan(0);
 
     for (let page = 0; page < MAX_PAGES; page++) {
-      const rows = await readPage();
+      const rows = await readRows();
 
       for (const item of rows) {
         if (!collected.some(({ label }) => label === item.label)) {
@@ -304,22 +320,16 @@ export class FiltersValueListPage {
         }
       }
 
-      previous = rows.map(({ label }) => label).join('\n');
+      const { top, height } = await holder.evaluate(el => ({ top: el.scrollTop, height: el.clientHeight }));
 
-      const { top, height, total } = await metrics();
-
-      if (top + height >= total - 1) {
+      // The browser clamps `scrollTop` at once, so an unchanged position means the end was reached and
+      // the rows read above are the last render.
+      if (await scrollTo(top + height - 1) === top) {
         break;
       }
 
-      await scrollTo(top + height - 1);
-      // Settled once the rendered labels differ from the previous page, or the list cannot scroll further.
-      await expect.poll(async () => {
-        const labels = (await readPage()).map(({ label }) => label).join('\n');
-        const after = await metrics();
-
-        return labels !== previous || after.top + after.height >= after.total - 1;
-      }).toBe(true);
+      // Settled once the repaint has filled the viewport.
+      await expect.poll(viewportCovered).toBe(true);
     }
 
     await scrollTo(0);
