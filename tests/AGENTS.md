@@ -2049,7 +2049,12 @@ screen readers (`docs/AGENTS.md` 2.20).
   names no mode leaves the mode unknown, and the reader toggles again, up to four times: assuming the mode
   it asked for once sent a read's Down Arrow to the page in focus mode, and the traversal started on a
   cell. Only when no switch names a mode does `(no mode announced after the toggle)` go into `preparing`
-  and the run go on. The focus
+  and the run go on. A transcript with that line on its first step and nothing spoken after it is no
+  reading: NVDA was not on the page (once the Windows Start menu held the focus, its words in `entering`;
+  and the date editor's fixture page leaves NVDA silent in most runs, while a copy of it was read in
+  full). Never record a golden from such a transcript when the page reads in another run; take that
+  project's golden from a run where it did, and where a page is silent in every run, keep the silent
+  golden and say so in the scenario's notes, so a fix shows as a golden difference. The focus
   highlighter is off in the same settings. After the setup the log is cleared, and every page action is
   `screenReader.capture(() => …, { capture: true })`, which waits a second of silence after the last
   phrase, as a reading command's own capture does. A step whose capture is empty is listened to once more for another

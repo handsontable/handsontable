@@ -11,7 +11,7 @@
       "id": "open-editor",
       "action": {"press": "Enter"},
       "expect": [["date", "month stepper"]],
-      "note": "Enter opens the editor on the Start cell (`6/10/24`) and focuses its native date input, which holds 2024-06-10. Required: the control, in the reader's words; VoiceOver reads a segment of the input as a `month stepper`. The input has no name (the axe baseline's `editor-input-names`). Finding: nothing is said when the date editor opens, on every reader."
+      "note": "Enter opens the editor on the Start cell (`6/10/24`) and focuses its native date input, which holds 2024-06-10. Required: the control, in the reader's words; VoiceOver reads a segment of the input as a `month stepper`. The input has no name (the axe baseline's `editor-input-names`). Finding: VoiceOver with Chromium says nothing when the date editor opens, and VoiceOver with WebKit in one recording of two. Lane fault, open: NVDA hears nothing on this page, on both browsers, in 10 of 11 runs: no step and not even its own mode switches are spoken (`preparing` ends in `(no mode announced after the toggle)`). Copies of the fixture with only text columns are as silent, while one with a single date column was read in full once, so the cause is the page on the Windows lane, not the date editor; NVDA's rows here are not a reading of the product. On a page NVDA reads, it says a date as `1 slash 5 slash 24`, the synonyms below."
     },
     {
       "id": "type-date",
@@ -22,26 +22,26 @@
     {
       "id": "commit-date",
       "action": {"press": "Enter"},
-      "expect": [["1/5/24"], ["row 3"]],
-      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's Start, drawn as `1/5/24`. Required: that cell's value and its row. Finding: the focus stays on the closed date input, so NVDA says nothing and VoiceOver reads a stepper of the hidden input (`1 month stepper`, `2024 Year stepper`)."
+      "expect": [["1/5/24", "1 slash 5 slash 24"], ["row 3"]],
+      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's Start, drawn as `1/5/24`. Required: that cell's value and its row. Finding: the focus stays on the closed date input, so VoiceOver reads a stepper of the hidden input (`1 month stepper`, `2024 Year stepper`) and not the cell."
     },
     {
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
-      "expect": [["1/1/20"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `1/1/20` (`12/10/24` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell. Finding: VoiceOver with Chromium reads it; NVDA says nothing."
+      "expect": [["1/1/20", "1 slash 1 slash 20"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `1/1/20` (`12/10/24` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell. VoiceOver with Chromium reads it; with WebKit it read the wrong date in one recording and nothing in the other."
     },
     {
       "id": "reopen-editor",
       "action": {"press": "Enter"},
       "expect": [["date", "month stepper"]],
-      "note": "The editor opens again, on the new value. Finding: NVDA says nothing; VoiceOver reads the month stepper."
+      "note": "The editor opens again, on the new value; VoiceOver reads the month stepper."
     },
     {
       "id": "cancel-edit",
       "action": {"press": "Escape"},
-      "expect": [["1/1/20"]],
-      "note": "Escape closes the editor without a change. Finding: nothing is said on any reader, and the focus stays on the closed input, as the commit leaves it; grid-core records the same silence for the text editor."
+      "expect": [["1/1/20", "1 slash 1 slash 20"]],
+      "note": "Escape closes the editor without a change. Finding: VoiceOver says nothing, and the focus stays on the closed input, as the commit leaves it; grid-core records the same silence for the text editor."
     }
   ]
 }
