@@ -50,6 +50,7 @@ export class AppComponent {
       }
     },
     rowHeaders: true,
+    manualColumnMove: true,
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,

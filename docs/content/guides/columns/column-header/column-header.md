@@ -309,11 +309,11 @@ If you want to style the header labels, you can pass any number of class names, 
 
 ## Add a tooltip to a column header
 
-To show a description when users hover over a column header, set the HTML `title` attribute of the header cell. Do this in the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) hook, which receives the header's `<th>` element. The browser displays the attribute's value as a native tooltip.
+To show a description when users hover over a column header, set the HTML `title` attribute of the header cell. Do this in the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) hook, which receives the header's `<th>` element. The browser displays the attribute's value as a native tooltip. Browsers show a `title` tooltip only on mouse hover, so keyboard users who focus a header (with [`navigableHeaders`](@/api/options.md#navigableheaders)) and touch users never see it. Don't put information that users need only in the tooltip.
 
 The HTML `title` attribute is not the same as the [`title`](@/api/options.md#title) option, which sets the header label.
 
-Handsontable reuses header cells as users scroll, so a cell can still hold the `title` of a column that was rendered in it earlier. To avoid showing the wrong tooltip, set the attribute when a column has a description and remove it when it doesn't, on every call of the hook.
+Handsontable DataGrid reuses header cells as users scroll, so a cell can still hold the `title` of a column that was rendered in it earlier. To avoid showing the wrong tooltip, set the attribute when a column has a description and remove it when it doesn't, on every call of the hook.
 
 Look up each description by the header's label, not by the `column` argument. That argument is a visual column index, so a description keyed by it stops matching its column after users move columns. This assumes your header labels are unique.
 
@@ -375,7 +375,7 @@ You can set this option to one of the following:
 The height is a number of pixels. A string that states a pixel size works too, so a value coming from
 an attribute, a JSON config, or a framework template still applies. You can mix both forms inside the
 array. A value that states no pixel count, such as `'50%'` or `'20em'`, is ignored - the header keeps
-its default height, and Handsontable DataGrid reports the value once in the browser console.
+its default height, and Handsontable reports the value once in the browser console.
 
 A negative number is kept as it is, because numbers behave exactly as they did before this option
 read strings. A negative string is rejected, so a typo cannot collapse the header.

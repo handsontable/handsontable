@@ -55,6 +55,7 @@ const ExampleComponent = () => {
         }
       }}
       rowHeaders={true}
+      manualColumnMove={true}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
