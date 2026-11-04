@@ -178,6 +178,18 @@ test('every test-key constant holds the same internal test key', () => {
     `These constants hold another key than ${CONSTANTS[0]}. Paste the same key into each.`);
 });
 
+test('no Vue template passes the key in JSX braces', () => {
+  // In a Vue template `licenseKey={TEST_LICENSE_KEY}` is a static attribute: the grid gets the text
+  // `{TEST_LICENSE_KEY}` and shows the lock screen. Bind it (`:licenseKey="..."`) instead.
+  const jsxBraces = /(?<![:\w-])licenseKey=\{/;
+  const offenders = testFiles.filter(path => path.endsWith('.vue') && jsxBraces.test(readFromRoot(path)));
+
+  assert.deepEqual(offenders, [], 'These Vue templates pass the key as the literal text in braces. Bind it with '
+    + '`:licenseKey="..."` to a value the component exposes.');
+  assert.ok(jsxBraces.test('licenseKey={TEST_LICENSE_KEY}') && !jsxBraces.test(':licenseKey="licenseKeyProp"'),
+    'The JSX-brace check must catch the JSX form and pass a binding.');
+});
+
 test('every file the guard allows still holds a literal key', () => {
   // A stale entry would let a literal back into that file unnoticed.
   const holding = new Set(filesWithLiteral(Object.keys(ALLOWED).filter(path => existsSync(join(ROOT, path))),

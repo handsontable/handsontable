@@ -25,6 +25,10 @@ export default defineComponent({
     dataProp() {
       return data;
     },
+
+    licenseKeyProp() {
+      return TEST_LICENSE_KEY;
+    },
   },
 });
 </script>
@@ -57,7 +61,7 @@ export default defineComponent({
       :manualRowMove="true"
       :autoWrapRow="true"
       :autoWrapCol="true"
-      licenseKey={TEST_LICENSE_KEY}
+      :licenseKey="licenseKeyProp"
     >
       <HotColumn data="companyName" />
       <HotColumn data="name" />
