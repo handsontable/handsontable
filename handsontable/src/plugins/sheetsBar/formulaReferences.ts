@@ -9,6 +9,12 @@ export type IndexMap = (index: number) => number;
 const ERROR_LITERAL = /^#(?:NULL!|DIV\/0!|VALUE!|REF!|NAME\?|NUM!|N\/A|ERROR!|CYCLE!|LIC!|SPILL!|CALC!)/i;
 
 /**
+ * A string literal, with each `""` inside it read as an escaped quote. An unclosed string runs to the end of the
+ * formula.
+ */
+const STRING_LITERAL = /^"(?:[^"]|"")*"?/;
+
+/**
  * A run of characters that can make up an unquoted sheet name, a function or a named expression, a cell, a
  * column or a row reference, or a number.
  */
@@ -111,9 +117,9 @@ export function remapOwnSheetReferences(
     const char = rest[0];
 
     if (char === '"') {
-      const end = rest.slice(1).search(/"(?!")/);
+      const string = STRING_LITERAL.exec(rest);
 
-      copy(end === -1 ? rest.length : end + 2);
+      copy(string ? string[0].length : 1);
       ownSheet = true;
 
       continue;

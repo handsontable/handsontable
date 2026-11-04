@@ -39,6 +39,22 @@ describe('remapOwnSheetReferences()', () => {
     expect(remapOwnSheetReferences(formula, isS, mapOf([5]), mapOf([5]))).toBe(formula);
   });
 
+  it('reads references after a string that holds an escaped quote', () => {
+    expect(remapOwnSheetReferences('=A1&" said ""hi"" "&B1', isS, identity, mapOf([2, 0, 1])))
+      .toBe('=C1&" said ""hi"" "&A1');
+  });
+
+  it('leaves a string after a string that holds an escaped quote alone', () => {
+    expect(remapOwnSheetReferences('="a""b"&"C1"', isS, identity, mapOf([2, 0, 1]))).toBe('="a""b"&"C1"');
+  });
+
+  it('reads a quoted sheet name that holds an escaped quote', () => {
+    const isItS = name => name === 'it\'s';
+
+    expect(remapOwnSheetReferences('=\'it\'\'s\'!A1+\'Main\'\'s\'!A1+B1', isItS, identity, mapOf([2, 0, 1])))
+      .toBe('=\'it\'\'s\'!C1+\'Main\'\'s\'!A1+A1');
+  });
+
   it('reads a sheet name in another script', () => {
     expect(remapOwnSheetReferences('=Лист2!A1+A1', isS, mapOf([1]), identity)).toBe('=Лист2!A1+A2');
   });
