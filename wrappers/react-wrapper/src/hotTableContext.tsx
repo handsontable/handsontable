@@ -64,11 +64,6 @@ export interface HotTableContextImpl {
   readonly markCellPainted: (TD: HTMLTableCellElement) => void;
 
   /**
-   * Clears rendered cells cache.
-   */
-  readonly clearRenderedCellCache: () => void;
-
-  /**
    * Returns the number of portal containers currently retained by the cache.
    * Diagnostic hook used to assert the cache stays bounded to the viewport
    * (it must not grow with the total scrolled row/column count).
@@ -104,8 +99,6 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   }, []);
 
   const componentRendererColumns = useRef<Map<number | 'global', boolean>>(new Map());
-  const renderedCellCache = useRef<Map<string, HTMLTableCellElement>>(new Map());
-  const clearRenderedCellCache = useCallback(() => renderedCellCache.current.clear(), []);
   // One entry per cell the grid shows with a component renderer: the cell element, the container in
   // it, and the portal that renders the component into the container. Keyed by the portal container key.
   const cellPortals = useRef<Map<string, {
@@ -239,8 +232,6 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
         renderedPortalContainerKeys.current.add(portalContainerKey);
       }
 
-      renderedCellCache.current.set(key, TD);
-
       return TD;
     };
 
@@ -290,7 +281,6 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     getRendererWrapper,
     resetRenderedPortals,
     markCellPainted,
-    clearRenderedCellCache,
     getPortalContainerCacheSize,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager
@@ -300,7 +290,6 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     getRendererWrapper,
     resetRenderedPortals,
     markCellPainted,
-    clearRenderedCellCache,
     getPortalContainerCacheSize,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager,

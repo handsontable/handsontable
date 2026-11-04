@@ -113,7 +113,6 @@ const HotTableInner = forwardRef<
    * Clear both the editor and the renderer cache.
    */
   const clearCache = useCallback((): void => {
-    context.clearRenderedCellCache();
     context.componentRendererColumns.clear();
   }, [context]);
 
@@ -253,7 +252,6 @@ const HotTableInner = forwardRef<
      */
     __hotInstance.current.addHook('beforeViewRender', () => {
       context.resetRenderedPortals();
-      context.clearRenderedCellCache();
     });
 
     /**
