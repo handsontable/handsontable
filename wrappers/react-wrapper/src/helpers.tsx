@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable/base';
-import { hasEditor } from 'handsontable/editors/registry';
+import { getEditor } from 'handsontable/editors/registry';
 import { HotRendererProps, HotTableProps } from './types';
 
 let bulkComponentContainer: DocumentFragment | null = null;
@@ -251,6 +251,26 @@ export function isNativeEditor(editor: unknown): boolean {
 }
 
 /**
+ * Check whether an editor is registered under a name.
+ *
+ * It asks `getEditor()`, which throws for an unknown name, instead of `hasEditor()`: the UMD build
+ * maps the editor registry to `Handsontable.editors`, which exposes `getEditor()` only.
+ *
+ * @param {string} name The editor name.
+ * @returns {boolean} `true` when an editor is registered under the name.
+ */
+function isRegisteredEditorName(name: string): boolean {
+  try {
+    getEditor(name);
+
+    return true;
+
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Editor classes that already produced `NATIVE_EDITOR_IN_EDITOR_PROP_WARNING`.
  */
 const warnedNativeEditorClasses = new WeakSet<object>();
@@ -330,7 +350,7 @@ export function resolveEditorSetting(
 
     // An unregistered name (a typo) would make the core throw on every selection of the cell, so
     // it is dropped and the cell keeps the editor its column type or the grid supplies.
-    if (typeof editor === 'string' && !hasEditor(editor)) {
+    if (typeof editor === 'string' && !isRegisteredEditorName(editor)) {
       return undefined;
     }
 
