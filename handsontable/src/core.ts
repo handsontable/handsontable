@@ -87,6 +87,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { getCellType, hasCellType } from './cellTypes/registry';
 import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
@@ -5206,6 +5207,56 @@ export default function Core(
   };
 
   /**
+   * Returns the value validation outside an edit checks for a cell.
+   *
+   * A cell type that brings its own `valueGetter` pairs it with a validator that checks the stored form:
+   * the choice types store a key/value entry or a multiselect array, which their getter turns into a
+   * label or a joined string, and an edit validates the stored form too. Such a cell is validated on its
+   * stored value. A `valueGetter` the cell configures itself only changes what the cell shows, and the
+   * validator was written against that, so the cell is validated on its {@link Core#getDataAtCell} value,
+   * the getter's output included. The `modifyRowData` and `modifyData` hooks apply either way.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {object} [cellMeta] The cell meta, when the caller already holds it.
+   * @returns {*}
+   */
+  const getValueToValidate = (row: number, column: number, cellMeta?: CellProperties): unknown => {
+    const meta = cellMeta ?? instance.getCellMetaTransient(row, column);
+    const { type, valueGetter } = meta;
+    // `type` is a registered name or the cell type object itself, as `extendByMetaType()` reads it.
+    let cellType: unknown = isObject(type) ? type : null;
+
+    if (typeof type === 'string' && hasCellType(type)) {
+      cellType = getCellType(type);
+    }
+
+    const isCellTypeGetter = typeof valueGetter === 'function' && isObject(cellType) &&
+      (cellType as { valueGetter?: unknown }).valueGetter === valueGetter;
+
+    return datamap.get(row, colToPropOrIndex(instance, column), { skipValueGetter: isCellTypeGetter });
+  };
+
+  /**
+   * Returns the value validation outside an edit checks for a cell (bulk validation, UndoRedo's
+   * re-validation of restored cells): the stored value when the cell's `valueGetter` is its cell type's
+   * own, otherwise the value {@link Core#getDataAtCell} returns.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it is
+   * not exposed in the published `.d.ts`. UndoRedo reaches it through a local internal type.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getValueToValidate
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getValueToValidate = function(row: number, column: number) {
+    return getValueToValidate(row, column);
+  };
+
+  /**
    * Tells a `postAfterValidate` listener whether the answer it receives comes from a validator call made
    * before the last `loadData()`. The change that call validated was dropped, so a listener waiting for the
    * answer to a later call (an editor waiting for its own value) must not take it as its own.
@@ -8621,6 +8672,10 @@ export default function Core(
    * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
    *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
+   *
    * After the validation, the `callback` function is fired, with the `valid` argument set to:
    * - `true` for valid cells
    * - `false` for invalid cells
@@ -8647,6 +8702,10 @@ export default function Core(
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
    *  would equal `true`.
    *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
+   *
    * @memberof Core#
    * @function validateRows
    * @param {Array} [rows] Array of validation target visual row indexes.
@@ -8672,6 +8731,10 @@ export default function Core(
    *
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
    *  would equal `true`.
+   *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
    *
    * @memberof Core#
    * @function validateColumns
@@ -8739,7 +8802,8 @@ export default function Core(
         const column = j;
         const cellMeta = instance.getCellMetaTransient(row, column);
 
-        instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
+        // The value an edit of the cell would validate (`getValueToValidate()`).
+        instance.validateCell(getValueToValidate(row, column, cellMeta), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }

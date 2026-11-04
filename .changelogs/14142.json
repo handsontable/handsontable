@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a strict `autocomplete` or `dropdown` cell replacing its value with another entry when confirmed without changes. Such a confirm now writes nothing, and a cell whose value matches no entry opens with no option highlighted. Also fixed `validateCells()`, `validateRows()`, `validateColumns()`, and undo and redo marking valid key/value `autocomplete` and `dropdown` cells and `multiselect` cells as invalid.",
+  "type": "fixed",
+  "issueOrPR": 14142,
+  "breaking": false,
+  "framework": "none"
+}
