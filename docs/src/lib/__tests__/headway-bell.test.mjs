@@ -99,16 +99,19 @@ function createElement(doc, id) {
  * Builds a fake page and a fake Headway that behaves like widget.js where the module depends on
  * it: `init()` creates the panel container and frame synchronously, `toggle()` does nothing
  * until the widget is ready, `show()`/`hide()` flip the frame's `tabindex` and `aria-hidden`
- * and set `visible` at once, and every callback runs later, in a `setTimeout`.
+ * and set `visible` at once, `onShowWidget` fires from `toggle()` only, and every callback runs
+ * later, in a `setTimeout`.
  *
  * @param {object} [options] Options.
  * @param {boolean} [options.headwayLoaded=true] Whether `window.Headway` exists at start.
  * @param {boolean} [options.desktop=true] Whether the desktop media query matches at start.
+ * @param {string} [options.readyState='complete'] The document's `readyState` at start.
  * @returns {object} The harness.
  */
-function createHarness({ headwayLoaded = true, desktop = true } = {}) {
+function createHarness({ headwayLoaded = true, desktop = true, readyState = 'complete' } = {}) {
   const doc = {
     byId: new Map(),
+    readyState,
     activeElement: null,
     getElementById(id) {
       return this.byId.get(id) ?? null;
@@ -163,7 +166,6 @@ function createHarness({ headwayLoaded = true, desktop = true } = {}) {
       this.visible = true;
       this.frame.setAttribute('tabindex', '0');
       this.frame.setAttribute('aria-hidden', 'false');
-      later('onShowWidget');
     },
     hide() {
       if (this.visible) {
@@ -181,11 +183,20 @@ function createHarness({ headwayLoaded = true, desktop = true } = {}) {
       if (this.visible) {
         this.hide();
       } else {
+        // widget.js calls `onShowWidget` from `toggle()` only, never from `show()`.
         this.show();
+        later('onShowWidget');
       }
     },
   };
-  const win = {};
+  const loadListeners = [];
+  const win = {
+    addEventListener(type, listener) {
+      if (type === 'load') {
+        loadListeners.push(listener);
+      }
+    },
+  };
 
   if (headwayLoaded) {
     win.Headway = headway;
@@ -202,6 +213,11 @@ function createHarness({ headwayLoaded = true, desktop = true } = {}) {
     initCalls,
     init() {
       return initHeadwayBell({ win, doc, bell, desktopSlot, mobileSlot, mediaQuery, script });
+    },
+    // The window's `load` event: the document is complete from here on.
+    fireWindowLoad() {
+      doc.readyState = 'complete';
+      loadListeners.splice(0).forEach(listener => listener());
     },
     loadScript({ defineHeadway = true } = {}) {
       if (defineHeadway) {
@@ -265,6 +281,39 @@ test('never initializes a widget that already exists on the page', () => {
 
   assert.equal(harness.init(), false);
   assert.equal(harness.initCalls.length, 0);
+});
+
+test('does not init Headway before the window load event', () => {
+  // An iframe added before `load` holds the event back until its page answers, and the header's
+  // mobile navigation starts on `load`.
+  const harness = createHarness({ readyState: 'loading' });
+
+  assert.equal(harness.init(), true);
+  assert.equal(harness.initCalls.length, 0, 'init must wait for the load event');
+  assert.equal(harness.doc.getElementById('HW_frame'), null, 'no iframe before load');
+
+  harness.fireWindowLoad();
+
+  assert.equal(harness.initCalls.length, 1);
+});
+
+test('still waits for the Headway script when the window has already loaded', () => {
+  const harness = createHarness({ headwayLoaded: false, readyState: 'loading' });
+
+  harness.init();
+  harness.fireWindowLoad();
+  assert.equal(harness.initCalls.length, 0);
+
+  harness.loadScript();
+  assert.equal(harness.initCalls.length, 1);
+});
+
+test('the bell is placed in its slot before the window load event', () => {
+  const harness = createHarness({ readyState: 'loading', desktop: false });
+
+  harness.init();
+
+  assert.equal(harness.bell.parentNode, harness.mobileSlot);
 });
 
 test('waits for the Headway script to load when it has not run yet', () => {

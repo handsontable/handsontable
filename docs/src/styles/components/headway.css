@@ -6,3 +6,12 @@
 :root[data-theme='dark'] .HW_frame {
   filter: invert(0.86) hue-rotate(195deg);
 }
+
+/*
+ * The container behind the iframe is white and animates its height. Without a dark background it
+ * shows as a white strip under the inverted panel while the panel gets shorter. The value is
+ * Headway's #fff after the same inversion (255 * (1 - 0.86) = 36).
+ */
+:root[data-theme='dark'] .HW_frame_cont {
+  background: rgb(36, 36, 36);
+}

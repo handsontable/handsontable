@@ -20,7 +20,11 @@
  *   guards on both sides of the panel catch Tab and Shift+Tab out of it, close it, and return to
  *   the bell.
  * - Headway runs every callback in a `setTimeout`, so state set in a callback lags the call that
- *   caused it. Code that needs the panel's state now reads `Headway.visible`.
+ *   caused it. Code that needs the panel's state now reads `Headway.visible`. `onShowWidget`
+ *   fires from `toggle()` only, never from `show()`, so the bell opens the panel through its
+ *   `trigger`, not through `show()`.
+ * - `init()` waits for the window's `load` event: the panel's iframe would otherwise hold that
+ *   event back, and the header's navigation scripts start on it.
  */
 
 export const HEADWAY_ACCOUNT = 'xaD6ry';
@@ -212,11 +216,23 @@ export function initHeadwayBell({ win, doc, bell, desktopSlot, mobileSlot, media
     }
   };
 
-  if (win.Headway) {
-    start();
+  const startWhenReady = () => {
+    if (win.Headway) {
+      start();
+    } else {
+      // The module script and the deferred head script have no guaranteed order.
+      script?.addEventListener('load', start, { once: true });
+    }
+  };
+
+  // `init()` adds the panel's iframe at once, and an iframe added before the window's `load`
+  // holds that event back until its own page answers. The header's mobile navigation, the ToC
+  // and sidebar toggles, and the Ask AI buttons start on `load`, so they would stay dead for as
+  // long as headway-widget.net takes (a long timeout behind a proxy that drops it).
+  if (doc.readyState === 'complete') {
+    startWhenReady();
   } else {
-    // The module script and the deferred head script have no guaranteed order.
-    script?.addEventListener('load', start, { once: true });
+    win.addEventListener('load', startWhenReady, { once: true });
   }
 
   return true;

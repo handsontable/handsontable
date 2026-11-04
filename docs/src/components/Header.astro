@@ -101,6 +101,21 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       {shouldRenderSearch && <Search />}
     </div>
     <div class="sl-hidden md:sl-flex print:hidden right-group">
+      <!-- Headway changelog bell, first in the group: it appears after the widget is ready, and a
+           bell at the group's start moves nothing already on screen -->
+      <span class="headway-bell-slot" data-headway-desktop-slot>
+        <button
+          type="button"
+          class="headway-bell"
+          id="headway-bell"
+          aria-label="Product updates"
+          aria-expanded="false"
+          title="Product updates"
+          hidden
+        >
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
+        </button>
+      </span>
       <!-- Docs assistant toggle -->
       <button
         type="button"
@@ -126,25 +141,13 @@ function getMobileFrameworkHref(fw: { id: string }): string {
         </svg>
         <span class="github-stars__count" id="github-stars-count" aria-live="polite"></span>
       </a>
-      <!-- Headway changelog bell: hidden until the widget is ready -->
-      <span class="headway-bell-slot" data-headway-desktop-slot>
-        <button
-          type="button"
-          class="headway-bell"
-          id="headway-bell"
-          aria-label="Product updates"
-          aria-expanded="false"
-          title="Product updates"
-          hidden
-        >
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
-        </button>
-      </span>
       <ThemeSelect />
       <LanguageSelect />
     </div>
     <!-- Mobile-only controls: search, theme, hamburger (main nav overlay) -->
     <div class="sl-flex md:sl-hidden print:hidden mobile-controls">
+      <!-- The bell moves here below the md breakpoint; first, so its late appearance shifts nothing -->
+      <span class="headway-bell-slot" data-headway-mobile-slot></span>
       {shouldRenderSearch && (
         <div class="mobile-search-wrapper">
           <button
@@ -164,7 +167,6 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       <div class="mobile-theme-toggle">
         <ThemeSelect />
       </div>
-      <span class="headway-bell-slot" data-headway-mobile-slot></span>
       <button
         type="button"
         class="header-assistant-btn mobile-assistant-btn"
@@ -833,6 +835,24 @@ function getMobileFrameworkHref(fw: { id: string }): string {
   .mobile-controls .headway-bell {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  /*
+   * Search, theme, Ask AI, and the hamburger already fill the row beside the logo at 360px (about
+   * 43px of slack, where a 44px bell plus its gap needs 48). So the bell narrows to 36px, which
+   * still clears the 24px target minimum, and goes away below 350px, where the row has no room
+   * for a fifth control.
+   */
+  @media (max-width: 24rem) {
+    .mobile-controls .headway-bell {
+      min-width: 36px;
+    }
+  }
+
+  @media (max-width: 21.875rem) {
+    .mobile-controls .headway-bell {
+      display: none;
+    }
   }
 
   /* Headway injects its badge into the bell; let it cover the whole button. */
