@@ -302,6 +302,22 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * Replace the filter on the `name` column with another set of names in one filter pass, so the
+   * trimming goes from one filtered state straight to another without showing every row between.
+   *
+   * @param names The names to keep.
+   */
+  async replaceFilterByNames(names: string[]): Promise<void> {
+    await this.page.evaluate((values) => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.addCondition(0, 'by_value', [values]);
+      filters.filter();
+    }, names);
+  }
+
+  /**
    * Remove the filter again, through the Filters plugin.
    */
   async clearFilter(): Promise<void> {

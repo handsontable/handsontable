@@ -328,6 +328,11 @@ export class FiltersValueListPage {
         break;
       }
 
+      if (page === MAX_PAGES - 1) {
+        throw new Error(`The filter-by-value list did not reach its end within ${MAX_PAGES} pages; ` +
+          `${collected.length} values were read, so the list would be returned incomplete.`);
+      }
+
       // Settled once the repaint has filled the viewport.
       await expect.poll(viewportCovered).toBe(true);
     }
@@ -541,7 +546,9 @@ export class FiltersValueListPage {
 
   /**
    * Collapse a nested parent by clicking the collapse button in its row header (the inline-start
-   * clone paints the headers the user sees), then wait until the grid shows fewer rows.
+   * clone paints the headers the user sees), then wait until the grid shows fewer rows. The header is
+   * found by the `row-header-<visual row>` test id the fixture stamps in `afterGetRowHeader`, never by
+   * its rendered position, which differs from the visual row once the grid scrolls.
    *
    * @param {number} row The parent's visual row index.
    */
@@ -549,17 +556,15 @@ export class FiltersValueListPage {
     const rowsBefore = await this.visibleRowCount();
 
     await this.page
-      .locator('.ht_clone_inline_start tbody tr')
-      .nth(row)
-      .locator('.ht_nestingCollapse')
+      .locator(`.ht_clone_inline_start [data-testid="row-header-${row}"] .ht_nestingCollapse`)
       .click();
 
     await expect.poll(() => this.visibleRowCount()).toBeLessThan(rowsBefore);
   }
 
   /**
-   * Expand a collapsed nested parent by clicking the expand button in its row header, then wait
-   * until the grid shows more rows.
+   * Expand a collapsed nested parent by clicking the expand button in its row header (found by its
+   * `row-header-<visual row>` test id), then wait until the grid shows more rows.
    *
    * @param {number} row The parent's visual row index.
    */
@@ -567,9 +572,7 @@ export class FiltersValueListPage {
     const rowsBefore = await this.visibleRowCount();
 
     await this.page
-      .locator('.ht_clone_inline_start tbody tr')
-      .nth(row)
-      .locator('.ht_nestingExpand')
+      .locator(`.ht_clone_inline_start [data-testid="row-header-${row}"] .ht_nestingExpand`)
       .click();
 
     await expect.poll(() => this.visibleRowCount()).toBeGreaterThan(rowsBefore);

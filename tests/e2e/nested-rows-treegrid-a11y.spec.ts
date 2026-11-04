@@ -71,6 +71,31 @@ test.describe('NestedRows treegrid accessibility', () => {
       ]);
     });
 
+  test('changing one filter for another recounts the position and the set size of every row',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto();
+      await nestedRows.filterByNames(['A-1', 'A-3']);
+      await expect.poll(() => nestedRows.rowAttributes()).toEqual([
+        row(1, 1, 1, true),
+        row(2, 1, 2),
+        row(2, 2, 2),
+      ]);
+
+      // From one trimmed state to another, never through the untrimmed one: only the row index
+      // mapper's cache update tells the plugin the counts of the previous filter are stale.
+      await nestedRows.replaceFilterByNames(['A-2']);
+
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(['Root A', 'A-2', 'A-2-a', 'A-2-b']);
+      await expect.poll(() => nestedRows.rowAttributes()).toEqual([
+        row(1, 1, 1, true),
+        row(2, 1, 1, true),
+        row(3, 1, 2),
+        row(3, 2, 2),
+      ]);
+    });
+
   test('clearing the filter restores the position and the set size of every row',
     async({ page, theme, bundle }) => {
       const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);

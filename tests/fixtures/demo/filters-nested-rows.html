@@ -216,6 +216,9 @@
       colHeaders: ['Category', 'Artist', 'Title', 'Label'],
       columns: [{ data: 'category' }, { data: 'artist' }, { data: 'title' }, { data: 'label' }],
       renderer: testIdRenderer,
+      afterGetRowHeader(row, TH) {
+        TH.setAttribute('data-testid', `row-header-${row}`);
+      },
       width: 600,
       height: 300,
       licenseKey: window.htTestLicenseKey,
