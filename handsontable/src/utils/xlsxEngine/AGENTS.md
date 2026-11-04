@@ -560,16 +560,24 @@ directions.
   That guess is only the FALLBACK (DEV-3665): `read.ts` resolves each such `vm` through
   `xl/metadata.xml` (`valueMetadata` -> `XLRICHVALUE` future metadata -> `rvb i`) and the rich-value
   parts (`parts/richValues.ts`). An `_error` structure writes its code over the cached `#VALUE!`
-  (`formula.result` or `value`; `errorType` 8 `#SPILL!`, 11 `#UNKNOWN!`, 12 `#FIELD!`, 13 `#CALC!`
-  from MS-XLSX 2.3.6.1.3, plus 9, 10 and 14 from Excel's `ERROR.TYPE` numbering, which is one
-  higher); a `_localImage` or `_webimage` structure records `images`; any other structure (a linked
-  data type, an unknown error type) records nothing and keeps `#VALUE!`. Only when the parts are
-  missing, do not parse, or do not resolve the `vm` does the cell fall back to the guess above. Three
-  rules: the parts are read only for a sheet that has such a cell, and once per read
-  (`OpenedPackage.richValues`, a memoized promise), so a workbook that never uses them never
-  inflates them; each list is capped at `MAX_WORKBOOK_CELLS` entries like the shared strings
-  (`throwLimitExceeded`); and a part that does not parse answers `null`, never an error, so a
-  damaged rich-value part costs the codes, not the import. The worksheet parser is synchronous, so it
+  (`formula.result` or `value`; `errorType` is Excel's `ERROR.TYPE` number minus one: 0-6 the
+  classic codes, 8-13 `#SPILL!` to `#CALC!`. Never map `#BUSY!`: `ERROR.TYPE` gives it no number,
+  and the 14 one third-party source gives it is unverified, so a guess would import a wrong code); a
+  `_localImage` or `_webimage` structure records `images`; any other structure (a linked data type)
+  or an `errorType` with no code records `cellValue:richValue` and keeps `#VALUE!`. Only when the
+  parts are missing, do not parse, or do not resolve the `vm` does the cell fall back to the guess
+  above. Indexes go through `parseUnsignedIntAttr`, the parser the sheet reads `vm` with, so one
+  index is never accepted on one side and refused on the other. Four rules: the parts are read only
+  for a sheet that has such a cell, and once per read (`OpenedPackage.richValues`, a memoized
+  promise), so a workbook that never uses them never inflates them; a workbook that declares no
+  rich-value parts passes no collector, so the parser judges its cells in place; each list is capped
+  at `MAX_WORKBOOK_CELLS` entries like the shared strings (`throwLimitExceeded`); and a part that does
+  not parse OR passes a limit answers `null`, never an error, so a damaged or huge rich-value part
+  costs the codes, not the import (the parts are optional: a workbook that read before DEV-3665 must
+  still read). That last rule needs `zip/reader.ts` `text()` to GIVE BACK a refused entry's charge
+  to the archive budget: the charge is made before the refusal, and left standing it refused the
+  next sheet over bytes no one held. The mapper puts a code HyperFormula does not know back to
+  `#VALUE!` when the Formulas plugin is on (`importFile/AGENTS.md`). The worksheet parser is synchronous, so it
   only COLLECTS the cells (`WorksheetReadContext.richValueCells`, the cell snapshot by reference) and
   `read.ts` patches them after the sheet; a caller that drives `parseWorksheet` alone passes no
   collector and gets the guess, as before. The ExcelJS adapter cannot see `vm` and keeps `#VALUE!`

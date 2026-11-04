@@ -436,9 +436,11 @@ async function imageDrawingIds(
 
 /**
  * The lookup a sheet's value-metadata cells resolve through, built once per read from the parts
- * `OpenedPackage.richValueParts` names, or `null` when the workbook lacks one of them or one does not
- * parse. The parts are read only for a sheet that asks, so a workbook whose sheets hold no such cell
- * never inflates them; a limit refusal still ends the read.
+ * `OpenedPackage.richValueParts` names, or `null` when the workbook lacks one of them, one does not
+ * parse, or one passes a limit. The parts are read only for a sheet that asks, so a workbook whose
+ * sheets hold no such cell never inflates them. They are optional: a workbook that imported before
+ * the reader knew them must not be refused over them, so a limit refusal costs only the error codes,
+ * and the archive budget gives back what the refused part was charged (`zip/reader.ts`).
  */
 function richValuesOf(opened: OpenedPackage, ledger: TokenizeLedger): Promise<RichValueLookup | null> {
   const parts = opened.richValueParts;
@@ -455,11 +457,7 @@ function richValuesOf(opened: OpenedPackage, ledger: TokenizeLedger): Promise<Ri
       const richValues = parseRichValues(await partToTokenize(opened.archive, parts.values, ledger));
 
       return createRichValueLookup(valueMetadata, structures, richValues);
-    } catch (error) {
-      if (isLimitError(error)) {
-        throw error;
-      }
-
+    } catch {
       return null;
     }
   })();
@@ -470,8 +468,10 @@ function richValuesOf(opened: OpenedPackage, ledger: TokenizeLedger): Promise<Ri
 /**
  * Settles the error cells of a sheet that carry value metadata. A rich error writes its own code
  * (`#SPILL!`, `#CALC!`, ...) over the cached `#VALUE!` Excel stores for it; a picture records
- * `images`. A cell the parts do not resolve keeps its cached value, and is taken for a picture when
- * it has no formula or calls `IMAGE`.
+ * `images`; another rich value (a linked data type, an error type with no code) records
+ * `cellValue:richValue`. A cell the parts
+ * do not resolve keeps its cached value, and is taken for a picture when it has no formula or calls
+ * `IMAGE`.
  */
 function settleRichValueCells(cells: RichValueCell[], lookup: RichValueLookup | null, dropped: DroppedFeatures): void {
   cells.forEach(({ cell, vm, pictureIfUnresolved }) => {
@@ -479,6 +479,8 @@ function settleRichValueCells(cells: RichValueCell[], lookup: RichValueLookup | 
 
     if (resolved === null ? pictureIfUnresolved : resolved.kind === 'picture') {
       dropped.record(DROPPED_FEATURES.images);
+    } else if (resolved?.kind === 'other') {
+      dropped.record(DROPPED_FEATURES.cellValueRichValue);
     } else if (resolved?.kind === 'error') {
       if (cell.formula === null) {
         cell.value = resolved.code;
@@ -529,7 +531,8 @@ async function readSheet(
     });
     const imageDrawings = await imageDrawingIds(opened.archive, sheetRels, sheetPath, ledger);
     const xml = await partToTokenize(opened.archive, sheetPath, ledger);
-    const richValueCells: RichValueCell[] = [];
+    // A workbook with no rich-value parts leaves the cells to the parser, which judges them in place.
+    const richValueCells: RichValueCell[] | undefined = opened.richValueParts === null ? undefined : [];
 
     snapshot.sheets.push(parseWorksheet(xml, {
       name: entry.name,
@@ -544,7 +547,7 @@ async function readSheet(
       budget,
     }));
 
-    if (richValueCells.length > 0) {
+    if (richValueCells !== undefined && richValueCells.length > 0) {
       settleRichValueCells(richValueCells, await richValuesOf(opened, ledger), dropped);
     }
   } catch (error) {

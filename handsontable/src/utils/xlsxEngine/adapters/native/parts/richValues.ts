@@ -1,4 +1,5 @@
 import { MAX_WORKBOOK_CELLS, throwLimitExceeded } from '../../../limits';
+import { parseUnsignedIntAttr } from '../xml/numbers';
 import { tokenizeXml } from '../xml/tokenizer';
 
 /**
@@ -20,19 +21,26 @@ export interface RichValueLookup {
 }
 
 /**
- * The error codes of the `_error` rich value structure, by its `errorType` (MS-XLSX 2.3.6.1.3). 8,
- * 11, 12 and 13 are each a section of the specification; 9, 10 and 14 follow Excel's own
- * `ERROR.TYPE` numbering, which is `errorType` plus one. An `errorType` not listed here keeps the
- * cached value the file carries.
+ * The error codes of the `_error` rich value structure, by its `errorType` (MS-XLSX 2.3.6.1.3), which
+ * is Excel's own `ERROR.TYPE` number minus one: 0 to 6 are the classic codes, 8 to 13 the ones Excel
+ * stores only as a rich value. 7 (`#GETTING_DATA`) is a passing state no file keeps, and `#BUSY!` is
+ * left out: `ERROR.TYPE` gives it no number, so none can be matched to it. An `errorType` not listed
+ * here keeps the cached value the file carries, and records `cellValue:richValue`.
  */
 const RICH_VALUE_ERROR_CODES = new Map<number, string>([
+  [0, '#NULL!'],
+  [1, '#DIV/0!'],
+  [2, '#VALUE!'],
+  [3, '#REF!'],
+  [4, '#NAME?'],
+  [5, '#NUM!'],
+  [6, '#N/A'],
   [8, '#SPILL!'],
   [9, '#CONNECT!'],
   [10, '#BLOCKED!'],
   [11, '#UNKNOWN!'],
   [12, '#FIELD!'],
   [13, '#CALC!'],
-  [14, '#BUSY!'],
 ]);
 
 /**
@@ -67,16 +75,6 @@ function assertEntryCount(length: number, part: string): void {
     throwLimitExceeded(`The ${part} declares more than ${MAX_WORKBOOK_CELLS} entries, `
       + 'above the limit this reader accepts.');
   }
-}
-
-/**
- * Parses an unsigned integer attribute, or `null` when it is not one.
- *
- * @param {string|undefined} value The attribute value.
- * @returns {number|null}
- */
-function toIndex(value: string | undefined): number | null {
-  return value !== undefined && /^\d{1,9}$/.test(value) ? Number(value) : null;
 }
 
 /**
@@ -136,11 +134,11 @@ export function parseValueMetadata(xml: string): number[] {
         }
       } else if (name === 'rvb' && section === 'richFuture' && inBlock && !blockRecorded) {
         assertEntryCount(richValueBlocks.length, 'metadata part');
-        richValueBlocks.push(toIndex(attrs.i) ?? -1);
+        richValueBlocks.push(parseUnsignedIntAttr(attrs.i) ?? -1);
         blockRecorded = true;
       } else if (name === 'rc' && section === 'value' && inBlock && !blockRecorded) {
-        const type = toIndex(attrs.t);
-        const index = toIndex(attrs.v);
+        const type = parseUnsignedIntAttr(attrs.t);
+        const index = parseUnsignedIntAttr(attrs.v);
 
         assertEntryCount(valueBlocks.length, 'metadata part');
         valueBlocks.push(type === null || index === null ? null : { type, index });
@@ -237,7 +235,7 @@ export function parseRichValues(xml: string): RichValue[] {
 
       if (name === 'rv') {
         assertEntryCount(values.length, 'rich value part');
-        current = { structure: toIndex(attrs.s) ?? -1, values: [] };
+        current = { structure: parseUnsignedIntAttr(attrs.s) ?? -1, values: [] };
         values.push(current);
 
         if (selfClosing) {
@@ -298,7 +296,7 @@ export function createRichValueLookup(
       }
 
       if (structure.type === '_error') {
-        const errorType = toIndex(richValue.values[structure.keys.indexOf('errorType')]);
+        const errorType = parseUnsignedIntAttr(richValue.values[structure.keys.indexOf('errorType')]);
         const code = errorType === null ? undefined : RICH_VALUE_ERROR_CODES.get(errorType);
 
         return code === undefined ? { kind: 'other' } : { kind: 'error', code };

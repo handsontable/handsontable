@@ -15,9 +15,12 @@ import { nativeAdapter } from '../adapters/native';
 import { excelJsAdapter } from '../adapters/exceljs';
 import * as richValues from '../adapters/native/parts/richValues';
 import { DroppedFeatures } from '../capabilities';
+import { MAX_INFLATED_TOTAL_BYTES } from '../limits';
 import { mapWorkbook, resolveImportOptions } from '../../../plugins/importFile/mapper';
 import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../xlsxEntitlement';
-import { loadFixture, rewriteArchive } from './helpers/fixtures';
+import { readZip } from '../adapters/native/zip/reader';
+import { writeZip } from '../adapters/native/zip/writer';
+import { loadFixture, rewriteArchive, toArrayBuffer } from './helpers/fixtures';
 
 const FIXTURE = 'excel-online-rich-errors';
 const SHEET_PART = 'xl/worksheets/sheet1.xml';
@@ -98,6 +101,35 @@ describe('native reader: rich value errors and pictures', () => {
     expect(result.data[0]).toEqual([1, null, '#SPILL!', null, '#CALC!']);
   });
 
+  it('should import a rich error the engine does not know as #VALUE!, leaving the classic codes alone', async() => {
+    // C1 and E1 lose their formulas, so both import their codes as values; E1 becomes `#DIV/0!`.
+    const bytes = await rewritten({
+      [SHEET_PART]: text => text.replace(/<f t="array"[^>]*>[^<]*<\/f>/g, ''),
+      [VALUES_PART]: text => text.replace('<v>0</v><v>8</v>', '<v>0</v><v>13</v>')
+        .replace('<rv s="1"><v>13</v>', '<rv s="1"><v>1</v>'),
+    });
+    const map = (context) => {
+      const dropped = new DroppedFeatures();
+
+      return nativeAdapter.read(bytes, undefined, dropped).then(workbook => mapWorkbook(workbook,
+        resolveImportOptions({}), {
+          formulasEnabled: true,
+          commentsEnabled: false,
+          customBordersEnabled: false,
+          entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+          ...context,
+        }, dropped));
+    };
+
+    // An engine that knows neither code: `#CALC!` goes back to the `#VALUE!` Excel caches for it;
+    // `#DIV/0!` is a code the file caches as it is, so it is not the reader's to change.
+    expect((await map({ recognizesErrorCode: () => false })).data[0]).toEqual([1, null, '#VALUE!', null, '#DIV/0!']);
+    expect((await map({ recognizesErrorCode: code => code === '#CALC!' })).data[0])
+      .toEqual([1, null, '#CALC!', null, '#DIV/0!']);
+    // An engine that cannot answer trusts every code.
+    expect((await map({})).data[0]).toEqual([1, null, '#CALC!', null, '#DIV/0!']);
+  });
+
   it('should write the error code over a plain error cell with no formula', async() => {
     const bytes = await rewritten({
       [SHEET_PART]: text => text.replace(/<f t="array" aca="1" ref="C1" ca="1">[^<]*<\/f>/, ''),
@@ -122,7 +154,7 @@ describe('native reader: rich value errors and pictures', () => {
     expect(dropped).toContain('images');
   });
 
-  it('should keep the cached value of an error type the reader does not know, reporting nothing', async() => {
+  it('should keep the cached value of an error type the reader does not know, reporting it', async() => {
     const bytes = await rewritten({
       [VALUES_PART]: text => text.replace('<rv s="1"><v>13</v>', '<rv s="1"><v>99</v>'),
     });
@@ -130,8 +162,110 @@ describe('native reader: rich value errors and pictures', () => {
 
     expect(rows[0][2].formula.result).toBe('#SPILL!');
     expect(rows[0][4].formula.result).toBe('#VALUE!');
+    expect(dropped).toContain('cellValue:richValue');
     expect(dropped).not.toContain('images');
   });
+
+  it('should read the classic error codes a writer stores as rich values, and leave #BUSY! out', async() => {
+    // `ERROR.TYPE` minus one: 1 is `#DIV/0!`. 14 is what one source gives `#BUSY!`, which
+    // `ERROR.TYPE` has no number for, so it keeps the cached value.
+    const bytes = await rewritten({
+      [VALUES_PART]: text => text.replace('<v>0</v><v>8</v>', '<v>0</v><v>14</v>')
+        .replace('<rv s="1"><v>13</v>', '<rv s="1"><v>1</v>'),
+    });
+    const { rows, dropped } = await read(bytes);
+
+    expect(rows[0][2].formula.result).toBe('#VALUE!');
+    expect(rows[0][4].formula.result).toBe('#DIV/0!');
+    expect(dropped).toContain('cellValue:richValue');
+  });
+
+  it('should report a linked data type with no formula, keeping the cached value', async() => {
+    // A Stocks or Geography cell: no formula, a rich value that is neither an error nor a picture.
+    // The unresolved guess used to take it for a picture; resolved, it recorded nothing at all.
+    const bytes = await rewritten({
+      [SHEET_PART]: text => text.replace(/<f t="array" aca="1" ref="C1" ca="1">[^<]*<\/f>/, ''),
+      [STRUCTURES_PART]: text => text
+        .replace('<s t="_error"><k n="colOffset"', '<s t="_linkedEntity"><k n="colOffset"'),
+    });
+    const { rows, dropped } = await read(bytes);
+
+    expect(rows[0][2].value).toBe('#VALUE!');
+    expect(dropped).toContain('cellValue:richValue');
+    expect(dropped).not.toContain('images');
+  });
+
+  it('should read an index written with a leading `+` the way the sheet reads `vm`', async() => {
+    const bytes = await rewritten({
+      'xl/metadata.xml': text => text.replace('<xlrd:rvb i="1"/>', '<xlrd:rvb i="+1"/>')
+        .replace('<rc t="2" v="1"/>', '<rc t="+2" v="01"/>'),
+      [SHEET_PART]: text => text.replace('vm="2"', 'vm="+2"'),
+    });
+    const { rows } = await read(bytes);
+
+    expect(rows[0][4].formula.result).toBe('#CALC!');
+  });
+
+  it('should judge the cells in place when the workbook has no rich-value parts', async() => {
+    const bytes = await rewritten({
+      'xl/_rels/workbook.xml.rels': text => withoutRelationship('rdRichValue')(
+        withoutRelationship('sheetMetadata')(text)
+      ),
+      [SHEET_PART]: text => text.replace(/<f t="array" aca="1" ref="C1" ca="1">[^<]*<\/f>/, ''),
+    });
+    const { rows, dropped } = await read(bytes);
+
+    expect(rows[0][2].value).toBe('#VALUE!');
+    expect(rows[0][4].formula.result).toBe('#VALUE!');
+    expect(dropped).toContain('images');
+  });
+
+  it('should read a workbook whose rich-value parts pass the inflate budget, without the error codes', async() => {
+    // 130 MB of padding costs 260 MB as a string, over the 256 MB budget on its own. The parts are
+    // optional, so the workbook reads with its cached values, as it did before the reader knew them.
+    // The second sheet is read after the refusal: the budget gave the refused part's charge back,
+    // or that read was refused over bytes no one held.
+    const padding = 130 * 1024 * 1024;
+
+    expect(padding * 2).toBeGreaterThan(MAX_INFLATED_TOTAL_BYTES);
+
+    // The second sheet is a part of its own, so it is inflated after the refusal.
+    const zip = await readZip(await rewritten({
+      'xl/workbook.xml': text => text.replace('<sheet name="Data" sheetId="1" r:id="rId1"/>',
+        '<sheet name="Data" sheetId="1" r:id="rId1"/><sheet name="Two" sheetId="2" r:id="rId99"/>'),
+      'xl/_rels/workbook.xml.rels': text => text.replace('</Relationships>', '<Relationship Id="rId99" '
+        + 'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '
+        + 'Target="worksheets/sheet2.xml"/></Relationships>'),
+      '[Content_Types].xml': text => text.replace('</Types>', '<Override PartName="/xl/worksheets/sheet2.xml" '
+        + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'),
+    }));
+    const encoder = new TextEncoder();
+    const entries = [];
+
+    for (const name of zip.names()) {
+      // eslint-disable-next-line no-await-in-loop -- one entry at a time, as the reader reads them.
+      const text = await zip.text(name);
+
+      entries.push({
+        name,
+        data: encoder.encode(name === VALUES_PART
+          ? text.replace('<rvData', `<!--${' '.repeat(padding)}--><rvData`)
+          : text),
+      });
+    }
+
+    entries.push({
+      name: 'xl/worksheets/sheet2.xml',
+      data: encoder.encode('<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        + '<sheetData><row r="1"><c r="A1"><v>42</v></c></row></sheetData></worksheet>'),
+    });
+
+    const dropped = new DroppedFeatures();
+    const workbook = await nativeAdapter.read(toArrayBuffer(await writeZip(entries, true)), undefined, dropped);
+
+    expect(workbook.sheets[0].rows[0][4].formula.result).toBe('#VALUE!');
+    expect(workbook.sheets[1].rows[0][0].value).toBe(42);
+  }, 60_000);
 
   it('should keep the cached values when the workbook declares no metadata part', async() => {
     const bytes = await rewritten({ 'xl/_rels/workbook.xml.rels': withoutRelationship('sheetMetadata') });
