@@ -545,6 +545,28 @@ describe('SheetsBar plugin', () => {
     expect(new Set(rows).size).toBe(rows.length);
   });
 
+  it('gives a sheet added with NestedRows on and no `columns` the columns of the grid\'s rows', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      data: [{ name: 'P', qty: 3, __children: [{ name: 'C', qty: 1 }] }],
+      nestedRows: true,
+      sheetsBar: true,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const added = sheetsBar.addSheet('Blank');
+    const rows = sheetsBar.getSheetData(added.id);
+
+    sheetsBar.setActiveSheet(added.id);
+
+    expect(hot.countCols()).toBe(2);
+    expect(rows[0]).toEqual({ name: null, qty: null });
+    expect(rows[0]).not.toBe(rows[1]);
+    expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining('no columns'));
+  });
+
   it('guards the enable-time sheet load: `nestedRows` stays on across a workbook declared without a top-level `data` (passes on develop, pins the load path rather than the fix)', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 

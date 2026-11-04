@@ -554,6 +554,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   arrays by writing `nestedRows = false` into the grid settings and disabling itself, a released path
   that stays as it is, so the add button's `createEmptySheetData()` turned a grid-level tree view off for
   the session. Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts` ("NestedRows on the whole grid").
+  When neither `columns` nor `dataSchema` names the columns, each blank row gets the keys of the grid's
+  first row with `null` values (no `__children`): core reads object rows' columns from the first row, so
+  empty objects gave the new sheet 0 columns and a "no columns" warning.
 - **A declared workbook wins the initial data load.** `#onBeforeLoadData` redirects the init
   load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
   init pass loads `data` after the plugin already applied its sheet, and without the redirect

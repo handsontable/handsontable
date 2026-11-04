@@ -119,14 +119,45 @@ export function createEmptySheetData(
 }
 
 /**
+ * Builds a row with the keys of `row` and every value `null`, a nested object kept as an object of the same
+ * shape, and `__children` left out.
+ *
+ * @param {object} row The row to take the keys from.
+ * @returns {object}
+ */
+function blankRowLike(row: Record<string, unknown>): Record<string, unknown> {
+  const blank: Record<string, unknown> = {};
+
+  Object.keys(row).forEach((key) => {
+    if (key === '__children') {
+      return;
+    }
+
+    const value = row[key];
+
+    blank[key] = value !== null && typeof value === 'object' && !Array.isArray(value)
+      ? blankRowLike(value as Record<string, unknown>)
+      : null;
+  });
+
+  return blank;
+}
+
+/**
  * Builds the blank rows a new sheet with NestedRows on starts from: top-level rows with no children, each its
- * own object, so an edit in one row never shows up in another.
+ * own object, so an edit in one row never shows up in another. With a `template` row, each blank row has its
+ * keys (see `blankRowLike()`): the grid reads the columns of object rows from the first row's keys when neither
+ * `columns` nor `dataSchema` names them, so empty objects showed a sheet with no columns.
  *
  * @param {number} [rows] Row count.
+ * @param {object} [template] The row whose keys each blank row gets.
  * @returns {object[]} A fresh data array, safe for the caller to mutate.
  */
-export function createEmptyObjectRows(rows: number = NEW_NESTED_SHEET_ROW_COUNT): Record<string, unknown>[] {
-  return Array.from({ length: rows }, () => ({}));
+export function createEmptyObjectRows(
+  rows: number = NEW_NESTED_SHEET_ROW_COUNT,
+  template?: Record<string, unknown>,
+): Record<string, unknown>[] {
+  return Array.from({ length: rows }, () => (template ? blankRowLike(template) : {}));
 }
 
 /**

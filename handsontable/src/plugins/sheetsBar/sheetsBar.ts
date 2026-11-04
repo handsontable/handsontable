@@ -2780,18 +2780,28 @@ export class SheetsBar extends BasePlugin {
   /**
    * Returns the rows a sheet added without data starts with: empty object rows (`createEmptyObjectRows()`)
    * while the sheet would show with NestedRows on, which takes an array of objects only and turns itself off
-   * for the rest of the session on an array of arrays, else the blank grid of `createEmptySheetData()`.
+   * for the rest of the session on an array of arrays, else the blank grid of `createEmptySheetData()`. When
+   * neither `columns` nor `dataSchema` names the columns, the rows get the keys of the first row the grid
+   * shows: the grid reads the columns of object rows from them, and empty objects gave a sheet no columns.
    *
    * @param {object} [settings] The new sheet's own settings.
    * @returns {Array|undefined} The object rows, or `undefined` for the model's blank grid.
    */
   #blankSheetData(settings?: Record<string, unknown>): unknown[] | undefined {
     const own = settings ?? {};
-    const nestedRows = Object.prototype.hasOwnProperty.call(own, 'nestedRows')
-      ? own.nestedRows
-      : this.#gridLevelValueOf('nestedRows');
+    const valueOf = (key: string) => (Object.prototype.hasOwnProperty.call(own, key)
+      ? own[key]
+      : this.#gridLevelValueOf(key));
 
-    return nestedRows ? createEmptyObjectRows() : undefined;
+    if (!valueOf('nestedRows')) {
+      return undefined;
+    }
+
+    const namesColumns = valueOf('columns') !== undefined && valueOf('columns') !== null
+      || valueOf('dataSchema') !== undefined && valueOf('dataSchema') !== null;
+    const firstRow = namesColumns ? undefined : this.#getLiveSourceData()?.[0];
+
+    return createEmptyObjectRows(undefined, isPlainObject(firstRow) ? firstRow as Record<string, unknown> : undefined);
   }
 
   /**
