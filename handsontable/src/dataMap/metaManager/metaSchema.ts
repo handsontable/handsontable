@@ -8547,10 +8547,12 @@ export default (): Record<string, unknown> => {
      * | `true` (default)   | Inject core styles into the document head                                                                        |
      * | `false`            | Do not inject core styles (use when you load CSS yourself, e.g. `import 'handsontable/styles/handsontable.css'`) |
      *
-     * Handsontable reads this option once, when it creates the grid, so changing it with
-     * [`updateSettings()`](@/api/core.md#updatesettings) has no effect. The grids that Handsontable builds internally,
-     * for example the lists of the `autocomplete`, `dropdown`, and `handsontable` editors, the context menu, the dropdown
-     * menu, and the [`Filters`](@/api/filters.md) value list, never inject the core styles themselves.
+     * Handsontable reads this option once, when it creates the grid. Changing it with
+     * [`updateSettings()`](@/api/core.md#updatesettings) has no effect.
+     *
+     * Grids that Handsontable builds inside a grid never inject the core styles. These include the lists of the
+     * `autocomplete`, `dropdown`, and `handsontable` editors, the context menu, the dropdown menu, and the
+     * [`Filters`](@/api/filters.md) menus.
      *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
