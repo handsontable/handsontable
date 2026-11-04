@@ -1104,9 +1104,12 @@ export class UndoRedo extends BasePlugin {
       }
     };
 
+    // The stored value, as an edit validates it: the `valueGetter` output of a key/value or multiselect
+    // cell fails its own validator.
     validated.forEach(([row, column]) => {
       this.hot.validateCell(
-        this.hot.getDataAtCell(row, column), this.hot.getCellMeta(row, column), onValidated, 'UndoRedo.revalidate',
+        this.hot._getStoredDataAtCell(row, column), this.hot.getCellMeta(row, column), onValidated,
+        'UndoRedo.revalidate',
       );
     });
   }

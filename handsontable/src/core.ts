@@ -5201,6 +5201,23 @@ export default function Core(
   };
 
   /**
+   * Returns the value a cell stores, before the column's `valueGetter`, for code that validates it outside
+   * an edit. An edit validates the stored value, and the choice cell types' validators check that form (a
+   * key/value entry, a multiselect array), so validating the text {@link Core#getDataAtCell} returns marks
+   * those cells invalid. The `modifyRowData` and `modifyData` hooks still apply.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getStoredDataAtCell
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getStoredDataAtCell = function(row: number, column: number) {
+    return datamap.get(row, colToPropOrIndex(instance, column), { skipValueGetter: true });
+  };
+
+  /**
    * Tells a `postAfterValidate` listener whether the answer it receives comes from a validator call made
    * before the last `loadData()`. The change that call validated was dropped, so a listener waiting for the
    * answer to a later call (an editor waiting for its own value) must not take it as its own.
@@ -8742,12 +8759,9 @@ export default function Core(
         const row = i;
         const column = j;
         const cellMeta = instance.getCellMetaTransient(row, column);
-        // The stored value, not the `valueGetter` output `getDataAtCell()` returns: an edit validates
-        // the stored value, and the choice cell types' validators check that form (a key/value entry,
-        // a multiselect array), so their label or joined text read as invalid here.
-        const storedValue = datamap.get(row, colToPropOrIndex(instance, column), { skipValueGetter: true });
 
-        instance.validateCell(storedValue, cellMeta, (result: boolean) => {
+        // The stored value, as an edit validates it (`_getStoredDataAtCell()`).
+        instance.validateCell(instance._getStoredDataAtCell(row, column), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }
