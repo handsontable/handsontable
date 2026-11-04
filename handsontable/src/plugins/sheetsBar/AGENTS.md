@@ -763,8 +763,6 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **The strip has `contain: inline-size`.** Without it the strip's intrinsic width is its tabs' width, so
     any `min-content` above it grew the bar to all its tabs, and the arrows and the
     focused tab ended far off screen.
-  - **The inner row paints the bar's background too.** A scroll container's background covers its own box
-    only, not the overflow scrolled into view, so the arrows lost their background after a scroll to the end.
   - **The bar reveals a focused control itself** (`SheetsBarUI#revealInBar`, a `focusin` listener). The
     browser's focus scroll leaves a partly visible element where it is, so + or an arrow reached with Tab
     stayed cut at the bar's edge. It measures fractional boxes and rounds outward, like the tab reveal. Two
