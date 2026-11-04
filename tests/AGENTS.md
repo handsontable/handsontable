@@ -2043,8 +2043,11 @@ screen readers (`docs/AGENTS.md` 2.20).
   switches to focus mode on its own when the focus lands on a gridcell, and Guidepup logs only what a
   command captured, so the toggle round trip is what keeps every step in the right mode whatever NVDA
   did. Read the mode from the raw phrases, never the normalized ones: the normalizer strips the mode
-  phrases as chatter. What a switch says is the step's `preparing`, never its announcement; a switch that
-  names no mode leaves `(no mode announced after the toggle)` there, and the run goes on. The focus
+  phrases as chatter. What a switch says is the step's `preparing`, never its announcement. A switch that
+  names no mode leaves the mode unknown, and the reader toggles again, up to four times: assuming the mode
+  it asked for once sent a read's Down Arrow to the page in focus mode, and the traversal started on a
+  cell. Only when no switch names a mode does `(no mode announced after the toggle)` go into `preparing`
+  and the run go on. The focus
   highlighter is off in the same settings. After the setup the log is cleared, and every page action is
   `screenReader.capture(() => …, { capture: true })`, which waits a second of silence after the last
   phrase, as a reading command's own capture does. A step whose capture is empty is listened to once more for another
