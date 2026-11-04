@@ -2,6 +2,12 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
 /**
+ * How far, in pixels, an element may stick out of the bar's client box and still count as wholly in view:
+ * a fractional box rounds by up to half a pixel.
+ */
+const BAR_EDGE_TOLERANCE = 0.5;
+
+/**
  * The layout `window.buildGrid()` builds (see fixtures/demo/sheets-bar-ui.html).
  */
 export interface SheetsBarUiConfig {
@@ -141,6 +147,46 @@ export class SheetsBarUiPage {
 
       return tabBox.left >= stripBox.left && tabBox.right <= stripBox.right;
     }, index);
+  }
+
+  /**
+   * Whether a control of the bar lies wholly inside the bar's visible part (`BAR_EDGE_TOLERANCE`).
+   *
+   * @param {string} selector The control's selector inside the bar.
+   * @returns {Promise<boolean>} `true` when the control is fully in view.
+   */
+  controlWhollyInBar(selector: string): Promise<boolean> {
+    return this.#whollyInBar({ selector });
+  }
+
+  /**
+   * Whether a tab lies wholly inside the bar's visible part (`BAR_EDGE_TOLERANCE`).
+   *
+   * @param {number} index The tab's position.
+   * @returns {Promise<boolean>} `true` when the tab is fully in view.
+   */
+  tabWhollyInBar(index: number): Promise<boolean> {
+    return this.#whollyInBar({ tab: index });
+  }
+
+  /**
+   * Whether an element of the bar lies inside the bar's client box, give or take `BAR_EDGE_TOLERANCE`, which
+   * covers the half pixel a fractional box rounds to.
+   *
+   * @param {object} target A `selector`, or the `tab` position.
+   * @returns {Promise<boolean>}
+   */
+  #whollyInBar(target: { selector?: string; tab?: number }): Promise<boolean> {
+    return this.page.evaluate(([{ selector, tab }, tolerance]) => {
+      const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+      const left = bar.getBoundingClientRect().left + bar.clientLeft;
+      const element = (selector === undefined
+        ? bar.querySelectorAll('.ht-sheets-bar__tab')[tab!]
+        : bar.querySelector(selector)) as HTMLElement;
+      const box = element.getBoundingClientRect();
+
+      return box.left >= left - tolerance && box.right <= left + bar.clientWidth + tolerance;
+    }, [target, BAR_EDGE_TOLERANCE] as const);
   }
 
   /**

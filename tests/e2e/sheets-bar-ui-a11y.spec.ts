@@ -335,13 +335,6 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         return behind.some(element => !['transparent', 'rgba(0, 0, 0, 0)']
           .includes(getComputedStyle(element).backgroundColor));
       }, selector);
-      const shownInBar = (selector: string) => page.evaluate((target) => {
-        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
-        const barBox = bar.getBoundingClientRect();
-        const box = (bar.querySelector(target) as HTMLElement).getBoundingClientRect();
-
-        return box.left >= barBox.left && box.right <= barBox.right;
-      }, selector);
       const scrollBarTo = (end: boolean) => page.evaluate((toEnd) => {
         const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
 
@@ -375,14 +368,14 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
 
         await scrollBarTo(true);
 
-        expect(await shownInBar('.ht-sheets-bar__page-next')).toBe(true);
+        expect(await fixture.controlWhollyInBar('.ht-sheets-bar__page-next')).toBe(true);
         expect(await paintedBehind('.ht-sheets-bar__page-next')).toBe(true);
 
         await fixture.activeTab.focus();
         await page.keyboard.press('Shift+Tab');
         await page.keyboard.press('Shift+Tab');
         await expect(fixture.addButton).toBeFocused();
-        expect(await shownInBar('.ht-sheets-bar__add')).toBe(true);
+        expect(await fixture.controlWhollyInBar('.ht-sheets-bar__add')).toBe(true);
 
         await scrollBarTo(false);
 
@@ -390,7 +383,7 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         await page.keyboard.press('Tab');
         await page.keyboard.press('Tab');
         await expect(fixture.bar.locator('.ht-sheets-bar__page-next')).toBeFocused();
-        expect(await shownInBar('.ht-sheets-bar__page-next')).toBe(true);
+        expect(await fixture.controlWhollyInBar('.ht-sheets-bar__page-next')).toBe(true);
       }
 
       await fixture.setActiveSheet(2);
@@ -408,15 +401,6 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         const fixture = new SheetsBarUiPage(page, theme, bundle);
         const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
         const backward = rtl ? 'ArrowRight' : 'ArrowLeft';
-        const wholeInBar = (index: number) => page.evaluate((position) => {
-          const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
-          const barBox = bar.getBoundingClientRect();
-          const left = barBox.left + bar.clientLeft;
-          const tab = bar.querySelectorAll('.ht-sheets-bar__tab')[position] as HTMLElement;
-          const box = tab.getBoundingClientRect();
-
-          return box.left >= left - 0.5 && box.right <= left + bar.clientWidth + 0.5;
-        }, index);
 
         await fixture.goto({
           sheets: 12,
@@ -435,13 +419,13 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         for (let index = 1; index < 12; index += 1) {
           await page.keyboard.press(forward);
           await expect(fixture.tab(index)).toBeFocused();
-          await expect.poll(() => wholeInBar(index), `tab ${index} going forward`).toBe(true);
+          await expect.poll(() => fixture.tabWhollyInBar(index), `tab ${index} going forward`).toBe(true);
         }
 
         for (let index = 10; index >= 0; index -= 1) {
           await page.keyboard.press(backward);
           await expect(fixture.tab(index)).toBeFocused();
-          await expect.poll(() => wholeInBar(index), `tab ${index} going back`).toBe(true);
+          await expect.poll(() => fixture.tabWhollyInBar(index), `tab ${index} going back`).toBe(true);
         }
       });
     });
@@ -523,13 +507,6 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
           const fixture = new SheetsBarUiPage(page, theme, bundle);
           const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
           const backward = rtl ? 'ArrowRight' : 'ArrowLeft';
-          const wholeInBar = (index: number) => page.evaluate((position) => {
-            const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
-            const left = bar.getBoundingClientRect().left + bar.clientLeft;
-            const box = (bar.querySelectorAll('.ht-sheets-bar__tab')[position] as HTMLElement).getBoundingClientRect();
-
-            return box.left >= left - 0.5 && box.right <= left + bar.clientWidth + 0.5;
-          }, index);
 
           await fixture.goto({ sheets: 6, rtl, tabNames, columnCounts: Array(6).fill(4), fixedHeight: false });
 
@@ -548,14 +525,14 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
             await page.keyboard.press(forward);
             await expect(fixture.tab(index)).toBeFocused();
             await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} in the strip`).toBe(true);
-            await expect.poll(() => wholeInBar(index), `tab ${index} in the bar`).toBe(true);
+            await expect.poll(() => fixture.tabWhollyInBar(index), `tab ${index} in the bar`).toBe(true);
           }
 
           for (let index = 4; index >= 0; index -= 1) {
             await page.keyboard.press(backward);
             await expect(fixture.tab(index)).toBeFocused();
             await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} in the strip`).toBe(true);
-            await expect.poll(() => wholeInBar(index), `tab ${index} in the bar`).toBe(true);
+            await expect.poll(() => fixture.tabWhollyInBar(index), `tab ${index} in the bar`).toBe(true);
           }
         });
       });
@@ -613,35 +590,28 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       })).toEqual({ scrolls: true, insideContainer: true });
       expect(await pagingToggles(page)).toBe(0);
 
-      const shown = (selector: string) => page.evaluate((target) => {
-        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
-        const barBox = bar.getBoundingClientRect();
-        const box = (bar.querySelector(target) as HTMLElement).getBoundingClientRect();
-
-        return box.left >= barBox.left && box.right <= barBox.right;
-      }, selector);
 
       await page.evaluate(() => {
         const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
 
         bar.scrollLeft = bar.scrollWidth;
       });
-      expect(await shown('.ht-sheets-bar__add')).toBe(false);
+      expect(await fixture.controlWhollyInBar('.ht-sheets-bar__add')).toBe(false);
       await fixture.activeTab.focus();
       await page.keyboard.press('Shift+Tab');
       await page.keyboard.press('Shift+Tab');
       await expect(fixture.addButton).toBeFocused();
-      expect(await shown('.ht-sheets-bar__add')).toBe(true);
+      expect(await fixture.controlWhollyInBar('.ht-sheets-bar__add')).toBe(true);
 
       await page.evaluate(() => {
         (document.querySelector('.ht-sheets-bar') as HTMLElement).scrollLeft = 0;
       });
-      expect(await shown('.ht-sheets-bar__page-next')).toBe(false);
+      expect(await fixture.controlWhollyInBar('.ht-sheets-bar__page-next')).toBe(false);
       await fixture.activeTab.focus();
       await page.keyboard.press('Tab');
       await page.keyboard.press('Tab');
       await expect(fixture.bar.locator('.ht-sheets-bar__page-next')).toBeFocused();
-      expect(await shown('.ht-sheets-bar__page-next')).toBe(true);
+      expect(await fixture.controlWhollyInBar('.ht-sheets-bar__page-next')).toBe(true);
     });
 
     test('reveals the active tab on first paint', async({ page, theme, bundle }) => {
