@@ -172,8 +172,8 @@ export const EditorContextProvider: FC<EditorContextProviderProps> = ({
 type EditorWithPosition = Handsontable.editors.BaseEditor & {
   position?: string;
   /**
-   * Set while an `EditorComponent` editor is open. Core calls it to move an open editor onto its cell,
-   * for example after the grid changes size, once `EditorManager` has scrolled the cell into view.
+   * Set when an `EditorComponent` editor opens. Core calls it to move an open editor onto its cell, for
+   * example after the grid changes size, once `EditorManager` has scrolled the cell into view.
    */
   refreshDimensions?: () => void;
 };
@@ -445,8 +445,11 @@ export function EditorComponent<T = any>({
       return;
     }
 
-    if (!applyEditorPosition(el, editor, hot, null) && typeof editor.close === 'function') {
-      editor.close();
+    // The edited cell is not rendered (it scrolled out of view). End the edit without saving, the way
+    // the core text editor does. A bare `close()` hid the element but left the editor open, so it
+    // never showed again and kept the keyboard.
+    if (!applyEditorPosition(el, editor, hot, null)) {
+      editor.cancelChanges();
     }
   }, []);
 
@@ -505,12 +508,6 @@ export function EditorComponent<T = any>({
       registerScrollHooks();
     },
     onClose: () => {
-      const editor = hotCustomEditorInstanceRef.current as EditorWithPosition | null;
-
-      // When `refreshDimensions` closes the editor because its cell is not rendered, the instance still
-      // reads as opened, so core would keep calling the method and move the hidden element.
-      delete editor?.refreshDimensions;
-
       if (!mainElementRef.current) {
         return;
       }

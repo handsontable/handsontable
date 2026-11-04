@@ -131,21 +131,27 @@ describe('EditorComponent on a grid that changes size', () => {
     expect(editorOverlay().style.width).toBe('104px');
   });
 
-  it('should not move or close again an editor that closed because its cell was not rendered', async() => {
+  it('should end the edit without saving when the edited cell scrolls out of the rendered range', async() => {
     const onClose = jest.fn();
     const hot = mountGrid(onClose);
     const editor = await openEditorOnStretchedCell(hot);
 
-    // A scroll that leaves the edited cell unrendered closes the editor from `EditorComponent` itself.
-    // That path hides the overlay but leaves the editor instance marked as opened.
+    await act(async() => {
+      editor.setValue('typed');
+    });
+
+    // The edited cell left the rendered range, so the editor has no cell to sit on.
     stubEditedCellRect(editor, undefined);
 
     await act(async() => {
       hot.runHooks('afterScrollVertically');
     });
 
+    expect(editor.isOpened()).toBe(false);
     expect(editorOverlay().style.display).toBe('none');
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(hot.getShortcutManager().getActiveContextName()).toBe('grid');
+    expect(hot.getDataAtCell(1, 1)).toBe('B2');
 
     stubEditedCellRect(editor, { start: 169, width: 104 });
 
@@ -153,9 +159,8 @@ describe('EditorComponent on a grid that changes size', () => {
       resizeGrid(hot, 500);
     });
 
-    expect(editorOverlay().style.display).toBe('none');
+    expect(editor.isOpened()).toBe(false);
     expect(editorOverlay().style.left).toBe('270px');
-    expect(editorOverlay().style.width).toBe('201px');
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
