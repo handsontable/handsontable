@@ -3563,6 +3563,11 @@ export default function Core(
         } finally {
           isValidatingChange = false;
         }
+
+        // A `beforeValidate` listener destroyed the grid, so no other change is validated.
+        if (!instance) {
+          return;
+        }
       }
     }
   }

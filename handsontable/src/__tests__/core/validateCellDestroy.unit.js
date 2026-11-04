@@ -145,6 +145,28 @@ describe('Core validation when the grid is destroyed from a validation callback'
         expect(uncaughtErrors).toEqual([]);
       });
 
+      [
+        ['one change', [[0, 0, 'x']]],
+        ['two changes', [[0, 0, 'x'], [1, 1, 'y']]],
+      ].forEach(([size, changes]) => {
+        it(`should end an edit of ${size} quietly when a beforeValidate listener destroys the grid`, async() => {
+          const afterChange = jest.fn();
+          const beforeValidate = jest.fn(() => core.destroy());
+
+          core = createHot(container, { data: [['a', 'b'], ['c', 'd']], validator, beforeValidate });
+          core.addHook('afterChange', afterChange);
+
+          expect(() => core.setDataAtCell(changes)).not.toThrow();
+
+          await flush();
+
+          expect(beforeValidate).toHaveBeenCalledTimes(1);
+          expect(core.isDestroyed).toBe(true);
+          expect(afterChange).not.toHaveBeenCalled();
+          expect(uncaughtErrors).toEqual([]);
+        });
+      });
+
       // With a cell selected, `applyChanges()` still refreshes the destroyed grid's editor after
       // `afterChange`. That is the edit path's own defect, outside the validation answer covered here.
       [
