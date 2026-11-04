@@ -1,4 +1,6 @@
 export const DEFAULT_BORDER = { color: '#000', width: 1 };
+// A border added from the context menu reads its color from the theme token.
+export const CONTEXT_MENU_BORDER = { color: 'var(--ht-custom-borders-default-color, #000)', width: 1 };
 export const GREEN_BORDER = { color: 'green', width: 1 };
 export const GREEN_THICK_BORDER = { color: 'green', width: 2 };
 export const RED_BORDER = { color: 'red', width: 2 };

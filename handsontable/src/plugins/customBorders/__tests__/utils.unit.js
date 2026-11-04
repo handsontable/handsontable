@@ -1,4 +1,7 @@
 import {
+  CONTEXT_MENU_BORDER_COLOR,
+  createContextMenuCustomBorder,
+  createDefaultCustomBorder,
   getShiftedIndexAfterInsert,
   getShiftedIndexAfterRemove,
   getViewportUnionRanges,
@@ -7,6 +10,23 @@ import {
 } from '../utils';
 
 describe('CustomBorders utils', () => {
+  describe('createDefaultCustomBorder', () => {
+    it('should keep the documented 1px black default for configured borders', () => {
+      expect(createDefaultCustomBorder()).toEqual({ width: 1, color: '#000' });
+    });
+  });
+
+  describe('createContextMenuCustomBorder', () => {
+    it('should color a context menu border with the theme token, falling back to black', () => {
+      expect(CONTEXT_MENU_BORDER_COLOR).toBe('var(--ht-custom-borders-default-color, #000)');
+      expect(createContextMenuCustomBorder()).toEqual({ width: 1, color: CONTEXT_MENU_BORDER_COLOR });
+    });
+
+    it('should return a new object on every call', () => {
+      expect(createContextMenuCustomBorder()).not.toBe(createContextMenuCustomBorder());
+    });
+  });
+
   describe('getShiftedIndexAfterInsert', () => {
     it('should shift an index at or after the insertion point by the inserted amount', () => {
       expect(getShiftedIndexAfterInsert(2, 2, 1)).toBe(3);

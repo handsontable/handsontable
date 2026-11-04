@@ -1,5 +1,5 @@
 import {
-  clearStyleCaches, getAlignmentFromMeta, getCssStyleFromElement, getDropdownValidation,
+  clearStyleCaches, getAlignmentFromMeta, getBorderFromMeta, getCssStyleFromElement, getDropdownValidation,
 } from '../types/xlsx/cell-style';
 
 describe('getAlignmentFromMeta', () => {
@@ -32,6 +32,16 @@ describe('getAlignmentFromMeta', () => {
     expect(getAlignmentFromMeta({ className: [null, undefined, 'htCenter'] })).toEqual({
       horizontal: 'center',
     });
+  });
+});
+
+describe('getBorderFromMeta', () => {
+  it('should export a border added from the context menu (a theme variable color) as black', () => {
+    const border = getBorderFromMeta({
+      borders: { bottom: { width: 1, color: 'var(--ht-custom-borders-default-color, #000)' } },
+    });
+
+    expect(border).toEqual({ bottom: { style: 'thin', color: { argb: 'FF000000' } } });
   });
 });
 
