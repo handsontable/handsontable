@@ -2,7 +2,7 @@
 type: how-to
 title: Server-side Data with Spring Boot
 metaTitle: Server-side Data with Spring Boot | Handsontable DataGrid for JavaScript
-description: Wire Handsontable DataGrid's dataProvider plugin to a Spring Boot 3 backend with JPA-backed pagination, server-side sorting and filtering, and full CRUD operations using H2.
+description: Wire Handsontable DataGrid's dataProvider plugin to a Spring Boot 3 backend with JPA-backed pagination, server-side sorting and filtering, and full CRUD operations using PostgreSQL.
 permalink: /recipes/data-management/server-side-spring
 canonicalUrl: /recipes/data-management/server-side-spring
 tags:
@@ -19,9 +19,10 @@ vue:
   metaTitle: Server-side Data with Spring Boot | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
+menuTag: updated
 ---
 
-This tutorial shows how to connect Handsontable DataGrid's `dataProvider` plugin to a Spring Boot 3 backend. You will build a product catalog grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a JPA-managed H2 database.
+This tutorial shows how to connect Handsontable DataGrid's `dataProvider` plugin to a Spring Boot 3 backend. You will build a product catalog grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a PostgreSQL database through Spring Data JPA.
 
 <a class="github-example-cta" href="https://github.com/handsontable/examples/tree/master/server-examples/spring" target="_blank" rel="noopener noreferrer">
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -208,7 +209,22 @@ List<Map<String, Object>> filters = objectMapper.readValue(
 );
 ```
 
-Handsontable sends filters as a JSON array in a single query parameter -- for example `[{"column":"category","value":"Electronics"}]`. The controller receives this as a raw `String`, and the service deserializes it with Jackson's `ObjectMapper`. Each entry becomes a `LIKE` predicate applied to the matching column.
+Handsontable sends filters as a JSON array in a single query parameter, with one entry per filtered column:
+
+```json
+[{ "prop": "price", "operation": "conjunction", "conditions": [{ "name": "gt", "args": [100] }] }]
+```
+
+The controller receives this as a raw `String`, and the service deserializes it with Jackson's `ObjectMapper`. `buildCondition()` maps each condition name to a JPA predicate:
+
+| Condition | Predicate |
+|---|---|
+| `eq`, `neq` | Case-insensitive equality on text columns, numeric equality on `price` and `stock` |
+| `contains`, `not_contains`, `begins_with`, `ends_with` | Case-insensitive `LIKE`, with `%`, `_`, and `\` in the value escaped |
+| `gt`, `gte`, `lt`, `lte`, `between`, `not_between` | Numeric comparison, on `price` and `stock` only |
+| `empty`, `not_empty` | `NULL` check, plus an empty-string check on text columns |
+
+The conditions of one column are joined with `OR` when `operation` is `disjunction`, and with `AND` otherwise. Different columns are always joined with `AND`. A column outside `ALLOWED_COLUMNS`, an unknown condition name, or a non-numeric argument to a numeric condition is skipped. A column whose conditions are all skipped adds no predicate, because an empty `OR` would match no rows.
 
 ### Page response mapping
 
@@ -235,7 +251,9 @@ The class-level `@Transactional` annotation wraps every public method in a singl
 - `@RestController` combines `@Controller` and `@ResponseBody`, so every method return value is serialized to JSON automatically.
 - `@RequestMapping("/api/products")` is the base path for all four endpoints.
 - The `@GetMapping` method uses `@RequestParam` with `required = false` for optional parameters. Spring returns `null` for absent params, which the service handles with null checks.
-- The `@PostMapping`, `@PatchMapping`, and `@DeleteMapping` methods receive their payloads as `@RequestBody` and return `200 OK` with no body. Handsontable only checks for a non-error HTTP status on mutation responses.
+- The `@PostMapping`, `@PatchMapping`, and `@DeleteMapping` methods receive their payloads as `@RequestBody`.
+- `createRows` returns `201 Created` with the new rows as a JSON array. Handsontable reads the server-assigned `id` values from this response.
+- `updateRows` and `removeRows` return `200 OK` with no body. Handsontable only checks for a non-error HTTP status on these responses.
 
 **Endpoint summary:**
 
@@ -351,9 +369,9 @@ Because `beforeRowsMutation` is synchronous and checks for a strict `=== false` 
 6. **User sorts by price descending**: Handsontable calls `fetchRows` with `sort: { prop: 'price', order: 'desc' }`.
 7. **Server receives**: `GET /api/products?page=1&pageSize=10&sortProp=price&sortOrder=desc`
 8. **Service builds**: `Sort.by(DESC, "price")` and creates a new `PageRequest`.
-9. **User applies a filter**: Handsontable calls `fetchRows` with `filters: [{ column: 'category', value: 'Electronics' }]`.
-10. **Server receives**: `GET /api/products?...&filters=[{"column":"category","value":"Electronics"}]`
-11. **Service deserializes**: Jackson parses the JSON string into `List<Map<String, Object>>`, which becomes a JPA `LIKE '%electronics%'` predicate.
+9. **User applies a filter**: Handsontable calls `fetchRows` with `filters: [{ prop: 'category', operation: 'conjunction', conditions: [{ name: 'eq', args: ['Electronics'] }] }]`.
+10. **Server receives**: `GET /api/products?...&filters=[{"prop":"category","operation":"conjunction","conditions":[{"name":"eq","args":["Electronics"]}]}]` (URL-encoded)
+11. **Service deserializes**: Jackson parses the JSON string into `List<Map<String, Object>>`, and `buildCondition()` turns `eq` into a case-insensitive equality predicate on `category`.
 12. **User edits a cell**: Handsontable calls `onRowsUpdate` with `[{ id: 4, changes: { price: 599.00 } }]`.
 13. **Server receives**: `PATCH /api/products/update-rows` -- service finds the product by ID and updates only the `price` field.
 14. **User inserts a row**: The user right-clicks and selects **Insert row below**. `onRowsCreate` fires with `{ position: 'below', referenceRowId: 4, rowsAmount: 1 }`. Spring creates a blank row and returns it. `dataProvider` updates its internal row map and Handsontable shows a "Row added" success notification.
@@ -365,14 +383,14 @@ Because `beforeRowsMutation` is synchronous and checks for a strict `=== false` 
 - How to map Spring Data's `Page<T>` response to the `{ rows, totalRows }` shape the `dataProvider` plugin expects.
 - How to whitelist sort columns to prevent SQL injection through the `sortProp` query parameter.
 - How to deserialize Handsontable's JSON filter array from a single query parameter using Jackson's `ObjectMapper`.
-- How to use `JpaSpecificationExecutor` to apply dynamic `LIKE` predicates without writing raw queries.
+- How to map Handsontable's filter conditions to JPA predicates with `JpaSpecificationExecutor`, without writing raw queries.
 - How to use `@Transactional(readOnly = true)` on reads and `@Transactional` on mutations for correct transaction boundaries.
 - How to configure CORS with `WebMvcConfigurer` so the browser can reach the Spring Boot API from a different origin.
 - How `notification: true` and `emptyDataState: true` improve the user experience when the server is slow or returns no results.
 
 ## Next steps
 
-- Replace H2 with a persistent database (PostgreSQL, MySQL) by swapping the datasource in `application.properties` and changing `ddl-auto` to `validate`.
+- Swap PostgreSQL for another database, such as MySQL, by changing the datasource in `application.properties` and the Flyway migration.
 - Add `@Valid` to the controller DTOs and define Bean Validation constraints (e.g. `@NotBlank` on `name`, `@Positive` on `price`) to return structured error responses when the user saves invalid data.
 - Secure the API with Spring Security: require authentication for mutation endpoints while keeping `GET /api/products` public.
 - Compare with the [Laravel recipe](@/recipes/data-management/server-side-laravel/server-side-laravel.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.

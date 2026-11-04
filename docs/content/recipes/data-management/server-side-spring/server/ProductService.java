@@ -10,7 +10,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -36,6 +40,13 @@ public class ProductService {
         "id", "name", "sku", "category", "price", "stock"
     );
 
+    /**
+     * Columns compared as numbers by gt, gte, lt, lte, between, and not_between.
+     *
+     * Other columns, including id, are compared as text.
+     */
+    private static final Set<String> NUMERIC_COLUMNS = Set.of("price", "stock");
+
     private final ProductRepository repository;
     private final ObjectMapper objectMapper;
 
@@ -51,7 +62,7 @@ public class ProductService {
      * @param pageSize    Rows per page.
      * @param sortProp    Column name to sort by, or null for default (id ASC).
      * @param sortOrder   "asc" or "desc", or null.
-     * @param filtersJson JSON array of { column, value } filter objects, or null.
+     * @param filtersJson JSON array of HOT filter columns ({ prop, operation, conditions }), or null.
      * @return Map with keys "rows" (List<Product>) and "totalRows" (long).
      */
     @Transactional(readOnly = true)
@@ -79,9 +90,10 @@ public class ProductService {
      * Creates rowsAmount empty product rows.
      *
      * Each new row gets a placeholder name and a UUID-derived SKU to satisfy
-     * the unique SKU constraint.
+     * the unique SKU constraint. Returns the saved rows with their database ids,
+     * which Handsontable needs to track the new rows.
      */
-    public void createRows(CreateRowsPayload payload) {
+    public List<Product> createRows(CreateRowsPayload payload) {
         List<Product> newProducts = new ArrayList<>();
 
         for (int i = 0; i < payload.getRowsAmount(); i++) {
@@ -94,7 +106,7 @@ public class ProductService {
             newProducts.add(p);
         }
 
-        repository.saveAll(newProducts);
+        return repository.saveAll(newProducts);
     }
 
     /**
@@ -123,7 +135,8 @@ public class ProductService {
                 }
                 if (changes.containsKey("stock")) {
                     Object val = changes.get("stock");
-                    product.setStock(val == null ? null : Integer.parseInt(val.toString()));
+                    // JSON numbers arrive as Integer or Double; intValue() handles both.
+                    product.setStock(val == null ? null : ((Number) val).intValue());
                 }
 
                 repository.save(product);
@@ -162,43 +175,143 @@ public class ProductService {
     /**
      * Deserializes HOT's JSON filter array and converts it to a JPA Specification.
      *
-     * HOT sends filters as a JSON array -- e.g.:
-     *   [{"column":"category","value":"Electronics"}]
+     * HOT sends one entry per filtered column, e.g.:
+     * [{"prop":"price","operation":"conjunction","conditions":[{"name":"gt","args":[100]}]}]
      *
-     * Each filter becomes a LIKE predicate on the matching column.
-     * Columns not in ALLOWED_COLUMNS are silently ignored.
+     * Conditions within a column are combined with OR when operation is
+     * "disjunction", otherwise with AND. Columns are always combined with AND.
+     * Columns not in ALLOWED_COLUMNS and condition names this method doesn't
+     * handle are skipped.
      */
     private Specification<Product> buildFilters(String filtersJson) {
         if (filtersJson == null || filtersJson.isBlank()) {
             return Specification.where(null);
         }
-
         try {
             List<Map<String, Object>> filters = objectMapper.readValue(
                 filtersJson,
                 new TypeReference<>() {}
             );
-
             return (root, query, builder) -> {
-                List<Predicate> predicates = new ArrayList<>();
-
+                List<Predicate> columnPredicates = new ArrayList<>();
                 for (Map<String, Object> filter : filters) {
-                    String column = (String) filter.get("column");
-                    String value  = String.valueOf(filter.get("value"));
-
-                    if (column != null && ALLOWED_COLUMNS.contains(column)) {
-                        predicates.add(builder.like(
-                            builder.lower(root.get(column).as(String.class)),
-                            "%" + value.toLowerCase() + "%"
-                        ));
+                    Object prop = filter.get("prop");
+                    Object conditions = filter.get("conditions");
+                    if (!(prop instanceof String column) || !ALLOWED_COLUMNS.contains(column)
+                            || !(conditions instanceof List<?> conditionList)) {
+                        continue;
                     }
+                    List<Predicate> conditionPredicates = new ArrayList<>();
+                    for (Object condition : conditionList) {
+                        if (condition instanceof Map<?, ?> c && c.get("name") instanceof String name) {
+                            List<?> args = c.get("args") instanceof List<?> list ? list : List.of();
+                            Predicate predicate = buildCondition(root, builder, column, name, args);
+                            if (predicate != null) {
+                                conditionPredicates.add(predicate);
+                            }
+                        }
+                    }
+                    // A column whose conditions were all skipped adds no predicate. An empty
+                    // OR would match no rows.
+                    if (conditionPredicates.isEmpty()) {
+                        continue;
+                    }
+                    Predicate[] parts = conditionPredicates.toArray(new Predicate[0]);
+                    columnPredicates.add("disjunction".equals(filter.get("operation"))
+                        ? builder.or(parts)
+                        : builder.and(parts));
                 }
-
-                return builder.and(predicates.toArray(new Predicate[0]));
+                return builder.and(columnPredicates.toArray(new Predicate[0]));
             };
         } catch (Exception e) {
             // If the filter JSON is malformed, return all rows unfiltered.
             return Specification.where(null);
         }
+    }
+
+    /**
+     * Maps one HOT condition to a predicate, or returns null to skip it.
+     *
+     * Text comparisons are case-insensitive. Numeric comparisons (gt, gte, lt,
+     * lte, between, not_between) apply only to NUMERIC_COLUMNS.
+     */
+    private Predicate buildCondition(Root<Product> root, CriteriaBuilder builder,
+            String column, String name, List<?> args) {
+        Path<Object> path = root.get(column);
+        boolean numeric = NUMERIC_COLUMNS.contains(column);
+        Expression<String> text = builder.lower(path.as(String.class));
+
+        if (name.equals("empty")) {
+            return numeric ? builder.isNull(path) : builder.or(builder.isNull(path), builder.equal(text, ""));
+        }
+        if (name.equals("not_empty")) {
+            return numeric ? builder.isNotNull(path) : builder.and(builder.isNotNull(path), builder.notEqual(text, ""));
+        }
+        if (args.isEmpty() || args.get(0) == null) {
+            return null;
+        }
+        String value = args.get(0).toString();
+
+        try {
+            switch (name) {
+                case "eq":
+                    return numeric
+                        ? builder.equal(path.as(BigDecimal.class), new BigDecimal(value))
+                        : builder.equal(text, value.toLowerCase());
+                case "neq":
+                    return numeric
+                        ? builder.notEqual(path.as(BigDecimal.class), new BigDecimal(value))
+                        : builder.notEqual(text, value.toLowerCase());
+                case "contains":
+                    return builder.like(text, "%" + escapeLike(value) + "%", '\\');
+                case "not_contains":
+                    return builder.notLike(text, "%" + escapeLike(value) + "%", '\\');
+                case "begins_with":
+                    return builder.like(text, escapeLike(value) + "%", '\\');
+                case "ends_with":
+                    return builder.like(text, "%" + escapeLike(value), '\\');
+                default:
+                    break;
+            }
+            if (!numeric) {
+                return null;
+            }
+            Expression<BigDecimal> number = path.as(BigDecimal.class);
+            BigDecimal first = new BigDecimal(value);
+            switch (name) {
+                case "gt":
+                    return builder.greaterThan(number, first);
+                case "gte":
+                    return builder.greaterThanOrEqualTo(number, first);
+                case "lt":
+                    return builder.lessThan(number, first);
+                case "lte":
+                    return builder.lessThanOrEqualTo(number, first);
+                case "between":
+                case "not_between":
+                    if (args.size() < 2 || args.get(1) == null) {
+                        return null;
+                    }
+                    BigDecimal second = new BigDecimal(args.get(1).toString());
+                    BigDecimal low = first.min(second);
+                    BigDecimal high = first.max(second);
+                    return name.equals("between")
+                        ? builder.between(number, low, high)
+                        : builder.or(builder.lessThan(number, low), builder.greaterThan(number, high));
+                default:
+                    return null;
+            }
+        } catch (NumberFormatException e) {
+            // A non-numeric argument for a numeric condition: skip the condition.
+            return null;
+        }
+    }
+
+    /** Escapes LIKE metacharacters so user input is matched literally. */
+    private static String escapeLike(String value) {
+        return value.toLowerCase()
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_");
     }
 }
