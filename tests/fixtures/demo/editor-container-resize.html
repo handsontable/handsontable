@@ -33,6 +33,12 @@
     if (!window.htLayout) {
       throw new Error('Unknown ?layout= value: ' + JSON.stringify(htParams.get('layout')));
     }
+    // `async` parks every validation until a test answers it (`htPendingValidations`), which keeps an
+    // edit in the waiting state, and turns column sorting on so a test can reorder rows meanwhile.
+    window.htValidator = ({ none: 'none', async: 'async' })[htParams.get('validator') ?? 'none'];
+    if (!window.htValidator) {
+      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
+    }
     // The editor of the last column: the text editor, a layered one that keeps its list while it
     // is scrolled away (`dropdown`), and two that close when their cell is not rendered.
     window.htEditor = ({ text: 'text', dropdown: 'dropdown', select: 'select', multiselect: 'multiselect' })[htParams.get('editor') ?? 'text'];
@@ -118,6 +124,15 @@
     // Counts the size-changing `refreshDimensions()` runs, so a test can wait for the grid to
     // have reacted to a viewport resize instead of sleeping.
     window.htSizeChanges = 0;
+    window.htPendingValidations = [];
+
+    const asyncValidation = window.htValidator === 'async' ? {
+      allowInvalid: false,
+      columnSorting: true,
+      validator(value, callback) {
+        window.htPendingValidations.push(callback);
+      },
+    } : {};
 
     try {
       window.hot = new Handsontable(container, {
@@ -128,6 +143,7 @@
         height: isHeightLayout ? '75vh' : 300,
         stretchH: isHeightLayout ? 'none' : 'all',
         columns: columnsSettings,
+        ...asyncValidation,
         licenseKey: window.htTestLicenseKey,
         afterRefreshDimensions(previous, next, isSizeChanged) {
           if (isSizeChanged) {

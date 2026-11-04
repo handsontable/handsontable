@@ -14,6 +14,12 @@ export type ResizeLayout = 'height' | 'width';
 export type ResizeEditor = 'text' | 'dropdown' | 'select' | 'multiselect';
 
 /**
+ * Whether the fixture's validator answers at once (`none`) or parks every validation until
+ * `settleValidation()` answers it (`async`).
+ */
+export type ResizeValidator = 'none' | 'async';
+
+/**
  * A box in viewport coordinates.
  */
 export type Box = { left: number, top: number, right: number, bottom: number, width: number };
@@ -24,6 +30,7 @@ export type Box = { left: number, top: number, right: number, bottom: number, wi
  */
 export type EditorState = {
   opened: boolean;
+  state: string | null;
   textareaFocused: boolean;
   value: string | null;
   cell: Box | null;
@@ -34,6 +41,7 @@ export type EditorState = {
 
 type EditorLike = {
   isOpened(): boolean,
+  state?: string,
   TEXTAREA?: HTMLTextAreaElement,
 };
 
@@ -44,8 +52,12 @@ type ResizeWindow = {
     getCell(row: number, column: number, topmost?: boolean): HTMLTableCellElement | null,
     getDataAtCell(row: number, column: number): unknown,
     refreshDimensions(): void,
+    scrollViewportTo(options: { row?: number, col?: number }): boolean,
+    getPlugin(name: string): { sort(config: { column: number, sortOrder: string }): void },
+    toVisualRow(row: number): number,
     rootElement: HTMLElement,
   },
+  htPendingValidations: Array<(valid: boolean) => void>,
   htEditorParts(): { anchor: Element | null, popup: Element | null },
   htSizeChanges: number,
 };
@@ -73,10 +85,12 @@ export class EditorContainerResizePage {
    * Navigate to the fixture in the given layout, with the given editor in the last column, and
    * wait for the grid to render.
    */
-  async goto(layout: ResizeLayout, editor: ResizeEditor = 'text'): Promise<void> {
+  async goto(
+    layout: ResizeLayout, editor: ResizeEditor = 'text', validator: ResizeValidator = 'none'
+  ): Promise<void> {
     await this.page.goto(
       '/tests/fixtures/demo/editor-container-resize.html' +
-      `?theme=${this.theme}&bundle=${this.bundle}&layout=${layout}&editor=${editor}`
+      `?theme=${this.theme}&bundle=${this.bundle}&layout=${layout}&editor=${editor}&validator=${validator}`
     );
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
@@ -141,6 +155,7 @@ export class EditorContainerResizePage {
 
       return {
         opened: editor?.isOpened() ?? false,
+        state: editor?.state ?? null,
         textareaFocused: input !== null && document.activeElement === input,
         value: input?.value ?? null,
         cell: box(hot.getCell(r, c, true)),
@@ -149,6 +164,55 @@ export class EditorContainerResizePage {
         viewportHeight: window.innerHeight,
       };
     }, [row, col]);
+  }
+
+  /**
+   * How many validations are parked, waiting for `settleValidation()`.
+   */
+  async pendingValidations(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as ResizeWindow).htPendingValidations.length);
+  }
+
+  /**
+   * Answers the oldest parked validation.
+   */
+  async settleValidation(valid: boolean): Promise<void> {
+    await this.page.evaluate((result) => {
+      const { htPendingValidations } = window as unknown as ResizeWindow;
+      const answer = htPendingValidations.shift();
+
+      if (!answer) {
+        throw new Error('no validation is waiting');
+      }
+
+      answer(result);
+    }, valid);
+  }
+
+  /**
+   * Sorts the grid by its first column, ascending, and returns the visual row the record that was
+   * on `row` ends up on.
+   */
+  async sortByFirstColumn(row: number): Promise<number> {
+    return this.page.evaluate((physicalRow) => {
+      const { hot } = window as unknown as ResizeWindow;
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      return hot.toVisualRow(physicalRow);
+    }, row);
+  }
+
+  /**
+   * Scrolls the grid's viewport to its first row and waits for the grid to have handled the scroll.
+   */
+  async scrollGridToTop(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as ResizeWindow;
+
+      hot.scrollViewportTo({ row: 0, col: 0 });
+    });
+    await afterAnimationFrames(this.page, 2);
   }
 
   /**

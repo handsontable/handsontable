@@ -108,6 +108,63 @@ test.describe('editor on a grid that changes size', () => {
     }).toEqual({ opened: true, focused: true, offset: offsetBefore, extraWidth: extraWidthBefore });
   });
 
+  test('places the select editor on its cell after a resize during a rejected validation', async() => {
+    await grid.goto('height', 'select', 'async');
+    await grid.openEditorAt(39, 11);
+
+    const before = await grid.editorState(39, 11);
+    const offsetBefore = offset(before.cell!, before.anchor!);
+
+    // Confirming the edit parks the editor in the waiting state until the validator answers.
+    await grid.page.keyboard.press('Enter');
+    await expect.poll(() => grid.pendingValidations()).toBe(1);
+    expect((await grid.editorState(39, 11)).state).toBe('STATE_WAITING');
+
+    await grid.resizeViewport(900, 180);
+    await grid.waitForFrames();
+    await grid.settleValidation(false);
+
+    // The rejected edit goes back to editing, and the editor sits on the cell the grid now shows.
+    await expect.poll(async() => {
+      const { opened, state, cell, anchor } = await grid.editorState(39, 11);
+
+      return {
+        opened,
+        state,
+        offset: cell && anchor ? offset(cell, anchor) : null,
+      };
+    }).toEqual({ opened: true, state: 'STATE_EDITING', offset: offsetBefore });
+  });
+
+  test('does not scroll the grid for an edit that waits for its validator, even after a sort', async() => {
+    await grid.goto('height', 'text', 'async');
+    await grid.openEditorAt(39, 11);
+    await grid.page.keyboard.type('xyz');
+    await grid.page.keyboard.press('Enter');
+    await expect.poll(() => grid.pendingValidations()).toBe(1);
+
+    // The sort moves the record of the edit off visual row 39, which the waiting editor still holds.
+    // Looking at the top of the grid then puts the record out of the rendered range.
+    const sortedRow = await grid.sortByFirstColumn(39);
+
+    expect(sortedRow).toBeLessThan(39);
+
+    await grid.scrollGridToTop();
+
+    const scrollBefore = await grid.holderScroll();
+
+    expect(scrollBefore.top).toBe(0);
+
+    await grid.resizeViewport(900, 180);
+    await grid.waitForFrames();
+
+    expect(await grid.holderScroll()).toEqual(scrollBefore);
+
+    // Positive control: the validator accepts the edit and the editor closes, so the wait was real.
+    await grid.settleValidation(true);
+    await expect.poll(async() => (await grid.editorState(39, 11)).opened).toBe(false);
+  });
+
   test('does not scroll the grid on a resize while no editor is open', async() => {
     await grid.goto('height');
     await grid.openEditorAt(39, 11);

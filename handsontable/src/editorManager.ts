@@ -168,6 +168,12 @@ class EditorManager {
    * A resize with no open editor scrolls nothing, as before, and neither does a refresh that leaves
    * the grid's size unchanged (a grid the window scrolls reports every window resize).
    *
+   * An editor parked in `WAITING` for an asynchronous validator is left alone until the validator
+   * answers. While it waits, its coordinates are not kept in step with a sort or a filter, and
+   * `refreshDimensions()` of the text and select editors does nothing outside `EDITING`, so a scroll
+   * to those coordinates could land on another record while the editor stayed put. An editor the
+   * validator rejects is back in `EDITING` by then and is placed like any other.
+   *
    * @param {object} previousDimensions The grid's size before the resize.
    * @param {object} currentDimensions The grid's size after the resize.
    * @param {boolean} isSizeChanged Whether the grid's size changed.
@@ -183,13 +189,67 @@ class EditorManager {
       return;
     }
 
-    const { row, col } = editor;
+    if (editor.state === EDITOR_STATE.WAITING) {
+      this.#placeEditorAfterValidation();
 
-    if (row === null || col === null) {
       return;
     }
 
-    if (this.hot.scrollViewportTo({ row, col })) {
+    this.#placeEditorOnItsCell();
+  };
+  /**
+   * Whether a placement is already queued behind the validator the active editor waits for, so
+   * several resizes during one validation queue one hook.
+   *
+   * @type {boolean}
+   */
+  #isPlacementQueued = false;
+  /**
+   * Queues `#placeEditorOnItsCell()` for the moment the validator the active editor waits for answers.
+   *
+   * The hook is registered after the editor's own `postAfterValidate` hook, so it runs after the
+   * editor has either closed or gone back to `EDITING`. A validation of another cell can answer
+   * first; the editor is then still waiting and the placement is queued again.
+   */
+  #placeEditorAfterValidation(): void {
+    if (this.#isPlacementQueued) {
+      return;
+    }
+
+    this.#isPlacementQueued = true;
+
+    this.hot.addHookOnce('postAfterValidate', () => {
+      this.#isPlacementQueued = false;
+
+      const editor = this.activeEditor;
+
+      if (this.destroyed || !editor?.isOpened()) {
+        return;
+      }
+
+      if (editor.state === EDITOR_STATE.WAITING) {
+        this.#placeEditorAfterValidation();
+
+        return;
+      }
+
+      this.#placeEditorOnItsCell();
+    });
+  }
+  /**
+   * Scrolls the cell the active editor edits into view, then repositions the editor on it.
+   *
+   * The scroll comes first: asked to reposition on a cell that is not rendered, several editors
+   * close or hide themselves.
+   */
+  #placeEditorOnItsCell(): void {
+    const editor = this.activeEditor;
+
+    if (!editor?.isOpened() || editor.row === null || editor.col === null) {
+      return;
+    }
+
+    if (this.hot.scrollViewportTo({ row: editor.row, col: editor.col })) {
       // Draw the scrolled viewport now, so the edited cell is rendered before the editor reads it.
       this.hot.view.render();
     }
@@ -197,7 +257,7 @@ class EditorManager {
     if ('refreshDimensions' in editor && typeof editor.refreshDimensions === 'function') {
       editor.refreshDimensions();
     }
-  };
+  }
   /**
    * Determines whether a cache update renumbered the physical index space.
    *
