@@ -236,7 +236,10 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
 
   assert.match(a11y, /^ {4}needs: \[ build \]$/m);
   assert.match(a11y, /^ {4}uses: \.\/\.github\/workflows\/a11y\.yml$/m);
-  assert.match(a11y, /^ {6}nightly: true$/m, `${NIGHTLY}: the nightly runs every check. ${CHECKS_DOC}`);
+  assert.match(a11y, /^ {6}nightly: \$\{\{ inputs\.suite != 'pull-request' \}\}$/m,
+    `${NIGHTLY}: every check on the cron and on a plain dispatch; a dispatch that asks for the short suite (suite: pull-request) runs the checks a developer runs locally. ${CHECKS_DOC}`);
+  assert.match(workflow, /^ {2}workflow_dispatch:\n {4}inputs:\n {6}suite:\n(?: {8}.*\n)*? {8}options: \[ nightly, pull-request \]$/m,
+    `${NIGHTLY}: a dispatch picks the suite, every check by default. ${CHECKS_DOC}`);
   assert.doesNotMatch(a11y, /secrets: inherit/, `${NIGHTLY}: the called workflow reads only GITHUB_TOKEN.`);
   assert.match(job(workflow, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the checks consume the UMD build artifact.`);
   for (const id of ['build', 'a11y']) {
@@ -248,3 +251,26 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
     `${NIGHTLY}: Slack hears of a run that never reached the checks (failure()), on develop only. ${CHECKS_DOC}`);
 });
 
+
+test('the checks beyond axe run only when the caller asks for them: the A11y nightly does, test.yml does not', () => {
+  const workflow = stripYamlComments(read(A11Y));
+  const [header] = workflow.split(/^jobs:$/m);
+  const input = header.split(/^ {6}(?=[A-Za-z0-9_-]+:$)/m).find(block => block.startsWith('checks:')) ?? '';
+
+  assert.match(input, /^ {8}type: boolean$/m, `${A11Y}: the checks input is a boolean of workflow_call. ${CHECKS_DOC}`);
+  assert.match(input, /^ {8}default: false$/m,
+    `${A11Y}: the checks are off unless the caller asks, so a caller that passes nothing runs the axe scan only. ${CHECKS_DOC}`);
+  assert.match(job(workflow, 'checks'), /^ {4}if: \$\{\{ inputs\.checks \}\}$/m,
+    `${A11Y}: the checks job runs only when the caller asks; a skipped job runs no step and posts no check run. ${CHECKS_DOC}`);
+  assert.doesNotMatch(job(workflow, 'axe'), /^ {4}if:/m,
+    `${A11Y}: the axe scan runs on every call; it is the one accessibility guard a pull request gets. ${CHECKS_DOC}`);
+
+  const tests = job(stripYamlComments(read(TESTS)), 'a11y');
+
+  assert.doesNotMatch(tests, /^ {6}checks:/m,
+    `${TESTS}: the pull-request pipeline passes nothing, so a pull request runs the axe scan only: the checks are report-only, and a pull request learned nothing from them it could act on. ${CHECKS_DOC}`);
+
+  const nightly = job(stripYamlComments(read(NIGHTLY)), 'a11y');
+
+  assert.match(nightly, /^ {6}checks: true$/m, `${NIGHTLY}: the nightly is where the checks beyond axe run. ${CHECKS_DOC}`);
+});
