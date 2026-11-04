@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a React `EditorComponent` editor staying at its old position when the grid resized without scrolling.",
+  "title": "Fixed an `EditorComponent` editor staying at its old position when the grid resized without scrolling.",
   "type": "fixed",
   "issueOrPR": 14149,
   "breaking": false,
