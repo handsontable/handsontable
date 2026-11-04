@@ -47,6 +47,7 @@ export class LicenseBrandingPage {
   readonly poweredBy: Locator;
   readonly poweredByLink: Locator;
   readonly poweredByLogo: Locator;
+  readonly poweredByText: Locator;
   readonly lock: Locator;
   readonly outsideField: Locator;
   readonly lockContactButton: Locator;
@@ -70,6 +71,7 @@ export class LicenseBrandingPage {
     this.poweredBy = page.locator('.ht-license-powered-by');
     this.poweredByLink = this.poweredBy.getByRole('link', { name: 'Powered by Handsontable DataGrid' });
     this.poweredByLogo = this.poweredBy.locator('.ht-license-powered-by__logo');
+    this.poweredByText = this.poweredBy.locator('.ht-license-powered-by__text');
     this.lock = page.locator('.ht-license-lock');
     // Links, not buttons: a `mailto:` action must be a real anchor (see lockScreen.ts).
     // A field the host page owns, above the grid, focused before the grid is
@@ -126,6 +128,27 @@ export class LicenseBrandingPage {
         cellHeightPx: (element as HTMLElement).offsetHeight,
       };
     });
+  }
+
+  /**
+   * Clicks one part of the "Powered by" bar's link and returns the tab the click opened. The page
+   * answers handsontable.com itself, so the test needs no network.
+   */
+  async clickPoweredBy(part: 'logo' | 'text'): Promise<Page> {
+    const context = this.page.context();
+
+    await context.route('https://handsontable.com/**', route => route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<title>handsontable.com</title>',
+    }));
+
+    const [opened] = await Promise.all([
+      context.waitForEvent('page'),
+      (part === 'logo' ? this.poweredByLogo : this.poweredByText).click(),
+    ]);
+
+    return opened;
   }
 
   /**

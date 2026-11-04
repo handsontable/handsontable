@@ -579,6 +579,18 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       expect(blue!.maxX).toBeGreaterThanOrEqual(ink!.maxX);
     });
 
+    for (const part of ['logo', 'text'] as const) {
+      test(`opens handsontable.com in a new tab when its ${part} is clicked`, async ({ page }) => {
+        await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+
+        const opened = await license.clickPoweredBy(part);
+
+        await expect(opened).toHaveURL('https://handsontable.com/');
+        // A new tab, not a navigation: the app's own page stays where it was.
+        await expect(page).toHaveURL(/license-branding\.html/);
+      });
+    }
+
     test('is reached with Tab from the grid\'s last cell, and Shift+Tab goes back into the grid', async ({ page }) => {
       await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
 
