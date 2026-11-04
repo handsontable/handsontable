@@ -268,38 +268,58 @@ export class FiltersValueListPage {
    *
    * The list is virtualized, so `listedValues()` sees only the rows that are rendered. This scrolls
    * the list from top to bottom one page at a time, collects each page, and scrolls back to the top.
+   * Each page is read in one evaluation (Walkontable recycles row nodes, so separate reads could pair
+   * one row's checkbox with another row's label), and each scroll waits until the rendered labels
+   * change or the end of the list is reached, never a frame count.
    *
    * @returns {Promise<Array>} One entry per listed value, in display order.
    */
   async allListedValues(): Promise<{ checked: boolean; label: string }[]> {
     const holder = this.menu.locator('.htUIMultipleSelect .ht_master .wtHolder');
-    const collected: { checked: boolean; label: string }[] = [];
+    const readPage = () => this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody').evaluate(
+      tbody => Array.from(tbody.querySelectorAll('tr')).map(row => ({
+        checked: (row.querySelector('input[type="checkbox"]') as HTMLInputElement).checked,
+        label: (row.querySelector('label') as HTMLElement).innerText.trim(),
+      })));
+    const metrics = () => holder.evaluate(el => ({
+      top: el.scrollTop, height: el.clientHeight, total: el.scrollHeight,
+    }));
     const scrollTo = (top: number) => holder.evaluate((el, value) => {
       el.scrollTop = value;
     }, top);
+    const collected: { checked: boolean; label: string }[] = [];
+    const MAX_PAGES = 200;
 
     await scrollTo(0);
+    await expect.poll(async () => (await readPage()).length).toBeGreaterThan(0);
 
-    for (let top = 0; ; ) {
-      for (const item of await this.listedValues()) {
+    let previous = '';
+
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const rows = await readPage();
+
+      for (const item of rows) {
         if (!collected.some(({ label }) => label === item.label)) {
           collected.push(item);
         }
       }
 
-      const { height, total } = await holder.evaluate(el => ({
-        height: el.clientHeight,
-        total: el.scrollHeight,
-      }));
+      previous = rows.map(({ label }) => label).join('\n');
 
-      if (top + height >= total) {
+      const { top, height, total } = await metrics();
+
+      if (top + height >= total - 1) {
         break;
       }
 
-      top += height - 1;
-      await scrollTo(top);
-      // The list repaints on scroll; wait one frame so the next read sees the new rows.
-      await this.page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve(null))));
+      await scrollTo(top + height - 1);
+      // Settled once the rendered labels differ from the previous page, or the list cannot scroll further.
+      await expect.poll(async () => {
+        const labels = (await readPage()).map(({ label }) => label).join('\n');
+        const after = await metrics();
+
+        return labels !== previous || after.top + after.height >= after.total - 1;
+      }).toBe(true);
     }
 
     await scrollTo(0);

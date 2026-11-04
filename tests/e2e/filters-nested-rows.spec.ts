@@ -12,7 +12,7 @@ test.describe('Filters — "filter by value" list with nested rows', () => {
     await grid.goto();
     await grid.openMenu('Category');
 
-    expect(await grid.allListedValues()).toEqual([
+    await expect.poll(() => grid.allListedValues()).toEqual([
       { checked: true, label: '(Blank cells)' },
       { checked: true, label: 'Best Metal Performance' },
       { checked: true, label: 'Best Rock Album' },
