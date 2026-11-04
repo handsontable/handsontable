@@ -1604,7 +1604,7 @@ You are affected only if you use an [entitlement license key](@/guides/getting-s
 - You changed the text of the key.
 - Something follows the bracketed block, such as an email signature or a closing quote.
 
-Keys in the 25-character format are not affected. The `'non-commercial-and-evaluation'` key reads as invalid in 19.0 for another reason: see section 55.
+Keys in the 25-character format are not affected, except `'ht68e-1f2b7-47158-70b05-0842f'`. That key and the `'non-commercial-and-evaluation'` key read as invalid in 19.0 for another reason: see section 55.
 
 ### How to migrate
 

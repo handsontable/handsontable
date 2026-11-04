@@ -5021,8 +5021,9 @@ export default (): Record<string, unknown> => {
      * | A string with your [commercial license key](@/guides/getting-started/license-key/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license/software-license.md#commercial-use)         |
      * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
      *
-     * Since Handsontable 19.0, the `'non-commercial-and-evaluation'` key is not a valid key: it locks the grid,
-     * as any invalid key does. See [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+     * Since Handsontable 19.0, the `'non-commercial-and-evaluation'` key, and its second form
+     * `'ht68e-1f2b7-47158-70b05-0842f'`, are not valid keys: they lock the grid, as any invalid key does.
+     * See [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
      *
      * An entitlement license key can list the features it unlocks. A plugin such a key does not list
      * stays off, and the console and the bar under the grid name it. The plugin's option keeps the
