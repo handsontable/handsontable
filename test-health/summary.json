@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T11:10:14.830Z",
+  "generatedAt": "2026-11-04T11:57:33.600Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -683,7 +683,7 @@
       "line": 87,
       "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "count7": 0,
-      "count30": 6,
+      "count30": 5,
       "countAll": 6,
       "runs30": 3,
       "flakyRuns30": 3,
