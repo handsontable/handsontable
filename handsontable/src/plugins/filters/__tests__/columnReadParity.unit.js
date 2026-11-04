@@ -414,6 +414,36 @@ describe('Filters -> column read parity', () => {
 
       expect(hot.getDataAtCol(0)).toEqual(['Child A1', 'Child A2']);
     });
+
+    describe('with the filter-by-value list', () => {
+      const buildTree = () => buildGrid([
+        {
+          name: 'Parent A',
+          __children: [{ name: 'Child A1' }, { name: 'Child A2' }],
+        },
+        {
+          name: 'Parent B',
+          __children: [{ name: 'Child B1', __children: [{ name: 'Grandchild B1a' }] }],
+        },
+      ], {
+        nestedRows: true,
+        columns: [{ data: 'name' }],
+      }).getPlugin('filters');
+
+      it('should list the values of every row of an expanded tree', () => {
+        const filters = buildTree();
+
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Child A2', 'Parent B', 'Child B1', 'Grandchild B1a',
+        ]);
+      });
+
+      it('should list a value that only a deep child of the last parent holds', () => {
+        const filters = buildTree();
+
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toContain('Grandchild B1a');
+      });
+    });
   });
 
   describe('the filter-by-value list', () => {

@@ -264,6 +264,50 @@ export class FiltersValueListPage {
   }
 
   /**
+   * Every item of the "filter by value" list, including those past the fold.
+   *
+   * The list is virtualized, so `listedValues()` sees only the rows that are rendered. This scrolls
+   * the list from top to bottom one page at a time, collects each page, and scrolls back to the top.
+   *
+   * @returns {Promise<Array>} One entry per listed value, in display order.
+   */
+  async allListedValues(): Promise<{ checked: boolean; label: string }[]> {
+    const holder = this.menu.locator('.htUIMultipleSelect .ht_master .wtHolder');
+    const collected: { checked: boolean; label: string }[] = [];
+    const scrollTo = (top: number) => holder.evaluate((el, value) => {
+      el.scrollTop = value;
+    }, top);
+
+    await scrollTo(0);
+
+    for (let top = 0; ; ) {
+      for (const item of await this.listedValues()) {
+        if (!collected.some(({ label }) => label === item.label)) {
+          collected.push(item);
+        }
+      }
+
+      const { height, total } = await holder.evaluate(el => ({
+        height: el.clientHeight,
+        total: el.scrollHeight,
+      }));
+
+      if (top + height >= total) {
+        break;
+      }
+
+      top += height - 1;
+      await scrollTo(top);
+      // The list repaints on scroll; wait one frame so the next read sees the new rows.
+      await this.page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve(null))));
+    }
+
+    await scrollTo(0);
+
+    return collected;
+  }
+
+  /**
    * Check the "filter by value" item carrying the given label.
    *
    * The value box is about 110px tall and virtualized, so it holds roughly four rows. A row at or
