@@ -101,6 +101,10 @@ export const DROPPED_FEATURES = {
   // Raised by the native reader only: a `t="s"` cell whose shared-string index resolves to nothing
   // (past the end of the table, no table at all, a table cut short). The cell imports empty.
   cellValueSharedString: 'cellValue:sharedString',
+  // Raised by the native reader only: an error cell whose value metadata resolves to a rich value it
+  // does not read - a linked data type (Stocks, Geography) or an error type it has no code for. The
+  // cell imports the `#VALUE!` the file caches for it.
+  cellValueRichValue: 'cellValue:richValue',
   // Raised by the native reader only: an Excel what-if data table (`<f t="dataTable"/>`). Its cells
   // keep their cached values; the table definition is lost, so nothing recalculates.
   formulaDataTable: 'formula:dataTable',
