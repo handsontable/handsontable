@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `loadData()` to drop a change that still waits for its cell's validator, instead of writing it into the new data at the same coordinates, usually a different record. This also applies when `loadData()` runs right after `setDataAtCell()` and when the new data holds the same records. `afterChange` doesn't fire for a dropped change. The DataProvider plugin writes such an edit again into its own record after the refetch that follows a save. See the migration guide.",
+  "type": "changed",
+  "issueOrPR": 14109,
+  "breaking": true,
+  "framework": "none"
+}

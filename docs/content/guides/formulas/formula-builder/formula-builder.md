@@ -445,6 +445,7 @@ You now have a grid with a formula bar, inline formula editing with colored refe
 <div class="boxes-list gray-bg">
 
 - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
+- [Sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#use-formulas-across-sheets)
 - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
 - [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)
 
