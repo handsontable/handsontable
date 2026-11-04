@@ -252,8 +252,16 @@ const HotTableInner = forwardRef<
      * Handsontable's `beforeViewRender` hook callback.
      */
     __hotInstance.current.addHook('beforeViewRender', () => {
-      context.clearPortalCache();
+      context.resetRenderedPortals();
       context.clearRenderedCellCache();
+    });
+
+    /**
+     * Handsontable's `beforeRenderer` hook callback. It runs for every cell the grid paints, whatever
+     * the cell's renderer.
+     */
+    __hotInstance.current.addHook('beforeRenderer', (TD) => {
+      context.markCellPainted(TD);
     });
 
     /**
