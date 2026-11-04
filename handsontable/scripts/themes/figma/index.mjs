@@ -2,7 +2,8 @@ import { rmSync, existsSync, loadTokens } from './utils/helpers/fileSystem.mjs';
 import { generateAllVariables } from './utils/themeProcessing.mjs';
 import { writeJsThemeFiles } from './utils/jsGeneration.mjs';
 import { writeCssThemeFiles } from './utils/cssGeneration.mjs';
-import { OUTPUT_PATH, TOKENS_KEY } from './utils/constants.mjs';
+import { writeManifest } from './utils/manifest.mjs';
+import { MANIFEST_PATH, OUTPUT_PATH, TOKENS_KEY } from './utils/constants.mjs';
 
 /**
  * Generates Handsontable theme files (typed TS variable modules + CSS) into src/themes/static.
@@ -25,6 +26,7 @@ function main() {
 
     writeJsThemeFiles(themeVariables);
     writeCssThemeFiles(themeVariables);
+    writeManifest(OUTPUT_PATH, MANIFEST_PATH);
 
     console.log('\nTheme files generated successfully.');
   } catch (error) {

@@ -47,11 +47,15 @@ function processReference(value, themes, refType) {
         if (tokenValue?.value) {
           const colorPath = getReferencePath(tokenValue.value);
 
-          // A light/dark node may hold a plain literal instead of a `{…}` reference; getReferencePath
-          // then returns null. Skip it (the mode value ends up dropped) rather than passing null to
-          // transformReferencePath, which would throw and abort the whole generation.
           if (colorPath) {
             result.push(transformReferencePath(colorPath, [1, 2]));
+
+          // A light/dark node may hold a plain literal instead of a `{…}` reference: the Figma `mode`
+          // collection stores semi-transparent colors (`<theme>/custom/row-selection`) as raw RGBA,
+          // because the `colors` primitives are opaque. Keep the literal so the token is emitted as
+          // `light-dark(#…, #…)`; dropping it deleted `--ht-row-selection-background-color`.
+          } else if (typeof tokenValue.value === 'string' && !tokenValue.value.startsWith('{')) {
+            result.push(tokenValue.value);
           }
         }
       });

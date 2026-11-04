@@ -6,11 +6,18 @@ Known sharp edges, technical debt, and behaviors that are easy to get wrong.
 
 `index.mjs::main()` calls `rmSync(OUTPUT_PATH, { recursive: true })` before regenerating. Every file under `src/themes/static/` is tool-generated, so the wipe is safe — but it means the directory is **not** a place for hand-authored files. Unlike the original standalone repo, this output is **committed** to VCS: a regeneration shows up in the PR diff and must be reviewed. The single source of truth is `tokens.json`; if a theme is missing from the export, its files disappear on the next run (see the idempotency check in the migration plan).
 
+## A hand edit of `src/themes/static` fails the unit suite
+
+A token typed into the static files by hand (instead of being added to Figma and generated) looks complete until the next regeneration drops it, which is how the freezeBar and asyncValues tokens nearly shipped. So every run ends with `writeManifest()` (`utils/manifest.mjs`), which writes `static-manifest.json` next to `index.mjs`: one SHA-256 per file under `src/themes/static`, LF-normalized so a Windows `autocrlf` checkout matches. `src/themes/__tests__/staticThemesGenerated.unit.js` (Jest, so it runs in `test:unit` in CI) re-hashes the directory and fails on any added, removed, or changed file, with a message that points to the Figma-first workflow. Three rules:
+- Commit the manifest together with the regenerated files. The two are one change; a manifest edited by hand to make the test pass defeats the gate and must never be done.
+- The Jest test keeps its own copy of the hash (Jest does not load the generator's ESM). If `hashContent()` changes, change both, or the test fails right after the next regeneration.
+- The generated files must stay lint-clean as written: the pre-commit hook runs `eslint --fix` on staged files, and a fix there would rewrite a file after the manifest was taken.
+
 ## Silent drops
 
 - Tokens present in `tokens.json` but not listed in `tokensKeys.mjs` are **silently dropped** from per-theme output. There is no warning. If a design change doesn't show up in the generated CSS, this is the first place to check.
 - `processTokenValue` returns `null` when a token isn't found at all, and the null is filtered by `processThemeTokens`. Again, no warning — a key listed in `tokensKeys.mjs` that stops resolving in the export is stripped from the committed themes on the next run, so review the `src/themes/static` diff for unexpected deletions.
-- `mode` references that don't resolve both a light and a dark variant return `null` (see `processReference` case `MODE_KEY`: it requires `result.length === 2`).
+- `mode` references that don't resolve both a light and a dark variant return `null` (see `processReference` case `MODE_KEY`: it requires `result.length === 2`). A variant may be a `{colors.…}` reference or a plain literal (a raw RGBA such as `#1a42e81a`, which is how Figma stores the semi-transparent `<theme>/custom/row-selection`); a literal is emitted as is. Until that was accepted, `row-selection-background-color` was dropped from every theme on regeneration.
 
 ## A theme with no `ICONS_SET` entry silently falls back to `main`
 
@@ -33,7 +40,7 @@ Both behaviors must stay in sync. Currently the list contains only `"font-family
 
 ## Limited test coverage
 
-`__tests__/` covers the typed-module emitter (`buildTsModule`, `tsConstName`) and the iconStyles drift guard, run with `node --test scripts/themes/figma/__tests__/*.test.mjs` (the bare directory path fails to resolve on Node 22). **Reference resolution (`utils/themeProcessing.mjs`) is not unit-tested** — there is no automated check that it produces the same output for a given `tokens.json`. The safeguards there are:
+`__tests__/` covers the typed-module emitter (`buildTsModule`, `tsConstName`), the iconStyles drift guard, the manifest, and a few `processTokenValue` cases (mode references with literal and referenced variants). Run it with `node --test scripts/themes/figma/__tests__/*.test.mjs` (the bare directory path fails to resolve on Node 22); the root `npm run test:tooling` runs it too, which is what the CI `Checks / tooling tests` job runs, so keep these tests on Node built-ins only. **Full reference resolution (`utils/themeProcessing.mjs`) is not unit-tested** — there is no automated check that it produces the same output for a given `tokens.json`. The safeguards there are:
 1. Running `npm run generate:themes` and reviewing the `src/themes/static` diff (the CSS output is the semantic anchor — see the migration plan's idempotency check).
 2. The repo's theme registry unit tests (`src/themes/__tests__/`) running against the regenerated modules.
 

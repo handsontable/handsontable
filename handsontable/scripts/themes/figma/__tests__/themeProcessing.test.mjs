@@ -22,15 +22,48 @@ test('processTokenValue resolves a {mode.*} reference that has both light and da
   assert.equal(result.length, 2);
 });
 
-test('processTokenValue does not throw when a mode variant holds a literal instead of a reference', () => {
+test('processTokenValue keeps a literal mode variant next to a referenced one', () => {
   const themes = {
     mode: {
       light: { background: { value: '#ffffffff' } }, // plain literal, not a {…} reference
-      dark: { background: { value: '{colors.palette.black}' } },
+      dark: { background: { value: '{colors.dark.main.palette.950}' } },
     },
   };
 
-  assert.doesNotThrow(() => processTokenValue('backgroundColor', { value: '{mode.x.background}' }, themes));
+  assert.deepEqual(
+    processTokenValue('backgroundColor', { value: '{mode.x.background}' }, themes),
+    ['#ffffffff', 'colors.palette.950'],
+  );
+});
+
+test('processTokenValue emits a mode token whose light and dark variants are both RGBA literals', () => {
+  // The Figma shape of `row-selection-background-color`: the themes variable aliases
+  // `<theme>/custom/row-selection` in the `mode` collection, which holds raw semi-transparent colors.
+  const themes = {
+    mode: {
+      light: { main: { custom: { 'row-selection': { type: 'color', value: '#1a42e81a' } } } },
+      dark: { main: { custom: { 'row-selection': { type: 'color', value: '#4669f633' } } } },
+    },
+  };
+
+  assert.deepEqual(
+    processTokenValue(
+      'row-selection-background-color',
+      { value: '{mode.main.main.custom.row-selection}' },
+      themes,
+    ),
+    ['#1a42e81a', '#4669f633'],
+  );
+});
+
+test('processTokenValue still drops a mode token with a variant missing', () => {
+  const themes = {
+    mode: {
+      light: { background: { value: '#ffffffff' } },
+      dark: {},
+    },
+  };
+
   assert.equal(processTokenValue('backgroundColor', { value: '{mode.x.background}' }, themes), null);
 });
 
