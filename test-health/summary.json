@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T12:48:20.747Z",
+  "generatedAt": "2026-11-04T15:48:20.069Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -784,41 +784,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "tier": "playwright",
-      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
-      "line": 87,
-      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-14T09:10:38Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426/attempts/2",
-        "branch": "feature/DEV-918_colWidths-physical-indexes",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "visual|visual-tests/tests/js-only/notification/notification-bottom-end.spec.ts|js-only/notification/notification-bottom-end-1",
       "tier": "visual",
       "file": "visual-tests/tests/js-only/notification/notification-bottom-end.spec.ts",
@@ -922,21 +887,23 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
+      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "tier": "playwright",
-      "file": "e2e/fixed-columns-end.spec.ts",
-      "line": 224,
-      "title": "fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
+      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
+      "line": 87,
+      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "count7": 0,
       "count30": 3,
-      "countAll": 3,
+      "countAll": 6,
       "runs30": 2,
       "flakyRuns30": 2,
       "branches30": 2,
       "nightlyRuns30": 0,
       "openBranches30": 2,
       "legs": [
-        "e2e-classic-min"
+        "e2e-classic-min",
+        "e2e-horizon-min",
+        "e2e-main-min"
       ],
       "statuses": [
         "flaky"
@@ -944,12 +911,12 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-10-06T07:58:15Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37429408994",
-        "branch": "feature/DEV-152_Header-selection-grows-on-untrim",
-        "leg": "e2e-classic-min",
+        "seenAt": "2026-10-14T09:10:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426/attempts/2",
+        "branch": "feature/DEV-918_colWidths-physical-indexes",
+        "leg": "e2e-horizon-min",
         "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": true
@@ -1016,6 +983,39 @@
         "leg": "e2e-webkit",
         "status": "failed",
         "error": "Error: expect(locator).not.toHaveValue(expected) failed",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end.spec.ts",
+      "line": 224,
+      "title": "fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-classic-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-06T07:58:15Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37429408994",
+        "branch": "feature/DEV-152_Header-selection-grows-on-untrim",
+        "leg": "e2e-classic-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
