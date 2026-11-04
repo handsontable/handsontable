@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T10:10:36.602Z",
+  "generatedAt": "2026-11-04T10:51:28.042Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -4104,13 +4104,13 @@
       "line": 348,
       "title": "maxLength › list editors that share the text editor input › caps typing in a dropdown cell and marks a long option picked from it as invalid",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 4,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-horizon-min",
         "e2e-main"
