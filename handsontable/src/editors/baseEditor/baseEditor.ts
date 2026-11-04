@@ -164,6 +164,20 @@ export class BaseEditor {
   #hasValueBeforeEdit: boolean = false;
 
   /**
+   * The wait for the validator that decides whether the editor closes. Each wait gets a new object,
+   * and its `postAfterValidate` listener acts only while that object is still the current one, so a
+   * wait ended early by `_endValidationWait()` cannot reopen the editor when its validator answers.
+   */
+  #validationWait: object | null = null;
+
+  /**
+   * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on its
+   * first answer that is not stale, and the answer of a dropped call is stale, so a wait ended early would
+   * keep it until another validation in the grid answers.
+   */
+  #validationWaitListener: ((result: boolean) => void) | null = null;
+
+  /**
    * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
    * source, so the baseline describes what the editor shows now rather than what it showed when it
    * opened. Does nothing while the guard is disarmed.
@@ -524,17 +538,19 @@ export class BaseEditor {
       }
 
       this.state = EDITOR_STATE.WAITING;
-      this.saveValue([[value]], ctrlDown);
 
-      if (this.hot.getCellValidator(this.cellProperties)) {
-        this.hot.addHookOnce('postAfterValidate', (result: unknown) => {
-          this.state = EDITOR_STATE.FINISHED;
-          this.discardEditor(result as boolean);
-        });
-      } else {
+      if (!this.hot.getCellValidator(this.cellProperties)) {
+        this.saveValue([[value]], ctrlDown);
         this.state = EDITOR_STATE.FINISHED;
         this.discardEditor(true);
+
+        return;
       }
+
+      this.#waitForValidation((result) => {
+        this.discardEditor(result);
+      });
+      this.saveValue([[value]], ctrlDown);
     }
   }
 
@@ -566,13 +582,85 @@ export class BaseEditor {
 
     this.state = EDITOR_STATE.WAITING;
 
-    this.hot.addHookOnce('postAfterValidate', (result: unknown) => {
-      this.state = EDITOR_STATE.FINISHED;
-      this.discardEditor(result as boolean);
+    this.#waitForValidation((result) => {
+      this.discardEditor(result);
       this.hot.view.render();
     });
 
     this.hot.validateCell(this.originalValue, this.cellProperties, () => {}, 'edit');
+  }
+
+  /**
+   * Starts a wait for the next `postAfterValidate`, which finishes the editor with the validator's
+   * answer. The wait starts before the value is saved, so a `loadData()` from a listener of the save's own
+   * hooks finds it and ends it. An answer to a validator call made before the last `loadData()`
+   * (`_isAnsweringStaleValidation()`) is skipped: it belongs to a change the load dropped, and taken as
+   * this wait's answer it closed the editor before its own value was validated, or reopened it. The answer
+   * is ignored once the wait has been ended or replaced.
+   *
+   * @param {Function} onAnswer Called with the validation result once the editor is `FINISHED`.
+   */
+  #waitForValidation(onAnswer: (result: boolean) => void): void {
+    const wait = {};
+    const onPostAfterValidate = (result: boolean) => {
+      if (this.hot._isAnsweringStaleValidation()) {
+        return;
+      }
+
+      this.hot.removeHook('postAfterValidate', onPostAfterValidate);
+
+      if (this.#validationWait !== wait) {
+        return;
+      }
+
+      this.#validationWait = null;
+      this.#validationWaitListener = null;
+      this.state = EDITOR_STATE.FINISHED;
+      onAnswer(result);
+    };
+
+    this.#removeValidationWaitListener();
+    this.#validationWait = wait;
+    this.#validationWaitListener = onPostAfterValidate;
+    this.hot.addHook('postAfterValidate', onPostAfterValidate);
+  }
+
+  /**
+   * Removes the `postAfterValidate` listener of the current wait, if there is one.
+   */
+  #removeValidationWaitListener(): void {
+    if (this.#validationWaitListener) {
+      this.hot.removeHook('postAfterValidate', this.#validationWaitListener);
+      this.#validationWaitListener = null;
+    }
+  }
+
+  /**
+   * Closes an editor that waits for a validator whose answer no longer applies, because `loadData()`
+   * replaced the data the editor saved its value to. Nothing is written, and the answer, when it
+   * arrives, leaves the editor closed instead of reopening it on a record of the loaded data. Does
+   * nothing unless the editor is waiting.
+   *
+   * The close callbacks are not run here: the caller is inside the load, before the new data is in, and
+   * a callback that reads `true` as "saved" re-prepared the editor against the replaced data. They are
+   * returned instead, for the caller to run with `false` once the load is done.
+   *
+   * @private
+   * @returns {Function|null} Runs the close callbacks with `false`, or `null` when the editor was not waiting.
+   */
+  _endValidationWait(): (() => void) | null {
+    if (!this.isWaiting()) {
+      return null;
+    }
+
+    const closeCallback = this._closeCallback;
+
+    this._closeCallback = null;
+    this.#validationWait = null;
+    this.#removeValidationWaitListener();
+    this.cancelChanges();
+
+    return closeCallback ? () => closeCallback(false) : null;
   }
 
   /**

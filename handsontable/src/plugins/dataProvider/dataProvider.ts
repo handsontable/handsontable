@@ -6,6 +6,8 @@ import * as I18nC from '../../i18n/constants';
 import { BasePlugin } from '../base';
 import type { HotInstance } from '../../core/types';
 import type { RowIdKey } from '../../utils/rowId';
+import type { CellChange } from '../../settings';
+import { OvertakenEdits } from './overtakenEdits';
 import {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
@@ -399,12 +401,26 @@ export class DataProvider extends BasePlugin {
    * @type {{ tail: Promise<void> }}
    */
   readonly #mutationQueue: { tail: Promise<void> } = { tail: Promise.resolve() };
+  /**
+   * Writes again the edits a refetch that follows a save dropped while they waited for their validators.
+   *
+   * @type {OvertakenEdits}
+   */
+  readonly #overtakenEdits: OvertakenEdits;
+  /**
+   * `true` from right before a refetch that follows a save calls `loadData()` until that load starts.
+   *
+   * @type {boolean}
+   */
+  #isLoadingAfterSave = false;
 
   /**
    * @param {object} hotInstance Handsontable instance.
    */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
+
+    this.#overtakenEdits = new OvertakenEdits(this.hot, () => this.#getRowIdOption());
 
     // Before `enablePlugin()` runs (`afterPluginsInitialized`), core may call `runHooks('hasExternalDataSource')`
     // (for example during `updateSettings`). `disablePlugin()` clears all `addHook` listeners, so `enablePlugin()`
@@ -443,6 +459,10 @@ export class DataProvider extends BasePlugin {
     this.addHook('beforeFilter', this.#onBeforeFilter);
     this.addHook('afterNotificationHide', this.#onAfterNotificationHide);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, 1);
+    this.addHook('afterSetDataAtCell', this.#onAfterSetData);
+    this.addHook('afterSetDataAtRowProp', this.#onAfterSetData);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.hot._addDroppedChangesListener(this.#onDroppedChanges);
 
     this.#fetchOwed = !this.#isPassive;
 
@@ -539,6 +559,8 @@ export class DataProvider extends BasePlugin {
     }
 
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
+    this.hot._removeDroppedChangesListener(this.#onDroppedChanges);
+    this.#overtakenEdits.reset();
 
     super.disablePlugin();
   }
@@ -985,7 +1007,7 @@ export class DataProvider extends BasePlugin {
       return Promise.resolve(null);
     }
 
-    return this.#fetchFor(binding, overrides, this.#pendingQueryFor(binding));
+    return this.#fetchFor(binding, overrides, this.#pendingQueryFor(binding), true);
   }
 
   /**
@@ -1113,12 +1135,15 @@ export class DataProvider extends BasePlugin {
    * @param {object} [baseQuery] The query the overrides apply to. Omitted, the current query is used for a
    * visible binding, and for one whose context is not shown the query of the latest response the owner keeps for
    * it, or the binding's own query when it keeps none.
+   * @param {boolean} [followsSave=false] Whether the fetch is the refetch that follows a save: an edit its load
+   * drops while it waits for its validator is written again (see `OvertakenEdits`).
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
    */
   async #fetchFor(
     binding: RequestBinding,
     overrides: DataProviderFetchDataOverrides = {},
-    baseQuery?: DataProviderQueryParameters
+    baseQuery?: DataProviderQueryParameters,
+    followsSave = false
   ): Promise<{ rows: unknown[]; totalRows: number } | null> {
     if (this.#isDropped(binding)) {
       return null;
@@ -1177,11 +1202,11 @@ export class DataProvider extends BasePlugin {
       if (clampedPage !== persistedParams.page) {
         this.#releaseInFlight(binding.context, controller);
 
-        return this.#fetchFor(binding, { page: clampedPage, skipLoading }, persistedParams);
+        return this.#fetchFor(binding, { page: clampedPage, skipLoading }, persistedParams, followsSave);
       }
 
       this.#releaseInFlight(binding.context, controller);
-      this.#applyFetchResult(binding, result, rows, totalRows, persistedParams);
+      this.#applyFetchResult(binding, result, rows, totalRows, persistedParams, followsSave);
 
       return { rows, totalRows };
     } catch (err) {
@@ -1227,17 +1252,31 @@ export class DataProvider extends BasePlugin {
    * @param {Array} rows The normalized rows.
    * @param {number} totalRows The normalized row total.
    * @param {object} persistedParams The query the rows answer.
+   * @param {boolean} [followsSave=false] Whether the response answers the refetch that follows a save.
    */
   #applyFetchResult(
     binding: RequestBinding,
     result: DataProviderFetchResult,
     rows: unknown[],
     totalRows: number,
-    persistedParams: DataProviderQueryParameters
+    persistedParams: DataProviderQueryParameters,
+    followsSave = false
   ): void {
     if (this.#isVisible(binding)) {
       this.#queryParameters = persistedParams;
-      this.hot.loadData(rows, PLUGIN_KEY);
+
+      if (followsSave) {
+        this.#overtakenEdits.overtakeWaitingSets((changes, source) => (
+          !shouldIgnoreAfterChangeForServerUpdate(isFunction(this.#getOnRowsUpdate()), changes, source)
+        ));
+        this.#isLoadingAfterSave = true;
+      }
+
+      try {
+        this.hot.loadData(rows, PLUGIN_KEY);
+      } finally {
+        this.#isLoadingAfterSave = false;
+      }
 
       if (binding.context !== null) {
         this.#hideErrorToastsFor(binding.context, true);
@@ -2001,6 +2040,43 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
+   * Notes a change set for `OvertakenEdits`: a set made while an overtaken set waits to be written again marks the
+   * cells it shares with it as written later.
+   *
+   * @param {Array} changes The change set.
+   * @param {string} [source] The change source.
+   */
+  readonly #onAfterSetData = (changes: CellChange[], source?: string) => {
+    this.#overtakenEdits.trackSet(changes, source);
+  };
+
+  /**
+   * Forgets every set waiting for its validators when a load that is not a refetch that follows a save replaces
+   * the data: a sort, a filter, a page change, `fetchData()`, or a load DataProvider did not make brings other
+   * rows, and the edits it drops stay dropped.
+   */
+  readonly #onBeforeLoadData = () => {
+    if (this.#isLoadingAfterSave) {
+      this.#isLoadingAfterSave = false;
+    } else {
+      this.#overtakenEdits.reset();
+    }
+  };
+
+  /**
+   * Writes again a set core dropped, when a refetch that follows a save overtook it.
+   *
+   * @param {Array} changes The dropped set.
+   * @param {string} [source] The change source.
+   * @param {Array} rejectedChanges The changes a validator rejected under `allowInvalid: false`.
+   */
+  readonly #onDroppedChanges = (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => {
+    if (this.enabled && !this.hot.isDestroyed) {
+      this.#overtakenEdits.writeAgain(changes, source, rejectedChanges);
+    }
+  };
+
+  /**
    * Forgets a tracked error notification once it is hidden (dismissed, timed out, or hidden by its Refetch action).
    *
    * @param {string} id The hidden notification's id.
@@ -2099,6 +2175,8 @@ export class DataProvider extends BasePlugin {
    * Destroys the plugin.
    */
   destroy() {
+    this.hot._removeDroppedChangesListener(this.#onDroppedChanges);
+    this.#overtakenEdits.reset();
     this.#abortAllFetches();
 
     super.destroy();

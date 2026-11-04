@@ -1,6 +1,17 @@
 import type { CellChange } from '../settings';
 
 /**
+ * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`. Such a
+ * correction belongs to the change it corrects, so it opens no ledger call of its own.
+ *
+ * @param {*} source The change source.
+ * @returns {boolean}
+ */
+export function isValidatorCorrection(source: unknown): boolean {
+  return typeof source === 'string' && source.endsWith('Validator');
+}
+
+/**
  * The cell meta of a validated cell, as far as the ledger reads it.
  */
 export interface LedgerCellMeta {
