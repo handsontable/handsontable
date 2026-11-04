@@ -2871,9 +2871,21 @@ export default function Core(
     focusGridManager.init();
 
     if (isRootInstance(instance)) {
+      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
+      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
+      const slotsHeightBeforeLicense = measureSlotsHeight();
+
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
       initLicenseBranding(instance);
+
+      // The license bars (the warning bar, the "Powered by" bar) mount after `updateSettings()` wrote a
+      // pixel height, which reserved only the slots filled then. The slot observer below is seeded with
+      // the height they leave, so it would never count them: re-apply the height once, before the first
+      // render, or the grid grows past its declared height by the bars.
+      if (measureSlotsHeight() !== slotsHeightBeforeLicense) {
+        reapplyPixelRootHeight(instance, tableMeta.height);
+      }
 
       // Keep the edge slots (top, bottom) as wide as the table so their content
       // (toolbars, pagination, license notification) aligns with the grid.
@@ -2928,8 +2940,6 @@ export default function Core(
 
       instance.addHook('afterRender', syncEdgeSlotsWidth);
 
-      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
-      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
       let lastSlotsHeight = measureSlotsHeight();
