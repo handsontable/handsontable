@@ -5,6 +5,11 @@ import { SheetsBarUiPage } from '../fixtures/pages/SheetsBarUiPage';
  * With scrollbars that are always shown (the classic, non-overlay kind), a bar narrower than its minimum shows
  * its own horizontal scrollbar, the way the pagination bar does, so a user can see that it scrolls. A bar that
  * fits shows none and keeps its height.
+ *
+ * Dropping `--hide-scrollbars` and passing `--force-show-scrollbars` does not make every OS draw a scrollbar
+ * that takes space: a headless Chromium on a Mac set to show scroll bars automatically draws 0px ones. The
+ * scrollbar's size is measured first, and the checks that need a space-taking scrollbar run only where there
+ * is one. Linux CI has one.
  */
 test.use({
   launchOptions: {
@@ -36,6 +41,18 @@ test.describe('sheets bar with scrollbars that are always shown', { tag: THEMES_
       fixedHeight: false,
     });
 
+    const scrollbarSize = await page.evaluate(() => {
+      const probe = document.createElement('div');
+
+      probe.style.cssText = 'position: absolute; width: 100px; height: 100px; overflow: scroll;';
+      document.body.appendChild(probe);
+
+      const size = probe.offsetHeight - probe.clientHeight;
+
+      probe.remove();
+
+      return size;
+    });
     const fits = await readBar();
 
     expect(fits.scrolls).toBe(false);
@@ -46,8 +63,17 @@ test.describe('sheets bar with scrollbars that are always shown', { tag: THEMES_
 
     const scrolls = await readBar();
 
-    expect(scrolls.showsScrollbar).toBe(true);
-    expect(scrolls.height).toBeGreaterThan(fits.height);
+    if (scrollbarSize > 0) {
+      expect(scrolls.showsScrollbar).toBe(true);
+      expect(scrolls.height).toBeGreaterThan(fits.height);
+    } else {
+      expect(scrolls.showsScrollbar).toBe(false);
+      expect(scrolls.height).toBe(fits.height);
+      test.info().annotations.push({
+        type: 'scrollbars',
+        description: 'no space-taking scrollbar on this machine, so the shown scrollbar is untested here',
+      });
+    }
 
     await fixture.setActiveSheet(0);
     await expect.poll(async() => (await readBar()).scrolls).toBe(false);
