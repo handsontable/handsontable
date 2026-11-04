@@ -176,6 +176,50 @@ describe('NestedRows -> filtering', () => {
     expect(filters._getValueListDataAtColumn(1).map(({ value }) => value)).toEqual(['group', 'leaf']);
   });
 
+  describe('the list of a column filtered by value', () => {
+    /**
+     * Reads the value list `updateState()` stored for a column that carries a by-value condition,
+     * which is the list the menu restores for it.
+     *
+     * @param {object} filters The Filters plugin.
+     * @param {number} column The physical column.
+     * @returns {string[]} The listed values.
+     */
+    const storedList = (filters, column) => filters.components.get('filter_by_value')
+      .state.getValueAtIndex(column).itemsSnapshot.map(({ value }) => value);
+
+    it('should list the value of a kept ancestor', () => {
+      const filters = buildTree({ dropdownMenu: true });
+
+      filters.addCondition(0, 'contains', ['child a1']);
+      filters.addCondition(1, 'by_value', [['leaf']]);
+      filters.filter();
+
+      expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Child A1']);
+      // Parent A is on screen, so its `group` must be a value the user can tick.
+      expect(storedList(filters, 1)).toEqual(['group', 'leaf']);
+    });
+
+    it('should list the value of a kept ancestor after an earlier column\'s condition changes', () => {
+      const filters = buildTree({ dropdownMenu: true });
+
+      filters.addCondition(0, 'contains', ['child']);
+      filters.addCondition(1, 'by_value', [['leaf']]);
+      filters.filter();
+
+      expect(filters.conditionCollection.getColumnStackPosition(1)).toBe(1);
+
+      // A second condition on column 0 keeps its stack position, so column 1's list is refreshed
+      // as a dependent column. Only Child A1 matches both, and it keeps Parent A.
+      filters.addCondition(0, 'contains', ['a1']);
+      filters.filter();
+
+      expect(filters.conditionCollection.getColumnStackPosition(0)).toBe(0);
+      expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Child A1']);
+      expect(storedList(filters, 1)).toEqual(['group', 'leaf']);
+    });
+  });
+
   it('should restore the previous kept rows on undo', () => {
     const filters = buildTree({ undo: true });
 
@@ -226,7 +270,7 @@ describe('NestedRows -> filtering', () => {
   });
 
   describe('the modifyFiltersMatchedRows hook', () => {
-    it('should leave a grid without nestedRows unchanged', () => {
+    it('should keep the matches when a listener returns nothing', () => {
       const filters = buildGrid([['Parent A'], ['Child A1'], ['Child A2'], ['Parent B']]).getPlugin('filters');
       const matchedRowsSpy = jasmine.createSpy('modifyFiltersMatchedRows');
 
@@ -236,6 +280,17 @@ describe('NestedRows -> filtering', () => {
 
       expect(hot.getDataAtCol(0)).toEqual(['Child A1', 'Child A2']);
       expect(matchedRowsSpy).toHaveBeenCalledWith([1, 2]);
+    });
+
+    it('should not run the hook on a grid with no listener', () => {
+      const filters = buildGrid([['Parent A'], ['Child A1'], ['Child A2'], ['Parent B']]).getPlugin('filters');
+      const runHooksSpy = jest.spyOn(hot, 'runHooks');
+
+      filters.addCondition(0, 'contains', ['child a']);
+      filters.filter();
+
+      expect(hot.getDataAtCol(0)).toEqual(['Child A1', 'Child A2']);
+      expect(runHooksSpy.mock.calls.filter(([hookName]) => hookName === 'modifyFiltersMatchedRows')).toEqual([]);
     });
 
     it('should normalize a replacement list a listener returns', () => {

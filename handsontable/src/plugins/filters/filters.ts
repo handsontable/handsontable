@@ -1038,6 +1038,7 @@ export class Filters extends BasePlugin {
         this.conditionCollection,
         (physicalColumn: number, physicalRows?: number[]) =>
           this._readColumn(physicalColumn, physicalRows),
+        (matchedRows: number[]) => this.#modifyMatchedRows(matchedRows),
       );
       this.conditionUpdateObserver.addLocalHook('update',
         (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
