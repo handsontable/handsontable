@@ -21,6 +21,9 @@ const TEST_TREES = [
   'wrappers/react-wrapper/test',
   'wrappers/vue3/test',
   'wrappers/angular-wrapper/projects',
+  // Not `performance-tests/fixtures`: `scripts/run.mjs` copies the built bundles there, and they
+  // name the key. Its one tracked file is the constant itself.
+  'performance-tests/scenarios',
 ];
 
 const SKIPPED_DIRS = new Set(['node_modules', 'dist', 'tmp', 'test-results', 'playwright-report']);
@@ -123,7 +126,8 @@ test('no test writes the license key out; every suite reads its shared constant'
     'These tests write the license key out. Use the suite\'s constant instead: `TEST_LICENSE_KEY` '
     + '(handsontable/test/helpers/licenseKey.js, a global in Jasmine specs; licenseKey.ts in the React '
     + 'and Vue tests; test-helpers/license-key.ts in the Angular tests), `window.htTestLicenseKey` in a '
-    + 'Playwright fixture (load /tests/fixtures/demo/test-license-key.js), or `:licenseKey="testLicenseKey"` '
+    + 'Playwright fixture (load /tests/fixtures/demo/test-license-key.js) or a performance fixture (load '
+    + '../../fixtures/test-license-key.js), or `:licenseKey="testLicenseKey"` '
     + 'in a Vue template. A test of the license behavior itself goes in ALLOWED, with the reason.');
 });
 
