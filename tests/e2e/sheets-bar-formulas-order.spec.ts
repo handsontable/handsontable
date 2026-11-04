@@ -46,6 +46,22 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
     });
   });
 
+  test.describe('sheet names the engine reads as one', () => {
+    test('gives a later sheet whose name differs only in case an engine sheet of its own', async() => {
+      await grid.goto('clashingNames');
+
+      expect(await grid.switchTo('data (2)')).toEqual([true]);
+      await expect(grid.cell(0, 0)).toHaveText('small');
+      expect(await grid.switchTo('Summary')).toEqual([true]);
+      await expect(grid.cell(0, 0)).toHaveText('big');
+      expect(await grid.engineSheetNames()).toEqual(['Data', 'Summary', 'data (2)']);
+      expect(await grid.consoleMessages()).toEqual([
+        'warn: The sheets "Data" and "data (2)" use the same formula engine sheet name (the engine ignores ' +
+          'letter case). "data" was registered as "data (2)". Formulas that reference "data" read the sheet "Data".',
+      ]);
+    });
+  });
+
   test.describe('remove and add', () => {
     test('repaints a formula that reads a sheet removed and added again', async() => {
       await grid.goto('sortedReport');

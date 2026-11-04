@@ -483,11 +483,15 @@ function isSameSheetName(first: string, second: string): boolean {
  * label can still identify another sheet's engine data, and registering under it would
  * overwrite that data and fuse the two tabs onto one engine sheet.
  */
-function freeEngineName(engine: NonNullable<SheetFormulas['engine']>, requested: string): string {
+function freeEngineName(
+  engine: NonNullable<SheetFormulas['engine']>,
+  requested: string,
+  isTaken: (name: string) => boolean = name => engine.doesSheetExist!(name),
+): string {
   let candidate = requested;
   let counter = 2;
 
-  while (engine.doesSheetExist!(candidate)) {
+  while (isTaken(candidate)) {
     candidate = `${requested} (${counter})`;
     counter += 1;
   }
@@ -803,6 +807,22 @@ export class SheetsBar extends BasePlugin {
    * @type {WeakMap<object, object>}
    */
   #engineOrders = new WeakMap<Sheet, { order: FormulasEngineSheetOrder; data: unknown[]; length: number }>();
+  /**
+   * The engine sheet names the sheets declared so far in the running workbook build bound to, per engine,
+   * keyed by the lower-case name (the engine compares names that way), with the tab that bound each one.
+   * `null` outside a build: an added or a duplicated sheet takes a free engine name of its own instead.
+   *
+   * @type {WeakMap<object, Map<string, object>>|null}
+   */
+  #engineNameClaims: WeakMap<object, Map<string, { tabName: string, engineName: string }>> | null = null;
+  /**
+   * The engine sheet names a build gave a sheet whose declared name an earlier sheet of that build had
+   * taken, per engine, in lower case. A rebuild that declares the same sheets binds each one to its own
+   * engine sheet again instead of numbering it up, and an engine sheet the host built is never taken over.
+   *
+   * @type {WeakMap<object, Set<string>>}
+   */
+  #numberedEngineNames = new WeakMap<object, Set<string>>();
   /**
    * The sheets the user left with formula text shown (`Formulas#showFormulas()`).
    *
@@ -3057,14 +3077,21 @@ export class SheetsBar extends BasePlugin {
 
       const targetSheet = model.getSheetById(target.id) as Sheet;
 
-      this.#withEngineWrites(
-        this.#sheetRecords().flatMap((sheet) => {
-          const engine = formulasSettingOf(sheet)?.engine;
+      this.#engineNameClaims = new WeakMap();
 
-          return isEngineInstance(engine) ? [engine!] : [];
-        }),
-        () => this.#sheetRecords().forEach(sheet => this.#registerFormulaSheet(sheet, { feed: sheet !== targetSheet }))
-      );
+      try {
+        this.#withEngineWrites(
+          this.#sheetRecords().flatMap((sheet) => {
+            const engine = formulasSettingOf(sheet)?.engine;
+
+            return isEngineInstance(engine) ? [engine!] : [];
+          }),
+          () => this.#sheetRecords()
+            .forEach(sheet => this.#registerFormulaSheet(sheet, { feed: sheet !== targetSheet })),
+        );
+      } finally {
+        this.#engineNameClaims = null;
+      }
 
       model.setActiveSheet(target.id);
 
@@ -4729,10 +4756,12 @@ export class SheetsBar extends BasePlugin {
    * another sheet can reference it before it has ever been activated. Without this, such a
    * reference reads `#REF!` until the first visit feeds the engine.
    *
-   * Only a sheet that names its `sheetName` in a built engine instance is registered. A sheet
-   * handing over the `HyperFormula` class instead gets an engine of its own per enable, which
-   * no other sheet can reference — worth a warning when a `sheetName` suggests the intent was
-   * a shared workbook.
+   * Only a sheet that names its `sheetName` in a built engine instance is registered, and, in a
+   * workbook build, a sheet that names a built engine instance without a `sheetName`, under its tab
+   * name: the Formulas plugin would otherwise keep the engine sheet the grid was bound to before the
+   * switch and write this sheet's data into it. A sheet handing over the `HyperFormula` class instead
+   * gets an engine of its own per enable, which no other sheet can reference — worth a warning when a
+   * `sheetName` suggests the intent was a shared workbook.
    */
   #registerFormulaSheet(
     sheet: Sheet | null,
@@ -4740,7 +4769,14 @@ export class SheetsBar extends BasePlugin {
   ) {
     const formulas = sheet ? formulasSettingOf(sheet) : null;
 
-    if (!sheet || !formulas?.sheetName) {
+    if (!sheet || !formulas) {
+      return;
+    }
+
+    const isBuildBinding = this.#engineNameClaims !== null && isEngineInstance(formulas.engine);
+    const requestedName = formulas.sheetName || (isBuildBinding ? sheet.name : undefined);
+
+    if (!requestedName) {
       return;
     }
 
@@ -4756,30 +4792,83 @@ export class SheetsBar extends BasePlugin {
 
     const engine = formulas.engine!;
 
-    this.#withEngineWrite(engine, () => this.#feedFormulaSheet(sheet, formulas, engine, feed, beforeFeed));
+    this.#withEngineWrite(
+      engine,
+      () => this.#feedFormulaSheet(sheet, formulas, engine, this.#claimEngineName(sheet, engine, requestedName), {
+        feed,
+        beforeFeed,
+      }),
+    );
   }
 
   /**
-   * Adds the sheet to `engine` when the engine does not hold it yet, and feeds it the sheet's data.
+   * Returns the engine sheet name a sheet of the running workbook build binds to: the requested one,
+   * unless an earlier sheet of the build bound to it (the engine compares names without regard to
+   * case), in which case it is a free numbered name, with a warning. Formula text is not rewritten, so
+   * a reference to the requested name reads the earlier sheet. An engine sheet no earlier sheet of the
+   * build bound to is reused, so a sheet still binds to an engine sheet the host built for it. Outside
+   * a build it returns the requested name.
+   *
+   * @param {object} sheet The sheet being registered.
+   * @param {object} engine The engine.
+   * @param {string} requested The engine sheet name the sheet asks for.
+   * @returns {string}
+   */
+  #claimEngineName(sheet: Sheet, engine: NonNullable<SheetFormulas['engine']>, requested: string): string {
+    if (this.#engineNameClaims === null) {
+      return requested;
+    }
+
+    const claims = this.#engineNameClaims.get(engine) ?? new Map<string, { tabName: string, engineName: string }>();
+    const claimer = claims.get(requested.toLowerCase());
+    let engineName = requested;
+
+    this.#engineNameClaims.set(engine, claims);
+
+    if (claimer) {
+      const numbered = this.#numberedEngineNames.get(engine) ?? new Set<string>();
+
+      engineName = freeEngineName(engine, requested, (name) => {
+        const key = name.toLowerCase();
+
+        return claims.has(key) || (engine.doesSheetExist!(name) && !numbered.has(key));
+      });
+      numbered.add(engineName.toLowerCase());
+      this.#numberedEngineNames.set(engine, numbered);
+
+      warn(`The sheets "${claimer.tabName}" and "${sheet.name}" use the same formula engine sheet name` +
+        `${claimer.engineName === requested ? '' : ' (the engine ignores letter case)'}. "${requested}" was ` +
+        `registered as "${engineName}". Formulas that reference "${requested}" read the sheet ` +
+        `"${claimer.engineName}".`);
+    }
+
+    claims.set(engineName.toLowerCase(), { tabName: sheet.name, engineName });
+
+    return engineName;
+  }
+
+  /**
+   * Adds the sheet to `engine` under `requestedName` when the engine does not hold it yet, and feeds it
+   * the sheet's data. The sheet's `formulas.sheetName` follows the name it is bound to.
    */
   #feedFormulaSheet(
     sheet: Sheet,
     formulas: SheetFormulas,
     engine: NonNullable<SheetFormulas['engine']>,
-    feed: boolean,
-    beforeFeed?: (sheetId: number) => void,
+    requestedName: string,
+    { feed, beforeFeed }: { feed: boolean, beforeFeed?: (sheetId: number) => void },
   ) {
-    let engineName = formulas.sheetName!;
+    let engineName = requestedName;
 
     if (!engine.doesSheetExist!(engineName)) {
       // The engine may normalize the name it is asked for — two tabs the model tells apart can
       // be one sheet to the engine — so the binding follows the name `addSheet()` reports back,
       // or the id lookups below would come up empty.
       engineName = engine.addSheet!(engineName);
+    }
 
-      if (engineName !== formulas.sheetName) {
-        sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: engineName } };
-      }
+    if (engineName !== formulas.sheetName) {
+      sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: engineName } };
     }
 
     const sheetId = engine.getSheetId!(engineName);
