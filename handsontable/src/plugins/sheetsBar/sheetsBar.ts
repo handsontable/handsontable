@@ -5140,7 +5140,11 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Adds the sheet to `engine` when the engine does not hold it yet, and feeds it the sheet's data.
+   * Adds the sheet to `engine` when the engine does not hold it yet, and feeds it the sheet's data. A declared
+   * `sheetName` the tab stores normalized (`clampSheetName()`: a line break becomes a space) binds the engine
+   * sheet under the tab's name, unless the engine already holds the declared one: the model and the engine
+   * then agree, and a rename reaches the engine. Before, the engine kept `Q1\nQ2` beside a tab named `Q1 Q2`,
+   * and a rename left the engine on the old name.
    */
   #feedFormulaSheet(
     sheet: Sheet,
@@ -5150,6 +5154,11 @@ export class SheetsBar extends BasePlugin {
     beforeFeed?: (sheetId: number) => void,
   ) {
     let engineName = formulas.sheetName!;
+
+    if (engineName !== sheet.name && clampSheetName(engineName) === sheet.name
+      && !engine.doesSheetExist!(engineName)) {
+      engineName = sheet.name;
+    }
 
     if (!engine.doesSheetExist!(engineName)) {
       // The engine may normalize the name it is asked for — two tabs the model tells apart can

@@ -271,6 +271,15 @@ describe('SheetModel', () => {
 
       expect(model.resolveId(value)).toBe(null);
     });
+
+    it('finds a sheet by the name it was given, line breaks and surrounding spaces included', () => {
+      const model = new SheetModel();
+      const sheet = model.addSheet('A\nB', [[]]);
+
+      expect(sheet.name).toBe('A B');
+      expect(model.resolveId('A\nB')).toBe(sheet.id);
+      expect(model.resolveId(' A B ')).toBe(sheet.id);
+    });
   });
 
   describe('moveSheet', () => {

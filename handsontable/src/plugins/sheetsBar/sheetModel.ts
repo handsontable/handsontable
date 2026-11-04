@@ -246,7 +246,8 @@ export class SheetModel {
 
   /**
    * Resolves a sheet id from an id or a unique name. Returns `null` when not found, and for a value that
-   * is neither a number nor a string.
+   * is neither a number nor a string. A name is read the way it is stored (`clampSheetName()`), so the name a
+   * sheet was given finds it, line breaks and surrounding spaces included.
    */
   resolveId(idOrName: unknown): number | null {
     if (typeof idOrName === 'number') {
@@ -257,8 +258,10 @@ export class SheetModel {
       return null;
     }
 
+    const name = clampSheetName(idOrName);
+
     for (const sheet of this.#sheets.values()) {
-      if (isSameName(sheet.name, idOrName)) {
+      if (isSameName(sheet.name, name)) {
         return sheet.id;
       }
     }
