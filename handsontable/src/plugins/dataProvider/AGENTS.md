@@ -118,3 +118,65 @@ synchronously when a fetch starts, so without the hold it ran before the call ha
 grid the call replaces. A tab switch is passive (`_runContextChange()`), so nothing is fetched there; building a
 workbook on a live grid is not, and an opening sheet with its own `dataProvider` fetches from `onDataReady()`.
 Pinned by `__tests__/deferredFetch.unit.js`.
+
+## An edit the refetch after a save drops is written again (`overtakenEdits.ts`)
+
+Core drops a change that waits for its validator when `loadData()` replaces the data (root `AGENTS.md`, "A change
+waiting for a validator is dropped"), and every save refetches through `loadData()`. So a second edit committed
+while the first save refetched, on a column with a slow validator, was lost. The refetch is NOT held back: it
+loads when it arrives, so every promise, hook, overlay, and pager update keeps its timing. Instead
+`OvertakenEdits` writes the dropped edit again once core reports the drop (`_addDroppedChangesListener()`).
+
+- **Only a set the refetch after a save dropped.** `#refetchFor()` passes `followsSave` to `#fetchFor()` (the
+  update follow-up, the post-create refetch, every `removeRows()` refetch; the page-clamp recursion passes it on),
+  and `#applyFetchResult()` calls `overtakeWaitingSets()` and sets `#isLoadingAfterSave` right before its
+  `loadData()`. Any other load (sort, filter, page, `fetchData()`, the Refetch toast, a host `loadData()`, a
+  sheets switch) reaches `#onBeforeLoadData` without the flag and forgets every waiting set: those bring other
+  rows, and the edit stays dropped. Disabling the plugin forgets them too and removes the listener.
+- **Only sources DataProvider saves** (`shouldIgnoreAfterChangeForServerUpdate()`: `edit`, paste, cut, autofill,
+  clear column, `undefined`). Other sources keep their own drop handling: AsyncValues ends the flight as failed,
+  Formulas puts the sheet back. Writing `AsyncValues.resolve` again would land a value whose flight already
+  failed.
+- **The waiting sets come from core, never from a list kept here.** Core's `@private` `_getWaitingChangeSets()`
+  lists the sets that still wait for their validators (the same arrays the change hooks and the drop listener
+  get), and forgets a set once its validators answered, written or dropped, and every set on a load. A list kept
+  from `afterSetDataAtCell` until `afterChange` kept a set whose changes were all rejected or overtaken (no
+  `afterChange` fires for an empty set) until the next load, which then took it as waiting.
+- **The record is found by row id, read before the load.** `overtakeWaitingSets()` reads the row id of every
+  change right before the load, while the rows the change was made on are still loaded, through
+  `readRowIdOrUndefined()` (`query/crud.ts`): a `rowId` function that throws reads as no id, so the change stays
+  dropped and the refetch, which runs this inside `#fetchFor()`'s `try`, is not reported as failed (that would
+  revert the save it follows). The write goes to `getVisualRowById()` with the set's own source, through
+  `setDataAtRowProp()`. So DataProvider's own `afterChange` path validates and saves it. A record without an id,
+  removed on the server, or on another page stays dropped. The validator runs twice for such an edit, so
+  `beforeValidate`/`afterValidate` fire twice.
+- **A newer write to the cell wins.** Core's write ledger already drops the old set when a newer write applied
+  first. A newer write still waiting when the old one is written again would lose to it in the ledger (the
+  rewrite is the newer call), so a set made while one waits to be written again records the cells it shares with
+  an overtaken set (`#laterWrites`, by row id and property; only cells an overtaken set writes, and no row id is
+  read for a property no overtaken set writes), and a rewrite skips a cell written after its load. A validator's
+  correction (`*Validator` source, `isValidatorCorrection()` from `core/writeLedger.ts`) belongs to the change it
+  corrects and records nothing: recorded, the correction a validator writes after the load blocked the rewrite of
+  the edit it corrected. The index is cleared once no overtaken set is left; a set whose validator never answers
+  stays overtaken until a load that is not a save's refetch, or a disable.
+- **The editor opens again for a value the user confirmed.** When the refetch loads while an editor waits for its
+  validator, core closes the editor unsaved. `overtakeWaitingSets()` reads the editor's cell and typed text first
+  and ties them to the change of the `edit` set at that cell. When the first validation rejected that change
+  under `allowInvalid: false` (core passes the rejected changes as the listener's third argument), the editor is
+  opened on the record's cell with the typed text and left open. When it accepted it, the editor is opened and
+  confirmed (`finishEditing()`), so the editor waits for the second validation and stays open on a rejection,
+  as on a grid no load interrupted. It opens only while no editor is open, the grid listens, nothing covers the
+  grid body (`isGridBodyCovered()`, the loading overlay), no focus scope other than the grid's holds the keyboard
+  (a dialog), and the selection is still on the cell it was on when the load ran (for an edit confirmed with
+  Enter that is the cell below, so comparing with the editor's own cell never matched in a browser); otherwise
+  the user moved on and the value is written without the editor (or, rejected, stays dropped). The selection
+  moves to the record's cell only when the editor opens there: a cell that is hidden, read-only or has no editor
+  is checked before (`#takesEditor()`), and when the editor still does not open (the cell is not rendered, or
+  `beforeBeginEditing` declines) the selection goes back and the value is written without the editor. Only an
+  editor whose value is text is opened again (the multi-select editor's array would not come back from
+  `openEditor()`); another is written without it. A value written from code is never opened in an editor.
+- **Known limits.** Two waiting sets for the same cell, both dropped by one load, are written again in the order
+  their validators answer. Edits of a context the owner (SheetsBar) does not show are not tracked separately:
+  a switch is a foreign load and forgets them.
+
+Pinned by `__tests__/editsOvertakenBySave.unit.js` and, with real typing, `tests/e2e/data-provider-overtaken-edit.spec.ts`.

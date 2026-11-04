@@ -140,7 +140,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getDataAtCell(2, 0)).toBe(3);
   });
 
-  it('keeps the engine in step with the grid when the sheet switched while the change was validated', async() => {
+  it('drops the change from both sheets when the sheet switched while the change was validated', async() => {
     const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
     const first = hot.getPlugin('formulas').sheetId;
     const other = engine.getSheetId(engine.addSheet('Other'));
@@ -149,44 +149,62 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
     hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
-    // The switch alone does not rewrite the sheet; this update does, so the sheet write count moves.
     hot.updateSettings({});
 
     await waitForValidation();
 
-    // The Core applies the change to the data the grid holds when validation ends - the switched-to
-    // sheet's. The engine has to hold what the grid holds, or the cell shows the raw formula text.
     expect(hot.getPlugin('formulas').sheetId).toBe(other);
-    expect(hot.getSourceDataAtCell(2, 0)).toBe('=SUM(A1:A2)');
-    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
-    expect(hot.getDataAtCell(2, 0)).toBe(30);
-    // The switched-to sheet owns the change, so the first sheet is put back to what it held.
+    expect(hot.getSourceDataAtCell(2, 0)).toBeNull();
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBeUndefined();
+    expect(hot.getDataAtCell(2, 0)).toBeNull();
+    expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBeNull();
   });
 
-  it('writes a change into the switched-to sheet when the switch alone ran while the change was validated', async() => {
+  it('drops the change from both sheets when the switch alone ran while the change was validated', async() => {
     const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
     const other = engine.getSheetId(engine.addSheet('Other'));
 
     engine.setSheetContent(other, [[10, 'x'], [20, 'y'], [null, 'z']]);
 
     const first = hot.getPlugin('formulas').sheetId;
+    const changes = [];
+
+    hot.addHook('afterChange', (changeSet, source) => {
+      if (source === 'edit') {
+        changes.push(changeSet);
+      }
+    });
 
     hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
-    // The switch loads the other sheet into the grid without writing any sheet, so the sheet write
-    // count stays where it was. The sheet id is what tells the change set landed in another sheet.
+
+    expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
+
     hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
 
     await waitForValidation();
 
     expect(hot.getPlugin('formulas').sheetId).toBe(other);
-    expect(hot.getSourceDataAtCell(2, 0)).toBe('=SUM(A1:A2)');
-    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
-    expect(hot.getDataAtCell(2, 0)).toBe(30);
-    // The Core applied the change to the switched-to sheet's data, so the first sheet must not keep
-    // the copy `afterSetDataAtCell` wrote into it: one `setDataAtCell()` used to land in both.
+    expect(changes).toEqual([]);
+    expect(hot.getSourceDataAtCell(2, 0)).toBeNull();
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBeUndefined();
     expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBeNull();
+  });
+
+  it('keeps the loaded values when loadData() on the same sheet drops the change', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c']]);
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
+    hot.loadData([[5, 'x'], [6, 'y'], [9, 'z']]);
+
+    await waitForValidation();
+
+    expect(hot.getPlugin('formulas').sheetId).toBe(sheet);
+    expect(hot.getSourceDataAtCell(2, 0)).toBe(9);
+    expect(engine.getCellFormula({ sheet, row: 2, col: 0 })).toBeUndefined();
+    expect(engine.getCellValue({ sheet, row: 2, col: 0 })).toBe(9);
   });
 
   it('puts the switched-away sheet back when a slower validator answers after the switch', async() => {
@@ -212,7 +230,8 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     answer();
     await waitForValidation();
 
-    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBeUndefined();
+    expect(engine.getCellValue({ sheet: other, row: 2, col: 0 })).toBeNull();
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe(7);
   });
 
@@ -233,7 +252,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe('007');
   });
 
-  it('leaves a switched-away sheet alone when it was removed from the engine before the change was applied', async() => {
+  it('leaves a switched-away sheet alone when it was removed from the engine before the change was dropped', async() => {
     const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c']]);
     const first = hot.getPlugin('formulas').sheetId;
     const firstName = engine.getSheetName(first);
@@ -247,8 +266,8 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     await waitForValidation();
 
     expect(engine.getSheetId(firstName)).toBeUndefined();
-    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
-    expect(hot.getDataAtCell(2, 0)).toBe(30);
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBeUndefined();
+    expect(hot.getDataAtCell(2, 0)).toBeNull();
   });
 
   it('does not put back a cell the engine refused the first write of', async() => {
@@ -278,9 +297,6 @@ describe('Formulas write validated in flight across a sheet resync', () => {
   });
 
   it('restores the cell the first write reached, even when the switched-to sheet has fewer rows', async() => {
-    // The restore reads the cells the first write recorded rather than mapping the change through
-    // the grid again after the Core applied it, when the grid's indexes describe the switched-to
-    // sheet (here: two rows, so row 3 is one the Core has just created).
     const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c']]);
     const first = hot.getPlugin('formulas').sheetId;
     const other = engine.getSheetId(engine.addSheet('Other'));
@@ -293,7 +309,8 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBe(7);
-    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
+    expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBeUndefined();
+    expect(hot.countRows()).toBe(2);
   });
 
   it('restores the recorded cell when a trim the switch cleared moved the rows', async() => {
@@ -348,6 +365,156 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       reader.destroy();
       container2.remove();
     }
+  });
+
+  it('repaints this grid when the restore changes a cell its current sheet reads', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [3, 'c']]);
+    const firstName = hot.getPlugin('formulas').sheetName;
+    const other = engine.getSheetId(engine.addSheet('Other'));
+
+    engine.setSheetContent(other, [[`=${firstName}!A3`, 'x'], [null, 'y']]);
+    hot.setDataAtCell(2, 0, 50);
+    hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
+
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 0)).toBe(3);
+    expect(hot.getCell(0, 0).textContent).toBe('3');
+  });
+
+  it('takes the dropped change out of the grid data when the grid switched away and back', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
+    const plugin = hot.getPlugin('formulas');
+    const first = plugin.sheetId;
+    const firstName = plugin.sheetName;
+    const changes = [];
+
+    engine.setSheetContent(engine.getSheetId(engine.addSheet('Other')), [[10, 'x'], [20, 'y'], [null, 'z']]);
+    hot.addHook('afterChange', (changeSet, source) => {
+      if (source === 'edit') {
+        changes.push(changeSet);
+      }
+    });
+
+    hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
+    plugin.switchSheet('Other');
+    plugin.switchSheet(firstName);
+
+    await waitForValidation();
+
+    expect(plugin.sheetId).toBe(first);
+    expect(changes).toEqual([]);
+    expect(hot.getSourceDataAtCell(2, 0)).toBeNull();
+    expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
+    expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBeNull();
+  });
+
+  it('keeps the loaded data when the engine refused the load that dropped the change', async() => {
+    const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 3 });
+
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [3, 'c']],
+      columns: [{ validator: (value, callback) => callback(true) }, {}],
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell(0, 0, '=1+1');
+    hot.loadData([[5, 'w'], [6, 'x'], [7, 'y'], [8, 'z']]);
+
+    expect(warnings).toHaveBeenCalledWith(expect.stringContaining('maxRows'));
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 0)).toBe(5);
+    expect(engine.getSheetSerialized(sheet)).toEqual([]);
+
+    warnings.mockRestore();
+  });
+
+  it('keeps a newer edit of the cell when a change dropped after a switch away and back answers', async() => {
+    let answerHeld = null;
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [null, 'c']],
+      columns: [{
+        validator(value, callback) {
+          if (value === 'held') {
+            answerHeld = () => callback(true);
+          } else {
+            callback(true);
+          }
+        },
+      }, {}],
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const plugin = hot.getPlugin('formulas');
+    const first = plugin.sheetId;
+    const firstName = plugin.sheetName;
+
+    engine.setSheetContent(engine.getSheetId(engine.addSheet('Other')), [[10, 'x'], [20, 'y'], [null, 'z']]);
+
+    hot.setDataAtCell(0, 0, 'held');
+    plugin.switchSheet('Other');
+    plugin.switchSheet(firstName);
+    hot.setDataAtCell(0, 0, 'newer');
+
+    await waitForValidation();
+
+    answerHeld();
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 0)).toBe('newer');
+    expect(engine.getCellValue({ sheet: first, row: 0, col: 0 })).toBe('newer');
+  });
+
+  it('puts every cell of a dropped set back in one source write', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [3, 'c']]);
+    const plugin = hot.getPlugin('formulas');
+    const firstName = plugin.sheetName;
+    const sourceWrites = [];
+
+    engine.setSheetContent(engine.getSheetId(engine.addSheet('Other')), [[10, 'x']]);
+
+    hot.setDataAtCell([[0, 0, 7], [1, 0, 8], [2, 0, 9]]);
+    plugin.switchSheet('Other');
+    plugin.switchSheet(firstName);
+    hot.addHook('afterSetSourceDataAtCell', (changes, source) => sourceWrites.push([changes.length, source]));
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(sourceWrites).toEqual([[3, 'Formulas.restoreDroppedChange']]);
+  });
+
+  it('does not write a dropped change past the last row into the loaded data', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [3, 'c']]);
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell(3, 0, 77);
+    hot.loadData([[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']]);
+
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(3, 0)).toBe(4);
+    expect(engine.getCellValue({ sheet, row: 3, col: 0 })).toBe(4);
+  });
+
+  it('stops listening for dropped sets when the plugin is turned off', () => {
+    buildGrid([[1, 'a']]);
+
+    const removed = jest.spyOn(hot, '_removeDroppedChangesListener');
+
+    hot.updateSettings({ formulas: false });
+
+    expect(removed).toHaveBeenCalledTimes(1);
   });
 
   it('does not write a change back into a sheet the engine refused to hold', async() => {
