@@ -107,6 +107,10 @@ export function initHeadwayBell({ win, doc, bell, desktopSlot, mobileSlot, media
     });
   };
 
+  // True from the bell gaining focus until it loses focus while still rendered. A blur from the
+  // bell's group becoming `display: none` leaves it true.
+  let bellFocused = false;
+
   const placeBell = () => {
     const slot = mediaQuery?.matches ? desktopSlot : mobileSlot;
 
@@ -114,8 +118,10 @@ export function initHeadwayBell({ win, doc, bell, desktopSlot, mobileSlot, media
       return;
     }
 
-    // Moving a focused element drops its focus to <body>.
-    const hadFocus = doc.activeElement === bell;
+    // Moving a focused element drops its focus to <body>, and a browser that hides the group
+    // the bell sits in blurs the bell before the media query listener runs, so `activeElement`
+    // alone misses it. `bellFocused` is the last focus state the user left the bell in.
+    const hadFocus = bellFocused || doc.activeElement === bell;
 
     slot.appendChild(bell);
 
@@ -142,7 +148,15 @@ export function initHeadwayBell({ win, doc, bell, desktopSlot, mobileSlot, media
   // out of reach of Escape. Focus moving into the panel is the one move that keeps it open.
   // `relatedTarget` is not used: browsers differ on it when focus enters a cross-origin frame,
   // while the frame element is the document's active element in all of them, one task later.
+  bell.addEventListener('focus', () => {
+    bellFocused = true;
+  });
+
   bell.addEventListener('focusout', () => {
+    if (bell.getClientRects().length > 0) {
+      bellFocused = false;
+    }
+
     setTimeout(() => {
       const active = doc.activeElement;
 

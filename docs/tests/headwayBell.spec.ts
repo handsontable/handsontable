@@ -69,8 +69,8 @@ const HEADWAY_FRAME = /headway-widget\.net\/widgets\//;
 /**
  * Loads the page and waits for the bell. The bell stays hidden by design when Headway is
  * unreachable, so that case is a skip. Any other hidden bell (a wrong selector, a broken load
- * listener, a CSP change, a second init) is a failure: the skip needs Headway's own requests to
- * have failed.
+ * listener, a CSP change, a second init, an init that never ran) is a failure: the skip needs
+ * Headway's own requests to have failed.
  *
  * @param {Page} page The page.
  * @param {{ width: number, height: number }} viewport The viewport.
@@ -79,6 +79,7 @@ async function openPage(page: Page, viewport: { width: number, height: number })
   // A request can fail and be retried (the frame's first load is sometimes aborted), so this
   // records whether each one was ever served, not whether one attempt failed.
   const served = { script: false, frame: false };
+  const frame = { requested: false, failed: false };
 
   page.on('response', (response) => {
     if (!response.ok()) {
@@ -91,6 +92,16 @@ async function openPage(page: Page, viewport: { width: number, height: number })
       served.frame = true;
     }
   });
+  page.on('request', (request) => {
+    if (HEADWAY_FRAME.test(request.url()) && request.resourceType() === 'document') {
+      frame.requested = true;
+    }
+  });
+  page.on('requestfailed', (request) => {
+    if (HEADWAY_FRAME.test(request.url()) && request.resourceType() === 'document') {
+      frame.failed = true;
+    }
+  });
 
   await page.setViewportSize(viewport);
   await page.goto(PAGE_PATH);
@@ -100,8 +111,11 @@ async function openPage(page: Page, viewport: { width: number, height: number })
   try {
     await expect(bell).toBeVisible({ timeout: 20_000 });
   } catch (error) {
-    test.skip(!served.script || !served.frame, `Headway is unreachable (script served: ${served.script}, frame served: ${served.frame}).`);
-    throw new Error(`The bell stayed hidden although Headway answered (script: ${served.script}, frame: ${served.frame}).`, { cause: error });
+    // Skip only when Headway itself failed: the script did not arrive, or the panel's page was
+    // requested and never served. A script that arrived without a frame request means
+    // `Headway.init()` never ran, which is a failure.
+    test.skip(!served.script || (frame.requested && !served.frame), `Headway is unreachable (script served: ${served.script}, frame requested: ${frame.requested}, served: ${served.frame}, failed: ${frame.failed}).`);
+    throw new Error(`The bell stayed hidden although Headway answered (script served: ${served.script}, frame requested: ${frame.requested}, served: ${served.frame}).`, { cause: error });
   }
 }
 
@@ -290,16 +304,21 @@ test.describe('Headway changelog bell', () => {
     await openAndLeaveFromKeyboard(page);
   });
 
-  test('a click on the bell closes an open header menu', async ({ page }) => {
-    await openPage(page, { width: 1440, height: 900 });
+  for (const [menu, trigger, popup] of [
+    ['Support', '#support-trigger', '.support-menu'],
+    ['Versions', '#versions-trigger', '.versions-menu'],
+  ]) {
+    test(`a click on the bell closes an open ${menu} menu`, async ({ page }) => {
+      await openPage(page, { width: 1440, height: 900 });
 
-    // Headway stops the bell's click, so the menus listen for outside clicks in the capture phase.
-    await page.locator('#support-trigger').click();
-    await expect(page.locator('.support-menu')).toBeVisible();
+      // Headway stops the bell's click, so the menus listen for outside clicks in the capture phase.
+      await page.locator(trigger).click();
+      await expect(page.locator(popup)).toBeVisible();
 
-    await page.getByRole('button', { name: /^Product updates/ }).click();
+      await page.getByRole('button', { name: /^Product updates/ }).click();
 
-    await expect(page.locator('#HW_frame_cont')).toHaveClass(/HW_visible/);
-    await expect(page.locator('.support-menu')).toBeHidden();
-  });
+      await expect(page.locator('#HW_frame_cont')).toHaveClass(/HW_visible/);
+      await expect(page.locator(popup)).toBeHidden();
+    });
+  }
 });

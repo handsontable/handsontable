@@ -29,6 +29,12 @@ function createElement(doc, id) {
     children: [],
     placed: [],
     removed: false,
+    // Whether the element has a box. A browser blurs a focused element whose group becomes
+    // `display: none`.
+    rendered: true,
+    getClientRects() {
+      return element.rendered ? [{}] : [];
+    },
     getAttribute(name) {
       return Object.prototype.hasOwnProperty.call(attrs, name) ? attrs[name] : null;
     },
@@ -281,6 +287,39 @@ test('never initializes a widget that already exists on the page', () => {
 
   assert.equal(harness.init(), false);
   assert.equal(harness.initCalls.length, 0);
+});
+
+test('focus survives the browser blurring the bell when its header group is hidden', async () => {
+  // Widening the window hides the mobile group, and Chrome blurs the bell before the media query
+  // listener runs, so the bell cannot be checked for focus when it moves.
+  const harness = createHarness({ desktop: false });
+
+  harness.init();
+  await harness.widgetReady();
+  harness.bell.focus();
+
+  harness.bell.rendered = false;
+  harness.doc.activeElement = harness.doc.body;
+  harness.bell.dispatch('focusout', { relatedTarget: null });
+  harness.bell.rendered = true;
+
+  await harness.setDesktop(true);
+
+  assert.equal(harness.bell.parentNode, harness.desktopSlot);
+  assert.equal(harness.doc.activeElement, harness.bell);
+});
+
+test('a bell the user tabbed away from does not take focus back when it moves', async () => {
+  const harness = createHarness({ desktop: false });
+
+  harness.init();
+  await harness.widgetReady();
+  harness.bell.focus();
+  harness.pageLink.focus();
+
+  await harness.setDesktop(true);
+
+  assert.equal(harness.doc.activeElement, harness.pageLink);
 });
 
 test('does not init Headway before the window load event', () => {

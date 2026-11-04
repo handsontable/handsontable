@@ -865,11 +865,16 @@ function getMobileFrameworkHref(fw: { id: string }): string {
 
   /*
    * Headway's default red (#CD4B5B) is 4.42:1 against the white count; the accent passes. The
-   * soft-hidden state is Headway's gray "nothing new" dot, so it keeps Headway's color.
+   * soft-hidden state is a gray "nothing new" dot (#d4d4d4), which is 1.40:1 against the light
+   * header and carries no information the bell's name does not, so it is not drawn.
    */
   .headway-bell :global(.HW_badge:not(.HW_softHidden)) {
     background: var(--sl-color-accent);
     color: #fff;
+  }
+
+  .headway-bell :global(.HW_badge.HW_softHidden) {
+    visibility: hidden;
   }
 
   .headway-bell :global(.HW_badge) {
