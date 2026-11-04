@@ -28,12 +28,15 @@ interface FixtureWindow {
     selectCell(row: number, col: number): boolean;
     getDataAtCell(row: number, col: number): unknown;
     getSourceDataAtCell(row: number, col: number): unknown;
+    setSourceDataAtCell(row: number, col: number, value: unknown): void;
+    addHook(name: string, callback: () => void): void;
     getActiveEditor(): ListEditor | undefined;
   };
   initGrid(overrides?: Record<string, unknown>): boolean;
   useFilteringSource(list: string[]): boolean;
   htBuildError?: string;
   __xssTestInjection?: boolean;
+  __afterChangeCount?: number;
 }
 
 /**
@@ -308,6 +311,47 @@ export class AutocompleteChoicesListPage {
       ({ r, c }) => (window as unknown as FixtureWindow).hot.selectCell(r, c),
       { r: row, c: col }
     );
+  }
+
+  /**
+   * Writes a value into a cell's source data through the API, the way an application changes the
+   * cell under an open editor. The open editor takes the written value as its own.
+   *
+   * @param {number} row The physical row index.
+   * @param {number} col The physical column index.
+   * @param {unknown} value The value to write.
+   */
+  async setSourceDataAt(row: number, col: number, value: unknown): Promise<void> {
+    await this.page.evaluate(
+      ({ r, c, v }) => (window as unknown as FixtureWindow).hot.setSourceDataAtCell(r, c, v),
+      { r: row, c: col, v: value }
+    );
+  }
+
+  /**
+   * Starts counting the `afterChange` calls that carry changes, so a test can tell a confirm that
+   * wrote a value (even an equal one) from one that wrote nothing.
+   */
+  async countChanges(): Promise<void> {
+    await this.page.evaluate(() => {
+      const fixture = window as unknown as FixtureWindow;
+
+      fixture.__afterChangeCount = 0;
+      fixture.hot.addHook('afterChange', (changes?: unknown) => {
+        if (changes) {
+          fixture.__afterChangeCount = (fixture.__afterChangeCount ?? 0) + 1;
+        }
+      });
+    });
+  }
+
+  /**
+   * How many `afterChange` calls carried changes since `countChanges()`.
+   *
+   * @returns {Promise<number>}
+   */
+  async changeCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).__afterChangeCount ?? 0);
   }
 
   /**

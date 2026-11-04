@@ -504,13 +504,47 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {number | null}
    */
   #firstPartialMatch(): number | null {
+    return this.#holdsOpeningText() ? null : 0;
+  }
+
+  /**
+   * Tells whether the editor still holds the non-empty text it was seeded with from the cell.
+   *
+   * @returns {boolean}
+   */
+  #holdsOpeningText(): boolean {
     const openedWith = this.#openedText;
 
-    if (openedWith !== null && openedWith !== '' && this.TEXTAREA.value === openedWith) {
-      return null;
-    }
+    return openedWith !== null && openedWith !== '' && this.TEXTAREA.value === openedWith;
+  }
 
-    return 0;
+  /**
+   * Tells whether the edit being confirmed leaves the cell as it was. Besides the base rule, an edit
+   * whose text the user never changed and whose list they never picked from is unchanged: `getValue()`
+   * resolves a label into the FIRST entry that carries it, so the base comparison with the seeded label
+   * fails for a key/value cell, and writing would replace an entry with another one of the same label.
+   * Nothing is written then, the cell's value is validated as it is, and no `afterChange` fires.
+   *
+   * @private
+   * @param {*} held The editor value after `trimWhitespace`.
+   * @param {*} value The value that would be written, after `valueParser`.
+   * @returns {boolean}
+   */
+  protected isEditUnchanged(held: unknown, value: unknown): boolean {
+    return super.isEditUnchanged(held, value) || (this.innerSelectionOrigin !== 'user' && this.#holdsOpeningText());
+  }
+
+  /**
+   * Re-seeds the unchanged-edit baseline after the open editor took the cell's value again
+   * (`TextEditor#refreshValue()`, after `setSourceDataAtCell()` on the edited cell), and the opening
+   * text with it.
+   */
+  protected resetValueBeforeEdit(): void {
+    super.resetValueBeforeEdit();
+
+    if (this.#openedText !== null) {
+      this.#openedText = this.TEXTAREA.value;
+    }
   }
 
   /**
@@ -586,7 +620,9 @@ export class AutocompleteEditor extends HandsontableEditor {
     // Non-strict derives no highlight of its own, so with no pick outstanding there is nothing the
     // list can contribute. Checking the origin FIRST is what makes clearing it on `input` mean
     // something here: short-circuiting on `strict` would hand back a pick the typing superseded.
-    if (this.cellProperties.strict !== true) {
+    // Strict mode completes text the user typed. Text they never changed is the cell's own value, which
+    // the confirm keeps as it is (`isEditUnchanged()`), even where an entry equals it only without case.
+    if (this.cellProperties.strict !== true || this.#holdsOpeningText()) {
       return undefined;
     }
 
