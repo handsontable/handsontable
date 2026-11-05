@@ -236,6 +236,12 @@ export interface TabStripOptions {
    * shows (`aria-labelledby`). Unique per grid.
    */
   labelIdPrefix: string;
+  /**
+   * Returns the name a tab shows once its rename commits the given draft: the draft when the commit
+   * accepts it, the current name when it refuses it. The rename input is sized by it. Without it, a blank
+   * draft keeps the current name and any other draft is taken as accepted.
+   */
+  committedLabel?: (id: number, draft: string) => string;
 }
 
 /**
@@ -329,6 +335,11 @@ export class TabStrip {
    */
   readonly #labelIdPrefix: string;
   /**
+   * The name a tab shows once its rename commits a draft (`TabStripOptions.committedLabel`), or `null` to
+   * take a non-blank draft as accepted.
+   */
+  readonly #committedLabel: ((id: number, draft: string) => string) | null;
+  /**
    * The sheets the tabs show, by id, as the last `render()` received them.
    */
   readonly #sheets = new Map<number, SheetDescriptor>();
@@ -390,6 +401,7 @@ export class TabStrip {
     this.#syncIcon = options.syncIcon;
     this.#rootWindow = options.rootWindow;
     this.#labelIdPrefix = options.labelIdPrefix;
+    this.#committedLabel = options.committedLabel ?? null;
     this.#drag = new TabDrag(
       {
         host: options.host,
@@ -1596,7 +1608,7 @@ export class TabStrip {
         input.value = limited;
       }
 
-      this.#syncRenameWidth(input, mirror, savedText, reserve);
+      this.#syncRenameWidth(id, input, mirror, savedText, reserve);
     };
 
     input.addEventListener('blur', () => finish(true, false));
@@ -1605,7 +1617,7 @@ export class TabStrip {
       // session, committing or dropping the candidate instead of leaving it in the composition
       // window. The cap waits for `compositionend`; only the width tracks the interim text.
       if ((event as InputEvent).isComposing) {
-        this.#syncRenameWidth(input, mirror, savedText, reserve);
+        this.#syncRenameWidth(id, input, mirror, savedText, reserve);
 
         return;
       }
@@ -1635,7 +1647,7 @@ export class TabStrip {
     label.replaceWith(input);
     tab.appendChild(mirror);
     tab.appendChild(savedName);
-    this.#syncRenameWidth(input, mirror, savedText, 0);
+    this.#syncRenameWidth(id, input, mirror, savedText, 0);
 
     // Entering the edit hides the gap and the chevron next to the label. The room they take is
     // handed to the input for the whole edit, on top of the text it holds, so the tab is as wide
@@ -1649,7 +1661,7 @@ export class TabStrip {
     const editChrome = tab.getBoundingClientRect().width - this.#contentWidthOf(input);
 
     reserve = Math.max(0, tabWidthBeforeEdit - labelWidthBeforeEdit - editChrome);
-    this.#syncRenameWidth(input, mirror, savedText, reserve);
+    this.#syncRenameWidth(id, input, mirror, savedText, reserve);
 
     // The rename always starts from something the user just clicked, so the field is on
     // screen already; letting focus scroll to it only jerks the page under them.
@@ -1658,23 +1670,32 @@ export class TabStrip {
   }
 
   /**
-   * Sizes the rename input to the text it holds plus the room the label's neighbors take once
-   * the edit ends, so the tab keeps the width the committed name gives it.
+   * Sizes the rename input to the name the tab will show once the edit commits, plus the room the
+   * label's neighbors take then, so the tab keeps the width it has after the commit whatever the
+   * commit decides.
    *
-   * The value is measured on a mirror element that sits inside the same tab and therefore
+   * The name is measured on a mirror element that sits inside the same tab and therefore
    * inherits the input's typography, so the width follows the rendered text rather than a
-   * character count — proportional fonts make those two disagree. A blank value is measured as
-   * the saved name, because committing it keeps that name, so clearing the field does not
-   * collapse the tab. The absolute bounds stay in CSS as `min-width`/`max-width`, leaving only
-   * the measured value here.
+   * character count — proportional fonts make those two disagree. A draft the commit refuses (a
+   * blank one, a name another sheet has) is measured as the saved name, because the tab goes back
+   * to it: sized to the draft, the tab changed width between the press on another tab and its
+   * release, and the browser sent the `click` to the strip. A refused draft wider than the saved
+   * name scrolls inside the input. The absolute bounds stay in CSS as `min-width`/`max-width`,
+   * leaving only the measured value here.
    *
+   * @param {number} id The sheet being renamed.
    * @param {HTMLInputElement} input The rename input being edited.
    * @param {HTMLElement} mirror The hidden element the value is measured on.
    * @param {string} savedText The name the tab showed when the edit started.
    * @param {number} reserve The room the gap and the chevron take after the edit, in pixels.
    */
-  #syncRenameWidth(input: HTMLInputElement, mirror: HTMLElement, savedText: string, reserve: number): void {
-    mirror.textContent = input.value.trim() === '' ? savedText : input.value;
+  #syncRenameWidth(id: number, input: HTMLInputElement, mirror: HTMLElement, savedText: string, reserve: number): void {
+    if (this.#committedLabel !== null) {
+      mirror.textContent = this.#committedLabel(id, input.value);
+    } else {
+      mirror.textContent = input.value.trim() === '' ? savedText : input.value;
+    }
+
     input.style.width = `${mirror.getBoundingClientRect().width + reserve}px`;
   }
 

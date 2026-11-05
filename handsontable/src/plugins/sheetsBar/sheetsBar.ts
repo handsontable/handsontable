@@ -1337,6 +1337,7 @@ export class SheetsBar extends BasePlugin {
         syncIcon: syncIconForHot,
         rootWindow: this.hot.rootWindow,
         labelIdPrefix: `${this.hot.guid}-sheet-tab-label`,
+        committedLabel: (id: number, draft: string) => this.#committedTabLabel(id, draft),
       });
       this.#tabStrip.setDragSlide(this.#animation().move);
       this.#tabStrip
@@ -1617,6 +1618,16 @@ export class SheetsBar extends BasePlugin {
    * @returns {boolean} `true` when the entry can be written.
    */
   #canWriteDeclaredName(id: number): boolean {
+    return this.#refuseUnwritable(this.#isDeclaredNameWritable(id));
+  }
+
+  /**
+   * Answers whether a sheet's entry in the host's `sheets` array can take a new `name`, without a warning.
+   *
+   * @param {number} id The sheet about to be renamed.
+   * @returns {boolean} `true` when the entry can be written.
+   */
+  #isDeclaredNameWritable(id: number): boolean {
     const entry = this.#declaredEntries.get(id);
 
     if (!entry) {
@@ -1624,11 +1635,34 @@ export class SheetsBar extends BasePlugin {
     }
 
     const descriptor = Object.getOwnPropertyDescriptor(entry, 'name');
-    const isWritable = descriptor
+
+    return descriptor
       ? descriptor.writable === true || typeof descriptor.set === 'function'
       : Object.isExtensible(entry);
+  }
 
-    return this.#refuseUnwritable(isWritable);
+  /**
+   * Returns the name a tab shows once its rename commits `draft`: the clamped draft when `#commitRename`
+   * would accept it, else the sheet's current name (a blank draft, a name taken in the bar or in the formula
+   * engine, an entry the host froze). The tab strip sizes the rename input by it, so the tab keeps its width
+   * whatever the commit decides. A `beforeSheetTabRename` listener that cancels the rename is not foreseen.
+   *
+   * @param {number} id The sheet being renamed.
+   * @param {string} draft The text in the rename input.
+   * @returns {string}
+   */
+  #committedTabLabel(id: number, draft: string): string {
+    const sheet = this.#model?.getSheetById(id);
+
+    if (!this.#model || !sheet) {
+      return draft;
+    }
+
+    const name = clampSheetName(draft);
+    const isRefused = name === '' || this.#model.isNameTaken(name, id)
+      || this.#renameCollidesInEngine(sheet, sheet.name, name) || !this.#isDeclaredNameWritable(id);
+
+    return isRefused ? sheet.name : name;
   }
 
   /**

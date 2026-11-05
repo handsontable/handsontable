@@ -788,6 +788,21 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       expect(await fixture.sheetStates()).toEqual(['Q', 'S1', 'S2*']);
     });
 
+    test('a press on another tab\'s label during a rename to a taken name keeps the names and switches', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await fixture.renameSheets(['Budget-long-name', 'S1', 'S2']);
+      await fixture.label(0).dblclick();
+      await fixture.renameInput.fill('S1');
+      await fixture.label(2).click();
+
+      await expect(fixture.tab(2)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await fixture.sheetStates()).toEqual(['Budget-long-name', 'S1', 'S2*']);
+    });
+
     test('a tab click whose afterSheetTabStateRestore listener destroys the grid throws nothing', async({
       page, theme, bundle,
     }) => {
