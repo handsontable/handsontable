@@ -924,6 +924,26 @@ describe('SheetsBar formula sheets', () => {
       expect(hot.getDataAtCol(0)).toEqual(['#REF!', '#REF!', '#REF!']);
       expect(engine.getSheetNames()).toEqual(['Sum']);
     });
+
+    it('does not add a removed sheet back when the next formulas sheet names no engine sheet', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Data', [[10], [20], [30]]),
+        { name: 'Plain', data: [['p1'], ['p2'], ['p3']] },
+        boundSheet(engine, 'Sum', [['=SUM(Data!A1:A3)'], ['=Data!A1'], ['=Data!A2*2']]),
+        { name: 'Free', data: [['f1'], ['f2'], ['f3']], settings: { formulas: { engine } } },
+      ]);
+      sheetsBar().setActiveSheet(idOf('Plain'));
+      sheetsBar().removeSheet(idOf('Data'));
+      sheetsBar().setActiveSheet(idOf('Free'));
+
+      expect(engine.doesSheetExist('Data')).toBe(false);
+
+      sheetsBar().setActiveSheet(idOf('Sum'));
+
+      expect(hot.getDataAtCol(0)).toEqual(['#REF!', '#REF!', '#REF!']);
+    });
   });
 
   describe('engine binding', () => {

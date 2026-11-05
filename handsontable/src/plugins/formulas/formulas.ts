@@ -1118,7 +1118,11 @@ export class Formulas extends BasePlugin {
     let sheetPaintErrors: unknown[] = [];
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
-    if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName) && !this.isDataLoadPending()) {
+    if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName) && this.isDataLoadPending()) {
+      this.sheetName = null;
+      this.sheetId = null;
+
+    } else if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
       this.#escapeSourceDataArray(sourceDataArray);
