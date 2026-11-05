@@ -15,6 +15,7 @@ vue:
   metaTitle: Supported browsers | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Technical specification
+menuTag: updated
 ---
 Handsontable DataGrid supports all the most popular desktop and mobile browsers.
 
@@ -36,3 +37,21 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 | Firefox          | Safari iOS          |
 | Safari           |                     |
 | Edge             |                     |
+
+## Minimum versions
+
+Each Handsontable release is built to run on a minimum version of each browser. In an older version, the grid can throw errors or render without parts of its theme.
+
+| Browser        | Handsontable 18.x | Handsontable 19.0 |
+| :------------- | :---------------- | :---------------- |
+| Chrome         | 110               | 130               |
+| Edge           | Not declared      | 130               |
+| Firefox        | 110               | 132               |
+| Safari (macOS) | 14.1              | 18.2              |
+| Safari (iOS)   | Not declared      | 18.2              |
+
+Handsontable 18.x declares minimum versions for Chrome, Firefox, and Safari only. It declares none for Edge or for Safari on iOS. Chrome and Firefox on Android have no minimum declared separately.
+
+The minimum versions are not the versions Handsontable is tested on. Tests run on the two latest versions of each browser, which are newer than the minimums.
+
+If you upgrade from 18.1 to 19.0, see [The minimum browser versions are higher](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-minimum-browser-versions-are-higher).
