@@ -84,10 +84,11 @@ export const STARTS = ['grid', 'page'];
  * artifacts (`tests/AGENTS.md`, "Screen readers"). `keyboard`: what a keyboard user does in the grid
  * itself. `reading`: the reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the
  * filters inside them. `editors`: the cell editors and the checkbox cell. `selection`: row selection, the
- * check all header, and the selection paging through a virtualized grid. A new group joins this list and
- * the workflow's matrix together; the workflow test keeps the two equal.
+ * check all header, and the selection paging through a virtualized grid. `structure`: nested and collapsible
+ * headers, merged cells and the freeze bars. A new group joins this list and the workflow's matrix together;
+ * the workflow test keeps the two equal.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection'];
+export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure'];
 /**
  * The modifiers a `press` chord may start with, joined to the key by `+` (`Shift+F10`,
  * `Control+Alt+M`), as Playwright names them.
