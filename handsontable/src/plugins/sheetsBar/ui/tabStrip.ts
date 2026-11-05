@@ -1656,8 +1656,8 @@ export class TabStrip {
     // that changed width there moved the pressed tab away from the pointer before the release,
     // and the browser sent the `click` to the strip instead of the tab, so the sheet did not
     // switch. The room is the tab's width around its label before the edit, less its width
-    // around the input's content now (the paddings both have). The CSS `min-width` still holds
-    // the input wider for a name of one or two characters.
+    // around the input's content now (the paddings both have). The input has no CSS minimum, so a
+    // one-character name keeps its committed width too.
     const editChrome = tab.getBoundingClientRect().width - this.#contentWidthOf(input);
 
     reserve = Math.max(0, tabWidthBeforeEdit - labelWidthBeforeEdit - editChrome);
@@ -1680,8 +1680,8 @@ export class TabStrip {
    * blank one, a name another sheet has) is measured as the saved name, because the tab goes back
    * to it: sized to the draft, the tab changed width between the press on another tab and its
    * release, and the browser sent the `click` to the strip. A refused draft wider than the saved
-   * name scrolls inside the input. The absolute bounds stay in CSS as `min-width`/`max-width`,
-   * leaving only the measured value here.
+   * name scrolls inside the input. The input has no CSS `min-width`, which held a short name wider
+   * than its committed tab; its `max-width` stays in CSS.
    *
    * @param {number} id The sheet being renamed.
    * @param {HTMLInputElement} input The rename input being edited.

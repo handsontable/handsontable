@@ -803,6 +803,29 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       expect(await fixture.sheetStates()).toEqual(['Budget-long-name', 'S1', 'S2*']);
     });
 
+    [
+      { title: 'a taken one-character name', names: ['A', 'B', 'C'], draft: 'C', states: ['A', 'B*', 'C'] },
+      { title: 'a new one-character name', names: ['A', 'B', 'C'], draft: 'Z', states: ['Z', 'B*', 'C'] },
+      { title: 'a blank name', names: ['A', 'B', 'C'], draft: '', states: ['A', 'B*', 'C'] },
+      { title: 'a one-character name from a long one', names: ['Quarterly budget', 'B', 'C'], draft: 'x',
+        states: ['x', 'B*', 'C'] },
+    ].forEach(({ title, names, draft, states }) => {
+      test(`a press near the end of the next tab during a rename to ${title} switches to it`, async({
+        page, theme, bundle,
+      }) => {
+        const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+        await fixture.goto();
+        await fixture.renameSheets(names);
+        await fixture.label(0).dblclick();
+        await fixture.renameInput.fill(draft);
+        await fixture.clickNearTabEnd(1);
+
+        await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
+        expect(await fixture.sheetStates()).toEqual(states);
+      });
+    });
+
     test('a tab click whose afterSheetTabStateRestore listener destroys the grid throws nothing', async({
       page, theme, bundle,
     }) => {

@@ -142,6 +142,25 @@ export class SheetsBarUiPage {
   }
 
   /**
+   * Presses and releases the mouse inside a tab, a few pixels from its end edge, the spot a shift of the
+   * tab moves out from under the pointer first.
+   *
+   * @param {number} index The tab's position.
+   * @param {number} [inset] How far from the tab's end edge to press, in pixels.
+   */
+  async clickNearTabEnd(index: number, inset = 3): Promise<void> {
+    const box = await this.tab(index).boundingBox();
+
+    if (!box) {
+      throw new Error(`Tab ${index} is not rendered.`);
+    }
+
+    await this.page.mouse.move(box.x + box.width - inset, box.y + (box.height / 2));
+    await this.page.mouse.down();
+    await this.page.mouse.up();
+  }
+
+  /**
    * Renames every sheet through the API, in tab order.
    *
    * @param {string[]} names The new names.

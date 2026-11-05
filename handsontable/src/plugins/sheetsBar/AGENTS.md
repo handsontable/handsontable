@@ -129,8 +129,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   another element than the press, and the browser sent the `click` to the strip, so the sheet did not
   switch (a press on the chevron still switched, because the shift kept it inside its own tab). Do not
   bring back a width floor held for the whole edit: a narrower committed name moves the tabs the other
-  way. The CSS `min-width` still holds a one- or two-character name wider. Pinned by the "during a
-  rename that widens/narrows the tab" and "during a rename to a taken name" cases in `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
+  way, and do not bring back a CSS `min-width` on the input: it held a one- or two-character name 7 to
+  13px wider than its committed tab, and a press near the next tab's end edge then released on the tab
+  after it. Pinned by the "during a rename that widens/narrows the tab", "during a rename to a taken
+  name" and "a press near the end of the next tab" cases in `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
 - **A drag's Escape listener sits on the window in the capture phase** (`TabDrag#start`). While a
   drag started with a fresh press runs, the bar's focus scope is inactive: the focus manager skips
   `focusin` while the mouse is down and activates scopes on the `click` that follows. That click
