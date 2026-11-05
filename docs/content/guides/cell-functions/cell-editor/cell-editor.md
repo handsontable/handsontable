@@ -50,6 +50,15 @@ Declare the editor as a class that extends a built-in editor (e.g., `TextEditor`
 
 :::
 
+The `editor` prop of `HotTable` and `HotColumn` is for components built with `useHotEditor`. To set a class-based editor, or the name of a registered editor, on those components, use the `hotEditor` prop. On `HotTable`, it sets the editor for the whole grid:
+
+```jsx
+<HotColumn hotEditor={CustomEditor} />
+<HotTable hotEditor="myEditor" />
+```
+
+For the `myEditor` alias, see [Registering an editor](#registering-an-editor). The `editor` key of an entry in the `columns` array is a core setting, so it takes a class or a name, as in the example above.
+
 ::: tip
 
 The sections below describe the class-based editor API. All of it applies to React when using the class-based approach.
@@ -296,7 +305,7 @@ Key implementation decisions:
 
 ::: only-for react
 
-To use a class-based editor from scratch in React, pass the editor class as the `editor` prop in a column configuration object. See the [class-based editors](#class-based-editors) section for an example.
+To use a class-based editor from scratch in React, pass the editor class as the `editor` key of an entry in the `columns` array, or as the `hotEditor` prop of `HotTable` or `HotColumn`. See the [class-based editors](#class-based-editors) section for an example.
 
 :::
 
@@ -344,11 +353,17 @@ new Handsontable(container, {
 <HotTable columns={[{ editor: 'myEditor' }]} />
 ```
 
+To set the alias on `HotTable` or `HotColumn`, use the `hotEditor` prop:
+
+```jsx
+<HotTable hotEditor="myEditor" />
+```
+
 ::: tip
 
 Registering an editor with `registerEditor` and referencing it by a string alias works for class-based editors only. Component-based editors (those using `useHotEditor`) cannot be registered this way, because they depend on React's rendering lifecycle to function.
 
-For component-based editors, pass the component directly to the `editor` prop of `HotTable` or `HotColumn` — no registration step is needed.
+For component-based editors, pass the component directly to the `editor` prop of `HotTable` or `HotColumn` - no registration step is needed. For a class-based editor or a registered alias, use the `hotEditor` prop.
 
 :::
 
