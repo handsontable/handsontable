@@ -247,7 +247,9 @@ function updatesGoldens(testInfo: TestInfo): boolean {
 /**
  * Runs one page action of a step or the setup: a key, typed text, or a call on the instance (read inside
  * the page through the `__hotInstance` the core stamps on the root wrapper, or the fixture's `window.hot`,
- * so a catalog page needs no global of its own), the sentinels around the grid, or a focus.
+ * so a catalog page needs no global of its own), the sentinels around the grid, a focus, or a host event
+ * (`call`: a function the fixture puts on `window`, awaited when it returns a promise; one the page lacks
+ * fails the test, so a renamed fixture function is never a silent step).
  *
  * @param page The page.
  * @param root The grid's root container selector.
@@ -315,6 +317,21 @@ async function runAction(page: Page, root: string, action: ScenarioAction | Setu
   } else if ('focus' in action) {
     await page.locator(action.focus).first().focus();
     await expect(page.locator(action.focus).first(), `the setup focused ${action.focus}`).toBeFocused();
+  } else if ('call' in action) {
+    const [name, ...args] = action.call;
+    const called = await page.evaluate(async([fn, values]) => {
+      const target = (window as unknown as Record<string, unknown>)[fn];
+
+      if (typeof target !== 'function') {
+        return false;
+      }
+
+      await target(...values);
+
+      return true;
+    }, [name, args] as const);
+
+    expect(called, `window.${name}() is a function the page defines`).toBe(true);
   } else {
     throw new Error(`The page does not run the reader primitive ${JSON.stringify(action)}.`);
   }

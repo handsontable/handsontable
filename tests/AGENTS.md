@@ -2053,7 +2053,7 @@ screen readers (`docs/AGENTS.md` 2.20).
   larger than its viewport),
   `sentinels` (`true`: a button named `Before the grid` before the root container and one named `After
   the grid` after it, so a Tab out of the grid lands on the page instead of leaving the document, as the
-  keyboard walker brackets a grid) and `focus` (a selector). A step has an `id`, exactly one primitive as
+  keyboard walker brackets a grid), `focus` (a selector) and `call` (a host event, below). A step has an `id`, exactly one primitive as
   its `action`, its `expect` token groups, an optional `after` (`{ "visible": "<selector>" }` or
   `{ "hidden": … }`, awaited inside the capture so the state's announcement is in it, and a red test when
   it never comes), an optional `unsupported` and a `note`. A **variant** (`variantOf`) is its base's steps
@@ -2077,6 +2077,17 @@ screen readers (`docs/AGENTS.md` 2.20).
   log, never inside `screenReader.capture()`, whose action holds Guidepup's queue (a nested command waits
   for itself forever). The iOS and TalkBack readers will drive the same field (`moveForward`, next item,
   double tap) when their lanes exist; the scenarios do not change for them.
+- **`call` is a host event, for a status message no key causes.** `["name", ...args]` calls a function
+  the fixture puts on `window` (`["resolveRequest", 0, "New A"]`: the server answers a pending request),
+  because a status message (WCAG 4.1.3) often follows something the user did not do, such as a fetch
+  that lands or a value that resolves, and no key reaches it. It is a page action like `press`: every
+  lane drives it, NVDA in focus mode, and the reader's phrase around it is captured. The name is an
+  identifier (`CALL_NAME_PATTERN`), never a path such as `htServer.release`, so a scenario calls only what
+  the fixture exposes for it (a fixture adds a top-level wrapper when the function sits on an object). The
+  arguments are JSON values, and a function the page lacks fails the test instead of passing as a silent
+  step. It runs in the setup (start a request before the reader settles) and in a step, whose note says
+  which host event it stands for. The step's token groups are what a reader should announce for the change,
+  so silence after it is a finding, not a pass by default.
 - **A primitive a lane cannot drive is declared, never skipped silently.** NVDA has no interaction level:
   browse mode reads into a table without entering it, so `read in` and `read out` mean nothing to it. A
   step whose primitive a lane cannot drive carries `unsupported: { "<lane>": "<reason>" }` (`nvda`,
@@ -2253,7 +2264,9 @@ screen readers (`docs/AGENTS.md` 2.20).
   scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
   keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the menus
   and the filters inside them, `editors` for the cell editors and the checkbox cell, `selection` for row selection, the check all
-  header and the selection paging through a virtualized grid), each group is
+  header and the selection paging through a virtualized grid, `status` for the status messages and the
+  bars around the grid: pagination, the sheets bar, a dialog, a notification, the loading and empty data
+  overlays, and a value that resolves later), each group is
   a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)

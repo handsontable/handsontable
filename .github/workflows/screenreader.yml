@@ -54,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [ chromium, firefox ]
-        group: [ keyboard, reading, menus, editors, selection ]
+        group: [ keyboard, reading, menus, editors, selection, status ]
     # Job-level, like a11y.yml: `checks: write` posts the report check run. Kept off the workflow level
     # so nothing else in the run inherits it.
     permissions:
@@ -174,7 +174,7 @@ jobs:
       max-parallel: 2
       matrix:
         browser: [ webkit, chromium ]
-        group: [ keyboard, reading, menus, editors, selection ]
+        group: [ keyboard, reading, menus, editors, selection, status ]
     # Job-level, like the NVDA job: `checks: write` posts the report check run.
     permissions:
       contents: read

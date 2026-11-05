@@ -153,9 +153,23 @@ test('a press is a Playwright key name or chord, checked on the pull request', (
   ['ArrowUp', 'Escape', 'Tab', 'PageDown', 'Space', 'F1', 'F12', 'Digit0', 'KeyZ', 'Shift+ArrowRight', 'Alt+Shift+ArrowDown', '/'].forEach(key => assert.equal(PRESS_PATTERN.test(key), true, key));
 });
 
-test('the action vocabulary is the five primitives the runner implements, and the setup has its own', () => {
-  assert.deepEqual([...ACTIONS], ['press', 'type', 'selectCell', 'read', 'activate']);
-  assert.deepEqual([...SETUP_ACTIONS], ['press', 'type', 'selectCell', 'updateSettings', 'spreadsheetData', 'sentinels', 'focus']);
+test('the action vocabulary is the five primitives the runner implements and a host event, and the setup has its own', () => {
+  assert.deepEqual([...ACTIONS], ['press', 'type', 'selectCell', 'read', 'activate', 'call']);
+  assert.deepEqual([...SETUP_ACTIONS], ['press', 'type', 'selectCell', 'updateSettings', 'spreadsheetData', 'sentinels', 'focus', 'call']);
+});
+
+test('a call names a function the fixture puts on window, with JSON arguments, in a step or the setup', () => {
+  const step = action => validateScenario({ ...valid(), steps: [{ id: 'a', action, expect: [] }] }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+  const setup = action => validateScenario({ ...valid(), setup: [action] }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.equal(step({ call: ['resolveRequest', 0, 'New A'] }), '');
+  assert.equal(step({ call: ['htReleaseFetch'] }), '', 'a call without arguments');
+  assert.equal(setup({ call: ['startRequest', 0, 1] }), '', 'the setup may start a request before the reader settles');
+  assert.equal(step({ call: ['$_x1', { nested: [1, null] }] }), '');
+  ['htServer.release', 'window["x"]', '1st', '', 'a b', 'alert()'].forEach(name => assert.match(step({ call: [name] }),
+    /steps\[0\]\.action: call takes \["name", \.\.\.args\], where name is a function the fixture puts on window/, `name ${JSON.stringify(name)}`));
+  [[], 'resolveRequest', { name: 'resolveRequest' }, [0, 'resolveRequest'], true].forEach(value => assert.match(setup({ call: value }),
+    /setup\[0\]: call takes \["name", \.\.\.args\]/, `value ${JSON.stringify(value)}`));
 });
 
 test('the fixture URL carries the project theme and bundle first, then the scenario query', () => {
@@ -194,9 +208,9 @@ test('a scenario opens exactly one place, names its criteria, and says where the
 test('a scenario runs in one group, the job of the lane workflow that runs it, and a variant may move to another', () => {
   const problems = shape => validateScenario({ ...valid(), ...shape }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
 
-  assert.deepEqual([...SCENARIO_GROUPS], ['keyboard', 'reading', 'menus', 'editors', 'selection']);
-  assert.match(problems({ group: undefined }), /group must be one of keyboard, reading, menus, editors, selection/);
-  assert.match(problems({ group: 'slow' }), /group must be one of keyboard, reading, menus, editors, selection/);
+  assert.deepEqual([...SCENARIO_GROUPS], ['keyboard', 'reading', 'menus', 'editors', 'selection', 'status']);
+  assert.match(problems({ group: undefined }), /group must be one of keyboard, reading, menus, editors, selection, status/);
+  assert.match(problems({ group: 'slow' }), /group must be one of keyboard, reading, menus, editors, selection, status/);
   assert.equal(problems({ group: 'reading' }), '');
 
   const variant = { schema: 1, id: 'v', surface: 'A variant of the sample.', variantOf: 'sample' };

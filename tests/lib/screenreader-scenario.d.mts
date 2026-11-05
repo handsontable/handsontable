@@ -4,7 +4,8 @@ export type ScenarioAction =
   | { type: string }
   | { selectCell: [number, number] }
   | { read: ReadDirection }
-  | { activate: true };
+  | { activate: true }
+  | { call: [string, ...unknown[]] };
 export type SetupAction =
   | { press: string }
   | { type: string }
@@ -12,7 +13,8 @@ export type SetupAction =
   | { updateSettings: Record<string, unknown> }
   | { spreadsheetData: [number, number] }
   | { sentinels: true }
-  | { focus: string };
+  | { focus: string }
+  | { call: [string, ...unknown[]] };
 
 export interface ScenarioStep {
   id: string;
@@ -58,6 +60,7 @@ export const SCENARIO_GROUPS: readonly string[];
 export const PRESS_MODIFIERS: readonly string[];
 export const PRESS_KEYS: readonly string[];
 export const PRESS_PATTERN: RegExp;
+export const CALL_NAME_PATTERN: RegExp;
 export const QUERY_THEMES: readonly string[];
 export const QUERY_BUNDLES: readonly string[];
 export const DEFAULT_ROOT: string;
