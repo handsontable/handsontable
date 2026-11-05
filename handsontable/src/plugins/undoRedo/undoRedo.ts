@@ -1128,6 +1128,11 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.deselectCell();
 
+    // An `afterDeselect` listener can destroy the grid.
+    if (!this.hot) {
+      return;
+    }
+
     if (target.kind === 'rows') {
       this.hot.selectRows(target.from, target.to);
     } else {
@@ -1177,12 +1182,20 @@ export class UndoRedo extends BasePlugin {
 
     // The value an edit of the cell would validate: for a key/value or multiselect cell that is the stored
     // value, and its `valueGetter` output fails its own validator.
-    validated.forEach(([row, column]) => {
+    for (let index = 0; index < validated.length; index++) {
+      // A `beforeValidate` listener runs inside `validateCell()` and can destroy the grid, which clears
+      // `this.hot` for the cells that follow.
+      if (!this.hot) {
+        return;
+      }
+
+      const [row, column] = validated[index];
+
       this.hot.validateCell(
         (this.hot as HotInstanceInternal)._getValueToValidate(row, column), this.hot.getCellMeta(row, column),
         onValidated, 'UndoRedo.revalidate',
       );
-    });
+    }
   }
 
   /**

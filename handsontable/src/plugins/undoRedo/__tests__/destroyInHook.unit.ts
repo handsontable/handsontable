@@ -2,10 +2,12 @@ import Handsontable from '../../../index';
 import { registerCellType, TextCellType } from '../../../cellTypes';
 import { registerPlugin } from '../../registry';
 import { UndoRedo } from '../undoRedo';
+import { ManualRowMove } from '../../manualRowMove/manualRowMove';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerPlugin(UndoRedo);
+registerPlugin(ManualRowMove);
 
 type UndoRedoPlugin = {
   undo(): void,
@@ -16,7 +18,7 @@ type UndoRedoPlugin = {
 type Registration = 'settings' | 'addHook' | 'addHookFirst';
 type Trigger = 'api' | 'key';
 type Direction = 'undo' | 'redo';
-type Scenario = 'edit' | 'structural' | 'custom';
+type Scenario = 'edit' | 'structural' | 'custom' | 'rowMove';
 
 const containers: HTMLElement[] = [];
 
@@ -29,8 +31,8 @@ const containers: HTMLElement[] = [];
  * @param {string} hookName The hook whose listener destroys the grid.
  * @param {string} registration `'settings'`, `'addHook'` or `'addHookFirst'`.
  * @param {object} [options] Other options.
- * @param {string} [options.scenario] The step on top of the stack: a cell edit, a row removal, or a
- * custom action registered through `done()`.
+ * @param {string} [options.scenario] The step on top of the stack: a cell edit, a row removal, a row move
+ * made with a row selection, or a custom action registered through `done()`.
  * @param {object} [options.settings] Other grid settings.
  * @returns {object} The grid, and a function that arms the listener. The listener destroys the grid
  * on the call after the first `skip` ones.
@@ -83,6 +85,9 @@ function createGridDestroyedBy(
 
   if (scenario === 'structural') {
     hot.alter('remove_row', 1);
+  } else if (scenario === 'rowMove') {
+    hot.selectRows(0);
+    (hot.getPlugin('manualRowMove') as unknown as { moveRow(from: number, to: number): void }).moveRow(0, 2);
   } else {
     hot.setDataAtCell(0, 0, 'edited');
   }
@@ -247,6 +252,52 @@ describe('UndoRedo when a hook destroys the grid', () => {
             expect(hot.isDestroyed).toBe(true);
           });
         });
+      });
+
+      // A step recorded with a row selection puts the selection back by deselecting first.
+      directions.forEach((direction) => {
+        it(`should end ${direction === 'undo' ? 'an undo' : 'a redo'} of a row move quietly when afterDeselect destroys the grid`, () => {
+          const { hot, arm } = createGridDestroyedBy('afterDeselect', registration, {
+            scenario: 'rowMove',
+            settings: { manualRowMove: true },
+          });
+
+          if (direction === 'redo') {
+            (hot.getPlugin('undoRedo') as unknown as UndoRedoPlugin).undo();
+          }
+
+          arm();
+
+          expect(collectErrors(() => run(hot, direction, 'api'))).toEqual([]);
+          expect(hot.isDestroyed).toBe(true);
+        });
+      });
+
+      // Every restored cell with a validator is validated again, and a `beforeValidate` listener runs
+      // inside each of those calls.
+      it('should end an undo quietly when beforeValidate destroys the grid on the first re-validated cell', async() => {
+        const validator = (_value: unknown, callback: (valid: boolean) => void) => callback(true);
+        const { hot, arm } = createGridDestroyedBy('beforeValidate', registration, {
+          settings: { columns: [{ validator }, { validator }, {}] },
+        });
+        const plugin = hot.getPlugin('undoRedo') as unknown as UndoRedoPlugin;
+
+        hot.populateFromArray(0, 0, [['a', 'b']]);
+
+        for (let i = 0; i < 20; i++) {
+          await Promise.resolve();
+        }
+
+        arm();
+
+        const errors = collectErrors(() => plugin.undo());
+
+        for (let i = 0; i < 20; i++) {
+          await Promise.resolve();
+        }
+
+        expect(errors).toEqual([]);
+        expect(hot.isDestroyed).toBe(true);
       });
 
       // A listener that vetoes the replay sends the step back through the stack hooks a second time.

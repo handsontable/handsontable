@@ -176,13 +176,16 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   and left `row['a.b']` at the new value. `setSourceDataAtCell()` outside a replay keeps walking dots.
 - **`undo()`, `redo()`, `#restore()`, `#takeStep()`, `#putBackStep()` and the custom-action paths re-check
   `this.hot` after every call into user code.** A listener of `beforeUndo`, `afterChange`, `afterRender` (the
-  restore ends in `hot.render()`, and a structural step renders again to re-validate) or a stack-change hook
+  restore ends in `hot.render()`, and a structural step renders again to re-validate), `beforeValidate`,
+  `afterDeselect` or a stack-change hook
   can destroy the grid, which clears `this.hot` and both stacks. `#restore()` then returns `false`, which is
   NOT a veto: `undo()`/`redo()` test `this.hot` first and return, because a veto would put the step back on
   its stack and fire hooks on a destroyed grid. Add the check after any new hook run in these methods. Not
   covered: the hooks `restoreStep()` fires while `alter()` replays a row or column change, which throw inside
-  core's `alter()` (`runInShiftScope`) before this plugin gets control back, and the selection hooks of
-  `#restoreSelection()`, which throw inside core's selection code. Pinned by `__tests__/destroyInHook.unit.ts`,
+  core's `alter()` (`runInShiftScope`) before this plugin gets control back, and the `afterSelection` and
+  `afterSelectionEnd` hooks of `selectCells()` in `#restoreSelection()`, which throw inside core's selection
+  code. `afterDeselect` is covered: `#restoreSelection()` checks `this.hot` after `deselectCell()`, and
+  `#revalidateChangedCells()` stops its loop when a `beforeValidate` listener destroys the grid. Pinned by `__tests__/destroyInHook.unit.ts`,
   with a case per guard (remove one and its case fails).
 - **Undo and redo do not run the operation again.** A step's own hooks - `beforeColumnSort`,
   `beforeFilter`, `beforeRowMove`, `beforeMoveCells` - do not fire and cannot veto. `beforeUndo`/
