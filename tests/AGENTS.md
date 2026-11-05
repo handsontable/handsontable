@@ -1387,8 +1387,9 @@ criterion.
   and the page writes to it from before the navigation, so the test holds the live list even when a
   load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
-  it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
-  finding. A finding the check gets wrong is fixed in the check.
+  it finds listed in its pull request's description, read from a nightly dispatch from its branch (a
+  pull request's own pipeline runs the axe scan alone); the product tasks are filed apart, and a fix
+  later clears the finding. A finding the check gets wrong is fixed in the check.
 - **Every report value is escaped.** The summary and the check run render values from the fixture DOM
   (selectors, accessible names), so `renderEvidenceSummary()` escapes them with the scan's own
   `escapeMarkdownText()` and links a URL only when the scan's `isSafeLink()` passes it (both from
@@ -1889,7 +1890,9 @@ the short suite runs it, which it earns by finishing in under two minutes). The 
 per entry from that list (`checksForSuite()`), so never add a project by hand: it would run the check
 twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
-removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
+removes a focus ring or a name), shown in the check run of a nightly dispatch from its branch
+(`gh workflow run a11y-nightly.yml --ref <branch>`, which posts on the branch's head commit, so the
+check run shows on the pull request, whose own pipeline runs the axe scan alone), then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
 ## Screen readers: the NVDA and VoiceOver lanes

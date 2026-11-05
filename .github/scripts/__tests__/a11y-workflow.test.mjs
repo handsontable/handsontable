@@ -240,6 +240,8 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
     `${NIGHTLY}: every check on the cron and on a plain dispatch; a dispatch that asks for the short suite (suite: pull-request) runs the checks a developer runs locally. ${CHECKS_DOC}`);
   assert.match(workflow, /^ {2}workflow_dispatch:\n {4}inputs:\n {6}suite:\n(?: {8}.*\n)*? {8}options: \[ nightly, pull-request \]$/m,
     `${NIGHTLY}: a dispatch picks the suite, every check by default. ${CHECKS_DOC}`);
+  assert.match(workflow, /^ {8}default: nightly$/m,
+    `${NIGHTLY}: a plain dispatch runs every check, as tests/AGENTS.md and .ai/CI.md say; only a dispatch that asks for the short suite runs it. ${CHECKS_DOC}`);
   assert.doesNotMatch(a11y, /secrets: inherit/, `${NIGHTLY}: the called workflow reads only GITHUB_TOKEN.`);
   assert.match(job(workflow, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the checks consume the UMD build artifact.`);
   for (const id of ['build', 'a11y']) {
