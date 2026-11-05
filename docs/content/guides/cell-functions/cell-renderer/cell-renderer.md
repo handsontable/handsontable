@@ -100,6 +100,8 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
+A component in a cell is reused for another record after a sort, a filter, or a scroll. State from `useState` stays with the cell position, not with the record, so a value you set on one record can show on another. Keep state outside the component, keyed by the record. Resetting the state with a `key` or a `useEffect` clears it, but doesn't move it to the record.
+
 ## Use the renderer component within React's context
 
 In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor/cell-editor.md) as well.
