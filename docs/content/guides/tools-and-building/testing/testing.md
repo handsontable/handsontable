@@ -166,12 +166,15 @@ With the `execCommand` stub, `copy()` and `cut()` run no hooks and write nothing
 
 ### Set the grid options for jsdom
 
-Set two options on the grids you create in tests:
+Set three options on the grids you create in tests:
 
 - [`renderAllColumns: true`](@/api/options.md#renderallcolumns). jsdom has no layout, so the grid sees a viewport of zero width and renders only the first two columns. This option renders every column.
+- [`renderAllRows: true`](@/api/options.md#renderallrows). With no `height` set, the grid renders only the first two or three rows, so `getCell(5, 0)` returns `null`. With a `height` set, jsdom renders every row. Set the option in both cases, so a test doesn't depend on the grid's height.
 - [`injectCoreCss: false`](@/api/options.md#injectcorecss). By default, Handsontable adds its stylesheet to the page, and jsdom spends a long time on every grid it builds there: about 6 seconds in our measurements (Node 22, jsdom 20). With the option set to `false`, a grid builds in well under a second. Tests that check data, settings, and cell text don't need the core styles.
 
-jsdom renders every row, so you don't need `renderAllRows`. A grid with 5,000 rows took about 2.5 seconds to build in the same measurements.
+A grid with 5,000 rows took about 2.5 seconds to build with these options in the same measurements.
+
+With these options set, hooks and renderers run as in a browser. For example, `afterRenderer` fires for each rendered cell.
 
 The snippets below show where the options go. Your own data, imports, and module registration stay as in your app.
 
@@ -182,6 +185,7 @@ const hot = new Handsontable(container, {
   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data,
   renderAllColumns: true,
+  renderAllRows: true,
   injectCoreCss: false,
 });
 ```
@@ -195,6 +199,7 @@ const hot = new Handsontable(container, {
   // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   data={data}
   renderAllColumns={true}
+  renderAllRows={true}
   injectCoreCss={false}
 />
 ```
@@ -206,6 +211,7 @@ const hot = new Handsontable(container, {
 ```typescript
 gridSettings: GridSettings = {
   renderAllColumns: true,
+  renderAllRows: true,
   injectCoreCss: false,
 };
 ```
@@ -225,6 +231,7 @@ const hotSettings = {
   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data,
   renderAllColumns: true,
+  renderAllRows: true,
   injectCoreCss: false,
 };
 </script>
@@ -232,6 +239,36 @@ const hotSettings = {
 <template>
   <HotTable :settings="hotSettings" />
 </template>
+```
+
+:::
+
+Keep these options out of your production components. Define them once in your test helpers, and pass them in from the test through the settings or props your component already accepts.
+
+::: only-for react
+
+In React, for example, let the component forward an optional `gridOptions` prop to `HotTable`:
+
+```jsx
+// OrdersGrid.jsx
+export function OrdersGrid({ data, gridOptions = {} }) {
+  return (
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      data={data}
+      {...gridOptions}
+    />
+  );
+}
+```
+
+Then pass the test options from the test:
+
+```jsx
+// OrdersGrid.test.jsx
+const jsdomGridOptions = { renderAllColumns: true, renderAllRows: true, injectCoreCss: false };
+
+render(<OrdersGrid data={data} gridOptions={jsdomGridOptions} />);
 ```
 
 :::
@@ -246,8 +283,13 @@ jsdom does not calculate sizes or positions. Everything that depends on them beh
 - Scroll position and scrolling to a selected cell.
 - Where an editor, menu, or comment appears on the page.
 - Frozen areas and sticky headers.
+- Mouse gestures, such as drag-fill with the fill handle, selecting by dragging, and resizing by dragging.
 
 Test these in a real browser, with a tool such as Playwright. Use Jest or Vitest for what jsdom handles well: data, settings, hooks, validation, and the text of rendered cells.
+
+Grids with features such as `fillHandle` build fine in jsdom with the setup above. Leave those features on, and don't turn one off to make a test pass.
+
+In Playwright, scope a locator to the overlay that owns the cell. Use `.ht_master` for the main body, `.ht_clone_top` for frozen top rows, `.ht_clone_inline_start` for frozen start columns, and `.ht_clone_top_inline_start_corner` for the corner where they meet. To find a cell without relying on the DOM structure, add a test id to it in an `afterRenderer` hook.
 
 ### Fix common errors
 
@@ -258,9 +300,11 @@ Test these in a real browser, with a tool such as Playwright. Use Jest or Vitest
 | `element.scrollIntoView is not a function`, shown after a key press | jsdom lacks `scrollIntoView`. | Add the stub. In Vitest, this error also ends the run with exit code 1, even when every test passed. |
 | `execCommand is not a function` on copy or cut | jsdom lacks `document.execCommand`. | Add the stub. Clipboard hooks still don't run, so test them in a real browser. |
 | Only the first two columns exist in the DOM | jsdom has no layout. | Set `renderAllColumns: true`. |
+| Cells below the first rows are missing, and `getCell()` returns `null` | A grid with no `height` renders only its first rows in jsdom. | Set `renderAllRows: true`. |
 | Each grid takes seconds to build | jsdom processes the core stylesheet for every grid. | Set `injectCoreCss: false`. |
+| Creating a grid in Jest 27 throws `Failed to execute 'contains' on 'Node'` (seen on 19.0 builds) | The jsdom 16 that Jest 27 ships fails while it processes the core stylesheet. | Set `injectCoreCss: false`. |
 | `Could not parse CSS stylesheet` in the output (version 18.1.2) | jsdom can't parse the default theme stylesheet. | Ignore it. The grid works and the run exits with code 0. |
-| `The "ht-theme-main" theme is enabled, but its stylesheets are missing` | `injectCoreCss: false` leaves the theme without its CSS. | Ignore it. Tests that check data, settings, and cell text don't need the styles. |
+| `The "ht-theme-main" theme is enabled, but its stylesheets are missing` (version 18.1.2) | `injectCoreCss: false` leaves the theme without its CSS. | Ignore it. Tests that check data, settings, and cell text don't need the styles. |
 
 ## Test import and export in Jest or Vitest
 
