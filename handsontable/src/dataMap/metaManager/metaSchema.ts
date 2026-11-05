@@ -133,7 +133,7 @@ function getRowSchema(
  *
  * const hot = new Handsontable(container, {
  *   // configuration options, in the object literal notation
- *   licenseKey: 'non-commercial-and-evaluation',
+ *   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
  *   data: [
  *     ['A1', 'B1', 'C1', 'D1', 'E1'],
  *     ['A2', 'B2', 'C2', 'D2', 'E2'],
@@ -165,7 +165,7 @@ function getRowSchema(
  * ```jsx
  * <HotTable
  *   // configuration options, in the object literal notation
- *   licenseKey='non-commercial-and-evaluation'
+ *   // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
  *   data={[
  *     ['A1', 'B1', 'C1', 'D1', 'E1'],
  *     ['A2', 'B2', 'C2', 'D2', 'E2'],
@@ -5020,7 +5020,10 @@ export default (): Record<string, unknown> => {
      * | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
      * | A string with your [commercial license key](@/guides/getting-started/license-key/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license/software-license.md#commercial-use)         |
      * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
-     * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license/software-license.md#non-commercial-use) |
+     *
+     * Since Handsontable 19.0, the `'non-commercial-and-evaluation'` key, and its second form
+     * `'ht68e-1f2b7-47158-70b05-0842f'`, are not valid keys: they lock the grid, as any invalid key does.
+     * See [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
      *
      * An entitlement license key can list the features it unlocks. A plugin such a key does not list
      * stays off, and the console and the bar under the grid name it. The plugin's option keeps the
@@ -5050,9 +5053,6 @@ export default (): Record<string, unknown> => {
      * // protects its text too, so the `[...]` block on its own is not a valid key;
      * // the text contains quotes, so use a template literal
      * licenseKey: `This is a Handsontable license key for Acme Corp, ... for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
-     *
-     * // for non-commercial use
-     * licenseKey: 'non-commercial-and-evaluation',
      * ```
      */
     licenseKey: undefined,

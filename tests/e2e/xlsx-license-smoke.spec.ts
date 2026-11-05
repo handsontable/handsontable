@@ -1,7 +1,7 @@
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  CORE_ONLY_KEY, keyWithAll, keyWithoutFlag, LEGACY_KEY,
+  CORE_ONLY_KEY, keyWithAll, keyWithoutFlag, INVALID_KEY,
 } from '../fixtures/xlsxLicenseKeys';
 
 /**
@@ -17,35 +17,35 @@ const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:lay
  *
  * A `handsontable` product entry without the `listed-capabilities` flag is unrestricted for the
  * whole family, whatever tokens it lists, so a current core-only key, and a key listing only some
- * xlsx tokens without the flag, must write the very same sheet as the legacy evaluation key, and
- * say nothing on the console.
+ * xlsx tokens without the flag, must write the very same sheet as an invalid key, which restricts nothing
+ * either, and say nothing on the console.
  */
 test.describe('xlsx license fixture', { tag: BUNDLES_TAG }, () => {
-  test('a core-only key exports the same sheet as the legacy key', async({ page, theme, bundle }) => {
+  test('a core-only key exports the same sheet as an invalid key', async({ page, theme, bundle }) => {
     const lic = new XlsxLicensePage(page, theme, bundle);
 
     await lic.goto();
-    await lic.create(LEGACY_KEY);
+    await lic.create(INVALID_KEY);
 
-    const legacy = lic.sheetXml(await lic.exportBytes());
+    const invalidKeySheet = lic.sheetXml(await lic.exportBytes());
 
     await lic.create(CORE_ONLY_KEY);
 
-    expect(lic.sheetXml(await lic.exportBytes())).toBe(legacy);
+    expect(lic.sheetXml(await lic.exportBytes())).toBe(invalidKeySheet);
     expect(await lic.warnings()).toEqual([]);
   });
 
-  test('a flagged key listing xlsx:all exports the same sheet as the legacy key', async({ page, theme, bundle }) => {
+  test('a flagged key listing xlsx:all exports the same sheet as an invalid key', async({ page, theme, bundle }) => {
     const lic = new XlsxLicensePage(page, theme, bundle);
 
     await lic.goto();
-    await lic.create(LEGACY_KEY);
+    await lic.create(INVALID_KEY);
 
-    const legacy = lic.sheetXml(await lic.exportBytes());
+    const invalidKeySheet = lic.sheetXml(await lic.exportBytes());
 
     await lic.create(keyWithAll());
 
-    expect(lic.sheetXml(await lic.exportBytes())).toBe(legacy);
+    expect(lic.sheetXml(await lic.exportBytes())).toBe(invalidKeySheet);
     expect(await lic.warnings()).toEqual([]);
   });
 
@@ -65,21 +65,21 @@ test.describe('xlsx license fixture', { tag: BUNDLES_TAG }, () => {
     const importOptions = { colHeaders: 'firstRow', importStyles: true };
 
     await lic.goto();
-    await lic.create(LEGACY_KEY);
+    await lic.create(INVALID_KEY);
 
-    const legacyBytes = await lic.exportBytes(exportOptions);
-    const legacyImport = await lic.importBytes(legacyBytes, importOptions);
+    const invalidKeyBytes = await lic.exportBytes(exportOptions);
+    const invalidKeyImport = await lic.importBytes(invalidKeyBytes, importOptions);
 
-    // The legacy result carries the parts the unlisted tokens gate: proven before the unflagged key is compared with it.
-    expect(legacyImport.styles).toBeDefined();
-    expect(legacyImport.comments).toBeDefined();
+    // The invalid key's result carries the parts the unlisted tokens gate: proven before the unflagged key is compared with it.
+    expect(invalidKeyImport.styles).toBeDefined();
+    expect(invalidKeyImport.comments).toBeDefined();
 
     await lic.create(keyWithoutFlag(PARTIAL_TOKENS));
 
     const bytes = await lic.exportBytes(exportOptions);
 
-    expect(lic.sheetXml(bytes)).toBe(lic.sheetXml(legacyBytes));
-    expect(await lic.importBytes(legacyBytes, importOptions)).toEqual(legacyImport);
+    expect(lic.sheetXml(bytes)).toBe(lic.sheetXml(invalidKeyBytes));
+    expect(await lic.importBytes(invalidKeyBytes, importOptions)).toEqual(invalidKeyImport);
     expect((await lic.warnings()).filter(message => message.includes('your license does not unlock'))).toEqual([]);
   });
 });

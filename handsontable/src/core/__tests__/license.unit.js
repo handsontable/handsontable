@@ -31,10 +31,11 @@ describe('core/license', () => {
 
   it('keeps instances apart', () => {
     const standard = { getSettings: () => ({ licenseKey: buildTestKey(standardPayload) }) };
-    const legacy = { getSettings: () => ({ licenseKey: 'non-commercial-and-evaluation' }) };
+    // An invalid key (the non-commercial key is one since 19.0) restricts nothing.
+    const invalid = { getSettings: () => ({ licenseKey: 'non-commercial-and-evaluation' }) };
 
     expect(getXlsxEntitlement(standard).styles).toBe(false);
-    expect(getXlsxEntitlement(legacy)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
+    expect(getXlsxEntitlement(invalid)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
   });
 
   it('reads the listed-capabilities flag from the key', () => {

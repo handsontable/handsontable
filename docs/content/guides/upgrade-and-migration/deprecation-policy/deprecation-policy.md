@@ -118,6 +118,14 @@ The following APIs are deprecated. They keep working and print a one-time consol
 | ---------- | ------------- | ------- | ----------- | --------------- |
 | Language code `sr-SP` (`sr-SP.js`, `srSP`) | 19.0 | 20.0 | The `sr-Latn-RS` language code (`sr-Latn-RS.js`, `srLatnRS`). The phrases are the same. | [Language](@/guides/internationalization/language/language.md) |
 
+### Constants
+
+A constant does not print a console warning. Your editor shows it as deprecated.
+
+| Deprecated | Deprecated in | Removal | Replacement | Migration guide |
+| ---------- | ------------- | ------- | ----------- | --------------- |
+| `NON_COMMERCIAL_LICENSE` (`@handsontable/angular-wrapper`) | 19.0 | 20.0 | Your own license key, passed as `license` in `HOT_GLOBAL_CONFIG`. The key the constant holds reads as invalid since 19.0. | [Migrate from 18.1 to 19.0 -> The `non-commercial-and-evaluation` license key](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-non-commercial-and-evaluation-license-key-no-longer-works) |
+
 ### TypeScript types
 
 Type aliases do not print console warnings. Your editor shows them as deprecated.

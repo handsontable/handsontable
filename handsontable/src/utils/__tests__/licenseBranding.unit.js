@@ -257,11 +257,11 @@ describe('licenseBranding', () => {
 
   describe('unbranded states', () => {
     // The corner badge is reserved for a trial, and the lock for the three blocking states. Every
-    // other state renders nothing here (a legacy-expired or non-commercial key keeps only its
-    // notification-path console message and bottom bar).
+    // other state renders nothing here (a legacy-expired key keeps only its notification-path
+    // console message and bottom bar).
     it.each([
       'usage_valid', 'usage_notice', 'usage_soft_stop', 'usage_hard_stop', 'release_valid',
-      'release_expired', 'legacy_valid', 'legacy_expired', 'non_commercial',
+      'release_expired', 'legacy_valid', 'legacy_expired',
     ])(
       'should render nothing for the "%s" state',
       (state) => {
@@ -369,7 +369,7 @@ describe('licenseBranding', () => {
 
     it.each([
       'usage_valid', 'usage_notice', 'usage_soft_stop', 'usage_hard_stop', 'release_valid',
-      'release_expired', 'legacy_valid', 'legacy_expired', 'non_commercial', 'invalid', 'missing',
+      'release_expired', 'legacy_valid', 'legacy_expired', 'invalid', 'missing',
     ])('should mount no bar for the "%s" state of a key without the `badge` flag', (state) => {
       setLifecycle(state, { licensedUntil: '2011-05-24' });
       const hotInstance = createMockHotInstanceWithBottomSlot();
