@@ -1055,10 +1055,11 @@ To avoid this, do one of the following:
 - Return the value for every key on every call. For example, return `readOnly: false` in the branch where the cell is editable.
 - Outside the `cells` function, call [`removeCellMeta()`](@/api/core.md#removecellmeta) with the cell's visual coordinates to remove the key. The key comes back if `cells` returns it again.
 
-The meta resets in two cases:
+The meta resets in three cases:
 
 - Any [`updateSettings()`](@/api/core.md#updatesettings) call that carries `cells`, `cell`, or `columns` resets it. In React, that happens when you pass `cells` as a new function.
-- A row that scrolls more than one viewport out of view and back resets it, unless the cell has meta you set with [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cell`](@/api/options.md#cell) option, or is marked invalid. Horizontal scrolling doesn't reset it.
+- A [`loadData()`](@/api/core.md#loaddata) call resets it. [`updateData()`](@/api/core.md#updatedata) and `updateSettings({ data })` don't.
+- A row that scrolls more than one viewport out of view and back resets it, unless it is the row of the selected cell. Cells with meta you set with [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cell`](@/api/options.md#cell) option, and cells marked invalid, keep their meta. Horizontal scrolling doesn't reset it.
 
 For how `cells` merges its result, see [The `cells` function](@/guides/configuration/understanding-metadata/understanding-metadata.md#the-cells-function).
 

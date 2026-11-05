@@ -3076,13 +3076,15 @@ export const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * `afterPaste` doesn't wait for the values to be written. When a pasted cell has a
-   * [validator](@/guides/cell-functions/cell-validator/cell-validator.md), the grid validates the values
-   * first, so `afterPaste` runs before the cells hold them. A cell has a validator when you set one,
-   * when its cell type provides one (for example `numeric`, `date`, `dropdown`, or `autocomplete`),
-   * or when you set a finite [`maxLength`](@/api/options.md#maxlength).
-   * If such a paste adds rows, `afterPaste` runs before those rows exist. The order is then `afterPaste`,
+   * [validator](@/guides/cell-functions/cell-validator/cell-validator.md), the validator runs after
+   * `afterPaste`, so the cell still holds its previous value and `valid` flag. A cell has a validator
+   * when you set one, when its cell type provides one (for example `numeric`, `date`, `dropdown`,
+   * or `autocomplete`), or when you set a [`maxLength`](@/api/options.md#maxlength) that is a finite
+   * number of 0 or more.
+   * If such a paste adds rows, `afterPaste` also runs before those rows exist. The order is then `afterPaste`,
    * [`afterCreateRow`](#aftercreaterow), and [`afterChange`](#afterchange).
-   * Without a validator, the order is `afterCreateRow`, `afterChange`, and then `afterPaste`.
+   * Without a validator, [`afterChange`](#afterchange) runs first and `afterPaste` follows. A paste
+   * that adds rows runs [`afterCreateRow`](#aftercreaterow) before `afterChange`.
    *
    * To change or cancel the pasted values, use [`beforePaste`](#beforepaste). To react once the cells hold
    * the new values, use [`afterChange`](#afterchange) and check for the `'CopyPaste.paste'` source.
