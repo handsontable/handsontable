@@ -116,7 +116,7 @@ If your grids scroll inside an element, such as a dashboard panel with `overflow
 
 In a test with 100 grids, this approach created 4 grids when the page loaded. The other grids were created as the page scrolled down to them.
 
-A grid that doesn't exist yet can't be reached with the keyboard, found with the browser's find-in-page, or read by a screen reader. A wide `rootMargin` keeps the grids next to the visible ones created, so a keyboard user who tabs forward reaches them.
+A grid that doesn't exist yet can't be reached with the keyboard, found with the browser's find-in-page, or read by a screen reader. A wider `rootMargin` creates more of the grids around the visible ones, which narrows that gap but doesn't close it.
 
 ::: only-for javascript
 
