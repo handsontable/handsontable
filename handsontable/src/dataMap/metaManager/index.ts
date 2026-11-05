@@ -141,6 +141,16 @@ export default class MetaManager {
   }
 
   /**
+   * Expands the grid-level `type` again after an `updateSettings()` payload was written onto the global meta.
+   * Options the user set at grid level keep winning over the type.
+   *
+   * @param {object} settings The `updateSettings()` payload.
+   */
+  updateGlobalTypeFromSettings(settings: Record<string, unknown>) {
+    this.globalMeta.updateTypeFromSettings(settings);
+  }
+
+  /**
    * Gets settings object that was passed in the Handsontable constructor. That layer contains all
    * default settings inherited from the GlobalMeta layer merged with settings passed by the developer.
    * Adding, removing, or changing property in that object has no direct reflection on any other layers.

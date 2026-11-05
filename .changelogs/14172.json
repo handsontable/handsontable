@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where changing the grid-level `type` with `updateSettings()` did not apply the editor, renderer, and validator of the new type.",
+  "type": "fixed",
+  "issueOrPR": 14172,
+  "breaking": false,
+  "framework": "none"
+}

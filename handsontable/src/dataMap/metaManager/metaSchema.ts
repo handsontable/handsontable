@@ -8831,6 +8831,10 @@ export default (): Record<string, unknown> => {
      * | [`'intl-time'`](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `IntlTimeRenderer`<br>Editor: `IntlTimeEditor`<br>Validator: `IntlTimeValidator`                                                                                                 |
      * | [`'intl-datetime'`](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)                 | Renderer: `IntlDatetimeRenderer`<br>Editor: `IntlDatetimeEditor`<br>Validator: `IntlDatetimeValidator`                                                                                                 |
      *
+     * A grid-level `type` changed with `updateSettings()` applies the new type's editor, renderer,
+     * and validator. A grid-level `editor`, `renderer`, or `validator` set earlier, or in the same call,
+     * keeps winning over the type.
+     *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
