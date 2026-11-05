@@ -421,7 +421,9 @@ through `#clearSortMarkup()`:
 - **While the plugin is off**, `#onAfterGetColHeaderWhileDisabled` runs. It is registered in the
   constructor with `this.hot.addHook()` (the `require-tracked-hook-in-enable` rule bans that inside
   `enablePlugin()`) and does nothing until the first enable sets `#mayHaveMarkedHeaders`, so a grid that
-  never sorted pays one boolean check per header. It replaced a hook `disablePlugin()` added and removed
+  never sorted pays one boolean check per header. `destroy()` removes it, or a plugin destroyed on a live
+  grid keeps running it against a `hot` that `BasePlugin#destroy()` nulled (pinned by
+  `__tests__/disabledHeaderCleanup.unit.js`). It replaced a hook `disablePlugin()` added and removed
   after the first `afterViewRender`: that one cleared the bottom level only, and only on one render, so
   `{ columnSorting: false, nestedHeaders }` in one call, or removing `nestedHeaders` later, kept the classes.
 

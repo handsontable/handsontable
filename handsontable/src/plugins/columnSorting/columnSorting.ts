@@ -281,7 +281,7 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Registers the header hook that clears the sort markup while the plugin is off. It outlives every
    * disable, because a header the plugin marked can be drawn again at any later render, also on another
-   * header level.
+   * header level. `destroy()` removes it.
    *
    * @param {HotInstance} hotInstance The Handsontable instance.
    */
@@ -1624,6 +1624,8 @@ export class ColumnSorting extends BasePlugin {
     // `BasePlugin.destroy` nulls enumerable own properties, which cannot reach a `#private`
     // field, so drop the queued press here.
     this.#pendingHeaderSort = null;
+
+    this.hot.removeHook('afterGetColHeader', this.#onAfterGetColHeaderWhileDisabled);
 
     // TODO: Probably not supported yet by ESLint: https://github.com/eslint/eslint/issues/11045
     // eslint-disable-next-line no-unused-expressions
