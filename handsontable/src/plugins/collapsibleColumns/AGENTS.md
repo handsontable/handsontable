@@ -194,6 +194,16 @@ group inside the band and one that crosses the master/end line.
 - Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` and `tests/e2e/fixed-columns-end-review4.spec.ts` (LTR; the
   check compares logical column indexes, so RTL takes the same branch), and by `__tests__/fixedColumnsEnd.unit.ts`.
 
+## The missing-`nestedHeaders` warning runs in the ready step, not in `enablePlugin()`
+
+`enablePlugin()` used to read `getSettings().nestedHeaders` and warn "You need to configure the Nested Headers
+plugin" when it was missing. Under SheetsBar a grid-level `collapsibleColumns: true` is enabled before a sheet's
+own `nestedHeaders` is applied, so every such workbook warned at init and on each switch although the headers
+were configured. The check is owed by `enablePlugin()` (`#nestedHeadersCheckOwed`) and paid in `onGridReady()`,
+which core runs once the sheet's settings are in force; `disablePlugin()` clears the debt. An update does not
+re-check, so a switch to a sheet without nested headers stays quiet while the plugin stays enabled. Pinned by
+`__tests__/nestedHeadersWarning.unit.js`.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='collapsibleColumns'`

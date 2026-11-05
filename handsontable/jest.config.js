@@ -15,6 +15,7 @@ module.exports = {
     // Jest only, for the same reason as above.
     '<rootDir>/test/jsdomThemeCssFilter.js',
     '<rootDir>/test/jsdomWindowScroll.js',
+    '<rootDir>/test/jsdomWindowFocus.js',
     // Jest only, for the same reason as above.
     '<rootDir>/test/jsdomComputedStyleSpeed.js'
   ],

@@ -275,6 +275,12 @@ export class CollapsibleColumns extends BasePlugin {
    * @type {boolean}
    */
   #flagsOwed = false;
+  /**
+   * Whether the ready step still owes the check that `nestedHeaders` is configured. Set by `enablePlugin()`,
+   * because the settings it runs on may not be the ones in force once the data is loaded (a sheet's own
+   * `nestedHeaders` under SheetsBar arrives after the grid-level enable).
+   */
+  #nestedHeadersCheckOwed = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -292,12 +298,6 @@ export class CollapsibleColumns extends BasePlugin {
   enablePlugin(): void {
     if (this.enabled) {
       return;
-    }
-
-    const { nestedHeaders } = this.hot.getSettings();
-
-    if (!nestedHeaders) {
-      warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
     }
 
     if (this.pluginName) {
@@ -326,6 +326,7 @@ export class CollapsibleColumns extends BasePlugin {
 
     this.registerShortcuts();
     this.#flagsOwed = true;
+    this.#nestedHeadersCheckOwed = true;
     super.enablePlugin();
   }
 
@@ -346,11 +347,21 @@ export class CollapsibleColumns extends BasePlugin {
   /**
    * Marks the collapsible headers and hides the `visibleWhen` columns, against the header tree NestedHeaders
    * (priority 280) built in its own ready step just before this one. Core runs it once after each enable or
-   * update, when the data is loaded.
+   * update, when the data is loaded. The step that follows an enable also warns when no `nestedHeaders`
+   * setting is in force, which is read here rather than in `enablePlugin()` because a sheet's own setting
+   * under SheetsBar is applied after the grid-level enable.
    *
    * @private
    */
   onGridReady(): void {
+    if (this.#nestedHeadersCheckOwed) {
+      this.#nestedHeadersCheckOwed = false;
+
+      if (!this.hot.getSettings().nestedHeaders) {
+        warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
+      }
+    }
+
     this.#flagsOwed = false;
     this.#applyCollapsibleFlags();
   }
@@ -406,6 +417,7 @@ export class CollapsibleColumns extends BasePlugin {
     this.unregisterShortcuts();
     this.clearButtons();
     super.disablePlugin();
+    this.#nestedHeadersCheckOwed = false;
   }
 
   /**
