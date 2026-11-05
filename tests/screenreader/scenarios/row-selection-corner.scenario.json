@@ -12,7 +12,7 @@
       "id": "arrow-left-row-checkbox",
       "action": {"press": "ArrowLeft"},
       "expect": [["select row 1"], ["unchecked", "not checked"]],
-      "note": "ArrowLeft enters the row header, which holds the row's checkbox, `Select row 1`. The scenario starts on the page (`start: page`): the grid page's first item is the toolbar's Add row button, and VoiceOver with Chromium interacted with it and read nothing when the scenario started in the grid, as in virtualization. Finding: no reader says the checkbox's state; NVDA reads the row header's name and number."
+      "note": "ArrowLeft enters the row header, which holds the row's checkbox, `Select row 1`. The scenario starts on the page (`start: page`): the grid page's first item is the toolbar's Add row button, and VoiceOver with Chromium interacted with it and read nothing when the scenario started in the grid, as in virtualization. Finding: no reader says the checkbox's state; NVDA reads the row header's name and number. VoiceOver with WebKit said nothing on this first arrow key in the recording that started on the page."
     },
     {
       "id": "space-select-row",
