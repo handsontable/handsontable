@@ -172,12 +172,15 @@ describe('Core edit path when the grid is destroyed from a hook of the write', (
         });
       });
 
+      // With a validator the save is asynchronous, so the selection moves and renders first, and an
+      // `afterRender` destroy lands in that render.
       [
-        ['beforeChange', {}],
-        ['beforeValidate', { validator: (value, callback) => callback(true) }],
-      ].forEach(([hookName, settings]) => {
+        ['beforeChange', 'without a validator', {}],
+        ['beforeValidate', 'with a validator', validations['with a validator']],
+        ['afterRender', 'with a validator', validations['with a validator']],
+      ].forEach(([hookName, validationName, settings]) => {
         ['Enter', 'Tab', 'ArrowDown'].forEach((key) => {
-          it(`should end a keyboard save by ${key} quietly when ${hookName} destroys the grid`, async() => {
+          it(`should end a keyboard save by ${key} quietly when ${hookName} destroys the grid (${validationName})`, async() => {
             const grid = createHotDestroyedBy(container, hookName, registration, { data: data(), ...settings });
 
             core = grid.core;
@@ -213,10 +216,21 @@ describe('Core edit path when the grid is destroyed from a hook of the write', (
         },
       };
 
-      ['beforeChange', 'afterChange'].forEach((hookName) => {
+      // An `afterRender` listener from the settings runs before the focus manager's own listener, which
+      // focuses the newly selected cell. With a validator the save is asynchronous, so an `afterRender`
+      // destroy lands in the render the selection change makes.
+      [
+        ['beforeChange', 'without a validator'],
+        ['afterChange', 'without a validator'],
+        ['afterRender', 'without a validator'],
+        ['afterRender', 'with a validator'],
+      ].forEach(([hookName, validationName]) => {
         Object.entries(leaveEditorBy).forEach(([leaveName, leave]) => {
-          it(`should end an editor save by ${leaveName} quietly when ${hookName} destroys the grid`, async() => {
-            const grid = createHotDestroyedBy(container, hookName, registration, { data: data() });
+          it(`should end an editor save by ${leaveName} quietly when ${hookName} destroys the grid (${validationName})`, async() => {
+            const grid = createHotDestroyedBy(container, hookName, registration, {
+              data: data(),
+              ...validations[validationName],
+            });
 
             core = grid.core;
             core.selectCells([[0, 0, 1, 1]]);

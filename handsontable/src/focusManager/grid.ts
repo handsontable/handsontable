@@ -530,7 +530,9 @@ export class FocusGridManager {
   #onAfterRender() {
     const suspended = this.#pendingFocus;
 
-    if (suspended === null) {
+    // A listener from the settings runs before this one, and the hook run keeps walking its listeners
+    // after such a listener destroyed the grid.
+    if (suspended === null || this.#hot.isDestroyed) {
       return;
     }
 

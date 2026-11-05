@@ -1546,6 +1546,12 @@ export default function Core(
 
     if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource) && !isIntermediateShiftLayer) {
       instance.view.render();
+
+      // An `afterRender` listener can destroy the grid.
+      if (!instance) {
+        return;
+      }
+
       editorManager.prepareEditor();
     }
   });
@@ -1571,6 +1577,12 @@ export default function Core(
     }
 
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     editorManager.prepareEditor();
   });
 
@@ -1613,6 +1625,11 @@ export default function Core(
     }
 
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
@@ -4524,6 +4541,11 @@ export default function Core(
     }
 
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
