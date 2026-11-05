@@ -14,6 +14,22 @@ function createTableMetaEmptyClass() {
 }
 
 /**
+ * Tells whether two cell type objects carry the same members. A framework wrapper that writes a `type` object
+ * inline sends a new object with the same members on every commit, which is not a change of the type.
+ *
+ * @param {object} first The first cell type object.
+ * @param {object} second The second cell type object.
+ * @returns {boolean}
+ */
+function hasSameTypeMembers(first: object, second: object): boolean {
+  const firstKeys = Object.keys(first);
+
+  return firstKeys.length === Object.keys(second).length &&
+    firstKeys.every(key => hasOwnProperty(second, key) &&
+      (first as Record<string, unknown>)[key] === (second as Record<string, unknown>)[key]);
+}
+
+/**
  * The global meta object is a root of all default settings, which are recognizable by Handsontable.
  * Other layers are inherited from this object. Adding, removing, or changing property in that
  * object has a direct reflection to all layers such as: TableMeta, ColumnMeta, or CellMeta layers.
@@ -54,11 +70,11 @@ export default class GlobalMeta {
    * The options the user wrote at grid level (the creation settings and every `updateSettings()` payload).
    * A type never overwrites one of them.
    */
-  #userSetKeys = new Set<string>();
+  readonly #userSetKeys = new Set<string>();
   /**
    * The options the last grid-level `type` expansion wrote, with the value it wrote.
    */
-  #typeAssigned = new Map<string, unknown>();
+  readonly #typeAssigned = new Map<string, unknown>();
   /**
    * The cell type object the global meta was last expanded with.
    */
@@ -72,7 +88,7 @@ export default class GlobalMeta {
    * The keys the grid was created with an explicit `undefined` for. Creation reads that as "set", so no type
    * value reaches the key, and an update that restates `undefined` keeps it that way instead of unsetting it.
    */
-  #undefinedAtCreation = new Set<string>();
+  readonly #undefinedAtCreation = new Set<string>();
 
   /**
    * Initializes the global meta layer, populates the meta prototype with schema defaults, and attaches the Handsontable instance reference.
@@ -140,8 +156,11 @@ export default class GlobalMeta {
    * no cell type is registered under is ignored, as it was before the type was expanded on update.
    *
    * @param {object} settings The `updateSettings()` payload.
+   * @returns {boolean} `true` when the expanded type is a different one than before. A type object with the same
+   * members as the one in force is not a different one. The cell meta objects already stored keep what the
+   * previous type's renderer wrote onto them, so the caller resets them.
    */
-  updateTypeFromSettings(settings: Record<string, unknown>) {
+  updateTypeFromSettings(settings: Record<string, unknown>): boolean {
     const expandedBefore = this.#expandedType;
     const clearsTypeOption = expandedBefore !== null && Object.keys(settings).some(
       key => this.#unsets(key, settings[key]) && hasOwnProperty(expandedBefore, key)
@@ -155,17 +174,24 @@ export default class GlobalMeta {
       this.meta.type = this.#typeSetting;
     }
 
-    const resolvedType = namesType || clearsTypeOption ?
-      this.#resolveType(namesType ? settings.type : this.meta.type) ?? (clearsTypeOption ? expandedBefore : null) :
-      null;
+    let resolvedType: Record<string, unknown> | null = null;
+
+    if (namesType) {
+      resolvedType = this.#resolveType(settings.type);
+
+    } else if (clearsTypeOption) {
+      resolvedType = this.#resolveType(this.meta.type) ?? expandedBefore;
+    }
 
     this.#recordUserSetKeys(settings, namesType);
 
     if (resolvedType === null) {
-      return;
+      return false;
     }
 
-    if (resolvedType !== expandedBefore) {
+    const typeChanged = resolvedType !== expandedBefore;
+
+    if (typeChanged) {
       this.#restoreTypeValues();
     }
 
@@ -178,6 +204,8 @@ export default class GlobalMeta {
     this.#expandedType = resolvedType;
     this.#typeSetting = namesType ? settings.type : this.#typeSetting;
     extendByMetaType(this.meta, { type: resolvedType }, userSet, settings.editor === true, this.#typeAssigned);
+
+    return typeChanged && !(expandedBefore !== null && hasSameTypeMembers(resolvedType, expandedBefore));
   }
 
   /**
