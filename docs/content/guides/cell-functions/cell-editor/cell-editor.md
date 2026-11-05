@@ -50,6 +50,48 @@ Declare the editor as a class that extends a built-in editor (e.g., `TextEditor`
 
 :::
 
+The `editor` prop of `HotTable` and `HotColumn` is for components built with `useHotEditor`. To set a class-based editor, or the name of a registered editor, on those components, use the `hotEditor` prop. On `HotColumn`, it sets the editor of that column:
+
+```jsx
+<HotColumn hotEditor={CustomEditor} />
+```
+
+On `HotTable`, it sets the editor for every column that does not set its own editor or `type`:
+
+```jsx
+<HotTable hotEditor="myEditor" />
+```
+
+For the `myEditor` alias, see [Registering an editor](#registering-an-editor). The `editor` key of an entry in the `columns` array is a core setting, so it takes a class or a name, as in the example above.
+
+To pick the editor for each column, use one of these:
+
+| Editor | Where to set it |
+| --- | --- |
+| A component built with `useHotEditor` | The `editor` prop |
+| A class that extends a built-in editor or `BaseEditor` | The `hotEditor` prop |
+| A built-in or registered editor name, such as `numeric` | The `hotEditor` prop |
+
+A `type` such as `numeric` sets the editor, the renderer, and the validator together. It accepts cell type names only, not the names of editors you registered.
+
+A `type` set on `HotTable` applies to every column that does not set its own `type`.
+
+If you pass a class or an editor name to the `editor` prop, the wrapper uses it as `hotEditor` and logs a warning in the console. Move it to `hotEditor` to remove the warning. When a column also sets `hotEditor`, `hotEditor` wins over that class or name.
+
+To fall back to the editor of the column `type`, leave `editor` out. Passing `editor={undefined}` as a prop has the same effect. An `editor: undefined` key inside a `columns` entry does not: it gives the text editor, so omit the key.
+
+To customize the editor of an autocomplete column, keep `type="autocomplete"` and pass a class that extends `AutocompleteEditor` to `hotEditor`:
+
+```jsx
+import { AutocompleteEditor } from 'handsontable/editors/autocompleteEditor';
+
+class CustomAutocompleteEditor extends AutocompleteEditor {}
+
+<HotColumn type="autocomplete" hotEditor={CustomAutocompleteEditor} />
+```
+
+To render cells with a component, see the `renderer` prop in the [cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) guide. A function renderer goes in the `hotRenderer` prop.
+
 ::: tip
 
 The sections below describe the class-based editor API. All of it applies to React when using the class-based approach.
@@ -296,7 +338,7 @@ Key implementation decisions:
 
 ::: only-for react
 
-To use a class-based editor from scratch in React, pass the editor class as the `editor` prop in a column configuration object. See the [class-based editors](#class-based-editors) section for an example.
+To use a class-based editor from scratch in React, pass the editor class as the `editor` key of an entry in the `columns` array, or as the `hotEditor` prop of `HotTable` or `HotColumn`. See the [class-based editors](#class-based-editors) section for an example.
 
 :::
 
@@ -344,11 +386,17 @@ new Handsontable(container, {
 <HotTable columns={[{ editor: 'myEditor' }]} />
 ```
 
+To set the alias on `HotTable` or `HotColumn`, use the `hotEditor` prop:
+
+```jsx
+<HotTable hotEditor="myEditor" />
+```
+
 ::: tip
 
 Registering an editor with `registerEditor` and referencing it by a string alias works for class-based editors only. Component-based editors (those using `useHotEditor`) cannot be registered this way, because they depend on React's rendering lifecycle to function.
 
-For component-based editors, pass the component directly to the `editor` prop of `HotTable` or `HotColumn` — no registration step is needed.
+For component-based editors, pass the component directly to the `editor` prop of `HotTable` or `HotColumn` - no registration step is needed. For a class-based editor or a registered alias, use the `hotEditor` prop.
 
 :::
 
