@@ -82,6 +82,11 @@ const EDITOR_INPUT_SELECTOR = '.hfe-editor__input';
  */
 const MOVE_AWAY_EVENTS = ['mousedown', 'pointerdown', 'touchstart', 'focusin'];
 /**
+ * The selection sources the grid marks when it lays an existing selection again on its own (an
+ * `alter()` shift, a refresh, a data load), as opposed to a selection the user or the application made.
+ */
+const GRID_SELECTION_SOURCES = ['shift', 'refresh', 'loadData', 'updateData'];
+/**
  * The class of the formula bar's address box input `hyperformula-ui` renders.
  */
 const ADDRESS_INPUT_SELECTOR = '.hfe-formula-bar__address-input';
@@ -421,14 +426,15 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * The physical coordinates of the cell the grid focused last. Not cleared on deselect: Shift+Tab from
    * the first column drops the selection and moves the focus onto the bar, and the bar then asks
-   * for a cell to edit - the one that was left. Physical, so a sort or a move keeps the record, and
-   * shifted on an insert or a removal, which renumber the physical indexes after them
-   * (`#onAfterCreateTrack`, `#onAfterRemoveTrack`); every read still checks range, visibility and the
+   * for a cell to edit - the one that was left. Physical, so the record survives with no selection, and
+   * shifted when an insert or a removal renumbers the physical indexes after it
+   * (`#onRowIndexesInserted`, `#onRowIndexesRemoved`); every read still checks range, visibility and the
    * editor again.
    */
   #lastFocusedCoords: { row: number; col: number } | null = null;
   /**
-   * Set by a data load, so the draw after it does not record the kept selection as the remembered cell.
+   * Set by a data load and kept until a new selection (`#rememberNewSelection()`): until then nothing
+   * records the selection the load kept, which points at a record of the data set it replaced.
    */
   #dataReplaced = false;
   /**
@@ -975,12 +981,13 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Records the physical coordinates of the cell the active selection layer focuses.
+   * Records the physical coordinates of the cell the active selection layer focuses. Nothing is
+   * recorded after a data load until a new selection (`#dataReplaced`).
    */
   #rememberFocusedCell(): void {
-    const focus = this.hot.getSelectedRangeActive()?.highlight;
+    const focus = this.#focusedCell();
 
-    if (!focus || typeof focus.row !== 'number' || typeof focus.col !== 'number' || focus.row < 0 || focus.col < 0) {
+    if (this.#dataReplaced || focus === null) {
       return;
     }
 
@@ -993,18 +1000,44 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * The visual coordinates of the cell the active selection layer focuses.
+   *
+   * @returns {{ row: number, col: number } | null} `null` with no selection, or with the focus on a header.
+   */
+  #focusedCell(): { row: number; col: number } | null {
+    const focus = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!focus || typeof focus.row !== 'number' || typeof focus.col !== 'number' || focus.row < 0 || focus.col < 0) {
+      return null;
+    }
+
+    return { row: focus.row, col: focus.col };
+  }
+
+  /**
+   * Records the focused cell of a selection that ended a gesture or moved the focus inside a range. A
+   * selection the user or the application made ends the forgetting a data load started; one the grid
+   * laid again itself (an insert's or a removal's shift, a refresh, the load's own) does not.
+   */
+  #rememberNewSelection(): void {
+    if (!GRID_SELECTION_SOURCES.includes(this.hot.selection.getSelectionSource())) {
+      this.#dataReplaced = false;
+    }
+
+    this.#rememberFocusedCell();
+  }
+
+  /**
    * Shifts the remembered cell past the physical indexes an insert added before it.
    *
-   * @param {'row' | 'col'} axis The axis the tracks were created on.
-   * @param {number} index The visual index of the first created track.
-   * @param {number} amount The number of created tracks.
+   * @param {'row' | 'col'} axis The axis the indexes were inserted on.
+   * @param {number[]} insertedIndexes The physical indexes the inserted tracks took, in order.
    */
-  #shiftRememberedCellOnCreate(axis: 'row' | 'col', index: number, amount: number): void {
+  #shiftRememberedCellOnCreate(axis: 'row' | 'col', insertedIndexes: number[]): void {
     const last = this.#lastFocusedCoords;
-    const physicalStart = axis === 'row' ? this.hot.toPhysicalRow(index) : this.hot.toPhysicalColumn(index);
 
-    if (last !== null && physicalStart !== null && last[axis] >= physicalStart) {
-      this.#lastFocusedCoords = { ...last, [axis]: last[axis] + amount };
+    if (last !== null && insertedIndexes.length > 0 && last[axis] >= insertedIndexes[0]) {
+      this.#lastFocusedCoords = { ...last, [axis]: last[axis] + insertedIndexes.length };
     }
   }
 
@@ -1265,7 +1298,7 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusCol The focus visual column index.
    */
   #onAfterSelectionEnd = (): void => {
-    this.#rememberFocusedCell();
+    this.#rememberNewSelection();
 
     if (this.#isEditing()) {
       return;
@@ -1332,21 +1365,16 @@ export class FormulaBuilder extends BasePlugin {
    * recorded again too: a sort, a move, or a filter keeps the selection on its visual cell while
    * the physical record under it changes, so the record remembered before would no longer be the
    * focused cell. With no selection nothing is recorded, and the insert and remove shifts keep the
-   * remembered record. After a data load nothing is recorded either: the load forgot the cell on
-   * purpose, because the kept selection points at a record of the data set it replaced.
+   * remembered record.
+   *
+   * A draw inside `alter()` (an `afterCreateRow` listener that writes into the new row) runs before
+   * the selection shift, so the record it reads can be the wrong one. `#onAfterSelection` records
+   * the cell again when the shift lands.
    */
   #onBeforeViewRender = (): void => {
-    const dataReplaced = this.#dataReplaced;
-
-    this.#dataReplaced = false;
-
     if (this.#barCellStale) {
       this.#barCellStale = false;
-
-      if (!dataReplaced) {
-        this.#rememberFocusedCell();
-      }
-
+      this.#rememberFocusedCell();
       this.#resyncBarCell();
     }
   };
@@ -1509,7 +1537,8 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onAfterDataLoad = (): void => {
     // The remembered coordinates point into the data set the load replaced (or another sheet). The
-    // load rebuilt the index maps too, and the draw after it must not record the kept selection again.
+    // load rebuilt the index maps too, and nothing may record the kept selection again until a new
+    // selection: not the draw after the load, and not a later sort, move or shift of that selection.
     this.#lastFocusedCoords = null;
     this.#dataReplaced = true;
 
@@ -1567,6 +1596,10 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusCol The focus visual column index.
    */
   #onAfterSelection = (): void => {
+    // Every selection write, the shift `alter()` makes after its index change included: a draw
+    // inside that `alter()` may have recorded the cell before the shift (`#onBeforeViewRender`).
+    this.#rememberFocusedCell();
+
     if (this.#isEditing()) {
       this.#followStructuralShift();
 
@@ -1579,45 +1612,42 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
-   * `afterCreateRow` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   * Row index mapper `indexesInserted` listener - keeps the remembered cell on its record
+   * (`#lastFocusedCoords`). The mapper runs it at the moment it renumbers, batched or not, so the
+   * cell shifts once and before any hook or draw of the insert can record it in the new numbering.
    *
-   * @param {number} index The visual index of the first created row.
-   * @param {number} amount The number of created rows.
+   * @param {number[]} insertedIndexes The physical indexes the inserted rows took.
    */
-  #onAfterCreateRowRemembered = (index: number, amount: number): void => {
-    this.#shiftRememberedCellOnCreate('row', index, amount);
+  #onRowIndexesInserted = (insertedIndexes: number[]): void => {
+    this.#shiftRememberedCellOnCreate('row', insertedIndexes);
   };
 
   /**
-   * `afterCreateCol` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   * Column index mapper `indexesInserted` listener - see `#onRowIndexesInserted`.
    *
-   * @param {number} index The visual index of the first created column.
-   * @param {number} amount The number of created columns.
+   * @param {number[]} insertedIndexes The physical indexes the inserted columns took.
    */
-  #onAfterCreateColRemembered = (index: number, amount: number): void => {
-    this.#shiftRememberedCellOnCreate('col', index, amount);
+  #onColumnIndexesInserted = (insertedIndexes: number[]): void => {
+    this.#shiftRememberedCellOnCreate('col', insertedIndexes);
   };
 
   /**
-   * `afterRemoveRow` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   * Row index mapper `indexesRemoved` listener - keeps the remembered cell on its record
+   * (`#lastFocusedCoords`), at the moment the mapper renumbers (see `#onRowIndexesInserted`).
    *
-   * @param {number} index The visual index of the first removed row.
-   * @param {number} amount The number of removed rows.
-   * @param {number[]} physicalRows The physical indexes the rows had.
+   * @param {number[]} removedIndexes The physical indexes the removed rows had.
    */
-  #onAfterRemoveRowRemembered = (index: number, amount: number, physicalRows: number[]): void => {
-    this.#shiftRememberedCellOnRemove('row', physicalRows);
+  #onRowIndexesRemoved = (removedIndexes: number[]): void => {
+    this.#shiftRememberedCellOnRemove('row', removedIndexes);
   };
 
   /**
-   * `afterRemoveCol` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   * Column index mapper `indexesRemoved` listener - see `#onRowIndexesRemoved`.
    *
-   * @param {number} index The visual index of the first removed column.
-   * @param {number} amount The number of removed columns.
-   * @param {number[]} physicalColumns The physical indexes the columns had.
+   * @param {number[]} removedIndexes The physical indexes the removed columns had.
    */
-  #onAfterRemoveColRemembered = (index: number, amount: number, physicalColumns: number[]): void => {
-    this.#shiftRememberedCellOnRemove('col', physicalColumns);
+  #onColumnIndexesRemoved = (removedIndexes: number[]): void => {
+    this.#shiftRememberedCellOnRemove('col', removedIndexes);
   };
 
   /**
@@ -1626,7 +1656,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onAfterSelectionFocusSet = (): void => {
     // Tab and Enter move the focus inside a selected range without ending a selection gesture.
-    this.#rememberFocusedCell();
+    this.#rememberNewSelection();
 
     if (this.#isEditing()) {
       return;
@@ -2184,6 +2214,10 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.hot.rowIndexMapper.addLocalHook('indexesInserted', this.#onRowIndexesInserted);
+    this.hot.columnIndexMapper.addLocalHook('indexesInserted', this.#onColumnIndexesInserted);
+    this.hot.rowIndexMapper.addLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
+    this.hot.columnIndexMapper.addLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     // Order 2: the Formulas plugin loads a settings-update's data into the engine from its own
     // `afterUpdateSettings` listener (order 1), after `afterUpdateData` already fired.
     this.addHook('afterUpdateSettings', this.#resyncBarCell, 2);
@@ -2195,10 +2229,6 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('afterUpdateData', this.#onAfterDataLoad);
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterSelectionFocusSet', this.#onAfterSelectionFocusSet);
-    this.addHook('afterCreateRow', this.#onAfterCreateRowRemembered);
-    this.addHook('afterCreateCol', this.#onAfterCreateColRemembered);
-    this.addHook('afterRemoveRow', this.#onAfterRemoveRowRemembered);
-    this.addHook('afterRemoveCol', this.#onAfterRemoveColRemembered);
     this.addHook('beforeOnCellMouseDown', this.#cellPick.onBeforeMouseDown, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOver', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOverOutside', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
@@ -2660,6 +2690,10 @@ export class FormulaBuilder extends BasePlugin {
     this.#stopMoveAwayWatch?.();
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.hot.rowIndexMapper.removeLocalHook('indexesInserted', this.#onRowIndexesInserted);
+    this.hot.columnIndexMapper.removeLocalHook('indexesInserted', this.#onColumnIndexesInserted);
+    this.hot.rowIndexMapper.removeLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
+    this.hot.columnIndexMapper.removeLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     this.#barCellStale = false;
     this.#clearCellErrorMarks();
     this.#removeEngineDetachListener?.();
@@ -2690,6 +2724,7 @@ export class FormulaBuilder extends BasePlugin {
     this.#lastEmittedSelectionCoords = null;
     this.#lastBarCell = null;
     this.#lastFocusedCoords = null;
+    this.#dataReplaced = false;
   }
 
   /**

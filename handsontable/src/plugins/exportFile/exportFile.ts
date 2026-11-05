@@ -76,8 +76,13 @@ export interface HeaderStyleBorder {
    */
   style?: string;
   /**
-   * Not read by the exporter. The border color is read from a `color` key instead, as a CSS hex
-   * string (e.g. `'#000000'`).
+   * Border color, as a CSS color: hex (`'#000000'` or `'#000'`), `rgb()`, `hsl()`, or a named color
+   * (`'black'`). The alpha component is dropped. An eight-digit hex value is read as Excel ARGB
+   * (`AARRGGBB`), not as CSS `#RRGGBBAA`. A value the exporter cannot read writes a black border.
+   */
+  color?: string;
+  /**
+   * Not read by the exporter. Set the border color with `color` instead.
    */
   argb?: string;
 }
@@ -87,7 +92,10 @@ export interface HeaderStyleBorder {
  */
 export interface HeaderStyle {
   /**
-   * Background fill color in hex (e.g. `'#f2f2f2'`).
+   * Background fill color, as a CSS color: hex (`'#f2f2f2'` or `'#eee'`), `rgb()`, `hsl()`, or a named
+   * color (`'whitesmoke'`). The alpha component is dropped. An eight-digit hex value is read as Excel
+   * ARGB (`AARRGGBB`), not as CSS `#RRGGBBAA`. A value the exporter cannot read, `'transparent'`
+   * included, writes a black fill; leave `backgroundColor` out for no fill.
    */
   backgroundColor?: string;
   /**
@@ -845,9 +853,9 @@ export class ExportFile extends BasePlugin {
    * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
    * answers `false` whenever an xlsx export would throw for the license: when the license key lists
    * its features without `feat:export_file`, the plugin's own token, and when it carries the
-   * `listed-capabilities` flag without listing `xlsx:export`. A key without that flag, and the
-   * evaluation key, are not restricted. `'csv'` does not read the license here, although the export
-   * methods still need `feat:export_file` for it.
+   * `listed-capabilities` flag without listing `xlsx:export`. A key without that flag is not
+   * restricted. `'csv'` does not read the license here, although the export methods still need
+   * `feat:export_file` for it.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}

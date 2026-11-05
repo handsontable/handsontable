@@ -49,8 +49,8 @@ export interface LockContent {
 /**
  * The badge popover copy per lifecycle state. Only a trial shows the corner badge and its popover;
  * every other state renders no badge - a subscription and a perpetual license are developer-facing
- * only, and the states outside the entitlement format (missing, invalid, expired legacy,
- * non-commercial) speak through the console message and the bottom bar of
+ * only, and the states outside the entitlement format (missing, invalid, expired legacy) speak
+ * through the console message and the bottom bar of
  * `initLicenseNotification`.
  *
  * The dates here carry no `(UTC)` marker: the specification puts it on the license text and the

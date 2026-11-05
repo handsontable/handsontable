@@ -701,11 +701,12 @@ describe('Xlsx export license gates', () => {
     ]);
   });
 
-  it('leaves a full key\'s snapshot equal to the legacy key\'s', async() => {
+  it('leaves a full key\'s snapshot equal to the snapshot of a key that restricts nothing', async() => {
     const full = await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
-    const legacy = await exportSnapshot('non-commercial-and-evaluation');
+    // An invalid key (the non-commercial key is one since 19.0) restricts nothing.
+    const unrestricted = await exportSnapshot('non-commercial-and-evaluation');
 
-    expect(full).toEqual(legacy);
+    expect(full).toEqual(unrestricted);
   });
 
   it('exports like a full key, and says nothing, for a flagged key that lists xlsx:all', async() => {

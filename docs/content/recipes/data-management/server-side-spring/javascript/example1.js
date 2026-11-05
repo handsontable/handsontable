@@ -52,14 +52,16 @@ const hot = new Handsontable(container, {
     rowId: 'id',
 
     fetchRows: async ({ page, pageSize, sort, filters }, { signal }) => {
-      const url = buildUrl('/api/products', {
+      const params = {
         page,
         pageSize,
         sortProp: sort?.prop,
         sortOrder: sort?.order,
+        // Send the filter array as-is: [{ prop, operation, conditions: [{ name, args }] }].
         filters: filters ? JSON.stringify(filters) : undefined,
-      });
+      };
 
+      const url = buildUrl('/api/products', params);
       const res = await fetch(url, { signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
@@ -77,7 +79,8 @@ const hot = new Handsontable(container, {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
-      const info = data.map(r => `(id: ${r.id})`).join(', ');
+      const info = data.map((r) => `(id: ${r.id})`).join(', ');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hot.getPlugin('notification').showMessage({
         variant: 'success',
         title: 'Row added',
@@ -111,9 +114,11 @@ const hot = new Handsontable(container, {
   // attempt, show a notification with Delete/Cancel actions, and on Delete
   // re-issue the remove via the DataProvider API. The flag lets the second
   // pass through without re-prompting.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   beforeRowsMutation(operation, payload) {
     if (operation === 'remove' && !removeConfirmed) {
       const count = payload.rowsRemove.length;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const notification = hot.getPlugin('notification');
       const id = notification.showMessage({
         variant: 'warning',
@@ -127,9 +132,13 @@ const hot = new Handsontable(container, {
             callback: () => {
               notification.hide(id);
               removeConfirmed = true;
-              hot.getPlugin('dataProvider').removeRows(payload.rowsRemove).finally(() => {
-                removeConfirmed = false;
-              });
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              hot
+                .getPlugin('dataProvider')
+                .removeRows(payload.rowsRemove)
+                .finally(() => {
+                  removeConfirmed = false;
+                });
             },
           },
           {

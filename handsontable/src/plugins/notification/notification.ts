@@ -101,7 +101,7 @@ const TICK_MS = 200;
  * const hot = new Handsontable(container, {
  *   data: data,
  *   notification: true,
- *   licenseKey: 'non-commercial-and-evaluation',
+ *   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
  * });
  * const notification = hot.getPlugin('notification');
  * notification.showMessage({ message: 'Saved.' });

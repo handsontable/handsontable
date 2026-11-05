@@ -457,7 +457,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v42';
+const LOADER_VERSION = 'v43';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -1141,6 +1141,37 @@ function convertCodeGroupToTabs(content) {
 }
 
 /**
+ * Runs `transform` over everything except code: fenced blocks (``` or ~~~),
+ * inline `` `code` `` spans, and `<code>` elements (aside bodies already hold
+ * their inline code as HTML). Code is swapped for `@@HT_CODE_n@@` placeholders,
+ * as in aside-inline-markdown.mjs, and restored verbatim afterwards.
+ *
+ * @param {string} content
+ * @param {(text: string) => string} transform
+ * @returns {string}
+ */
+function replaceOutsideCode(content, transform) {
+  const chunks = [];
+  const placeholder = /@@HT_CODE_(\d+)@@/g;
+  const mask = (code) => {
+    chunks.push(code);
+
+    return `@@HT_CODE_${chunks.length - 1}@@`;
+  };
+  // A chunk can hold an earlier chunk's placeholder (inline code inside a
+  // <code> element), so restoring recurses.
+  const restore = text => text.replace(placeholder, (_, id) => restore(chunks[Number(id)]));
+  const masked = content
+    // A fence closes on a line with the same character, at least as long; an
+    // unclosed fence runs to the end of the document (CommonMark).
+    .replace(/^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:^[ \t]*\1[`~]*[ \t]*$|(?![\s\S]))/gm, mask)
+    .replace(/`[^`\n]+`/g, mask)
+    .replace(/<code\b[^>]*>[\s\S]*?<\/code>/g, mask);
+
+  return restore(transform(masked));
+}
+
+/**
  * Applies all VuePress preprocessing steps EXCEPT only-for filtering
  * (which is done per-framework before calling this).
  *
@@ -1194,8 +1225,12 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
     );
   }
 
-  // Strip any remaining @/framework/ prefixes (non-.md links such as images)
-  result = result.replace(/@\/[a-z0-9-]+\//g, '/');
+  // Strip any remaining @/framework/ prefixes (non-.md links such as images).
+  // Code is masked first: `@/` in code is a project path alias (e.g.
+  // `import x from "@/lib/theme/x"`), not a docs link. The .md resolution above
+  // stays unmasked on purpose - a fenced JSDoc comment in custom-plugins.md
+  // relies on [`BasePlugin`](@/api/basePlugin.md) resolving.
+  result = replaceOutsideCode(result, text => text.replace(/@\/[a-z0-9-]+\//g, '/'));
 
   // Transform <div class="boxes-list"> into Starlight-styled card grid HTML
   result = convertBoxesListToCardGrid(result);

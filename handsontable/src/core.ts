@@ -1533,6 +1533,11 @@ export default function Core(
 
     if (!['shift', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       editorManager.closeEditor();
+
+      // Closing the editor saves it, and a listener of the save can destroy the grid.
+      if (!instance) {
+        return;
+      }
     }
 
     // A `shift` re-lay (`alter()`'s shifts, the trim clamp and the DEV-152 grow) replays every layer
@@ -1541,6 +1546,12 @@ export default function Core(
 
     if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource) && !isIntermediateShiftLayer) {
       instance.view.render();
+
+      // An `afterRender` listener can destroy the grid.
+      if (!instance) {
+        return;
+      }
+
       editorManager.prepareEditor();
     }
   });
@@ -1559,12 +1570,29 @@ export default function Core(
     }
 
     editorManager.closeEditor();
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     editorManager.prepareEditor();
   });
 
   this.selection.addLocalHook('afterSelectionFinished',
     (cellRanges: Array<{from: {row: number, col: number}, to: {row: number, col: number}}>) => {
+      // A listener of the save the selection made (it closed the editor) destroyed the grid.
+      if (!instance) {
+        return;
+      }
+
       const selectionLayerLevel = cellRanges.length - 1;
       const { from, to } = cellRanges[selectionLayerLevel];
 
@@ -1590,7 +1618,18 @@ export default function Core(
 
   this.selection.addLocalHook('afterDeselect', () => {
     editorManager.closeEditor();
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
@@ -2897,7 +2936,9 @@ export default function Core(
       // (toolbars, pagination, license notification) aligns with the grid.
       const lastEdgeWidths = { top: -1, bottom: -1 };
       const syncEdgeSlotsWidth = () => {
-        if (instance.isDestroyed) {
+        // A listener from the settings runs before this one, and the hook run keeps walking its
+        // listeners after such a listener destroyed the grid, which nulls `instance`.
+        if (!instance || instance.isDestroyed) {
           return;
         }
 
@@ -3346,7 +3387,8 @@ export default function Core(
    * @param {Array<object>} pendingRowMetas The cell meta of the cells validated in not-yet-existing rows.
    */
   function discardResultsOfUncreatedRows(pendingRowMetas: Array<{ row?: number, valid?: boolean }>) {
-    if (pendingRowMetas.length === 0) {
+    // An `afterChange` listener of the applied set can destroy the grid, and its meta is gone with it.
+    if (pendingRowMetas.length === 0 || !instance) {
       return;
     }
 
@@ -3572,6 +3614,11 @@ export default function Core(
         } finally {
           isValidatingChange = false;
         }
+
+        // A `beforeValidate` listener destroyed the grid, so no other change is validated.
+        if (!instance) {
+          return;
+        }
       }
     }
   }
@@ -3733,11 +3780,21 @@ export default function Core(
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
 
+      // A listener of `beforeChangeRender`, of the render (`afterRender`), or of `afterChange` can
+      // destroy the grid, and nothing after it may read the destroyed instance or its editor.
+      if (!instance) {
+        return;
+      }
+
       if (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) {
         editorManager.closeEditor();
       }
 
       instance.render();
+
+      if (!instance) {
+        return;
+      }
 
       if (
         (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) ||
@@ -3747,6 +3804,10 @@ export default function Core(
       }
 
       instance.runHooks('afterChange', changes, source || 'edit');
+
+      if (!instance) {
+        return;
+      }
 
       if (
         activeEditor &&
@@ -3939,6 +4000,12 @@ export default function Core(
       const loadGeneration = validationLoadGeneration;
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
+
+      // A `beforeValidate` listener destroyed the grid. Nothing is recorded yet, so validation ends here.
+      if (!instance) {
+        return;
+      }
+
       // The validator answers after the call that asked for it has returned. What it and the
       // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
       // was not recorded – so the answer runs inside the call's operation.
@@ -3992,6 +4059,13 @@ export default function Core(
               hold.resume(() => {
                 valid = instance
                   .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
+
+                // Every call into user code can destroy the grid (an `afterValidate` listener here, the
+                // callback in `done()` below), and nothing after it may read the destroyed instance.
+                if (!instance) {
+                  return;
+                }
+
                 cellProperties.valid = valid;
                 markCellMetaChanged(cellProperties);
 
@@ -3999,6 +4073,10 @@ export default function Core(
                 countAnswer();
 
                 done(valid);
+
+                if (!instance) {
+                  return;
+                }
 
                 const wasAnsweringStaleValidation = isAnsweringStaleValidation;
 
@@ -4094,6 +4172,12 @@ export default function Core(
         openedEditor.prop!)
       : true;
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    // A `beforeChange` listener destroyed the grid, so nothing is left to apply the changes to.
+    if (!instance) {
+      return [];
+    }
+
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
@@ -4250,7 +4334,17 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
+    // `beforeChange` and `afterSetDataAtCell` listeners can destroy the grid, and nothing after them
+    // may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
+
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
+
+    if (!instance) {
+      return;
+    }
 
     validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
@@ -4367,7 +4461,17 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
+    // `beforeChange` and `afterSetDataAtRowProp` listeners can destroy the grid, and nothing after
+    // them may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
+
     instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
+
+    if (!instance) {
+      return;
+    }
 
     validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
@@ -4430,7 +4534,18 @@ export default function Core(
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.closeEditor(revertOriginal);
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
@@ -8678,9 +8793,12 @@ export default function Core(
    * Validates every cell in the data set,
    * using a [validator function](@/guides/cell-functions/cell-validator/cell-validator.md) configured for each cell.
    *
-   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md),
-   * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md)
+   * or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
+   *
+   * Does validate rows hidden with [`HiddenRows`](@/api/hiddenRows.md) and columns hidden with
+   * [`HiddenColumns`](@/api/hiddenColumns.md). Those cells stay in the data set.
    *
    * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
    * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
@@ -8835,6 +8953,12 @@ export default function Core(
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
+
+        // A `beforeValidate` listener destroyed the grid, so no other cell is validated.
+        if (!instance) {
+          return;
+        }
+
         j -= 1;
       }
       i -= 1;
@@ -9579,6 +9703,11 @@ export default function Core(
       }
     }
 
+    // The selection closed the editor, and a listener of that save destroyed the grid.
+    if (!instance) {
+      return wasSelected;
+    }
+
     if (wasSelected && changeListener) {
       instance.listen();
     }
@@ -10076,6 +10205,8 @@ export default function Core(
 
     datamap = null!;
     grid = null!;
+    // A selection method can still be running (it closed an editor whose save destroyed the grid).
+    selection?.destroy();
     selection = null!;
     editorManager = null!;
     instance = null as unknown as HotInstance;

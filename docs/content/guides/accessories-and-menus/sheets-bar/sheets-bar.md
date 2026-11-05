@@ -79,7 +79,11 @@ Set [`sheetsBar`](@/api/options.md#sheetsbar) to `true` for one sheet with the g
 
 Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active.
 
+A sheet's options object never keeps values another sheet set. Keys it leaves out take the grid-level value or the default, depending on the option.
+
 When `sheets` declares a workbook, the grid-level [`data`](@/api/options.md#data) option is ignored, with a console warning. To change the active sheet's data, call [`loadData()`](@/api/core.md#loaddata). A `sheets` array that describes other sheets rebuilds the workbook.
+
+With `sheetsBar: true`, a new [`data`](@/api/options.md#data) array replaces the data of the sheet created from it, even when that sheet is hidden. After that sheet is removed, a new `data` is ignored with a console warning. Sheets a user adds exist only in the plugin. Read them with [`getSheetData()`](@/api/sheetsBar.md#getsheetdata).
 
 ```javascript
 const configurationOptions = {
@@ -167,6 +171,12 @@ const sheets = ref([{ name: 'Budget', data: budgetData }]);
 
 The same applies to a function or a class instance in a sheet's `settings`, such as a `renderer` or a `cells` function: define it in the script, not in the template. Don't copy the plugin's changes into your own state: your array already holds them.
 
+::: tip
+
+Wrap large `data` arrays and a HyperFormula engine in `markRaw()`. Vue watches the `sheetsBar` prop deeply, so on every change it walks each sheet's rows and the engine's internals, which slows down every edit.
+
+:::
+
 :::
 
 ## Managing sheets programmatically
@@ -182,6 +192,9 @@ sheetsBar.getSheets();
 
 // switch the active sheet, by id or by name
 sheetsBar.setActiveSheet('Notes');
+
+// read a sheet's data without switching to it, by id or by name
+sheetsBar.getSheetData('Notes');
 
 // append a new sheet, and keep its id
 const { id } = sheetsBar.addSheet('Q3 Forecast', [['Category', 'Q3 2026']]);
@@ -207,7 +220,7 @@ The same rules apply to names typed in the bar and names passed to the API:
 - Names are compared without regard to letter case, so `Budget` and `budget` are the same name.
 - [`addSheet()`](@/api/sheetsBar.md#addsheet) and [`duplicateSheet()`](@/api/sheetsBar.md#duplicatesheet) number a name that is taken: `Budget` becomes `Budget (2)`. [`renameSheet()`](@/api/sheetsBar.md#renamesheet) refuses a taken name and returns `false`.
 - A sheet added without a name gets the next free default name, in the grid's [language](@/guides/internationalization/language/language.md): `Sheet4` in English.
-- A sheet added without data starts with 1000 empty rows and 26 empty columns.
+- A sheet added without data starts with 1000 empty rows and 26 empty columns. With [`NestedRows`](@/api/nestedRows.md) on, it starts with 1000 empty object rows instead.
 
 ## Work with tabs
 
@@ -218,6 +231,8 @@ Right-click a tab, or click the chevron on the active tab, to open its menu: **R
 - On a touch screen, swipe the tab strip to scroll it. To reorder sheets, press and hold a tab until it lifts, then drag it. To open a tab's menu, press and hold the tab, then lift your finger without moving it.
 - Click the **+** button (Add sheet) to append a sheet.
 - Click the list button (All sheets) to pick a sheet from a list.
+
+A sheet you add with the **+** button uses the grid-level settings. To keep an option such as [`nestedRows`](@/api/options.md#nestedrows) or [`columns`](@/api/options.md#columns) to one sheet, set it in that sheet's own `settings`.
 
 ## Per-sheet view state
 
@@ -414,7 +429,6 @@ With `exportFormulas: true`, a formula that references another sheet keeps that 
 - The plugin doesn't watch your own edits of the `sheets` array or its entries. To change the workbook, call the plugin's methods.
 - When the plugin loads new rows for a sheet that isn't shown (for example, a server response), your entry's `data` keeps the old array.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
-- When two sheets set an option such as `autoLink` as an object, keys the second sheet leaves out keep the first sheet's values. List every key you rely on in each sheet's object.
 - With formulas, a sheet that is sorted or has moved rows or columns doesn't see changes you make in place to its `data` while it's hidden. Pass a new `sheets` value instead, which rebuilds the workbook.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. Read the current name from `hot.getPlugin('formulas').sheetName`.
 - With formulas, a rename that rewrites references inside a frozen `data` array (for example, from Immer) writes them into a copy, not into your array, so update your store yourself. On the active sheet, this also clears the undo history.
