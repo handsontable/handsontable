@@ -2689,7 +2689,16 @@ export class SheetsBar extends BasePlugin {
    * grid is not destroyed, the bar is on, and the workbook was not replaced.
    */
   #isLive(model: SheetModel | null): boolean {
-    return !!this.hot && !this.hot.isDestroyed && this.enabled && this.#model === model;
+    return !this.#isGridDestroyed() && this.enabled && this.#model === model;
+  }
+
+  /**
+   * Tells whether a listener destroyed the grid while the bar was running host code (a settings update,
+   * a data load, a hook). The plugin's `hot` is gone then, so a `finally` and every step after that code
+   * ask this before they touch the grid.
+   */
+  #isGridDestroyed(): boolean {
+    return !this.hot || this.hot.isDestroyed;
   }
 
   /**
@@ -2929,7 +2938,9 @@ export class SheetsBar extends BasePlugin {
     try {
       operations();
     } finally {
-      this.hot.resumeRender();
+      if (!this.#isGridDestroyed()) {
+        this.hot.resumeRender();
+      }
     }
   }
 
@@ -3283,6 +3294,10 @@ export class SheetsBar extends BasePlugin {
         cellMeta: viewState?.cellMeta,
       });
 
+      if (this.#isGridDestroyed()) {
+        return;
+      }
+
       if (viewState) {
         restoreViewState(this.hot, viewState, keptParts);
       }
@@ -3301,6 +3316,10 @@ export class SheetsBar extends BasePlugin {
         }
       }, engineOrder);
     });
+
+    if (this.#isGridDestroyed()) {
+      return;
+    }
 
     this.#redeclaredParts.delete(newSheet);
 
@@ -3475,6 +3494,10 @@ export class SheetsBar extends BasePlugin {
       } finally {
         this.#loadingSheet = null;
         this.#pendingHookSync = null;
+      }
+
+      if (this.#isGridDestroyed()) {
+        return;
       }
 
       if (this.hot.view) {

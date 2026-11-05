@@ -1,3 +1,4 @@
+import HyperFormula from 'hyperformula';
 import Handsontable from '../../../index';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
@@ -104,6 +105,39 @@ describe('SheetsBar afterSheetTabStateRestore listener that destroys the grid in
     expect(() => hot.updateSettings({ sheetsBar: { activeSheet: 1 } })).not.toThrow();
     expect(hot.isDestroyed).toBe(true);
     expect(warnSpy).not.toHaveBeenCalled();
+    await flush();
+  });
+
+  it.each([
+    ['its own settings', () => ({ colHeaders: true })],
+    ['formulas on a shared engine', engine => ({ formulas: { engine, sheetName: 'Beta' } })],
+  ])('stops a switch to a sheet with %s whose afterUpdateSettings listener destroys the grid', async(_, settings) => {
+    const afterChange = jasmine.createSpy('afterSheetTabChange');
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [['a']], settings: { formulas: { engine, sheetName: 'Alpha' } } },
+          { name: 'Beta', data: [['=Alpha!A1']], settings: settings(engine) },
+        ],
+      },
+      afterSheetTabChange: afterChange,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const plugin = hot.getPlugin('sheetsBar');
+
+    hot.addHook('afterUpdateSettings', () => hot.destroy());
+
+    let result;
+
+    expect(() => {
+      result = plugin.setActiveSheet('Beta');
+    }).not.toThrow();
+    expect(result).toBe(false);
+    expect(hot.isDestroyed).toBe(true);
+    expect(afterChange).not.toHaveBeenCalled();
     await flush();
   });
 });

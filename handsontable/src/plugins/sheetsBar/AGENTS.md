@@ -1302,7 +1302,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     DataProvider's `_runContextChange()` skips its after-steps once its plugin is destroyed, since the
     restore hook fires inside that callback. `#applyActiveSheetSetting` (the `updateSettings({ sheetsBar: {
     activeSheet } })` path) checks `#isLive` too when `setActiveSheet()` answers `false`, before it asks
-    `#isEditingSettled()`, which reads the instance. Pinned by `__tests__/inFlightSwitch.unit.js`,
+    `#isEditingSettled()`, which reads the instance. A listener that destroys the grid from inside
+    `_applySettingsAndData()` (`afterUpdateSettings`) ends that call before its load, and `#applySheet`,
+    `#showSheet` and every `#batchRender` `finally` stop on `#isGridDestroyed()` (the plugin's `hot` is gone),
+    so the switch returns `false` the same way. Pinned by `__tests__/inFlightSwitch.unit.js`,
     `__tests__/restoreHookDestroy.unit.js` (the full build, local and server sheet) and the tab-click case
     in `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
   - **The `activeSheet` setting is recorded once its switch reaches the listeners**
