@@ -651,6 +651,7 @@ interface PreservedState {
 /**
  * @plugin SheetsBar
  * @class SheetsBar
+ * @since 19.0.0
  *
  * @description
  * The plugin renders a tab bar below the grid, or above it with the `position` setting,
@@ -2838,7 +2839,14 @@ export class SheetsBar extends BasePlugin {
    * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
    *
-   * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
+   * The name is trimmed and cut to 50 characters. A name another sheet already has, in any letter
+   * case, gets a number: `Budget` becomes `Budget (2)`. Without a name, the sheet gets a default name
+   * in the grid's language, `Sheet{n}` in English. `n` counts the sheets the workbook has added or duplicated, so the
+   * fourth sheet is `Sheet4`, and a name freed by a removed sheet is not reused. A number another sheet
+   * already uses is skipped. Without `data`, the sheet has 1000 empty rows and 26 empty columns, or
+   * 1000 empty object rows while it shows with NestedRows on.
+   *
+   * @param {string} [name] The sheet's name. Omitted, the sheet gets the default `Sheet{n}` name.
    * @param {Array} [data] The sheet's data: rows as arrays, or as objects. Omitted, the sheet starts blank,
    * with empty object rows while the sheet shows with NestedRows on.
    * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the

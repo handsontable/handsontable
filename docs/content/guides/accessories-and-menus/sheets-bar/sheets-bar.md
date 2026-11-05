@@ -212,6 +212,17 @@ sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 
 A sheet's id never changes, and no other sheet gets it later, even after you pass a new `sheets` value.
 
+### Sheet names and new sheets
+
+The same rules apply to names typed in the bar and names passed to the API:
+
+- A name is trimmed and cut to 50 characters.
+- A name with no visible character counts as no name in [`addSheet()`](@/api/sheetsBar.md#addsheet), which then uses the default name. [`renameSheet()`](@/api/sheetsBar.md#renamesheet) and a rename in the bar refuse it and keep the old name.
+- Names are compared without regard to letter case, so `Budget` and `budget` are the same name.
+- [`addSheet()`](@/api/sheetsBar.md#addsheet) and [`duplicateSheet()`](@/api/sheetsBar.md#duplicatesheet) number a name that is taken: `Budget` becomes `Budget (2)`. [`renameSheet()`](@/api/sheetsBar.md#renamesheet) refuses a taken name and returns `false`.
+- A sheet added without a name gets a default name in the grid's [language](@/guides/internationalization/language/language.md), `Sheet{n}` in English. `n` counts the sheets the workbook has added or duplicated, so the fourth sheet is `Sheet4`, and a name freed by a removed sheet is not reused. A number another sheet already uses is skipped.
+- A sheet added without data starts with 1000 empty rows and 26 empty columns. With [`NestedRows`](@/api/nestedRows.md) on, it starts with 1000 empty object rows instead.
+
 ## Work with tabs
 
 Right-click a tab, or click the chevron on the active tab, to open its menu: **Rename**, **Duplicate**, **Delete**, **Move left**, and **Move right**. On an inactive tab, the first click on the chevron switches sheets.
