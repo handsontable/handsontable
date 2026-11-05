@@ -1276,7 +1276,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `#switchTo` returns, which covers `afterSheetTabStateRestore`). The last check comes before
     `_adoptViewSelection()`, `#refreshUI()` and `#showServerSheet()`, which read the instance; and
     DataProvider's `_runContextChange()` skips its after-steps once its plugin is destroyed, since the
-    restore hook fires inside that callback. Pinned by `__tests__/inFlightSwitch.unit.js`,
+    restore hook fires inside that callback. `#applyActiveSheetSetting` (the `updateSettings({ sheetsBar: {
+    activeSheet } })` path) checks `#isLive` too when `setActiveSheet()` answers `false`, before it asks
+    `#isEditingSettled()`, which reads the instance. Pinned by `__tests__/inFlightSwitch.unit.js`,
     `__tests__/restoreHookDestroy.unit.js` (the full build, local and server sheet) and the tab-click case
     in `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
   - **The `activeSheet` setting is recorded once its switch reaches the listeners**

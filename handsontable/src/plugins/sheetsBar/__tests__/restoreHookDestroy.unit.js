@@ -82,4 +82,28 @@ describe('SheetsBar afterSheetTabStateRestore listener that destroys the grid in
     expect(afterChange).not.toHaveBeenCalled();
     await flush();
   });
+
+  it('stops a switch requested through updateSettings() without an error or a refusal warning', async() => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }],
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const plugin = hot.getPlugin('sheetsBar');
+
+    plugin.setActiveSheet('Beta');
+    await flush();
+    plugin.setActiveSheet('Alpha');
+    await flush();
+    hot.addHook('afterSheetTabStateRestore', () => hot.destroy());
+
+    const warnSpy = spyOn(console, 'warn');
+
+    expect(() => hot.updateSettings({ sheetsBar: { activeSheet: 1 } })).not.toThrow();
+    expect(hot.isDestroyed).toBe(true);
+    expect(warnSpy).not.toHaveBeenCalled();
+    await flush();
+  });
 });

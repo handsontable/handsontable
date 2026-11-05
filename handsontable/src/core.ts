@@ -7043,6 +7043,10 @@ export default function Core(
 
     if (!init) {
       notifySettingsUpdated(notifiedSettings);
+
+      if (!instance || instance.isDestroyed) {
+        return null;
+      }
     }
 
     if (!defersDataWork) {

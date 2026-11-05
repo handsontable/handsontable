@@ -1768,13 +1768,24 @@ export class SheetsBar extends BasePlugin {
     const target = targetId === undefined ? undefined : this.getSheets().find(sheet => sheet.id === targetId);
 
     if (target && !target.isActive) {
-      if (
-        this.#isSwitching || this.#isRunningBeforeHook || !this.#finishEditing() ||
-        (!this.setActiveSheet(target.id) && !this.#isEditingSettled())
-      ) {
+      if (this.#isSwitching || this.#isRunningBeforeHook || !this.#finishEditing()) {
         warn(ACTIVE_SHEET_REFUSED_WARNING);
 
         return;
+      }
+
+      const model = this.#model;
+
+      if (!this.setActiveSheet(target.id)) {
+        if (!this.#isLive(model)) {
+          return;
+        }
+
+        if (!this.#isEditingSettled()) {
+          warn(ACTIVE_SHEET_REFUSED_WARNING);
+
+          return;
+        }
       }
     }
 
