@@ -46,6 +46,8 @@
       ownRefRows: 'ownRefRows',
       ownRefSorted: 'ownRefSorted',
       clashingNames: 'clashingNames',
+      ownEngineColumns: 'ownEngineColumns',
+      ownEngineRows: 'ownEngineRows',
     })[htParams.get('workbook') ?? 'sortedReport'];
     if (!window.htWorkbook) {
       throw new Error('Unknown ?workbook= value: ' + JSON.stringify(htParams.get('workbook')));
@@ -87,6 +89,10 @@
       'Main' with 10..60 in A1:A6.
     - clashingNames: 'Data' with 'big', 'Summary' with `=Data!A1`, and 'data' with 'small', whose engine
       sheet name differs from the first sheet's only in case.
+    - ownEngineColumns: 'Sheet' (`manualColumnMove`) as in movedColumns, but passing the HyperFormula class,
+      so it gets an engine of its own on every visit, and 'Plain' with no formulas.
+    - ownEngineRows: 'Sheet' (`manualRowMove`, the HyperFormula class) with 50, 20, 40, 10, 30 and
+      `=A{n}+1000` next to each, and 'Plain'.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -120,6 +126,7 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const own = (name, data, settings = {}) => ({ name, data, settings: { ...settings, formulas: { engine: HyperFormula } } });
     const bound = (name, data, settings = {}) => ({ name, data, settings: { ...settings, formulas: { engine, sheetName: name } } });
 
     const workbooks = {
@@ -196,6 +203,15 @@
         bound('Data', [['big']]),
         bound('Summary', [['=Data!A1']]),
         bound('data', [['small']]),
+      ],
+      ownEngineColumns: [
+        own('Sheet', [[1, 2, '=A1+B1'], [3, 4, '=A2+B2']], { manualColumnMove: true }),
+        { name: 'Plain', data: [['q']] },
+      ],
+      ownEngineRows: [
+        own('Sheet', [[50, '=A1+1000'], [20, '=A2+1000'], [40, '=A3+1000'], [10, '=A4+1000'], [30, '=A5+1000']],
+          { manualRowMove: true }),
+        { name: 'Plain', data: [['q']] },
       ],
       showFormulas: [
         bound('F1', [[1, '=A1+1']]),

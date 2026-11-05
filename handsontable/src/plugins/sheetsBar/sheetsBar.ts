@@ -3489,12 +3489,13 @@ export class SheetsBar extends BasePlugin {
    * and sorting it produced other formulas: `#REF!` in place of moved columns, other sums. A return with
    * the same data array, still as long as when the user left, takes the engine sheet over instead
    * (`#engineOrderToAdopt`). Nothing is stored for a sheet in physical order, whose data matches the
-   * engine.
+   * engine. A sheet whose engine sheet does not outlive the switch (`#keepsEngineSheet`) also stores the
+   * engine sheet's content, which its return writes into the engine sheet it gets then.
    *
    * @param {object} sheet The departing sheet.
    */
   #captureEngineOrder(sheet: Sheet) {
-    const order = this.hot.getPlugin('formulas')?.exportEngineOrder() ?? null;
+    const order = this.hot.getPlugin('formulas')?.exportEngineOrder(!this.#keepsEngineSheet(sheet)) ?? null;
 
     if (order) {
       this.#engineOrders.set(sheet, { order, data: sheet.data, length: sheet.data.length });
@@ -3543,22 +3544,46 @@ export class SheetsBar extends BasePlugin {
   /**
    * Returns the engine order a returning sheet takes over, or `null` when its data must be loaded into
    * the engine: nothing was stored, the host replaced or resized the data while the sheet was away, or
-   * the engine no longer holds the sheet under its binding.
+   * the engine no longer holds the sheet under its binding. An order stored with its content is handed
+   * back while the sheet still has no engine sheet of its own to keep.
    *
    * @param {object} sheet The arriving sheet.
    * @returns {object|null}
    */
   #engineOrderToAdopt(sheet: Sheet): FormulasEngineSheetOrder | null {
     const stored = this.#engineOrders.get(sheet);
+
+    if (!stored || stored.data !== sheet.data || stored.length !== sheet.data.length) {
+      return null;
+    }
+
+    if (stored.order.content !== undefined) {
+      return this.#keepsEngineSheet(sheet) ? null : stored.order;
+    }
+
     const formulas = formulasSettingOf(sheet);
 
-    if (!stored || stored.data !== sheet.data || stored.length !== sheet.data.length
-      || !formulas?.sheetName || (formulas.engine as unknown) !== stored.order.engine
+    if (!formulas?.sheetName || (formulas.engine as unknown) !== stored.order.engine
       || stored.order.engine.getSheetId(formulas.sheetName) !== stored.order.sheetId) {
       return null;
     }
 
     return stored.order;
+  }
+
+  /**
+   * Whether the sheet's engine sheet outlives a switch away from it: the sheet names its `sheetName` in a
+   * built engine instance, which the bar registers it in. A sheet that passes the `HyperFormula` class
+   * (in its own settings or through the grid's) gets a new engine on every visit, and one without a
+   * `sheetName` gets a new engine sheet.
+   *
+   * @param {object} sheet The sheet.
+   * @returns {boolean}
+   */
+  #keepsEngineSheet(sheet: Sheet): boolean {
+    const formulas = formulasSettingOf(sheet);
+
+    return !!formulas?.sheetName && isEngineInstance(formulas.engine);
   }
 
   /**
@@ -5060,6 +5085,8 @@ export class SheetsBar extends BasePlugin {
           this.#registerFormulaCopy(
             sheet, formulas.engine!, formulas.sheetName, copyName, this.#engineOrderOf(original, formulas),
           );
+        } else {
+          this.#copyEngineContentOrder(original, sheet);
         }
 
         this.#appendDeclaredSheet(sheet);
@@ -5521,6 +5548,26 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Stores the original's engine order, with its engine sheet's content, for a copy that gets an engine
+   * sheet of its own on every visit (`#keepsEngineSheet`). The copy takes the original's row and column
+   * order over (`#copyViewState`) while its data keeps the original's physical text, so its first visit
+   * loaded that text and put the order on it, which gave `#REF!` for a moved column. With the order
+   * stored, the first visit writes the content and takes the order over, like a return.
+   *
+   * @param {object} original The original sheet.
+   * @param {object} sheet The copy.
+   */
+  #copyEngineContentOrder(original: Sheet, sheet: Sheet) {
+    const order = original.id === this.#model?.getActiveSheet()?.id
+      ? this.hot.getPlugin('formulas')?.exportEngineOrder(true) ?? null
+      : this.#engineOrderToAdopt(original);
+
+    if (order?.content !== undefined) {
+      this.#engineOrders.set(sheet, { order, data: sheet.data, length: sheet.data.length });
+    }
+  }
+
+  /**
    * Returns the order the engine holds `original` in, when a sort or a move reached the engine, or `null`
    * when the engine holds it in the physical order its data has: the active sheet's order is read from
    * the Formulas plugin, and a hidden sheet's is the one it left with, while its data and its engine sheet
@@ -5691,6 +5738,33 @@ export class SheetsBar extends BasePlugin {
         this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, changes));
       }
     });
+
+    this.#sheetRecords()
+      .filter(sheet => sheet !== active && formulasSettingOf(sheet)?.engine === engine)
+      .forEach(sheet => this.#rewriteStoredEngineContent(sheet, rewrite));
+  }
+
+  /**
+   * Rewrites the formula text of the engine content stored for a sheet that is away
+   * (`#captureEngineOrder`). Its return writes that content into the engine, so a rename made while the
+   * sheet was away would otherwise bring the old name back as a `#REF!`.
+   *
+   * @param {object} sheet The sheet.
+   * @param {Function} rewrite Maps a formula's text to its new text.
+   */
+  #rewriteStoredEngineContent(sheet: Sheet, rewrite: (formula: string) => string) {
+    const stored = this.#engineOrders.get(sheet);
+    const content = stored?.order.content;
+
+    if (!stored || content === undefined) {
+      return;
+    }
+
+    const rewritten = content.map(row => row.map(cell => (
+      typeof cell === 'string' && cell.startsWith('=') ? rewrite(cell) : cell
+    )));
+
+    this.#engineOrders.set(sheet, { ...stored, order: { ...stored.order, content: rewritten } });
   }
 
   /**

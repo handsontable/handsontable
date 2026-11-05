@@ -578,6 +578,17 @@ Rules that keep it correct:
   (it reads the engine sheet as its data), and a load core is about to make (`isDataLoadPending()`,
   the sheets bar's switch), which feeds the sheet itself. Pinned by `__tests__/reenableSharedEngine.unit.js`
   and "writes the new data when a listener disables and re-enables the plugin mid-update".
+- **An enable while a load is pending never adds back the sheet it was bound to.** `disablePlugin()` keeps
+  `sheetName`, and an enable whose sheet the engine no longer holds adds it again from the grid's data. In the
+  sheets bar's switch that data is the departing sheet's: a workbook whose bound sheet was removed while a sheet
+  without formulas was shown got that sheet's rows back under the removed name on the next formulas sheet, so
+  its references read them instead of `#REF!`. While a load is pending (`isDataLoadPending()`) the enable drops
+  the stale `sheetName` and `sheetId` instead, and the switch's load binds the sheet the new settings name. Only
+  dropping it matters for a sheet whose `formulas` names no `sheetName`: the load falls back to `this.sheetName`
+  when no sheet is requested, so a kept stale name added the removed sheet back from that load. Not covered: an
+  enable outside a load (`updateSheetSettings()` turning formulas on for the visible sheet) still adds it back.
+  Pinned by "shows #REF! where formulas read a removed sheet when …" and "does not add a removed sheet back when
+  the next formulas sheet names no engine sheet" in `../sheetsBar/__tests__/formulaSheets.unit.js`.
 - **At construction, a sheet a load in the same build already wrote is not scanned again** when the
   row count is the same and the meta phase cannot change what the engine reads
   (`#metaPhaseMayChangeEngineValues()`): the sheets bar loads its opening sheet itself, and the eager
@@ -859,6 +870,13 @@ reached through the typed `getPlugin('formulas')`:
   endpoint and adopts the stored order, and the meta-phase resync of that call is skipped, since the
   engine sheet already holds what the `cell` entries decided. Only the first such load takes it over
   (`adopted`): a listener that loads other data in the same call gets an ordinary write.
+  `exportEngineOrder(true)` also returns the engine sheet's content (`#readableSheet()` of
+  `getSheetSerialized()`), for a caller whose sheet will be bound to another engine sheet later (an engine
+  built from the class, or one the next load overwrites). An `adopt` that carries `content` is taken over
+  by the first load whatever sheet it binds, and `#adoptEngineSheet()` writes the content with
+  `setSheetContent()` before it adopts the order. The content is always written, even when the binding
+  matches the stored engine and sheet id: a grid-level class keeps one engine sheet, which the loads of
+  the other sheets overwrote in between.
 
 **A move inside the hold is an order change like a sort once an engine order was adopted in it.**
 `calculateAndSyncMoves()` sends nothing and a `'move'` sequence change leaves the stored order alone; the
