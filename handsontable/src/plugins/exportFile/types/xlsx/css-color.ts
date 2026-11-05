@@ -83,13 +83,19 @@ function channelsToHex(channels: number[]): string {
 
 /**
  * Converts the arguments of an `rgb()` color to `RRGGBB`. Each channel is a number (0-255) or a
- * percentage.
+ * percentage. The comma syntax takes three numbers or three percentages, as browsers do, so
+ * `rgb(255, 50%, 0)` gives `null`; the space syntax may mix them.
  *
  * @param {Array<[number, string|undefined]>} args The three arguments as value and unit pairs.
+ * @param {boolean} isCommaSyntax `true` for the comma syntax.
  * @returns {string|null}
  */
-function rgbToHex(args: Array<[number, string | undefined]>): string | null {
+function rgbToHex(args: Array<[number, string | undefined]>, isCommaSyntax: boolean): string | null {
   if (args.some(([, unit]) => unit !== undefined && unit !== '%')) {
+    return null;
+  }
+
+  if (isCommaSyntax && args.some(([, unit]) => unit !== args[0][1])) {
     return null;
   }
 
@@ -98,16 +104,17 @@ function rgbToHex(args: Array<[number, string | undefined]>): string | null {
 
 /**
  * Converts the arguments of an `hsl()` color to `RRGGBB`. The hue is a number of degrees or an
- * angle with a unit; saturation and lightness are percentages. The `%` may be left out in both the
- * comma and the space syntax, although browsers accept that only in the space syntax.
+ * angle with a unit; saturation and lightness are percentages. As in browsers, the `%` may be left
+ * out only in the space syntax, so `hsl(0, 100, 50)` gives `null`.
  *
  * @param {Array<[number, string|undefined]>} args The three arguments as value and unit pairs.
+ * @param {boolean} isCommaSyntax `true` for the comma syntax.
  * @returns {string|null}
  */
-function hslToHex(args: Array<[number, string | undefined]>): string | null {
+function hslToHex(args: Array<[number, string | undefined]>, isCommaSyntax: boolean): string | null {
   const [[hueValue, hueUnit], [saturationValue, saturationUnit], [lightnessValue, lightnessUnit]] = args;
 
-  const isPercentage = (unit: string | undefined) => unit === undefined || unit === '%';
+  const isPercentage = (unit: string | undefined) => unit === '%' || (unit === undefined && !isCommaSyntax);
 
   if (hueUnit === '%' || !isPercentage(saturationUnit) || !isPercentage(lightnessUnit)) {
     return null;
@@ -160,11 +167,12 @@ export function namedOrFunctionalColorToRgb(color: string): string | null {
   }
 
   // The comma form fills groups 2-7 and the space form fills groups 8-13.
-  const offset = match[2] === undefined ? 8 : 2;
+  const isCommaSyntax = match[2] !== undefined;
+  const offset = isCommaSyntax ? 2 : 8;
   const args: Array<[number, string | undefined]> = [0, 1, 2].map(index => [
     Number(match[offset + (index * 2)]),
     match[offset + (index * 2) + 1],
   ]);
 
-  return match[1].startsWith('rgb') ? rgbToHex(args) : hslToHex(args);
+  return match[1].startsWith('rgb') ? rgbToHex(args, isCommaSyntax) : hslToHex(args, isCommaSyntax);
 }

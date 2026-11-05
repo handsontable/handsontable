@@ -106,6 +106,7 @@ describe('cssColorToArgb', () => {
     ['rgb(68 114 196 / 50%)', 'FF4472C4'],
     ['RGB(100%, 0%, 50%)', 'FFFF0080'],
     ['rgb(300, -20, 127.6)', 'FFFF0080'],
+    ['rgb(255 50% 0)', 'FFFF8000'],
   ])('should convert the rgb() color %p', (color, argb) => {
     expect(cssColorToArgb(color)).toBe(argb);
   });
@@ -122,6 +123,7 @@ describe('cssColorToArgb', () => {
     ['hsl(200grad 100% 50%)', 'FF00FFFF'],
     ['hsl(3.14159265rad 100% 50%)', 'FF00FFFF'],
     ['hsl(0 100 50)', 'FFFF0000'],
+    ['hsl(0 100% 50)', 'FFFF0000'],
   ])('should convert the hsl() color %p', (color, argb) => {
     expect(cssColorToArgb(color)).toBe(argb);
   });
@@ -139,6 +141,9 @@ describe('cssColorToArgb', () => {
     'rgb(1deg, 2, 3)',
     'hsl(50%, 100%, 50%)',
     'hsl(0, 100deg, 50%)',
+    'hsl(0, 100, 50)',
+    'hsl(0, 100%, 50)',
+    'rgb(255, 50%, 0)',
     'hsl(1e999, 100%, 50%)',
     'hsl(1e308turn 100% 50%)',
     '',
