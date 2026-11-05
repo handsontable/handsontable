@@ -203,11 +203,35 @@ describe('Core edit path when the grid is destroyed from a hook of the write', (
         });
       });
 
+      ['beforeChange', 'afterChange', 'afterRender'].forEach((hookName) => {
+        ['Delete', 'Backspace'].forEach((key) => {
+          it(`should end emptying the selected cells by ${key} quietly when ${hookName} destroys the grid`, async() => {
+            const grid = createHotDestroyedBy(container, hookName, registration, { data: data() });
+
+            core = grid.core;
+            core.selectCell(0, 0);
+            core.listen();
+            grid.arm();
+
+            expect(() => pressKey(key)).not.toThrow();
+
+            await flush();
+
+            expect(core.isDestroyed).toBe(true);
+            expect(uncaughtErrors).toEqual([]);
+          });
+        });
+      });
+
       // An open editor is saved when the selection moves away from it: a click on another cell, an
       // API selection, a deselection, a focus move inside a multi-cell selection, or `destroyEditor()`.
       const leaveEditorBy = {
         'selectCell() on another cell': () => core.selectCell(1, 1),
         'selectCells() on another cell': () => core.selectCells([[1, 1, 1, 1]]),
+        'selectCells() on two ranges': () => core.selectCells([[1, 0, 1, 0], [1, 1, 1, 1]]),
+        'selectAll()': () => core.selectAll(),
+        'selectRows()': () => core.selectRows(1),
+        'selectColumns()': () => core.selectColumns(1),
         'deselectCell()': () => core.deselectCell(),
         'destroyEditor()': () => core.destroyEditor(),
         'a focus move inside the selection': () => core.selection.setRangeFocus(core._createCellCoords(1, 1)),
