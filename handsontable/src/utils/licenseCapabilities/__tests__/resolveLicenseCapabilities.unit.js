@@ -41,7 +41,7 @@ describe('resolveLicenseCapabilities()', () => {
     ['a missing key', undefined],
     ['an empty key', ''],
     ['a key that is not a string', 42],
-    ['the non-commercial key', 'non-commercial-and-evaluation'],
+    ['the non-commercial key (invalid since 19.0)', 'non-commercial-and-evaluation'],
     ['an invalid key', 'not-a-license-key'],
     ['a key in the legacy 25-character shape', '11111-22222-33333-44444-55555'],
     ['a tampered entitlement key', `${SUBSCRIPTION_KEY.slice(0, -3)}00]`],

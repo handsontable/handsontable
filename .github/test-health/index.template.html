@@ -30,6 +30,23 @@
   .badge.failed { background: #fee2e2; color: #991b1b; }
   .badge.seed { background: #dbeafe; color: #1e40af; }
   .badge.quarantine { background: #ede9fe; color: #5b21b6; }
+  /* The accessibility section's states: a word in a badge, never a color alone. */
+  .badge.new { background: #dbeafe; color: #1e40af; }
+  .badge.persisting { background: #e5e7eb; color: #374151; }
+  .badge.flapping { background: #fef3c7; color: #92400e; }
+  .badge.resolved { background: #dcfce7; color: #166534; }
+  .badge.pass { background: #dcfce7; color: #166534; }
+  .badge.fail { background: #fee2e2; color: #991b1b; }
+  .badge.golden { background: #fef3c7; color: #92400e; }
+  .badge.tracked { background: #dbeafe; color: #1e40af; font-weight: 500; }
+  .badge.severity { background: #e5e7eb; color: #374151; font-weight: 500; }
+  .badge.critical, .badge.serious { background: #fee2e2; color: #991b1b; }
+  .badge.moderate { background: #fef3c7; color: #92400e; }
+  .a11y .trend svg { display: inline-block; width: 150px; height: 28px; vertical-align: middle; overflow: visible; }
+  .a11y .trend rect { fill: var(--series-develop); }
+  .a11y .where { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; max-width: 420px; overflow-wrap: anywhere; }
+  .a11y .reader-table th.step, .a11y .reader-table td.step { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .a11y .cluster { max-width: 480px; }
   .legs { font-size: 12px; color: #374151; }
   .error { color: #6b7280; font-size: 12px; max-width: 360px; overflow-wrap: anywhere; }
   tr.ticket td:first-child { border-left: 3px solid #dc2626; }
@@ -67,12 +84,15 @@
 </style>
 </head>
 <body>
+<header>
 <h1>Test health</h1>
 <div class="meta">
   Flaky and failed tests collected from every <code>Tests</code>, <code>Develop</code>, <code>Publish</code>, and <code>Visual nightly</code> run, per test, across runs.
-  Generated __GENERATED_AT__. Data: <a href="summary.json">summary.json</a>, <a href="ledger.json">ledger.json</a>, <a href="durations.json">durations.json</a>.
+  Generated __GENERATED_AT__. Data: <a href="summary.json">summary.json</a>, <a href="ledger.json">ledger.json</a>, <a href="durations.json">durations.json</a>, <a href="a11y.json">a11y.json</a>.
 </div>
-<nav class="sections" aria-label="Sections"><a href="#flakes">Flaky and failed tests</a><a href="#time">Where the time goes</a></nav>
+<nav class="sections" aria-label="Sections"><a href="#flakes">Flaky and failed tests</a><a href="#time">Where the time goes</a><a href="#a11y">Accessibility</a></nav>
+</header>
+<main>
 <h2 id="flakes" style="margin-top: 0">Flaky and failed tests</h2>
 <div class="totals" id="totals"></div>
 <div class="controls">
@@ -140,6 +160,64 @@
   </div>
   <div class="tip" id="time-tip" hidden></div>
 </section>
+<section class="a11y viz" aria-labelledby="a11y">
+  <h2 id="a11y">Accessibility</h2>
+  <div class="meta" id="a11y-meta">
+    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan) and of the <code>Screen reader nightly</code> on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
+  </div>
+  <div class="empty" id="a11y-empty" hidden>No accessibility night collected yet.</div>
+  <div id="a11y-body">
+    <div class="totals" id="a11y-totals"></div>
+    <div class="meta" id="a11y-runs"></div>
+    <h3>Clusters</h3>
+    <div class="meta">
+      One row per root cause. <em>Open</em> counts the rows not resolved yet (new, persisting or flapping): a row whose check did not run on its source's latest night stays open, because nothing measured it gone. <em>Nights seen</em> counts the recorded nights that showed the cluster; the trend draws, per nightly the cluster comes from, the findings seen on each of its last <span id="a11y-trend-nights"></span> nights, with the night's new and resolved counts in the chart's name. <em>Tracked</em> says a task owns the fix; the task itself is in the catalog, not on this page.
+    </div>
+    <div class="wrap">
+      <table id="a11y-clusters">
+        <thead><tr><th>Cluster</th><th class="num">Open</th><th class="num">New</th><th class="num">Flapping</th><th class="num">Resolved</th><th class="num">Nights seen</th><th>Trend</th><th>Where it shows</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3>Open findings per criterion</h3>
+    <div class="wrap">
+      <table id="a11y-criteria">
+        <thead><tr><th>Criterion</th><th>Level</th><th class="num">Open findings</th><th>Clusters</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3>The checks of the latest night</h3>
+    <div class="wrap">
+      <table id="a11y-checks">
+        <thead><tr><th>Check</th><th class="num">Targets</th><th class="num">Measured</th><th class="num">Findings</th><th class="num">Tooling problems</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3>Screen reader lanes: the latest night's step verdicts</h3>
+    <div class="meta" id="a11y-reader-meta">
+      Per scenario, each step's token verdict on each project: <em>pass</em> when every required token group was heard, <em>fail</em> when one was missing, <em>golden</em> when the tokens passed but the wording differs from the recorded golden. A transcript that stopped covers nothing after its last step.
+    </div>
+    <div id="a11y-reader"></div>
+    <h3 id="a11y-triage-title">Needs triage</h3>
+    <div class="meta">
+      Open findings no cluster claims, one row per shape (check, kind, rule and where), widest first. Each gets a cluster in <code>tests/a11y/issues.json</code>, or a new cluster with a title that says what the problem is. The catalog's test pins the count of a sampled night exactly: lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one; a night over that count warns on its collection run.
+    </div>
+    <div class="wrap">
+      <table id="a11y-triage">
+        <thead><tr><th>Status</th><th>Check</th><th>Kind</th><th>Where</th><th>Severity</th><th>Criteria</th><th class="num">Pages</th><th class="num">Nights</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3>The nights</h3>
+    <div class="wrap">
+      <table id="a11y-nights">
+        <thead><tr><th>Night</th><th>Source</th><th class="num">Findings</th><th class="num">New</th><th class="num">Resolved</th><th class="num">Need triage</th><th class="num">Tooling problems</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</main>
 <footer>
   A test <b>needs a ticket</b> once it flaked in <span id="threshold"></span>+ distinct runs within 30 days (the flakiness playbook's rule).
   <em>flaky</em> = failed, then passed on retry (Playwright; still fails the leg under <code>failOnFlakyTests</code>);
@@ -147,10 +225,12 @@
   A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
   A <em>visual</em> row is a screenshot capture: the file is its spec, the legs are the variants it differed on, and <em>failed</em> means it differed from its golden record beyond <code>regconfig.json</code>'s tolerances. It needs a ticket once it differed on <span id="visual-threshold"></span>+ <code>Visual nightly</code> runs, or on that many distinct branches (the nightly counts as develop): nothing in that tier is ever flaky, and a pull request's own intended change, recorded before approval, stays on one branch however often it is pushed. A quarantined capture is listed in <code>visual-tests/visual-quarantine.json</code> (<code>visual-tests/AGENTS.md</code>, Guardrails); an entry names the legs it covers, so a row shows its most recent entry and only the legs outside it count toward the ticket.
   Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
+  <br>Accessibility: a finding is keyed by its check, kind, page, theme, state and a masked selector or step (a generated instance id, a positional index and a state class are masked out), so it keeps its identity across nights; a row is resolved only when its target was measured again and the finding was gone, so a check that did not run, a target that errored or reported a tooling problem, a finding the collector could not read, an incomplete axe scan, a transcript that stopped and a golden that was not compared resolve nothing; a resolved row that comes back is flapping until it has been seen <span id="a11y-flap-nights"></span> nights in a row, the night it came back included. A re-run attempt of a night fills in what the recorded attempt did not measure. The clusters are the catalog <code>tests/a11y/issues.json</code> (<code>tests/AGENTS.md</code>, A11y: the findings ledger and the cluster catalog); a cluster's tracker is code there and never printed here. Rows stay <span id="a11y-retention"></span> days from their last sighting; past the file's cap the oldest resolved rows go first. A reader row carries no criterion: the lanes are report-only evidence of what a screen reader announces. Only the A11y and Screen reader nightlies on develop are recorded, by schedule or dispatch; a pull request's evidence comes from its own code and stays in its own run. Source: <code>.github/scripts/lib/a11y-ledger.mjs</code>.
   <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included; a leg that runs in shards is one record whose wall-clock is its longest shard (what the leg costs when the shards start together), whose tests add up, and whose parts are listed under each run with the span from the first shard's start to the last shard's end when they queued (a push with a shard missing is left out of the budget and keeps the rows it had). Runs stay 30 days. The per-test rows come from each leg's latest develop push and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Only develop pushes are recorded: a pull request's leg files stay in its own run's artifacts for 3 days.
 </footer>
 <script id="summary" type="application/json">__SUMMARY_JSON__</script>
 <script id="durations" type="application/json">__DURATIONS_JSON__</script>
+<script id="a11y-data" type="application/json">__A11Y_JSON__</script>
 <script>
 (function() {
   var summary = JSON.parse(document.getElementById('summary').textContent);
@@ -288,6 +368,18 @@
   document.getElementById('onlyTicket').addEventListener('change', render);
   render();
 }());
+// A run's page, built from its numbers alone: no URL from the page's data ever becomes a link, so nothing a
+// pull request's artifact carries can turn into a `javascript:` URL. The page belongs to this repository.
+var runPage = (function() {
+  function runPage(runId, attempt) {
+    var id = Number(runId);
+    var n = Number(attempt);
+    if (!(id > 0 && id === Math.floor(id))) { return null; }
+    return 'https://github.com/handsontable/handsontable/actions/runs/' + id
+      + (n > 1 && n === Math.floor(n) ? '/attempts/' + n : '');
+  }
+  return runPage;
+}());
 (function() {
   var view = JSON.parse(document.getElementById('durations').textContent);
   var body = document.getElementById('time-body');
@@ -333,15 +425,6 @@
     return withHour ? label + ' ' + new Date(ms).toISOString().slice(11, 13) + 'h' : label;
   }
   function when(iso) { return iso ? iso.replace('T', ' ').replace(/:\d\d(\.\d+)?Z$/, 'Z') : '?'; }
-  // A run's page, built from its numbers alone: no URL from the page's data ever becomes a link, so nothing a
-  // pull request's artifact carries can turn into a `javascript:` URL. The page belongs to this repository.
-  function runPage(runId, attempt) {
-    var id = Number(runId);
-    var n = Number(attempt);
-    if (!(id > 0 && id === Math.floor(id))) { return null; }
-    return 'https://github.com/handsontable/handsontable/actions/runs/' + id
-      + (n > 1 && n === Math.floor(n) ? '/attempts/' + n : '');
-  }
 
   // A develop push's marker: filled when the budget counts it, hollow when it is left out.
   function marker(group, x, y, hollow) {
@@ -567,6 +650,275 @@
   }
   if (!view.slowTests.length) { noneRow(slowBody, 3, 'None in the latest runs.'); }
   if (!view.heaviestFiles.length) { noneRow(filesBody, 6, 'No per-test rows in the window yet.'); }
+}());
+(function() {
+  var view = JSON.parse(document.getElementById('a11y-data').textContent);
+  var body = document.getElementById('a11y-body');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  if (!view || view.error) {
+    var empty = document.getElementById('a11y-empty');
+    if (view && view.error) {
+      empty.textContent = 'a11y.json could not be read, so it was left as it is: ' + view.error;
+    }
+    empty.hidden = false;
+    body.hidden = true;
+    return;
+  }
+
+  function text(tag, content, className) {
+    var el = document.createElement(tag);
+    if (className) { el.className = className; }
+    el.textContent = content == null ? '' : String(content);
+    return el;
+  }
+
+  function badge(content, className) {
+    return text('span', content, 'badge ' + className);
+  }
+
+  function cell(tr, content, className) {
+    var td = text('td', content, className);
+    tr.appendChild(td);
+    return td;
+  }
+
+  function when(iso) { return iso ? iso.replace('T', ' ').replace(/:\d\d(\.\d+)?Z$/, 'Z') : '?'; }
+
+  function noneRow(tbody, columns, content) {
+    var none = document.createElement('tr');
+    var td = text('td', content);
+    td.colSpan = columns;
+    none.appendChild(td);
+    tbody.appendChild(none);
+  }
+
+  function pairs(list, limit) {
+    return list.slice(0, limit || list.length).map(function(pair) { return pair[0] + ' ' + pair[1]; }).join(' · ');
+  }
+
+  document.getElementById('a11y-trend-nights').textContent = view.trendNights;
+  document.getElementById('a11y-flap-nights').textContent = view.flapNights;
+  document.getElementById('a11y-retention').textContent = view.retentionDays;
+
+  var totals = document.getElementById('a11y-totals');
+  [
+    ['Open findings', view.totals.open],
+    ['New', view.totals.new],
+    ['Flapping', view.totals.flapping],
+    ['Resolved', view.totals.resolved],
+    ['Need triage', view.totals.triage],
+    ['Clusters', view.totals.clusters],
+    ['Nights', view.totals.nights]
+  ].forEach(function(pair) {
+    var box = document.createElement('div');
+    var b = document.createElement('b');
+    b.textContent = pair[1];
+    box.appendChild(b);
+    box.appendChild(document.createTextNode(pair[0]));
+    totals.appendChild(box);
+  });
+
+  var runs = document.getElementById('a11y-runs');
+  runs.appendChild(document.createTextNode('Updated ' + when(view.updatedAt) + '. Latest nights: '));
+  [['a11y', view.latest.a11y], ['reader', view.latest.reader]].forEach(function(entry, index) {
+    if (index) { runs.appendChild(document.createTextNode('; ')); }
+    if (!entry[1]) {
+      runs.appendChild(document.createTextNode(entry[0] + ': none yet'));
+      return;
+    }
+    var link = document.createElement('a');
+    var href = runPage(entry[1].runId, entry[1].runAttempt);
+    if (href) { link.href = href; }
+    link.textContent = entry[1].workflow + ' run ' + entry[1].runId;
+    runs.appendChild(link);
+    runs.appendChild(document.createTextNode(' (' + when(entry[1].seenAt) + ', develop ' + entry[1].headSha + ')'));
+  });
+  runs.appendChild(document.createTextNode('. The run page holds the artifacts: the evidence documents, the axe report and the transcripts.'));
+
+  // An own property, or undefined: a project or a scenario named `constructor` must not read the prototype's.
+  function own(object, key) {
+    return object && Object.prototype.hasOwnProperty.call(object, key) ? object[key] : undefined;
+  }
+
+  var SOURCE_NAMES = { a11y: 'A11y nightly', reader: 'Screen reader nightly' };
+
+  // The trend: one series per source the cluster comes from, over that source's nights only (the two nightlies
+  // run an hour apart, so one series over both would draw every other night at zero), one bar per night, the
+  // findings seen; the chart's name carries the numbers.
+  function trend(cluster, series) {
+    var wrap = text('span', '', 'trend');
+    var points = series.points;
+    var highest = points.reduce(function(max, point) { return Math.max(max, point[1]); }, 0);
+    var W = 150;
+    var H = 28;
+    var slot = points.length ? W / points.length : W;
+    var chart = document.createElementNS(NS, 'svg');
+    var described = points.map(function(point) {
+      var night = view.nights[point[0]];
+      return (night ? night[1].slice(0, 10) : '?') + ': ' + point[1] + ' seen, ' + point[2] + ' new, ' + point[3] + ' resolved';
+    });
+    var name = own(SOURCE_NAMES, series.source) || series.source;
+    wrap.appendChild(text('span', name + ' ', 'legs'));
+    chart.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    chart.setAttribute('role', 'img');
+    chart.setAttribute('aria-label', cluster.title + ', ' + name + ': findings seen per night, ' + (points.length ? described.join('; ') : 'no night yet'));
+    points.forEach(function(point, index) {
+      var height = highest > 0 ? Math.max(1, (point[1] / highest) * (H - 2)) : 1;
+      var rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', (index * slot + 1).toFixed(1));
+      rect.setAttribute('y', (H - height).toFixed(1));
+      rect.setAttribute('width', Math.max(1, slot - 2).toFixed(1));
+      rect.setAttribute('height', height.toFixed(1));
+      var title = document.createElementNS(NS, 'title');
+      title.textContent = described[index];
+      rect.appendChild(title);
+      chart.appendChild(rect);
+    });
+    wrap.appendChild(chart);
+    return wrap;
+  }
+
+  var clustersBody = document.querySelector('#a11y-clusters tbody');
+  view.clusters.forEach(function(cluster) {
+    var tr = document.createElement('tr');
+    var name = document.createElement('td');
+    name.className = 'cluster';
+    name.appendChild(text('div', cluster.title));
+    var tags = text('div', '', 'legs');
+    tags.appendChild(text('code', cluster.id));
+    tags.appendChild(document.createTextNode(' '));
+    if (cluster.tracked) { tags.appendChild(badge('tracked', 'tracked')); }
+    if (cluster.triage) { tags.appendChild(badge('untriaged', 'flapping')); }
+    name.appendChild(tags);
+    tr.appendChild(name);
+    cell(tr, cluster.open, 'num');
+    cell(tr, cluster.new, 'num');
+    cell(tr, cluster.flapping, 'num');
+    cell(tr, cluster.resolved, 'num');
+    cell(tr, cluster.nightsSeen, 'num');
+    var chart = document.createElement('td');
+    cluster.trends.forEach(function(series) { chart.appendChild(text('div', '')).appendChild(trend(cluster, series)); });
+    if (!cluster.trends.length) { chart.textContent = '–'; }
+    tr.appendChild(chart);
+    var where = document.createElement('td');
+    where.className = 'legs';
+    var severities = Object.keys(cluster.severities).map(function(key) { return key + ' ' + cluster.severities[key]; }).join(' · ');
+    where.appendChild(text('div', 'pages: ' + (cluster.pages.length ? pairs(cluster.pages) : 'none open')));
+    where.appendChild(text('div', 'kinds: ' + (cluster.kinds.length ? pairs(cluster.kinds) : 'none open')));
+    where.appendChild(text('div', 'criteria: ' + (cluster.criteria.length ? pairs(cluster.criteria) : 'none') + (severities ? ' · ' + severities : '')));
+    where.appendChild(text('div', 'sources: ' + (cluster.sources.length ? pairs(cluster.sources) : 'none') + (cluster.lastSeen ? ' · last seen ' + when(cluster.lastSeen) : '')));
+    tr.appendChild(where);
+    clustersBody.appendChild(tr);
+  });
+  if (!view.clusters.length) { noneRow(clustersBody, 8, 'No cluster in the catalog.'); }
+
+  var criteriaBody = document.querySelector('#a11y-criteria tbody');
+  view.criteria.forEach(function(criterion) {
+    var tr = document.createElement('tr');
+    cell(tr, criterion.id + (criterion.name ? ' ' + criterion.name : ''));
+    cell(tr, criterion.level || '');
+    cell(tr, criterion.open, 'num');
+    cell(tr, criterion.clusters.join(', '), 'legs');
+    criteriaBody.appendChild(tr);
+  });
+  if (!view.criteria.length) { noneRow(criteriaBody, 4, 'No open finding names a criterion.'); }
+
+  var checksBody = document.querySelector('#a11y-checks tbody');
+  view.checks.forEach(function(check) {
+    var tr = document.createElement('tr');
+    var name = cell(tr, check.title);
+    name.appendChild(document.createTextNode(' '));
+    name.appendChild(text('code', check.check));
+    cell(tr, check.targets == null ? '–' : check.targets, 'num');
+    cell(tr, check.measured == null ? '–' : check.measured, 'num');
+    cell(tr, check.findings, 'num');
+    cell(tr, check.problems, 'num');
+    checksBody.appendChild(tr);
+  });
+  if (!view.checks.length) { noneRow(checksBody, 5, 'No A11y nightly recorded yet.'); }
+
+  var reader = document.getElementById('a11y-reader');
+  view.reader.scenarios.forEach(function(scenario) {
+    reader.appendChild(text('h4', scenario.scenario));
+    var notes = [];
+    view.reader.projects.forEach(function(project) {
+      var golden = own(scenario.golden, project);
+      var stopped = own(scenario.incomplete, project);
+      if (golden && golden !== 'match') { notes.push(project + ': golden ' + golden); }
+      if (stopped) { notes.push(project + ': stopped at ' + stopped); }
+    });
+    if (notes.length) { reader.appendChild(text('div', notes.join('; '), 'meta')); }
+    var wrap = document.createElement('div');
+    wrap.className = 'wrap';
+    var table = document.createElement('table');
+    table.className = 'reader-table';
+    var thead = document.createElement('thead');
+    var head = document.createElement('tr');
+    head.appendChild(text('th', 'Step', 'step'));
+    view.reader.projects.forEach(function(project) { head.appendChild(text('th', project)); });
+    thead.appendChild(head);
+    table.appendChild(thead);
+    var tbody = document.createElement('tbody');
+    scenario.steps.forEach(function(step) {
+      var tr = document.createElement('tr');
+      cell(tr, step, 'step');
+      view.reader.projects.forEach(function(project) {
+        var verdict = own(own(scenario.verdicts, project), step) || null;
+        var td = document.createElement('td');
+        if (verdict) { td.appendChild(badge(verdict, verdict)); } else { td.textContent = '–'; }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    reader.appendChild(wrap);
+  });
+  if (!view.reader.scenarios.length) { reader.appendChild(text('div', 'No Screen reader nightly recorded yet.', 'empty')); }
+
+  document.getElementById('a11y-triage-title').textContent = view.triage.rows.length < view.triage.shapes
+    ? 'Needs triage: the ' + view.triage.rows.length + ' widest of ' + view.triage.shapes + ' shapes (' + view.triage.total + ' findings)'
+    : 'Needs triage: ' + view.triage.shapes + ' shapes (' + view.triage.total + ' findings)';
+  var triageBody = document.querySelector('#a11y-triage tbody');
+  view.triage.rows.forEach(function(row) {
+    var tr = document.createElement('tr');
+    var status = document.createElement('td');
+    status.appendChild(badge(row.status, row.status));
+    tr.appendChild(status);
+    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.check);
+    var kind = cell(tr, row.kind + (row.rule ? ' ' + row.rule : '') + (row.cause ? ' (' + row.cause + ')' : ''));
+    kind.appendChild(text('div', row.reason, 'error'));
+    cell(tr, row.where, 'where');
+    var severity = document.createElement('td');
+    if (row.severity) { severity.appendChild(badge(row.severity, 'severity ' + row.severity)); } else { severity.textContent = '–'; }
+    tr.appendChild(severity);
+    cell(tr, row.criteria.join(', ') || '–', 'legs');
+    cell(tr, row.pages + (row.pages > 1 ? ' (' + row.examplePage + ', …)' : ' (' + row.examplePage + ')'), 'num');
+    cell(tr, row.nightsSeen, 'num');
+    triageBody.appendChild(tr);
+  });
+  if (!view.triage.rows.length) { noneRow(triageBody, 8, 'Every open finding has a cluster.'); }
+
+  var nightsBody = document.querySelector('#a11y-nights tbody');
+  view.nights.slice().reverse().forEach(function(night) {
+    var tr = document.createElement('tr');
+    var td = document.createElement('td');
+    var link = document.createElement('a');
+    var href = runPage(night[0], night[8]);
+    if (href) { link.href = href; }
+    link.textContent = when(night[1]);
+    td.appendChild(link);
+    tr.appendChild(td);
+    cell(tr, night[2] === 'reader' ? 'Screen reader nightly' : 'A11y nightly');
+    cell(tr, night[3], 'num');
+    cell(tr, night[4], 'num');
+    cell(tr, night[5], 'num');
+    cell(tr, night[6], 'num');
+    cell(tr, night[7], 'num');
+    nightsBody.appendChild(tr);
+  });
+  if (!view.nights.length) { noneRow(nightsBody, 7, 'No night recorded yet.'); }
 }());
 </script>
 </body>

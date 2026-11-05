@@ -1,7 +1,7 @@
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWith, keyWithout, LEGACY_KEY,
+  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWith, keyWithout, INVALID_KEY,
 } from '../fixtures/xlsxLicenseKeys';
 
 test.describe('xlsx import license gate', { tag: BUNDLES_TAG }, () => {
@@ -19,7 +19,7 @@ test.describe('xlsx import license gate', { tag: BUNDLES_TAG }, () => {
   for (const [name, key] of [
     ['a key with xlsx:import', keyWith(['xlsx:import', 'xlsx:export'])],
     ['a key with no xlsx token', CORE_ONLY_KEY],
-    ['the legacy key', LEGACY_KEY],
+    ['an invalid key, which restricts nothing', INVALID_KEY],
   ] as const) {
     test(`imports with ${name}`, async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle);
@@ -128,11 +128,11 @@ async function importAndMeasure(
 }
 
 /**
- * Exports the fixture's source grid under the legacy key, so the file carries every part, and
+ * Exports the fixture's source grid under an invalid key, which restricts nothing, so the file carries every part, and
  * returns its bytes.
  */
 async function fullWorkbook(lic: XlsxLicensePage): Promise<Buffer> {
-  await lic.create(LEGACY_KEY);
+  await lic.create(INVALID_KEY);
 
   return lic.exportBytes(EXPORT_OPTIONS);
 }
@@ -148,7 +148,7 @@ for (const engine of ['native', 'exceljs'] as const) {
 
       const bytes = await fullWorkbook(lic);
 
-      await lic.create(LEGACY_KEY);
+      await lic.create(INVALID_KEY);
 
       const { result: full, features: fullFeatures } = await importAndMeasure(lic, bytes, bundle);
 
@@ -171,7 +171,7 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect(features[token], token).toBe(false);
       }
 
-      // The report is always on. This workbook is the grid's own export, so the legacy key drops
+      // The report is always on. This workbook is the grid's own export, so the invalid key drops
       // nothing, and the partial key reports exactly the `license:` entry of each import token it
       // lacks – never `xlsx:number_formats`, which restricts the export only. (The unit suite pins
       // a lossy file, whose file-driven entries come first.)
@@ -221,22 +221,22 @@ for (const engine of ['native', 'exceljs'] as const) {
       }
     });
 
-    test('a full key imports the same result as the legacy key', async({ page, theme, bundle }) => {
+    test('a full key imports the same result as an invalid key', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
 
       const bytes = await fullWorkbook(lic);
 
-      await lic.create(LEGACY_KEY);
+      await lic.create(INVALID_KEY);
 
-      const legacy = await lic.importBytes(bytes, IMPORT_OPTIONS);
+      const invalidKeyResult = await lic.importBytes(bytes, IMPORT_OPTIONS);
 
       await lic.create(keyWith(ALL_XLSX_TOKENS));
 
       const full = await lic.importBytes(bytes, IMPORT_OPTIONS);
 
-      expect(full).toEqual(legacy);
+      expect(full).toEqual(invalidKeyResult);
       expect((await lic.warnings()).filter(message => message.startsWith(LICENSE_WARNING_PREFIX))).toEqual([]);
     });
 
@@ -249,7 +249,7 @@ for (const engine of ['native', 'exceljs'] as const) {
 
       const bytes = await fullWorkbook(lic);
 
-      await lic.create(LEGACY_KEY);
+      await lic.create(INVALID_KEY);
       expect((await lic.importBytes(bytes, IMPORT_OPTIONS)).styles).toBeDefined();
 
       await lic.create(keyWith(PARTIAL_TOKENS));

@@ -17,6 +17,17 @@ import { NestedRowsRuntimeEnablePage } from '../fixtures/pages/NestedRowsRuntime
 
 const FLAT_ROWS = ['Root A', 'Root B'];
 const NESTED_ROWS = ['Root A', 'A-1', 'A-2', 'A-2-a', 'A-3', 'Root B'];
+const TREE = [
+  {
+    name: 'Root A',
+    __children: [
+      { name: 'A-1' },
+      { name: 'A-2', __children: [{ name: 'A-2-a' }] },
+      { name: 'A-3' },
+    ],
+  },
+  { name: 'Root B' },
+];
 
 test.describe('NestedRows enabled at runtime', () => {
   test('updateSettings turns the plugin on and flattens the tree', async({ page, theme, bundle }) => {
@@ -287,10 +298,61 @@ test.describe('NestedRows enabled at runtime', () => {
     await nestedRows.setNestedRows(true);
 
     expect(await nestedRows.isPluginEnabled()).toBe(false);
-    expect(await nestedRows.nestedRowsSetting()).toBe(false);
+    expect(await nestedRows.nestedRowsSetting()).toBe(true);
     await expect(nestedRows.paintedNames()).toHaveText(FLAT_ROWS);
     expect(await nestedRows.consoleErrors()).toEqual([
       expect.stringContaining('The Nested Rows plugin requires an Array of Objects as a dataset'),
     ]);
+  });
+
+  test('loading a tree after data the plugin could not handle turns the plugin back on', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto({ data: 'arrays' });
+    await nestedRows.setNestedRows(true);
+    expect(await nestedRows.isPluginEnabled()).toBe(false);
+
+    await nestedRows.updateSettings({ columns: [{ data: 'name' }] });
+    expect(await nestedRows.isPluginEnabled()).toBe(false);
+
+    expect(await nestedRows.loadData(TREE)).toBeNull();
+
+    expect(await nestedRows.isPluginEnabled()).toBe(true);
+    expect(await nestedRows.nestedRowsSetting()).toBe(true);
+    await expect(nestedRows.paintedNames()).toHaveText(NESTED_ROWS);
+    await expect(nestedRows.collapseButton(0)).toBeVisible();
+    expect(await nestedRows.consoleErrors()).toHaveLength(1);
+  });
+
+  test('new data passed to updateSettings after data the plugin could not handle turns the plugin back on', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto({ data: 'arrays' });
+    await nestedRows.setNestedRows(true);
+    expect(await nestedRows.isPluginEnabled()).toBe(false);
+
+    await nestedRows.updateSettings({ columns: [{ data: 'name' }], data: TREE });
+
+    expect(await nestedRows.isPluginEnabled()).toBe(true);
+    await expect(nestedRows.paintedNames()).toHaveText(NESTED_ROWS);
+  });
+
+  test('the setting turns the plugin back on once a tree replaced the data it could not handle', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto({ data: 'arrays' });
+    await nestedRows.setNestedRows(true);
+    await nestedRows.setNestedRows(false);
+    expect(await nestedRows.nestedRowsSetting()).toBe(false);
+
+    await nestedRows.updateSettings({ columns: [{ data: 'name' }], data: TREE });
+    expect(await nestedRows.isPluginEnabled()).toBe(false);
+    await expect(nestedRows.paintedNames()).toHaveText(FLAT_ROWS);
+
+    await nestedRows.setNestedRows(true);
+
+    expect(await nestedRows.isPluginEnabled()).toBe(true);
+    expect(await nestedRows.nestedRowsSetting()).toBe(true);
+    await expect(nestedRows.paintedNames()).toHaveText(NESTED_ROWS);
   });
 });

@@ -533,7 +533,7 @@ describe('ExportFile license capabilities', () => {
     expect(() => plugin.downloadFile('xlsx')).toThrow(message);
   });
 
-  it('keeps xlsx support for a key with xlsx:export, a key with no xlsx token and the legacy key', () => {
+  it('keeps xlsx support for a key with xlsx:export, a key with no xlsx token and an invalid key', () => {
     expect(createGrid(keyWith(['xlsx:export'])).supportsExportFormat('xlsx')).toBe(true);
     hot.destroy();
     expect(createGrid(SUBSCRIPTION_KEY).supportsExportFormat('xlsx')).toBe(true);

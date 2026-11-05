@@ -219,7 +219,9 @@ its container was not.)
 `show()` stashes the selection and `hide()` imports it back, as coordinates. When the view changes under an open
 dialog (a sheets bar switch), those coordinates name the departing sheet's cells, so the sheets bar calls
 `_adoptViewSelection()` (`@private`) after the switch: the dialog takes the selection the grid shows then as the one
-to restore, and clears it while it stays open.
+to restore, and clears it while it stays open. Before the switch it reads `_getStashedSelection()` (`@private`, a
+copy) into the departing sheet's view state: the grid shows no selection while the dialog is open, so the sheet's
+own capture recorded none, and the adoption then dropped the departing selection for good.
 
 **The hide restores only what the current data holds** (`fitSelectionToGrid()` in `selectionFit.ts`). A layer that
 lies within `countRows()`/`countCols()` comes back unchanged, so the documented Loading pattern (select a cell,
@@ -250,3 +252,11 @@ holds and broke the Loading guide's examples. Pinned by `__tests__/sharedSurface
 
 `__tests__/` splits into `hooks/`, `methods/`, `options/`, `keyboardShortcuts/`, `plugins/` and a separate
 `editor.spec.js` — a dialog change usually touches the keyboard and editor specs too.
+
+## A default value passes its own validator
+
+`template` accepts `null`, its default, as well as a template object, so an update can put the default back. The
+sheets bar resets an object option by sending every `DEFAULT_SETTINGS` key a sheet leaves out
+(`BasePlugin#_getObjectSettingDefaults()` keeps only defaults their validator accepts), and a validator that
+rejected `null` left one sheet's template on the next sheet. Pinned by
+`sheetsBar/__tests__/pluginOptionReset.unit.js`.

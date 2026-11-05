@@ -113,6 +113,18 @@ sheet that turns the plugin off, opened the editor a moment later over a grid wi
 neither Escape nor a click outside closed it: those handlers went with the plugin. Pinned by
 `__tests__/commentsDisableHover.unit.js` and `tests/e2e/comments-plugin-off-hover.spec.ts`.
 
+**`loadData()` drops the pending show only, and only when the armed cell has no comment after the load**
+(`afterLoadData` calls `cancelShow()`, not `cancel()`). The armed show names a cell by position, so after
+`loadData()` or a sheet switch that keeps the plugin on it opened an empty editor over a cell of the new data,
+and a typed note was saved there. A cell that still has a comment (a `cells` function, for one) keeps the
+show: an app that reloads the same data more often than `displayDelay` never let a hovered comment open
+otherwise. `getCommentAtCell()` reads `null`, not `undefined`, for a cell whose meta the load dropped, so
+the check takes both. Two things must stay: the pending
+hide and the last-action flag, or a comment whose hide was already armed stayed open; and `updateData()` must
+not be listened to, because React and Angular send it on every re-render with the same data, and listening
+dropped every hover-armed show and every armed hide. Pinned by `__tests__/commentsDisableHover.unit.js` and
+`tests/e2e/comments-plugin-off-hover.spec.ts`.
+
 Its internal flag records whether the last action was a show or a hide. Anything that hides the tooltip
 clears that flag — which is exactly the shadow-DOM double-binding failure above.
 
