@@ -156,7 +156,7 @@
     },
 
     "test:unit.jest": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ../hot.config.js jest",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_OPTIONS=\"$NODE_OPTIONS --expose-gc\" env-cmd -f ../hot.config.js jest",
       "deps": ["build:settings-schema"],
       "mode": "interactive",
       "passthrough": true,

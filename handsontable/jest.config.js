@@ -16,6 +16,9 @@ module.exports = {
     '<rootDir>/test/jsdomThemeCssFilter.js',
     '<rootDir>/test/jsdomWindowScroll.js',
     '<rootDir>/test/jsdomWindowFocus.js',
+    // Jest only: frees each file's garbage so a worker exits within jest-worker's grace. The flag
+    // it needs comes from the test:unit.jest task; see the file's own comment.
+    '<rootDir>/test/jestCollectGarbage.js',
     // Jest only, for the same reason as above.
     '<rootDir>/test/jsdomComputedStyleSpeed.js'
   ],
