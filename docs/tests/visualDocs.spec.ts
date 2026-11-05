@@ -66,6 +66,11 @@ test.beforeEach(async({ page, baseURL }) => {
       sameSite: 'Lax'
     }
   ]);
+
+  // The Headway changelog bell appears only after a round trip to headway-widget.net and shows a
+  // live unread count, so every Headway post would change every golden. Blocked, the bell stays
+  // hidden, as it does for a reader whose browser blocks Headway.
+  await page.context().route(/cdn\.headwayapp\.co|headway-widget\.net/, route => route.abort());
 });
 
 const testCases = [

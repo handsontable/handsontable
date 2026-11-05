@@ -16,6 +16,7 @@ vue:
   metaTitle: Export Handsontable to PDF | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Import and Export
+menuTag: updated
 type: how-to
 ---
 
@@ -78,6 +79,8 @@ A button above a Handsontable grid that:
 npm install jspdf jspdf-autotable
 ```
 
+::: only-for javascript vue
+
 ## Step 1: Import the libraries
 
 ```javascript
@@ -129,14 +132,128 @@ const hot = new Handsontable(container, {
 - `columnSorting: true` lets users reorder rows before exporting; `hot.getData()` always returns the current visual order
 - `height: 320` constrains the on-screen grid; it has no effect on how many rows are written to the PDF
 
+:::
+
+::: only-for react
+
+## Step 1: Import the libraries
+
+```tsx
+import { useRef } from 'react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import { jsPDF } from 'jspdf';
+import { autoTable } from 'jspdf-autotable';
+
+registerAllModules();
+```
+
+**What's happening:**
+- `HotTable` is the React component that renders the grid; `HotTableRef` types the ref you use to reach the Handsontable instance
+- `registerAllModules()` registers every built-in plugin and cell type; scope this down if bundle size matters
+- `jsPDF` is the PDF document constructor
+- `autoTable` is the plugin function that draws a formatted table into the document
+
+## Step 2: Set up Handsontable DataGrid
+
+```tsx
+const ExampleComponent = () => {
+  const hotRef = useRef<HotTableRef>(null);
+
+  return (
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      ref={hotRef}
+      data={data}
+      colHeaders={['SKU', 'Product', 'Qty', 'Unit price', 'Line total']}
+      columnSorting={true}
+      rowHeaders={true}
+      height={320}
+      width="100%"
+    />
+  );
+};
+```
+
+**Key points:**
+- `ref={hotRef}` gives you the Handsontable instance as `hotRef.current?.hotInstance` -- the export code in Steps 3-7 calls its methods
+- `colHeaders` defines the visible column labels -- you'll read these back in Step 4 to build the PDF header row
+- `columnSorting={true}` lets users reorder rows before exporting; `hot.getData()` always returns the current visual order
+- `height={320}` constrains the on-screen grid; it has no effect on how many rows are written to the PDF
+
+:::
+
+::: only-for angular
+
+## Step 1: Import the libraries
+
+In `app.component.ts`:
+
+```typescript
+import { Component, ViewChild } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { jsPDF } from 'jspdf';
+import { autoTable } from 'jspdf-autotable';
+```
+
+In `app.config.ts`:
+
+```typescript
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
+
+registerAllModules();
+```
+
+**What's happening:**
+- `HotTableModule` provides the `<hot-table>` component; `HotTableComponent` is the class you query with `@ViewChild` to reach the Handsontable instance
+- `registerAllModules()` registers every built-in plugin and cell type; scope this down if bundle size matters
+- `HOT_GLOBAL_CONFIG` in `app.config.ts` holds the settings shared by every grid, including the license key
+- `jsPDF` is the PDF document constructor
+- `autoTable` is the plugin function that draws a formatted table into the document
+
+## Step 2: Set up Handsontable DataGrid
+
+```typescript
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  selector: 'example1-export-to-pdf',
+  template: `
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+  `,
+})
+export class AppComponent {
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  readonly data = data;
+
+  readonly gridSettings: GridSettings = {
+    colHeaders: ['SKU', 'Product', 'Qty', 'Unit price', 'Line total'],
+    columnSorting: true,
+    rowHeaders: true,
+    height: 320,
+    width: '100%',
+  };
+}
+```
+
+**Key points:**
+- `@ViewChild(HotTableComponent)` gives you the grid component; `this.hotTable.hotInstance` is the Handsontable instance that the export code in Steps 3-7 calls
+- `colHeaders` defines the visible column labels -- you'll read these back in Step 4 to build the PDF header row
+- `columnSorting: true` lets users reorder rows before exporting; `hot.getData()` always returns the current visual order
+- `height: 320` constrains the on-screen grid; it has no effect on how many rows are written to the PDF
+
+:::
+
 ## Step 3: Read the grid data
 
 ```javascript
-function exportGridToPdf() {
-  const body = hot.getData();
-  // ...
-}
+const body = hot.getData();
 ```
+
+Put this line, and the code from Steps 4-7, inside the export function that the button calls. Step 8 shows that function.
 
 **What's happening:**
 - `hot.getData()` returns a 2D array of all cell values in the current visual order
@@ -244,9 +361,16 @@ const url = URL.createObjectURL(blob);
 window.open(url, '_blank');
 ```
 
+::: only-for javascript vue
+
 ## Step 8: Wire the Export to PDF button
 
 ```javascript
+function exportGridToPdf() {
+  const body = hot.getData();
+  // Steps 4-7: build the headers, create the PDF, draw the table, and save it.
+}
+
 document.querySelector('#exportPdfBtn').addEventListener('click', exportGridToPdf);
 ```
 
@@ -296,11 +420,120 @@ Style the button with CSS:
 - The grid container `id` must match the selector used in Step 2 (`#example1`)
 - The hover color (`#1536c4`) is a slightly darker shade of the button background to give visual feedback
 
+:::
+
+::: only-for react
+
+## Step 8: Wire the Export to PDF button
+
+Add the export function inside the component, next to `hotRef`:
+
+```tsx
+const exportGridToPdf = (): void => {
+  const hot = hotRef.current?.hotInstance;
+
+  if (!hot) {
+    return;
+  }
+
+  const body = hot.getData() as (string | number)[][];
+  // Steps 4-7: build the headers, create the PDF, draw the table, and save it.
+};
+```
+
+**What's happening:**
+- The function lives inside the component so it can read `hotRef`
+- `hotRef.current?.hotInstance` is `undefined` until the grid mounts, so the function returns early instead of throwing
+- The cast on `hot.getData()` gives `body` the row type that `autoTable` accepts; the example also types `head` as `string[][]`
+- Every click calls `exportGridToPdf()`, which always reads the current grid state -- sorts, filters, or edits made since the last export are included automatically
+
+## Step 9: Add the button
+
+Render the button above the grid and pass the function to `onClick`:
+
+```tsx
+return (
+  <>
+    <div className="example-controls-container">
+      <div className="controls">
+        <button type="button" onClick={exportGridToPdf}>
+          Export to PDF
+        </button>
+      </div>
+    </div>
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      ref={hotRef}
+      data={data}
+      colHeaders={['SKU', 'Product', 'Qty', 'Unit price', 'Line total']}
+      columnSorting={true}
+      rowHeaders={true}
+      height={320}
+      width="100%"
+    />
+  </>
+);
+```
+
+**What's happening:**
+- The fragment (`<>...</>`) returns the toolbar and the grid as siblings
+- `onClick={exportGridToPdf}` runs the export on every click
+- `example-controls-container` and `controls` are layout classes from this documentation site; replace them with your own classes or styles
+
+:::
+
+::: only-for angular
+
+## Step 8: Wire the Export to PDF button
+
+Add the export method to `AppComponent`:
+
+```typescript
+exportToPdf(): void {
+  const hot = this.hotTable?.hotInstance;
+
+  if (!hot) {
+    return;
+  }
+
+  const body: any = hot.getData();
+  // Steps 4-7: build the headers, create the PDF, draw the table, and save it.
+}
+```
+
+**What's happening:**
+- `this.hotTable` is set after Angular renders the view, and `hotInstance` exists only once the grid is created, so the method returns early instead of throwing
+- The example types `body` as `any` so that it can pass the result of `hot.getData()` straight to the `body` option of `autoTable`
+- Every click calls `exportToPdf()`, which always reads the current grid state -- sorts, filters, or edits made since the last export are included automatically
+
+## Step 9: Add the button
+
+Add the button to the component's inline template, above `<hot-table>`:
+
+```typescript
+template: `
+  <div class="example-controls-container">
+    <div class="controls">
+      <button type="button" (click)="exportToPdf()">Export to PDF</button>
+    </div>
+  </div>
+  <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+`,
+```
+
+**What's happening:**
+- `(click)="exportToPdf()"` binds the button's click event to the method from Step 8
+- The template is inline because the documentation site compiles Angular examples in the browser, where `templateUrl` can't load a file; in your own app, a separate template file works too
+- `example-controls-container` and `controls` are layout classes from this documentation site; replace them with your own classes or styles
+- `example1.html` holds only the `<example1-export-to-pdf>` selector tag that mounts the component
+
+:::
+
 ## How it works -- complete flow
 
 1. **Page loads** -- Handsontable renders the grid with 85 rows of sample data
 2. **User sorts (optional)** -- clicking a column header reorders rows; the export will reflect the new order
-3. **User clicks Export to PDF** -- the click event calls `exportGridToPdf()`
+3. **User clicks Export to PDF** -- the click handler runs the export function from Step 8
 4. **Read the grid** -- `hot.getData()` returns all rows in current visual order; `hot.getColHeader()` returns header labels
 5. **Build the PDF** -- a new `jsPDF` document is created with A4 portrait settings
 6. **Draw the table** -- `autoTable` lays out headers and body rows, wraps text, alternates row colors, and adds new pages as needed
@@ -312,7 +545,7 @@ If you load Handsontable from a CDN, add jsPDF and the AutoTable plugin after Ha
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.8/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.9/dist/jspdf.plugin.autotable.min.js"></script>
 ```
 
 Then use the global `jspdf.jsPDF` constructor and call `autoTable(doc, options)` the same way as in the example (the plugin registers `autoTable` on the UMD build).

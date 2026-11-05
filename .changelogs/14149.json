@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an `EditorComponent` editor staying at its old position when the grid resized without scrolling, and staying open but hidden after its cell scrolled out of view.",
+  "type": "fixed",
+  "issueOrPR": 14149,
+  "breaking": false,
+  "framework": "react"
+}

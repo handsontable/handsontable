@@ -13,6 +13,12 @@ import { buildPageMarkdown } from './src/lib/added-in.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
+import {
+  injectLicenseKey,
+  isExecutedExampleId,
+  previewLicenseKeyCheck,
+  resolvePreviewLicenseKey,
+} from './src/plugins/preview-license-key.mjs';
 import { buildAllSidebars, buildAllValidUrls, FRAMEWORK_PREFIXES } from './src/sidebar.mjs';
 import { AGENT_NOTE_MD } from './src/agent-note.mjs';
 import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
@@ -53,6 +59,15 @@ if (!existsSync(symlinkTarget)) {
 // and the "dev" badge next to the logo is hidden.
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
+
+// The internal test key for the executed examples of a staging or pull request
+// preview build (DOCS_TEST_LICENSE_KEY=true, never in production). Those builds run
+// off handsontable.com, where a grid without a key shows the lock screen. The code a
+// page shows keeps the placeholder: framework-loader.mjs reads the source from disk.
+const previewLicenseKey = resolvePreviewLicenseKey(process.env);
+// The example module ids the transform rewrote; the build check compares them
+// with every executed example that holds a placeholder.
+const licenseKeyRewrittenIds = new Set();
 
 // Absolute path to the handsontable package root (used to resolve styles and
 // other non-tmp/ files like `handsontable/styles/ht-theme-main.css`).
@@ -165,8 +180,20 @@ function resolveMonorepoPackages() {
     // .ts   → Angular multi-file sections flattened, skip-in-compilation blocks
     //         stripped, then compiled with experimentalDecorators so Angular
     //         Ivy JIT decorators are preserved for runtime compilation.
-    async transform(code, id) {
+    // A staging or preview build first writes the internal test key over the
+    // license placeholder of each executed example (preview-license-key.mjs).
+    async transform(source, id) {
       if (!id.includes('/content/')) return null;
+
+      // Runs first, on the source, before the JSX and Angular transpiles drop
+      // the placeholder comments.
+      const code = previewLicenseKey && isExecutedExampleId(id)
+        ? injectLicenseKey(source, previewLicenseKey)
+        : source;
+
+      if (code !== source) {
+        licenseKeyRewrittenIds.add(id);
+      }
 
       if (id.endsWith('.jsx')) {
         return transformWithEsbuild(code, id, {
@@ -182,7 +209,8 @@ function resolveMonorepoPackages() {
         return { code: preprocessAngularTs(code), map: null };
       }
 
-      return null;
+      // .js and .vue: the rewrite keeps the line count, so no source map.
+      return code === source ? null : { code, map: null };
     },
 
     resolveId(id) {
@@ -1134,6 +1162,15 @@ export default defineConfig({
 
     // Generate sitemap.xml during build.
     sitemap(),
+
+    // Checks where the internal test license key landed. Keep it last:
+    // astro:build:done hooks run in this order, and the check must see the
+    // files the integrations above write (_md twins, llms*.txt).
+    previewLicenseKeyCheck({
+      injected: Boolean(previewLicenseKey),
+      rewritten: licenseKeyRewrittenIds,
+      contentDir: resolve(__dirname, 'content'),
+    }),
   ],
 
   markdown: {

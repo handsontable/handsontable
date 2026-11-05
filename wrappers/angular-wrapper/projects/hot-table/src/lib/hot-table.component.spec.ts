@@ -4,8 +4,9 @@ import Handsontable from 'handsontable';
 import { registerPlugin, CopyPaste } from 'handsontable/plugins';
 import { NumericEditor, TextEditor } from 'handsontable/editors';
 import { registerCellType, NumericCellType } from 'handsontable/cellTypes';
+import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 import { HotTableModule } from './hot-table.module';
-import { HOT_DESTROYED_WARNING, HotTableComponent } from './hot-table.component';
+import { DATA_BINDING_SOURCE, HOT_DESTROYED_WARNING, HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
 import { createSpreadsheetData } from './test-helpers/create-spreadsheet-data';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
@@ -346,7 +347,7 @@ describe('HotTableComponent', () => {
       };
 
       component.ngOnChanges(changes);
-      expect(updateDataSpy).toHaveBeenCalledWith(newData);
+      expect(updateDataSpy).toHaveBeenCalledWith(newData, DATA_BINDING_SOURCE);
     });
 
     it('should not update Handsontable data if data change and it is the first change', () => {
@@ -363,7 +364,7 @@ describe('HotTableComponent', () => {
       };
 
       component.ngOnChanges(changes);
-      expect(updateDataSpy).not.toHaveBeenCalledWith(newData);
+      expect(updateDataSpy).not.toHaveBeenCalledWith(newData, DATA_BINDING_SOURCE);
     });
 
     it('should destroy old editor component refs when settings change with new column objects', () => {
@@ -561,7 +562,7 @@ describe('HotTableComponent', () => {
         data: new SimpleChange(component.data, [], false),
       });
 
-      expect(updateDataSpy).toHaveBeenCalledWith([]);
+      expect(updateDataSpy).toHaveBeenCalledWith([], DATA_BINDING_SOURCE);
     });
 
     it('should handle data changed to null', () => {
@@ -576,7 +577,7 @@ describe('HotTableComponent', () => {
         data: new SimpleChange(component.data, null, false),
       });
 
-      expect(updateDataSpy).toHaveBeenCalledWith(null);
+      expect(updateDataSpy).toHaveBeenCalledWith(null, DATA_BINDING_SOURCE);
     });
 
     it('should update both settings and data when both change simultaneously', () => {
@@ -594,7 +595,7 @@ describe('HotTableComponent', () => {
       });
 
       expect(updateSettingsSpy).toHaveBeenCalled();
-      expect(updateDataSpy).toHaveBeenCalledWith(newData);
+      expect(updateDataSpy).toHaveBeenCalledWith(newData, DATA_BINDING_SOURCE);
     });
   });
 
@@ -770,6 +771,7 @@ describe('HotTableComponent', () => {
     });
 
     it('should pass language from global config when settings does not specify it', () => {
+      registerLanguageDictionary(deDE);
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
         imports: [HotTableModule],
@@ -783,11 +785,11 @@ describe('HotTableComponent', () => {
       fixture.detectChanges();
       const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
 
-      TestBed.inject(HotGlobalConfigService).setConfig({ license: TEST_LICENSE_KEY, language: 'en-US' });
+      TestBed.inject(HotGlobalConfigService).setConfig({ license: TEST_LICENSE_KEY, language: 'de-DE' });
 
       expect(updateSettingsSpy).toHaveBeenCalled();
       const calledWith = updateSettingsSpy.mock.calls[0][0];
-      expect(calledWith.language).toBe('en-US');
+      expect(calledWith.language).toBe('de-DE');
     });
 
     it('should not pass layoutDirection from global config when triggered after initialization', () => {
@@ -810,7 +812,7 @@ describe('HotTableComponent', () => {
         providers: [
           {
             provide: HOT_GLOBAL_CONFIG,
-            useValue: { license: TEST_LICENSE_KEY, theme: 'ht-theme-main', themeName: 'ht-theme-horizon' },
+            useValue: { license: TEST_LICENSE_KEY, theme: 'ht-theme-horizon' },
           },
         ],
         schemas: [CUSTOM_ELEMENTS_SCHEMA],

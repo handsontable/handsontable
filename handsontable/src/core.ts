@@ -87,6 +87,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { getCellType, hasCellType } from './cellTypes/registry';
 import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
@@ -200,6 +201,20 @@ const ALTER_OPERATION_NAMES: Readonly<Record<string, string>> = Object.freeze({
   remove_row: 'remove_row',
   remove_col: 'remove_col',
 });
+
+/**
+ * The external data source a settings update starts from, read before the payload merges.
+ */
+interface PreviousDataSource {
+  /**
+   * The `dataProvider` value before the payload merged.
+   */
+  dataProvider: unknown;
+  /**
+   * Whether `hasExternalDataSource` answered `true` at the end of the last settings update. Always `false` at init.
+   */
+  isExternal: boolean;
+}
 
 /**
  * A configuration option removed from the public API.
@@ -902,7 +917,12 @@ export default function Core(
         this.view?._wt?.selectionManager?.refreshAllBorderHandleStyles();
       }
     },
-    injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true,
+    // A grid Handsontable builds internally (an editor list, a menu, the Filters value list) is never a root
+    // instance. It injects only when its builder asks for it explicitly: `Menu` does, with its host's value,
+    // because a `uiContainer` can put the menu in another document, which the host's injection never reached.
+    injectCoreCss: isRootInstance(this)
+      ? userSettings?.injectCoreCss !== false
+      : userSettings?.injectCoreCss === true,
   });
 
   /**
@@ -2857,9 +2877,21 @@ export default function Core(
     focusGridManager.init();
 
     if (isRootInstance(instance)) {
+      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
+      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
+      const slotsHeightBeforeLicense = measureSlotsHeight();
+
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
       initLicenseBranding(instance);
+
+      // The license bars (the warning bar, the "Powered by" bar) mount after `updateSettings()` wrote a
+      // pixel height, which reserved only the slots filled then. The slot observer below is seeded with
+      // the height they leave, so it would never count them: re-apply the height once, before the first
+      // render, or the grid grows past its declared height by the bars.
+      if (measureSlotsHeight() !== slotsHeightBeforeLicense) {
+        reapplyPixelRootHeight(instance, tableMeta.height);
+      }
 
       // Keep the edge slots (top, bottom) as wide as the table so their content
       // (toolbars, pagination, license notification) aligns with the grid.
@@ -2914,8 +2946,6 @@ export default function Core(
 
       instance.addHook('afterRender', syncEdgeSlotsWidth);
 
-      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
-      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
       let lastSlotsHeight = measureSlotsHeight();
@@ -3316,7 +3346,8 @@ export default function Core(
    * @param {Array<object>} pendingRowMetas The cell meta of the cells validated in not-yet-existing rows.
    */
   function discardResultsOfUncreatedRows(pendingRowMetas: Array<{ row?: number, valid?: boolean }>) {
-    if (pendingRowMetas.length === 0) {
+    // An `afterChange` listener of the applied set can destroy the grid, and its meta is gone with it.
+    if (pendingRowMetas.length === 0 || !instance) {
       return;
     }
 
@@ -3541,6 +3572,11 @@ export default function Core(
           }(i, cellProperties, changes[i])), source);
         } finally {
           isValidatingChange = false;
+        }
+
+        // A `beforeValidate` listener destroyed the grid, so no other change is validated.
+        if (!instance) {
+          return;
         }
       }
     }
@@ -3909,6 +3945,12 @@ export default function Core(
       const loadGeneration = validationLoadGeneration;
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
+
+      // A `beforeValidate` listener destroyed the grid. Nothing is recorded yet, so validation ends here.
+      if (!instance) {
+        return;
+      }
+
       // The validator answers after the call that asked for it has returned. What it and the
       // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
       // was not recorded – so the answer runs inside the call's operation.
@@ -3962,6 +4004,13 @@ export default function Core(
               hold.resume(() => {
                 valid = instance
                   .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
+
+                // Every call into user code can destroy the grid (an `afterValidate` listener here, the
+                // callback in `done()` below), and nothing after it may read the destroyed instance.
+                if (!instance) {
+                  return;
+                }
+
                 cellProperties.valid = valid;
                 markCellMetaChanged(cellProperties);
 
@@ -3969,6 +4018,10 @@ export default function Core(
                 countAnswer();
 
                 done(valid);
+
+                if (!instance) {
+                  return;
+                }
 
                 const wasAnsweringStaleValidation = isAnsweringStaleValidation;
 
@@ -5187,6 +5240,56 @@ export default function Core(
   };
 
   /**
+   * Returns the value validation outside an edit checks for a cell.
+   *
+   * A cell type that brings its own `valueGetter` pairs it with a validator that checks the stored form:
+   * the choice types store a key/value entry or a multiselect array, which their getter turns into a
+   * label or a joined string, and an edit validates the stored form too. Such a cell is validated on its
+   * stored value. A `valueGetter` the cell configures itself only changes what the cell shows, and the
+   * validator was written against that, so the cell is validated on its {@link Core#getDataAtCell} value,
+   * the getter's output included. The `modifyRowData` and `modifyData` hooks apply either way.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {object} [cellMeta] The cell meta, when the caller already holds it.
+   * @returns {*}
+   */
+  const getValueToValidate = (row: number, column: number, cellMeta?: CellProperties): unknown => {
+    const meta = cellMeta ?? instance.getCellMetaTransient(row, column);
+    const { type, valueGetter } = meta;
+    // `type` is a registered name or the cell type object itself, as `extendByMetaType()` reads it.
+    let cellType: unknown = isObject(type) ? type : null;
+
+    if (typeof type === 'string' && hasCellType(type)) {
+      cellType = getCellType(type);
+    }
+
+    const isCellTypeGetter = typeof valueGetter === 'function' && isObject(cellType) &&
+      (cellType as { valueGetter?: unknown }).valueGetter === valueGetter;
+
+    return datamap.get(row, colToPropOrIndex(instance, column), { skipValueGetter: isCellTypeGetter });
+  };
+
+  /**
+   * Returns the value validation outside an edit checks for a cell (bulk validation, UndoRedo's
+   * re-validation of restored cells): the stored value when the cell's `valueGetter` is its cell type's
+   * own, otherwise the value {@link Core#getDataAtCell} returns.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it is
+   * not exposed in the published `.d.ts`. UndoRedo reaches it through a local internal type.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getValueToValidate
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getValueToValidate = function(row: number, column: number) {
+    return getValueToValidate(row, column);
+  };
+
+  /**
    * Tells a `postAfterValidate` listener whether the answer it receives comes from a validator call made
    * before the last `loadData()`. The change that call validated was dropped, so a listener waiting for the
    * answer to a later call (an editor waiting for its own value) must not take it as its own.
@@ -5212,6 +5315,11 @@ export default function Core(
    * The method renders when the measured size changed. It also renders unconditionally when the grid scrolls
    * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
    * the cells without re-measuring the container, use [render()](@/api/core.md#render) instead.
+   *
+   * When the size changed while a cell editor is open, the editor moves onto its cell. If the cell was not fully
+   * in view, the grid first scrolls it into view and renders once more, which fires
+   * [afterScroll](@/api/hooks.md#afterscroll). An editor that waits for an asynchronous validator moves after the
+   * validator answers, and with rendering suspended it moves after the next render.
    *
    * @memberof Core#
    * @function refreshDimensions
@@ -5711,8 +5819,12 @@ export default function Core(
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
    * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
-   * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
-   * If only `columns` changes, the column map is rebuilt without clearing rows.
+   * initialization or when `settings` replaces `dataProvider` with another value. A `data` value is ignored with a
+   * warning and keeps the loaded rows, and so does the same `dataProvider` object passed again; to reload the rows,
+   * call [`fetchData()`](@/api/dataProvider.md#fetchdata). Other keys alone (for example `height`) keep the loaded
+   * rows and send no request. `pagination`, `columnSorting`, `filters`, or `columns`, with or without
+   * `dataProvider`, reset the page, sort, or filters they hold, so the rows are fetched again; a `columns` value
+   * sent without `dataProvider` also clears the sort.
    *
    * @memberof Core#
    * @function updateSettings
@@ -6542,22 +6654,32 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @param {object} previousDataSource The `dataProvider` value before the payload merged, and whether the grid
+   * was server-backed then.
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyExternalDataPhase(
-    settings: SettingsUpdate, init: boolean, dataUpdateFunction: (data: unknown[], source: string) => void
+    settings: SettingsUpdate,
+    init: boolean,
+    previousDataSource: PreviousDataSource,
+    dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
     if (settings.data) {
       warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
     }
 
-    // Replace the in-memory placeholder only when the update touches init, `data`, or `dataProvider`. Otherwise
-    // `updateData([], …)` would empty the grid without a refetch, because DataProvider runs `updatePlugin` only when
-    // `dataProvider` is present in this payload.
-    const shouldSyncExternalPlaceholderData = init ||
-      hasOwnProperty(settings, 'data') ||
-      hasOwnProperty(settings, 'dataProvider');
+    // Replace the in-memory placeholder only when DataProvider fetches the rows again: at init, or when the update
+    // sends `dataProvider` and replaces it, turns the grid server-backed (an object completed in place and sent
+    // again), or sends the same object beside `columns`. A payload without `dataProvider` does not re-apply the
+    // plugin, and a `data` payload or the same object sent alone does not refetch, so either would empty the grid
+    // with nothing to refill it. With `columns`, the placeholder also keeps the index maps, and so the sort the
+    // refetch reads, which the `columns` branch below would re-initialize.
+    const shouldSyncExternalPlaceholderData = init || (hasOwnProperty(settings, 'dataProvider') && (
+      !previousDataSource.isExternal ||
+      settings.dataProvider !== previousDataSource.dataProvider ||
+      settings.columns !== undefined
+    ));
 
     if (shouldSyncExternalPlaceholderData) {
       dataUpdateFunction([], 'updateSettings');
@@ -6576,17 +6698,20 @@ export default function Core(
    * @param {boolean} init `true` while the grid initializes.
    * @param {ColumnLayout|null} previousColumnLayout The column layout read before the payload merged, `null`
    * when the payload could not change it.
+   * @param {object} previousDataSource The `dataProvider` value before the payload merged, and whether the grid
+   * was server-backed then.
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyDataPhase(
     settings: SettingsUpdate,
     init: boolean,
     previousColumnLayout: ColumnLayout | null,
+    previousDataSource: PreviousDataSource,
     dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
-      applyExternalDataPhase(settings, init, dataUpdateFunction);
+      applyExternalDataPhase(settings, init, previousDataSource, dataUpdateFunction);
 
     } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
@@ -6704,8 +6829,8 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
-   * @returns {object} The `min*` sizes, the column layout (`null` when the payload cannot change it) and the root
-   * `height` and `width` as they stand.
+   * @returns {object} The `min*` sizes, the column layout (`null` when the payload cannot change it), the root
+   * `height` and `width`, and the `dataProvider` value and whether the grid is server-backed, as they stand.
    */
   function readSettingsBaseline(settings: SettingsUpdate, init: boolean) {
     return {
@@ -6728,6 +6853,10 @@ export default function Core(
       previousRootSize: {
         height: init ? undefined : tableMeta.height,
         width: init ? undefined : tableMeta.width,
+      },
+      previousDataSource: {
+        dataProvider: tableMeta.dataProvider,
+        isExternal: !init && hadExternalDataSource,
       },
     };
   }
@@ -6865,7 +6994,9 @@ export default function Core(
     columnsSettingIndexes = null;
 
     // Read before the payload merges into the table meta.
-    const { previousMinimumSizes, previousColumnLayout, previousRootSize } = readSettingsBaseline(settings, init);
+    const {
+      previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataSource,
+    } = readSettingsBaseline(settings, init);
 
     mergeSettingsIntoMeta(settings, init);
     applyThemeSettings(settings, init);
@@ -6887,7 +7018,7 @@ export default function Core(
     const columnPhase = applyColumnMetaBeforeLoad(settings, isCellOptionRestated, defersDataWork);
 
     if (!defersDataWork) {
-      applyDataPhase(settings, init, previousColumnLayout, dataUpdateFunction);
+      applyDataPhase(settings, init, previousColumnLayout, previousDataSource, dataUpdateFunction);
     }
 
     if (!firstRun && settings.language) {
@@ -6919,6 +7050,10 @@ export default function Core(
     }
 
     finishSettingsUpdate(init, themeOverridesChanged, rootSize.scrollOwnerChanged);
+
+    if (init || hasOwnProperty(settings, 'dataProvider')) {
+      hadExternalDataSource = instance.runHooks('hasExternalDataSource') === true;
+    }
 
     return defersDataWork ? metaPhase : null;
   }
@@ -8570,6 +8705,10 @@ export default function Core(
    * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
    *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
+   *
    * After the validation, the `callback` function is fired, with the `valid` argument set to:
    * - `true` for valid cells
    * - `false` for invalid cells
@@ -8596,6 +8735,10 @@ export default function Core(
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
    *  would equal `true`.
    *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
+   *
    * @memberof Core#
    * @function validateRows
    * @param {Array} [rows] Array of validation target visual row indexes.
@@ -8621,6 +8764,10 @@ export default function Core(
    *
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
    *  would equal `true`.
+   *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
    *
    * @memberof Core#
    * @function validateColumns
@@ -8688,7 +8835,8 @@ export default function Core(
         const column = j;
         const cellMeta = instance.getCellMetaTransient(row, column);
 
-        instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
+        // The value an edit of the cell would validate (`getValueToValidate()`).
+        instance.validateCell(getValueToValidate(row, column, cellMeta), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }
@@ -8710,6 +8858,12 @@ export default function Core(
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
+
+        // A `beforeValidate` listener destroyed the grid, so no other cell is validated.
+        if (!instance) {
+          return;
+        }
+
         j -= 1;
       }
       i -= 1;
@@ -8786,6 +8940,16 @@ export default function Core(
 
     return false;
   };
+
+  /**
+   * What `hasExternalDataSource` answered at the end of the last settings update that sent `dataProvider` (or
+   * at init). A payload without `dataProvider` does not re-apply the plugin, so an object completed in place
+   * and followed by such an update has not been fetched yet, and recording that answer would skip the
+   * placeholder when the object is sent again. A settings update compares it with the answer
+   * for its own payload, because a `dataProvider` object completed in place answers `true` even before the payload
+   * merges, and only the earlier answer shows that the grid was not server-backed yet.
+   */
+  let hadExternalDataSource = false;
 
   /**
    * Caches the index translation that `getColHeader` derives from the `columns` option when that

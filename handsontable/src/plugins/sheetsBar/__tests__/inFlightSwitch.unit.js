@@ -156,6 +156,32 @@ describe('SheetsBar switch with work still in flight', () => {
       expect(hot.getSelectedLast()).toEqual([1, 0, 1, 0]);
     });
 
+    it('refuses a switch asked for by a listener the arriving sheet\'s data load runs', () => {
+      const nested = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a1']] },
+            { name: 'B', data: [['b1']] },
+            { name: 'C', data: [['c1']] },
+          ],
+        },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      hot.addHook('afterLoadData', () => {
+        nested.push(plugin.setActiveSheet('C'));
+      });
+
+      expect(plugin.setActiveSheet('B')).toBe(true);
+      expect(nested).toEqual([false]);
+      expect(plugin.getSheets().find(sheet => sheet.isActive).name).toBe('B');
+      expect(hot.getDataAtCell(0, 0)).toBe('b1');
+    });
+
     it('refuses to remove the arriving sheet', () => {
       let removed = null;
 

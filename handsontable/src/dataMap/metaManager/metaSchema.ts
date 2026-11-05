@@ -133,7 +133,7 @@ function getRowSchema(
  *
  * const hot = new Handsontable(container, {
  *   // configuration options, in the object literal notation
- *   licenseKey: 'non-commercial-and-evaluation',
+ *   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
  *   data: [
  *     ['A1', 'B1', 'C1', 'D1', 'E1'],
  *     ['A2', 'B2', 'C2', 'D2', 'E2'],
@@ -165,7 +165,7 @@ function getRowSchema(
  * ```jsx
  * <HotTable
  *   // configuration options, in the object literal notation
- *   licenseKey='non-commercial-and-evaluation'
+ *   // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
  *   data={[
  *     ['A1', 'B1', 'C1', 'D1', 'E1'],
  *     ['A2', 'B2', 'C2', 'D2', 'E2'],
@@ -2121,10 +2121,10 @@ export default (): Record<string, unknown> => {
      *       color: 'green',
      *       style: 'dashed'
      *     },
-     *     // set the top border's width and color
-     *     top: '',
-     *     // set the bottom border's width and color
-     *     bottom: ''
+     *     // add the default top border (1px solid black)
+     *     top: true,
+     *     // hide the bottom border
+     *     bottom: false
      *   }
      * ],
      *
@@ -2289,6 +2289,14 @@ export default (): Record<string, unknown> => {
      *
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * Passing another `dataProvider` object through [`updateSettings()`](@/api/core.md#updatesettings) reloads the
+     * rows. Passing the same object again keeps the rows and sends no request, unless the same call also passes
+     * [`pagination`](#pagination), [`columnSorting`](#columnsorting), [`filters`](#filters), or
+     * [`columns`](#columns): those reset the page, sort, or filters, so the rows are fetched again. The React and
+     * Angular wrappers pass only the settings that changed, so in React keep the object stable (create it with
+     * `useMemo`). A change made inside the same object is used by the next request; to load the rows right away,
+     * call [`fetchData()`](@/api/dataProvider.md#fetchdata).
      *
      * While the [`sheetsBar`](#sheetsbar) option is enabled, a grid-level `dataProvider` is ignored (with one console
      * warning), and the grid gets it back when you turn the sheets bar off. Declare `dataProvider` in the `settings` of
@@ -5012,7 +5020,10 @@ export default (): Record<string, unknown> => {
      * | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
      * | A string with your [commercial license key](@/guides/getting-started/license-key/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license/software-license.md#commercial-use)         |
      * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
-     * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license/software-license.md#non-commercial-use) |
+     *
+     * Since Handsontable 19.0, the `'non-commercial-and-evaluation'` key, and its second form
+     * `'ht68e-1f2b7-47158-70b05-0842f'`, are not valid keys: they lock the grid, as any invalid key does.
+     * See [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
      *
      * An entitlement license key can list the features it unlocks. A plugin such a key does not list
      * stays off, and the console and the bar under the grid name it. The plugin's option keeps the
@@ -5042,9 +5053,6 @@ export default (): Record<string, unknown> => {
      * // protects its text too, so the `[...]` block on its own is not a valid key;
      * // the text contains quotes, so use a template literal
      * licenseKey: `This is a Handsontable license key for Acme Corp, ... for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
-     *
-     * // for non-commercial use
-     * licenseKey: 'non-commercial-and-evaluation',
      * ```
      */
     licenseKey: undefined,
@@ -6762,6 +6770,11 @@ export default (): Record<string, unknown> => {
      * The same applies to a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md)
      * cell with no [`editor`](#editor): when `readOnlyStyling` is `false`, its checkbox is not rendered
      * disabled, but a click still doesn't change its value.
+     *
+     * A [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) cell
+     * works the same way: a read-only cell, or one with no [`editor`](#editor), normally draws its
+     * chips without the remove button, but when `readOnlyStyling` is `false` the button stays, and a
+     * click on it doesn't change the value.
      *
      * Read more:
      * - [`readOnly`](#readOnly)
@@ -8538,6 +8551,14 @@ export default (): Record<string, unknown> => {
      * | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
      * | `true` (default)   | Inject core styles into the document head                                                                        |
      * | `false`            | Do not inject core styles (use when you load CSS yourself, e.g. `import 'handsontable/styles/handsontable.css'`) |
+     *
+     * Handsontable reads this option once, when it creates the grid. Changing it with
+     * [`updateSettings()`](@/api/core.md#updatesettings) has no effect.
+     *
+     * Grids that Handsontable builds inside a grid follow the grid's setting. These include the lists of the
+     * `autocomplete`, `dropdown`, and `handsontable` editors, the context menu, the dropdown menu, and the
+     * [`Filters`](@/api/filters.md) menus. With `false`, none of them injects the core styles. A menu that renders
+     * into another document through the `uiContainer` option injects them there only when the grid injects them.
      *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)

@@ -82,6 +82,12 @@ jobs:
         if: ${{ inputs.test_env == 'http://localhost:4321/docs' }}
         working-directory: ./docs
         run: npm run build
+        env:
+          # The same key as the staging deploys the baseline is seeded from
+          # (docs-staging.yml), so the local build renders the same grids. A
+          # release branch's baseline comes from RC staging, which builds in
+          # production mode without the key, so it stays off there.
+          DOCS_TEST_LICENSE_KEY: ${{ !startsWith(github.ref_name, 'release/') && 'true' || '' }}
 
       # `with:` values are expressions, not shell, so the ternaries are safe
       # here; inside the action every one of them travels through `env:`.

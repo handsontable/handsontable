@@ -21,7 +21,8 @@ const SCANNED = [
   'wrappers/vue3/README.md',
   'wrappers/angular-wrapper/README.md',
 ];
-// The core lowercases the key and also accepts the alias, so every spelling of both unlocks the grid.
+// Handsontable 18.x lowercases the key and also accepts the alias, so every spelling of both unlocks a
+// grid there. 19.0 reads them as invalid, so a copied snippet would lock the grid.
 const RETIRED_KEY = /non-commercial-and-evaluation|ht68e-1f2b7-47158-70b05-0842f|NON_COMMERCIAL_LICENSE/i;
 
 // Files that may still name the retired key, each with the reason.
@@ -29,9 +30,8 @@ const ALLOWED = [
   [/^docs\/content\/guides\/upgrade-and-migration\//, 'migration guides and changelogs describe the history'],
   [
     /^docs\/content\/guides\/getting-started\/license-key\/license-key\.md$/,
-    'quotes the missing-key message the core prints today',
+    'says the retired key reads as invalid since 19.0',
   ],
-  [/^docs\/scripts\/generate-sample-workbook\.mjs$/, 'a headless tool, not an example, that needs a working grid'],
 ];
 
 const files = execFileSync('git', ['ls-files', '-z', '--', ...SCANNED], { cwd: ROOT, encoding: 'utf8' })

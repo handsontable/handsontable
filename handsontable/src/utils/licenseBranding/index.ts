@@ -2,6 +2,7 @@ import { getLicenseState } from '../../core/license';
 import { LOCK_CONTENT } from './content';
 import { mountLicenseBadge } from './badge';
 import { mountLicenseLock } from './lockScreen';
+import { mountPoweredByBar } from './poweredByBar';
 import type { HotInstance } from '../../core/types';
 import type { LicenseStateDescriptor } from '../../helpers/mixed';
 
@@ -16,9 +17,9 @@ import type { LicenseStateDescriptor } from '../../helpers/mixed';
  * install faults - a key that cannot be read and a key that was never set - which the specification
  * (S4.5) gives the same blocking shape as a lapsed trial. A hard-stopped SUBSCRIPTION is
  * deliberately not among them: it is developer-facing only (console error, nothing else), because
- * 18.1 never blocks a paying customer. A non-commercial key, an expired or valid legacy key, a
- * running subscription and a covered perpetual license render nothing here; their console message
- * and any bottom bar come from `initLicenseNotification`.
+ * 18.1 never blocks a paying customer. An expired or valid legacy key, a running subscription and a
+ * covered perpetual license render nothing here; their console message and any bottom bar come from
+ * `initLicenseNotification`.
  *
  * A key carrying `no-ui-warns` renders no WARNING surface - no badge and no popover - which is what
  * keeps a licensed SaaS application from showing license copy to its own end users. It does NOT
@@ -63,9 +64,26 @@ function mountBrandingSurface(
 }
 
 /**
- * Initializes the license branding UI (the corner badge, its popovers, and the hard-stop lock
- * screen) for the resolved license state. The `*.handsontable.com` bypass is already resolved by
- * `_getLicenseState`. Runs once for the root instance.
+ * Tells whether a license shows the "Powered by Handsontable DataGrid" bar: a trial (every trial state,
+ * the `trial` flag needs no `badge`) or a key whose Handsontable entry carries the `badge` flag.
+ *
+ * The bar is branding the licensee agreed to, not a license warning, so no channel closes it -
+ * `no-ui-warns` included - and no option turns it off. Every other key (a regular or sponsored key
+ * without `badge`, a legacy key, the non-commercial key, a missing or unreadable key) shows none, and
+ * neither does a grid on `*.handsontable.com`, which `_getLicenseState` resolves before this.
+ *
+ * @param {LicenseStateDescriptor} descriptor The resolved license state descriptor.
+ * @returns {boolean}
+ */
+function showsPoweredByBar(descriptor: LicenseStateDescriptor): boolean {
+  return descriptor.lifecycle.isTrial || descriptor.badge;
+}
+
+/**
+ * Initializes the license branding UI (the "Powered by" bar, the corner badge, its popovers, and the
+ * hard-stop lock screen) for the resolved license state. The `*.handsontable.com` bypass is already
+ * resolved by `_getLicenseState`. Runs once for the root instance, after `initLicenseNotification`, so
+ * the "Powered by" bar lands after any license warning bar in the bottom slot.
  *
  * The license key is read once, at initialization - like the rest of the license system (the
  * console message and the bottom bar in `initLicenseNotification`). Changing `licenseKey` through
@@ -75,5 +93,11 @@ function mountBrandingSurface(
  * @returns {void}
  */
 export function initLicenseBranding(hotInstance: HotInstance): void {
-  mountBrandingSurface(hotInstance, getLicenseState(hotInstance));
+  const descriptor = getLicenseState(hotInstance);
+
+  if (showsPoweredByBar(descriptor)) {
+    mountPoweredByBar(hotInstance);
+  }
+
+  mountBrandingSurface(hotInstance, descriptor);
 }

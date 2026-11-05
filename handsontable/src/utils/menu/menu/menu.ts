@@ -580,6 +580,8 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
+      // A `uiContainer` can put the menu in another document; inject there exactly when the host injected.
+      injectCoreCss: this.hot.stylesHandler.isCoreCssInjectionEnabled(),
       modifyRowHeight: (rowHeight: number, visualRowIndex: number) => {
         const item = this.#getSourceDataAtRow<MenuItemConfig>(visualRowIndex);
 

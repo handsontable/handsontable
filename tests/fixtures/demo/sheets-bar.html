@@ -34,9 +34,9 @@
     body { font-family: sans-serif; margin: 1rem; }
     #toolbar { margin-bottom: .8rem; }
     /*
-      The bar's production SCSS (Task 9) styles the tab strip with `flex: 1 1
-      auto`, so it grows to fill whatever layout it sits in. This fixture pins
-      it to a fixed, non-growing width instead, so the strip reliably
+      The bar's production SCSS puts the tab strip in a flexible grid track,
+      so it grows to fill whatever layout it sits in. This fixture pins it to
+      a fixed, non-growing width instead, so the strip reliably
       overflows regardless of viewport size and the paging-arrow behavior
       under test stays observable. `!important` is required: Handsontable
       injects its own copy of the base CSS into a <style> tag appended to
@@ -47,7 +47,7 @@
       spec can see the layout the bar ships with.
     */
     html:not([data-production-strip]) .handsontable.ht-sheets-bar .ht-sheets-bar__tabs {
-      flex: 0 0 600px !important;
+      width: 600px !important;
     }
   </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>

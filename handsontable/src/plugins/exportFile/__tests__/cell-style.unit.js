@@ -1,5 +1,10 @@
 import {
-  clearStyleCaches, getAlignmentFromMeta, getCssStyleFromElement, getDropdownValidation,
+  clearStyleCaches,
+  cssColorToArgb,
+  getAlignmentFromMeta,
+  getBorderFromMeta,
+  getCssStyleFromElement,
+  getDropdownValidation,
 } from '../types/xlsx/cell-style';
 
 describe('getAlignmentFromMeta', () => {
@@ -32,6 +37,131 @@ describe('getAlignmentFromMeta', () => {
     expect(getAlignmentFromMeta({ className: [null, undefined, 'htCenter'] })).toEqual({
       horizontal: 'center',
     });
+  });
+});
+
+describe('getBorderFromMeta', () => {
+  it('should export a border added from the context menu (a theme variable color) as black', () => {
+    const border = getBorderFromMeta({
+      borders: { bottom: { width: 1, color: 'var(--ht-custom-borders-default-color, #000)' } },
+    });
+
+    expect(border).toEqual({ bottom: { style: 'thin', color: { argb: 'FF000000' } } });
+  });
+
+  it('should export named and functional border colors as the matching ARGB value', () => {
+    const border = getBorderFromMeta({
+      borders: {
+        top: { width: 1, color: 'red' },
+        right: { width: 2, color: 'tomato' },
+        bottom: { width: 3, color: 'rgb(0, 128, 0)' },
+        left: { width: 1, color: 'hsl(240, 100%, 50%)' },
+      },
+    });
+
+    expect(border).toEqual({
+      top: { style: 'thin', color: { argb: 'FFFF0000' } },
+      right: { style: 'medium', color: { argb: 'FFFF6347' } },
+      bottom: { style: 'thick', color: { argb: 'FF008000' } },
+      left: { style: 'thin', color: { argb: 'FF0000FF' } },
+    });
+  });
+});
+
+describe('cssColorToArgb', () => {
+  it.each([
+    ['#f00', 'FFFF0000'],
+    ['#4472c4', 'FF4472C4'],
+    ['#FF3366CC', 'FF3366CC'],
+    ['F2F2F2', 'FFF2F2F2'],
+    ['fff', 'FFFFFFFF'],
+    [' #fff ', 'FFFFFFFF'],
+    ['FFF2F2F2', 'FFF2F2F2'],
+  ])('should keep the hex form %s as before', (color, argb) => {
+    expect(cssColorToArgb(color)).toBe(argb);
+  });
+
+  it.each([
+    ['red', 'FFFF0000'],
+    ['tan', 'FFD2B48C'],
+    ['tomato', 'FFFF6347'],
+    ['yellow', 'FFFFFF00'],
+    ['orange', 'FFFFA500'],
+    ['Green', 'FF008000'],
+    [' BLUE ', 'FF0000FF'],
+    ['gray', 'FF808080'],
+    ['grey', 'FF808080'],
+    ['rebeccapurple', 'FF663399'],
+    ['lightgoldenrodyellow', 'FFFAFAD2'],
+    ['darkblue', 'FF00008B'],
+  ])('should convert the named color %p', (color, argb) => {
+    expect(cssColorToArgb(color)).toBe(argb);
+  });
+
+  it.each([
+    ['rgb(255,0,0)', 'FFFF0000'],
+    ['rgb(68, 114, 196)', 'FF4472C4'],
+    ['rgba(68, 114, 196, 0.5)', 'FF4472C4'],
+    ['rgb(68 114 196)', 'FF4472C4'],
+    ['rgb(68 114 196 / 50%)', 'FF4472C4'],
+    ['RGB(100%, 0%, 50%)', 'FFFF0080'],
+    ['rgb(300, -20, 127.6)', 'FFFF0080'],
+    ['rgb(255 50% 0)', 'FFFF8000'],
+  ])('should convert the rgb() color %p', (color, argb) => {
+    expect(cssColorToArgb(color)).toBe(argb);
+  });
+
+  it.each([
+    ['hsl(0, 100%, 50%)', 'FFFF0000'],
+    ['hsl(120, 100%, 25%)', 'FF008000'],
+    ['hsla(240, 100%, 50%, 0.3)', 'FF0000FF'],
+    ['hsl(240deg 100% 50% / 30%)', 'FF0000FF'],
+    ['hsl(0.5turn 100% 50%)', 'FF00FFFF'],
+    ['hsl(-120, 100%, 50%)', 'FF0000FF'],
+    ['hsl(0, 0%, 100%)', 'FFFFFFFF'],
+    ['hsl(180, 50%, 50%)', 'FF40BFBF'],
+    ['hsl(200grad 100% 50%)', 'FF00FFFF'],
+    ['hsl(3.14159265rad 100% 50%)', 'FF00FFFF'],
+    ['hsl(0 100 50)', 'FFFF0000'],
+    ['hsl(0 100% 50)', 'FFFF0000'],
+  ])('should convert the hsl() color %p', (color, argb) => {
+    expect(cssColorToArgb(color)).toBe(argb);
+  });
+
+  it.each([
+    'var(--ht-custom-borders-default-color, #000)',
+    'transparent',
+    'notacolor',
+    'zzzzzz',
+    'constructor',
+    'toString',
+    '#12',
+    'rgb(1, 2)',
+    'hsl(red, 1%, 1%)',
+    'rgb(1deg, 2, 3)',
+    'hsl(50%, 100%, 50%)',
+    'hsl(0, 100deg, 50%)',
+    'hsl(0, 100, 50)',
+    'hsl(0, 100%, 50)',
+    'rgb(255, 50%, 0)',
+    'hsl(1e999, 100%, 50%)',
+    'hsl(1e308turn 100% 50%)',
+    '',
+    null,
+    undefined,
+    42,
+  ])('should fall back to black for %p', (color) => {
+    expect(cssColorToArgb(color)).toBe('FF000000');
+  });
+
+  it('should fall back to black for a long malformed function color without backtracking', () => {
+    const digits = '1'.repeat(300);
+    const startedAt = Date.now();
+
+    expect(cssColorToArgb(`rgb(${digits} ${digits} ${digits}x`)).toBe('FF000000');
+    expect(cssColorToArgb(`hsl(${digits}, ${digits}, ${digits}x`)).toBe('FF000000');
+    // A backtracking pattern takes tens of seconds on these two strings; a linear one, well under 1 ms.
+    expect(Date.now() - startedAt).toBeLessThan(1000);
   });
 });
 

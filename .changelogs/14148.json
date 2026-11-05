@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an uncaught error thrown when the grid was destroyed from the callback of `validateCells()`, `validateRows()`, `validateColumns()`, or `validateCell()`, or from a `beforeValidate` or `afterValidate` hook run by those methods or by `setDataAtCell()`.",
+  "type": "fixed",
+  "issueOrPR": 14148,
+  "breaking": false,
+  "framework": "none"
+}

@@ -693,6 +693,49 @@ function protectedFunctionNames(engine: FunctionRegistryEngine): string[] {
 }
 
 /**
+ * Whether a Formulas engine reads an error code as an error, through the error table of its
+ * language (`engine.constructor.getLanguage(language).errors`; `#CALC!` is in none of
+ * HyperFormula's), or `undefined` when the engine cannot answer, so every code is trusted.
+ *
+ * @param {object|null|undefined} engine The Formulas plugin's engine.
+ * @returns {Function|undefined}
+ */
+function errorCodeCheck(
+  engine: { getConfig?: () => { language?: unknown } } | null | undefined
+): ((code: string) => boolean) | undefined {
+  const codes = engineErrorCodes(engine);
+
+  return codes.size === 0 ? undefined : code => codes.has(code);
+}
+
+/**
+ * The error codes of a Formulas engine's language, or none when its class cannot name them.
+ *
+ * @param {object|null|undefined} engine The Formulas plugin's engine.
+ * @returns {Set<string>}
+ */
+function engineErrorCodes(engine: { getConfig?: () => { language?: unknown } } | null | undefined): Set<string> {
+  const EngineClass = engine?.constructor as {
+    getLanguage?: (language: string) => { errors?: Record<string, unknown> } | undefined;
+  } | undefined;
+
+  try {
+    const language = engine?.getConfig?.()?.language;
+
+    if (typeof EngineClass?.getLanguage !== 'function' || typeof language !== 'string') {
+      return new Set();
+    }
+
+    const errors = Object.values(EngineClass.getLanguage(language)?.errors ?? {});
+
+    return new Set(errors.filter((code): code is string => typeof code === 'string'));
+  } catch {
+    // An engine whose class cannot name its errors trusts every code.
+    return new Set();
+  }
+}
+
+/**
  * Whether a Formulas engine evaluates array arithmetic, read from HyperFormula's
  * `getConfig().useArrayArithmetic`, or `undefined` when the engine cannot answer (the mapper then
  * trusts it to spill a dynamic array).
@@ -1251,8 +1294,8 @@ export class ImportFile extends BasePlugin {
    * configured in `engines`. An engine of unknown shape reads nothing and answers `false`. `'xlsx'` also
    * answers `false` whenever an xlsx import would throw for the license: when the license key lists
    * its features without `feat:import_file`, the plugin's own token, and when it carries the
-   * `listed-capabilities` flag without listing `xlsx:import`. A key without that flag, and the
-   * evaluation key, are not restricted.
+   * `listed-capabilities` flag without listing `xlsx:import`. A key without that flag is not
+   * restricted.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean}
@@ -1439,6 +1482,7 @@ export class ImportFile extends BasePlugin {
       sheetExtent: formulasEnabled ? engineSheetExtent(formulasPlugin?.engine) : undefined,
       registersFunction: formulasEnabled ? functionRegistryCheck(formulasPlugin?.engine) : undefined,
       arrayArithmetic: formulasEnabled ? engineArrayArithmetic(formulasPlugin?.engine) : undefined,
+      recognizesErrorCode: formulasEnabled ? errorCodeCheck(formulasPlugin?.engine) : undefined,
       probeLiveArrays: formulasEnabled
         ? liveArrayProbe(formulasPlugin?.engine, formulasPlugin?.sheetName)
         : undefined,

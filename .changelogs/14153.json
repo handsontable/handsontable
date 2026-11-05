@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed React component-based cell renderers in rows fixed to the bottom (`fixedRowsBottom`) going blank and losing their state after a vertical scroll.",
+  "type": "fixed",
+  "issueOrPR": 14153,
+  "breaking": false,
+  "framework": "react"
+}

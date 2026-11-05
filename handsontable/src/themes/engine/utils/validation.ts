@@ -114,6 +114,8 @@ const VALID_TOKEN_KEYS = new Set([
   'cellAutofillBorderColor',
   'cellAutofillBackgroundColor',
   'cellAutofillFillBorderColor',
+  // Custom borders
+  'customBordersDefaultColor',
   // Cell mobile
   'cellMobileHandleSize',
   'cellMobileHandleBorderWidth',

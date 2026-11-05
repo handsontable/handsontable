@@ -153,6 +153,124 @@ class EditorManager {
     this.#repairEditor(this.#isStructuralChange(indexesChangesState), indexesChangesState);
   };
   /**
+   * Keeps an open editor on its cell when the grid's own size changes.
+   *
+   * The editors reposition themselves when the grid scrolls (and the text and select editors on a
+   * row or column resize too), never after the grid re-renders at a new size. So a grid that got
+   * shorter (a container sized in viewport units, which the Android soft keyboard shrinks in a
+   * WebView that resizes its content) left the edited cell outside the rendered range and the
+   * editor at its old position, and a grid that got narrower (stretched columns) left the editor
+   * where its column used to be. The cell is scrolled into view FIRST, the same way a selection is
+   * (a partly visible cell is scrolled fully into view), and only then is the editor repositioned:
+   * asked to reposition on a cell that is not rendered, the text, select, multiselect and
+   * factory-built editors close, and the handsontable and autocomplete editors hide their list.
+   *
+   * A resize with no open editor scrolls nothing, as before, and neither does a refresh that leaves
+   * the grid's size unchanged (a grid the window scrolls reports every window resize).
+   *
+   * An editor parked in `WAITING` for an asynchronous validator is left alone until the validator
+   * answers. While it waits, its coordinates are not kept in step with a sort or a filter, and
+   * `refreshDimensions()` of the text and select editors does nothing outside `EDITING`, so a scroll
+   * to those coordinates could land on another record while the editor stayed put. An editor the
+   * validator rejects is back in `EDITING` by then and is placed like any other.
+   *
+   * With rendering suspended (`hot.batch()`, `suspendRender()`) the grid has not drawn at the new size
+   * yet and `view.render()` does nothing, so a scroll would read the old draw. `refreshDimensions()`
+   * has already stored the new size, so nothing would refresh the editor later. The placement waits
+   * for the next render instead.
+   *
+   * @param {object} previousDimensions The grid's size before the resize.
+   * @param {object} currentDimensions The grid's size after the resize.
+   * @param {boolean} isSizeChanged Whether the grid's size changed.
+   */
+  #onAfterRefreshDimensions = (
+    previousDimensions: { width: number; height: number },
+    currentDimensions: { width: number; height: number },
+    isSizeChanged: boolean,
+  ): void => {
+    if (!isSizeChanged) {
+      return;
+    }
+
+    this.#placeEditorWhenReady();
+  };
+  /**
+   * Whether a placement is already queued behind a hook, so several resizes before that hook fires
+   * queue one callback.
+   *
+   * @type {boolean}
+   */
+  #isPlacementQueued = false;
+  /**
+   * Places the active editor on its cell now, or queues the placement for when it can be done: after
+   * the validator the editor waits for answers, or after the next render when rendering is suspended.
+   *
+   * A queued placement checks again when its hook fires, because the editor can be waiting again, or
+   * the render suspended again, by then.
+   */
+  #placeEditorWhenReady(): void {
+    const editor = this.activeEditor;
+
+    if (this.destroyed || !editor?.isOpened()) {
+      return;
+    }
+
+    if (editor.state === EDITOR_STATE.WAITING) {
+      // Registered after the editor's own `postAfterValidate` hook, so it runs after the editor has
+      // either closed or gone back to `EDITING`.
+      this.#queuePlacement('postAfterValidate');
+
+      return;
+    }
+
+    if (this.hot.isRenderSuspended()) {
+      this.#queuePlacement('afterRender');
+
+      return;
+    }
+
+    this.#placeEditorOnItsCell();
+  }
+  /**
+   * Runs `#placeEditorWhenReady()` once, the next time the hook fires.
+   *
+   * @param {string} hookName The hook to wait for.
+   */
+  #queuePlacement(hookName: 'postAfterValidate' | 'afterRender'): void {
+    if (this.#isPlacementQueued) {
+      return;
+    }
+
+    this.#isPlacementQueued = true;
+
+    this.hot.addHookOnce(hookName, () => {
+      this.#isPlacementQueued = false;
+      this.#placeEditorWhenReady();
+    });
+  }
+  /**
+   * Scrolls the cell the active editor edits into view, then repositions the editor on it.
+   *
+   * The scroll comes first: asked to reposition on a cell that is not rendered, several editors
+   * close or hide themselves.
+   */
+  #placeEditorOnItsCell(): void {
+    const editor = this.activeEditor;
+
+    if (!editor?.isOpened() || editor.row === null || editor.col === null) {
+      return;
+    }
+
+    if (this.hot.scrollViewportTo({ row: editor.row, col: editor.col })) {
+      // Draw the scrolled viewport now, so the edited cell is rendered before the editor reads it.
+      this.hot.view.render();
+    }
+
+    if ('refreshDimensions' in editor && typeof editor.refreshDimensions === 'function') {
+      editor.refreshDimensions();
+    }
+  }
+  /**
    * Determines whether a cache update renumbered the physical index space.
    *
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
@@ -209,6 +327,7 @@ class EditorManager {
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('afterRowSequenceCacheUpdate', this.#onRowSequenceCacheUpdate);
     this.hot.addHook('afterColumnSequenceCacheUpdate', this.#onColumnSequenceCacheUpdate);
+    this.hot.addHook('afterRefreshDimensions', this.#onAfterRefreshDimensions);
     this.hot.view._wt.update(
       'onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) =>
         this.#onCellDblClick(event, coords)

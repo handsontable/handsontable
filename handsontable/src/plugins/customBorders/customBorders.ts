@@ -15,6 +15,7 @@ import {
 } from './contextMenuItem';
 import {
   createId,
+  createContextMenuCustomBorder,
   createDefaultCustomBorder,
   createSingleEmptyBorder,
   createEmptyBorders,
@@ -123,12 +124,16 @@ const DEFAULT_PROGRESSIVE_CHUNK_SIZE = 5000;
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- * When a border property is set to an empty object `{}` or an empty string `''`, the default style is applied:
- * **1px solid black**.
+ * When a border property is set to `true` or to an empty object `{}`, the default style is applied:
+ * **1px solid black**. For a single cell, and in `setBorders()`, a falsy value (`false`, `''`) hides that side.
+ * In a `range` configuration with a range-level `border` object, an empty side (`{}`, `''`, or `true`) takes that
+ * border's style instead.
  *
  * The plugin also integrates with the {@link ContextMenu} plugin. Adding `'borders'` to the
  * [`contextMenu`](@/api/options.md#contextmenu) items enables users to apply or remove borders on selected cells
- * directly from the right-click menu.
+ * directly from the right-click menu. A border added from the menu is 1px wide and takes its color from the
+ * `--ht-custom-borders-default-color` theme variable, so it stays visible in dark color schemes. Its stored
+ * `color` is `'var(--ht-custom-borders-default-color, #000)'`, which falls back to black when no theme is loaded.
  *
  * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
  * [Custom cell borders demo](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders) for more examples.
@@ -154,8 +159,8 @@ const DEFAULT_PROGRESSIVE_CHUNK_SIZE = 5000;
  *       col: 2,
  *       start: { width: 2, color: 'red', style: 'dotted' },
  *       end: { width: 1, color: 'green', style: 'dashed' },
- *       top: '',    // default: 1px solid black
- *       bottom: '', // default: 1px solid black
+ *       top: true,  // default: 1px solid black
+ *       bottom: {}, // default: 1px solid black
  *     },
  *   ],
  *   // Enable the 'borders' item in the context menu so users can
@@ -1101,7 +1106,7 @@ export class CustomBorders extends BasePlugin {
       }
 
     } else {
-      bordersMeta[place] = createDefaultCustomBorder();
+      bordersMeta[place] = createContextMenuCustomBorder();
 
       // The meta is written first so a vetoed write leaves the model untouched.
       if (this.#writeBordersMeta(row, column, denormalizeBorder(bordersMeta))) {
