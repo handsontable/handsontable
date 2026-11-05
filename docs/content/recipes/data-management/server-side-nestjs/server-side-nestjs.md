@@ -108,7 +108,7 @@ Query-string values arrive as strings. `@Type(() => Number)` tells `class-transf
 
 The service interpolates the filter `prop` and the sort `column` into SQL, because a column name can't be passed as a query parameter. `@IsIn(ALLOWED_COLUMNS)` rejects any name outside the list with a `400` response, so a crafted value such as `sort[column]=subject;DROP` never reaches the query builder. `@IsIn(['asc', 'desc'])` does the same for the sort order.
 
-The condition name is not whitelisted. The service's `switch` statement skips condition names it doesn't handle, so a condition such as a date comparison doesn't fail the request.
+`@IsIn(FILTER_CONDITIONS)` whitelists the condition name the same way. The list holds every condition the grid offers for the recipe's columns, and the service's `switch` statement handles each one. Any other name returns `400`, so the grid rolls the filter back instead of showing unfiltered rows under an active filter.
 
 ### `@ValidateNested()` on `sort` and `filters`
 
@@ -182,7 +182,7 @@ Copy `tickets.service.ts` into `src/tickets/`:
 
 ### Filtering -- condition mapping
 
-Handsontable's Filters plugin sends condition names such as `eq`, `neq`, `contains`, `not_contains`, `begins_with`, `ends_with`, `empty`, and `not_empty`. The `switch` statement maps each name to a TypeORM QueryBuilder `WHERE` clause:
+Handsontable's Filters plugin sends the condition names that the column's type offers. The text and dropdown columns offer `eq`, `neq`, `contains`, `not_contains`, `begins_with`, `ends_with`, `empty`, and `not_empty`. The `createdAt` column has `type: 'date'`, so it offers `date_before`, `date_before_or_equal`, `date_after`, `date_after_or_equal`, `between`, `date_today`, `date_tomorrow`, and `date_yesterday` as well. The `switch` statement maps each name to a TypeORM QueryBuilder `WHERE` clause:
 
 ```typescript
 case 'contains':
@@ -190,11 +190,13 @@ case 'contains':
   break;
 ```
 
-All string comparisons use `LOWER()` so filtering is case-insensitive. LIKE metacharacters (`%`, `_`, `!`) in user input are escaped to prevent them from being interpreted as wildcards. Multiple filter conditions are combined with `AND` using repeated `andWhere()` calls. Condition names the `switch` statement doesn't list are skipped.
+All string comparisons use `LOWER()` so filtering is case-insensitive. LIKE metacharacters (`%`, `_`, `!`) in user input are escaped to prevent them from being interpreted as wildcards. Multiple filter conditions are combined with `AND` using repeated `andWhere()` calls.
+
+The date conditions compare `created_at` as text, because a `YYYY-MM-DD` string sorts in date order. The grid's date inputs send `YYYY-MM-DD` values. `toIsoDate()` cuts a full ISO 8601 date-time to its date part, and rejects any other value with `400`. `between` includes both ends. `date_today`, `date_tomorrow`, and `date_yesterday` send no value, so the service compares against the server's local date. The grid's own filter uses the browser's time zone, so the two can differ around midnight.
 
 ### Request body DTOs
 
-`CreateTicketDto` and `UpdateTicketDto` are classes with `class-validator` decorators, so the controller can validate every row in a request body. `@IsIn(TICKET_STATUSES)` and `@IsIn(TICKET_PRIORITIES)` reject values outside the dropdown sources, `@MaxLength()` matches the column sizes in the migration, and `@IsUUID()` checks the row `id` of an update. Update fields use `ValidateIf()` instead of `@IsOptional()`: a column left out of the request is skipped, but a `null` value is rejected, because every column is `NOT NULL`.
+`CreateTicketDto` and `UpdateTicketDto` are classes with `class-validator` decorators, so the controller can validate every row in a request body. `@IsIn(TICKET_STATUSES)` and `@IsIn(TICKET_PRIORITIES)` reject values outside the dropdown sources, `@MaxLength()` matches the column sizes in the migration, and `@IsUUID()` checks the row `id` of an update. Update fields use `ValidateIf()` instead of `@IsOptional()`: a column left out of the request is skipped, but a `null` value is rejected, because every column is `NOT NULL`. The exception is `subject` and `assignee`: clearing one of those cells with **Delete** sends `null`, so `@Transform()` turns it into an empty string before validation. `@Matches(ISO_DATE)` checks the shape of `createdAt`, and `@IsISO8601({ strict: true })` rejects a date that doesn't exist, such as `2025-02-30`.
 
 ### Sorting
 

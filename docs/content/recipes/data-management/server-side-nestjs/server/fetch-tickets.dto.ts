@@ -10,6 +10,21 @@ import { IsArray, IsIn, IsInt, IsOptional, IsString, Min, ValidateNested } from 
 const ALLOWED_COLUMNS = ['id', 'subject', 'status', 'priority', 'assignee', 'createdAt'] as const;
 
 /**
+ * Condition names the client may filter by.
+ *
+ * These are the conditions the grid offers for the recipe's columns: the text
+ * list for the text and dropdown columns, and the date list for `createdAt`
+ * (`type: 'date'`). The service handles each one, and any other name is
+ * rejected with 400 instead of returning unfiltered rows.
+ */
+export const FILTER_CONDITIONS = [
+  'empty', 'not_empty', 'eq', 'neq', 'begins_with', 'ends_with', 'contains', 'not_contains',
+  'date_before', 'date_before_or_equal', 'date_after', 'date_after_or_equal', 'between',
+  'date_today', 'date_tomorrow', 'date_yesterday',
+] as const;
+export type FilterCondition = (typeof FILTER_CONDITIONS)[number];
+
+/**
  * A single filter condition sent by Handsontable's Filters plugin.
  *
  * Handsontable serializes filters as an array of objects, one per column:
@@ -22,12 +37,9 @@ export class FilterConditionDto {
   @IsIn(ALLOWED_COLUMNS)
   prop: string;
 
-  /**
-   * Handsontable condition name, e.g. 'eq', 'contains', 'begins_with'.
-   * Not whitelisted: the service skips condition names it doesn't handle.
-   */
-  @IsString()
-  condition: string;
+  /** Handsontable condition name, e.g. 'eq', 'contains', 'date_after'. */
+  @IsIn(FILTER_CONDITIONS)
+  condition: FilterCondition;
 
   /** Zero, one, or two values depending on the condition ('empty' sends none). */
   @IsOptional()
