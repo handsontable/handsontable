@@ -2733,7 +2733,7 @@ export class SheetsBar extends BasePlugin {
    *
    * The name is trimmed and cut to 50 characters. A name another sheet already has, in any letter
    * case, gets a number: `Budget` becomes `Budget (2)`. Without a name, the sheet gets a default name
-   * in the grid's language, `Sheet{n}` in English. `n` counts the sheets the workbook has added, so the
+   * in the grid's language, `Sheet{n}` in English. `n` counts the sheets the workbook has added or duplicated, so the
    * fourth sheet is `Sheet4`, and a name freed by a removed sheet is not reused. A number another sheet
    * already uses is skipped. Without `data`, the sheet has 1000 empty rows and 26 empty columns, or
    * 1000 empty object rows while it shows with NestedRows on.

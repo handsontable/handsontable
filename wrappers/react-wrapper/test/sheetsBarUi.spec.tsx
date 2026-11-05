@@ -12,7 +12,8 @@ describe('HotTable sheets bar UI', () => {
     { name: 'Forecast', data: [[2]] },
     { name: 'Notes', data: [[3]] },
   ];
-  const props = (): HotTableProps => ({ licenseKey: TEST_LICENSE_KEY, sheetsBar: { sheets } });
+  const sheetsBar = { sheets };
+  const props = (height = 200): HotTableProps => ({ licenseKey: TEST_LICENSE_KEY, height, sheetsBar });
 
   it('renders the tab strip as a labeled group with the active tab marked', () => {
     const ref = renderHotTableWithProps(props(), false);
@@ -46,8 +47,9 @@ describe('HotTable sheets bar UI', () => {
     expect(focused.tabIndex).toBe(0);
     expect(tabs()[0].tabIndex).toBe(-1);
 
-    renderHotTableWithProps(props(), false, ref);
+    renderHotTableWithProps(props(300), false, ref);
 
+    expect(hot.getSettings().height).toBe(300);
     expect(tabs()[1]).toBe(focused);
     expect(document.activeElement).toBe(focused);
     expect(focused.tabIndex).toBe(0);

@@ -52,6 +52,22 @@ describe('SheetsBar default sheet names', () => {
     expect(plugin.addSheet().name).toBe('Sheet5');
   });
 
+  it('counts a duplicated sheet in the number', () => {
+    const plugin = buildWorkbook(['Budget', 'Forecast']);
+
+    plugin.duplicateSheet(plugin.getSheets()[0].id);
+
+    expect(plugin.addSheet().name).toBe('Sheet4');
+  });
+
+  it('gives a blank name the default in addSheet() and refuses it in renameSheet()', () => {
+    const plugin = buildWorkbook(['Budget']);
+
+    expect(plugin.addSheet('   ').name).toBe('Sheet2');
+    expect(plugin.renameSheet(plugin.getSheets()[0].id, '   ')).toBe(false);
+    expect(plugin.getSheets()[0].name).toBe('Budget');
+  });
+
   it('skips a number another sheet already uses', () => {
     const plugin = buildWorkbook(['Budget', 'Sheet3']);
 
