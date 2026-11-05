@@ -34,13 +34,19 @@ const containers: HTMLElement[] = [];
  * @param {string} [options.scenario] The step on top of the stack: a cell edit, a row removal, a row move
  * made with a row selection, or a custom action registered through `done()`.
  * @param {object} [options.settings] Other grid settings.
+ * @param {string} [options.veto] For a custom action: the direction in which it reports it could not
+ * restore, which sends its step back to the stack it came from.
  * @returns {object} The grid, and a function that arms the listener. The listener destroys the grid
  * on the call after the first `skip` ones.
  */
 function createGridDestroyedBy(
   hookName: string,
   registration: Registration,
-  { scenario = 'edit', settings = {} }: { scenario?: Scenario, settings?: Record<string, unknown> } = {}
+  { scenario = 'edit', settings = {}, veto = null }: {
+    scenario?: Scenario,
+    settings?: Record<string, unknown>,
+    veto?: Direction | null,
+  } = {}
 ) {
   let armed = false;
   let skipped = 0;
@@ -95,8 +101,8 @@ function createGridDestroyedBy(
   if (scenario === 'custom') {
     (hot.getPlugin('undoRedo') as unknown as UndoRedoPlugin).done(() => ({
       actionType: 'custom',
-      undo: (_hot: Handsontable, done: () => void) => done(),
-      redo: (_hot: Handsontable, done: () => void) => done(),
+      undo: (_hot: Handsontable, done: (result?: object) => void) => done(veto === 'undo' ? { wasUndone: false } : {}),
+      redo: (_hot: Handsontable, done: (result?: object) => void) => done(veto === 'redo' ? { wasRedone: false } : {}),
     }));
   }
 
@@ -168,9 +174,17 @@ describe('UndoRedo when a hook destroys the grid', () => {
     containers.splice(0).forEach(container => container.remove());
   });
 
-  const registrations: Registration[] = ['settings', 'addHook', 'addHookFirst'];
+  // The listener runs ahead of the plugins' own listeners of the same run. Registered in the settings or
+  // after them it fails the same cases, and only this order lets a plugin's listener see the destroyed grid.
+  const registrations: Registration[] = ['addHookFirst'];
   const triggers: Trigger[] = ['api', 'key'];
   const directions: Direction[] = ['undo', 'redo'];
+  const stackHooks = [
+    'beforeUndoStackChange',
+    'afterUndoStackChange',
+    'beforeRedoStackChange',
+    'afterRedoStackChange',
+  ];
   const hooks = [
     'afterChange',
     'afterRender',
@@ -178,10 +192,7 @@ describe('UndoRedo when a hook destroys the grid', () => {
     'afterUndo',
     'beforeRedo',
     'afterRedo',
-    'beforeUndoStackChange',
-    'afterUndoStackChange',
-    'beforeRedoStackChange',
-    'afterRedoStackChange',
+    ...stackHooks,
   ];
 
   /**
@@ -254,6 +265,38 @@ describe('UndoRedo when a hook destroys the grid', () => {
         });
       });
 
+      // Recording a step announces it through the stack-change hooks, whatever the write.
+      stackHooks.forEach((hookName) => {
+        it(`should end a recorded edit quietly when ${hookName} destroys the grid`, () => {
+          const { hot, arm } = createGridDestroyedBy(hookName, registration);
+
+          arm();
+
+          expect(collectErrors(() => hot.setDataAtCell(1, 1, 'second'))).toEqual([]);
+          expect(hot.isDestroyed).toBe(true);
+        });
+      });
+
+      // A change of the index map names makes the history stale, and dropping it runs the same hooks.
+      directions.forEach((direction) => {
+        stackHooks.forEach((hookName) => {
+          it(`should end ${direction === 'undo' ? 'an undo' : 'a redo'} quietly when ${hookName} destroys the grid while the stale history drops`, () => {
+            const { hot, arm } = createGridDestroyedBy(hookName, registration);
+            const plugin = hot.getPlugin('undoRedo') as unknown as UndoRedoPlugin;
+
+            // One step on each stack, so dropping the history announces both.
+            hot.setDataAtCell(1, 1, 'second');
+            plugin.undo();
+            hot.rowIndexMapper.createAndRegisterIndexMap('probe', 'hiding', false);
+
+            arm();
+
+            expect(collectErrors(() => run(hot, direction, 'api'))).toEqual([]);
+            expect(hot.isDestroyed).toBe(true);
+          });
+        });
+      });
+
       // A step recorded with a row selection puts the selection back by deselecting first.
       directions.forEach((direction) => {
         it(`should end ${direction === 'undo' ? 'an undo' : 'a redo'} of a row move quietly when afterDeselect destroys the grid`, () => {
@@ -300,19 +343,45 @@ describe('UndoRedo when a hook destroys the grid', () => {
         expect(hot.isDestroyed).toBe(true);
       });
 
-      // A listener that vetoes the replay sends the step back through the stack hooks a second time.
-      ['beforeUndoStackChange', 'afterUndoStackChange'].forEach((hookName) => {
-        it(`should end a vetoed undo quietly when ${hookName} destroys the grid as the step goes back`, () => {
-          const { hot, arm } = createGridDestroyedBy(hookName, registration);
+      // A listener that vetoes the replay sends the step back through the stack hooks a second time. The
+      // first call of the hook takes the step off the stack, the second puts it back.
+      [
+        { direction: 'undo' as Direction, hooks: ['beforeUndoStackChange', 'afterUndoStackChange'] },
+        { direction: 'redo' as Direction, hooks: ['beforeRedoStackChange', 'afterRedoStackChange'] },
+      ].forEach(({ direction, hooks: vetoHooks }) => {
+        vetoHooks.forEach((hookName) => {
+          it(`should end a vetoed ${direction} quietly when ${hookName} destroys the grid as the step goes back`, () => {
+            const { hot, arm } = createGridDestroyedBy(hookName, registration);
+            const plugin = hot.getPlugin('undoRedo') as unknown as UndoRedoPlugin;
 
-          hot.alter('insert_row_above', 1, 1);
-          hot.addHook('beforeRemoveRow', () => false);
+            hot.alter('insert_row_above', 1, 1);
 
-          // The first call takes the step off the stack, the second puts it back.
-          arm(1);
+            if (direction === 'undo') {
+              hot.addHook('beforeRemoveRow', () => false);
+            } else {
+              plugin.undo();
+              hot.addHook('beforeCreateRow', () => false);
+            }
 
-          expect(collectErrors(() => (hot.getPlugin('undoRedo') as unknown as UndoRedoPlugin).undo())).toEqual([]);
-          expect(hot.isDestroyed).toBe(true);
+            arm(1);
+
+            expect(collectErrors(() => run(hot, direction, 'api'))).toEqual([]);
+            expect(hot.isDestroyed).toBe(true);
+          });
+
+          it(`should end a vetoed ${direction} of a custom action quietly when ${hookName} destroys the grid as the step goes back`, () => {
+            const { hot, arm } = createGridDestroyedBy(hookName, registration, { scenario: 'custom', veto: direction });
+            const plugin = hot.getPlugin('undoRedo') as unknown as UndoRedoPlugin;
+
+            if (direction === 'redo') {
+              plugin.undo();
+            }
+
+            arm(1);
+
+            expect(collectErrors(() => run(hot, direction, 'api'))).toEqual([]);
+            expect(hot.isDestroyed).toBe(true);
+          });
         });
       });
 

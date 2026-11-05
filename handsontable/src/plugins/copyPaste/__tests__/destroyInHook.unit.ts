@@ -103,7 +103,9 @@ describe('CopyPaste when a hook destroys the grid', () => {
     containers.splice(0).forEach(container => container.remove());
   });
 
-  const registrations: Registration[] = ['settings', 'addHook', 'addHookFirst'];
+  // The listener runs ahead of the plugins' own listeners of the same run. Registered in the settings or
+  // after them it fails the same cases, and only this order lets a plugin's listener see the destroyed grid.
+  const registrations: Registration[] = ['addHookFirst'];
   const writeHooks = ['beforeChange', 'afterChange', 'afterRender'];
 
   registrations.forEach((registration) => {
@@ -174,9 +176,9 @@ describe('CopyPaste when a hook destroys the grid', () => {
         });
       });
 
-      ['modifyCopyableRange', 'beforeCopy', 'afterCopy'].forEach((hookName) => {
+      ['modifyCopyableRange', 'afterCopyLimit', 'beforeCopy', 'afterCopy'].forEach((hookName) => {
         it(`should end a copy event quietly when ${hookName} destroys the grid`, () => {
-          const { hot, arm } = createGridDestroyedBy(hookName, registration);
+          const { hot, arm } = createGridDestroyedBy(hookName, registration, { copyPaste: { rowsLimit: 1 } });
 
           hot.selectCell(0, 0, 1, 1);
           arm();
@@ -188,9 +190,9 @@ describe('CopyPaste when a hook destroys the grid', () => {
         });
       });
 
-      ['modifyCopyableRange', 'beforeCut', 'afterCut'].forEach((hookName) => {
+      ['modifyCopyableRange', 'afterCopyLimit', 'beforeCut', 'afterCut'].forEach((hookName) => {
         it(`should end a cut event quietly when ${hookName} destroys the grid`, () => {
-          const { hot, arm } = createGridDestroyedBy(hookName, registration);
+          const { hot, arm } = createGridDestroyedBy(hookName, registration, { copyPaste: { rowsLimit: 1 } });
 
           hot.selectCell(0, 0, 1, 1);
           arm();

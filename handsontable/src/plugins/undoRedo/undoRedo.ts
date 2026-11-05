@@ -606,10 +606,6 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
-    if (!this.hot) {
-      return;
-    }
-
     // A listener that vetoes a row or column change of the replay leaves the grid as it was, and the
     // step goes back where it came from.
     const wasUndone = this.#restore(record, 'undo');
@@ -679,10 +675,6 @@ export class UndoRedo extends BasePlugin {
     const doneActionsCopy = this.doneActions.slice();
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
-
-    if (!this.hot) {
-      return;
-    }
 
     const wasRedone = this.#restore(record, 'redo');
 
@@ -803,7 +795,8 @@ export class UndoRedo extends BasePlugin {
   #pushStep(step: unknown, source: string | undefined): boolean {
     const doneActionsCopy = this.doneActions.slice();
 
-    if (this.hot.runHooks('beforeUndoStackChange', doneActionsCopy, source) === false) {
+    // A listener of any hook below can destroy the grid, which clears `this.hot` and the stacks.
+    if (this.hot.runHooks('beforeUndoStackChange', doneActionsCopy, source) === false || !this.hot) {
       return false;
     }
 
@@ -812,7 +805,16 @@ export class UndoRedo extends BasePlugin {
     this.doneActions.push(step);
     this.#trimUndoStack();
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
+
+    if (!this.hot) {
+      return false;
+    }
+
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
+
+    if (!this.hot) {
+      return false;
+    }
 
     this.undoneActions.length = 0;
 
@@ -865,7 +867,17 @@ export class UndoRedo extends BasePlugin {
    */
   #dropSteps(undoCount: number, redoCount: number) {
     this.#dropFromStack(this.doneActions, undoCount, 'beforeUndoStackChange', 'afterUndoStackChange');
+
+    // A stack-change listener can destroy the grid, which clears `this.hot` and the stacks.
+    if (!this.hot) {
+      return;
+    }
+
     this.#dropFromStack(this.undoneActions, redoCount, 'beforeRedoStackChange', 'afterRedoStackChange');
+
+    if (!this.hot) {
+      return;
+    }
 
     if (this.doneActions.length === 0 && this.undoneActions.length === 0) {
       this.#columnProps = null;
@@ -893,6 +905,11 @@ export class UndoRedo extends BasePlugin {
     const stackCopy = stack.slice();
 
     this.hot.runHooks(beforeHook, stackCopy);
+
+    if (!this.hot) {
+      return;
+    }
+
     stack.splice(0, count);
     this.hot.runHooks(afterHook, stackCopy, stack.slice());
   }
@@ -1474,7 +1491,7 @@ export class UndoRedo extends BasePlugin {
       selection,
     });
 
-    if (!this.#pushStep(step, transaction.source)) {
+    if (!this.#pushStep(step, transaction.source) || !this.hot) {
       return;
     }
 

@@ -174,19 +174,20 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   anything else is a literal key (`DataSource#setAtCell` with `byProp`, `getRawAtCellByProp`). The
   general `setProperty()` always walks dots, so with `dataDotNotation: false` an undo created `row.a.b`
   and left `row['a.b']` at the new value. `setSourceDataAtCell()` outside a replay keeps walking dots.
-- **`undo()`, `redo()`, `#restore()`, `#takeStep()`, `#putBackStep()` and the custom-action paths re-check
-  `this.hot` after every call into user code.** A listener of `beforeUndo`, `afterChange`, `afterRender` (the
-  restore ends in `hot.render()`, and a structural step renders again to re-validate), `beforeValidate`,
-  `afterDeselect` or a stack-change hook
-  can destroy the grid, which clears `this.hot` and both stacks. `#restore()` then returns `false`, which is
-  NOT a veto: `undo()`/`redo()` test `this.hot` first and return, because a veto would put the step back on
-  its stack and fire hooks on a destroyed grid. Add the check after any new hook run in these methods. Not
-  covered: the hooks `restoreStep()` fires while `alter()` replays a row or column change, which throw inside
-  core's `alter()` (`runInShiftScope`) before this plugin gets control back, and the `afterSelection` and
-  `afterSelectionEnd` hooks of `selectCells()` in `#restoreSelection()`, which throw inside core's selection
-  code. `afterDeselect` is covered: `#restoreSelection()` checks `this.hot` after `deselectCell()`, and
-  `#revalidateChangedCells()` stops its loop when a `beforeValidate` listener destroys the grid. Pinned by `__tests__/destroyInHook.unit.ts`,
-  with a case per guard (remove one and its case fails).
+- **Every call into user code in the undo and redo paths is followed by `if (!this.hot)`.** The paths are
+  `undo()`, `redo()`, `#restore()`, `#takeStep()`, `#putBackStep()`, `#pushStep()`, `#dropSteps()`,
+  `#dropFromStack()`, `#revalidateChangedCells()`, `#restoreSelection()` and the custom-action paths of
+  `done()`. A listener of `beforeUndo`, `afterChange`, `afterRender` (the restore ends in `hot.render()`, and a
+  structural step renders again to re-validate), `beforeValidate`, `afterDeselect` or a stack-change hook can
+  destroy the grid, which clears `this.hot` and both stacks. `#restore()` then returns `false`, which is NOT a
+  veto: `undo()`/`redo()` test `this.hot` first and return, because a veto would put the step back on its
+  stack and fire hooks on a destroyed grid. Add the check after any new hook run in these methods. Some checks
+  are left out on purpose because the next statement already ends the call: `#restore()` returns `false` when
+  the tracker is gone, and a stale history returns before it reads `this.hot`. Not covered: the hooks
+  `restoreStep()` fires while `alter()` replays a row or column change, which throw inside core's `alter()`
+  (`runInShiftScope`) before this plugin gets control back, and the `afterSelection` and `afterSelectionEnd`
+  hooks of `selectCells()` in `#restoreSelection()`, which throw inside core's selection code. Pinned by
+  `__tests__/destroyInHook.unit.ts`, where setting any of these checks to `false` fails a case.
 - **Undo and redo do not run the operation again.** A step's own hooks - `beforeColumnSort`,
   `beforeFilter`, `beforeRowMove`, `beforeMoveCells` - do not fire and cannot veto. `beforeUndo`/
   `beforeRedo` are the veto points, and both are asked BEFORE the stack changes: a vetoed step stays
