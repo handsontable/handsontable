@@ -23,11 +23,11 @@
 
 /** @type {Record<string, ScreenReaderCoverage>} */
 export const SR_PAGE_COVERAGE = {
-  grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'virtualization', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop'] },
+  grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'virtualization', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop', 'row-selection-corner'] },
   'shared-demo': { gap: 'the demo-shaped grid as a whole (merged cells, hidden-column indicators, sorting, filters, comments) is read by no scenario' },
   'complex-demo': { gap: 'four nested header levels over nested rows, merged cells and frozen panes at once: no scenario reads them together' },
   'read-only': { gap: 'a read-only cell\'s state is a fact a reader announces, and no scenario reads a read-only cell' },
-  checkbox: { scenarios: ['checkbox-cell'] },
+  checkbox: { scenarios: ['checkbox-cell', 'checkbox-header'] },
   'nested-headers': { gap: 'group headers over their columns (names, spans, collapse) are read by no scenario' },
   'collapsible-headers': { gap: 'a collapse and an expand of a column group, and their expanded state, are read by no scenario' },
   'nested-rows': { scenarios: ['nested-rows'] },
@@ -63,7 +63,7 @@ export const SR_PAGE_COVERAGE = {
   'selection-handles': { none: 'the drag handles of a desktop selection are drawn under the pointer only, with no role, name or focus a reader meets' },
   'mobile-selection-handles': { gap: 'the touch handles a phone draws on a selection are for the mobile readers, whose lanes do not exist yet' },
   'auto-link': { gap: 'a link autoLink draws in a cell (its name, its activation) is read by no scenario' },
-  'row-selection': { gap: 'the row checkboxes and the select-all checkbox (name, checked, mixed) are read by no scenario' },
+  'row-selection': { scenarios: ['row-selection'] },
   'async-values': { gap: 'a cell whose value is pending, then its value, is read by no scenario' },
   'time-editor': { gap: 'the time editor is read by no scenario' },
   'intl-date-editor': { gap: 'the native date input of the intl-date editor is read by no scenario' },
@@ -92,7 +92,7 @@ export const SR_FEATURE_COVERAGE = {
   autoRowSize: { none: 'measures row heights and draws nothing a reader meets' },
   autofill: { none: 'draws a pointer-only drag handle with no role, name or focus' },
   bindRowsWithHeaders: { none: 'keeps row headers bound to their rows; a reader reads the headers the grid draws' },
-  checkboxHeader: { gap: 'the header checkbox (its name with the count, its mixed state) is read by no scenario; checkbox-cell turns it off, because the word checked in its name would satisfy the cells\' state groups' },
+  checkboxHeader: { scenarios: ['checkbox-header'] },
   collapsibleColumns: { gap: 'a collapse and an expand of a column group are read by no scenario' },
   columnSorting: { scenarios: ['grid-core'] },
   columnSummary: { gap: 'the summary row is read by no scenario' },
@@ -127,7 +127,7 @@ export const SR_FEATURE_COVERAGE = {
   nestedRows: { scenarios: ['nested-rows'] },
   notification: { gap: 'a notification\'s live message is read by no scenario' },
   pagination: { gap: 'the pagination bar and the page change are read by no scenario' },
-  rowSelection: { gap: 'the row selection checkboxes are read by no scenario' },
+  rowSelection: { scenarios: ['row-selection', 'row-selection-corner'] },
   search: { none: 'adds a class to matching cells and announces nothing' },
   selectionHandles: { none: 'draws pointer-only handles with no role, name or focus' },
   sheetsBar: { gap: 'the sheet tabs are read by no scenario' },
@@ -157,4 +157,4 @@ export const SR_FEATURE_COVERAGE = {
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 59;
+export const SR_GAP_LIMIT = 56;

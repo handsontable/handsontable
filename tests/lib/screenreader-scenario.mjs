@@ -83,10 +83,11 @@ export const STARTS = ['grid', 'page'];
  * groups, each a matrix entry of `.github/workflows/screenreader.yml` with its own job, check run and
  * artifacts (`tests/AGENTS.md`, "Screen readers"). `keyboard`: what a keyboard user does in the grid
  * itself. `reading`: the reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the
- * filters inside them. `editors`: the cell editors and the checkbox cell. A new group joins this list and
- * the workflow's matrix together; the workflow test keeps the two equal.
+ * filters inside them. `editors`: the cell editors and the checkbox cell. `selection`: row selection and
+ * the check all header. A new group joins this list and the workflow's matrix together; the workflow test
+ * keeps the two equal.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors'];
+export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection'];
 /**
  * The modifiers a `press` chord may start with, joined to the key by `+` (`Shift+F10`,
  * `Control+Alt+M`), as Playwright names them.
