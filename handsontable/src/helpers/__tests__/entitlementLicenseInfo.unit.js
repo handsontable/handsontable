@@ -10,6 +10,9 @@ import {
   PERPETUAL_KEY,
   PERPETUAL_NO_UI_WARNS_KEY,
   HF_ONLY_KEY,
+  SPONSORED_BADGE_KEY,
+  SPONSORED_BADGE_EXTERNAL_KEY,
+  SPONSORED_NO_BADGE_KEY,
 } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { blockOf } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 
@@ -344,5 +347,38 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
       expect(node).not.toBe(null);
       expect(bar()).toContain('expired on');
     });
+  });
+});
+
+describe('the `badge` facet of the license state (DEV-3413)', () => {
+  let _getLicenseState;
+
+  beforeEach(() => {
+    jest.resetModules();
+    // eslint-disable-next-line global-require
+    _getLicenseState = require('../mixed')._getLicenseState;
+  });
+
+  it('should read `badge` from a key whose Handsontable entry carries the flag', () => {
+    expect(_getLicenseState(SPONSORED_BADGE_KEY).badge).toBe(true);
+  });
+
+  it('should keep `badge` on a key whose silencing flags close both channels', () => {
+    const { badge, channels } = _getLicenseState(SPONSORED_BADGE_EXTERNAL_KEY);
+
+    expect(channels).toEqual({ console: false, ui: false });
+    expect(badge).toBe(true);
+  });
+
+  it.each([
+    ['a sponsored key without the flag', SPONSORED_NO_BADGE_KEY],
+    ['a subscription key', SUBSCRIPTION_KEY],
+    ['a trial key (the bar of a trial comes from its `trial` flag, not from `badge`)', TRIAL_KEY],
+    ['a key that grants no Handsontable license', HF_ONLY_KEY],
+    ['the non-commercial key', 'non-commercial-and-evaluation'],
+    ['a malformed legacy key', '00000-00000-00000-00000-00000'],
+    ['no key', undefined],
+  ])('should read no `badge` from %s', (_label, key) => {
+    expect(_getLicenseState(key).badge).toBe(false);
   });
 });

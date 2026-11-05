@@ -12,6 +12,7 @@ import { empty } from '../helpers/dom/element';
 import { LAYOUT_SLOTS, SLOT_ITEM_CLASS } from '../core/layout/constants';
 import { refreshSlotFilledState } from '../core/layout/layoutManager';
 import { isRootInstance } from './rootInstance';
+import { POWERED_BY_CLASS } from './licenseBranding/poweredByBar';
 import {
   forgetMissingCapabilities,
   hasLicenseCapability,
@@ -87,18 +88,22 @@ function getFocusableElements(hotInstance: HotInstance): HTMLElement[] {
 }
 
 /**
- * Puts a license bar last in the bottom slot. It carries the shared slot-item class, so it gets the same
- * separator styling as registered slot items. Because it is a foreign (unregistered) node, `DomSlot`
- * always inserts registered items before it, keeping it last as other contributors (for example
- * pagination) register or reorder. The bar bypasses `DomSlot`, so the wrapper's slot-filled state class
- * (kept in sync by the `LayoutManager` for registered items) is refreshed here.
+ * Puts a license bar last in the bottom slot, in front of the "Powered by" bar when the grid has one
+ * (`POWERED_BY_CLASS`), so the branding stays the last line. It carries the shared slot-item class, so
+ * it gets the same separator styling as registered slot items. Because it is a foreign (unregistered)
+ * node, `DomSlot` always inserts registered items before it, keeping it last as other contributors (for
+ * example pagination) register or reorder. The bar bypasses `DomSlot`, so the wrapper's slot-filled
+ * state class (kept in sync by the `LayoutManager` for registered items) is refreshed here.
  *
  * @param {HTMLElement} container The bottom slot.
  * @param {HTMLElement} barElement The license bar.
  */
 function appendBarLast(container: HTMLElement, barElement: HTMLElement): void {
+  const poweredByBar = Array.from(container.children)
+    .find(child => child.classList.contains(POWERED_BY_CLASS)) ?? null;
+
   barElement.classList.add(SLOT_ITEM_CLASS);
-  container.appendChild(barElement);
+  container.insertBefore(barElement, poweredByBar);
   refreshSlotFilledState(LAYOUT_SLOTS.BOTTOM, container);
 }
 

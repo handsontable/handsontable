@@ -130,14 +130,41 @@ function findShortcut(hotInstance, key) {
   return call?.[0];
 }
 
-function setLifecycle(state, extra = {}, channels = { console: true, ui: true }) {
+function setLifecycle(state, extra = {}, channels = { console: true, ui: true }, badge = false) {
   _getLicenseState.mockReturnValue({
     lifecycle: {
       state, isTrial: state.indexOf('trial') === 0, daysRemaining: null, licensedUntil: null, ...extra,
     },
     channels,
     grants: { unrestricted: false, products: {} },
+    badge,
   });
+}
+
+/**
+ * Gives the mock instance a bottom slot inside a wrapper, the way the real root wrapper holds it, so
+ * the "Powered by" bar has somewhere to mount.
+ *
+ * @param {object} overrides Mock instance overrides.
+ * @returns {object} The mock instance.
+ */
+function createMockHotInstanceWithBottomSlot(overrides = {}) {
+  const wrapper = document.createElement('div');
+  const rootSlotBottomElement = document.createElement('div');
+
+  wrapper.appendChild(rootSlotBottomElement);
+
+  return createMockHotInstance({ rootSlotBottomElement, ...overrides });
+}
+
+/**
+ * Returns the "Powered by" bar of the mock instance, or `null` when none was mounted.
+ *
+ * @param {object} hotInstance The mock instance.
+ * @returns {HTMLElement|null}
+ */
+function getPoweredByBar(hotInstance) {
+  return hotInstance.rootSlotBottomElement.querySelector('.ht-license-powered-by');
 }
 
 /**
@@ -297,6 +324,145 @@ describe('licenseBranding', () => {
         }
       }
     );
+  });
+
+  describe('the "Powered by Handsontable DataGrid" bar (DEV-3413)', () => {
+    it.each(['trial_valid', 'trial_notice', 'trial_soft_stop', 'trial_hard_stop'])(
+      'should mount the bar for the "%s" state of a trial, which needs no `badge` flag',
+      (state) => {
+        setLifecycle(state, { daysRemaining: 5, licensedUntil: '2026-09-26' });
+        const hotInstance = createMockHotInstanceWithBottomSlot();
+
+        initLicenseBranding(hotInstance);
+
+        expect(getPoweredByBar(hotInstance)).not.toBeNull();
+      }
+    );
+
+    it('should mount the bar for a key with the `badge` flag', () => {
+      setLifecycle('usage_valid', {}, { console: true, ui: true }, true);
+      const hotInstance = createMockHotInstanceWithBottomSlot();
+
+      initLicenseBranding(hotInstance);
+
+      expect(getPoweredByBar(hotInstance)).not.toBeNull();
+    });
+
+    it('should mount the bar for a `badge` key with `no-ui-warns`: it is branding, not a warning', () => {
+      setLifecycle('usage_valid', {}, { console: false, ui: false }, true);
+      const hotInstance = createMockHotInstanceWithBottomSlot();
+
+      initLicenseBranding(hotInstance);
+
+      expect(getPoweredByBar(hotInstance)).not.toBeNull();
+    });
+
+    it('should mount the bar for a trial with `no-ui-warns`, which still hides the corner badge', () => {
+      setLifecycle('trial_valid', { daysRemaining: 5 }, { console: false, ui: false });
+      const hotInstance = createMockHotInstanceWithBottomSlot();
+
+      initLicenseBranding(hotInstance);
+
+      expect(getPoweredByBar(hotInstance)).not.toBeNull();
+      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
+    });
+
+    it.each([
+      'usage_valid', 'usage_notice', 'usage_soft_stop', 'usage_hard_stop', 'release_valid',
+      'release_expired', 'legacy_valid', 'legacy_expired', 'non_commercial', 'invalid', 'missing',
+    ])('should mount no bar for the "%s" state of a key without the `badge` flag', (state) => {
+      setLifecycle(state, { licensedUntil: '2011-05-24' });
+      const hotInstance = createMockHotInstanceWithBottomSlot();
+
+      initLicenseBranding(hotInstance);
+
+      expect(getPoweredByBar(hotInstance)).toBeNull();
+    });
+
+    it('should render one link to handsontable.com, named by its visible text, with a decorative logomark', () => {
+      setLifecycle('trial_valid', { daysRemaining: 5 });
+      const hotInstance = createMockHotInstanceWithBottomSlot();
+
+      initLicenseBranding(hotInstance);
+
+      const bar = getPoweredByBar(hotInstance);
+      const links = bar.querySelectorAll('a');
+      const logo = bar.querySelector('.ht-license-powered-by__logo');
+
+      expect(links).toHaveLength(1);
+      expect(links[0].getAttribute('href')).toBe('https://handsontable.com');
+      expect(links[0].getAttribute('target')).toBe('_blank');
+      expect(links[0].getAttribute('rel')).toBe('noopener noreferrer');
+      expect(links[0].textContent).toBe('Powered by Handsontable DataGrid');
+      expect(links[0].contains(logo)).toBe(true);
+      expect(logo.getAttribute('aria-hidden')).toBe('true');
+      expect(logo.textContent).toBe('');
+    });
+
+    it('should mount the bar last in the bottom slot as a slot item, without the LayoutManager', () => {
+      setLifecycle('trial_soft_stop', { daysRemaining: 0 });
+      const hotInstance = createMockHotInstanceWithBottomSlot({ getLayoutManager: jest.fn() });
+      const warningBar = document.createElement('div');
+
+      // The license warning bar `initLicenseNotification` mounted before branding runs.
+      warningBar.className = 'handsontable hot-display-license-info';
+      hotInstance.rootSlotBottomElement.appendChild(warningBar);
+
+      initLicenseBranding(hotInstance);
+
+      const bar = getPoweredByBar(hotInstance);
+
+      expect(hotInstance.rootSlotBottomElement.lastElementChild).toBe(bar);
+      expect(bar.classList.contains('ht-slot-element')).toBe(true);
+      expect(hotInstance.rootSlotBottomElement.parentElement.classList.contains('ht-slot-bottom-filled'))
+        .toBe(true);
+      expect(hotInstance.getLayoutManager).not.toHaveBeenCalled();
+    });
+
+    it('should register a focus scope that moves the focus to the link on Tab and Shift+Tab', () => {
+      setLifecycle('usage_valid', {}, { console: true, ui: true }, true);
+      const hotInstance = createMockHotInstanceWithBottomSlot();
+
+      initLicenseBranding(hotInstance);
+
+      const bar = getPoweredByBar(hotInstance);
+      const link = bar.querySelector('a');
+      const [scopeId, container, options] = hotInstance.focusScope.registerScope.mock.calls
+        .find(([id]) => id === 'licensePoweredBy');
+
+      document.body.appendChild(hotInstance.rootSlotBottomElement.parentElement);
+
+      expect(scopeId).toBe('licensePoweredBy');
+      expect(container).toBe(bar);
+      expect(options.shortcutsContextName).toBe('plugin:licensePoweredBy');
+      expect(options.runOnlyIf()).toBe(true);
+
+      options.onActivate('tab_from_above');
+      expect(document.activeElement).toBe(link);
+
+      link.blur();
+      options.onActivate('tab_from_below');
+      expect(document.activeElement).toBe(link);
+
+      // A click lands where the user clicked; the scope does not move the focus for it.
+      link.blur();
+      options.onActivate('click');
+      expect(document.activeElement).not.toBe(link);
+
+      hotInstance.rootSlotBottomElement.parentElement.remove();
+      expect(options.runOnlyIf()).toBe(false);
+    });
+
+    it('should do nothing when the grid has no bottom slot', () => {
+      setLifecycle('trial_valid', { daysRemaining: 5 });
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalledWith(
+        'licensePoweredBy', expect.anything(), expect.anything()
+      );
+    });
   });
 
   describe('corner presence and popover anchor', () => {
