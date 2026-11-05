@@ -140,6 +140,18 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   let isManagerDestroyed = false;
 
   /**
+   * Tells whether the context belongs to this manager, which has been destroyed. A shortcut can forward
+   * its keys to a context of another manager (a submenu forwards Tab to the main menu after closing
+   * itself, which destroys the submenu's grid and its manager), and that one still runs.
+   *
+   * @param {object} context The context to check.
+   * @returns {boolean}
+   */
+  const isContextOfDestroyedManager = (context: Context): boolean => {
+    return isManagerDestroyed && CONTEXTS.getItems().some(([, ownContext]) => ownContext === context);
+  };
+
+  /**
    * Runs every shortcut the given context registers for the pressed keys, without consulting its
    * fallback.
    *
@@ -154,9 +166,10 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     let hasRunAnyShortcut = false;
     let isExecutionCancelled = false;
 
-    // A shortcut callback can destroy the manager. The loop then stops, and so does every later run for
-    // the same keydown: the context a shortcut forwards to, and the recorder's virtual "control/meta" pass.
-    for (let index = 0; index < shortcuts.length && !isManagerDestroyed; index++) {
+    // A shortcut callback can destroy the manager. The loop then stops, and so does every later run of
+    // its contexts for the same keydown: a context a shortcut forwards to, and the recorder's virtual
+    // "control/meta" pass.
+    for (let index = 0; index < shortcuts.length && !isContextOfDestroyedManager(context); index++) {
       const {
         callback,
         runOnlyIf,

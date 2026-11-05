@@ -221,7 +221,7 @@ export class Dialog extends BasePlugin {
    */
   static get SETTINGS_VALIDATORS() {
     return {
-      template: (value: unknown) => isPlainObject(value) &&
+      template: (value: unknown) => value === null || isPlainObject(value) &&
         (typeof ['alert', 'confirm'].includes(String(value.type))) &&
         (typeof value.title === 'string') &&
         (typeof value?.description === 'undefined' || typeof value?.description === 'string') &&
@@ -509,6 +509,28 @@ export class Dialog extends BasePlugin {
    */
   _removeReplacedListener(listener: () => void): void {
     this.#replacedListeners.delete(listener);
+  }
+
+  /**
+   * Returns a copy of the selection the open dialog stashed and restores when it hides, or `null` when no
+   * dialog is open or nothing was selected. A caller that switches the grid between data sets reads it when
+   * the user leaves one under an open dialog: the grid shows no selection then, so its own capture records none.
+   *
+   * @private
+   * @returns {object|null}
+   */
+  _getStashedSelection(): SelectionState | null {
+    const state = this.#selectionState;
+
+    if (!this.isVisible() || !state || state.ranges.length === 0 || !state.activeRange) {
+      return null;
+    }
+
+    return {
+      ...state,
+      ranges: state.ranges.map(range => range.clone()),
+      activeRange: state.activeRange.clone(),
+    };
   }
 
   /**

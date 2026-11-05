@@ -3315,7 +3315,7 @@ describe('ImportFile license gate', () => {
     expect(plugin.supportsImportFormat('xlsx')).toBe(false);
   });
 
-  it('imports for a key with xlsx:import, a key with no xlsx token and the legacy key', async() => {
+  it('imports for a key with xlsx:import, a key with no xlsx token and an invalid key', async() => {
     for (const licenseKey of [keyWith(['xlsx:import']), SUBSCRIPTION_KEY, 'non-commercial-and-evaluation']) {
       const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } }, { licenseKey });
 

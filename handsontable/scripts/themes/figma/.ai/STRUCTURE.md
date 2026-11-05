@@ -9,9 +9,10 @@ handsontable/scripts/themes/figma/
 ├── index.mjs                    # Entry point (npm run generate:themes)
 ├── tokens.json                  # Input — exported from Figma (gitignored, user-provided)
 ├── tokensKeys.mjs               # Allow-list + ordering of token keys to emit per theme
+├── static-manifest.json         # Output — SHA-256 per generated file (committed; guards hand edits)
 ├── README.md
 ├── .ai/                         # This reference set
-├── __tests__/                   # node:test specs (jsGeneration, iconStyles)
+├── __tests__/                   # node:test specs (jsGeneration, iconStyles, manifest, themeProcessing)
 ├── templates/
 │   └── iconStyles.ts            # Typed icon-CSS helper, copied verbatim into the output
 ├── icons/
@@ -22,6 +23,7 @@ handsontable/scripts/themes/figma/
     ├── themeProcessing.mjs      # Stage 1 — resolve Figma refs → in-memory `themeVariables`
     ├── jsGeneration.mjs         # Stage 2 — serialize `themeVariables` to typed .ts modules
     ├── cssGeneration.mjs        # Stage 3 — serialize `themeVariables` to CSS custom props
+    ├── manifest.mjs             # Stage 4 — hash the output into `static-manifest.json`
     └── helpers/
         ├── fileSystem.mjs       # fs wrappers + `loadTokens()` (exits on missing file)
         ├── tokenReference.mjs   # `{path.to.ref}` parsing and transformation utilities
@@ -47,7 +49,7 @@ handsontable/src/themes/static/  # OUTPUT — wiped and regenerated on every run
 Orchestrator. Calls `loadTokens()` → `generateAllVariables()` → wipes `OUTPUT_PATH` (`src/themes/static`) → `writeJsThemeFiles()` → `writeCssThemeFiles()`. Wraps the write phase in a try/catch that logs and exits non-zero on error.
 
 ### `utils/constants.mjs`
-Resolves `OUTPUT_PATH` (→ `src/themes/static`) and `TOKENS_PATH` (→ `scripts/themes/figma/tokens.json`) relative to the module via `import.meta.url`, so the tool is cwd-independent. Also defines the token-tree keys (`THEME_KEY`, `MODE_KEY`, `TOKENS_KEY`, `COLORS_KEY`, `DENSITY_KEY`, `SIZING_KEY`), `VARIANTS`, `OTHER_VARIABLES`, `EXCEPTION_KEYS`, and `ICONS_SET`.
+Resolves `OUTPUT_PATH` (→ `src/themes/static`), `MANIFEST_PATH` (→ `scripts/themes/figma/static-manifest.json`) and `TOKENS_PATH` (→ `scripts/themes/figma/tokens.json`) relative to the module via `import.meta.url`, so the tool is cwd-independent. Also defines the token-tree keys (`THEME_KEY`, `MODE_KEY`, `TOKENS_KEY`, `COLORS_KEY`, `DENSITY_KEY`, `SIZING_KEY`), `VARIANTS`, `OTHER_VARIABLES`, `EXCEPTION_KEYS`, and `ICONS_SET`.
 
 ### `utils/jsGeneration.mjs`
 Stage 2. `buildTsModule({ category, themeName, objectLiteral })` wraps a serialized object literal in a typed module: the `auto-generated` header, a `import type { … } from '…'` line, a named `const`, and `export default <name>`. `tsConstName` derives the const name (`sizing`, `densitySizes`, `<theme>Tokens`, `<theme>Colors`, `<theme>Icons`). `TS_TYPE_MAP` holds the type name and relative import depth per category.
@@ -65,3 +67,4 @@ Hand-maintained icon sets — object literals mapping icon names (e.g., `arrowRi
 
 - **Input:** `tokens.json` next to the generator (gitignored). Produced by Figma's "Design Tokens" plugin export. `loadTokens()` calls `process.exit(1)` with a friendly message if the file is missing.
 - **Output:** `src/themes/static/` — wiped and regenerated on every run, then committed. Do not hand-edit; the next run overwrites it.
+- **Output:** `static-manifest.json` — one SHA-256 per file under `src/themes/static/`, rewritten on every run and committed with it. `src/themes/__tests__/staticThemesGenerated.unit.js` fails when the two disagree.

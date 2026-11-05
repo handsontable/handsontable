@@ -72,6 +72,20 @@ describe('SheetsBar formula sheets', () => {
       expect(hot.getDataAtCell(0, 1)).toBe(6);
     });
 
+    it('binds a declared name with a line break to the engine under the name the tab shows', () => {
+      const engine = buildEngine();
+      const report = [['=\'Q1 Q2\'!A1']];
+
+      hot = build([boundSheet(engine, 'Report', report), boundSheet(engine, 'Q1\nQ2', [[5]])]);
+
+      expect(engine.getSheetNames()).toEqual(['Report', 'Q1 Q2']);
+      expect(hot.getDataAtCell(0, 0)).toBe(5);
+      expect(sheetsBar().renameSheet(idOf('Q1 Q2'), 'Data')).toBe(true);
+      expect(engine.getSheetNames()).toEqual(['Report', 'Data']);
+      expect(report[0][0]).toBe('=Data!A1');
+      expect(hot.getDataAtCell(0, 0)).toBe(5);
+    });
+
     it('quotes a new name the engine cannot read back without quotes', () => {
       const engine = buildEngine();
       const report = [['=Prices!A1']];
@@ -636,6 +650,14 @@ describe('SheetsBar formula sheets', () => {
       hot.alter('insert_row_above', 3);
 
       expect(summary[0]).toEqual(['=sum(data!a1:a2)', '=Data!A6']);
+
+      hot.alter('insert_row_above', 3);
+
+      expect(summary[0]).toEqual(['=sum(data!a1:a2)', '=Data!A7']);
+
+      hot.alter('remove_row', 3, 2);
+
+      expect(summary[0]).toEqual(['=sum(data!a1:a2)', '=Data!A5']);
     });
 
     it('keeps the text the host wrote for a sheet the engine reads only in quotes when no reference moved', () => {
@@ -903,6 +925,46 @@ describe('SheetsBar formula sheets', () => {
 
       other.destroy();
       otherContainer.remove();
+    });
+
+    it.each([
+      ['the removed sheet', []],
+      ['a sheet without formulas', ['Plain']],
+      ['the sheet that reads it', ['Sum']],
+    ])('shows #REF! where formulas read a removed sheet when %s is active at the removal', (_, opened) => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Data', [[10], [20], [30]]),
+        { name: 'Plain', data: [['p1'], ['p2'], ['p3']] },
+        boundSheet(engine, 'Sum', [['=SUM(Data!A1:A3)'], ['=Data!A1'], ['=Data!A2*2']]),
+      ]);
+      opened.forEach(name => sheetsBar().setActiveSheet(idOf(name)));
+      sheetsBar().removeSheet(idOf('Data'));
+      sheetsBar().setActiveSheet(idOf('Sum'));
+
+      expect(hot.getDataAtCol(0)).toEqual(['#REF!', '#REF!', '#REF!']);
+      expect(engine.getSheetNames()).toEqual(['Sum']);
+    });
+
+    it('does not add a removed sheet back when the next formulas sheet names no engine sheet', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Data', [[10], [20], [30]]),
+        { name: 'Plain', data: [['p1'], ['p2'], ['p3']] },
+        boundSheet(engine, 'Sum', [['=SUM(Data!A1:A3)'], ['=Data!A1'], ['=Data!A2*2']]),
+        { name: 'Free', data: [['f1'], ['f2'], ['f3']], settings: { formulas: { engine } } },
+      ]);
+      sheetsBar().setActiveSheet(idOf('Plain'));
+      sheetsBar().removeSheet(idOf('Data'));
+      sheetsBar().setActiveSheet(idOf('Free'));
+
+      expect(engine.doesSheetExist('Data')).toBe(false);
+
+      sheetsBar().setActiveSheet(idOf('Sum'));
+
+      expect(hot.getDataAtCol(0)).toEqual(['#REF!', '#REF!', '#REF!']);
     });
   });
 

@@ -313,7 +313,7 @@ describe('Shortcut Manager', () => {
       expect(laterSpy).not.toHaveBeenCalled();
     });
 
-    it('should not forward the keys to another context', () => {
+    it('should not forward the keys to another context of the destroyed manager', () => {
       const forwardedSpy = jasmine.createSpy('forwarded');
       const manager = createTestManager();
       const editor = manager.addContext('editor');
@@ -330,6 +330,29 @@ describe('Shortcut Manager', () => {
       pressKey('a');
 
       expect(forwardedSpy).not.toHaveBeenCalled();
+    });
+
+    it('should still forward the keys to a context of another manager', () => {
+      // A submenu's Tab shortcut closes the submenu, which destroys the submenu grid and its manager,
+      // and forwards the key to the main menu, whose manager lives on.
+      const forwardedSpy = jasmine.createSpy('forwarded');
+      const mainMenuManager = createTestManager();
+      const subMenuManager = createTestManager();
+      const mainMenuContext = mainMenuManager.addContext('menu');
+      const subMenuContext = subMenuManager.addContext('menu');
+
+      mainMenuContext.addShortcut({ keys: [['a']], callback: forwardedSpy, group: 'menu' });
+      subMenuContext.addShortcut({
+        keys: [['a']],
+        callback: () => subMenuManager.destroy(),
+        group: 'menu',
+        forwardToContext: mainMenuContext,
+      });
+      subMenuManager.setActiveContextName('menu');
+
+      pressKey('a');
+
+      expect(forwardedSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should not run the "control/meta" pass of the same keydown', () => {

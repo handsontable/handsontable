@@ -1,8 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
 
-type LicenseKeyName = 'flagged-base' | 'flagged-column-menu' | 'flagged-filters' | 'flagged-no-ui' | 'unflagged' |
-  'non-commercial';
+type LicenseKeyName = 'flagged-base' | 'flagged-column-menu' | 'flagged-filters' | 'flagged-no-ui' | 'unflagged';
 type PluginsName = 'filters' | 'column-menu';
 
 /**

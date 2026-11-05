@@ -3,8 +3,8 @@ import { getProductEntitlement, defineOwn } from './extractKeyData';
 
 /**
  * The grants shared by every non-entitlement license state: a valid legacy
- * commercial key, a legacy expired key, the non-commercial key, a missing key,
- * an invalid key, or an unreadable entitlement key. Every query short-circuits
+ * commercial key, a legacy expired key, a missing key, an invalid key, or an
+ * unreadable entitlement key. Every query short-circuits
  * on `unrestricted`, so these keys unlock everything - introducing capability
  * gating can never take a feature away from an existing customer. Frozen so it
  * cannot be mutated by a consumer.

@@ -38,7 +38,7 @@ const rows = [
 const hot = new Handsontable(container, {
   data: rows,
   dataSchema: { id: null, name: null },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 hot.setDataAtCell(0, 2, 'Boston');
@@ -82,7 +82,7 @@ const hot = new Handsontable(container, {
   data: rows,
   dataSchema: { id: null, name: null, city: null },
   columns: [{ data: 'id' }, { data: 'name' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Before 20.0 - the property was named after the column index
@@ -108,7 +108,7 @@ const hot = new Handsontable(container, {
   data: rows,
   dataSchema: { id: null, name: null, city: null },
   colHeaders: ['ID', 'Name', 'City'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
