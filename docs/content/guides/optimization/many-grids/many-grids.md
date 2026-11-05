@@ -29,7 +29,7 @@ Keep a page with many Handsontable DataGrid instances fast, such as a dashboard 
 
 Every grid is a separate Handsontable instance. Each instance builds its own table, the extra tables that hold frozen rows, frozen columns, and headers, and its own set of page-level event listeners. It then draws every visible cell. None of that work is shared between grids, so the cost of a page grows with the number of grids on it.
 
-In a test in Chromium on a desktop computer, creating a grid of 20 rows and 6 columns with headers took about 6 ms and added about 360 DOM elements. Destroying it took under 0.5 ms. A hundred such grids took about 0.6 s to create.
+In a test in Chromium on a desktop computer, creating a grid of 20 rows and 6 columns with headers took about 6 ms and added a few hundred DOM elements. Destroying it took under 0.5 ms. A hundred such grids took about 0.6 s to create.
 
 Two things follow from those numbers:
 
@@ -42,7 +42,7 @@ Handsontable creates a grid as soon as you call the constructor or mount the com
 
 Set the height of every grid to a fixed value: either a number of pixels in the [`height`](@/api/options.md#height) option, or a CSS `height` together with `overflow: hidden` (or `auto`) on the grid's container. The grid then scrolls its own rows inside that box, and scrolling the page costs it nothing. A container with a CSS `height` but no `overflow` doesn't size the grid.
 
-A grid without a fixed height grows with its rows and lets the page scroll them. That includes [`height: 'auto'`](@/api/options.md#height), which costs the same as no height. Such a grid listens to the scroll events of the page, or of the nearest scrolling element around it. So every grid runs code on every scroll step, and the grids in view redraw their rows. In a test with 100 grids of 60 rows each, scrolling the page made about 245,000 DOM changes when the grids had no height, and none when each grid had a height of 200 pixels.
+A grid without a fixed height grows with its rows and lets the page scroll them. That includes [`height: 'auto'`](@/api/options.md#height), which costs the same as no height. Such a grid listens to the scroll events of the page, or of the nearest scrolling element around it. So every grid runs code on every scroll step, and the grids in view redraw their rows. In a test with 100 grids of 60 rows and 8 columns each, 40 page-scroll steps made hundreds of thousands of DOM changes when the grids had no height, and none when each grid had a height of 200 pixels.
 
 Small grids pay for this too. Grids of 5 rows have no rows to redraw, but without a fixed height each of them still writes to its DOM on every scroll step. To show every row of a small grid, set a pixel height that fits all its rows. Row heights depend on the theme, so check the height in the theme you use, or set [`rowHeights`](@/api/options.md#rowheights) as well.
 
@@ -102,6 +102,14 @@ const hotSettings = ref({
 :::
 
 For all the ways to size a grid, see [Grid size](@/guides/getting-started/grid-size/grid-size.md).
+
+## Load the theme CSS once
+
+A grid with no [`themeName`](@/api/options.md#themename) set uses the Theme API, and each such grid adds its own `<style>` element with its theme, about 45 KB. With 100 grids, that is about 4.5 MB of CSS. The core styles are different: Handsontable adds them once for the page, however many grids it has.
+
+On a page with many grids, load the theme's CSS files once and give each grid the theme's name, for example `themeName: 'ht-theme-main'`. Each grid then adds no styles of its own. In a test with 20 grids, this cut the setup time from about 5.6 ms to about 2 ms per grid. If your page loads the core CSS file too, also set [`injectCoreCss: false`](@/api/options.md#injectcorecss). To change colors and sizes, use the `--ht-*` CSS variables.
+
+For how to load the CSS files, see [Themes: Using CSS files](@/guides/styling/themes/themes.md#option-2-using-css-files).
 
 ## Create grids when they scroll into view
 
@@ -210,7 +218,7 @@ settings: GridSettings = {
 };
 ```
 
-In Angular 16, or to control how far ahead each grid is created, use an `IntersectionObserver` instead. In a component that wraps one grid, observe the host element in `ngAfterViewInit()` with a `rootMargin`. When the element intersects, set a signal that an `@if` block around `hot-table` reads, and disconnect the observer. Disconnect it in `ngOnDestroy()` too. Keep a fixed height on the host element, so the page doesn't move when the grid appears.
+In Angular 16, or to control how far ahead each grid is created, use an `IntersectionObserver` instead. In a component that wraps one grid, observe the host element in `ngAfterViewInit()` with a `rootMargin`. When the element intersects, set a field that a `*ngIf` on `hot-table` reads (an `@if` block from Angular 17), call `markForCheck()`, and disconnect the observer. Disconnect it in `ngOnDestroy()` too. Keep a fixed height on the host element, so the page doesn't move when the grid appears.
 
 :::
 
@@ -277,18 +285,20 @@ To change which columns a grid shows, update the existing grid instead of creati
 - Hide the columns you don't need, with the [`HiddenColumns`](@/guides/columns/column-hiding/column-hiding.md) plugin.
 - Pass a new [`columns`](@/api/options.md#columns) array.
 
-Both cost about the same. In a test, they were 2 to 3 times faster than recreating the grid in JavaScript, and 1.2 to 1.5 times faster in React. In React, recreating a grid whose cells use component renderers also mounts every cell component again.
+Both cost about the same. How much faster they are than recreating the grid depends on the rendering options and the column widths. In a test with fixed column widths and the default rendering options, they were 2 to 3 times faster in JavaScript and about 1.5 times faster in React. With `renderAllColumns` or a large rendering offset, the gap almost disappeared. In React, updating in place also keeps the cell components of component renderers mounted, while recreating the grid mounts every one of them again.
 
 The two differ in what they keep:
 
 - Hidden columns stay part of the grid. They are still in [`getData()`](@/api/core.md#getdata), they are copied to the clipboard by default, and their validators still run. Sorting, filters, and the columns that users moved or resized stay as they are.
 - A new `columns` array removes the other columns from `getData()` and from copied data. It can also reset sorting, filters, and the columns that users moved, hid, or resized. To keep that state, hide columns instead.
 
+If you pass a new `columns` array, give each column its header in its own [`title`](@/api/options.md#title). A [`colHeaders`](@/api/options.md#colheaders) array is matched to the columns by position, so after you remove a column, the headers no longer match the columns below them.
+
 ::: only-for javascript
 
 ```js
 // hide the "Supplier" column
-// (the grid needs the `hiddenColumns` option enabled)
+// (enable the `hiddenColumns` option first, or this call throws)
 hot.getPlugin('hiddenColumns').hideColumns([2]);
 hot.render();
 
@@ -326,7 +336,7 @@ When the `columns` array holds functions, such as renderers or validators, keep 
 
 ::: only-for angular
 
-Assign a new settings object. The wrapper updates the grid in place. Don't remove the `hot-table` element from the template and add it back, for example with `@if`, to change its columns, because that destroys the grid and creates a new one.
+Assign a new settings object. The wrapper updates the grid in place. Don't remove the `hot-table` element from the template and add it back, for example with `@if` or `*ngIf`, to change its columns, because that destroys the grid and creates a new one.
 
 ```ts
 this.settings = {
@@ -365,9 +375,22 @@ By default, a grid draws the rows and columns in view and a few more around them
 - [`renderAllRows`](@/api/options.md#renderallrows) and [`renderAllColumns`](@/api/options.md#renderallcolumns) draw every row or every column.
 - A number in [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset) or [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset) draws that many extra rows or columns on each side of the visible ones. The default, `'auto'`, draws one extra row or column on each side, and can add a few more in the direction you scroll.
 
-On one grid the extra cells may not matter, and a larger offset can even make scrolling smoother. On a page with many grids, they add up. In a test, a grid of 1,000 rows and 60 columns with a height of 300 pixels drew about 70 cells with the defaults, and about 6,600 cells with `renderAllColumns: true` and `viewportRowRenderingOffset: 100`.
+On one grid the extra cells may not matter, and a larger offset can even make scrolling smoother. On a page with many grids, they add up. In a test, a grid of 1,000 rows and 60 columns, 300 pixels wide and 300 pixels high, drew about 70 cells with the defaults, and about 6,600 cells with `renderAllColumns: true` and `viewportRowRenderingOffset: 100`.
 
 On a page with many grids, keep `renderAllRows` and `renderAllColumns` at `false`, and both offsets at `'auto'`. Also set fixed column widths, so that grids don't measure their columns when they load. See [Set constant row and column sizes](@/guides/optimization/performance/performance.md#set-constant-row-and-column-sizes).
+
+If you raised these options to reach cells that are not drawn, there are cheaper ways:
+
+- To find a cell in a test, add your test attributes in the [`afterRenderer`](@/api/hooks.md#afterrenderer) hook, and scroll the cell into view with [`scrollViewportTo()`](@/api/core.md#scrollviewportto) first.
+- To let users find text, use the [`Search`](@/guides/navigation/searching-values/searching-values.md) plugin. The browser's find-in-page only sees the drawn cells.
+- To avoid empty rows during fast scrolling, set a small offset, such as 10 to 20 rows.
+- To read all the data, use [`getData()`](@/api/core.md#getdata) or export the data. Neither needs the cells to be drawn.
+
+::: only-for react
+
+A column rendered with a React component (the `renderer` prop of `HotColumn`) isn't sized to its content, so it keeps the default width. Set [`colWidths`](@/api/options.md#colwidths) for such columns. A function renderer in the `hotRenderer` prop draws cells without mounting a React component for each cell, which costs less on a page with many grids.
+
+:::
 
 ## Related articles
 
