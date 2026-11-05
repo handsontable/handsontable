@@ -33,7 +33,22 @@ const changedAt = new Map<string, number>();
 // Edits sent to Kafka that haven't come back through the stream yet.
 const pendingEdits = new Map<string, number>();
 
-const toRow = (record: StockRecord): InventoryRow => ({ ...record, available: record.onHand - record.reserved });
+// Builds a grid row from a Kafka record. A reorder point the user edited keeps showing until
+// Kafka sends it back, so a record that was already in flight can't briefly undo the edit.
+function toRow(record: StockRecord): InventoryRow {
+  const row = { ...record, available: record.onHand - record.reserved };
+  const pending = pendingEdits.get(row.sku);
+
+  if (pending !== undefined) {
+    if (row.reorderPoint === pending) {
+      pendingEdits.delete(row.sku);
+    } else {
+      row.reorderPoint = pending;
+    }
+  }
+
+  return row;
+}
 
 function reindex() {
   indexBySku.clear();
@@ -121,17 +136,6 @@ export function createGrid(container: HTMLElement) {
 
     for (const record of upserts) {
       const next = toRow(record);
-      const pending = pendingEdits.get(next.sku);
-
-      // Keep showing the user's edit until Kafka sends it back.
-      if (pending !== undefined) {
-        if (next.reorderPoint === pending) {
-          pendingEdits.delete(next.sku);
-        } else {
-          next.reorderPoint = pending;
-        }
-      }
-
       const index = indexBySku.get(next.sku);
 
       if (index === undefined) {
