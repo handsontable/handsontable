@@ -410,7 +410,7 @@ Use each sheet's tab name as its `sheetName`. A tab rename then renames the engi
 
 ### Create tabs from a HyperFormula instance
 
-If your HyperFormula instance already holds sheets, set `sheetsBar: true` without `sheets`, and pass the instance in the grid-level `formulas` option. The bar shows one tab per engine sheet, in the engine's order, named after the engine sheet:
+If your HyperFormula instance already holds sheets, pass it in the `formulas` option and set `sheetsBar: true`. The bar shows one tab per engine sheet:
 
 ```js
 const hf = HyperFormula.buildFromSheets({
@@ -424,22 +424,9 @@ const hot = new Handsontable(container, {
 });
 ```
 
-Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead.
+If you also set `data`, it becomes one more tab. Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead.
 
-If you also set `data`, it becomes one more tab:
-
-- With `formulas.sheetName` naming an engine sheet, the tab shows `data` and replaces that sheet's content. The sheet gets no second tab.
-- With `formulas.sheetName` naming a sheet the engine doesn't have, the engine gets a new sheet of that name.
-- Without `formulas.sheetName`, the engine gets a new sheet named like the tab, for example `Sheet1`.
-
-The tab the grid opens on is always the first tab:
-
-- The `data` tab, if you set `data`.
-- Otherwise, the `formulas.sheetName` sheet. If the engine has no such sheet, the bar logs a warning and opens the first engine sheet.
-- Otherwise, the `activeSheet` sheet, counted in the engine's order.
-- Otherwise, the first engine sheet.
-
-Adding, renaming, duplicating, and removing tabs works on the engine as it does for declared sheets. Removing a tab removes its engine sheet.
+Removing a tab removes its engine sheet.
 
 ## Import and export
 
