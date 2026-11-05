@@ -4048,6 +4048,9 @@ export default (): Record<string, unknown> => {
      * The `fixedRowsBottom` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md)
      * at the bottom of the grid.
      *
+     * Hidden rows count toward `fixedRowsBottom`. The frozen area is always the last `fixedRowsBottom` rows,
+     * hidden ones included. See [Hidden rows](@/guides/rows/row-freezing/row-freezing.md#hidden-rows).
+     *
      * ::: tip
      * For the bottom frozen rows area to appear with a scroll separator, you must also set the [`height`](#height) option
      * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
@@ -4083,6 +4086,10 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `fixedRowsTop` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md) at the top of the grid.
+     *
+     * Hidden rows count toward `fixedRowsTop`. With `fixedRowsTop: 3` and row 1 hidden by
+     * [`HiddenRows`](@/api/hiddenRows.md), the grid freezes 2 visible rows.
+     * See [Hidden rows](@/guides/rows/row-freezing/row-freezing.md#hidden-rows).
      *
      * ::: tip
      * For the top frozen rows area to be visually separated from the scrollable body, you must also set the [`height`](#height) option

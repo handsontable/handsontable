@@ -288,7 +288,7 @@ A column hidden with the [`HiddenColumns`](@/api/hiddenColumns.md) plugin keeps 
 - **Start columns.** The frozen area is always the first `fixedColumnsStart` columns, hidden ones included. With `fixedColumnsStart: 3` and column 1 hidden, the grid freezes 2 visible columns: columns 0 and 2.
 - **End columns.** The frozen area is always the last `fixedColumnsEnd` columns, hidden ones included.
 
-To keep a set number of visible columns frozen, raise the option by the number of hidden columns inside the frozen area.
+To keep a set number of visible columns frozen, raise the option by the number of hidden columns inside the frozen area. Hidden rows work the same way. See [Row freezing: Hidden rows](@/guides/rows/row-freezing/row-freezing.md#hidden-rows).
 
 ## User-triggered freeze
 
