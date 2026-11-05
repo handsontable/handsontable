@@ -759,6 +759,24 @@ describe('SheetsBar formula sheets', () => {
           'case). "data" was registered as "data (3)". Formulas that reference "data" read the sheet "Data".',
       ]);
     });
+
+    it('numbers a later sheet that asks for the name the engine bound an earlier sheet under', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const addSheet = engine.addSheet.bind(engine);
+
+      engine.addSheet = name => addSheet(name === 'Raw' ? 'Clean' : name);
+      hot = build([
+        boundSheet(engine, 'Raw', [['raw']]),
+        boundSheet(engine, 'Clean', [['clean']]),
+      ]);
+
+      expect(engine.getSheetNames()).toEqual(['Clean', 'Clean (2)']);
+      expect(engine.getCellValue({ sheet: engine.getSheetId('Clean'), row: 0, col: 0 })).toBe('raw');
+      expect(showSheet('Clean')).toBe('clean');
+      expect(showSheet('Raw')).toBe('raw');
+      expect(clashWarnings(warnSpy)).toHaveLength(1);
+    });
   });
 
   describe('sheets bound to a shared engine without a sheetName', () => {
