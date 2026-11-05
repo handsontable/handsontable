@@ -21,9 +21,10 @@ type EditedCellRect = ReturnType<Handsontable.editors.BaseEditor['getEditedCellR
  * Builds a grid whose column 1 uses an `EditorComponent` editor.
  *
  * @param {Function} [onClose] Passed to the editor's `onClose` prop.
+ * @param {Function} [validator] A cell validator for the whole grid, with `allowInvalid: false`.
  * @returns {Handsontable} The grid.
  */
-function mountGrid(onClose?: () => void) {
+function mountGrid(onClose?: () => void, validator?: Handsontable.GridSettings['validator']) {
   const ResizeEditor: React.FC = () => (
     <EditorComponent onClose={onClose}>
       {() => <input id="resize-editor-input" />}
@@ -42,6 +43,8 @@ function mountGrid(onClose?: () => void) {
         mockElementDimensions(this.rootElement, 900, 300);
       }}
       editor={ResizeEditor}
+      validator={validator}
+      allowInvalid={validator ? false : undefined}
     />
   )).hotInstance!;
 }
@@ -162,5 +165,38 @@ describe('EditorComponent on a grid that changes size', () => {
     expect(editor.isOpened()).toBe(false);
     expect(editorOverlay().style.left).toBe('270px');
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('should keep the edit when its cell scrolls out while an async validator is pending', async() => {
+    let answer: ((valid: boolean) => void) | undefined;
+    const hot = mountGrid(undefined, (_value: unknown, callback: (valid: boolean) => void) => {
+      answer = callback;
+    });
+    const editor = await openEditorOnStretchedCell(hot);
+
+    await act(async() => {
+      editor.setValue('bad');
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(editor.state).toBe('STATE_WAITING');
+
+    stubEditedCellRect(editor, undefined);
+
+    await act(async() => {
+      hot.runHooks('afterScrollVertically');
+    });
+
+    expect(editor.state).toBe('STATE_WAITING');
+
+    await act(async() => {
+      answer!(false);
+    });
+
+    expect(editor.state).toBe('STATE_EDITING');
+    expect(editor.isOpened()).toBe(true);
+    expect(editor.getValue()).toBe('bad');
+    expect(hot.getShortcutManager().getActiveContextName()).toBe('editor');
+    expect(hot.getDataAtCell(1, 1)).toBe('B2');
   });
 });

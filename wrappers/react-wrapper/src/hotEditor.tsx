@@ -445,9 +445,16 @@ export function EditorComponent<T = any>({
       return;
     }
 
-    // The edited cell is not rendered (it scrolled out of view). End the edit without saving, the way
-    // the core text editor does. A bare `close()` hid the element but left the editor open, so it
-    // never showed again and kept the keyboard.
+    // Leave an editor that waits for an async validator alone, as core `TextEditor` does. The scroll
+    // hooks call this without core's wait, and a cancel here would not stop the pending validation:
+    // a rejected value then put the editor back in edit mode while it was closed.
+    if (editor.state !== 'STATE_EDITING') {
+      return;
+    }
+
+    // The edited cell is not rendered (it scrolled out of view). End the edit without saving and reset
+    // the editor, so the next key starts a new edit. A bare `close()` hid the element but left the
+    // editor open, so it never showed again and kept the keyboard.
     if (!applyEditorPosition(el, editor, hot, null)) {
       editor.cancelChanges();
     }
@@ -496,9 +503,6 @@ export function EditorComponent<T = any>({
 
       if (el && editor?.hot) {
         applyEditorPosition(el, editor, editor.hot, null);
-      }
-
-      if (editor) {
         editor.refreshDimensions = refreshDimensions;
       }
 
