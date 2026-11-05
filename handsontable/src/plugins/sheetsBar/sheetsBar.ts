@@ -2732,11 +2732,13 @@ export class SheetsBar extends BasePlugin {
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
    *
    * The name is trimmed and cut to 50 characters. A name another sheet already has, in any letter
-   * case, gets a number: `Budget` becomes `Budget (2)`. Without a name, the sheet takes the next free
-   * default name, in the grid's language (`Sheet4` in English). Without `data`, the sheet has
-   * 1000 empty rows and 26 empty columns, or 1000 empty object rows while it shows with NestedRows on.
+   * case, gets a number: `Budget` becomes `Budget (2)`. Without a name, the sheet gets a default name
+   * in the grid's language, `Sheet{n}` in English. `n` counts the sheets the workbook has added, so the
+   * fourth sheet is `Sheet4`, and a name freed by a removed sheet is not reused. A number another sheet
+   * already uses is skipped. Without `data`, the sheet has 1000 empty rows and 26 empty columns, or
+   * 1000 empty object rows while it shows with NestedRows on.
    *
-   * @param {string} [name] The sheet's name. Omitted, the next free default name is used.
+   * @param {string} [name] The sheet's name. Omitted, the sheet gets the default `Sheet{n}` name.
    * @param {Array} [data] The sheet's data: rows as arrays, or as objects. Omitted, the sheet starts blank,
    * with empty object rows while the sheet shows with NestedRows on.
    * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the
