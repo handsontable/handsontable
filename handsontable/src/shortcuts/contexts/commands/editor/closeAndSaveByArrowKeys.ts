@@ -13,6 +13,11 @@ export const command = {
 
     editorManager.closeEditorAndSaveChanges();
 
+    // A listener of the save (`beforeChange`, `beforeValidate`, ...) destroyed the grid.
+    if (hot.isDestroyed) {
+      return;
+    }
+
     if (hot.getSelected()) {
       if (keys.includes('arrowdown')) {
         hot.selection.transformStart(1, 0);

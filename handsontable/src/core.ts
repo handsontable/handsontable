@@ -3739,11 +3739,21 @@ export default function Core(
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
 
+      // A listener of `beforeChangeRender`, of the render (`afterRender`), or of `afterChange` can
+      // destroy the grid, and nothing after it may read the destroyed instance or its editor.
+      if (!instance) {
+        return;
+      }
+
       if (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) {
         editorManager.closeEditor();
       }
 
       instance.render();
+
+      if (!instance) {
+        return;
+      }
 
       if (
         (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) ||
@@ -3753,6 +3763,10 @@ export default function Core(
       }
 
       instance.runHooks('afterChange', changes, source || 'edit');
+
+      if (!instance) {
+        return;
+      }
 
       if (
         activeEditor &&
@@ -4117,6 +4131,12 @@ export default function Core(
         openedEditor.prop!)
       : true;
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    // A `beforeChange` listener destroyed the grid, so nothing is left to apply the changes to.
+    if (!instance) {
+      return [];
+    }
+
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
@@ -4273,7 +4293,17 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
+    // `beforeChange` and `afterSetDataAtCell` listeners can destroy the grid, and nothing after them
+    // may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
+
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
+
+    if (!instance) {
+      return;
+    }
 
     validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
@@ -4390,7 +4420,17 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
+    // `beforeChange` and `afterSetDataAtRowProp` listeners can destroy the grid, and nothing after
+    // them may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
+
     instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
+
+    if (!instance) {
+      return;
+    }
 
     validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }

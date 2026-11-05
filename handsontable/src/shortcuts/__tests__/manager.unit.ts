@@ -296,4 +296,63 @@ describe('Shortcut Manager', () => {
       expect(spy).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('destroyed from a shortcut callback', () => {
+    /**
+     * Dispatches a key on the document, the way the recorder receives it.
+     *
+     * @param {string} key - The `KeyboardEvent.key` value to send.
+     * @param {object} [init] - Extra `KeyboardEvent` init options (modifier flags).
+     */
+    function pressKey(key: string, init: KeyboardEventInit = {}) {
+      document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...init }));
+    }
+
+    it('should not run the later shortcuts registered for the same keys', () => {
+      const laterSpy = jasmine.createSpy('later');
+      const manager = createTestManager();
+      const grid = manager.getContext('grid');
+
+      grid.addShortcut({ keys: [['a']], callback: () => manager.destroy(), group: 'first' });
+      grid.addShortcut({ keys: [['a']], callback: laterSpy, group: 'second' });
+      manager.setActiveContextName('grid');
+
+      pressKey('a');
+
+      expect(laterSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not forward the keys to another context', () => {
+      const forwardedSpy = jasmine.createSpy('forwarded');
+      const manager = createTestManager();
+      const editor = manager.addContext('editor');
+
+      manager.getContext('grid').addShortcut({ keys: [['a']], callback: forwardedSpy, group: 'grid' });
+      editor.addShortcut({
+        keys: [['a']],
+        callback: () => manager.destroy(),
+        group: 'editor',
+        forwardToContext: manager.getContext('grid'),
+      });
+      manager.setActiveContextName('editor');
+
+      pressKey('a');
+
+      expect(forwardedSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not run the "control/meta" pass of the same keydown', () => {
+      const controlMetaSpy = jasmine.createSpy('controlMeta');
+      const manager = createTestManager();
+      const grid = manager.getContext('grid');
+
+      grid.addShortcut({ keys: [['control', 'a']], callback: () => manager.destroy(), group: 'control' });
+      grid.addShortcut({ keys: [['control/meta', 'a']], callback: controlMetaSpy, group: 'controlMeta' });
+      manager.setActiveContextName('grid');
+
+      pressKey('a', { ctrlKey: true });
+
+      expect(controlMetaSpy).not.toHaveBeenCalled();
+    });
+  });
 });

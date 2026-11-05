@@ -132,6 +132,14 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   let isCtrlKeySilenced = false;
 
   /**
+   * Set by `destroy()`. A shortcut callback can destroy the grid (a listener of the save an editor
+   * shortcut makes), and the shortcuts still queued for the same keydown belong to the destroyed grid.
+   *
+   * @type {boolean}
+   */
+  let isManagerDestroyed = false;
+
+  /**
    * Runs every shortcut the given context registers for the pressed keys, without consulting its
    * fallback.
    *
@@ -146,7 +154,9 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     let hasRunAnyShortcut = false;
     let isExecutionCancelled = false;
 
-    for (let index = 0; index < shortcuts.length; index++) {
+    // A shortcut callback can destroy the manager. The loop then stops, and so does every later run for
+    // the same keydown: the context a shortcut forwards to, and the recorder's virtual "control/meta" pass.
+    for (let index = 0; index < shortcuts.length && !isManagerDestroyed; index++) {
       const {
         callback,
         runOnlyIf,
@@ -347,6 +357,9 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
      * @type {Function}
      * @memberof ShortcutManager#
      */
-    destroy: () => keyRecorder.unmount(),
+    destroy: () => {
+      isManagerDestroyed = true;
+      keyRecorder.unmount();
+    },
   };
 };
