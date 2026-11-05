@@ -9,18 +9,19 @@ import React, {
 } from 'react';
 import Handsontable from 'handsontable/base';
 import PropTypes from 'prop-types';
-import { getRenderer } from 'handsontable/renderers/registry';
-import { getEditor } from 'handsontable/editors/registry';
-import { SettingsMapper } from './settingsMapper';
+import { ForwardedSettings, SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
 import { HotColumn, isHotColumn } from './hotColumn';
 import { HotEditorHooks, HotTableProps, HotTableRef } from './types';
 import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
+  areEquivalentSettingsValue,
+  copySettingsValue,
   EDITOR_PORTAL_HOST_CLASSNAME,
   MISSING_ROOT_PORTAL_WARNING,
   createEditorPortal,
+  getCellTypeSetting,
   getContainerAttributesProps,
   isComponentEditor,
   isCSR,
@@ -71,6 +72,31 @@ const HotTableInner = forwardRef<
   const prevProps = useRef<HotTableProps>();
 
   /**
+   * A copy of the `HotColumn` settings last passed to the grid. The children write their settings
+   * into one array that the grid also holds, so the array itself cannot tell whether they changed.
+   */
+  const forwardedColumnsSettings = useRef<unknown>(null);
+
+  /**
+   * Copies of the settings last passed to the grid, compared with on every update so an unchanged prop
+   * is left out (`SettingsMapper.getSettings()`). Started again for every new instance.
+   */
+  const forwardedSettings = useRef<ForwardedSettings>(new Map());
+
+  /**
+   * Whether the settings last passed to the grid named a grid-level editor (`editor`, `hotEditor`) and a
+   * grid-level renderer (`renderer`, `hotRenderer`).
+   */
+  const namedGlobalEditor = useRef(false);
+  const namedGlobalRenderer = useRef(false);
+
+  /**
+   * The grid-level `type` the current instance was created with. Core expands it only at creation, so a
+   * removed `editor` or `renderer` prop is replaced with this type's value, not with a later `type`.
+   */
+  const createdCellType = useRef<unknown>(undefined);
+
+  /**
    * HotTable context exposing helper functions.
    */
   const context = useHotTableContext();
@@ -99,7 +125,6 @@ const HotTableInner = forwardRef<
    * Clear both the editor and the renderer cache.
    */
   const clearCache = useCallback((): void => {
-    context.clearRenderedCellCache();
     context.componentRendererColumns.clear();
   }, [context]);
 
@@ -151,36 +176,70 @@ const HotTableInner = forwardRef<
   const createNewGlobalSettings = (init = false, previousProps: HotTableProps = {}): Handsontable.GridSettings => {
     const liveSettings = !isHotInstanceDestroyed() ? getHotInstance()?.getSettings() : undefined;
     const initOnlySettingKeys = (liveSettings as any)?._initOnlySettings || [];
+
+    if (init) {
+      forwardedSettings.current = new Map();
+    }
+
     const newSettings = SettingsMapper.getSettings(
       props, {
         prevProps: previousProps,
         isInit: init,
         initOnlySettingKeys,
-        currentSettings: liveSettings
+        currentSettings: liveSettings,
+        forwardedSettings: forwardedSettings.current,
       }
     );
 
     if (context.columnsSettings.length) {
-      newSettings.columns = context.columnsSettings;
+      if (init || !areEquivalentSettingsValue(forwardedColumnsSettings.current, context.columnsSettings)) {
+        newSettings.columns = context.columnsSettings;
+        forwardedColumnsSettings.current = copySettingsValue(context.columnsSettings);
+      } else {
+        delete newSettings.columns;
+      }
     }
+
+    if (init) {
+      createdCellType.current = newSettings.type;
+    }
+
+    // The grid-level `type` supplies the editor and the renderer no prop names. Core expands it only when
+    // the grid is created and only when the same settings carry no `editor` or `renderer`, so an unnamed
+    // one is left out. When the prop that named one is removed, the creation-time type's value is passed
+    // instead, matching the key core expanded and the rule that a `type` changed after mount changes nothing.
+    const applyUnnamedSetting = (key: 'editor' | 'renderer', wasNamed: boolean) => {
+      if (wasNamed) {
+        (newSettings as Record<string, unknown>)[key] = getCellTypeSetting(createdCellType.current, key);
+
+      } else {
+        delete newSettings[key];
+      }
+    };
 
     if (props.renderer) {
       newSettings.renderer = context.getRendererWrapper(props.renderer);
       context.componentRendererColumns.set('global', true);
+    } else if (props.hotRenderer) {
+      newSettings.renderer = props.hotRenderer;
     } else {
-      newSettings.renderer = props.hotRenderer || getRenderer('text');
+      applyUnnamedSetting('renderer', namedGlobalRenderer.current);
     }
 
-    if (isComponentEditor(props.editor)) {
-      newSettings.editor = makeEditorClass(globalEditorHooksRef, globalEditorClassInstance);
-    } else {
-      const editorSetting = resolveEditorSetting(props.editor, props.hotEditor);
+    namedGlobalRenderer.current = Boolean(props.renderer || props.hotRenderer);
 
-      // `undefined` means neither prop named an editor, so the grid falls back to the default one.
-      newSettings.editor = editorSetting === undefined ?
-        getEditor('text') as Handsontable.GridSettings['editor'] :
-        editorSetting;
+    const editorSetting = isComponentEditor(props.editor) ?
+      makeEditorClass(globalEditorHooksRef, globalEditorClassInstance) :
+      resolveEditorSetting(props.editor, props.hotEditor);
+
+    // `undefined` means neither prop named an editor.
+    if (editorSetting === undefined) {
+      applyUnnamedSetting('editor', namedGlobalEditor.current);
+    } else {
+      newSettings.editor = editorSetting;
     }
+
+    namedGlobalEditor.current = editorSetting !== undefined;
 
     return newSettings;
   };
@@ -227,8 +286,15 @@ const HotTableInner = forwardRef<
      * Handsontable's `beforeViewRender` hook callback.
      */
     __hotInstance.current.addHook('beforeViewRender', () => {
-      context.clearPortalCache();
-      context.clearRenderedCellCache();
+      context.resetRenderedPortals();
+    });
+
+    /**
+     * Handsontable's `beforeRenderer` hook callback. It runs for every cell the grid paints, whatever
+     * the cell's renderer.
+     */
+    __hotInstance.current.addHook('beforeRenderer', (TD) => {
+      context.markCellPainted(TD);
     });
 
     /**

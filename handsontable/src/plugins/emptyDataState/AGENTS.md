@@ -179,6 +179,14 @@ and restoring the selection is how the user keeps it there. Ask the core hook, n
 (`releasedPluginsViewAgnostic.unit.js`). And `updateData()`, which keeps the dataset's state by design
 (the wrappers send it on re-render), is not listened to at all.
 
+**A sheet switch is a view change, not a load** (`_runViewChange()`, `@private`, which the sheets bar wraps
+around its switch). A hide during it is `#hide(false)`, so it never takes the `(0, 0)` fallback: leaving an
+empty sheet with its overlay up for a never-visited sheet selected A1 there, because the empty sheet had
+captured nothing. When the switch ends with the overlay shown, the overlay keeps the arriving sheet's
+selection for its own hide. Do not mark every load under a visible overlay as replaced instead: an empty
+grid plus `loadData()` must still select A1 (`emptyDataStateLifecycle.unit.js`). Pinned by
+`tests/e2e/sheets-bar-empty-data-state.spec.ts`.
+
 **`disablePlugin()` forgets the overlay**: `#isVisible` goes to `false` and the captured selection to
 `null`, like `destroy()`, and no hide hook fires. Left as they were, `isVisible()` answered `true` for a
 disabled plugin, and the next enable over rows ran `#hide()`: a phantom `afterEmptyDataStateHide` and a

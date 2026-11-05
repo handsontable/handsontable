@@ -28,7 +28,8 @@
   <!--
     A grid whose cell (0, 0) carries a comment, shown 300 ms after the pointer rests on it.
     - plain: a grid with `comments`.
-    - sheets: sheet 'Alpha' with `comments` and the commented cell, sheet 'Beta' with `comments: false`.
+    - sheets: sheet 'Alpha' with `comments` and the commented cell, sheet 'Beta' with `comments: false`,
+      and sheet 'Gamma' with `comments` and no comment.
   -->
   <div id="grid" data-testid="grid"></div>
   <div data-testid="outside" style="height: 200px;"></div>
@@ -53,6 +54,7 @@
           sheets: [
             { name: 'Alpha', data, settings: commented },
             { name: 'Beta', data: [['x', 'y']], settings: { comments: false } },
+            { name: 'Gamma', data: [['g', 'h'], ['i', 'j']], settings: { comments: { displayDelay: 300 } } },
           ],
         },
       },

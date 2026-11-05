@@ -1387,8 +1387,9 @@ criterion.
   and the page writes to it from before the navigation, so the test holds the live list even when a
   load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
-  it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
-  finding. A finding the check gets wrong is fixed in the check.
+  it finds listed in its pull request's description, read from a nightly dispatch from its branch (a
+  pull request's own pipeline runs the axe scan alone); the product tasks are filed apart, and a fix
+  later clears the finding. A finding the check gets wrong is fixed in the check.
 - **Every report value is escaped.** The summary and the check run render values from the fixture DOM
   (selectors, accessible names), so `renderEvidenceSummary()` escapes them with the scan's own
   `escapeMarkdownText()` and links a URL only when the scan's `isSafeLink()` passes it (both from
@@ -1410,20 +1411,30 @@ or posts one check run per check with `--check-run` (`--dry-run` prints the payl
 suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
 left no document gets a neutral tooling check run instead of none.
 
-- **Where they run.** `a11y.yml` has a second job, `checks`, beside `axe`: the same Playwright
-  container and UMD artifact, `continue-on-error` on the job only (a tooling failure turns the job red,
-  as it does the axe job, and never the Tests pipeline), and one
-  `A11y / <check> report` check run per check on the pull request's head commit (behind the canonical
-  fork guard). `HOT_A11Y_CHECKS_SUITE` picks the checks: a pull request runs the ones with
-  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), and the
-  `A11y nightly` (`a11y-nightly.yml`, weeknights on develop, and a dispatch from any branch) runs them
-  all with `nightly: true`. The evidence goes up as `a11y-checks-evidence`, outside the
-  `playwright-report-*` glob the flake ledger reads, for 30 days from the nightly (what the report
-  cites) and 7 from a pull request. `EVIDENCE_CHECKS` is the one list: the config builds its projects
-  from it (`checksForSuite()`), and the report script posts a neutral tooling check run for a check of
-  the suite that left no document. Locally: `npm --prefix tests run test:a11y-checks`, every check, or
-  `-- --project=<check>`; the reporter writes the documents only when the config's reporters run, so do
-  not pass `--reporter` on the command line.
+- **Where they run: the nightly, never a pull request.** `a11y.yml` has a second job, `checks`, beside
+  `axe`: the same Playwright container and UMD artifact, `continue-on-error` on the job only (a tooling
+  failure turns the job red, as it does the axe job, and never the Tests pipeline), and one
+  `A11y / <check> report` check run per check on the run's head commit (behind the canonical fork
+  guard). The job runs only when the caller sets the `checks` input: the `A11y nightly`
+  (`a11y-nightly.yml`, weeknights on develop, and a dispatch from any branch) does, and the pull-request
+  Tests pipeline (`test.yml`) does not, so a pull request runs the axe scan, its baseline ratchet and
+  the sticky comment alone. The reason is what a pull request gets out of them: the checks are
+  report-only and the accessibility program is still building its picture, so a pull request learned
+  nothing from them it could act on, and paid a job for it. A skipped job runs no step, so it posts no
+  check run, stale or otherwise. `HOT_A11Y_CHECKS_SUITE` picks the checks, from the `nightly` input:
+  `nightly` runs every one, and the short suite, `pull-request`, keeps the ones with
+  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), for a
+  developer to run locally or through a dispatch of the nightly that asks for it
+  (`gh workflow run a11y-nightly.yml --ref <branch> -f suite=pull-request`; a plain dispatch runs every
+  check). The evidence goes up as `a11y-checks-evidence`, outside the `playwright-report-*` glob the
+  flake ledger reads, for 30 days from a run of every check (what the report cites) and 7 from the
+  short suite. `EVIDENCE_CHECKS` is the one list: the config builds its projects from it
+  (`checksForSuite()`), and the report script posts a neutral tooling check run for a check of the
+  suite that left no document. Locally, after `build:umd`, `build:styles.min` and
+  `build:themes-css.min`: `npm --prefix tests run test:a11y-checks` runs every check,
+  `HOT_A11Y_CHECKS_SUITE=pull-request npm --prefix tests run test:a11y-checks` the short suite, and
+  `-- --project=<check>` one check; the reporter writes the documents only when the config's reporters
+  run, so do not pass `--reporter` on the command line.
 
 ### The keyboard walker
 
@@ -1875,12 +1886,129 @@ half presses and drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are 
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,
 its `spec` (the file name under `a11y/checks/`), the `criteria` it evidences, and `pullRequest` (whether
-pull requests run it, which it earns by finishing in under two minutes). The config builds one project
+the short suite runs it, which it earns by finishing in under two minutes). The config builds one project
 per entry from that list (`checksForSuite()`), so never add a project by hand: it would run the check
 twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
-removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
+removes a focus ring or a name), shown in the check run of a nightly dispatch from its branch
+(`gh workflow run a11y-nightly.yml --ref <branch>`, which posts on the branch's head commit, so the
+check run shows on the pull request, whose own pipeline runs the axe scan alone), then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
+
+## A11y: the findings ledger and the cluster catalog
+
+A raw night leaves thousands of records (the discovery run alone about 3,900), most of them the same few
+defects on many pages, and a check's artifact says nothing about the night before. The findings ledger
+accumulates them: `test-health.yml` chains on `A11y nightly` and `Screen reader nightly`, and the
+collector reads every check document, the axe findings and every transcript of those two nightlies on
+develop, run by schedule or dispatch, into `test-health/a11y.json` on `gh-pages`, one row per finding across
+nights, which the "Accessibility" section of <https://handsontable.github.io/handsontable/test-health/>
+draws. The pure half is `.github/scripts/lib/a11y-ledger.mjs`; the catalog that sorts the rows is
+`a11y/issues.json`, read through `lib/a11y-issues.mjs`. The CI mechanics (the trigger, the download filter,
+the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
+
+- **Only the nightlies' evidence is a night.** A pull request's run uploads the same artifacts, made by the
+  pull request's own code, and a fork's pull request from the fork's `develop` reports `develop` as its
+  branch; recording it would resolve every row its code no longer shows. `isA11yRun()` takes a run of
+  `A11y nightly` or `Screen reader nightly`, on develop, started by its schedule or a dispatch, and nothing
+  else.
+
+- **A finding keeps its identity across nights, or the ledger shows nothing but churn.** A row is keyed by
+  its source, check and kind, the axe rule and cause it names, its page, theme, state and variant, and the
+  masked selector or step, never by the reason, the severity, the criteria or the baseline issue, which a
+  check or a baseline change may reword or refile. Every finding of the gating axe scan is one kind,
+  `axe-violation`, read once per location, so a location keeps its row when it grows, shrinks or is
+  baselined.
+  `maskSelector()` masks what the run decided: a generated instance id (`ht_<hash>`, `wt_<hash>`) becomes
+  `ht_*` wherever it sits, a positional index becomes `:nth-child(n)`, and the axe baseline's
+  `VOLATILE_CLASSES` (a state, a layer, a layout) are dropped, so one list decides for the baseline's
+  fingerprint and the ledger's key. The formula builder is the measured case: it marks each reference's
+  cells with a class that carries the instance id (`ht-formula-ref-fill-ht_<hash>-2`), so without the mask
+  those findings are gone and new every night. Add a class to `VOLATILE_CLASSES` when a key turns out to
+  follow a state; `lib/__tests__/a11y-issues.test.mjs` pins the mask on every class of the list.
+- **A row is resolved by evidence of absence, never by silence.** A row of the night's source that the
+  night did not find is `resolved` only when the night measured its target: for a check, the target
+  (page, theme, variant) is `measured` in the check's document with no tooling problem (`problems` > 0
+  means a step did not run, and `mergeEvidence()` counts such a target as evaluating no criterion), and no
+  finding on it was dropped by the collector; for the axe scan, the document has no tooling problem, no
+  unverified page and no entry the collector could not read; for a reader step, the transcript of its
+  scenario on its project is there, did not stop and lost no step, and for a golden difference the
+  transcript's wording was compared with a golden (`match` or `differs`; `recorded` and `missing` compared
+  nothing). Anything less leaves its rows as they were, so a red tooling night never reads as a night of
+  fixes. A row seen for the first time is `new`, one seen again `persisting`, and one that comes back after
+  being resolved `flapping` until it has been seen `A11Y_FLAP_NIGHTS` nights in a row, the night it came
+  back included: a fix that did not hold, or a check that measures unevenly, shows there before it shows
+  anywhere else.
+- **Nights are read once per attempt, in order.** An attempt already recorded, or a run that completed
+  before the latest night of its source, changes nothing: statuses are derived night by night, so a backfill
+  (`workflow_dispatch` of `test-health.yml` with the nightly's run id) goes in order. A later attempt of the
+  latest night of its source ("Re-run failed jobs", which keeps the run id and replaces the artifacts) fills
+  in what the recorded attempt did not measure, against the coverage that night keeps in its record, and
+  leaves what the recorded attempt measured as it was: undoing a recorded night would need every row's state
+  from before it. The two sources keep their own latest night, because the reader nightly completes an hour
+  before the A11y nightly, and a cluster's trend on the page has one series per nightly for the same reason.
+- **The catalog sorts every row into one root-cause cluster, and every merge re-sorts.** `a11y/issues.json`
+  extends the axe baseline's issue catalog: a cluster has a stable kebab-case `id`, a `title` that says what
+  the problem is, an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
+  never printed on the page, which says only that a cluster is tracked) and `match` rules. A rule names its
+  `source` (`checks`, `axe` or `reader`) and any of `checks` (check ids, or reader projects), `kinds`,
+  `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria`, `pages` (patterns
+  anchored to the page id, or the scenario), `themes`, `where` (patterns searched in the finding's `where`)
+  and `axeIssues` (the baseline issue an axe finding is filed under, or the one the scan suggests for a new
+  finding of a known rule and target). Values in a field are ORed, fields in a rule ANDed, rules in a
+  cluster ORed. A finding's `where` is its masked selector, its step, or both joined as
+  `<masked selector> @ <step>` (a keyboard-walker stop, a probe), so `^` anchors at the selector and `$` at
+  the step: write a step pattern without `^` when the finding also names an element. A field no finding of
+  the rule's source carries (a reader step has no rule, cause, criterion, theme or baseline issue; a check
+  has no baseline issue; the axe scan has no cause) is refused, because the rule could never match. The rows carry `cluster` and `tracker` as the catalog
+  says on the night they were last merged, so renaming a cluster or moving a rule is one change to the
+  file and takes effect on the next night, with no migration.
+
+  ```json
+  {
+    "schema": 1,
+    "triageLimit": 26,
+    "clusters": [
+      {
+        "id": "dialogs-leak-tab",
+        "title": "Tab walks out of an open modal dialog to the content behind it",
+        "match": [{ "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-leaves-modal"] }]
+      }
+    ]
+  }
+  ```
+
+- **One cluster per finding, and the triage count is exact.** A finding no rule matches lands in
+  `needs-triage`, which the page lists by shape (check, kind, rule and where, widest first). A finding that
+  two rules match is a catalog error: `lib/__tests__/a11y-issues.test.mjs` maps every row of
+  `lib/__tests__/fixtures/a11y-findings-sample.json` (one row per distinct finding shape of a real night, with
+  the check that had not run yet written by hand and said so) and fails on an ambiguous one, on a cluster
+  or a rule that matches nothing in the sample (a cluster leaves the catalog with its last finding, like a
+  baseline issue), and on a triage count other than `triageLimit`, exactly: lowered when a shape is sorted
+  into a cluster, raised only visibly, in the change that adds one. The sample is frozen, so the test also
+  checks every id a rule names against its live source: `criteria` against `WCAG_CRITERIA`, `themes` against
+  the scan's themes, `axeIssues` against `a11y/axe-baseline.json`, a reader rule's `checks` against the
+  projects of `playwright.screenreader.config.ts`, and a check rule's `kinds` against the kinds the checks'
+  code can emit. Renaming one of those fails the catalog's test until the catalog follows. On a live night
+  the collector raises a `::warning` on its run for a row two clusters match and for a night with more
+  triage shapes than `triageLimit`, which is the sign to refresh the sample and sort the new shapes. A
+  cluster is a root cause, not a bucket: add one when its findings would be fixed by one change (the
+  overlay clones split the tree, the focus is not returned after Escape), name it by what is wrong, and
+  put a screen reader's own behavior in a cluster that says so rather than in the queue. The axe baseline's
+  issues are clusters here too (`axeIssues`), so the gating scan's known findings and the discovery run's
+  records of the same rule land together.
+- **The sample is a real night, deduplicated.** To refresh it after a check changes what it records, run the
+  collector over the night's artifacts (`gh run download <run id> -n a11y-checks-evidence -n a11y-axe-results`,
+  and the `screenreader-transcripts-<project>-<group>` artifacts of a reader nightly), read them with
+  `readA11yArtifacts()` and keep one row per `findingShape()` (`source|check|kind|rule|cause|page|where`),
+  the fields the matcher reads plus `theme`, `criteria`, `issue` and `severity`; say in `about` which runs it
+  came from.
+- **Locally, the collector is the dry run.** Download a night's artifacts into one directory per artifact,
+  write the run's payload with `gh api repos/handsontable/handsontable/actions/runs/<id>`, and run
+  `node .github/scripts/test-health-collect.mjs --run run.json --artifacts <dir> --ledger-dir <scratch>/test-health
+  --template .github/test-health/index.template.html --catalog tests/a11y/issues.json`: it writes
+  `a11y.json` and the page into the scratch directory and prints the night's counts and clusters. Never
+  dispatch `test-health.yml` with a run id to try a change: that publishes to the live site.
 
 ## Screen readers: the NVDA and VoiceOver lanes
 

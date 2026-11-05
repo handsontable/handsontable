@@ -93,7 +93,7 @@ rm -f handsontable/dev-pr.html handsontable/dev-latest.html
       width: '100%',
       height: 320,
       themeName: 'ht-theme-main',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: '__TEST_LICENSE_KEY__',
     });
   </script>
 </body>
@@ -118,6 +118,7 @@ Same as `dev-latest.html` except:
 | Placeholder | Value |
 |-------------|-------|
 | `__RELEASED_VERSION__` | Latest published version from `handsontable/package.json` (e.g. `17.0.1`). If the PR branch bumped it, use the base branch's (`git show origin/develop:handsontable/package.json`). |
+| `__TEST_LICENSE_KEY__` | The internal test key: copy the string `TEST_LICENSE_KEY` holds in `handsontable/test/helpers/licenseKey.js`. A demo needs a key that does not lock the grid: a missing or invalid key locks it on `localhost` too, and 19.0 reads `'non-commercial-and-evaluation'` as invalid. The released 18.x build reads the test key too. Keep the pages local: the key is not licensed for anything but testing. |
 | `[Short description...]` | One-line summary, e.g. "Filters dropdown closes on Android touch" |
 | `[Step-by-step reproduction...]` | Numbered reviewer steps, e.g. "1. Double-tap cell A1. 2. The editor should open and stay open." |
 

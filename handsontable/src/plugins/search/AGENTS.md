@@ -97,3 +97,9 @@ render and the setters' values must survive that. Do not reset on every non-obje
 the object (`disablePlugin()` clears `#appliedSettings` when the setting is off, never on the disable half of
 `updatePlugin()`), so object → `false` → `true` keeps the object's options, as releases before the reset did.
 ColumnSorting differs there by construction: its options live on a manager that `disablePlugin()` destroys. Pinned by `__tests__/settingsReset.unit.js` and `../sheetsBar/__tests__/pluginOptionReset.unit.js`.
+
+## `_getObjectSettingDefaults()` lists every option an object sets
+
+`@private`, read by the SheetsBar plugin (see `../base/AGENTS.md`). An object sets the options it names and keeps
+the others, so the override lists the default of each one: `searchResultClass`, `queryMethod` and `callback`. A new
+option of the object form must be added there, or a sheet that leaves it out keeps the previous sheet's value.

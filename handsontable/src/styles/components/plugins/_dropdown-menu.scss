@@ -368,5 +368,14 @@
     font-weight: inherit;
     letter-spacing: inherit;
     font-family: inherit;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .handsontable.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected {
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
 }

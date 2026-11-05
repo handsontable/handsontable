@@ -15,6 +15,7 @@
 import { h } from 'vue';
 import Handsontable from 'handsontable/base';
 import HotTableDefault, { HotColumn, HotTable, HotTableProps, VueProps } from '../../index';
+import { TEST_LICENSE_KEY } from '../licenseKey';
 
 /**
  * True only for `any` — `1 & T` collapses to `any`, and `0 extends any` holds,
@@ -69,7 +70,7 @@ const refreshColumns: () => void = instance.refreshColumns;
 // The public types must be importable from the entry point — before this fix
 // `index.d.ts` re-exported values only, so `HotTableProps` was unreachable even
 // in the releases that did ship declarations.
-const settings: HotTableProps = { data: [[1, 2]], rowHeaders: true, licenseKey: 'non-commercial-and-evaluation' };
+const settings: HotTableProps = { data: [[1, 2]], rowHeaders: true, licenseKey: TEST_LICENSE_KEY };
 const nestedSettings: HotTableProps['settings'] = { colHeaders: true };
 const vuePropsIsNotAny: IsAny<VueProps<{ a: 1 }>> = false;
 const vueProps: VueProps<{ readOnly: boolean }> = { readOnly: 'anything' };

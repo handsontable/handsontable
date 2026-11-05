@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a crash when a Handsontable editor class was passed to the `editor` prop of `HotTable` or `HotColumn`, and a broken editor when an editor name was passed. The editor now applies as if passed to `hotEditor`, and a console warning points to that prop.",
+  "type": "fixed",
+  "issueOrPR": 14141,
+  "breaking": false,
+  "framework": "react"
+}

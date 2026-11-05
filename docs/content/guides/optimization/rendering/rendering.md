@@ -233,7 +233,7 @@ Three methods repaint the grid, and they are not interchangeable.
 |---|---|---|
 | [`render()`](@/api/core.md#render) | Redraws the rendered cells. Leaves the configuration alone. | Cell metadata or an external value your renderer reads has changed. |
 | [`updateSettings()`](@/api/core.md#updatesettings) | Applies new configuration options, reinitializes the affected plugins, then renders. | An option, a column definition, or the data source has changed. |
-| [`refreshDimensions()`](@/api/core.md#refreshdimensions) | Re-measures the container, then resizes the grid's elements and renders when the size changed. | The container was resized while the grid was hidden. |
+| [`refreshDimensions()`](@/api/core.md#refreshdimensions) | Re-measures the container, then resizes the grid's elements and renders when the size changed. With a cell editor open, it also moves the editor onto its cell, and scrolls the cell into view first when it was not fully visible. | The container was resized while the grid was hidden. |
 
 Pick the narrowest one that does the job. [`updateSettings()`](@/api/core.md#updatesettings) does the most work of the three, so do not reach for it when a render is enough.
 

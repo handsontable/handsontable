@@ -1,12 +1,11 @@
 import Handsontable from 'handsontable/base';
 import { HotTableProps } from './types';
-import { areEquivalentSettingsValue } from './helpers';
+import { areEquivalentSettingsValue, copySettingsValue } from './helpers';
 
 /**
- * Only these settings use deep comparison when diffing props for `updateSettings(false)`. Other
- * object settings (for example `mergeCells`, `cell`, `nestedHeaders`, hooks) stay on strict
- * reference equality so we avoid expensive deep walks and accidental false positives where functions
- * or class instances would not compare meaningfully by keys alone.
+ * These settings are compared with the previous props, or for the size settings with the grid's live
+ * value, by the rules below. Every other setting but `data` is compared with a copy of the value last
+ * passed to the grid (`isSameAsForwarded()`).
  *
  * `rowHeights`, `minRowHeights` (the row height floor) and `colWidths` are here because passing any
  * of them re-declares the sizes and discards the ones the user produced by dragging
@@ -34,6 +33,76 @@ const COMPARED_AGAINST_LIVE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
  * restores the root element's initial inline size, which is what a fresh mount without the prop gives.
  */
 const CLEARED_BY_NULL_SETTINGS = new Set<string>(['height', 'width']);
+
+/**
+ * Settings forwarded on every update, changed or not. An app may change the rows of its `data` array
+ * in place and re-render to show them, and passing the array again is what reloads them.
+ */
+const ALWAYS_FORWARDED_SETTINGS: Array<keyof Handsontable.GridSettings> = ['data'];
+
+/**
+ * Settings compared by reference only. The sheets bar writes renames and added sheets into the
+ * `sheets` array it was given, so a new array is a new workbook even when its content matches, and
+ * walking every sheet's rows on each render would cost as much as the data itself. The Vue wrapper
+ * compares `sheets` the same way.
+ */
+const REFERENCE_COMPARED_SETTINGS: Array<keyof Handsontable.GridSettings> = ['sheetsBar'];
+
+/**
+ * Copies of the values last passed to the grid, by setting name. The component keeps one per grid
+ * instance and passes it to every update.
+ */
+export type ForwardedSettings = Map<string, unknown>;
+
+/**
+ * Checks whether an update would pass a setting with the value it passed last time. Passing it again
+ * is not a no-op: core re-applies the plugins it names, and a plugin re-applied with its own settings
+ * drops the state the user gave it (Filters' conditions, Pagination's page, the server total of a
+ * `dataProvider` grid, and a refetch). A React app passes every prop on each render, often as an
+ * inline object, so the value is compared by content (`areEquivalentSettingsValue()`: functions and
+ * class instances by reference). The comparison is with a copy of the value last passed, not with the
+ * grid's live value: an object the app changed in place is the same reference the grid holds, so only
+ * the copy shows the change, and with the sheets bar on the live value is the visible sheet's own.
+ *
+ * @param {string} key The setting name.
+ * @param {*} value The value the update would pass.
+ * @param {ForwardedSettings} [forwardedSettings] The values last passed to the grid.
+ * @returns {boolean}
+ */
+function isSameAsForwarded(
+  key: keyof Handsontable.GridSettings,
+  value: unknown,
+  forwardedSettings?: ForwardedSettings,
+): boolean {
+  if (!forwardedSettings?.has(key) || ALWAYS_FORWARDED_SETTINGS.includes(key)) {
+    return false;
+  }
+
+  const forwardedValue = forwardedSettings.get(key);
+
+  return REFERENCE_COMPARED_SETTINGS.includes(key) ?
+    forwardedValue === value :
+    areEquivalentSettingsValue(forwardedValue, value);
+}
+
+/**
+ * Records the value an update passes to the grid, for the next update to compare with.
+ *
+ * @param {string} key The setting name.
+ * @param {*} value The value passed.
+ * @param {ForwardedSettings} [forwardedSettings] The values last passed to the grid.
+ */
+function recordForwarded(
+  key: keyof Handsontable.GridSettings,
+  value: unknown,
+  forwardedSettings?: ForwardedSettings,
+): void {
+  if (!forwardedSettings || ALWAYS_FORWARDED_SETTINGS.includes(key)) {
+    return;
+  }
+
+  forwardedSettings.set(key, REFERENCE_COMPARED_SETTINGS.includes(key) ? value : copySettingsValue(value));
+}
 
 /**
  * Checks whether a setting is a hook, by the rule core's `updateSettings()` uses in `core.ts`: a
@@ -117,6 +186,8 @@ export class SettingsMapper {
    * @param {string[]} additionalSettings.initOnlySettingKeys Array of keys that can be set only during initialization.
    * @param {HotTableProps} additionalSettings.prevProps The component's props before the current update.
    * @param {Handsontable.GridSettings} additionalSettings.currentSettings The grid's current live settings.
+   * @param {ForwardedSettings} additionalSettings.forwardedSettings The values last passed to the grid. A
+   * setting whose value equals the one recorded there is left out, and every setting passed is recorded.
    * @returns {object} Handsontable-compatible settings object.
    */
   static getSettings(
@@ -125,12 +196,14 @@ export class SettingsMapper {
       prevProps = {},
       isInit = false,
       initOnlySettingKeys = [],
-      currentSettings
+      currentSettings,
+      forwardedSettings,
     }: {
       prevProps?: HotTableProps;
       isInit?: boolean;
       initOnlySettingKeys?: Array<keyof Handsontable.GridSettings>;
       currentSettings?: Handsontable.GridSettings;
+      forwardedSettings?: ForwardedSettings;
     } = {}): Handsontable.GridSettings {
     const shouldSkipProp = (key: keyof Handsontable.GridSettings) => {
       if (isInit) {
@@ -165,7 +238,17 @@ export class SettingsMapper {
         !isNotPassed(key as keyof HotTableProps) &&
         !shouldSkipProp(key as keyof Handsontable.GridSettings)
       ) {
-        (newSettings as any)[key] = getForwardedValue(key, properties[key as keyof HotTableProps], isInit);
+        const settingKey = key as keyof Handsontable.GridSettings;
+        const value = getForwardedValue(key, properties[key as keyof HotTableProps], isInit);
+
+        if (
+          isInit ||
+          DEEP_COMPARABLE_SETTINGS.includes(settingKey) ||
+          !isSameAsForwarded(settingKey, value, forwardedSettings)
+        ) {
+          (newSettings as any)[key] = value;
+          recordForwarded(settingKey, value, forwardedSettings);
+        }
       }
     });
 
@@ -177,6 +260,7 @@ export class SettingsMapper {
           isHookKey(key)
         ) {
           (newSettings as any)[key] = null;
+          recordForwarded(key as keyof Handsontable.GridSettings, null, forwardedSettings);
         }
       });
     }

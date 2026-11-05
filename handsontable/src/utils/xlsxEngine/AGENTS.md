@@ -557,9 +557,33 @@ directions.
   picture only when its formula calls `IMAGE` (`callsImageFunction`, decided in `#finishCell`): Excel
   Online stores `#SPILL!` and `#CALC!` of any formula as `<v>#VALUE!</v>` with a `vm` pointing at an
   `_error` rich value, and reporting `images` for them warned about a picture on every blocked spill.
-  The error type itself is not read (that needs `xl/metadata.xml` and `xl/richData`), so such a cell
-  keeps `#VALUE!` as its cached result. A shared-formula follower is judged on its translated text
-  (the decision runs after `#readFormula`), so its own `IMAGE` call counts. An `<x14:cfRule>` inside `<extLst>`
+  That guess is only the FALLBACK (DEV-3665): `read.ts` resolves each such `vm` through
+  `xl/metadata.xml` (`valueMetadata` -> `XLRICHVALUE` future metadata -> `rvb i`) and the rich-value
+  parts (`parts/richValues.ts`). An `_error` structure writes its code over the cached `#VALUE!`
+  (`formula.result` or `value`; `errorType` is Excel's `ERROR.TYPE` number minus one: 0-6 the
+  classic codes, 8-13 `#SPILL!` to `#CALC!`. Never map `#BUSY!`: `ERROR.TYPE` gives it no number,
+  and the 14 one third-party source gives it is unverified, so a guess would import a wrong code); a
+  `_localImage` or `_webimage` structure records `images`; any other structure (a linked data type)
+  or an `errorType` with no code records `cellValue:richValue` and keeps `#VALUE!`. Only when the
+  parts are missing, do not parse, or do not resolve the `vm` does the cell fall back to the guess
+  above. Indexes go through `parseUnsignedIntAttr`, the parser the sheet reads `vm` with, so one
+  index is never accepted on one side and refused on the other. Four rules: the parts are read only
+  for a sheet that has such a cell, and once per read (`OpenedPackage.richValues`, a memoized
+  promise), so a workbook that never uses them never inflates them; a workbook that declares no
+  rich-value parts passes no collector, so the parser judges its cells in place; each list is capped
+  at `MAX_WORKBOOK_CELLS` entries like the shared strings (`throwLimitExceeded`); and a part that does
+  not parse OR passes a limit answers `null`, never an error, so a damaged or huge rich-value part
+  costs the codes, not the import (the parts are optional: a workbook that read before DEV-3665 must
+  still read). That last rule needs `zip/reader.ts` `text()` to GIVE BACK a refused entry's charge
+  to the archive budget: the charge is made before the refusal, and left standing it refused the
+  next sheet over bytes no one held. The mapper puts a code HyperFormula does not know back to
+  `#VALUE!` when the Formulas plugin is on (`importFile/AGENTS.md`). The worksheet parser is synchronous, so it
+  only COLLECTS the cells (`WorksheetReadContext.richValueCells`, the cell snapshot by reference) and
+  `read.ts` patches them after the sheet; a caller that drives `parseWorksheet` alone passes no
+  collector and gets the guess, as before. The ExcelJS adapter cannot see `vm` and keeps `#VALUE!`
+  (pinned in `nativeRichValues.unit.js`, the fixture is `excel-online-rich-errors.xlsx`). A
+  shared-formula follower is judged on its translated text (the decision runs after `#readFormula`),
+  so its own `IMAGE` call counts. An `<x14:cfRule>` inside `<extLst>`
   records `conditionalFormatting:<type>` through `recordUnsupported`; `<f t="dataTable">` records
   `formula:dataTable` and keeps the cached values; a `t="s"` index that resolves to nothing records
   `cellValue:sharedString`. A `<conditionalFormatting>` block left with no rule is not pushed, so
