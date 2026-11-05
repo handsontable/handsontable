@@ -1035,7 +1035,20 @@ export default (): Record<string, unknown> => {
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
-     * It takes the following parameters:
+     *
+     * Handsontable merges the object that `cells` returns into the cell's meta. It doesn't replace the meta.
+     * A key that the function returned before and doesn't return now keeps its last value.
+     * For example, a cell stays `readOnly: true` after `cells` returns `{}`.
+     * To avoid this, return the value for every key on every call (for example, `readOnly: false`).
+     * Or, outside the `cells` function, call [`removeCellMeta()`](@/api/core.md#removecellmeta)
+     * with the cell's visual coordinates to remove the key. The key comes back if `cells` returns it again.
+     * The meta resets in two cases. Any [`updateSettings()`](@/api/core.md#updatesettings) call
+     * that carries `cells`, `cell`, or `columns` resets it. In React, that happens when you pass `cells`
+     * as a new function. A row that scrolls more than one viewport out of view and back also resets it,
+     * unless the cell has meta you set with `setCellMeta()` or the `cell` option, or is marked invalid.
+     * Horizontal scrolling doesn't reset it.
+     *
+     * `cells` takes the following parameters:
      *
      * | Parameter | Required | Type             | Description                                                                                                                                                                                                                                                                                                                             |
      * | --------- | -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -3982,6 +3995,9 @@ export default (): Record<string, unknown> => {
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default), the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the left-hand edge of the grid.
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the right-hand edge of the grid.
+     *
+     * Hidden columns count toward `fixedColumnsStart`. With `fixedColumnsStart: 3` and column 1 hidden by
+     * [`HiddenColumns`](@/api/hiddenColumns.md), the grid freezes 2 visible columns.
      *
      * ::: tip
      * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).

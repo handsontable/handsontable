@@ -8701,9 +8701,12 @@ export default function Core(
    * Validates every cell in the data set,
    * using a [validator function](@/guides/cell-functions/cell-validator/cell-validator.md) configured for each cell.
    *
-   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md),
-   * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md)
+   * or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
+   *
+   * Does validate rows hidden with [`HiddenRows`](@/api/hiddenRows.md) and columns hidden with
+   * [`HiddenColumns`](@/api/hiddenColumns.md). Those cells stay in the data set.
    *
    * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
    * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
