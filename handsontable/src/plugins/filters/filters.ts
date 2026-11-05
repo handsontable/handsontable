@@ -605,7 +605,7 @@ export class Filters extends BasePlugin {
    */
   #hasRowsFoldedInFilterScope(): boolean {
     return (this.hot.rowIndexMapper.trimmingMapsCollection.get() as TrimmingMap[])
-      .some(map => map.keepsRowsInFilterScope && map.getValues().includes(true));
+      .some(map => map.keepsRowsInFilterScope && !map.isAllDefault() && map.getValues().includes(true));
   }
 
   /**

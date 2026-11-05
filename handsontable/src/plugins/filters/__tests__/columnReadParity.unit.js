@@ -439,6 +439,15 @@ describe('Filters -> column read parity', () => {
         ]);
       });
 
+      it('should not materialize the collapse map when nothing is collapsed', () => {
+        const filters = buildTree();
+        const getValues = jest.spyOn(hot.getPlugin('nestedRows').collapsedRowsMap, 'getValues');
+
+        filters._getValueListDataAtColumn(0);
+
+        expect(getValues).not.toHaveBeenCalled();
+      });
+
       it('should list a value that only a deep child of the last parent holds', () => {
         const filters = buildTree();
 
