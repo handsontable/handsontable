@@ -22,6 +22,7 @@ angular:
 vue:
 searchCategory: Recipes
 category: Themes
+menuTag: updated
 ---
 
 This tutorial shows you how to integrate Handsontable into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
@@ -61,7 +62,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Base
 Install Handsontable and the React wrapper in your project root:
 
 ```bash
-pnpm add handsontable@0.0.0-next-deba76c-20260408 @handsontable/react-wrapper@0.0.0-next-deba76c-20260408
+pnpm add handsontable @handsontable/react-wrapper
 ```
 
 If you are creating a new Base setup, install Base Web and Styletron as well:
@@ -83,7 +84,7 @@ registerAllModules();
 
 ## Step 3: Map Base design tokens to Handsontable colors
 
-Create a colors object that maps Handsontable color keys to your Base CSS variables.
+Create a colors object that maps Handsontable color keys to your Base CSS variables. The `palette` runs from light to dark: Horizon uses `palette.700` for cell text and the upper end of the scale for dark accents, such as the editor text and the active header background.
 
 **File: `src/theme/colorsBase.ts`**
 
@@ -101,8 +102,8 @@ export const colorsBase = {
     400: 'var(--bds-content-tertiary)',
     500: 'var(--bds-content-secondary)',
     600: 'var(--bds-content-primary)',
-    700: 'var(--bds-content-inverse-secondary)',
-    800: 'var(--bds-content-inverse-primary)',
+    700: 'var(--bds-content-primary)',
+    800: 'var(--bds-background-inverse-secondary)',
     900: 'var(--bds-background-inverse-primary)',
     950: 'var(--bds-background-inverse-secondary)',
   },
@@ -133,8 +134,10 @@ import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 
 For most Base Web integrations, start with the built-ins and only override shape and spacing tokens:
 
+**File: `src/theme/baseThemeTokenOverrides.ts`**
+
 ```tsx
-const baseThemeTokenOverrides = {
+export const baseThemeTokenOverrides = {
   borderRadius: 'var(--bds-radius-200)',
   buttonBorderRadius: 'var(--bds-radius-200)',
   menuBorderRadius: 'var(--bds-radius-300)',
@@ -146,6 +149,8 @@ const baseThemeTokenOverrides = {
 
 Create and register your theme, then pass it to `HotTable`.
 
+`.setColorScheme('light')` makes the grid use Horizon's light token set with your Base variables. Without it, the theme follows the operating system's color scheme, and a visitor in dark mode gets a dark grid in a light app.
+
 ```tsx
 import React from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
@@ -154,6 +159,7 @@ import { registerAllModules } from 'handsontable/registry';
 import iconsMain from 'handsontable/themes/static/variables/icons/main';
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 import { colorsBase } from './theme/colorsBase';
+import { baseThemeTokenOverrides } from './theme/baseThemeTokenOverrides';
 
 registerAllModules();
 
@@ -162,13 +168,8 @@ const baseDataGridTheme = registerTheme('base-data-grid', {
   colors: colorsBase,
   tokens: tokensHorizon,
 }).params({
-  tokens: {
-    borderRadius: 'var(--bds-radius-200)',
-    buttonBorderRadius: 'var(--bds-radius-200)',
-    menuBorderRadius: 'var(--bds-radius-300)',
-    inputBorderRadius: 'var(--bds-radius-200)',
-  },
-});
+  tokens: baseThemeTokenOverrides,
+}).setColorScheme('light');
 
 const data = [
   { name: 'Alice', role: 'Designer', location: 'New York', active: true },
@@ -222,9 +223,9 @@ This keeps the grid aligned with system-level style updates and avoids one-off C
 
 ## Related
 
-- [Themes](/themes) - Built-in themes and Theme API.
+- [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
-- [Design system (Figma)](/handsontable-design-system) - Figma kit and design tokens.
+- [Design system (Figma)](@/guides/styling/design-system/design-system.md) - Figma kit and design tokens.
 
 ## What you learned
 
