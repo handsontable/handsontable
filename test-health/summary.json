@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-05T09:30:59.519Z",
+  "generatedAt": "2026-11-05T09:34:56.693Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,9 +11,46 @@
     "tests": 431,
     "needsTicket": 26,
     "quarantined": 0,
-    "entries": 2244
+    "entries": 2246
   },
   "rows": [
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-2",
+      "count7": 2,
+      "count30": 22,
+      "countAll": 22,
+      "runs30": 7,
+      "flakyRuns30": 0,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-05T09:34:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/41930529023",
+        "branch": "feature/DEV-3653_Sheets-bar-retest-fixes",
+        "leg": "js/chromium-theme-main-dark",
+        "status": "failed",
+        "error": "differs from base/develop (pr tier); render sha256 601bcab03d12",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
     {
       "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
       "tier": "visual",
@@ -47,43 +84,6 @@
         "leg": "js/chromium-theme-main",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 082cba487624",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-2",
-      "count7": 0,
-      "count30": 20,
-      "countAll": 20,
-      "runs30": 6,
-      "flakyRuns30": 0,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-20T11:10:08Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39397571600",
-        "branch": "feature/PRO-1340_Animate-sheet-switching",
-        "leg": "js/chromium-theme-main",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 821aea047fcb",
         "source": "ci"
       },
       "needsTicket": true
