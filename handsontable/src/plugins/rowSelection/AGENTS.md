@@ -290,7 +290,10 @@ a projection of it for the loaded page:
 - **The selected-row color is the `rowSelectionBackgroundColor` token** (`--ht-row-selection-background-color`),
   a semi-transparent accent per theme. In Figma it is `component/rows/row-selection-background-color` in
   the `themes` collection, aliasing `<theme>/custom/row-selection` in the `mode` collection (light/dark
-  RGBA). The key is in `scripts/themes/figma/tokensKeys.mjs`, so `generate:themes-static` keeps it.
+  RGBA literals, not aliases of the `colors` primitives, which are opaque). The key is in
+  `scripts/themes/figma/tokensKeys.mjs`, and the generator keeps it only because `processReference`
+  accepts a literal light or dark value in a `mode` reference: before that, a regeneration dropped
+  `--ht-row-selection-background-color` from every theme without a warning.
 - **The `:indeterminate` dash icon** (`collapseOff`) matches the Figma checkbox component (node 13:1313,
   "Selection=Indeterminate"). It lives in the generator (`scripts/themes/figma/utils/helpers/iconsMap.mjs`
   and `templates/iconsMap.ts`, which `__tests__/iconsMap.test.mjs` keeps identical) and in the generated

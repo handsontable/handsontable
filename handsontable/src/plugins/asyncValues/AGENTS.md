@@ -313,11 +313,14 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   hidden text is part of `TD.textContent` (E2E text assertions include it). Known leaks of that text: AutoLink reads
   `TD.textContent`, so when it is enabled AFTER this plugin its `afterRenderer` runs later and links a URL in
   the message; Formulas `showFormulas` repaints the content and drops the span (the `title` stays).
-- **The three theme tokens are not in Figma yet.** `asyncIndicatorColor`, `asyncErrorBackgroundColor` and
-  `asyncErrorMarkerColor` alias `accentColor`, `cellErrorBackgroundColor` and `notificationErrorAccent` in `themes/static/variables/tokens/{main,classic,horizon}.ts` and
-  in the six static theme CSS files, which are edited by hand, with a "not in Figma yet" note in
-  `scripts/themes/figma/tokensKeys.mjs` (the freezeBar tokens are the precedent). Once the design file defines
-  them, a `generate:themes` run must keep the same alias. The stylesheet falls back to the aliased variables
+- **The three theme tokens come from Figma.** `asyncIndicatorColor`, `asyncErrorBackgroundColor` and
+  `asyncErrorMarkerColor` alias `accentColor`, `cellErrorBackgroundColor` and `notificationErrorAccent`. In the
+  design file they are `component/async-values/*` in the `themes` collection, aliasing
+  `common/colors/accent-color`, `component/cell/states/cell-error-background-color` and
+  `component/notification/notification-error-accent` in every theme, and they reach
+  `themes/static/variables/tokens/{main,classic,horizon}.ts` and the six static theme CSS files through
+  `npm run generate:themes`. Change them in Figma first, never in the static files
+  (`src/themes/__tests__/asyncValuesTokens.unit.js` pins the aliases). The stylesheet falls back to the aliased variables
   (`var(--ht-async-indicator-color, var(--ht-accent-color))`), so a custom theme built from an older token set
   still paints both states. The E2E spec sets both variables to values no theme uses, which is what proves the
   rules read them.
