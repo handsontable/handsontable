@@ -247,6 +247,13 @@ export class ColumnSorting extends BasePlugin {
    */
   #syncIcon = createTrackedIconSync();
   /**
+   * Whether the plugin has been on at least once, so a header can still hold its sort markup. Until
+   * then the header hook that clears the markup while the plugin is off has nothing to do.
+   *
+   * @type {boolean}
+   */
+  #mayHaveMarkedHeaders = false;
+  /**
    * Main settings key designed for the plugin.
    *
    * @private
@@ -270,6 +277,19 @@ export class ColumnSorting extends BasePlugin {
    * @type {null|IndexesSequence}
    */
   #sortedRowOrder: IndexesSequence | null = null;
+
+  /**
+   * Registers the header hook that clears the sort markup while the plugin is off. It outlives every
+   * disable, because a header the plugin marked can be drawn again at any later render, also on another
+   * header level.
+   *
+   * @param {HotInstance} hotInstance The Handsontable instance.
+   */
+  constructor(hotInstance: HotInstance) {
+    super(hotInstance);
+
+    this.hot.addHook('afterGetColHeader', this.#onAfterGetColHeaderWhileDisabled);
+  }
 
   /**
    * Returns the value each column property an object setting sets takes when the object leaves it out: an
@@ -323,6 +343,8 @@ export class ColumnSorting extends BasePlugin {
 
     pluginConflictsState.set(this.hot, this.pluginKey);
 
+    this.#mayHaveMarkedHeaders = true;
+
     this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
     this.columnMetaCache = this.hot.columnIndexMapper.createAndRegisterIndexMap(
       `${this.pluginKey}.columnMeta`,
@@ -366,32 +388,9 @@ export class ColumnSorting extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
-    const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
-      const headerSpanElement = getHeaderSpanElement(TH);
-
-      if (isFirstLevelColumnHeader(column, TH) === false || headerSpanElement === null) {
-        return;
-      }
-
-      this.updateHeaderClasses(headerSpanElement);
-      this.#syncIndicatorReserve(headerSpanElement);
-
-      const container = headerSpanElement.parentElement;
-
-      if (container) {
-        this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
-      }
-    };
-
     if (pluginConflictsState.get(this.hot) === this.pluginKey) {
       pluginConflictsState.delete(this.hot);
     }
-
-    // Changing header width and removing indicator.
-    this.hot.addHook('afterGetColHeader', clearColHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetColHeader', clearColHeader);
-    });
 
     this.hot.batchExecution(() => {
       if (this.indexesSequenceCache !== null) {
@@ -1189,7 +1188,13 @@ export class ColumnSorting extends BasePlugin {
   #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement) => {
     const headerSpanElement = getHeaderSpanElement(TH);
 
-    if (isFirstLevelColumnHeader(column, TH) === false || headerSpanElement === null) {
+    if (column < 0 || headerSpanElement === null) {
+      return;
+    }
+
+    if (isFirstLevelColumnHeader(column, TH) === false) {
+      this.#clearSortMarkup(headerSpanElement);
+
       return;
     }
 
@@ -1232,6 +1237,46 @@ export class ColumnSorting extends BasePlugin {
       setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }
   };
+
+  /**
+   * Callback for the `afterGetColHeader` hook while the plugin is off. Clears the sort markup a
+   * header keeps from the time the plugin was on. A header is reused between renders, and a
+   * `nestedHeaders` change moves the previous bottom level up, so every header level is cleared.
+   * Another sorting plugin that is on owns the same classes, so nothing is cleared then.
+   *
+   * @param {number} column Visual column index.
+   * @param {HTMLTableCellElement} TH The header element.
+   */
+  #onAfterGetColHeaderWhileDisabled = (column: number, TH: HTMLTableCellElement) => {
+    if (!this.#mayHaveMarkedHeaders || this.enabled || column < 0 || pluginConflictsState.has(this.hot)) {
+      return;
+    }
+
+    const headerSpanElement = getHeaderSpanElement(TH);
+
+    if (headerSpanElement !== null) {
+      this.#clearSortMarkup(headerSpanElement);
+    }
+  };
+
+  /**
+   * Removes the sort classes, the indicator reserve, and the sort indicator from a header. The
+   * indicator is removed only from a header this instance drew it in (`#syncIcon` tracks them), so
+   * the clear must not be skipped when another sorting plugin's instance already removed the
+   * classes: the indicator that instance cannot see is this one's.
+   *
+   * @param {HTMLElement} headerSpanElement The header label element.
+   */
+  #clearSortMarkup(headerSpanElement: HTMLElement) {
+    this.updateHeaderClasses(headerSpanElement);
+    this.#syncIndicatorReserve(headerSpanElement);
+
+    const container = headerSpanElement.parentElement;
+
+    if (container) {
+      this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
+    }
+  }
 
   /**
    * Update header classes.
