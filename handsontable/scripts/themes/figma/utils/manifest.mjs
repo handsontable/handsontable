@@ -14,7 +14,8 @@ function hashContent(content) {
 }
 
 /**
- * Lists every file under a directory, recursively, as paths relative to it.
+ * Lists every file under a directory, recursively, as paths relative to it. Dotfiles and dot
+ * directories (`.DS_Store` from Finder, for example) are skipped: the generator never writes one.
  *
  * @param {string} dir The directory to walk.
  * @param {string} [root] The directory the returned paths are relative to.
@@ -22,6 +23,10 @@ function hashContent(content) {
  */
 function listFiles(dir, root = dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.name.startsWith('.')) {
+      return [];
+    }
+
     const fullPath = join(dir, entry.name);
 
     if (entry.isDirectory()) {

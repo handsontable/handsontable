@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { buildManifest, hashContent, writeManifest } from '../utils/manifest.mjs';
 
 /**
@@ -38,6 +38,18 @@ test('buildManifest hashes every file recursively, keyed by a sorted relative pa
   assert.equal(manifest['variables/tokens/main.ts'], hashContent('const a = 1;\n'));
 });
 
+test('buildManifest skips dotfiles such as a .DS_Store that Finder creates', (t) => {
+  const dir = makeTree({
+    'css/.DS_Store': 'finder\n',
+    '.hidden/a.css': 'x\n',
+    'css/a.css': 'y\n',
+  });
+
+  t.after(() => rmSync(dir, { recursive: true }));
+
+  assert.deepEqual(Object.keys(buildManifest(dir)), ['css/a.css']);
+});
+
 test('hashContent ignores CRLF line endings, so an autocrlf checkout matches the manifest', () => {
   assert.equal(hashContent('a\r\nb\r\n'), hashContent('a\nb\n'));
 });
@@ -48,7 +60,7 @@ test('hashContent changes when one character of a value changes', () => {
 
 test('writeManifest writes the manifest as JSON that buildManifest reproduces', (t) => {
   const dir = makeTree({ 'a.css': 'x\n' });
-  const manifestPath = join(dir, '..', `${dir.split('/').pop()}.json`);
+  const manifestPath = join(dir, '..', `${basename(dir)}.json`);
 
   t.after(() => {
     rmSync(dir, { recursive: true });

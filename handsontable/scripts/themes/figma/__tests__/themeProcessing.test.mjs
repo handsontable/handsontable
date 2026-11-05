@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { processTokenValue } from '../utils/themeProcessing.mjs';
+import { findUnresolvedTokens, processTokenValue } from '../utils/themeProcessing.mjs';
+import { tokensKeys } from '../tokensKeys.mjs';
 
 test('processTokenValue drops an unresolved {mode.*} reference instead of emitting the raw literal', () => {
   // Empty themes → the mode ref resolves to neither variant → processReference returns null.
@@ -75,4 +76,20 @@ test('processTokenValue returns null for a found node that has no value', () => 
 test('processTokenValue passes plain literals through formatValue', () => {
   assert.equal(processTokenValue('fontSize', { value: 14 }, {}), '14px');
   assert.equal(processTokenValue('fontFamily', { value: 'Inter' }, {}), 'Inter');
+});
+
+test('findUnresolvedTokens lists, per theme, the tokensKeys entries a stale export did not resolve', () => {
+  const complete = Object.fromEntries(tokensKeys.map(key => [key, 'x']));
+  const { 'row-selection-background-color': dropped, ...stale } = complete;
+
+  assert.equal(dropped, 'x');
+  assert.deepEqual(findUnresolvedTokens({ main: complete, classic: stale }), [
+    { theme: 'classic', keys: ['row-selection-background-color'] },
+  ]);
+});
+
+test('findUnresolvedTokens returns nothing when every theme resolves every key', () => {
+  const complete = Object.fromEntries(tokensKeys.map(key => [key, 'x']));
+
+  assert.deepEqual(findUnresolvedTokens({ main: complete, horizon: complete }), []);
 });

@@ -282,4 +282,18 @@ function generateAllVariables(themes) {
   return { themeVariables };
 }
 
-export { generateAllVariables, processTokenValue };
+/**
+ * Lists the `tokensKeys` entries a theme did not resolve. `processThemeTokens` drops such a key
+ * silently, so a stale or incomplete `tokens.json` would otherwise delete public CSS variables from
+ * the committed themes and still report success.
+ *
+ * @param {Record<string, object>} themeTokens The processed tokens per theme (`themeVariables.tokens`).
+ * @returns {Array<{ theme: string, keys: string[] }>} One entry per theme with unresolved keys.
+ */
+function findUnresolvedTokens(themeTokens) {
+  return Object.entries(themeTokens)
+    .map(([theme, tokens]) => ({ theme, keys: tokensKeys.filter(key => !(key in tokens)) }))
+    .filter(({ keys }) => keys.length > 0);
+}
+
+export { findUnresolvedTokens, generateAllVariables, processTokenValue };
