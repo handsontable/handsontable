@@ -12,7 +12,7 @@
       "id": "loading-shows",
       "action": {"call": ["htShowLoading"]},
       "expect": [["loading"]],
-      "note": "The application starts a load while the user is in the grid, and the loading overlay takes the focus: an `alertdialog` named `Loading...`, which a reader should say. The page's own overlay, shown on load, is hidden in the setup. The scenario starts on the page (`start: page`): the page's first item is the `Input` field. VoiceOver with WebKit said nothing on this first step, and read the overlay when it showed again."
+      "note": "The application starts a load while the user is in the grid, and the loading overlay takes the focus: an `alertdialog` named `Loading...`, which a reader should say. The page's own overlay, shown on load, is hidden in the setup. The scenario starts on the page (`start: page`): the page's first item is the `Input` field. VoiceOver with WebKit said nothing on this first step in some runs, and read the overlay when it showed again."
     },
     {
       "id": "arrow-down-while-loading",

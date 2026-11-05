@@ -36,7 +36,7 @@
       "id": "enter-last-page",
       "action": {"press": "Enter"},
       "expect": [["page 10 of 10"], ["go to previous page"]],
-      "note": "Enter goes to the last page, which disables the next and last page buttons, so the plugin hands the focus to the previous page button. A reader says the page and the button the focus landed on. Finding: VoiceOver with WebKit says only the page, not the button."
+      "note": "Enter goes to the last page, which disables the next and last page buttons, so the plugin hands the focus to the previous page button. A reader says the page and the button the focus landed on. Finding: VoiceOver says only the page, not the button: WebKit on every run, Chromium on some."
     },
     {
       "id": "enter-previous-page",

@@ -12,7 +12,7 @@
       "id": "arrow-right-pending",
       "action": {"press": "ArrowRight"},
       "expect": [["old a"], ["loading"]],
-      "note": "Two requests are out for the Name column, rows 1 and 2. The cell keeps its old value, `Old A`, and carries the visually hidden text `Loading...`, because no common reader says `aria-busy` on a cell. VoiceOver with WebKit said nothing on this first key, as on the first key of other scenarios."
+      "note": "Two requests are out for the Name column, rows 1 and 2. The cell keeps its old value, `Old A`, and carries the visually hidden text `Loading...`, because no common reader says `aria-busy` on a cell. VoiceOver said nothing on this first key in some runs, with WebKit and with Chromium, as on the first key of other scenarios."
     },
     {
       "id": "value-resolves",
