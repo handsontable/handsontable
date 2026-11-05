@@ -358,6 +358,11 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
      * @memberof ShortcutManager#
      */
     destroy: () => {
+      // `unmount()` releases a listener count shared by every manager of the document, so it runs once.
+      if (isManagerDestroyed) {
+        return;
+      }
+
       isManagerDestroyed = true;
       keyRecorder.unmount();
     },

@@ -13,8 +13,11 @@ export const command = {
 
     editorManager.closeEditorAndSaveChanges();
 
-    // A listener of the save (`beforeChange`, `beforeValidate`, ...) destroyed the grid.
+    // A listener of the save (`beforeChange`, `beforeValidate`, ...) destroyed the grid. The key
+    // still claims its default action, as it does for a grid that stays.
     if (hot.isDestroyed) {
+      event.preventDefault();
+
       return;
     }
 

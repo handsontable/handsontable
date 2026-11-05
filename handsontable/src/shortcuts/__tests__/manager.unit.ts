@@ -34,6 +34,16 @@ afterEach(() => {
   managers = [];
 });
 
+/**
+ * Dispatches a key on the document, the way the recorder receives it.
+ *
+ * @param {string} key - The `KeyboardEvent.key` value to send.
+ * @param {object} [init] - Extra `KeyboardEvent` init options (modifier flags).
+ */
+function pressKey(key: string, init: KeyboardEventInit = {}) {
+  document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...init }));
+}
+
 describe('Shortcut Manager', () => {
   describe('`setActiveContextName`', () => {
     it('should throw an error when the context has been not registered yet', () => {
@@ -49,15 +59,6 @@ describe('Shortcut Manager', () => {
   });
 
   describe('fallback context chain', () => {
-    /**
-     * Dispatches a key on the document, the way the recorder receives it.
-     *
-     * @param {string} key - The `KeyboardEvent.key` value to send.
-     */
-    function pressKey(key: string) {
-      document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
-    }
-
     it('should run the fallback context\'s shortcut when the active one does not define the keys', () => {
       const gridSpy = jasmine.createSpy('gridUndo');
       const manager = createTestManager();
@@ -298,16 +299,6 @@ describe('Shortcut Manager', () => {
   });
 
   describe('destroyed from a shortcut callback', () => {
-    /**
-     * Dispatches a key on the document, the way the recorder receives it.
-     *
-     * @param {string} key - The `KeyboardEvent.key` value to send.
-     * @param {object} [init] - Extra `KeyboardEvent` init options (modifier flags).
-     */
-    function pressKey(key: string, init: KeyboardEventInit = {}) {
-      document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...init }));
-    }
-
     it('should not run the later shortcuts registered for the same keys', () => {
       const laterSpy = jasmine.createSpy('later');
       const manager = createTestManager();

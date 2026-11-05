@@ -190,7 +190,7 @@ describe('Core validation when the grid is destroyed from a validation callback'
         ['existing rows', [[0, 0, 'x'], [1, 1, 'y']]],
         ['a row the write creates', [[0, 0, 'x'], [2, 1, 'new']]],
       ].forEach(([target, changes]) => {
-        it(`should end an edit of ${target} quietly when an afterChange listener of the validated change destroys the grid`, async() => {
+        it(`should end an edit of ${target} quietly when an afterChange listener of the validated change destroys the grid (no cell selected)`, async() => {
           const afterChange = jest.fn((afterChanges, source) => {
             if (source === 'edit') {
               core.destroy();
