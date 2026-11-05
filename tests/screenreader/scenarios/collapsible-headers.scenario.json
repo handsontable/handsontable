@@ -11,7 +11,7 @@
       "id": "arrow-up-to-lower-header",
       "action": {"press": "ArrowUp"},
       "expect": [["b"], ["column header"]],
-      "note": "The page's grid has no navigable headers, so the setup turns them on: the keyboard path to a collapse is through the header. ArrowUp from B1 reaches the lower header of column B, `b`. Finding (known): VoiceOver says nothing on the first arrow key of the page, with both browsers."
+      "note": "The page's grid has no navigable headers, so the setup turns them on: the keyboard path to a collapse is through the header. ArrowUp from B1 reaches the lower header of column B, `b`. Finding (known): VoiceOver says nothing on the first arrow key of the page in some runs. VoiceOver says no header role, as in grid-core: VoiceOver's behavior."
     },
     {
       "id": "arrow-up-to-group",
