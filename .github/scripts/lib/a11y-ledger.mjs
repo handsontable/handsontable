@@ -4,7 +4,7 @@
  * Every weeknight the `A11y nightly` leaves one evidence document per check beyond axe
  * (`a11y-checks-evidence`, `tests/lib/a11y-evidence.mjs`) and the axe scan's findings
  * (`a11y-axe-results`, `tests/lib/a11y-findings.mjs`), and the `Screen reader nightly` leaves one
- * transcript per scenario and project (`screenreader-transcripts-<project>`,
+ * transcript per scenario and project (`screenreader-transcripts-<project>-<group>`,
  * `tests/lib/screenreader-transcript.mjs`). A raw night holds thousands of records, most of them the
  * same few defects on many pages, and nothing used to accumulate across nights or deduplicate across
  * checks. This module turns a night's artifacts into findings keyed so that a finding keeps its
@@ -52,6 +52,7 @@ import {
   findingShape,
   maskSelector,
 } from '../../../tests/lib/a11y-issues.mjs';
+import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 
 export const A11Y_VERSION = 1;
 /**
@@ -93,6 +94,22 @@ export const A11Y_AXE_ARTIFACT = 'a11y-axe-results';
 export const A11Y_AXE_FILE = 'a11y-findings.json';
 export const A11Y_AXE_SCHEMA = 1;
 export const READER_ARTIFACT_PREFIX = 'screenreader-transcripts-';
+/**
+ * The project a reader artifact holds. The lane runs one job per project and scenario group
+ * (`SCENARIO_GROUPS`), each uploading `screenreader-transcripts-<project>-<group>`, so the group is cut off
+ * the name; a name without a group (`screenreader-transcripts-<project>`, the lane before the split) is
+ * read as it is. Reading the whole rest as the project named no transcript's project, and every one was
+ * skipped.
+ *
+ * @param {string} artifact The artifact name.
+ * @returns {string} The project.
+ */
+export function readerArtifactProject(artifact) {
+  const name = artifact.slice(READER_ARTIFACT_PREFIX.length);
+  const group = SCENARIO_GROUPS.find(item => name.endsWith(`-${item}`));
+
+  return group === undefined ? name : name.slice(0, -(group.length + 1));
+}
 /**
  * Where the transcripts sit inside a reader artifact: `tests/screenreader/screenreader.spec.ts` writes
  * `test-results/screenreader/transcripts/<project>--<scenario>.json`, and the upload strips the common
@@ -539,7 +556,7 @@ function readAxe(file, label, night, notes) {
  * @param {string[]} notes Where a note goes.
  */
 function readTranscript(file, label, night, notes) {
-  const project = file.artifact.slice(READER_ARTIFACT_PREFIX.length);
+  const project = readerArtifactProject(file.artifact);
 
   if (!PROJECT.test(project) || project.length > 40) {
     notes.push(`${file.artifact}: not a project name, skipped`);
@@ -724,7 +741,7 @@ function emptyNight(source) {
 /**
  * The nights a run's accessibility artifacts hold: the a11y night (the check documents at the evidence
  * artifact's root and the findings at the axe artifact's root) and the reader night (the transcripts of
- * every `screenreader-transcripts-<project>` artifact). Everything else in those artifacts (the per-test
+ * every `screenreader-transcripts-<project>-<group>` artifact). Everything else in those artifacts (the per-test
  * folders, the detail files, the comparison, the scans, the logs) is ignored. A file that does not parse,
  * does not validate or is over the cap is skipped with a note, and the rest of the night is read.
  *

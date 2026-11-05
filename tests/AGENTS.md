@@ -1999,7 +1999,7 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   records of the same rule land together.
 - **The sample is a real night, deduplicated.** To refresh it after a check changes what it records, run the
   collector over the night's artifacts (`gh run download <run id> -n a11y-checks-evidence -n a11y-axe-results`,
-  and the `screenreader-transcripts-<project>` artifacts of a reader nightly), read them with
+  and the `screenreader-transcripts-<project>-<group>` artifacts of a reader nightly), read them with
   `readA11yArtifacts()` and keep one row per `findingShape()` (`source|check|kind|rule|cause|page|where`),
   the fields the matcher reads plus `theme`, `criteria`, `issue` and `severity`; say in `about` which runs it
   came from.

@@ -30,6 +30,7 @@ import {
   isA11yRun,
   mergeA11yLedger,
   readA11yArtifacts,
+  readerArtifactProject,
   renderA11yLine,
   serializeA11yLedger,
 } from '../lib/a11y-ledger.mjs';
@@ -44,6 +45,7 @@ import {
 } from '../lib/test-health.mjs';
 import { ISSUES_SCHEMA, TRIAGE_ID, compileIssuesCatalog } from '../../../tests/lib/a11y-issues.mjs';
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA } from '../../../tests/lib/a11y-evidence.mjs';
+import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, steps } from '../lib/workflow-text.mjs';
 
@@ -240,10 +242,10 @@ function nightlyFiles(docs = {}) {
  */
 function readerFiles(docs = {}) {
   const files = {
-    [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`]: transcript('nvda-chromium', 'grid-core', GRID_CORE),
-    [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`]: transcript('nvda-chromium', 'nested-rows',
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`]: transcript('nvda-chromium', 'grid-core', GRID_CORE),
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`]: transcript('nvda-chromium', 'nested-rows',
       [['collapse-parent', null], ['down-to-child', ['level 2', '1 of 3']]]),
-    [`${READER_ARTIFACT_PREFIX}nvda-chromium/screenreader-grid-core-nvda-chromium/attachments/transcript-94f4.json`]: transcript('nvda-chromium', 'grid-core', GRID_CORE),
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/screenreader-grid-core-nvda-chromium/attachments/transcript-94f4.json`]: transcript('nvda-chromium', 'grid-core', GRID_CORE),
     [`${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`]: transcript('vo-webkit', 'grid-core',
       [['arrow-right', ['row 2', 'column 3']], ['close-editor', null], ['open-context-menu', null]],
       { golden: { status: 'differs', differences: [{ id: 'open-context-menu', expected: 'menu table', actual: 'table' }] } }),
@@ -266,6 +268,13 @@ const nightOf = (files) => {
 };
 const rowsByKind = (doc, kind) => doc.rows.filter(row => row.kind === kind);
 const statusOf = (doc, key) => doc.rows.find(row => row.key === key)?.status;
+
+test('a reader artifact names its project, with or without the scenario group its job ran', () => {
+  assert.equal(readerArtifactProject(`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard`), 'nvda-chromium');
+  assert.equal(readerArtifactProject(`${READER_ARTIFACT_PREFIX}vo-webkit-reading`), 'vo-webkit');
+  assert.equal(readerArtifactProject(`${READER_ARTIFACT_PREFIX}vo-webkit`), 'vo-webkit', 'a name from before the split');
+  SCENARIO_GROUPS.forEach(group => assert.equal(readerArtifactProject(`${READER_ARTIFACT_PREFIX}nvda-firefox-${group}`), 'nvda-firefox', group));
+});
 
 test('classifyA11yArtifact knows the three families, and the flake collector files them under one tier', () => {
   assert.equal(classifyA11yArtifact(A11Y_EVIDENCE_ARTIFACT), 'checks');
@@ -323,8 +332,8 @@ test('collectArtifactFiles hands the a11y family over unparsed, root documents a
     `${A11Y_EVIDENCE_ARTIFACT}/axe-discovery.json`,
     `${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker.json`,
     `${A11Y_EVIDENCE_ARTIFACT}/tree-snapshots.json`,
-    `${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`,
-    `${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`,
+    `${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`,
+    `${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`,
     `${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`,
   ], 'the per-test folders, the comparison and the scans are not read');
 });
@@ -430,7 +439,7 @@ test('readA11yArtifacts refuses what it cannot trust, one note each, and keeps t
       [`${A11Y_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: { ...AXE_DOC, schema: 2 },
     }),
     ...readerFiles({
-      [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`]: transcript('nvda-firefox', 'nested-rows', []),
+      [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`]: transcript('nvda-firefox', 'nested-rows', []),
       [`${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`]: transcript('vo-webkit', 'grid-core', [['x'.repeat(200), ['a']]]),
       [`${READER_ARTIFACT_PREFIX}Bad Project/${READER_TRANSCRIPTS_DIR}/x.json`]: transcript('Bad Project', 'grid-core', []),
     }),
@@ -576,7 +585,7 @@ test('a transcript covers its golden rows only when its wording was compared wit
 test('a project or scenario named like an Object property stays the night\'s own data', () => {
   const files = readerFiles({
     [`${READER_ARTIFACT_PREFIX}constructor/${READER_TRANSCRIPTS_DIR}/constructor--grid-core.json`]: transcript('constructor', 'grid-core', GRID_CORE),
-    [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--constructor.json`]: transcript('nvda-chromium', 'constructor',
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--constructor.json`]: transcript('nvda-chromium', 'constructor',
       [['arrow-right', ['row 2']]]),
   });
   const { nights: [read], notes } = readA11yArtifacts(files);
@@ -788,7 +797,7 @@ test('a reader night touches only reader rows, and the two sources keep their ow
   // that passes now is resolved.
   const next = mergeA11yLedger(reader.doc, nightOf(readerFiles({
     [`${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`]: null,
-    [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`]: transcript('nvda-chromium', 'grid-core',
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`]: transcript('nvda-chromium', 'grid-core',
       [['arrow-right', null], ['close-editor', null], ['open-context-menu', ['menu']]]),
   })), runContextFromRun({ ...READER_RUN, id: 41579999999, updated_at: night(1) }), CATALOG, { now: new Date(night(1)) });
 
@@ -802,7 +811,7 @@ test('a reader night touches only reader rows, and the two sources keep their ow
   const stopped = mergeA11yLedger(next.doc, nightOf(readerFiles({
     [`${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`]: transcript('vo-webkit', 'grid-core',
       [['arrow-right', null]], { incomplete: { step: 'close-editor', error: 'VoiceOver did not answer' } }),
-    [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`]: transcript('nvda-chromium', 'grid-core',
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`]: transcript('nvda-chromium', 'grid-core',
       [['arrow-right', null], ['close-editor', null], ['open-context-menu', ['menu']]]),
   })), runContextFromRun({ ...READER_RUN, id: 41580000001, updated_at: night(2) }), CATALOG, { now: new Date(night(2)) });
 
@@ -1269,8 +1278,8 @@ test('test-health.yml chains on the two nightlies, downloads the three artifacts
   assert.match(a11y, new RegExp(`^ {10}name: ${A11Y_AXE_ARTIFACT}$`, 'm'));
   assert.match(a11y, /^ {10}path: tests\/test-results\/a11y-checks$/m, 'the documents sit at the evidence artifact\'s root');
   assert.match(a11y, /^ {10}path: tests\/test-results\/a11y$/m, 'the findings sit at the axe artifact\'s root');
-  assert.match(screenreader, new RegExp(`^ {10}name: ${READER_ARTIFACT_PREFIX}nvda-\\$\\{\\{ matrix\\.browser \\}\\}$`, 'm'));
-  assert.match(screenreader, new RegExp(`^ {10}name: ${READER_ARTIFACT_PREFIX}vo-\\$\\{\\{ matrix\\.browser \\}\\}$`, 'm'));
+  assert.match(screenreader, new RegExp(`^ {10}name: ${READER_ARTIFACT_PREFIX}nvda-\\$\\{\\{ matrix\\.browser \\}\\}-\\$\\{\\{ matrix\\.group \\}\\}$`, 'm'));
+  assert.match(screenreader, new RegExp(`^ {10}name: ${READER_ARTIFACT_PREFIX}vo-\\$\\{\\{ matrix\\.browser \\}\\}-\\$\\{\\{ matrix\\.group \\}\\}$`, 'm'));
   assert.match(screenreader, /^ {10}path: tests\/test-results\/screenreader$/m, `the transcripts sit under ${READER_TRANSCRIPTS_DIR}/ in the artifact`);
   assert.ok(readFileSync(path.join(repoRoot(), 'tests/screenreader/screenreader.spec.ts'), 'utf8')
     .includes(`'test-results/screenreader/${READER_TRANSCRIPTS_DIR}'`), 'the spec writes the transcripts where the collector reads them');
