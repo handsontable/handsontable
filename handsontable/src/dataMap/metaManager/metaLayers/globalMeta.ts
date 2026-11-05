@@ -70,11 +70,11 @@ export default class GlobalMeta {
    * The options the user wrote at grid level (the creation settings and every `updateSettings()` payload).
    * A type never overwrites one of them.
    */
-  #userSetKeys = new Set<string>();
+  readonly #userSetKeys = new Set<string>();
   /**
    * The options the last grid-level `type` expansion wrote, with the value it wrote.
    */
-  #typeAssigned = new Map<string, unknown>();
+  readonly #typeAssigned = new Map<string, unknown>();
   /**
    * The cell type object the global meta was last expanded with.
    */
@@ -88,7 +88,7 @@ export default class GlobalMeta {
    * The keys the grid was created with an explicit `undefined` for. Creation reads that as "set", so no type
    * value reaches the key, and an update that restates `undefined` keeps it that way instead of unsetting it.
    */
-  #undefinedAtCreation = new Set<string>();
+  readonly #undefinedAtCreation = new Set<string>();
 
   /**
    * Initializes the global meta layer, populates the meta prototype with schema defaults, and attaches the Handsontable instance reference.
@@ -174,9 +174,14 @@ export default class GlobalMeta {
       this.meta.type = this.#typeSetting;
     }
 
-    const resolvedType = namesType || clearsTypeOption ?
-      this.#resolveType(namesType ? settings.type : this.meta.type) ?? (clearsTypeOption ? expandedBefore : null) :
-      null;
+    let resolvedType: Record<string, unknown> | null = null;
+
+    if (namesType) {
+      resolvedType = this.#resolveType(settings.type);
+
+    } else if (clearsTypeOption) {
+      resolvedType = this.#resolveType(this.meta.type) ?? expandedBefore;
+    }
 
     this.#recordUserSetKeys(settings, namesType);
 
