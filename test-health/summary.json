@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-05T09:34:56.693Z",
+  "generatedAt": "2026-11-05T09:38:23.498Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -856,13 +856,13 @@
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
       "count7": 0,
-      "count30": 4,
+      "count30": 3,
       "countAll": 14,
-      "runs30": 3,
-      "flakyRuns30": 3,
-      "branches30": 3,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
       "nightlyRuns30": 0,
-      "openBranches30": 3,
+      "openBranches30": 2,
       "legs": [
         "e2e-classic",
         "e2e-classic-min",
