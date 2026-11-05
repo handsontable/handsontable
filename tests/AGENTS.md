@@ -1387,8 +1387,9 @@ criterion.
   and the page writes to it from before the navigation, so the test holds the live list even when a
   load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
-  it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
-  finding. A finding the check gets wrong is fixed in the check.
+  it finds listed in its pull request's description, read from a nightly dispatch from its branch (a
+  pull request's own pipeline runs the axe scan alone); the product tasks are filed apart, and a fix
+  later clears the finding. A finding the check gets wrong is fixed in the check.
 - **Every report value is escaped.** The summary and the check run render values from the fixture DOM
   (selectors, accessible names), so `renderEvidenceSummary()` escapes them with the scan's own
   `escapeMarkdownText()` and links a URL only when the scan's `isSafeLink()` passes it (both from
@@ -1410,20 +1411,30 @@ or posts one check run per check with `--check-run` (`--dry-run` prints the payl
 suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
 left no document gets a neutral tooling check run instead of none.
 
-- **Where they run.** `a11y.yml` has a second job, `checks`, beside `axe`: the same Playwright
-  container and UMD artifact, `continue-on-error` on the job only (a tooling failure turns the job red,
-  as it does the axe job, and never the Tests pipeline), and one
-  `A11y / <check> report` check run per check on the pull request's head commit (behind the canonical
-  fork guard). `HOT_A11Y_CHECKS_SUITE` picks the checks: a pull request runs the ones with
-  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), and the
-  `A11y nightly` (`a11y-nightly.yml`, weeknights on develop, and a dispatch from any branch) runs them
-  all with `nightly: true`. The evidence goes up as `a11y-checks-evidence`, outside the
-  `playwright-report-*` glob the flake ledger reads, for 30 days from the nightly (what the report
-  cites) and 7 from a pull request. `EVIDENCE_CHECKS` is the one list: the config builds its projects
-  from it (`checksForSuite()`), and the report script posts a neutral tooling check run for a check of
-  the suite that left no document. Locally: `npm --prefix tests run test:a11y-checks`, every check, or
-  `-- --project=<check>`; the reporter writes the documents only when the config's reporters run, so do
-  not pass `--reporter` on the command line.
+- **Where they run: the nightly, never a pull request.** `a11y.yml` has a second job, `checks`, beside
+  `axe`: the same Playwright container and UMD artifact, `continue-on-error` on the job only (a tooling
+  failure turns the job red, as it does the axe job, and never the Tests pipeline), and one
+  `A11y / <check> report` check run per check on the run's head commit (behind the canonical fork
+  guard). The job runs only when the caller sets the `checks` input: the `A11y nightly`
+  (`a11y-nightly.yml`, weeknights on develop, and a dispatch from any branch) does, and the pull-request
+  Tests pipeline (`test.yml`) does not, so a pull request runs the axe scan, its baseline ratchet and
+  the sticky comment alone. The reason is what a pull request gets out of them: the checks are
+  report-only and the accessibility program is still building its picture, so a pull request learned
+  nothing from them it could act on, and paid a job for it. A skipped job runs no step, so it posts no
+  check run, stale or otherwise. `HOT_A11Y_CHECKS_SUITE` picks the checks, from the `nightly` input:
+  `nightly` runs every one, and the short suite, `pull-request`, keeps the ones with
+  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), for a
+  developer to run locally or through a dispatch of the nightly that asks for it
+  (`gh workflow run a11y-nightly.yml --ref <branch> -f suite=pull-request`; a plain dispatch runs every
+  check). The evidence goes up as `a11y-checks-evidence`, outside the `playwright-report-*` glob the
+  flake ledger reads, for 30 days from a run of every check (what the report cites) and 7 from the
+  short suite. `EVIDENCE_CHECKS` is the one list: the config builds its projects from it
+  (`checksForSuite()`), and the report script posts a neutral tooling check run for a check of the
+  suite that left no document. Locally, after `build:umd`, `build:styles.min` and
+  `build:themes-css.min`: `npm --prefix tests run test:a11y-checks` runs every check,
+  `HOT_A11Y_CHECKS_SUITE=pull-request npm --prefix tests run test:a11y-checks` the short suite, and
+  `-- --project=<check>` one check; the reporter writes the documents only when the config's reporters
+  run, so do not pass `--reporter` on the command line.
 
 ### The keyboard walker
 
@@ -1875,11 +1886,13 @@ half presses and drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are 
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,
 its `spec` (the file name under `a11y/checks/`), the `criteria` it evidences, and `pullRequest` (whether
-pull requests run it, which it earns by finishing in under two minutes). The config builds one project
+the short suite runs it, which it earns by finishing in under two minutes). The config builds one project
 per entry from that list (`checksForSuite()`), so never add a project by hand: it would run the check
 twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
-removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
+removes a focus ring or a name), shown in the check run of a nightly dispatch from its branch
+(`gh workflow run a11y-nightly.yml --ref <branch>`, which posts on the branch's head commit, so the
+check run shows on the pull request, whose own pipeline runs the axe scan alone), then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
 ## A11y: the findings ledger and the cluster catalog
