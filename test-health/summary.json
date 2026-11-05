@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-05T09:38:23.498Z",
+  "generatedAt": "2026-11-05T10:05:15.759Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -958,7 +958,7 @@
       "file": "e2e/icon-elements.spec.ts",
       "line": 887,
       "title": "Icon elements › sheets bar › the retired glyph pseudo-elements no longer paint on the buttons or the chevron",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -1365,7 +1365,7 @@
       "file": "e2e/sheets-bar-touch-menus.spec.ts",
       "line": 195,
       "title": "menus and the sheets bar on a touch screen › a submenu parent in the context menu opens its submenu on a tap",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
