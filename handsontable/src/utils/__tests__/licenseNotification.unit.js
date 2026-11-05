@@ -69,15 +69,15 @@ describe('licenseNotification', () => {
       expect(hotInstance.addHook.mock.calls[0][2]).toBeGreaterThan(0);
     });
 
-    it('should write the first license message after the first render, not while the grid is built', () => {
+    it('should write the first license message on the `init` hook, after every plugin\'s ready step', () => {
       const hotInstance = createMockHotInstance();
 
       initLicenseNotification(hotInstance);
 
-      // A feature checked while the grid renders (the header checkbox) is known only after the first render,
-      // so the first message waits for `afterInit` and names it with the rest.
+      // The plugins report what the key leaves out in their init turn and their ready step (CheckboxHeader
+      // checks its columns there), both before `init`, so the first message waits for it and names them all.
       expect(hotInstance.addHookOnce).toHaveBeenCalledTimes(1);
-      expect(hotInstance.addHookOnce).toHaveBeenCalledWith('afterInit', expect.any(Function));
+      expect(hotInstance.addHookOnce).toHaveBeenCalledWith('init', expect.any(Function));
     });
 
     it('should call _injectProductInfo with correct parameters when container exists', () => {

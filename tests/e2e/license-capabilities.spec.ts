@@ -1,4 +1,4 @@
-import { test, expect, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { LicenseCapabilitiesPage } from '../fixtures/pages/LicenseCapabilitiesPage';
 
 const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
@@ -12,7 +12,7 @@ const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include t
  * features it lists and what they require. A plugin it leaves out stays off, and one console error
  * and the license bar say so. A key without the flag unlocks every feature, as before.
  */
-test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () => {
+test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let license: LicenseCapabilitiesPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -34,7 +34,7 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
 
   test('names every missing feature in one console error and one bar line, the header checkbox included',
     async() => {
-      // The header checkbox is checked while the grid renders, after the plugins the key keeps off are known.
+      // CheckboxHeader checks its columns in its ready step, after the plugins the key keeps off are known.
       await license.goto({ key: 'flagged-minimal', plugins: 'header-checkbox' });
 
       await expect(license.grid.locator('.htCheckboxHeaderInput')).toHaveCount(0);
@@ -48,7 +48,7 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
       expect(license.licenseErrors()[0]).toContain('Copy and paste (feat:copy_paste)');
     });
 
-  test('keeps the declared height with the bar the first render writes, as soon as the constructor returns',
+  test('keeps the declared height with the missing-features bar, as soon as the constructor returns',
     async() => {
       await license.goto({ key: 'flagged-minimal', plugins: 'header-checkbox' });
 

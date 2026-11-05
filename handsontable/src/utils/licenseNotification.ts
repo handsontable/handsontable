@@ -55,12 +55,11 @@ const printedMissingFeatures = new Set<string>();
  */
 const ownBars = new WeakMap<HotInstance, HTMLElement>();
 /**
- * The root grids that finished their first render (`afterInit`). A flush waits for it, for two reasons. A
- * gated call made while the grid is still being built (an `afterLoadData` listener) would otherwise mount a
- * bar and register its focus scope before the lifecycle bar, which registers the same scope id again and
- * throws. And a feature checked while the grid renders (the header checkbox) is known only after the first
- * render, so a flush before it (an `init` listener that calls `updateSettings()` or a gated method) would
- * print a short list, and the first render a second, longer one.
+ * The root grids that reached the `init` hook, where every plugin has had its init turn and its ready step. A
+ * flush waits for it, for two reasons. A gated call made while the grid is still being built (an
+ * `afterLoadData` listener) would otherwise mount a bar and register its focus scope before the lifecycle
+ * bar, which registers the same scope id again and throws. And a flush before it (a settings pass or a gated
+ * call made from a hook that runs first) would print a short list, and the `init` write a second, longer one.
  */
 const readyGrids = new WeakSet<HotInstance>();
 
@@ -198,11 +197,11 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
     mountBottomLicenseBar(hotInstance, notificationElement);
   }
 
-  // The first write waits for the first render, still inside the constructor: the plugins the key turned
-  // off are known at init, but a feature checked while the grid renders (the header checkbox) only then,
-  // and one message must name them all. Every write asked for before it (`readyGrids`) is left to this one.
-  // Later passes (`updateSettings()`) write theirs once every plugin has handled the pass.
-  hotInstance.addHookOnce('afterInit', () => {
+  // The first write waits for the `init` hook: every plugin has had its init turn and its ready step by then
+  // (CheckboxHeader checks its columns there), so one message names them all, and the bar is in the page
+  // before the first render sizes the grid. Every write asked for before it (`readyGrids`) is left to this
+  // one. Later passes (`updateSettings()`) write theirs once every plugin has handled the pass.
+  hotInstance.addHookOnce('init', () => {
     readyGrids.add(hotInstance);
     flushMissingCapabilities(hotInstance);
   });
@@ -213,8 +212,8 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
  * Writes the features the license key of a root grid keeps off, when the list changed since the last call:
  * the text in the license bar, and one console error when a feature was added. The console message prints
  * once per key and set of features on the page. `no-console-warns` and `no-ui-warns` close the two
- * surfaces; the features stay off either way. Does nothing before the grid's first render: the write made
- * then names everything reported until it.
+ * surfaces; the features stay off either way. Does nothing before the grid's `init` hook: the write made
+ * there names everything reported until then.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  */

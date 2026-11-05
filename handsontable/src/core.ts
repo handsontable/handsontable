@@ -3011,7 +3011,22 @@ export default function Core(
 
     instance.runHooks('init');
 
+    // An `init` listener can fill a slot: the license notification writes the missing-features bar there,
+    // once every plugin's ready step has reported what the key leaves out. The slot observer would reserve
+    // its height a frame later, so the first render would size the grid as if the bar took no room. Reserve
+    // it now, and once more after the first render, which sets the slot's width to the table's and can wrap
+    // the bar onto more lines. Both run before `afterInit`, so its listeners read the final viewport.
+    const reserveSlots = reserveSlotsChangedAtInit;
+
+    reserveSlotsChangedAtInit = null;
+    reserveSlots?.();
+
     instance.render();
+
+    // A listener of the first render can destroy the grid, which sets `instance` to `null`.
+    if (reserveSlots !== null && instance && !instance.isDestroyed && reserveSlots()) {
+      instance.render();
+    }
 
     if (stopWatchingFontLoads === null) {
       stopWatchingFontLoads = watchFontLoads(instance.rootDocument, refreshAfterFontsLoad);
@@ -3037,16 +3052,6 @@ export default function Core(
     }
 
     instance.runHooks('afterInit');
-
-    // An `afterInit` listener can fill a slot: the missing-features bar is written after the first render,
-    // because the header checkbox is checked only then. The slot observer would reserve its height a frame
-    // later, so a height read right after the constructor would still count the bar's room as grid. Reserve
-    // it now and draw at that height, before the constructor returns.
-    if (reserveSlotsChangedAtInit !== null && !instance.isDestroyed && reserveSlotsChangedAtInit()) {
-      instance.render();
-    }
-
-    reserveSlotsChangedAtInit = null;
   }
 
   /**
