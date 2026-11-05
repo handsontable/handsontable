@@ -3,11 +3,13 @@ import { awaitBundle, type Bundle } from '../bundle';
 
 export type FormulasOrderWorkbook =
   'sortedReport' | 'summary' | 'sortedSummary' | 'ownRefFirst' | 'ownRefSecond' | 'relativeDesc' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
-  | 'quotedNames' | 'movedRows' | 'movedColumnRefs' | 'ownRefColumns' | 'ownRefRows' | 'ownRefSorted';
+  | 'quotedNames' | 'movedRows' | 'movedColumnRefs' | 'ownRefColumns' | 'ownRefRows' | 'ownRefSorted'
+  | 'ownEngineColumns' | 'ownEngineRows';
 
 /**
  * Page object for the sheets-bar-formulas-order fixture (fixtures/demo/sheets-bar-formulas-order.html):
- * a workbook, picked by `?workbook=`, whose formulas sheets share one HyperFormula engine. The fixture
+ * a workbook, picked by `?workbook=`, whose formulas sheets share one HyperFormula engine, or pass the
+ * HyperFormula class to get an engine of their own (`ownEngineColumns`, `ownEngineRows`). The fixture
  * records every `console.error` and `console.warn` the page makes.
  */
 export class SheetsBarFormulasOrderPage {
