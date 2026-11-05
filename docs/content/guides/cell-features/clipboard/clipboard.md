@@ -481,7 +481,13 @@ Examples of how to use them are provided in their descriptions.
 
 The [`CopyPaste`](@/api/copyPaste.md) plugin copies cell values by default. To copy cell appearance, save each copied or cut cell's `className` metadata in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and then apply it to the pasted range in [`afterPaste`](@/api/hooks.md#afterpaste).
 
-`className` doesn't depend on the pasted values, so `afterPaste` works here, with validators and with pastes that add rows. If your code reads the pasted values or the row count, use [`afterChange`](@/api/hooks.md#afterchange). See [Paste hooks](#paste-hooks).
+`className` doesn't depend on the pasted values, so `afterPaste` works here, also with validators and with pastes that add rows. Use [`afterChange`](@/api/hooks.md#afterchange) instead in these cases:
+
+- The grid trims or filters rows, and a paste with validators adds rows. `afterPaste` runs before those rows exist, so the metadata lands on another row.
+- [`allowInsertRow`](@/api/options.md#allowinsertrow) or [`maxRows`](@/api/options.md#maxrows) can cut a paste short. The metadata for the rows that never exist stays behind, and a row added later can inherit it.
+- Your code reads the pasted values or the row count.
+
+See [Paste hooks](#paste-hooks).
 
 Copy or cut a styled range from the grid, and paste it into another range to copy the cell values and appearance.
 
@@ -522,7 +528,7 @@ Copy or cut a styled range from the grid, and paste it into another range to cop
 
 ### Copy comments on paste
 
-To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste). Comments don't depend on the pasted values, so `afterPaste` works here, with validators and with pastes that add rows. If your code reads the pasted values or the row count, use [`afterChange`](@/api/hooks.md#afterchange). See [Paste hooks](#paste-hooks).
+To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste). Comments don't depend on the pasted values, so `afterPaste` works here, also with validators and with pastes that add rows. The same exceptions as for copying cell appearance apply: use [`afterChange`](@/api/hooks.md#afterchange) when the grid trims or filters rows, when [`allowInsertRow`](@/api/options.md#allowinsertrow) or [`maxRows`](@/api/options.md#maxrows) can cut a paste short, or when your code reads the pasted values or the row count. See [Copy cell appearance on paste](#copy-cell-appearance-on-paste) and [Paste hooks](#paste-hooks).
 
 Copy or cut a commented range from the grid, and paste it into another range to copy the cell values and comments.
 
