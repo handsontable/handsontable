@@ -1,5 +1,6 @@
 import React from 'react';
 import { act } from '@testing-library/react';
+import { HyperFormula } from 'hyperformula';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers';
 import { mountComponent, renderHotTableWithProps } from './_helpers';
@@ -289,5 +290,31 @@ describe('HotTable with a sheets bar', () => {
     expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A2', 'B', 'Extra']);
     expect(appSheets.map(entry => entry.name)).toEqual(['A2', 'B', 'Extra']);
     expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
+  });
+
+  it('shows a tab per formula engine sheet and keeps a renamed tab when the parent re-renders', () => {
+    const hf = HyperFormula.buildFromSheets({
+      Data: [[1, 2]],
+      Report: [['=SUM(Data!A1:B1)']],
+    }, { licenseKey: 'internal-use-in-handsontable' });
+    const props = (): HotTableProps => ({
+      licenseKey: TEST_LICENSE_KEY,
+      formulas: { engine: hf },
+      sheetsBar: true,
+    });
+    const ref = renderHotTableWithProps(props(), false);
+    const plugin = ref.current!.hotInstance!.getPlugin('sheetsBar');
+
+    expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['Data', 'Report']);
+
+    const ids = plugin.getSheets().map(sheet => sheet.id);
+
+    act(() => {
+      plugin.renameSheet(ids[1], 'Totals');
+    });
+    renderHotTableWithProps(props(), false, ref);
+
+    expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['Data', 'Totals']);
+    expect(plugin.getSheets().map(sheet => sheet.id)).toEqual(ids);
   });
 });

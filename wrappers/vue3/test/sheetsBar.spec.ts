@@ -1,8 +1,9 @@
-import { nextTick, ref } from 'vue';
+import { markRaw, nextTick, ref } from 'vue';
 import { mount, config } from '@vue/test-utils';
 import { registerPlugin } from 'handsontable/plugins/registry';
 import { SheetsBar } from 'handsontable/plugins/sheetsBar';
 import { ColumnSorting } from 'handsontable/plugins/columnSorting';
+import { Formulas } from 'handsontable/plugins/formulas';
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
 import './_helpers';
@@ -12,6 +13,9 @@ config.renderStubDefaultSlot = true;
 
 registerPlugin(SheetsBar);
 registerPlugin(ColumnSorting);
+registerPlugin(Formulas);
+
+const { HyperFormula } = jest.requireActual('hyperformula');
 
 describe('cooperation with the SheetsBar plugin', () => {
   it('keeps the visible sheet\'s own headers when a reactive prop changes', async() => {
@@ -469,6 +473,49 @@ describe('cooperation with the SheetsBar plugin', () => {
     await nextTick();
 
     expect(plugin.isEnabled()).toBe(true);
+
+    testWrapper.unmount();
+  });
+
+  it('shows a tab per formula engine sheet and keeps a renamed tab when a reactive prop changes', async() => {
+    const hf = HyperFormula.buildFromSheets({
+      Data: [[1, 2]],
+      Report: [['=SUM(Data!A1:B1)']],
+    }, { licenseKey: 'internal-use-in-handsontable' });
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          :licenseKey="testLicenseKey"
+          :height="height"
+          :formulas="{ engine }"
+          :sheetsBar="true"
+          ></HotTable>`,
+      data() {
+        return {
+          height: 200,
+        };
+      },
+      created() {
+        this.engine = markRaw(hf);
+      },
+    };
+
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const plugin = testWrapper.getComponent(HotTable).vm.hotInstance.getPlugin('sheetsBar');
+
+    expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['Data', 'Report']);
+
+    const ids = plugin.getSheets().map(sheet => sheet.id);
+
+    plugin.renameSheet(ids[1], 'Totals');
+    testWrapper.vm.height = 300;
+    await nextTick();
+
+    expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['Data', 'Totals']);
+    expect(plugin.getSheets().map(sheet => sheet.id)).toEqual(ids);
 
     testWrapper.unmount();
   });
