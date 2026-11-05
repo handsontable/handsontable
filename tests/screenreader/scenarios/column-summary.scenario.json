@@ -35,7 +35,7 @@
       "id": "arrow-up-source-cell",
       "action": {"press": "ArrowUp"},
       "expect": [["40"]],
-      "note": "B4, a data cell the summary below it adds up."
+      "note": "B4, a data cell the summary below it adds up. NVDA with Firefox said nothing on this step and on open-editor in the proof run and read both in the recording: a late phrase the lane lost, not the grid's."
     },
     {
       "id": "open-editor",

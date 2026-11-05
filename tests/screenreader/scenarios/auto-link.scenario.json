@@ -46,8 +46,8 @@
     {
       "id": "open-link",
       "action": {"press": "Alt+Enter"},
-      "expect": [["handsontable e2e fixture"]],
-      "note": "Alt+Enter opens the selected cell's first link in a new tab (autoLink's default target, `_blank`). Every reader follows the new tab and reads its title. The last step, because the focus stays on the new tab; the test's browser context closes it."
+      "expect": [["handsontable e2e fixture", "handsontable e 2e fixture"]],
+      "note": "Alt+Enter opens the selected cell's first link in a new tab (autoLink's default target, `_blank`). Every reader follows the new tab and reads its title, `Handsontable e2e fixture`; NVDA spells `e2e` as `e 2e`, the same title in its words. The last step, because the focus stays on the new tab; the test's browser context closes it."
     }
   ]
 }
