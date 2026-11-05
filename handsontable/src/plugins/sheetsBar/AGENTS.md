@@ -636,7 +636,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the host's engine. The test "leaves the engine with its own sheets only when no data is given" pins it. (4) **A `sheetName` the engine lacks, without `data`,
   warns and opens the first tab; nothing is created**, while the same name with `data` creates that sheet (as
   Formulas would). The data tab without a `sheetName` is named `peekDefaultName()` made free against the engine
-  names, so tab and engine sheet share the name. Pinned by `__tests__/engineSheets.unit.js`.
+  names, so tab and engine sheet share the name. Pinned by `__tests__/engineSheets.unit.js`, including "writes
+  no engine sheet but the opening one while the workbook is built" for rule (2). **Known limit:** a grid built
+  with the engine, no `data` and no bar, then given `sheetsBar: true` later, already holds the empty engine sheet
+  Formulas added at its init, and that sheet becomes a tab like any other; the guide says so.
 - **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**
   (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
   arrays by logging an error and turning itself off until the next sheet with object rows, so the add

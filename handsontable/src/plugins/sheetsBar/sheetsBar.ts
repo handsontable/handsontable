@@ -62,7 +62,12 @@ import {
 } from './formulaSheetData';
 import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
 import { remapOwnSheetReferences } from './formulaReferences';
-import { planEngineWorkbook, type EngineSheetsSource } from './engineSheets';
+import {
+  freeNumberedSheetName,
+  isSameSheetName,
+  planEngineWorkbook,
+  type EngineSheetsSource,
+} from './engineSheets';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement, removeAttribute, setAttribute } from '../../helpers/dom/element';
 import { A11Y_LABELED_BY } from '../../helpers/a11y';
@@ -596,15 +601,6 @@ function isOtherEngineSheet(engine: NonNullable<SheetFormulas['engine']>, oldNam
 }
 
 /**
- * Whether two sheet names name one sheet to the engine, which compares them without regard to case
- * through a plain `toLowerCase()`. A locale-aware lower case follows the host: on a Turkish host `ITEMS`
- * becomes `ıtems`, so a rename of the engine sheet `items` left `=ITEMS!A1` behind in the host's data.
- */
-function isSameSheetName(first: string, second: string): boolean {
-  return first.toLowerCase() === second.toLowerCase();
-}
-
-/**
  * Returns a name the engine has no sheet under yet, counting up from the requested one. A
  * brand-new binding — a runtime-added sheet, a duplicate — must never adopt an engine sheet
  * that already exists: a `sheetName` is allowed to differ from its tab's name, so a free tab
@@ -616,15 +612,7 @@ function freeEngineName(
   requested: string,
   isTaken: (name: string) => boolean = name => engine.doesSheetExist!(name),
 ): string {
-  let candidate = requested;
-  let counter = 2;
-
-  while (isTaken(candidate)) {
-    candidate = `${requested} (${counter})`;
-    counter += 1;
-  }
-
-  return candidate;
+  return freeNumberedSheetName(requested, isTaken);
 }
 
 /**

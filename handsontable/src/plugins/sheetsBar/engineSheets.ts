@@ -40,27 +40,27 @@ export interface EngineWorkbookInput {
 }
 
 /**
- * Whether two sheet names name one sheet to the engine, which compares them with a plain
- * `toLowerCase()`.
+ * Whether two sheet names name one sheet to the engine, which compares them without regard to case
+ * through a plain `toLowerCase()`. A locale-aware lower case follows the host: on a Turkish host `ITEMS`
+ * becomes `ıtems`, so a rename of the engine sheet `items` left `=ITEMS!A1` behind in the host's data.
  *
  * @param {string} first A sheet name.
  * @param {string} second A sheet name.
  * @returns {boolean}
  */
-function isSameEngineName(first: string, second: string): boolean {
+export function isSameSheetName(first: string, second: string): boolean {
   return first.toLowerCase() === second.toLowerCase();
 }
 
 /**
- * Returns `requested`, or `requested (n)` with the lowest `n` from 2 up, whichever no name in `names`
- * takes.
+ * Returns `requested`, or `requested (n)` with the lowest `n` from 2 up, whichever `isTaken` answers
+ * `false` for.
  *
- * @param {string[]} names The names already taken.
  * @param {string} requested The name asked for.
+ * @param {Function} isTaken Whether a name is taken.
  * @returns {string}
  */
-function freeName(names: string[], requested: string): string {
-  const isTaken = (name: string) => names.some(taken => isSameEngineName(taken, name));
+export function freeNumberedSheetName(requested: string, isTaken: (name: string) => boolean): string {
   let candidate = requested;
   let counter = 2;
 
@@ -135,10 +135,11 @@ export function planEngineWorkbook(input: EngineWorkbookInput): EngineWorkbookPl
   const sheetName = typeof formulas.sheetName === 'string' && formulas.sheetName !== ''
     ? formulas.sheetName
     : null;
-  const namedIndex = sheetName === null ? -1 : names.findIndex(name => isSameEngineName(name, sheetName));
+  const namedIndex = sheetName === null ? -1 : names.findIndex(name => isSameSheetName(name, sheetName));
 
   if (Array.isArray(data)) {
-    let dataTabName = sheetName ?? freeName(names, defaultName);
+    let dataTabName = sheetName
+      ?? freeNumberedSheetName(defaultName, candidate => names.some(name => isSameSheetName(name, candidate)));
 
     if (namedIndex !== -1) {
       dataTabName = names[namedIndex];

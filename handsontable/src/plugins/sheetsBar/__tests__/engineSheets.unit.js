@@ -61,6 +61,19 @@ describe('SheetsBar tabs from a formula engine', () => {
     expect(engine.getSheetSerialized(engine.getSheetId('Data'))).toEqual([[1, 2], [3, 4]]);
   });
 
+  it('writes no engine sheet but the opening one while the workbook is built', () => {
+    const engine = buildEngine();
+    const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+    const addSheet = jest.spyOn(engine, 'addSheet');
+
+    hot = build({ formulas: { engine } });
+
+    const writtenSheets = setSheetContent.mock.calls.map(([sheetId]) => engine.getSheetName(sheetId));
+
+    expect(addSheet).not.toHaveBeenCalled();
+    expect(writtenSheets.filter(name => name !== 'Data')).toEqual([]);
+  });
+
   it('keeps formulas as text in the tab data and shows their values', () => {
     const engine = buildEngine();
 
