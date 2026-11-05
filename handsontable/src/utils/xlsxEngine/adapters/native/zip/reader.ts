@@ -466,6 +466,12 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
    * first, and the liar - a 600 MB claim, or a stored entry whose two sizes disagree - then took the
    * cached string and skipped the refusal it had earned. A region is still decoded once, since
    * records that agree on all four fields share a key.
+   *
+   * An entry that is refused gives back what it was charged: nothing of it is kept, neither the
+   * string nor the memo. The read used to end with any refusal, but an optional part (`read.ts`
+   * `richValuesOf`) is skipped and the read goes on, and the charge it left behind refused the next
+   * sheet over bytes no one held. The reader awaits one part at a time, so the total before the
+   * read is the total to go back to.
    */
   async function text(name: string): Promise<string> {
     const entry = entries.get(foldPartName(name));
@@ -478,11 +484,22 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
       return cached;
     }
 
-    const { text: decoded, byteLength } = await entryText(name);
-    const stringExcess = (decoded.length * 2) - byteLength;
+    const chargedBefore = inflatedTotal;
+    let decoded: string;
 
-    if (stringExcess > 0) {
-      chargeInflated(name, stringExcess);
+    try {
+      const read = await entryText(name);
+      const stringExcess = (read.text.length * 2) - read.byteLength;
+
+      if (stringExcess > 0) {
+        chargeInflated(name, stringExcess);
+      }
+
+      decoded = read.text;
+    } catch (error) {
+      inflatedTotal = chargedBefore;
+
+      throw error;
     }
 
     texts.set(key, decoded);

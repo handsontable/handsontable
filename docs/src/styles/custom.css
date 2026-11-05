@@ -48,6 +48,7 @@
 @import './components/not-found.css';
 @import './components/minesweeper.css';
 @import './components/option-levels.css';
+@import './components/headway.css';
 
 /* Mobile */
 @import './mobile/subbar.css';

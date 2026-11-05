@@ -136,6 +136,9 @@ const sheetWithoutName: SheetOptions = {
 exportPlugin.downloadFileAsync('xlsx', {
   headerStyle: { backgroundColor: '#f2f2f2', border: { style: 'thin' } },
 });
+exportPlugin.downloadFileAsync('xlsx', {
+  headerStyle: { backgroundColor: 'whitesmoke', border: { style: 'thin', color: 'rgb(68, 114, 196)' } },
+});
 exportPlugin.downloadFileAsync('xlsx', { headerStyle: null });
 
 // ─── ExportOptions: protection (XLSX) ─────────────────────────────────────

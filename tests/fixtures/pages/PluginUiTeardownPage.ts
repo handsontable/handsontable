@@ -11,9 +11,12 @@ interface TeardownWindow {
     updateSettings(settings: Record<string, unknown>): void;
     render(): void;
     loadData(data: unknown[][]): void;
+    selectCell(row: number, column: number): boolean;
+    getSelected(): number[][] | undefined;
     getPlugin(name: string): {
       selectRows?(rows: number[]): boolean;
       setActiveSheet?(name: string): boolean;
+      isVisible?(): boolean;
     };
   };
 }
@@ -102,6 +105,30 @@ export class PluginUiTeardownPage {
       sheetName => (window as unknown as TeardownWindow).hot.getPlugin('sheetsBar').setActiveSheet!(sheetName),
       name,
     );
+  }
+
+  /**
+   * Selects a cell through the API.
+   */
+  async selectCell(row: number, column: number): Promise<void> {
+    await this.page.evaluate(
+      ([r, c]) => { (window as unknown as TeardownWindow).hot.selectCell(r, c); },
+      [row, column],
+    );
+  }
+
+  /**
+   * What `getSelected()` answers, `null` for nothing selected.
+   */
+  selected(): Promise<number[][] | null> {
+    return this.page.evaluate(() => (window as unknown as TeardownWindow).hot.getSelected() ?? null);
+  }
+
+  /**
+   * Whether the EmptyDataState overlay is shown.
+   */
+  isEmptyDataStateVisible(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as TeardownWindow).hot.getPlugin('emptyDataState').isVisible!());
   }
 
   /**

@@ -2,8 +2,8 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle, type Bundle } from '../bundle';
 
 export type FormulasOrderWorkbook =
-  'sortedReport' | 'summary' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
-  | 'quotedNames';
+  'sortedReport' | 'summary' | 'sortedSummary' | 'ownRefFirst' | 'ownRefSecond' | 'relativeDesc' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
+  | 'quotedNames' | 'movedRows' | 'movedColumnRefs' | 'ownRefColumns' | 'ownRefRows' | 'ownRefSorted';
 
 /**
  * Page object for the sheets-bar-formulas-order fixture (fixtures/demo/sheets-bar-formulas-order.html):
@@ -93,6 +93,21 @@ export class SheetsBarFormulasOrderPage {
     }, [column, sortOrder]);
   }
 
+  /**
+   * A sheet's data as `getSheetData()` returns it, without switching to it.
+   */
+  sheetData(name: string): Promise<unknown[][] | null> {
+    return this.page.evaluate(sheetName => (
+      window.hot.getPlugin('sheetsBar').getSheetData(sheetName) as unknown[][] | null
+    ), name);
+  }
+
+  clearSort(): Promise<void> {
+    return this.page.evaluate(() => {
+      window.hot.getPlugin('columnSorting').clearSort();
+    });
+  }
+
   moveColumn(column: number, target: number): Promise<void> {
     return this.page.evaluate(([from, to]) => {
       window.hot.getPlugin('manualColumnMove').moveColumn(from, to);
@@ -107,7 +122,7 @@ export class SheetsBarFormulasOrderPage {
     }, [row, target]);
   }
 
-  alter(action: 'insert_row_above' | 'remove_row', index: number, amount = 1): Promise<void> {
+  alter(action: 'insert_row_above' | 'remove_row' | 'insert_col_start', index: number, amount = 1): Promise<void> {
     return this.page.evaluate(([name, at, count]) => {
       window.hot.alter(name as 'insert_row_above', at as number, count as number);
     }, [action, index, amount]);

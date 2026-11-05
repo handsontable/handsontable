@@ -771,6 +771,354 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(hot.getDataAtCell(0, 0)).toBe('b');
     });
 
+    it('keeps an added sheet\'s rows when a `sheetsBar: true` workbook gets the first sheet\'s array again', () => {
+      const appData = [['A1', 'B1'], ['A2', 'B2']];
+
+      hot = new Handsontable(container, {
+        data: appData,
+        sheetsBar: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      const bar = hot.getPlugin('sheetsBar');
+
+      bar.addSheet('Second');
+      bar.setActiveSheet('Second');
+      hot.setDataAtCell(0, 0, 'typed');
+      hot.updateSettings({ data: appData, sheetsBar: true });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('typed');
+
+      hot.setDataAtCell(0, 0, 'typed again');
+
+      expect(appData[0][0]).toBe('A1');
+
+      bar.setActiveSheet('Sheet1');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+
+      bar.setActiveSheet('Second');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('typed again');
+    });
+
+    describe('the same top-level `data` sent again to a `sheetsBar: true` workbook', () => {
+      /**
+       * Builds a `sheetsBar: true` grid over `appData` and adds two sheets with typed rows.
+       *
+       * @param {Array} appData The grid's top-level data.
+       * @returns {object} The SheetsBar plugin.
+       */
+      function buildWithAddedSheets(appData) {
+        hot = new Handsontable(container, {
+          data: appData,
+          sheetsBar: true,
+          licenseKey: LICENSE_KEY,
+        });
+
+        const bar = hot.getPlugin('sheetsBar');
+
+        bar.addSheet('Second', [['second']]);
+        bar.addSheet('Third', [['third']]);
+
+        return bar;
+      }
+
+      it('keeps the visible sheet\'s rows after the first sheet, which held the array, is removed', () => {
+        const appData = [['A1', 'B1']];
+        const bar = buildWithAddedSheets(appData);
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(bar.getSheets().find(sheet => sheet.name === 'Sheet1').id);
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+
+        bar.setActiveSheet('Third');
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('third');
+
+        bar.setActiveSheet('Second');
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(appData).toEqual([['A1', 'B1']]);
+      });
+
+      it('changes nothing when the first sheet is the visible one', () => {
+        const appData = [['A1', 'B1']];
+        const bar = buildWithAddedSheets(appData);
+
+        hot.setDataAtCell(0, 0, 'typed');
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('typed');
+        expect(bar.getSheetData('Sheet1')).toBe(appData);
+
+        bar.setActiveSheet('Second');
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+      });
+
+      it('keeps the visible copy\'s rows after the first sheet is duplicated and removed', () => {
+        const appData = [['A1', 'B1']];
+        const bar = buildWithAddedSheets(appData);
+        const copy = bar.duplicateSheet(bar.getSheets().find(sheet => sheet.name === 'Sheet1').id);
+
+        bar.setActiveSheet(copy.id);
+        hot.setDataAtCell(0, 0, 'copy edited');
+        bar.removeSheet(bar.getSheets().find(sheet => sheet.name === 'Sheet1').id);
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('copy edited');
+        expect(appData).toEqual([['A1', 'B1']]);
+      });
+
+      it('loads the array as usual once the bar was turned off and on again', () => {
+        const appData = [['A1', 'B1']];
+        const bar = buildWithAddedSheets(appData);
+
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ sheetsBar: false });
+        hot.loadData([['other']]);
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('A1');
+        expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Sheet1']);
+      });
+    });
+
+    describe('a workbook built from `sheets` that declares no sheet', () => {
+      it.each([
+        ['null', null],
+        ['undefined', undefined],
+        ['an empty array', []],
+      ])('keeps the visible sheet\'s rows when `sheets` is %s and the same `data` comes again', (_label, sheets) => {
+        const appData = [['A1', 'B1']];
+
+        hot = new Handsontable(container, {
+          data: appData,
+          sheetsBar: { sheets },
+          licenseKey: LICENSE_KEY,
+        });
+
+        const bar = hot.getPlugin('sheetsBar');
+
+        bar.addSheet('Second', [['second']]);
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ data: appData, sheetsBar: { sheets } });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(appData).toEqual([['A1', 'B1']]);
+      });
+    });
+
+    describe('a new top-level `data` array sent to a `sheetsBar: true` workbook', () => {
+      /**
+       * Builds a `sheetsBar: true` grid over `appData` and adds two sheets.
+       *
+       * @param {Array} appData The grid's top-level data.
+       * @returns {object} The SheetsBar plugin.
+       */
+      function buildWithAddedSheets(appData) {
+        hot = new Handsontable(container, {
+          data: appData,
+          sheetsBar: true,
+          licenseKey: LICENSE_KEY,
+        });
+
+        const bar = hot.getPlugin('sheetsBar');
+
+        bar.addSheet('Second', [['second']]);
+        bar.addSheet('Third', [['third']]);
+
+        return bar;
+      }
+
+      /**
+       * Returns the id of the sheet with the given name.
+       *
+       * @param {object} bar The SheetsBar plugin.
+       * @param {string} name The sheet's name.
+       * @returns {number}
+       */
+      function idOf(bar, name) {
+        return bar.getSheets().find(sheet => sheet.name === name).id;
+      }
+
+      /**
+       * Returns the `console.warn` calls about a top-level `data` that was not applied.
+       *
+       * @param {object} warnSpy The `console.warn` spy.
+       * @returns {Array}
+       */
+      function notAppliedWarnings(warnSpy) {
+        return warnSpy.mock.calls.filter(args => String(args[0]).includes('was not applied'));
+      }
+
+      it('loads into the first sheet when it is the visible one', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('new');
+        expect(bar.getSheetData('Sheet1')).toBe(newRows);
+      });
+
+      it('becomes the hidden first sheet\'s data and leaves the visible sheet alone', () => {
+        const bar = buildWithAddedSheets([['A1'], ['A2']]);
+        const newRows = [['new']];
+
+        hot.selectCell(1, 0);
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(bar.getSheetData('Sheet1')).toBe(newRows);
+        expect(bar.getSheets().find(sheet => sheet.isActive).name).toBe('Second');
+
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+
+        bar.setActiveSheet('Sheet1');
+
+        expect(hot.getData()).toEqual([['new']]);
+        expect(hot.getSelected()).toBeUndefined();
+      });
+
+      it('follows the first sheet through a rename and a move', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.renameSheet(idOf(bar, 'Sheet1'), 'Main');
+        bar.moveSheetToIndex(idOf(bar, 'Main'), 2);
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(bar.getSheetData('Main')).toBe(newRows);
+        expect(bar.getSheetData('Third')).toEqual([['third']]);
+      });
+
+      it('changes nothing and warns once per array when the first sheet was removed', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(bar.getSheetData('Third')).toEqual([['third']]);
+        expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Second', 'Third']);
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(1);
+
+        hot.updateSettings({ data: [['other']], sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(2);
+      });
+
+      it('passes a `data: null` on as a plain grid takes it once the first sheet was removed', () => {
+        const plain = new Handsontable(document.createElement('div'), {
+          data: [['A1']],
+          licenseKey: LICENSE_KEY,
+        });
+
+        plain.updateSettings({ data: null });
+
+        const plainData = plain.getData();
+
+        plain.destroy();
+
+        const bar = buildWithAddedSheets([['A1']]);
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+
+        expect(() => hot.updateSettings({ data: null, sheetsBar: true })).not.toThrow();
+        expect(hot.getData()).toEqual(plainData);
+      });
+
+      it('warns again for the same array once the bar was turned off and on', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(1);
+
+        hot.updateSettings({ sheetsBar: false });
+        hot.updateSettings({ sheetsBar: true });
+        bar.addSheet('Other', [['other']]);
+        bar.setActiveSheet('Other');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('other');
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(2);
+      });
+
+      it('changes nothing when only a copy of the first sheet is left', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const bar = buildWithAddedSheets([['A1']]);
+        const copy = bar.duplicateSheet(idOf(bar, 'Sheet1'));
+
+        bar.setActiveSheet(copy.id);
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateSettings({ data: [['new']], sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('A1');
+        expect(bar.getSheetData('Second')).toEqual([['second']]);
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(1);
+      });
+
+      it('takes the sheet the grid shows as the first sheet again after the bar is turned off and on', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ sheetsBar: false });
+        hot.updateSettings({ sheetsBar: true });
+        bar.addSheet('Other', [['other']]);
+        bar.setActiveSheet('Other');
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('other');
+        expect(bar.getSheetData('Sheet1')).toBe(newRows);
+      });
+
+      it('leaves a plain updateData() call acting on the visible sheet, as loadData() does', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        hot.updateData(newRows);
+
+        expect(hot.getDataAtCell(0, 0)).toBe('new');
+        expect(bar.getSheetData('Second')).toBe(newRows);
+        expect(bar.getSheetData('Sheet1')).toEqual([['A1']]);
+      });
+
+      it('leaves a plain updateData() call acting on the visible sheet after the first sheet is removed', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateData(newRows);
+
+        expect(hot.getDataAtCell(0, 0)).toBe('new');
+        expect(bar.getSheetData('Second')).toBe(newRows);
+      });
+    });
+
     it('does not change how a grid-level `dataProvider` set later keeps the shown rows', async() => {
       const provider = makeProvider();
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -806,6 +1154,30 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(hot.getDataAtCell(0, 0)).toBe('Ann');
       expect(hot.getSettings().dataProvider).toBe(own);
       expect(gridLevel.fetchRows).not.toHaveBeenCalled();
+    });
+
+    it('keeps a server sheet\'s rows without a refetch when an update sends a top-level `data`', async() => {
+      const own = makeProvider();
+      const sheets = [
+        { name: 'Server', data: [], settings: { dataProvider: own, columns: [{ data: 'name' }] } },
+        { name: 'Local', data: [['b']] },
+      ];
+
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      own.fetchRows.mockImplementation(async() => ({ rows: [{ id: 1, name: 'Ann' }], totalRows: 1 }));
+      buildWorkbook(sheets);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      hot.updateSettings({ data: [['x']] });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(hot.getDataAtCell(0, 0)).toBe('Ann');
+
+      hot.updateSettings({ sheetsBar: { sheets }, data: [] });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(hot.getDataAtCell(0, 0)).toBe('Ann');
+      expect(own.fetchRows).toHaveBeenCalledTimes(1);
     });
   });
 

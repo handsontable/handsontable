@@ -162,6 +162,8 @@ export type TokenKey =
   | 'cellAutofillBorderColor'
   | 'cellAutofillBackgroundColor'
   | 'cellAutofillFillBorderColor'
+  // Custom borders
+  | 'customBordersDefaultColor'
   // Cell mobile
   | 'cellMobileHandleSize'
   | 'cellMobileHandleBorderWidth'

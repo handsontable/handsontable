@@ -147,9 +147,10 @@ export const WCAG_CRITERIA = Object.freeze({
  * what the check evidences, and what the conformance report generator cites it for; a finding may name
  * a criterion outside the list when the measurement shows it (a focus stop with no name is a 4.1.2
  * fact the keyboard walker sees), but a target counts as evaluating only the check's own criteria
- * unless it says otherwise. `pullRequest` says whether the check also runs on pull requests next to
- * the axe scan, which a check earns by finishing in under two minutes; every check runs in the A11y
- * nightly. A `triage` check evidences no criterion: its records are for sorting, not for the report to
+ * unless it says otherwise. `pullRequest` says whether the check is in the short suite
+ * (`pull-request`), which a check earns by finishing in under two minutes: the suite a developer runs
+ * locally or through a dispatch of the A11y nightly, since a pull request runs the axe scan alone;
+ * every check runs in the nightly. A `triage` check evidences no criterion: its records are for sorting, not for the report to
  * cite, so its document says `triage: true` with an empty `summary.byCriterion`, and only its records may
  * name no criterion. Each pull request that adds a check adds its entry.
  */
@@ -202,7 +203,7 @@ export const EVIDENCE_CHECKS = Object.freeze({
   },
 });
 /**
- * Which checks a run covers: `pull-request` (the checks with `pullRequest`, next to the axe scan) or
+ * Which checks a run covers: `pull-request` (the short suite: the checks with `pullRequest`) or
  * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check.
  */
 export const CHECK_SUITES = ['pull-request', 'nightly'];

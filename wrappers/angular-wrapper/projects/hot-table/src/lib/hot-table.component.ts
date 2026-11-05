@@ -33,6 +33,13 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'minRowHeights', 'colWidths']);
 
 /**
+ * The `updateData()` source the `data` input is sent with. It tells core that the array is the component's
+ * `data` binding, which the React and Vue wrappers send as the `data` of `updateSettings()`: with the sheets
+ * bar on, it then follows the top-level `data` rule instead of replacing the visible sheet's rows.
+ */
+export const DATA_BINDING_SOURCE = 'dataBinding';
+
+/**
  * Settings that core resets only on `null`. Core reads `undefined` as "leave the current size", so a
  * `height` or `width` that goes from a value to `undefined` is forwarded as `null`, which restores the
  * root element's initial inline size.
@@ -72,6 +79,125 @@ function isSameSizeSetting(currentValue: unknown, newValue: unknown): boolean {
   }
 
   return false;
+}
+
+/**
+ * Settings passed on every `settings` change, changed or not. An app may change the rows of its `data`
+ * array in place and pass the settings again to show them, as with the React and Vue wrappers.
+ */
+const ALWAYS_FORWARDED_SETTINGS = new Set<string>(['data']);
+
+/**
+ * Settings compared by reference only. The sheets bar writes renames and added sheets into the `sheets`
+ * array it was given, so a new array is a new workbook even when its content matches, and walking every
+ * sheet's rows on each change would cost as much as the data itself.
+ */
+const REFERENCE_COMPARED_SETTINGS = new Set<string>(['sheetsBar']);
+
+/**
+ * Compares the value last passed to the grid with the value a `settings` change passes. Plain objects
+ * and arrays are walked; functions, class instances (an editor component reference), and any other
+ * value are compared by reference, and a `RegExp` by its source and flags. A pair of objects already
+ * being compared higher up reads as equal, so a value with a cycle (tree rows with a `parent` link)
+ * ends instead of overflowing the stack.
+ *
+ * @param forwardedValue The copy of the value last passed to the grid.
+ * @param newValue The value coming from the `settings` input.
+ * @param visited The object pairs on the current comparison path.
+ * @returns `true` when passing the new value would change nothing.
+ */
+function isSameSettingValue(
+  forwardedValue: unknown,
+  newValue: unknown,
+  visited: WeakMap<object, WeakSet<object>> = new WeakMap(),
+): boolean {
+  if (forwardedValue === newValue) {
+    return true;
+  }
+
+  if (forwardedValue instanceof RegExp && newValue instanceof RegExp) {
+    return forwardedValue.source === newValue.source && forwardedValue.flags === newValue.flags;
+  }
+
+  const bothArrays = Array.isArray(forwardedValue) && Array.isArray(newValue);
+  const bothPlainObjects = isPlainObject(forwardedValue) && isPlainObject(newValue);
+
+  if (!bothArrays && !bothPlainObjects) {
+    return false;
+  }
+
+  const forwardedObject = forwardedValue as Record<string, unknown>;
+  const newObject = newValue as Record<string, unknown>;
+  const comparedWith = visited.get(forwardedObject);
+
+  if (comparedWith?.has(newObject)) {
+    return true;
+  }
+
+  if (comparedWith) {
+    comparedWith.add(newObject);
+  } else {
+    visited.set(forwardedObject, new WeakSet([newObject]));
+  }
+
+  const forwardedKeys = Object.keys(forwardedObject);
+
+  return forwardedKeys.length === Object.keys(newObject).length &&
+    forwardedKeys.every(key => Object.prototype.hasOwnProperty.call(newObject, key) &&
+      isSameSettingValue(forwardedObject[key], newObject[key], visited));
+}
+
+/**
+ * Copies the plain objects and arrays of a settings value, keeping every other value by reference, so a
+ * value the app changes in place later reads as changed. A value with a cycle is copied with the same
+ * cycle.
+ *
+ * @param value The value to copy.
+ * @param copies The copies made so far, by original.
+ * @returns The copy.
+ */
+function copySettingValue(value: unknown, copies: WeakMap<object, unknown> = new WeakMap()): unknown {
+  if (!Array.isArray(value) && !isPlainObject(value)) {
+    return value;
+  }
+
+  if (copies.has(value)) {
+    return copies.get(value);
+  }
+
+  if (Array.isArray(value)) {
+    const arrayCopy: unknown[] = [];
+
+    copies.set(value, arrayCopy);
+    value.forEach(item => arrayCopy.push(copySettingValue(item, copies)));
+
+    return arrayCopy;
+  }
+
+  const objectCopy: Record<string, unknown> = {};
+
+  copies.set(value, objectCopy);
+  Object.keys(value).forEach((key) => {
+    objectCopy[key] = copySettingValue(value[key], copies);
+  });
+
+  return objectCopy;
+}
+
+/**
+ * Checks whether a value is an object literal or an object without a prototype.
+ *
+ * @param value The value to check.
+ * @returns `true` for a plain object.
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object') {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
 }
 
 /**
@@ -133,6 +259,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * input, because an app may delete the key from that object before passing a copy.
    */
   private _passedHookKeys = new Set<string>();
+
+  /**
+   * Copies of the settings last passed to the grid, by setting name. A `settings` change leaves out a
+   * key whose value equals its copy (`updateHotTable()`). The copy, not the grid's live value, is what
+   * shows a change made in place, and with the sheets bar on the live value is the visible sheet's own.
+   */
+  private _forwardedSettings = new Map<string, unknown>();
   /**
    * The `height` and `width` keys whose size the grid holds from a `settings` input: passed a value, and
    * not cleared since (a key left out of a later input keeps its size, so it stays listed). Only these
@@ -196,6 +329,11 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     const negotiatedSettings = this.getNegotiatedSettings(options);
     options = { ...options, ...negotiatedSettings, ...(this.data != null ? { data: this.data } : {}) };
 
+    this._forwardedSettings = new Map();
+    Object.keys(options).forEach((key) => {
+      this.recordForwarded(key, (options as any)[key]);
+    });
+
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
@@ -243,15 +381,15 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       this._passedClearedByNullKeys = this.collectClearedByNullKeys(newOptions, this._passedClearedByNullKeys);
 
       // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
-      this.updateHotTable(newOptions);
+      const appliedOptions = this.updateHotTable(newOptions);
 
-      // Only destroy old editor refs when new settings actually replace columns.
-      // If newOptions has no columns, HOT keeps the old column objects active — destroying
+      // Only destroy old editor refs when the grid actually received new columns.
+      // If it did not, HOT keeps the old column objects active — destroying
       // their refs would crash FactoryEditorAdapter / BaseEditorAdapter on next edit.
-      if (prevColumnsArray && Array.isArray(newOptions.columns)) {
+      if (prevColumnsArray && Array.isArray(appliedOptions.columns)) {
         // Refs recycled into the new columns must survive — destroy only the ones left behind.
         const reusedRefs = new Set(
-          newOptions.columns
+          appliedOptions.columns
             .map((column) => column._editorComponentReference)
             .filter((ref): ref is NonNullable<typeof ref> => !!ref)
         );
@@ -263,13 +401,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         });
       }
 
-      if (Array.isArray(newOptions.columns)) {
-        this._gridColumns = newOptions.columns;
+      if (Array.isArray(appliedOptions.columns)) {
+        this._gridColumns = appliedOptions.columns;
       }
     }
 
     if (changes.data && !changes.data.firstChange) {
-      this.hotInstance?.updateData(changes.data.currentValue);
+      this.hotInstance?.updateData(changes.data.currentValue, DATA_BINDING_SOURCE);
     }
   }
 
@@ -388,12 +526,49 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Updates the Handsontable instance with new settings.
-   * @param newSettings The new settings to apply to the Handsontable instance.
+   * Checks whether a `settings` change passes a setting with the value it passed last time.
+   *
+   * @param key The setting name.
+   * @param value The value the change passes.
+   * @returns `true` when passing the value would change nothing.
    */
-  private updateHotTable(newSettings: Handsontable.GridSettings): void {
-    if (!this.hotInstance) {
+  private isSameAsForwarded(key: string, value: unknown): boolean {
+    if (!this._forwardedSettings.has(key) || ALWAYS_FORWARDED_SETTINGS.has(key)) {
+      return false;
+    }
+
+    const forwardedValue = this._forwardedSettings.get(key);
+
+    return REFERENCE_COMPARED_SETTINGS.has(key) ? forwardedValue === value : isSameSettingValue(forwardedValue, value);
+  }
+
+  /**
+   * Records the value passed to the grid for a setting, for the next `settings` change to compare with.
+   *
+   * @param key The setting name.
+   * @param value The value passed.
+   */
+  private recordForwarded(key: string, value: unknown): void {
+    if (ALWAYS_FORWARDED_SETTINGS.has(key)) {
       return;
+    }
+
+    this._forwardedSettings.set(key, REFERENCE_COMPARED_SETTINGS.has(key) ? value : copySettingValue(value));
+  }
+
+  /**
+   * Updates the Handsontable instance with new settings. A setting passed last time with the same value
+   * is left out (`isSameAsForwarded()`): passing it again re-applies the plugin it names, and a plugin
+   * re-applied with its own settings drops the state the user gave it (Filters' conditions, Pagination's
+   * page, the server total of a `dataProvider` grid, and a refetch). `ngOnChanges` passes every key of
+   * a new `settings` object, so without the check one changed key re-applied all the others.
+   *
+   * @param newSettings The new settings to apply to the Handsontable instance.
+   * @returns The settings passed to `updateSettings()`.
+   */
+  private updateHotTable(newSettings: Handsontable.GridSettings): Handsontable.GridSettings {
+    if (!this.hotInstance) {
+      return {};
     }
 
     const currentSettings = this.hotInstance.getSettings();
@@ -417,12 +592,19 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         continue;
       }
 
+      if (this.isSameAsForwarded(key, (newSettings as any)[key])) {
+        continue;
+      }
+
       (filteredSettings as any)[key] = (newSettings as any)[key];
+      this.recordForwarded(key, (newSettings as any)[key]);
     }
 
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance?.updateSettings(filteredSettings, false);
     });
+
+    return filteredSettings;
   }
 
   /**

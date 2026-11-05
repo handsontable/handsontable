@@ -56,10 +56,12 @@ function VersionSelector({ label, value, releases, onChange, disableNewerThan, d
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
-    document.addEventListener('click', onDocClick);
+    // Capture phase: a header control that stops its click (the Headway bell does) still closes
+    // the selector.
+    document.addEventListener('click', onDocClick, true);
     document.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('click', onDocClick, true);
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);

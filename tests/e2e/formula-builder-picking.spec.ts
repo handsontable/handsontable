@@ -58,8 +58,8 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     await expect(grid.editorInput).toHaveValue('=B1+1');
     await expect(grid.editorInput).toBeFocused();
     // The grid listens on its own cell `mousedown`; a pick released inside the grid takes the keyboard
-    // back from it while the bar edits.
-    expect(await grid.isListening()).toBe(false);
+    // back from it while the bar edits. The plugin unlistens in a deferred task, so wait for it.
+    await expect.poll(() => grid.isListening()).toBe(false);
 
     // A listening grid would move the selection on ArrowDown. Delete at the end of the text changes
     // nothing in the editor and must not reach the grid either.

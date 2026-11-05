@@ -18,6 +18,7 @@ import {
   DATA_PROVIDER_ERROR_REMOVE_ROWS_MISSING_ID,
   DATA_PROVIDER_ERROR_UPDATE_ROWS_MISSING_ID,
   INITIAL_QUERY_PARAMETERS,
+  QUERY_PLUGIN_SETTING_KEYS,
 } from './constants';
 import {
   buildManualUpdateRowPayloads,
@@ -319,10 +320,13 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`. Besides its own key,
+   * the settings of the plugins the query reads: re-applying one of them resets the page, sort, or filters, so the
+   * query has to be read again and the rows fetched for it. The framework wrappers pass only the settings that
+   * changed, so such a setting usually arrives without `dataProvider`.
    */
   static get SETTING_KEYS() {
-    return [PLUGIN_KEY];
+    return [PLUGIN_KEY, ...QUERY_PLUGIN_SETTING_KEYS];
   }
 
   /**
@@ -388,6 +392,23 @@ export class DataProvider extends BasePlugin {
    * @type {boolean}
    */
   #fetchOwed = false;
+  /**
+   * The `dataProvider` value whose rows the plugin fetched or owes, `null` while it is disabled. Recorded when
+   * the ready step or `onDataReady()` starts the fetch and after the full `updatePlugin()` cycle, never by
+   * `enablePlugin()` alone: an enable through `updateSettings()` runs `updatePlugin()` in the same pass, and that
+   * call must still re-apply the plugin. A settings update that sends the same object again leaves the plugin and
+   * its rows alone.
+   *
+   * @type {*}
+   */
+  #appliedConfig: unknown = null;
+  /**
+   * Whether `#appliedConfig` was a complete configuration when it was recorded. An object completed in place and
+   * sent again turns the grid server-backed, so it is not the same configuration.
+   *
+   * @type {boolean}
+   */
+  #appliedConfigComplete = false;
   /**
    * `true` while {@link Hooks#afterDataProviderFetch} runs for a response the plugin loads or replays, so the page
    * size Pagination takes from that response is not read as a user's change.
@@ -470,18 +491,31 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Re-applies settings and refetches when the instance is already initialized. A payload whose `dataProvider`
-   * is no longer the grid's (an earlier `afterUpdateSettings` listener replaced it with a nested `updateSettings()`
-   * call, which already re-applied the plugin) changes nothing.
+   * Re-applies settings and refetches when the instance is already initialized. Two payloads leave the
+   * configuration in place: one whose `dataProvider` is no longer the grid's (an earlier `afterUpdateSettings`
+   * listener replaced it with a nested `updateSettings()` call, which already re-applied the plugin), and one that
+   * sends the `dataProvider` object whose rows the plugin already fetched, which would otherwise abort the running
+   * fetch and refetch the same rows. A payload that also re-applies a plugin the query reads (Pagination,
+   * ColumnSorting, Filters, or `columns`, which clears the sort) runs the full cycle, because that plugin's state
+   * was reset and the query has to be read from it again.
    *
    * @param {object} [newSettings] The settings passed to `updateSettings()`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    if (newSettings && hasOwnProperty(newSettings, 'dataProvider')
-      && newSettings.dataProvider !== this.hot.getSettings().dataProvider) {
-      super.updatePlugin();
+    if (newSettings && hasOwnProperty(newSettings, PLUGIN_KEY)) {
+      const value = newSettings[PLUGIN_KEY];
 
-      return;
+      if (value !== this.hot.getSettings()[PLUGIN_KEY]) {
+        super.updatePlugin();
+
+        return;
+      }
+
+      if (this.#runsAppliedConfig(value) && !QUERY_PLUGIN_SETTING_KEYS.some(key => hasOwnProperty(newSettings, key))) {
+        super.updatePlugin();
+
+        return;
+      }
     }
 
     this.#disable(false);
@@ -493,6 +527,7 @@ export class DataProvider extends BasePlugin {
       this.#fetchOwed = false;
     }
 
+    this.#recordAppliedConfig();
     super.updatePlugin();
   }
 
@@ -506,6 +541,7 @@ export class DataProvider extends BasePlugin {
   onDataReady() {
     if (this.takeDeferredDataWork() && !this.#isPassive) {
       this.#fetchOwed = false;
+      this.#recordAppliedConfig();
       void this.#fetchDataSilently();
     }
   }
@@ -525,6 +561,7 @@ export class DataProvider extends BasePlugin {
     this.#fetchOwed = false;
 
     if (!this.#isPassive) {
+      this.#recordAppliedConfig();
       void this.#fetchDataSilently();
     }
   }
@@ -559,10 +596,36 @@ export class DataProvider extends BasePlugin {
     }
 
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
+    this.#appliedConfig = null;
+    this.#appliedConfigComplete = false;
     this.hot._removeDroppedChangesListener(this.#onDroppedChanges);
     this.#overtakenEdits.reset();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Records the `dataProvider` value whose rows the plugin fetched or owes, and whether it was complete.
+   */
+  #recordAppliedConfig(): void {
+    const config = this.hot.getSettings()[PLUGIN_KEY];
+
+    this.#appliedConfig = config;
+    this.#appliedConfigComplete = isCompleteDataProviderConfig(config);
+  }
+
+  /**
+   * Tells whether an update's `dataProvider` value is the configuration the plugin already runs with: the same
+   * object, as complete as when it was recorded. While passive, the owner's context change re-applies the plugin
+   * as before.
+   *
+   * @param {*} value The `dataProvider` value of the update.
+   * @returns {boolean}
+   */
+  #runsAppliedConfig(value: unknown): boolean {
+    return !this.#isPassive &&
+      value === this.#appliedConfig &&
+      isCompleteDataProviderConfig(value) === this.#appliedConfigComplete;
   }
 
   /**

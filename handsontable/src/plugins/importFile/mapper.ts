@@ -1,8 +1,9 @@
 import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
-import type {
-  CellSnapshot, DefinedNameSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot,
+import {
+  isOoxmlErrorCode, type CellSnapshot, type DefinedNameSnapshot, type MergeSnapshot, type SheetSnapshot,
+  type WorkbookSnapshot,
 } from '../../utils/xlsxEngine/model';
 import type { XlsxEntitlement } from '../../utils/xlsxEngine/xlsxEntitlement';
 import { colIndexToLetter, parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
@@ -101,6 +102,13 @@ export interface MapperContext {
    * empty. Absent means every function is trusted.
    */
   registersFunction?: (name: string) => boolean;
+  /**
+   * Whether the Formulas plugin's engine reads this error code as an error (the error table of the
+   * engine's language). A cached error the engine does not know and Excel caches as `#VALUE!` (a
+   * rich error such as `#CALC!` or `#FIELD!`) is imported as `#VALUE!`, so `IFERROR` and `ISERROR`
+   * over it still see an error. Absent means every code is trusted.
+   */
+  recognizesErrorCode?: (code: string) => boolean;
   /**
    * Whether the Formulas plugin's engine evaluates array arithmetic (`useArrayArithmetic` of
    * HyperFormula). Without it, `=A1:A3*2` is one value, not a spill, so a dynamic array master is
@@ -583,6 +591,31 @@ function escapeTextFormula(value: unknown, formulasEnabled: boolean): unknown {
   }
 
   return value.startsWith('=') || value.startsWith('\'=') ? `'${value}` : value;
+}
+
+/**
+ * The value Excel caches for an error it stores as a rich value.
+ */
+const RICH_ERROR_CACHED_VALUE = '#VALUE!';
+
+/**
+ * The cached value of a cell as the grid takes it, with a rich error the engine does not know put
+ * back to `#VALUE!`. The native reader writes the code of an error Excel stores as a rich value
+ * (`#CALC!`, `#FIELD!`, ...) over the `#VALUE!` the file caches for it; HyperFormula reads only the
+ * error codes of its language as errors, so such a code imported as TEXT, and `=IFERROR(E1,"none")`
+ * over it returned `#CALC!`. A code of `OOXML_ERROR_CODES` is left alone: the file caches it as it
+ * is, with or without the Formulas plugin.
+ */
+function cachedValueOf(cell: CellSnapshot, inferred: InferredType | null, context: MapperContext): unknown {
+  const value = escapeTextFormula(toGridValue(cell, inferred), context.formulasEnabled);
+  const isError = cell.formula === null ? cell.valueIsError === true : cell.formula.resultIsError === true;
+
+  if (!context.formulasEnabled || !isError || typeof value !== 'string' || isOoxmlErrorCode(value)
+      || context.recognizesErrorCode?.(value) !== false) {
+    return value;
+  }
+
+  return RICH_ERROR_CACHED_VALUE;
 }
 
 /**
@@ -1619,7 +1652,7 @@ function pushCellValue(
     // cells keep the values the file caches.
     if (ref !== null && !callsUnregisteredFunction(live, scope)) {
       recordLiveArray(ref, row, col, {
-        cached: escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled),
+        cached: cachedValueOf(cell, inferred, scope.context),
         recorded: formula as string,
         cachedIsError: cell.formula?.resultIsError === true,
         readsOtherSheet,
@@ -1631,7 +1664,7 @@ function pushCellValue(
     return;
   }
 
-  const cached = escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled);
+  const cached = cachedValueOf(cell, inferred, scope.context);
   const covering = cell.formula === null ? liveArrayCovering(col, scope) : null;
 
   if (covering !== null) {

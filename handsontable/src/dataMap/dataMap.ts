@@ -1081,9 +1081,15 @@ class DataMap {
    * @param {number} row Visual row index.
    * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
    *   function, or `null` when the caller's column index named no column (see `colToProp()`).
+   * @param {object} [options] Read options.
+   * @param {boolean} [options.skipValueGetter=false] When `true`, returns the stored value without the
+   *   column's `valueGetter` (the `modifyRowData` and `modifyData` hooks still apply). Bulk validation
+   *   reads cells this way, because an edit validates the stored value too.
    * @returns {*}
    */
-  get(row: number, prop: string | number | DataAccessorFn | null) {
+  get(row: number, prop: string | number | DataAccessorFn | null, options?: { skipValueGetter?: boolean }) {
+    // Read without a default object: this runs for every cell a render or a data read touches.
+    const skipValueGetter = options?.skipValueGetter === true;
     const physicalRow = this.hot!.toPhysicalRow(row);
 
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
@@ -1137,7 +1143,8 @@ class DataMap {
       ? this.hot!.toPhysicalColumn(visualColumnIndex)
       : null;
 
-    if (typeof visualColumnIndex === 'number' && isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+    if (!skipValueGetter && typeof visualColumnIndex === 'number' &&
+        isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
       // The uncached read returns the stored meta when the cell carries persisted overrides and a
       // transient object otherwise - a plain data read must not permanently materialize one meta
       // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).

@@ -298,6 +298,13 @@ export class EmptyDataState extends BasePlugin {
    * selection alone, as a view change does, instead of selecting the first cell.
    */
   #isSelectionDataReplaced = false;
+  /**
+   * How many view changes (`_runViewChange()`) are running. While one runs, the overlay hides without
+   * touching the selection.
+   *
+   * @type {number}
+   */
+  #viewChanges = 0;
 
   /**
    * Whether the DataProvider-driven loading branch of the overlay is active.
@@ -520,6 +527,39 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Runs a change of the view the grid shows, made by a caller that switches the grid between data sets. The
+   * overlay that hides during it leaves the selection to the view (`#hide(false)`), as a view change through
+   * {@link EmptyDataState#_syncDataProviderLoading} does: the selection kept when it appeared belongs to the view
+   * that was left, and with none kept the hide selected the first cell of a view the user had not visited. When the
+   * change ends with the overlay shown, it keeps the arriving view's selection for its own hide. Runs `run` as it is
+   * while this plugin is disabled. Internal; not public API.
+   *
+   * @private
+   * @param {Function} run The view change.
+   */
+  _runViewChange(run: () => void): void {
+    if (!this.enabled) {
+      run();
+
+      return;
+    }
+
+    this.#viewChanges += 1;
+
+    try {
+      run();
+
+    } finally {
+      this.#viewChanges -= 1;
+
+      if (this.#viewChanges === 0 && this.#isVisible) {
+        this.#selectionState = this.hot.selection.exportSelection();
+        this.#isSelectionDataReplaced = false;
+      }
+    }
+  }
+
+  /**
    * Sets the loading active flag and toggles the emptyDataState.
    */
   #setLoadingActive() {
@@ -710,7 +750,7 @@ export class EmptyDataState extends BasePlugin {
     ) {
       this.#show();
     } else {
-      this.#hide();
+      this.#hide(this.#viewChanges === 0);
     }
   }
 
@@ -906,6 +946,7 @@ export class EmptyDataState extends BasePlugin {
     this.#hasFilterConditions = false;
     this.#selectionState = null;
     this.#isSelectionDataReplaced = false;
+    this.#viewChanges = 0;
 
     super.destroy();
   }

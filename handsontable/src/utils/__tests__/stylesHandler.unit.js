@@ -99,6 +99,30 @@ describe('StylesHandler', () => {
       expect(doc.getElementById(CORE_STYLES_ID)).toBeNull();
     });
 
+    it('should report whether it was told to inject the core styles', () => {
+      const doc = document.implementation.createHTMLDocument('');
+      const hot = createMockHot();
+
+      expect(new StylesHandler({ hot, rootElement: doc.body, rootDocument: doc, injectCoreCss: true })
+        .isCoreCssInjectionEnabled()).toBe(true);
+      expect(new StylesHandler({ hot, rootElement: doc.body, rootDocument: doc, injectCoreCss: false })
+        .isCoreCssInjectionEnabled()).toBe(false);
+      expect(new StylesHandler({ hot, rootElement: doc.body, rootDocument: doc })
+        .isCoreCssInjectionEnabled()).toBe(true);
+    });
+
+    it('should report the injection it was told to do even when a copy is already in the document', () => {
+      const doc = document.implementation.createHTMLDocument('');
+      const hot = createMockHot();
+
+      const first = new StylesHandler({ hot, rootElement: doc.body, rootDocument: doc, injectCoreCss: true });
+      const second = new StylesHandler({ hot, rootElement: doc.body, rootDocument: doc, injectCoreCss: true });
+
+      expect(first.isCoreCssInjectionEnabled()).toBe(true);
+      expect(second.isCoreCssInjectionEnabled()).toBe(true);
+      expect(doc.querySelectorAll(`#${CORE_STYLES_ID}`).length).toBe(1);
+    });
+
     it('should not inject when rootDocument has no head', () => {
       const docWithoutHead = {
         head: null,
