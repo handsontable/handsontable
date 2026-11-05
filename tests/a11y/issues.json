@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triageLimit is the exact number of sampled finding shapes that need triage: lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one.",
+  "triageLimit": 26,
+  "clusters": [
+    {
+      "id": "overlay-clones-split-tree",
+      "title": "The overlay clones split the accessibility tree: the column headers read after the data, each row is exposed twice, the row headers sit apart from their rows, and a screen reader loses the cell's row index",
+      "tracker": "DEV-3652",
+      "match": [
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["headers-after-data", "row-exposed-twice", "row-headers-apart"] },
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-needs-review"], "rules": ["aria-required-children"], "where": ["^(tbody|thead)\\[role=\"rowgroup\"\\]$"] },
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^(into-column-header|into-row-header|up-to-header-for-sort)$"] }
+      ]
+    },
+    {
+      "id": "grid-roles",
+      "title": "The grid is built from divs with ARIA roles, and its treegrid root holds children the role does not allow",
+      "tracker": "DEV-2964",
+      "match": [
+        { "source": "axe", "axeIssues": ["grid-roles"] },
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"treegrid\"\\]"] }
+      ]
+    },
+    {
+      "id": "focus-not-returned-after-escape",
+      "title": "The focus is not returned to the cell after Escape, Enter or a shortcut closes an editor, a menu or the comment editor, and a screen reader does not re-announce the cell",
+      "tracker": ["DEV-3603", "DEV-3604"],
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-not-returned", "focus-lost", "shortcut-moves-focus-out"] },
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^(close-editor|close-context-menu)$"] }
+      ]
+    },
+    {
+      "id": "unnamed-controls",
+      "title": "Controls without an accessible name or role: the editor inputs, the native date and time inputs, the select editor, the comment textarea, the filter listbox, the autocomplete list, and the focus catchers",
+      "tracker": ["DEV-3492", "DEV-2970"],
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-unnamed"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["unnamed-control"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["focusable-without-role"], "where": ["htFocusCatcher"] },
+        { "source": "axe", "axeIssues": ["editor-input-names", "filters-listbox"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["label", "aria-input-field-name", "select-name"] },
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"listbox\"\\]"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["htFocusCatcher"] }
+      ]
+    },
+    {
+      "id": "menu-semantics",
+      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, separators are exposed as menu items, and a screen reader hears the context menu as a table",
+      "tracker": ["DEV-3491", "DEV-2944"],
+      "match": [
+        { "source": "axe", "axeIssues": ["menu-roles", "menu-separators"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-required-parent", "aria-allowed-attr"] },
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["^div\\.htMenu\\[role=\"menu\"\\]$"] },
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^open-context-menu$"] }
+      ]
+    },
+    {
+      "id": "filter-by-value-name",
+      "title": "The accessible name of the Filters \"Filter by value\" component does not include its visible text",
+      "tracker": "DEV-2948",
+      "match": [
+        { "source": "axe", "axeIssues": ["filter-by-value-name"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["label-content-name-mismatch"] }
+      ]
+    },
+    {
+      "id": "filters-nested-buttons",
+      "title": "The Filters \"Select all\" and \"Select none\" controls are buttons nested inside buttons",
+      "tracker": "DEV-3493",
+      "match": [
+        { "source": "axe", "axeIssues": ["filters-nested-buttons"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["nested-interactive"] }
+      ]
+    },
+    {
+      "id": "contrast-and-focus-visibility",
+      "title": "Text, icon, checkbox, grid line and focus indicator contrast under 4.5:1 or 3:1 per theme, and a focus indicator that does not show",
+      "tracker": ["DEV-2946", "DEV-3494"],
+      "match": [
+        { "source": "checks", "checks": ["focus-contrast"], "kinds": ["focus-not-visible", "focus-indicator-contrast", "icon-contrast", "checkbox-contrast", "gridline-contrast", "selection-contrast"] },
+        { "source": "axe", "axeIssues": ["classic-contrast", "horizon-contrast"] },
+        { "source": "axe", "rules": ["color-contrast"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["color-contrast", "color-contrast-enhanced"] }
+      ]
+    },
+    {
+      "id": "drag-and-press-activation",
+      "title": "Drags without a single-pointer or keyboard alternative that does all the drag does, and controls that act on the press or after the pointer left",
+      "tracker": "DEV-1018",
+      "match": [
+        { "source": "checks", "checks": ["pointer"], "kinds": ["drag-without-single-pointer-alternative", "drag-without-keyboard-alternative", "alternative-does-not-work", "gesture-without-single-pointer-alternative", "activates-on-press", "completes-after-pointer-left"] }
+      ]
+    },
+    {
+      "id": "reflow-and-motion",
+      "title": "Content cut off or needing a sideways scroll at 320 px or 200 %, hover content that does not dismiss, controls drawn over each other, a locked orientation, and motion that runs on or ignores the reduced-motion preference",
+      "match": [
+        { "source": "checks", "checks": ["reflow"], "kinds": ["text-clipped", "text-truncated", "outside-viewport", "needs-horizontal-scroll", "controls-overlap", "orientation-locked", "hover-content-not-dismissible", "hover-content-not-hoverable", "hover-content-not-persistent"] },
+        { "source": "checks", "checks": ["forced-colors-motion"], "kinds": ["moves-over-five-seconds", "motion-despite-reduced-motion"] }
+      ]
+    },
+    {
+      "id": "forced-colors",
+      "title": "In forced colors the focus, the selected range, the highlighted menu item, the header icons or the grid lines are not drawn",
+      "match": [
+        { "source": "checks", "checks": ["forced-colors-motion"], "kinds": ["focus-lost-in-forced-colors", "selection-lost-in-forced-colors", "menu-highlight-lost-in-forced-colors", "icon-lost-in-forced-colors", "gridlines-lost-in-forced-colors"] }
+      ]
+    },
+    {
+      "id": "status-messages",
+      "title": "A range extension, a sort and a nested row's level are not announced: no status message reaches the screen reader",
+      "tracker": "DEV-2957",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again|sort-ascending|sort-descending|into-parent-cell|down-to-child)$"] }
+      ]
+    },
+    {
+      "id": "dialogs-leak-tab",
+      "title": "Tab walks out of an open modal dialog to the content behind it, which the dialog hides from assistive technology",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-leaves-modal"] }
+      ]
+    },
+    {
+      "id": "target-size",
+      "title": "Pagination and sheets bar buttons, links and checkboxes are smaller than 24 by 24 px, or sit closer than that to their neighbors",
+      "tracker": "DEV-3495",
+      "match": [
+        { "source": "axe", "axeIssues": ["classic-target-size"] },
+        { "source": "axe", "rules": ["target-size"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["target-size"] }
+      ]
+    },
+    {
+      "id": "voiceover-cell-position",
+      "title": "VoiceOver names no row number on a cell move, and no column number in WebKit, on a well-formed grid too: the screen reader's behavior, not the grid's (the scenario notes record it)",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "where": ["^(arrow-right|arrow-down|arrow-left|arrow-up|reselect-cell)$"] }
+      ]
+    },
+    {
+      "id": "tab-walk-wraps-rows",
+      "title": "With autoWrapRow a Tab walk wraps rows and leaves the grid through Ctrl+End then Tab, as the shortcut guide documents",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-walk-needs-shortcut"] }
+      ]
+    },
+    {
+      "id": "goldens-missing",
+      "title": "A page has no tab-order or accessibility-tree golden recorded yet",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-order-golden-missing"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-golden-missing"] }
+      ]
+    },
+    {
+      "id": "empty-column-headers",
+      "title": "Column headers with no accessible name: the corner and the empty header cells label their cells with nothing",
+      "match": [
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["unnamed-header"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["empty-table-header"] }
+      ]
+    },
+    {
+      "id": "hidden-clone-content",
+      "title": "axe's experimental hidden-content rule lists every hidden element for review: the overlay clones' hidden rows, the closed editors and menus",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["hidden-content"] }
+      ]
+    },
+    {
+      "id": "scrollable-holder-not-focusable",
+      "title": "The scrolling holder is not keyboard focusable, though every cell in it is: axe cannot tell and lists it for review",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["scrollable-region-focusable"] }
+      ]
+    }
+  ]
+}
