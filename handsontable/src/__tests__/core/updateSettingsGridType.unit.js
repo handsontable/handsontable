@@ -234,6 +234,18 @@ describe('Core#updateSettings with a grid-level `type`', () => {
     expect(read(hot)).toEqual(triple(CheckboxCellType));
   });
 
+  it('should keep a key created as `undefined` set when an update restates `undefined`', () => {
+    build({ type: 'checkbox', editor: undefined });
+
+    expect(read(hot).editor).toBeUndefined();
+
+    hot.updateSettings({ editor: PasswordCellType.editor });
+    hot.updateSettings({ type: 'checkbox', editor: undefined });
+
+    expect(read(hot).editor).toBeUndefined();
+    expect(read(hot).renderer).toBe(CheckboxCellType.renderer);
+  });
+
   it('should restore a type key the same payload unsets', () => {
     build({ type: 'dropdown' });
     hot.updateSettings({ type: 'checkbox', filter: undefined });

@@ -68,6 +68,11 @@ export default class GlobalMeta {
    * meta before it is checked, so a name no cell type is registered under is replaced with this one.
    */
   #typeSetting: unknown;
+  /**
+   * The keys the grid was created with an explicit `undefined` for. Creation reads that as "set", so no type
+   * value reaches the key, and an update that restates `undefined` keeps it that way instead of unsetting it.
+   */
+  #undefinedAtCreation = new Set<string>();
 
   /**
    * Initializes the global meta layer, populates the meta prototype with schema defaults, and attaches the Handsontable instance reference.
@@ -107,7 +112,13 @@ export default class GlobalMeta {
     const normalizedSettings = normalizeEditorSetting(settings);
 
     extend(this.meta, normalizedSettings);
-    Object.keys(normalizedSettings).forEach(key => this.#userSetKeys.add(key));
+    Object.keys(normalizedSettings).forEach((key) => {
+      this.#userSetKeys.add(key);
+
+      if (normalizedSettings[key] === undefined) {
+        this.#undefinedAtCreation.add(key);
+      }
+    });
 
     const type = normalizedSettings.type ?? this.meta.type;
 
@@ -122,7 +133,7 @@ export default class GlobalMeta {
   /**
    * Keeps the grid-level `type` in step with an `updateSettings()` payload whose options are already written
    * onto the meta. The payload's keys are recorded as set by the user, and the `type` is expanded again when the
-   * payload names one, or when it unsets an option the current type supplies (`undefined`).
+   * payload names one, or when it unsets an option the current type supplies (`undefined`, unless the grid was created with an explicit `undefined` for that key).
    *
    * A key the user set, in this payload or an earlier one, keeps its value. The keys of the previous type are
    * restored to their defaults first, so the grid ends up as one created with the new type. A type name that
@@ -133,7 +144,7 @@ export default class GlobalMeta {
   updateTypeFromSettings(settings: Record<string, unknown>) {
     const expandedBefore = this.#expandedType;
     const clearsTypeOption = expandedBefore !== null && Object.keys(settings).some(
-      key => settings[key] === undefined && hasOwnProperty(expandedBefore, key)
+      key => this.#unsets(key, settings[key]) && hasOwnProperty(expandedBefore, key)
     );
     const namesType = (typeof settings.type === 'string' || isObject(settings.type)) &&
       this.#resolveType(settings.type) !== null;
@@ -184,13 +195,25 @@ export default class GlobalMeta {
           this.#userSetKeys.delete(key);
         }
 
-      } else if (settings[key] === undefined) {
+      } else if (this.#unsets(key, settings[key])) {
         this.#userSetKeys.delete(key);
 
       } else {
         this.#userSetKeys.add(key);
       }
     });
+  }
+
+  /**
+   * Tells whether a value in an `updateSettings()` payload unsets the option. `undefined` does, except for a key
+   * the grid was created with an explicit `undefined` for: that stays set, as at creation.
+   *
+   * @param {string} key The option name.
+   * @param {*} value The value in the payload.
+   * @returns {boolean}
+   */
+  #unsets(key: string, value: unknown): boolean {
+    return value === undefined && !this.#undefinedAtCreation.has(key);
   }
 
   /**
