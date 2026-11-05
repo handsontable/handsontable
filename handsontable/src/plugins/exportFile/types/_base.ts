@@ -1,7 +1,6 @@
 import { extend, clone } from '../../../helpers/object';
 import { substitute } from '../../../helpers/string';
 import { throwWithCause } from '../../../helpers/errors';
-import { normalizeExportOptions } from '../utils';
 import type ExportDataProvider from '../dataProvider';
 
 /**
@@ -97,9 +96,7 @@ class BaseType {
 
     _options = extend(clone(BaseType.DEFAULT_OPTIONS) as Record<string, unknown>, _options) as Record<string, unknown>;
 
-    // Deprecated alias: `columnHeaders` was renamed to `colHeaders`. Promote it here, before the
-    // merge with the defaults, so the rest of the code only ever reads `colHeaders`.
-    _options = extend(_options, normalizeExportOptions(options)) as Record<string, unknown>;
+    _options = extend(_options, options) as Record<string, unknown>;
 
     _options.filename = substitute(_options.filename as string, {
       YYYY: date.getFullYear(),

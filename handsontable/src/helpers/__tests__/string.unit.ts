@@ -1,7 +1,6 @@
 import {
   equalsIgnoreCase,
   escapeHtml,
-  sanitize,
   substitute,
   stripTags,
   isJSON,
@@ -56,38 +55,6 @@ describe('String helper', () => {
       expect(substitute('[empty][zero][string1]', vars)).toBe('0foo;');
       expect(substitute('BAZ [string2] test', vars)).toBe('BAZ foo\nbar test');
       expect(substitute('1[undef]', vars)).toBe('1');
-    });
-  });
-
-  //
-  // Handsontable.helper.sanitize
-  //
-  describe('sanitize', () => {
-    // Runs first: the warning is printed once per page, before any other call in this suite.
-    it('should warn once about the deprecation', () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-      sanitize('<b>a</b>');
-      sanitize('plain');
-
-      const deprecationCalls = warnSpy.mock.calls
-        .filter(([message]) => String(message).includes('`sanitize()`'));
-
-      expect(deprecationCalls.length).toBe(1);
-      expect(deprecationCalls[0][0]).toMatch(/^Deprecated: .*`sanitizer`/);
-
-      warnSpy.mockRestore();
-    });
-
-    it('should return the string unchanged (pass-through — DOMPurify removed)', () => {
-      expect(sanitize('')).toBe('');
-      expect(sanitize('<i aria-label="bar">foo</i>')).toBe('<i aria-label="bar">foo</i>');
-      expect(sanitize('<img src onerror=alert(1)>')).toBe('<img src onerror=alert(1)>');
-      expect(sanitize('<script>alert()</script>')).toBe('<script>alert()</script>');
-      expect(sanitize('<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>'))
-        .toBe('<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>');
-      expect(sanitize('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>'))
-        .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
     });
   });
 

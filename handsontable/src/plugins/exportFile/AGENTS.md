@@ -200,9 +200,6 @@ Other rules:
 - **Clear the style caches for *every* document involved.** In multi-sheet mode each sheet may come from a
   different Handsontable instance in a different document (an iframe), so one document's cache is not
   enough.
-- **`columnHeaders` is a deprecated alias** of `colHeaders` and is promoted on the per-sheet config **before**
-  it is merged with the already-normalized top-level options, which carry `colHeaders` either way. Keep the
-  alias working — see the breaking-changes policy.
 - **The read-only sentinel colors are shared with the import, in `src/utils/xlsxEngine/readOnlyStyle.ts`.**
   `getFontFromMeta`/`getFillFromMeta` paint `READ_ONLY_TEXT_ARGB`/`READ_ONLY_FILL_ARGB` on a `readOnly` cell
   that has no color of its own, and `importFile/styles.ts` recognizes exactly those two values and drops them

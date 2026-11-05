@@ -4,9 +4,7 @@ import { ExportFile } from '../exportFile';
 import { Dialog } from '../../dialog/dialog';
 import ExportDataProvider from '../dataProvider';
 import BaseType from '../types/_base';
-import { normalizeExportOptions } from '../utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
-import { _resetDeprecationWarnings } from '../../../helpers/console';
 import {
   LISTED_CAPABILITIES_FLAG,
   keyWith,
@@ -15,12 +13,6 @@ import {
 import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
-
-beforeEach(() => {
-  // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
-  // `columnHeaders` assertions below would depend on the order the specs run in.
-  _resetDeprecationWarnings();
-});
 
 function fakeCtx(exportFileSettings) {
   return { hot: { getSettings: () => ({ exportFile: exportFileSettings }) } };
@@ -207,97 +199,8 @@ describe('ExportFile#_createBlob', () => {
   });
 });
 
-describe('ExportDataProvider#setOptions', () => {
-  it('should print a one-time deprecation warning when `columnHeaders` is used', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const dataProvider = new ExportDataProvider({});
-
-    dataProvider.setOptions({ columnHeaders: true });
-    dataProvider.setOptions({ columnHeaders: false });
-
-    const deprecationCalls = warnSpy.mock.calls
-      .filter(([message]) => String(message).includes('`columnHeaders`'));
-
-    expect(deprecationCalls.length).toBe(1);
-    expect(deprecationCalls[0][0]).toMatch(/^Deprecated: .*`columnHeaders`.*`colHeaders`/);
-
-    warnSpy.mockRestore();
-  });
-
-  it('should support the deprecated `columnHeaders` alias', () => {
-    const dataProvider = new ExportDataProvider({});
-
-    dataProvider.setOptions({ columnHeaders: true });
-
-    expect(dataProvider.options.colHeaders).toBe(true);
-  });
-
-  it('should prefer `colHeaders` when both aliases are provided', () => {
-    const dataProvider = new ExportDataProvider({});
-
-    dataProvider.setOptions({ columnHeaders: true, colHeaders: false });
-
-    expect(dataProvider.options.colHeaders).toBe(false);
-  });
-});
-
-describe('normalizeExportOptions', () => {
-  it('should print a one-time deprecation warning when `columnHeaders` is used', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-    normalizeExportOptions({ columnHeaders: true });
-    normalizeExportOptions({ columnHeaders: false });
-
-    const deprecationCalls = warnSpy.mock.calls
-      .filter(([message]) => String(message).includes('`columnHeaders`'));
-
-    expect(deprecationCalls.length).toBe(1);
-    expect(deprecationCalls[0][0]).toMatch(/^Deprecated: .*`columnHeaders`.*`colHeaders`/);
-
-    warnSpy.mockRestore();
-  });
-
-  it('should not warn and not copy the object when `columnHeaders` is absent', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const options = { colHeaders: true };
-
-    expect(normalizeExportOptions(options)).toBe(options);
-    expect(warnSpy).not.toHaveBeenCalled();
-
-    warnSpy.mockRestore();
-  });
-
-  it('should promote `columnHeaders` to `colHeaders`', () => {
-    expect(normalizeExportOptions({ columnHeaders: true }).colHeaders).toBe(true);
-  });
-
-  it('should prefer an explicit `colHeaders`', () => {
-    expect(normalizeExportOptions({ columnHeaders: true, colHeaders: false }).colHeaders).toBe(false);
-  });
-
-  it('should tolerate a missing options object', () => {
-    expect(normalizeExportOptions(undefined)).toBe(undefined);
-  });
-});
-
 describe('BaseType#_mergeOptions', () => {
-  it('should warn once and promote the deprecated `columnHeaders` alias', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const merged = BaseType.prototype._mergeOptions.call(
-      { constructor: BaseType },
-      { columnHeaders: true }
-    );
-
-    const deprecationCalls = warnSpy.mock.calls
-      .filter(([message]) => String(message).includes('`columnHeaders`'));
-
-    expect(deprecationCalls.length).toBe(1);
-    expect(merged.colHeaders).toBe(true);
-
-    warnSpy.mockRestore();
-  });
-
-  it('should keep the default `colHeaders` when neither alias is passed', () => {
+  it('should keep the default `colHeaders` when none is passed', () => {
     const merged = BaseType.prototype._mergeOptions.call({ constructor: BaseType }, {});
 
     expect(merged.colHeaders).toBe(false);
