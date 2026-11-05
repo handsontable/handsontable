@@ -1,0 +1,104 @@
+name: Docs a11y
+
+# The docs site scan (tests/a11y/docs/; tests/AGENTS.md, "A11y: the docs site scan"): axe-core over
+# every page the docs page list enumerates, in the site's light and dark color schemes, compared with
+# the committed docs baseline (tests/a11y/docs/docs-baseline.json). It reads a deployed docs site, so
+# it needs no build: the staging deploy of develop by default, or the deploy a dispatch names.
+#
+# Report-only: a finding never turns the job red. The verdict is the job summary, the HTML report and
+# the findings document; a red job is a tooling failure (a page that did not answer, an example that
+# never loaded, a color scheme that did not apply, a menu the keyboard did not open).
+#
+# On demand, no schedule: a full scan takes several minutes, more than a docs pull request should wait
+# for, so a change to the docs never starts it. A pull request that changes the scan itself does (its
+# own files below): that run is the change's proof, and a workflow that exists only on a branch cannot
+# be dispatched. A dispatch on develop is recorded in the findings ledger (`test-health.yml`,
+# `isA11yRun`); a dispatch from a branch and a pull request's run are not. Another workflow that runs
+# every accessibility scan at once calls this one (`workflow_call`), and lists the `docs` source for
+# its own name in `SOURCES_OF_WORKFLOW` (.github/scripts/lib/a11y-ledger.mjs).
+on:
+  workflow_dispatch:
+    inputs:
+      base-url:
+        description: "The docs deploy to scan, /docs included (a pull request's preview). Empty: the develop staging deploy."
+        type: string
+        required: false
+        default: ''
+  pull_request:
+    paths:
+      - '.github/workflows/docs-a11y.yml'
+      - 'tests/a11y/docs/**'
+      - 'tests/playwright.a11y-docs.config.ts'
+  workflow_call:
+    inputs:
+      base-url:
+        description: "The docs deploy to scan, /docs included. Empty: the develop staging deploy."
+        type: string
+        required: false
+        default: ''
+
+# NO workflow-level permissions block: a caller validates the job-level grants below against the token
+# it hands down (the parity rule of a11y-nightly.yml and screenreader-nightly.yml).
+
+concurrency:
+  # Static prefix, never the workflow-name expression (a called workflow resolves it to the caller's).
+  group: docs-a11y-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: docs axe
+    runs-on: ubuntu-26.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+    # A tooling failure turns the job red and never a caller's run.
+    continue-on-error: true
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      # Through the environment, never interpolated into a script: a dispatch input is free text. The
+      # spec refuses anything but an https URL (or a local http preview).
+      DOCS_A11Y_BASE_URL: ${{ inputs.base-url }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+        name: Install pnpm
+      - name: Install the Playwright test package
+        run: pnpm install --filter handsontable-tests
+      # The reporter (tests/reporters/a11y.ts, suite `docs`) writes the job summary, the HTML report,
+      # comparison.json and a11y-findings.json, and decides the exit status from the mode. The step times
+      # out before the job, so the uploads below still run.
+      - name: Run the docs site scan
+        timeout-minutes: 20
+        run: cd tests && npx playwright test --config playwright.a11y-docs.config.ts
+      # Every run, red or green: the raw axe result per page and color scheme (`scans/`), the comparison
+      # with the baseline and the findings document the ledger reads at the artifact's root.
+      - name: Upload the scan results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: docs-a11y-axe-results
+          path: tests/test-results/a11y-docs
+          if-no-files-found: ignore
+          retention-days: 7
+          overwrite: true
+      # One file, unzipped, so the browser opens it from the run page; the artifact is named after the
+      # file, which is why it is not the product report's `a11y-report.html`.
+      - name: Upload the HTML report
+        id: report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          path: tests/test-results/a11y-docs/docs-a11y-report.html
+          archive: false
+          if-no-files-found: ignore
+          retention-days: 7
+          overwrite: true
+      - name: Link the HTML report in the job summary
+        if: ${{ !cancelled() && steps.report.outputs.artifact-url != '' }}
+        env:
+          REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+        run: printf '\n📊 [Open the HTML report](%s)\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"

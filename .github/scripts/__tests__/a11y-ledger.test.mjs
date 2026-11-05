@@ -19,6 +19,9 @@ import {
   A11Y_TREND_NIGHTS,
   A11Y_TRIAGE_SHOWN,
   A11Y_VERSION,
+  DOCS_A11Y_WORKFLOW,
+  DOCS_AXE_ARTIFACT,
+  NIGHT_SOURCES,
   READER_ARTIFACT_PREFIX,
   READER_NIGHTLY_WORKFLOW,
   READER_TRANSCRIPTS_DIR,
@@ -32,6 +35,7 @@ import {
   readA11yArtifacts,
   renderA11yLine,
   serializeA11yLedger,
+  sourcesOfWorkflow,
 } from '../lib/a11y-ledger.mjs';
 import {
   classifyArtifact,
@@ -42,7 +46,7 @@ import {
   renderStepSummary,
   runContextFromRun,
 } from '../lib/test-health.mjs';
-import { ISSUES_SCHEMA, TRIAGE_ID, compileIssuesCatalog } from '../../../tests/lib/a11y-issues.mjs';
+import { DOCS_SCAN_CHECK, ISSUES_SCHEMA, TRIAGE_ID, compileIssuesCatalog } from '../../../tests/lib/a11y-issues.mjs';
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA } from '../../../tests/lib/a11y-evidence.mjs';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, steps } from '../lib/workflow-text.mjs';
@@ -65,6 +69,8 @@ const NIGHTLY = {
 };
 const READER_RUN = { ...NIGHTLY, id: 41579067604, name: READER_NIGHTLY_WORKFLOW, updated_at: '2026-11-03T05:20:00Z' };
 const PULL_REQUEST = { ...NIGHTLY, id: 41644897455, name: 'Tests', head_branch: 'feature/X-1_Branch', event: 'pull_request' };
+// The docs site scan on develop: a dispatch, since it has no schedule.
+const DOCS_RUN = { ...NIGHTLY, id: 41700000001, name: DOCS_A11Y_WORKFLOW, event: 'workflow_dispatch', updated_at: '2026-11-03T07:10:00Z' };
 
 const CATALOG = compileIssuesCatalog({
   schema: ISSUES_SCHEMA,
@@ -257,6 +263,48 @@ function readerFiles(docs = {}) {
   });
 }
 
+// The docs site scan's findings: the axe scan's shape, with docs pages and the light and dark color schemes.
+const DOCS_DOC = {
+  ...AXE_DOC,
+  about: 'Accessibility findings of the docs site scan',
+  counts: { new: 1, grown: 0, matched: 2, improved: 0, stale: 0, unverified: 0, action: 1 },
+  needsAction: [{
+    status: 'new', page: 'chrome-docs-assistant', theme: 'dark', url: '/docs/javascript-data-grid/', steps: null,
+    rule: 'aria-dialog-name', impact: 'serious', wcag: ['4.1.2'], help: 'ARIA dialog and alertdialog nodes should have an accessible name',
+    helpUrl: 'https://dequeuniversity.com/rules/axe/4.14/aria-dialog-name', target: 'div.assistant-panel[role="dialog"]', nodes: 1,
+    recordedNodes: null, issue: null, suggestedIssue: null, remedy: 'fix it', elements: [],
+  }],
+  issues: [{
+    id: 'docs-link-underline', title: 'Links in prose are told apart by color only', rules: ['link-in-text-block'], wcag: ['1.4.1'],
+    findings: 2, nodes: 31,
+    locations: [
+      { page: 'js-introduction', theme: 'light', rule: 'link-in-text-block', target: 'a', nodes: 3, selector: 'a', domPath: null },
+      { page: 'vue-accessibility', theme: 'dark', rule: 'link-in-text-block', target: 'a', nodes: 28, selector: 'a', domPath: null },
+    ],
+  }],
+};
+
+/**
+ * The artifact files of one docs site scan: the findings at the artifact's root, plus what the collector ignores.
+ *
+ * @param {Record<string, object|null>} [docs] Overrides per artifact path.
+ * @returns {Array<{artifact: string, path: string, text: string}>} The files.
+ */
+function docsFiles(docs = {}) {
+  const files = {
+    [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: DOCS_DOC,
+    [`${DOCS_AXE_ARTIFACT}/comparison.json`]: { mode: 'warn' },
+    [`${DOCS_AXE_ARTIFACT}/scans/js-introduction--light.json`]: { violations: [] },
+    ...docs,
+  };
+
+  return Object.entries(files).filter(([, doc]) => doc !== null).map(([file, doc]) => {
+    const [artifact, ...rest] = file.split('/');
+
+    return { artifact, path: rest.join('/'), text: typeof doc === 'string' ? doc : JSON.stringify(doc) };
+  });
+}
+
 const nightOf = (files) => {
   const read = readA11yArtifacts(files);
 
@@ -267,10 +315,12 @@ const nightOf = (files) => {
 const rowsByKind = (doc, kind) => doc.rows.filter(row => row.kind === kind);
 const statusOf = (doc, key) => doc.rows.find(row => row.key === key)?.status;
 
-test('classifyA11yArtifact knows the three families, and the flake collector files them under one tier', () => {
+test('classifyA11yArtifact knows the four families, and the flake collector files them under one tier', () => {
   assert.equal(classifyA11yArtifact(A11Y_EVIDENCE_ARTIFACT), 'checks');
   assert.equal(classifyA11yArtifact(A11Y_AXE_ARTIFACT), 'axe');
   assert.equal(classifyA11yArtifact(`${READER_ARTIFACT_PREFIX}nvda-chromium`), 'reader');
+  assert.equal(classifyA11yArtifact(DOCS_AXE_ARTIFACT), 'docs');
+  assert.equal(classifyA11yArtifact('docs-a11y-report'), null, 'the docs site scan\'s HTML report is not read');
   // Named outside the family on purpose: the HTML report, the Playwright reports and the recordings.
   assert.equal(classifyA11yArtifact('a11y-report.html'), null);
   assert.equal(classifyA11yArtifact('a11y-checks-evidence-2'), null);
@@ -282,12 +332,23 @@ test('classifyA11yArtifact knows the three families, and the flake collector fil
   assert.equal(classifyArtifact(A11Y_EVIDENCE_ARTIFACT), 'a11y');
   assert.equal(classifyArtifact(A11Y_AXE_ARTIFACT), 'a11y');
   assert.equal(classifyArtifact(`${READER_ARTIFACT_PREFIX}vo-chromium`), 'a11y');
+  assert.equal(classifyArtifact(DOCS_AXE_ARTIFACT), 'a11y');
   assert.equal(classifyArtifact('a11y-report.html'), null);
 });
 
-test('isA11yRun takes the two nightlies on develop by schedule or dispatch, and nothing a pull request can start', () => {
+test('isA11yRun takes the two nightlies and the docs site scan on develop by schedule or dispatch, and nothing a pull request can start', () => {
   assert.equal(isA11yRun(runContextFromRun(NIGHTLY)), true);
   assert.equal(isA11yRun(runContextFromRun(READER_RUN)), true);
+  assert.equal(isA11yRun(runContextFromRun(DOCS_RUN)), true, 'the docs site scan, dispatched on develop');
+  assert.equal(isA11yRun(runContextFromRun({ ...DOCS_RUN, head_branch: 'feature/X-1_Branch' })), false, 'a proof dispatch from a branch');
+  assert.equal(isA11yRun(runContextFromRun({ ...DOCS_RUN, event: 'pull_request' })), false);
+  // A run names the sources it holds, so a workflow that calls several of the scans can name them all.
+  assert.deepEqual(NIGHT_SOURCES, ['a11y', 'reader', 'docs']);
+  assert.deepEqual(sourcesOfWorkflow(A11Y_NIGHTLY_WORKFLOW), ['a11y']);
+  assert.deepEqual(sourcesOfWorkflow(READER_NIGHTLY_WORKFLOW), ['reader']);
+  assert.deepEqual(sourcesOfWorkflow(DOCS_A11Y_WORKFLOW), ['docs']);
+  assert.deepEqual(sourcesOfWorkflow('Tests'), []);
+  assert.deepEqual(sourcesOfWorkflow('constructor'), [], 'never a prototype key');
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'workflow_dispatch' })), true, 'a proof run, or a missed night run again');
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'push' })), false);
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'pull_request' })), false, 'the nightly validating its own graph');
@@ -303,7 +364,7 @@ test('isA11yRun takes the two nightlies on develop by schedule or dispatch, and 
 
   // The merge refuses such a run itself, and a night of another source than the run's workflow.
   assert.throws(() => mergeA11yLedger(null, nightOf(nightlyFiles()), runContextFromRun({ ...PULL_REQUEST, head_branch: 'develop' }), CATALOG,
-    { now: NOW }), /only the A11y and Screen reader nightlies on develop/);
+    { now: NOW }), /only the A11y and Screen reader nightlies and the docs site scan on develop/);
 
   const wrong = mergeA11yLedger(null, nightOf(readerFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: NOW });
 
@@ -311,9 +372,63 @@ test('isA11yRun takes the two nightlies on develop by schedule or dispatch, and 
   assert.match(wrong.notes[0], /run 41584742628 \(reader\): a A11y nightly run holds no reader night, nothing recorded/);
 });
 
+test('the docs site scan is a night of its own: read from its artifact root, recorded from a Docs a11y run, resolving no product row', () => {
+  const read = readA11yArtifacts([...nightlyFiles(), ...docsFiles()]);
+
+  assert.deepEqual(read.notes, []);
+  assert.deepEqual(read.nights.map(entry => entry.source), ['a11y', 'docs']);
+
+  const docs = read.nights[1];
+
+  assert.deepEqual(docs.axe, { complete: true, findings: 3, problems: 0 });
+  assert.equal(docs.coverage.axe, true);
+  assert.deepEqual(docs.findings.map(finding => [finding.source, finding.check, finding.kind, finding.page, finding.theme, finding.rule, finding.issue]), [
+    ['docs', DOCS_SCAN_CHECK, 'axe-violation', 'js-introduction', 'light', 'link-in-text-block', 'docs-link-underline'],
+    ['docs', DOCS_SCAN_CHECK, 'axe-violation', 'vue-accessibility', 'dark', 'link-in-text-block', 'docs-link-underline'],
+    ['docs', DOCS_SCAN_CHECK, 'axe-violation', 'chrome-docs-assistant', 'dark', 'aria-dialog-name', null],
+  ]);
+  assert.equal(docs.findings[2].url, '/docs/javascript-data-grid/', 'a docs page keeps its root-relative path');
+  assert.equal(read.nights[0].findings.filter(finding => finding.source === 'docs').length, 0, 'the product night holds no docs row');
+
+  const a11y = mergeA11yLedger(null, read.nights[0], runContextFromRun(NIGHTLY), CATALOG, { now: NOW }).doc;
+  const merged = mergeA11yLedger(a11y, docs, runContextFromRun(DOCS_RUN), CATALOG, { now: NOW });
+
+  assert.deepEqual(merged.notes, []);
+  assert.equal(merged.doc.rows.filter(row => row.source === 'docs').length, 3);
+  assert.deepEqual(merged.doc.latest.docs, { runId: '41700000001', seenAt: DOCS_RUN.updated_at });
+  assert.deepEqual(merged.doc.latest.a11y, a11y.latest.a11y, 'each source keeps its own latest night');
+  assert.ok(merged.doc.rows.filter(row => row.source === 'docs').every(row => row.cluster === TRIAGE_ID), 'the test catalog has no docs rule');
+
+  // The next docs scan without the dialog finding resolves it, and leaves every product row as it was: a docs
+  // night covers docs rows only, although its scan is complete.
+  const next = mergeA11yLedger(merged.doc, nightOf(docsFiles({ [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: { ...DOCS_DOC, needsAction: [] } })),
+    runContextFromRun({ ...DOCS_RUN, id: 41700000002, updated_at: night(1) }), CATALOG, { now: new Date(night(1)) });
+
+  assert.equal(statusOf(next.doc, `docs|${DOCS_SCAN_CHECK}|axe-violation|aria-dialog-name||chrome-docs-assistant|dark|||div.assistant-panel[role="dialog"]`), 'resolved');
+  assert.equal(statusOf(next.doc, `docs|${DOCS_SCAN_CHECK}|axe-violation|link-in-text-block||vue-accessibility|dark|||a`), 'persisting');
+  assert.ok(next.doc.rows.filter(row => row.source !== 'docs').every(row => row.status === 'new' && row.lastRun === '41584742628'),
+    'a docs night never resolves a product row');
+
+  // A docs night from another workflow's run, and a product night from a docs run, record nothing.
+  const wrongRun = mergeA11yLedger(null, docs, runContextFromRun(NIGHTLY), CATALOG, { now: NOW });
+  const wrongNight = mergeA11yLedger(null, read.nights[0], runContextFromRun(DOCS_RUN), CATALOG, { now: NOW });
+
+  assert.equal(wrongRun.changed, false);
+  assert.match(wrongRun.notes[0], /\(docs\): a A11y nightly run holds no docs night, nothing recorded/);
+  assert.equal(wrongNight.changed, false);
+  assert.match(wrongNight.notes[0], /\(a11y\): a Docs a11y run holds no a11y night, nothing recorded/);
+
+  const view = a11yView(next.doc, CATALOG);
+
+  assert.deepEqual(view.latest.docs, { runId: '41700000002', runAttempt: 1, seenAt: night(1), headSha: NIGHTLY.head_sha.slice(0, 10),
+    workflow: DOCS_A11Y_WORKFLOW });
+  assert.deepEqual(view.checks.find(entry => entry.check === DOCS_SCAN_CHECK),
+    { check: DOCS_SCAN_CHECK, title: 'docs site axe scan', targets: null, measured: null, findings: 2, problems: 0 });
+});
+
 test('collectArtifactFiles hands the a11y family over unparsed, root documents and transcripts only', () => {
   const run = runContextFromRun(NIGHTLY);
-  const { entries, durations, a11y, notes } = collectArtifactFiles([...nightlyFiles(), ...readerFiles()], run);
+  const { entries, durations, a11y, notes } = collectArtifactFiles([...nightlyFiles(), ...readerFiles(), ...docsFiles()], run);
 
   assert.deepEqual(entries, [], 'nothing in the family is a flake');
   assert.deepEqual(durations, []);
@@ -326,7 +441,8 @@ test('collectArtifactFiles hands the a11y family over unparsed, root documents a
     `${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`,
     `${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`,
     `${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`,
-  ], 'the per-test folders, the comparison and the scans are not read');
+    `${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`,
+  ].sort(), 'the per-test folders, the comparison and the scans are not read');
 });
 
 test('readA11yArtifacts turns a night\'s documents into masked findings with their coverage', () => {
@@ -1057,6 +1173,7 @@ test('a11yView derives the clusters, their trend, the criteria, the reader verdi
   assert.deepEqual(view.latest, {
     a11y: { runId: '41600000000', runAttempt: 1, seenAt: night(1), headSha: NIGHTLY.head_sha.slice(0, 10), workflow: A11Y_NIGHTLY_WORKFLOW },
     reader: { runId: '41579067604', runAttempt: 1, seenAt: READER_RUN.updated_at, headSha: NIGHTLY.head_sha.slice(0, 10), workflow: READER_NIGHTLY_WORKFLOW },
+    docs: null,
   });
   // Nights oldest first, as the trend reads them: [run id, seen at, source, findings, new, resolved, triage, problems, attempt].
   assert.deepEqual(view.nights, [
@@ -1241,7 +1358,7 @@ test('the rendered accessibility section is accessible markup: tables with heade
     'a trend chart is an image named after its cluster and its nightly');
 });
 
-test('test-health.yml chains on the two nightlies, downloads the three artifacts for a develop run only, and hands the collector the catalog', () => {
+test('test-health.yml chains on the two nightlies and the docs site scan, downloads their artifacts for a develop run only, and hands the collector the catalog', () => {
   const health = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
   const collect = steps(job(health, 'collect'));
   const describe = collect.find(step => step.startsWith('- name: Describe the run\n'));
@@ -1249,13 +1366,14 @@ test('test-health.yml chains on the two nightlies, downloads the three artifacts
   const update = collect.find(step => step.startsWith('- name: Update the ledger on GitHub Pages\n'));
 
   assert.ok(describe && download && update, 'lost a step');
-  assert.match(health, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly'\]/);
+  assert.match(health, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y'\]/);
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/a11y-nightly.yml'), 'utf8'), new RegExp(`^name: ${A11Y_NIGHTLY_WORKFLOW}$`, 'm'));
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/screenreader-nightly.yml'), 'utf8'), new RegExp(`^name: ${READER_NIGHTLY_WORKFLOW}$`, 'm'));
+  assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/docs-a11y.yml'), 'utf8'), new RegExp(`^name: ${DOCS_A11Y_WORKFLOW}$`, 'm'));
   assert.ok(describe.includes('import { isA11yRun } from \'./.github/scripts/lib/a11y-ledger.mjs\';'), 'the lib owns the develop rule');
   // eslint-disable-next-line no-template-curly-in-string
   assert.ok(describe.includes('echo "A11Y_RUN=${A11Y_RUN}" >> "$GITHUB_ENV"'));
-  const family = `"^(${A11Y_EVIDENCE_ARTIFACT}$|${A11Y_AXE_ARTIFACT}$|${READER_ARTIFACT_PREFIX})"`;
+  const family = `"^(${A11Y_EVIDENCE_ARTIFACT}$|${A11Y_AXE_ARTIFACT}$|${DOCS_AXE_ARTIFACT}$|${READER_ARTIFACT_PREFIX})"`;
 
   assert.ok(download.includes(`or (.name | test(${family}))`), 'the family is in the allowlist, by exact names and the transcript prefix');
   assert.ok(download.includes(`select((.name | test(${family}) | not) or env.A11Y_RUN == "true")`), 'and filtered on the flag');
@@ -1383,7 +1501,7 @@ test('a pull request run with accessibility artifacts records nothing, and a run
 
     assert.equal(pullRequest.status, 0, pullRequest.stderr);
     assert.deepEqual(sandbox.snapshot(), before, 'a pull request\'s evidence changes no published byte');
-    assert.match(pullRequest.stdout, /4 accessibility artifact file\(s\) not recorded: only the A11y and Screen reader nightlies on develop are/);
+    assert.match(pullRequest.stdout, /4 accessibility artifact file\(s\) not recorded: only the A11y and Screen reader nightlies and the docs site scan on develop are/);
 
     // A fork's pull request opened from the fork's own develop: its Tests run reports develop as its branch, and its
     // evidence would resolve every walker row its code no longer shows.

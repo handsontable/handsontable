@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import {
   AXE_SCAN_CHECK,
   AXE_SCAN_KIND,
+  DOCS_SCAN_CHECK,
   FINDING_SOURCES,
   ISSUES_FILE,
   ISSUES_SCHEMA,
@@ -30,6 +31,7 @@ const readCatalog = () => JSON.parse(readFileSync(CATALOG_PATH, 'utf8'));
 const readSample = () => JSON.parse(readFileSync(SAMPLE_PATH, 'utf8'));
 // The live sources of the ids a rule may name, which the frozen sample cannot speak for.
 const AXE_ISSUES = JSON.parse(readFileSync(path.join(TESTS_ROOT, 'a11y/axe-baseline.json'), 'utf8')).issues.map(issue => issue.id);
+const DOCS_ISSUES = JSON.parse(readFileSync(path.join(TESTS_ROOT, 'a11y/docs/docs-baseline.json'), 'utf8')).issues.map(issue => issue.id);
 const READER_PROJECTS = [...readFileSync(path.join(TESTS_ROOT, 'playwright.screenreader.config.ts'), 'utf8')
   .matchAll(/\{ name: '([a-z0-9-]+)', use:/g)].map(([, name]) => name);
 
@@ -119,7 +121,7 @@ test('validateIssuesCatalog accepts the documented shape and names every problem
       { id: 'bad-tracker-list', title: 'T', tracker: ['DEV-1', 7], match: [{ source: 'checks', kinds: ['x'] }] },
       { id: 'no-source', title: 'T', match: [{ kinds: ['x'] }] },
       { id: 'only-source', title: 'T', match: [{ source: 'checks' }] },
-      { id: 'bad-source', title: 'T', match: [{ source: 'docs', kinds: ['x'] }] },
+      { id: 'bad-source', title: 'T', match: [{ source: 'website', kinds: ['x'] }] },
       { id: 'bad-regex', title: 'T', match: [{ source: 'checks', where: ['('] }] },
       { id: 'unknown-field', title: 'T', match: [{ source: 'checks', selectors: ['x'] }] },
       { id: 'not-a-list', title: 'T', match: [{ source: 'checks', kinds: 'x' }] },
@@ -196,6 +198,41 @@ test('validateIssuesCatalog refuses a field no finding of the rule\'s source car
   assert.deepEqual(READER_KINDS, ['token-missing', 'golden-differs']);
 });
 
+test('a docs rule names the docs scan\'s check, its color schemes and the docs baseline\'s issues', () => {
+  const problems = validateIssuesCatalog(catalogOf(
+    ['docs-check', [{ source: 'docs', checks: ['axe'] }]],
+    ['docs-kind', [{ source: 'docs', kinds: ['focus-lost'] }]],
+    ['docs-theme', [{ source: 'docs', rules: ['link-in-text-block'], themes: ['main'] }]],
+    ['docs-cause', [{ source: 'docs', causes: ['color-contrast:bgOverlap'] }]],
+    ['docs-issue', [{ source: 'docs', axeIssues: ['menu-roles'] }]],
+    ['product-theme', [{ source: 'axe', rules: ['color-contrast'], themes: ['dark'] }]],
+  ), { axeIssues: ['menu-roles'], docsIssues: ['docs-link-underline'] });
+  const expect = (pattern) => assert.ok(problems.some(problem => pattern.test(problem)),
+    `expected a problem matching ${pattern}; got:\n${problems.join('\n')}`);
+
+  expect(/"docs-check".*"checks" names "axe", not the docs scan's check \("docs-axe"\)/);
+  expect(/"docs-kind".*"kinds" names "focus-lost", not the axe scan's kind/);
+  expect(/"docs-theme".*"themes" names "main", not a docs color scheme \(light, dark\)/);
+  expect(/"docs-cause".*"causes" on a docs rule/);
+  expect(/"docs-issue".*"axeIssues" names "menu-roles", not an issue of the docs baseline/);
+  expect(/"product-theme".*"themes" names "dark", not a theme/);
+  assert.equal(problems.length, 6, problems.join('\n'));
+  assert.deepEqual(validateIssuesCatalog(catalogOf(
+    ['docs-ok', [{ source: 'docs', checks: ['docs-axe'], kinds: ['axe-violation'], themes: ['dark'], axeIssues: ['docs-link-underline'] }]],
+  ), { docsIssues: ['docs-link-underline'] }), []);
+  assert.equal(DOCS_SCAN_CHECK, 'docs-axe');
+
+  // A docs finding never matches a product rule, and the other way round, though both are axe violations.
+  const catalog = compileIssuesCatalog(catalogOf(
+    ['product', [{ source: 'axe', rules: ['link-in-text-block'] }]],
+    ['docs', [{ source: 'docs', rules: ['link-in-text-block'] }]],
+  ));
+  const violation = { check: DOCS_SCAN_CHECK, kind: AXE_SCAN_KIND, rule: 'link-in-text-block', page: 'js-introduction', theme: 'dark', where: 'a' };
+
+  assert.deepEqual(matchClusters(finding({ ...violation, source: 'docs' }), catalog), ['docs']);
+  assert.deepEqual(matchClusters(finding({ ...violation, source: 'axe', check: AXE_SCAN_CHECK, theme: 'main' }), catalog), ['product']);
+});
+
 test('matchClusters ANDs the fields of a rule, ORs the values in a field and the rules of a cluster', () => {
   const catalog = compileIssuesCatalog(catalogOf(
     ['by-kind', [{ source: 'checks', checks: ['keyboard-walker'], kinds: ['focus-not-returned', 'focus-lost'] }]],
@@ -253,9 +290,9 @@ test('the committed catalog validates against the live baseline issues and scree
 
   assert.ok(AXE_ISSUES.includes('menu-roles') && READER_PROJECTS.includes('nvda-chromium') && READER_PROJECTS.includes('vo-webkit'),
     'read the baseline issues and the screen reader projects');
-  assert.deepEqual(validateIssuesCatalog(doc, { axeIssues: AXE_ISSUES, readerProjects: READER_PROJECTS }), []);
+  assert.deepEqual(validateIssuesCatalog(doc, { axeIssues: AXE_ISSUES, docsIssues: DOCS_ISSUES, readerProjects: READER_PROJECTS }), []);
   assert.equal(doc.schema, ISSUES_SCHEMA);
-  assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader']);
+  assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader', 'docs']);
   assert.deepEqual(MATCH_FIELDS, ['source', 'checks', 'kinds', 'rules', 'causes', 'criteria', 'pages', 'themes', 'where', 'axeIssues']);
   assert.equal(TRIAGE_ID, 'needs-triage');
 

@@ -11,11 +11,12 @@
  * catalog error, which `lib/__tests__/a11y-issues.test.mjs` refuses before it can reach the ledger.
  *
  * A match rule names the `source` a finding came from (`checks`: the checks beyond axe; `axe`: the
- * gating scan; `reader`: the screen reader lanes) and any of: `checks` (check ids, or reader projects),
+ * gating scan; `reader`: the screen reader lanes; `docs`: the docs site scan) and any of: `checks` (check ids, or reader projects),
  * `kinds`, `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria` (WCAG
  * ids), `pages` (anchored patterns on the page id, or the reader scenario), `themes`, `where` (patterns
- * searched in the finding's `where`) and `axeIssues` (the baseline issue an axe finding is filed under,
- * or the one the scan suggests for a new finding of a known rule and target). The values of a field are
+ * searched in the finding's `where`) and `axeIssues` (the baseline issue an axe or docs finding is filed
+ * under, or the one the scan suggests for a new finding of a known rule and target; a docs rule names the
+ * docs baseline's issues, `a11y/docs/docs-baseline.json`). The values of a field are
  * ORed, the fields of a rule ANDed, the rules of a cluster ORed. A finding's `where` is its masked
  * selector, its step, or both joined as `<masked selector> @ <step>` (a keyboard-walker stop, a probe), so
  * a pattern anchored with `^` reads from the selector's start and one anchored with `$` up to the step's end.
@@ -33,6 +34,7 @@
  */
 import { A11Y_THEMES, VOLATILE_CLASSES } from './a11y-baseline.mjs';
 import { EVIDENCE_CHECKS, WCAG_CRITERIA } from './a11y-evidence.mjs';
+import { DOCS_THEMES } from '../a11y/docs/pages.mjs';
 
 export const ISSUES_SCHEMA = 1;
 export const ISSUES_FILE = 'a11y/issues.json';
@@ -40,7 +42,7 @@ export const ISSUES_FILE = 'a11y/issues.json';
  * The cluster a finding lands in when no rule matches it. Reserved: a catalog cluster cannot take the id.
  */
 export const TRIAGE_ID = 'needs-triage';
-export const FINDING_SOURCES = ['checks', 'axe', 'reader'];
+export const FINDING_SOURCES = ['checks', 'axe', 'reader', 'docs'];
 /**
  * The fields a match rule may carry, `source` first. A rule needs `source` and at least one other.
  */
@@ -51,6 +53,11 @@ export const MATCH_FIELDS = ['source', 'checks', 'kinds', 'rules', 'causes', 'cr
  */
 export const AXE_SCAN_CHECK = 'axe';
 export const AXE_SCAN_KIND = 'axe-violation';
+/**
+ * The docs site scan's findings (`tests/a11y/docs/`): the same kind as the gating scan's, under a check of
+ * their own, so a docs finding never matches a rule written for the product.
+ */
+export const DOCS_SCAN_CHECK = 'docs-axe';
 /**
  * The two kinds of a screen reader step: a required token group missing from the announcement, and an
  * announcement whose wording differs from the recorded golden.
@@ -64,6 +71,7 @@ export const READER_KINDS = [READER_TOKEN_MISSING, READER_GOLDEN_DIFFERS];
 const NEVER_CARRIED = Object.freeze({
   checks: ['axeIssues'],
   axe: ['causes'],
+  docs: ['causes'],
   reader: ['rules', 'causes', 'criteria', 'themes', 'axeIssues'],
 });
 
@@ -114,6 +122,7 @@ export function findingShape(finding) {
  * @param {object} [known] The ids a rule may name, when the caller can read them: the tooling test passes both,
  * the collector neither.
  * @param {string[]} [known.axeIssues] The issue ids of the axe baseline (`a11y/axe-baseline.json`).
+ * @param {string[]} [known.docsIssues] The issue ids of the docs baseline (`a11y/docs/docs-baseline.json`).
  * @param {string[]} [known.readerProjects] The screen reader projects (`playwright.screenreader.config.ts`).
  * @returns {string[]} The problems.
  */
@@ -207,7 +216,7 @@ function outside(values, allowed, message) {
  * @param {unknown} rule The rule.
  * @param {string} label Where it sits.
  * @param {string[]} problems Where a problem goes.
- * @param {{axeIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
+ * @param {{axeIssues?: string[], docsIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
  */
 function validateRule(rule, label, problems, known) {
   if (rule === null || typeof rule !== 'object' || Array.isArray(rule)) {
@@ -263,12 +272,15 @@ function validateRule(rule, label, problems, known) {
  * @param {string} field The field.
  * @param {string[]} values Its values.
  * @param {string} source The rule's source.
- * @param {{axeIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
+ * @param {{axeIssues?: string[], docsIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
  * @returns {string|null} The problem.
  */
 function valuesProblem(field, values, source, known) {
   if (field === 'criteria') {
     return outside(values, Object.keys(WCAG_CRITERIA), 'not a WCAG 2.2 criterion (WCAG_CRITERIA, tests/lib/a11y-evidence.mjs)');
+  }
+  if (field === 'themes' && source === 'docs') {
+    return outside(values, DOCS_THEMES, `not a docs color scheme (${DOCS_THEMES.join(', ')})`);
   }
   if (field === 'themes') {
     return outside(values, A11Y_THEMES, `not a theme (${A11Y_THEMES.join(', ')})`);
@@ -279,14 +291,22 @@ function valuesProblem(field, values, source, known) {
   if (field === 'checks' && source === 'axe') {
     return outside(values, [AXE_SCAN_CHECK], `not the axe scan's check ("${AXE_SCAN_CHECK}")`);
   }
+  if (field === 'checks' && source === 'docs') {
+    return outside(values, [DOCS_SCAN_CHECK], `not the docs scan's check ("${DOCS_SCAN_CHECK}")`);
+  }
   if (field === 'checks' && source === 'reader' && Array.isArray(known.readerProjects)) {
     return outside(values, known.readerProjects, 'not a screen reader project (playwright.screenreader.config.ts)');
   }
-  if (field === 'kinds' && source === 'axe') {
+  if (field === 'kinds' && (source === 'axe' || source === 'docs')) {
     return outside(values, [AXE_SCAN_KIND], `not the axe scan's kind ("${AXE_SCAN_KIND}")`);
   }
   if (field === 'kinds' && source === 'reader') {
     return outside(values, READER_KINDS, `not a reader kind (${READER_KINDS.join(', ')})`);
+  }
+  if (field === 'axeIssues' && source === 'docs') {
+    return Array.isArray(known.docsIssues)
+      ? outside(values, known.docsIssues, 'not an issue of the docs baseline (a11y/docs/docs-baseline.json)')
+      : null;
   }
   if (field === 'axeIssues' && Array.isArray(known.axeIssues)) {
     return outside(values, known.axeIssues, 'not an issue of the axe baseline (a11y/axe-baseline.json)');

@@ -336,11 +336,12 @@ export function marksForScan({ findings, entries, pictured = new Set() }) {
  * before it compares, so a malformed entry is a red run, never a silently
  * matched one.
  *
- * @param {unknown} document The parsed `axe-baseline.json`.
- * @param {{pages: string[]}} known The page ids the scan knows.
+ * @param {unknown} document The parsed `axe-baseline.json` (or the docs scan's `docs-baseline.json`).
+ * @param {{pages: string[], themes?: string[], pagesFile?: string}} known The page ids and themes the scan knows, and the
+ * file that lists its pages (for the message); the product scan's themes and page list when absent.
  * @returns {string[]} The problems.
  */
-export function validateBaseline(document, { pages }) {
+export function validateBaseline(document, { pages, themes = A11Y_THEMES, pagesFile = 'tests/a11y/pages.mjs' }) {
   if (document === null || typeof document !== 'object' || Array.isArray(document)) {
     return ['the baseline must be a JSON object with "axeCoreVersion", "issues" and "entries"'];
   }
@@ -363,7 +364,7 @@ export function validateBaseline(document, { pages }) {
   const issueIds = validateIssues(document.issues, problems);
   const used = new Map([...issueIds].map(id => [id, 0]));
 
-  validateEntries(document.entries, { pages, issueIds, used, problems });
+  validateEntries(document.entries, { pages, themes, pagesFile, issueIds, used, problems });
   for (const [id, count] of used) {
     if (count === 0) {
       problems.push(`issue "${id}" has no entry left: it is fixed, so delete it from "issues" (and close its tracker)`);
@@ -422,7 +423,7 @@ function validateIssues(issues, problems) {
  * @param {unknown[]} entries The entries.
  * @param {object} context The pages, the issue ids, the per-issue counts and the problems.
  */
-function validateEntries(entries, { pages, issueIds, used, problems }) {
+function validateEntries(entries, { pages, themes, pagesFile, issueIds, used, problems }) {
   const seen = new Map();
 
   entries.forEach((item, index) => {
@@ -445,11 +446,11 @@ function validateEntries(entries, { pages, issueIds, used, problems }) {
         problems.push(`${label}: "${field}" must be a non-empty string`);
       }
     }
-    if (!A11Y_THEMES.includes(item.theme)) {
-      problems.push(`${label}: theme ${JSON.stringify(item.theme)} is not one of ${A11Y_THEMES.join(', ')}`);
+    if (!themes.includes(item.theme)) {
+      problems.push(`${label}: theme ${JSON.stringify(item.theme)} is not one of ${themes.join(', ')}`);
     }
     if (typeof item.page === 'string' && item.page !== '' && !pages.includes(item.page)) {
-      problems.push(`${label}: page "${item.page}" is not in the scan list (tests/a11y/pages.mjs); `
+      problems.push(`${label}: page "${item.page}" is not in the scan list (${pagesFile}); `
         + 'delete the entry or restore the page');
     }
     if (item.impact !== undefined && item.impact !== null && !IMPACTS.has(item.impact)) {
@@ -485,10 +486,11 @@ function validateEntries(entries, { pages, issueIds, used, problems }) {
  * @param {object[]} input.violations The run's findings (`findingsFromScan()`).
  * @param {Array<{page: string, theme: string}>} input.scanned The page × theme pairs the run completed.
  * @param {'warn'|'block'} input.mode The mode.
+ * @param {string} [input.baselineFile] The baseline the remedies name, relative to `tests/`; the product scan's when absent.
  * @returns {object} The verdict: `mode`, `status`, the six sets, and `issues` with each issue's
  * counts in this run.
  */
-export function compareViolations({ baseline, issues = [], violations, scanned, mode }) {
+export function compareViolations({ baseline, issues = [], violations, scanned, mode, baselineFile = BASELINE_FILE }) {
   if (!A11Y_MODES.includes(mode)) {
     throw new Error(`Unknown a11y mode ${JSON.stringify(mode)}; expected one of ${A11Y_MODES.join(', ')}`);
   }
@@ -506,15 +508,15 @@ export function compareViolations({ baseline, issues = [], violations, scanned, 
     if (!entry) {
       const suggestedIssue = issueOfSignature.get(`${finding.rule}|${finding.target}`) ?? null;
 
-      sets.newViolations.push({ ...finding, suggestedIssue, remedy: newRemedy(finding, suggestedIssue) });
+      sets.newViolations.push({ ...finding, suggestedIssue, remedy: newRemedy(finding, suggestedIssue, baselineFile) });
     } else if (finding.nodes > entry.nodes) {
       sets.grown.push({ ...finding, issue: entry.issue, baselineNodes: entry.nodes,
         remedy: `${finding.nodes - entry.nodes} more node${finding.nodes - entry.nodes === 1 ? '' : 's'} than the `
-          + `${entry.nodes} recorded (${finding.nodes} now): fix the new ones, or raise "nodes" to ${finding.nodes} in tests/${BASELINE_FILE}` });
+          + `${entry.nodes} recorded (${finding.nodes} now): fix the new ones, or raise "nodes" to ${finding.nodes} in tests/${baselineFile}` });
     } else if (finding.nodes < entry.nodes) {
       sets.improved.push({ ...finding, issue: entry.issue, baselineNodes: entry.nodes,
         remedy: `${entry.nodes - finding.nodes} fewer node${entry.nodes - finding.nodes === 1 ? '' : 's'} than the `
-          + `${entry.nodes} recorded: lower "nodes" to ${finding.nodes} in tests/${BASELINE_FILE}` });
+          + `${entry.nodes} recorded: lower "nodes" to ${finding.nodes} in tests/${baselineFile}` });
     } else {
       sets.matched.push({ ...finding, issue: entry.issue, baselineNodes: entry.nodes, remedy: `known issue "${entry.issue}"` });
     }
@@ -526,7 +528,7 @@ export function compareViolations({ baseline, issues = [], violations, scanned, 
     if (scannedKeys.has(`${item.page}|${item.theme}`)) {
       const last = entriesPerIssue.get(item.issue) === 1;
 
-      sets.stale.push({ ...item, remedy: `delete the entry (${entryKey(item)}) from tests/${BASELINE_FILE}: the finding no longer reproduces`
+      sets.stale.push({ ...item, remedy: `delete the entry (${entryKey(item)}) from tests/${baselineFile}: the finding no longer reproduces`
         + (last ? `; it was the last entry of issue "${item.issue}", so delete the issue too` : '') });
     } else {
       sets.unverified.push({ ...item, remedy: `${item.page} on ${item.theme} was not scanned this run; nothing to do until it runs` });
@@ -707,15 +709,16 @@ export function headline(verdict) {
  * @param {object} verdict What `compareViolations()` returned.
  * @param {object} [context] Extra lines.
  * @param {string} [context.reportUrl] The HTML report's URL.
+ * @param {string} [context.title] The heading; the product scan's when absent.
  * @returns {string} Markdown.
  */
-export function renderSummary(verdict, { reportUrl } = {}) {
+export function renderSummary(verdict, { reportUrl, title = 'A11y / axe' } = {}) {
   const counts = verdictCounts(verdict);
   const titles = new Map(verdict.issues.map(issue => [issue.id, issue.title]));
   const issueCell = id => (id ? `${escapeMarkdownText(titles.get(id) ?? id)} (<code>${escapeMarkdownText(id)}</code>)` : '');
   const mark = counts.action === 0 ? '✅' : (verdict.mode === 'block' ? '❌' : '⚠️');
   const lines = [
-    '## A11y / axe',
+    `## ${escapeMarkdownText(title)}`,
     '',
     `${mark} **${escapeMarkdownText(headline(verdict))}**`,
     '',
@@ -775,19 +778,20 @@ export function renderSummary(verdict, { reportUrl } = {}) {
  * that needs action, `::warning` in warn mode and `::error` in block mode.
  *
  * @param {object} verdict What `compareViolations()` returned.
+ * @param {{label?: string}} [context] The annotations' title prefix; the product scan's when absent.
  * @returns {string[]} One command per line.
  */
-export function renderAnnotations(verdict) {
+export function renderAnnotations(verdict, { label = 'A11y axe' } = {}) {
   const level = verdict.mode === 'block' ? 'error' : 'warning';
   const command = (title, message) => workflowCommand(level, title, message);
   const where = item => `${item.page} / ${item.theme}: ${item.rule} at ${item.target}`;
 
   return [
-    ...verdict.newViolations.map(item => command('A11y axe: new finding',
+    ...verdict.newViolations.map(item => command(`${label}: new finding`,
       `${where(item)} — ${item.help ?? ''} (${item.nodes} node${item.nodes === 1 ? '' : 's'}; ${item.helpUrl ?? ''}). ${item.remedy}`)),
-    ...verdict.grown.map(item => command('A11y axe: grown finding', `${where(item)} (issue "${item.issue}"): ${item.remedy}`)),
-    ...verdict.improved.map(item => command('A11y axe: improved finding', `${where(item)} (issue "${item.issue}"): ${item.remedy}`)),
-    ...verdict.stale.map(item => command('A11y axe: stale baseline entry', `${where(item)} (issue "${item.issue}"). ${item.remedy}`)),
+    ...verdict.grown.map(item => command(`${label}: grown finding`, `${where(item)} (issue "${item.issue}"): ${item.remedy}`)),
+    ...verdict.improved.map(item => command(`${label}: improved finding`, `${where(item)} (issue "${item.issue}"): ${item.remedy}`)),
+    ...verdict.stale.map(item => command(`${label}: stale baseline entry`, `${where(item)} (issue "${item.issue}"). ${item.remedy}`)),
   ];
 }
 
@@ -797,9 +801,10 @@ export function renderAnnotations(verdict) {
  *
  * @param {object} finding The finding.
  * @param {string|null} suggestedIssue The matching known issue.
+ * @param {string} baselineFile The baseline, relative to `tests/`.
  * @returns {string} One line.
  */
-function newRemedy(finding, suggestedIssue) {
+function newRemedy(finding, suggestedIssue, baselineFile) {
   const fields = {
     page: finding.page,
     theme: finding.theme,
@@ -812,8 +817,8 @@ function newRemedy(finding, suggestedIssue) {
   const snippet = `{ ${Object.entries(fields).map(([name, value]) => `${JSON.stringify(name)}: ${JSON.stringify(value)}`).join(', ')} }`;
 
   return suggestedIssue
-    ? `fix it, or, if it is the known issue "${suggestedIssue}" on another page or theme, add it to tests/${BASELINE_FILE}: ${snippet}`
-    : `fix it, or add it to tests/${BASELINE_FILE} under an issue (a new one in "issues" needs a title; its tracker is optional): ${snippet}`;
+    ? `fix it, or, if it is the known issue "${suggestedIssue}" on another page or theme, add it to tests/${baselineFile}: ${snippet}`
+    : `fix it, or add it to tests/${baselineFile} under an issue (a new one in "issues" needs a title; its tracker is optional): ${snippet}`;
 }
 
 /**

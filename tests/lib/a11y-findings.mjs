@@ -12,7 +12,7 @@
  * a field is removed or renamed.
  */
 import { headline, selectorText, verdictCounts } from './a11y-baseline.mjs';
-import { fixtureUrl, stateSteps } from '../a11y/pages.mjs';
+import { PRODUCT_SUITE } from './a11y-suites.mjs';
 
 export const FINDINGS_SCHEMA = 1;
 // How many elements a finding that needs action lists.
@@ -39,16 +39,19 @@ function element(detail) {
  *
  * @param {object} input The run.
  * @param {object} input.verdict What `compareViolations()` returned.
- * @param {object[]} input.pages The page list (`a11y/pages.mjs`).
+ * @param {object[]} [input.pages] The page list; the suite's when absent.
  * @param {string[]} [input.problems] Tooling problems.
+ * @param {object} [input.suite] The scan (`lib/a11y-suites.mjs`); the product scan when absent.
  * @returns {object} The findings document.
  */
-export function agentFindings({ verdict, pages, problems = [] }) {
-  const pageOf = new Map(pages.map(page => [page.id, page]));
+export function agentFindings({ verdict, pages, problems = [], suite = PRODUCT_SUITE }) {
+  const list = pages ?? suite.pages;
+  const pageOf = new Map(list.map(page => [page.id, page]));
   const where = (item) => {
     const page = pageOf.get(item.page);
+    const located = page ? suite.locate(page, item.theme) : null;
 
-    return { page: item.page, theme: item.theme, url: page ? fixtureUrl(page, item.theme) : null, steps: page ? stateSteps(page) : null };
+    return { page: item.page, theme: item.theme, url: located?.path ?? null, steps: located?.steps ?? null };
   };
   const action = (status, item) => ({
     status,
@@ -70,27 +73,16 @@ export function agentFindings({ verdict, pages, problems = [] }) {
 
   return {
     schema: FINDINGS_SCHEMA,
-    about: 'Accessibility findings of the axe scan (tests/a11y/). Fix a finding, then change tests/a11y/axe-baseline.json as '
-      + 'its remedy says. `url` is relative to the fixture server (http://localhost:8123 by default); `steps` reach the scanned '
-      + 'state; `selector` and `domPath` locate the element in the browser\'s developer tools.',
+    about: suite.about,
     mode: verdict.mode,
     status: verdict.status,
     headline: headline(verdict),
     counts: verdictCounts(verdict),
     problems,
-    reproduce: {
-      build: 'npm --prefix handsontable run build:umd && npm --prefix handsontable run build:styles.min '
-        + '&& npm --prefix handsontable run build:themes-css.min',
-      scan: 'npm --prefix tests run test:a11y',
-      outputs: 'tests/test-results/a11y/ (a11y-report.html, a11y-findings.json, summary.md, comparison.json, scans/)',
-    },
-    // How to reach each page's scanned state; a location's URL is `fixture` plus `?theme=<theme>` and `query`.
-    pages: Object.fromEntries(pages.map(page => [page.id, {
-      fixture: `/tests/fixtures/demo/${page.fixture}`,
-      query: page.query ?? null,
-      steps: stateSteps(page),
-      surface: page.surface ?? null,
-    }])),
+    reproduce: suite.reproduce,
+    // How to reach each page's scanned state. A product location's URL is `fixture` plus `?theme=<theme>` and
+    // `query`; a docs location's is `fixture` on the deploy, in the light or dark theme.
+    pages: Object.fromEntries(list.map(page => [page.id, suite.pageEntry(page)])),
     needsAction: [
       ...verdict.newViolations.map(item => action('new', item)),
       ...verdict.grown.map(item => action('grown', item)),

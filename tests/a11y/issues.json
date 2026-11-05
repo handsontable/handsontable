@@ -19,7 +19,8 @@
       "tracker": "DEV-2964",
       "match": [
         { "source": "axe", "axeIssues": ["grid-roles"] },
-        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"treegrid\"\\]"] }
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"treegrid\"\\]"] },
+        { "source": "docs", "axeIssues": ["example-grid-roles"] }
       ]
     },
     {
@@ -175,6 +176,55 @@
       "title": "The scrolling holder is not keyboard focusable, though every cell in it is: axe cannot tell and lists it for review",
       "match": [
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["scrollable-region-focusable"] }
+      ]
+    },
+    {
+      "id": "docs-assistant-button-name",
+      "title": "The docs header's \"Ask AI\" button has an accessible name that does not contain its visible text",
+      "match": [
+        { "source": "docs", "axeIssues": ["assistant-button-name"] }
+      ]
+    },
+    {
+      "id": "docs-framework-tab-name",
+      "title": "The docs framework switcher's tabs have accessible names that do not contain their visible text",
+      "match": [
+        { "source": "docs", "axeIssues": ["framework-tab-name"] }
+      ]
+    },
+    {
+      "id": "docs-hidden-focusable",
+      "title": "An off-screen copy of the docs navigation is hidden from screen readers but still holds focusable links",
+      "match": [
+        { "source": "docs", "axeIssues": ["sidebar-hidden-focusable"] }
+      ]
+    },
+    {
+      "id": "docs-link-color-only",
+      "title": "Links in the docs prose are told apart from the surrounding text by color alone",
+      "match": [
+        { "source": "docs", "axeIssues": ["prose-link-color-only"] }
+      ]
+    },
+    {
+      "id": "docs-contrast",
+      "title": "Docs code block line numbers in the dark theme, and cell text in some examples, fall below 4.5:1 contrast",
+      "match": [
+        { "source": "docs", "axeIssues": ["code-line-number-contrast", "example-cell-contrast"] }
+      ]
+    },
+    {
+      "id": "docs-scrollable-blocks",
+      "title": "Scrollable code blocks and tables in the docs cannot be scrolled from the keyboard",
+      "match": [
+        { "source": "docs", "axeIssues": ["scrollable-block-keyboard"] }
+      ]
+    },
+    {
+      "id": "docs-embeds-and-example-fields",
+      "title": "Docs embeds have no frame title, custom renderer images have no text alternative, and some example fields have no label",
+      "match": [
+        { "source": "docs", "axeIssues": ["embed-frame-title", "example-image-alt", "example-unlabeled-fields"] }
       ]
     }
   ]
