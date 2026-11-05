@@ -165,4 +165,40 @@ describe('SheetsBar sheet with an engine of its own, moved or sorted', () => {
 
     expect(hot.getData()).toEqual([[2, 3, 1], [4, 7, 3]]);
   });
+
+  it('keeps a reference to a sheet renamed while the moved sheet is away', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        activeSheet: 1,
+        sheets: [
+          { name: 'Prices', data: [[100]], settings: { formulas: { engine, sheetName: 'Prices' } } },
+          { name: 'Calc', data: [[1, '=Prices!A1+A1']], settings: { manualColumnMove: true, formulas: { engine } } },
+          { name: 'Plain', data: [['x']] },
+        ],
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const bar = hot.getPlugin('sheetsBar');
+
+    hot.getPlugin('manualColumnMove').moveColumn(0, 1);
+    hot.render();
+
+    expect(hot.getData()).toEqual([[101, 1]]);
+
+    bar.setActiveSheet('Plain');
+    bar.renameSheet(bar.getSheets().find(sheet => sheet.name === 'Prices').id, 'Costs');
+    bar.setActiveSheet('Calc');
+
+    expect(hot.getData()).toEqual([[101, 1]]);
+
+    hot.getPlugin('manualColumnMove').moveColumn(1, 0);
+    hot.render();
+
+    expect(hot.getData()).toEqual([[1, 101]]);
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=Costs!A1+A1');
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
 });

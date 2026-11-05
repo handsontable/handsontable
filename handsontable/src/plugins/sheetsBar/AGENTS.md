@@ -378,8 +378,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   an edit came back with other values. `#captureEngineOrder` passes `withContent` to
   `Formulas#exportEngineOrder()` for such a sheet, and the return writes that content into whatever
   engine sheet the load binds before it adopts the order. A duplicate of such a sheet gets the same
-  stored order and content for its first visit (`#copyEngineContentOrder`). Pinned by
+  stored order and content for its first visit (`#copyEngineContentOrder`). A rename rewrites that stored
+  content with the sheet's data (`#rewriteStoredEngineContent`, from `#rewriteFormulaText`), or the
+  return wrote the old name back into the engine as a `#REF!`. Pinned by
   `__tests__/ownEngineOrder.unit.js` and the "engine of its own" cases of the spec below.
+  **Open:** a sheet with no `sheetName` on a shared built engine binds the engine sheet the previous
+  formulas sheet left bound (the Formulas plugin falls back to its last `sheetName`), so after a visit to
+  a named sheet its load overwrites that sheet's engine content. Unrelated to the stored order: it
+  happens with no move or sort.
   **Open:** `updateSheetSettings()` that redeclares the order (`manualColumnMove: false`) of a hidden
   sheet with a stored engine order keeps that order: the return adopts it, the reset grid order is sent
   with `setColumnOrder`, and the engine's rewritten text (`=D1+B1`) is written back into the data. Same

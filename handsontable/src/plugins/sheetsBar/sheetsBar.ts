@@ -5166,6 +5166,33 @@ export class SheetsBar extends BasePlugin {
         this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, changes));
       }
     });
+
+    this.#sheetRecords()
+      .filter(sheet => sheet !== active && formulasSettingOf(sheet)?.engine === engine)
+      .forEach(sheet => this.#rewriteStoredEngineContent(sheet, rewrite));
+  }
+
+  /**
+   * Rewrites the formula text of the engine content stored for a sheet that is away
+   * (`#captureEngineOrder`). Its return writes that content into the engine, so a rename made while the
+   * sheet was away would otherwise bring the old name back as a `#REF!`.
+   *
+   * @param {object} sheet The sheet.
+   * @param {Function} rewrite Maps a formula's text to its new text.
+   */
+  #rewriteStoredEngineContent(sheet: Sheet, rewrite: (formula: string) => string) {
+    const stored = this.#engineOrders.get(sheet);
+    const content = stored?.order.content;
+
+    if (!stored || content === undefined) {
+      return;
+    }
+
+    const rewritten = content.map(row => row.map(cell => (
+      typeof cell === 'string' && cell.startsWith('=') ? rewrite(cell) : cell
+    )));
+
+    this.#engineOrders.set(sheet, { ...stored, order: { ...stored.order, content: rewritten } });
   }
 
   /**
