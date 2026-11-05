@@ -50,6 +50,7 @@ Current recipes:
 <div class="boxes-list">
 
 - [Add AI-classified columns with Jev](@/recipes/real-time/ai-columns-jev/ai-columns-jev.md)
+- [Stream Kafka topics into the grid](@/recipes/real-time/kafka-stream/kafka-stream.md)
 
 </div>
 
