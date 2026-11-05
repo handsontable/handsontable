@@ -457,7 +457,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v43';
+const LOADER_VERSION = 'v44';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -877,8 +877,9 @@ function _wrapStepsForLevel(html, level) {
 
 /**
  * Splits an aside body into text paragraphs and fenced code blocks.
- * A fence opens on a line that starts with three or more backticks (or tildes)
- * and closes on a line that starts with the same character at least as many times.
+ * A fence opens on a line that starts with three or more backticks (or tildes),
+ * indented by up to three spaces, and closes on a line of the same kind that holds the
+ * same character at least as many times.
  * A backtick fence cannot hold a backtick in its info string, as in CommonMark.
  * An unclosed fence is closed at the end of the body, so it cannot swallow the
  * markup that closes the aside, or the rest of the page.
@@ -895,7 +896,7 @@ function splitAsideBody(bodyLines) {
     if (marker) {
       current.lines.push(line);
 
-      const closing = line.match(/^(`{3,}|~{3,})\s*$/);
+      const closing = line.match(/^ {0,3}(`{3,}|~{3,})\s*$/);
 
       if (closing && closing[1][0] === marker[0] && closing[1].length >= marker.length) {
         segments.push(current);
@@ -903,7 +904,7 @@ function splitAsideBody(bodyLines) {
         marker = null;
       }
     } else {
-      const opening = line.match(/^(`{3,})[^`]*$/) || line.match(/^(~{3,})/);
+      const opening = line.match(/^ {0,3}(`{3,})[^`]*$/) || line.match(/^ {0,3}(~{3,})/);
 
       if (opening) {
         segments.push(current);

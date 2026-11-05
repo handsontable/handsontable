@@ -944,3 +944,31 @@ test('the real markdown renderer highlights an aside fence and keeps the aside m
   assert.ok(!/<pre[\s\S]*<\/aside>[\s\S]*<\/pre>/.test(code), 'the aside markup is not inside the code block');
   assert.match(code, /<\/aside>\s*<p>After the aside\.<\/p>/, 'the page continues after the aside');
 });
+
+/**
+ * Renders an aside page through the real markdown processor.
+ *
+ * @param {string} body
+ * @returns {Promise<string>}
+ */
+async function renderAsidePage(body) {
+  const { createMarkdownProcessor } = await import('@astrojs/markdown-remark');
+  const { code } = await (await createMarkdownProcessor({})).render(await loadPageWithBody(body));
+
+  return code;
+}
+
+test('a fence closed by a line indented up to three spaces keeps the aside and the page intact', async () => {
+  const code = await renderAsidePage(['::: tip', 'Text.', '```js', 'a();', '  ```', ':::', '', 'After the aside.'].join('\n'));
+
+  assert.match(code, /<\/pre>\s*<\/div>\s*<\/aside>\s*<p>After the aside\.<\/p>/, 'the aside closes after the code block');
+  assert.equal(code.match(/<pre/g).length, 1, 'one code block, no second fence');
+});
+
+test('a fence opened by a line indented up to three spaces keeps the aside and the page intact', async () => {
+  const code = await renderAsidePage(['::: tip', 'Text.', '  ```js', 'a();', '```', 'Tail.', ':::', '', 'After the aside.'].join('\n'));
+
+  assert.match(code, /<pre[^>]*data-language="js"/, 'the indented opener is a highlighted block');
+  assert.match(code, /<p>Tail\.<\/p>\s*<\/div>\s*<\/aside>\s*<p>After the aside\.<\/p>/, 'text after the fence stays prose');
+  assert.equal(code.match(/<pre/g).length, 1, 'the closer does not open a second fence');
+});
