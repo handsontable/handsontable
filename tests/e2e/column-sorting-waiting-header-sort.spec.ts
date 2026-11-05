@@ -5,7 +5,8 @@ import { ColumnSortingWaitingHeaderSortPage, type Row } from '../fixtures/pages/
  * A header click made while a cell editor waits for an async validator does not sort at once: the sort
  * waits for the validator to answer, so the rows do not move under the edit. These cases make that click
  * with the real mouse and keyboard, change the grid while the sort waits, and only then answer the
- * validator. Turning the plugin off and loading new data drop the waiting sort; `updateData()` keeps it.
+ * validator. Turning the plugin off, loading new data and starting the column order over drop the waiting
+ * sort; `updateData()` keeps it.
  *
  * The fixture's validator holds its callback until the spec answers it, so the wait has no timer. The
  * first case is the positive control: without it, a gesture that never queued a sort would pass every
@@ -71,6 +72,17 @@ test.describe('a header sort waiting for an async validator', () => {
 
     expect(await grid.sortConfig()).toEqual([]);
     expect(await grid.labels()).toEqual(['n0', 'n1', 'n2', 'n3']);
+  });
+
+  test('drops the sort when `updateSettings({ columns })` starts the column order over', async() => {
+    await grid.goto();
+    await grid.editThenClickSortHeader(1, 'zzz');
+
+    await grid.swapColumns();
+    await grid.answerValidator();
+
+    expect(await grid.sortConfig()).toEqual([]);
+    expect(await grid.columnValues(1)).toEqual(sourceOrder);
   });
 
   test('keeps the sort through `updateData()`, which the wrappers call while an edit waits', async() => {

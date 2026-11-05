@@ -153,6 +153,23 @@ export class ColumnSortingWaitingHeaderSortPage {
   }
 
   /**
+   * Swaps the two columns with `updateSettings({ columns })`. That starts the column order over while it keeps
+   * the rows, so no `afterLoadData` runs.
+   */
+  async swapColumns(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as FixtureWindow).hot.updateSettings({ columns: [{ data: 1 }, { data: 0 }] });
+    });
+  }
+
+  /**
+   * The values of one column, top to bottom, in visual order.
+   */
+  async columnValues(col: number): Promise<unknown[]> {
+    return this.page.evaluate(column => (window as unknown as FixtureWindow).hot.getDataAtCol(column), col);
+  }
+
+  /**
    * Whether the fixture's sorting plugin is on. Reads the plugin's `enabled` flag, because `isEnabled()` reads the
    * settings, which `disablePlugin()` leaves as they are.
    */
