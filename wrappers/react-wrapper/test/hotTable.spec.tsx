@@ -2,6 +2,9 @@ import React from 'react';
 import { act } from '@testing-library/react';
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { getCellType } from 'handsontable/cellTypes/registry';
+import { getEditor } from 'handsontable/editors/registry';
+import { getRenderer } from 'handsontable/renderers/registry';
 import { HotTable } from '../src/hotTable';
 import {
   createSpreadsheetData,
@@ -1601,5 +1604,215 @@ describe('Removing a hook prop', () => {
       expect(myHook).toHaveBeenCalledTimes(1);
       expect(hotInstance.getSettings().myHook).toBe(null);
     });
+  });
+});
+
+describe('Grid-level cell type', () => {
+  function gridProps(props: HotTableProps = {}): HotTableProps {
+    return {
+      licenseKey: TEST_LICENSE_KEY,
+      id: 'test-hot',
+      data: [['A', true], ['B', false]],
+      width: 300,
+      height: 300,
+      minRowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+      init() {
+        mockElementDimensions(this.rootElement, 300, 300);
+      },
+      ...props,
+    };
+  }
+
+  function render(props: HotTableProps, ref: React.RefObject<HotTableRef>): Handsontable {
+    renderHotTableWithProps(props, false, ref);
+
+    return ref.current!.hotInstance!;
+  }
+
+  it.each([
+    ['dropdown', { source: ['A', 'B'] }],
+    ['autocomplete', { source: ['A', 'B'] }],
+    ['date', { data: [['2026-01-01', true], ['2026-01-02', false]] }],
+    ['checkbox', {}],
+  ])('should give every cell the editor and renderer of the `%s` type set on HotTable', (type, extra) => {
+    const hotInstance = render(gridProps({ type, ...extra }), React.createRef<HotTableRef>());
+    const cellType = getCellType(type);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(cellType.editor);
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(cellType.renderer);
+    expect(hotInstance.getCellEditor(1, 1)).toBe(cellType.editor);
+    expect(hotInstance.getCellRenderer(1, 1)).toBe(cellType.renderer);
+  });
+
+  it('should draw the dropdown arrow for a `dropdown` type set on HotTable', () => {
+    const hotInstance = render(gridProps({ type: 'dropdown', source: ['A', 'B'] }), React.createRef<HotTableRef>());
+
+    expect(hotInstance.getCell(0, 0)!.querySelector('.htAutocompleteArrow')).not.toBeNull();
+  });
+
+  it('should keep the type\'s editor and renderer after a re-render with another prop changed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render(props, ref);
+    const hotInstance = render({ ...props, colWidths: 60 }, ref);
+
+    expect(hotInstance.getSettings().colWidths).toBe(60);
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should let the editor and renderer props win over the type', () => {
+    const hotInstance = render(gridProps({
+      type: 'dropdown',
+      source: ['A', 'B'],
+      hotEditor: 'password',
+      hotRenderer: customNativeRenderer,
+    }), React.createRef<HotTableRef>());
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('password'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(customNativeRenderer);
+  });
+
+  it('should let a component editor and a component renderer win over the type', () => {
+    const hotInstance = render(gridProps({
+      type: 'dropdown',
+      source: ['A', 'B'],
+      editor: EditorComponent,
+      renderer: RendererComponent,
+    }), React.createRef<HotTableRef>());
+
+    expect(hotInstance.getCellEditor(0, 0).name).toBe('CustomEditor');
+    expect(hotInstance.getCellRenderer(0, 0).name).toBe('__internalRenderer');
+  });
+
+  it('should give the type\'s editor and renderer to a grid mounted in StrictMode', () => {
+    const hotInstance = renderHotTableWithProps(
+      gridProps({ type: 'dropdown', source: ['A', 'B'] }),
+      true,
+      React.createRef<HotTableRef>()
+    ).current!.hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should keep editing disabled with `editor={false}` and the type\'s renderer', () => {
+    const hotInstance = render(
+      gridProps({ type: 'dropdown', source: ['A', 'B'], editor: false }),
+      React.createRef<HotTableRef>()
+    );
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should go back to the type\'s editor and renderer when the editor and renderer props are removed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render(props, ref);
+    render({ ...props, editor: EditorComponent, renderer: RendererComponent }, ref);
+    let hotInstance = render(props, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+
+    render({ ...props, editor: false, hotRenderer: customNativeRenderer }, ref);
+    expect(ref.current!.hotInstance!.getCellEditor(0, 0)).toBe(false);
+
+    hotInstance = render(props, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should go back to the type\'s editor when an editor named by `hotEditor` or by `editor` is removed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render(props, ref);
+    render({ ...props, hotEditor: 'password' }, ref);
+    expect(ref.current!.hotInstance!.getCellEditor(0, 0)).toBe(getEditor('password'));
+
+    expect(render(props, ref).getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+
+    render({ ...props, editor: 'password' as unknown as HotTableProps['editor'] }, ref);
+    expect(ref.current!.hotInstance!.getCellEditor(0, 0)).toBe(getEditor('password'));
+
+    expect(render(props, ref).getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+  });
+
+  it('should go back to the editor and renderer of a cell type object when the props are removed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const cellType = { editor: getEditor('checkbox'), renderer: getRenderer('checkbox') };
+    const props = gridProps({ type: cellType as unknown as HotTableProps['type'] });
+
+    expect(render(props, ref).getCellEditor(0, 0)).toBe(getEditor('checkbox'));
+
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+    const hotInstance = render(props, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('checkbox'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
+  });
+
+  it.each(['checkbox', 'notRegisteredType'])(
+    'should go back to the creation-time type when one commit removes the props and sets `type` to `%s`',
+    (newType) => {
+      const ref = React.createRef<HotTableRef>();
+      const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+      render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+
+      expect(() => render({ ...props, type: newType }, ref)).not.toThrow();
+
+      const hotInstance = ref.current!.hotInstance!;
+
+      expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+      expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+    }
+  );
+
+  it('should keep the editor and renderer matched when one commit removes one prop and changes `type`', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render({ ...props, hotEditor: 'password' }, ref);
+    const hotInstance = render({ ...props, type: 'checkbox' }, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should keep the text editor and renderer on a grid with no type', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps();
+    let hotInstance = render(props, ref);
+
+    expect(hotInstance.getSettings().editor).toBe(getEditor('text'));
+    expect(hotInstance.getSettings().renderer).toBe(getRenderer('text'));
+
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+    hotInstance = render(props, ref);
+
+    expect(hotInstance.getSettings().editor).toBe(getEditor('text'));
+    expect(hotInstance.getSettings().renderer).toBe(getRenderer('text'));
+  });
+
+  it('should keep the type of a HotColumn over the type set on HotTable', () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable {...gridProps({ type: 'dropdown', source: ['A', 'B'] })}>
+        <HotColumn />
+        <HotColumn type="checkbox" />
+      </HotTable>
+    )).hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellEditor(0, 1)).toBe(getEditor('checkbox'));
+    expect(hotInstance.getCellRenderer(0, 1)).toBe(getRenderer('checkbox'));
   });
 });

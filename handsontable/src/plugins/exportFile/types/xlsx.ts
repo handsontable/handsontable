@@ -805,8 +805,9 @@ class Xlsx extends BaseType {
       // When true, HyperFormula formula cells and ColumnSummary destinations are exported as live
       // Excel formulas. When false (default) the pre-calculated static values are exported.
       exportFormulas: false,
-      // Style applied to column and row header cells. `backgroundColor` accepts any CSS hex color
-      // string. `border` sets the border style on all four sides; set to `null` to suppress it.
+      // Style applied to column and row header cells. `backgroundColor` and `border.color` accept a
+      // CSS hex, `rgb()`, `hsl()` or named color (see `cssColorToArgb`). `border` sets the border
+      // style on all four sides; set to `null` to suppress it.
       // Set the whole option to `null` to export headers with no styling at all.
       headerStyle: { backgroundColor: '#F2F2F2', border: { style: 'thin' } },
       // Sheet protection of the read-only cells. `undefined` (the default) protects every sheet that

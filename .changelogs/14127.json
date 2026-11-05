@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the formula bar opening an edit on the wrong cell after an insert, a removal, or a data load moved records under the selection.",
+  "type": "fixed",
+  "issueOrPR": 14127,
+  "breaking": false,
+  "framework": "none"
+}

@@ -8,6 +8,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 
 ## What it owns
 
+- **Where a sheet's rows live.** With `sheetsBar: true`, Sheet1 is the host's `data` array and every sheet
+  added later exists only in the plugin (`Sheet.data` in the model); with a declared workbook the host owns
+  every array (`sheets[i].data`). `getSheetData()` reads either without a switch: the model's array for a
+  hidden sheet (physical order, also for a sorted one, as a switch loads it) and `#getLiveSourceData()` for
+  the sheet the grid holds (`#loadedSheetId`, else the active one), since a host `loadData()` replaces it.
+  While a switch runs (`#isSwitching`, `#loadingSheet`) every sheet answers with its own record: the grid's
+  live array is the arriving sheet's before `#loadedSheetId` follows in `afterLoadData`, so a hook fired by
+  the load (`afterCreateRow` from `minSpareRows`) got the arriving rows for the departing sheet.
 - `sheetModel.ts` — the sheet collection (ids, unique clamped names, order). Pure, no
   Handsontable access. Names are compared NFC-normalized and case-insensitively, with plain
   `toLowerCase()` (`isSameName`), the way HyperFormula canonicalizes sheet names: a tab name the
@@ -17,7 +25,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `__tests__/sheetModel.unit.js` and `__tests__/apiContract.unit.js`:
   - **`clampSheetName()` is the one gate for a name**, and it answers `''` for a name with no
     visible character (white space and `\p{Cf}`: zero-width spaces and joiners, bidi marks), so
-    such a name is "blank" everywhere the model and `#commitRename` test for `''`. A look-alike
+    such a name is "blank" everywhere the model and `#commitRename` test for `''`. A run of line breaks or
+    other control characters (`\p{Cc}`, U+2028, U+2029) becomes one space first: the single-line rename
+    input drops them, so a stored `A\nB` read back as `AB` and an unchanged confirm renamed the sheet. A look-alike
     (`Budget` plus a zero-width space) stays a separate name, the way HyperFormula treats it.
   - **A collision numbers the whole requested name** (`#freeNumberedName`), never a name with its
     trailing ` (n)` stripped, the way `freeEngineName()` numbers engine sheet names: a stripped
@@ -75,6 +85,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `@layer` (important declarations reverse layer order), so do not claim the strip is immune to host
   CSS. Chrome 121+ ignores `::-webkit-scrollbar` once `scrollbar-width` is not `auto`, so that rule
   only backs up older engines.
+- **Every bare `<span>` and `<input>` the bar or its menus render resets its own box.** A host
+  `span {}` or `input {}` rule (specificity 0,0,1) reaches them: `input { height: 40px }` grew the
+  rename field from 20 to 40 px and the bar with it, and `span { padding: 12px; border: 2px solid }`
+  grew the all-sheets rows from 29 to 56 px through the name span and the `span.selected` mark. Reset
+  `padding`, `margin`, `border` (and `height`/`min-height`/`max-height` on the input) next to the
+  text-metric `inherit`s. The menu resets sit under `.handsontable.htSheetsBarMenu` in
+  `_dropdown-menu.scss`, so the context and dropdown menus that share `span.selected` keep their
+  rules. A new span or input needs the same resets and a case in
+  `tests/e2e/sheets-bar-host-element-css.spec.ts`.
 - **The keyboard lives in a shortcut context** (`plugin:sheetsBar`) behind a focus scope, like
   Pagination. The scope's `runOnlyIf` stands aside while one of the bar's menus is open — the
   click that opens a menu reaches the scope manager after the menu has taken the keyboard, and
@@ -207,6 +226,20 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   grid; a reset part made one call with `initialPage` win over every later call without it. And a new
   `manualColumnMove`/`manualRowMove` shows exactly the declared order, while the plain grid applies the
   declared array on top of the user's moves, which depends on what the user did before.
+- **A plugin option a sheet sets as an object is that sheet's own** (`#withOwnOptionObjects`, on every
+  write the bar makes for a sheet: `#withBaselineFor`, `#applyToVisibleSheet`, `#restoreBaselineToGrid`).
+  BasePlugin's `updatePluginSettings()` merges an object into the previous one, and Search and ColumnSorting
+  merge theirs the same way, so a key one sheet set stayed on every later sheet that left it out, over the
+  grid-level value too. The bar sends the plugin's defaults (`_getObjectSettingDefaults()`, `@private` on
+  BasePlugin, overridden by ColumnSorting and Search), then the grid-level object when the sheet declares the
+  option, then the sheet's object. Plain `updateSettings()` keeps merging, and so does `updateSheetSettings()`
+  into the sheet's own object (`#mergedOptionObjects`, before the completion above): replacing it reset a key
+  the sheet declared and the call left out (`columnSorting: { headerAction: false }` lost it on a call that
+  set only `indicator`). The `SELF_BASELINED_KEYS` are
+  left as sent: a `dataProvider` is told apart by its identity, and a completed copy read as a new provider.
+  A new plugin that merges its object option in its own way overrides `_getObjectSettingDefaults()`, or its
+  keys leak across sheets again. Pinned by `__tests__/pluginOptionReset.unit.js` and
+  `tests/e2e/sheets-bar-plugin-option-objects.spec.ts`.
 - **A grid-level value set later through `updateSettings()` refreshes the baseline**
   (`#refreshSettingsBaseline`, the first step of `#onAfterUpdateSettings` at `orderIndex` -1, so it
   runs before BasePlugin's own listener tears the bar down or rebuilds it in the same call). Only
@@ -306,8 +339,37 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   undo and redo only after a structural step, `#onAfterUndoRedo`, once the restore is complete, so the
   row hooks of the replay itself are skipped):
   HyperFormula moves `=Data!A5` to `=Data!A6` inside itself, and the Formulas plugin writes the
-  new text back only for the grids it knows. Only a sheet the engine holds in physical order is
-  written, and only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
+  new text back only for the grids it knows. A sheet left sorted or moved is written too: skipped, the
+  first return hid the old text by taking the engine sheet over, but after a new order and another round
+  trip the old text loaded again and the references moved back. Three rules make that write right. (1) Each
+  cell is read at the engine position its stored order (`#engineOrders`) gives it, built by
+  `listEngineElements()` (`../formulas/indexSyncer/engineElements.ts`), the same function the axis syncer
+  orders the engine with: the named `sequence`, then `fillSequence`, then every other index ascending. A
+  hand-rolled map treated an empty `sequence` as "no rows" instead of physical order and skipped a row filled
+  after the sort. (2) The text is read through `#physicalFormulaText`, which shifts back only what an
+  order moved. HyperFormula treats the two ways an order reaches it differently: `setRowOrder` /
+  `setColumnOrder` (a sort, the order a hold sends when it ends) moves cells keeping their relative offsets,
+  so the text reads its relative references from the new place (`=Main!A1..A6` sorted descending came back
+  reversed), while `moveRows` / `moveColumns` (a manual row or column move) keeps every reference on its
+  cell. The axis syncer records, per physical line, how far the `set*Order` calls moved it since the order
+  was last physical (`AxisSyncer#getOrderShift()`, exported as `orderShifts` in the engine order), and the
+  engine's fill transform (`getFillRangeData`) shifts the text back by that much. Running the fill from the
+  engine cell to the physical one for every order wrote `=Main!A8` for a row moved to the top, and
+  `=Main!#REF!` for one moved down; a sheet moved and then sorted shifts back the sort's part only. A move
+  also moves every reference to the cells it moves, so the text's references to its own sheet name engine
+  cells: they are rewritten through the map from the moved place (`engine index - order shift`) to the
+  physical one (`remapOwnSheetReferences()` in `formulaReferences.ts`, which leaves other sheets, strings,
+  error literals and function names alone). Without it, a moved column's `=Main!A1+B1` came back `+C1`, a
+  reference to itself (`#CYCLE!` once the column moved back). A sheet moved while an order was on has no
+  such map (the moved places collide), and its own references are left as the engine has them. (3) A sheet whose stored order is no longer taken over
+  (`#engineOrderToAdopt` answers `null`: the host replaced or resized its data) is skipped: the engine no
+  longer holds rows the data has. Two shortcuts keep the cost near the plain path, and both are exact. The
+  per-cell quoting pass (`#formulaQuoterFor`) is skipped when every engine sheet name reads unquoted, because
+  it can change nothing then. And `#engineTexts` remembers, per sheet, the texts the engine gave in the last
+  sync: a cell still holding one is in the engine's own spelling, so the parse that keeps a host's spelling
+  (`validateFormula`, `normalizeFormula`) is skipped for it. The parse and the quoting were most of the
+  write-back's cost on a large sorted sheet. Pinned by "a sorted sheet the user left, after a structural change on the
+  sheet it reads" in `tests/e2e/sheets-bar-formulas-order.spec.ts`. Only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
   removal brings the reference back), are read, one by one. A cell is written only when its references
   differ: the host's own text (`=sum(data!a1)`) is kept when the engine's normalized text of it is the
   same. Reading cell by cell (`getCellFormula`) replaced serializing every inactive sheet, which made
@@ -475,6 +537,34 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **Server view per sheet** (`#serverViews`, a `WeakMap<Sheet, …>`): the last response, a pending fetch failure, and deferred mutation failures. A visible landing arrives through the owner's `onShownResponse`, which DataProvider calls with the normalized response before `afterDataProviderFetch` fires — never read it from that hook: `Hooks.run` hands a listener's non-`undefined` return to the next listener, so a user listener could rewrite the stored `totalRows` or `queryParameters` and the replay would show a wrong pager, sort, or filters (pinned by the `?userFetchListener=1` spec). Everything that settles for a sheet the grid does not show arrives through `onDetachedRequest` (`#keepDetachedOutcome()`), and an outcome reported for the sheet the grid shows (DataProvider reports one only while it is disabled there) is dropped rather than written over the visible sheet's record: a response's rows **replace** `sheet.data` — and the sheet's kept cell meta (`viewState.cellMeta`) is dropped with the old rows, the way a `loadData()` drops core's cell meta when the grid shown reloads, or a `readOnly` from the old rows came back on the new ones — never written into it: a host-declared `sheets[i].data` may be frozen (an Immer store threw, and the throw was reported as a fetch failure) or reactive (a Vue array ran an extra `updateSettings`); a failure is stored by the `kind` DataProvider reports (`fetch` → the sheet's fetch failure, shown with Refetch and no automatic refetch; `create`/`update`/`remove` → appended mutation failures). An outcome for a sheet of no current workbook is dropped. The owner also answers `getContextResult(context)` with the sheet's last response, so an off-screen save's refetch asks for the page the user left the sheet on, not the one the save was queued on, and a remove's follow-up counts that page's rows. The frozen case and the fetch-vs-mutation filing are pinned in `tests/e2e/data-provider-sheets-bar.spec.ts`, including a user `afterDataProviderFetchError`/`afterRowsMutationError` listener that returns values.
   - **Switch.** `#switchTo` runs inside `#withoutFetching`, i.e. `dataProvider._runContextChange()`: DataProvider stays passive (its state in a `try/finally`), resets the pager's server total before the switch, and syncs the loading overlay and the server-filter rollback after it — Pagination, EmptyDataState, and Filters are released plugins and must not listen to this plugin's hooks, so this plugin never relies on them doing so, and `#isSwitching` is `try/finally` too, so a listener that throws mid-switch leaves nothing stuck (pinned by a unit test). **The passive window covers `#switchTo` only**, and `afterSheetTabStateRestore` fires inside it: a sort or filter applied from that listener on a server sheet is canceled (`#answerPassiveSort` / `#answerPassiveFilter`), not sent to the server. A sort or filter made from an `afterSheetTabStateCapture` or `afterSheetTabChange` listener is an ordinary user action on the sheet shown at that moment and goes to the server. `#showServerSheet()` runs after the switch, before `afterSheetTabChange` fires, so the EmptyDataState and Filters listeners of that hook see the final state: deferred mutation toasts (`_showRequestError`), then the stored response replayed (`_restoreFetchResult(lastResult)`) whenever there is one, and only then `isFetching()` → wait, a stored fetch failure → the fetch toast over the replayed response (no refetch), a stored response → nothing more, else the first fetch (`fetchData()` with no override, failure logged like DataProvider's own internal refetches). **The replay comes before the wait on purpose.** The grid already holds the stored response's rows (`sheet.data`), while the query is the running fetch's (`#adoptPendingQuery`) and the pager's server total was reset by the switch, so waiting without the replay showed those rows under the running fetch's row numbers, with no sort indicator and a one-page pager; and when that fetch then failed, `revertPageTo()` had no total to page by, so the sheet stayed on "page 1 of 1". With the replay, the rows, the sort, the pager, and the row numbers all describe the stored response while the fetch runs, a failure leaves them there with its Refetch toast, and a success loads the requested page. EmptyDataState ignores a replay (`isRestored: true`), so the loading overlay of the running fetch stays up. A sheet without a stored response fetches on the page and page size DataProvider put the pager back to in the switch (the configured `initialPage` and `pageSize`, see `../dataProvider/AGENTS.md`), not on the previous sheet's. `isFetching()` ignores a silent (`skipLoading`) refetch, so arriving while a save's refetch of the sheet still runs replays the stored response first and the refetch lands after it (`afterDataProviderFetch` fires twice, the first with `isRestored: true`); pinned by a spec. The replay keeps the sort indicator, filters, and pager total correct while the refetch runs.
   - **Remove / duplicate / workbook replaced.** A removed sheet's context is released (`_releaseContext`). A genuine teardown releases every sheet of the discarded workbook (captured before the model is dropped) plus `null`; a non-preserved enable releases `null`, which aborts a plain grid's fetch still running when the bar is enabled on a live grid. A plain grid's save still pending then is dropped by DataProvider (no refetch, no revert into the new sheet, no toast; pinned by a spec). A preserved `updatePlugin` round trip releases nothing. A duplicate gets the original's last response (`#copyServerView`), not its pending failures or its running fetch.
+- **A `sheetsBar: true` workbook keeps the visible rows when it gets the top-level `data` it already
+  received** (`#receivedTopLevelData`: the grid's `data` at build, then every `updateSettings()` array;
+  reset when the bar turns off or the workbook is rebuilt). "Declares no sheets" is any `sheets` that is not a
+  non-empty array (absent, `null`, `undefined`, `[]`, `#keepsUndeclaredWorkbook`), the rule the build uses;
+  checking only for an absent key let a `{ sheets: null }` re-render load the first sheet's array into the
+  visible one. Ask "is this the array the grid already got",
+  never "does a sheet still hold it": a wrapper re-render after the first sheet was removed sent an array no
+  sheet held, and it replaced the visible sheet's rows. **A new array belongs to one sheet**, the one built
+  from the grid's data (`#topLevelDataOwnerId`, by id, so a rename or a move keeps it and a duplicate is not
+  it): loaded when that sheet is shown, put in as its data while it is hidden (`#replaceHiddenSheetData`, which
+  drops what the sheet kept from its last visit, as a `loadData()` would, and feeds its engine sheet), and
+  ignored with one warning per array (`REMOVED_DATA_OWNER_WARNING`) once it was removed. Turning the bar off
+  and on or rebuilding picks a new owner. A payload that turns a declared workbook into `sheetsBar: true` loads
+  its `data` (`#declaredEntries` is not empty yet). The rule covers the `data` of `updateSettings()` and an
+  `updateData()` with source `DATA_BINDING_SOURCE` (`'dataBinding'`), which the Angular wrapper sends its
+  `data` input with (React and Vue send `updateSettings({ data })`). Any other `updateData()` call acts on
+  the visible sheet, as `loadData()` does: routing every host `updateData()` through the rule made a plain
+  call update a hidden sheet, and a no-op once the first sheet was removed. The Angular wrapper keeps
+  `updateData()` instead of `updateSettings({ data })` because the latter also fires the settings hooks and
+  every plugin's settings update.
+- **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**
+  (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
+  arrays by logging an error and turning itself off until the next sheet with object rows, so the add
+  button's `createEmptySheetData()` showed a new sheet with the tree view off and an error in the console.
+  Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts` ("NestedRows on the whole grid").
+  When neither `columns` nor `dataSchema` names the columns, each blank row gets the keys of the grid's
+  first row with `null` values (no `__children`): core reads object rows' columns from the first row, so
+  empty objects gave the new sheet 0 columns and a "no columns" warning.
 - **A declared workbook wins the initial data load.** `#onBeforeLoadData` redirects the init
   load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
   init pass loads `data` after the plugin already applied its sheet, and without the redirect
@@ -501,8 +591,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   (`#declaresWorkbookNow`: `false`, `true`, or `sheets: null`/`[]`): core loads a payload's `data` before
   `afterUpdateSettings`, where the bar is turned off or rebuilt, so `{ sheetsBar: false, data }` reached the
   redirect while the old workbook was still built and lost its rows. Keep the DataProvider redirects ahead
-  of it in `#onBeforeUpdateData`. The Angular wrapper's `[data]` input calls `updateData()` directly
-  (source `'updateData'`), which this rule does not cover.
+  of it in `#onBeforeUpdateData`. The Angular wrapper's `[data]` input calls `updateData()` with source
+  `'dataBinding'`, which goes through this rule like `updateSettings({ data })`.
 - **Known and accepted:** a truthy grid-level `dataProvider` triggers the gate warning even when it is not a complete configuration (the gate does not validate it); and a genuine teardown drops the model before it restores the grid-level settings, so listeners of the restore's `updateSettings()` already see a grid without sheets (`getSheets()` is empty).
 - **`sheets` works like `data`: the bar writes into the host's array.** A rename writes `entry.name`
   (`#writeDeclaredName`), an add or a duplicate pushes `{ name, data, settings? }` with the sheet's own data
@@ -555,7 +645,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   browser's own long-press `contextmenu` is ignored while a touch press is held
   (`TabDrag#isTouchPressing()`), or the menu opened twice. A `contextmenu` the browser reports as touch-raised (`getMouseEventTouchOrigin()`) never opens the menu as from the keyboard: a repaint that moves the held tab ends the press before Android raises its long-press menu, and the press flags alone then read it as Shift+F10. A press that never lifted drops its touch listeners as soon as it ends, because nothing needs its `touchend` canceled. A pen press is timed the same way; a
   mouse press drags at once, as before. The detector's timers are the grid's window, so `page.clock` drives the hold in the
-  specs (`tests/e2e/sheets-bar-touch-drag.spec.ts`, `sheets-bar-touch-menus.spec.ts`).
+  specs (`tests/e2e/sheets-bar-touch-drag.spec.ts`, `sheets-bar-touch-menus.spec.ts`). Time a hold with
+  `page.clock.runFor()`, never with `expect.poll` intervals: the poll runs its callback at once, so a
+  finger lifted from inside it is a tap, not a hold.
 - **The menus' upward flip needs a negative `above` offset.** The positioner aligns a flipped
   menu's bottom to the cursor point — the anchor's *bottom* edge — so `#openMenu` sets
   `setOffset('above', -(anchorHeight + 4))` per opening; a flat offset covered the chevron.
@@ -656,9 +748,66 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The active-tab marker is a `::after` border, not a `box-shadow`**, and the rename edge is an
   `outline`: forced-colors mode drops box shadows and backgrounds, so neither cue showed there. The sliding marker (`.ht-sheets-bar__tab-indicator`) draws its line with a border for the same reason, or no marker showed while it slid.
   Hide the `::after` while the indicator slides and while a tab is renamed, or two markers show.
+- **On a table narrower than the bar's minimum, the whole bar scrolls inside itself.** The bar stays exactly
+  as wide as its slot (core sizes the slot to the table, "a narrow table gets a narrow bar") and is a horizontal
+  scroll box (`overflow-x: auto`); it never sticks out past the table. Its inner row is a grid (controls, tabs
+  pane, arrows) with `min-width: min-content`, and that minimum is the widest tab plus the controls and the
+  arrows, so every tab fits whole in the strip when it is revealed. Five parts hold it together:
+  - **The widest tab's width comes from a sizer, not from script or `ch`.** `.ht-sheets-bar__tabs-sizer` is a
+    hidden (`visibility: hidden`, `aria-hidden`), zero-height grid item in the inner row, holding one line per
+    sheet name (`SheetsBarUI#setTabLabels`, called from `#refreshUI`, rebuilt only when the names change), each
+    with a tab's padding, gap and chevron. The browser sizes it to the widest name in the tab's own font, so a
+    theme, density or font change follows with nothing measured: no measure-then-write loop, nothing read
+    while the bar is hidden. `ch` missed a real label by a fraction of a pixel and clipped it. The sizer spans
+    the tabs and arrows columns, and its padding includes the arrows' width, so the minimum is the same
+    whether the arrows show or not: hiding them gives the strip exactly their width, and
+    `OverflowController#refresh()`'s plain measure stays right (no flicker). It reserves 2px beside the widest
+    tab: the strip's 1px end allowance, and 1px for the reveal rounding its offset outward, which at 1px of
+    slack cut the widest tab by a fraction at the start. It needs `min-width: max-content`: an item spanning a
+    flexible track gets no content-based minimum, and without it only the padding counted. It must not be
+    `overflow: hidden`, which makes it a scroll container whose minimum is 0; it is `overflow: clip`, which
+    is not one. Every label line sits in the same grid cell (`grid-area: 1 / 1`), and the clip keeps them
+    from overflowing the zero-height sizer: stacked, they ran below the bar, and since `overflow-x: auto`
+    makes `overflow-y` compute to `auto`, the bar showed a vertical scrollbar. The bar also sets
+    `overflow-y: hidden`, so that axis can never scroll. On a table narrower than the widest tab, the bar's
+    visible width cannot hold that tab whole; the bar scrolls to it instead.
+  - **The strip has `contain: inline-size`.** Without it the strip's intrinsic width is its tabs' width, so
+    any `min-content` above it grew the bar to all its tabs, and the arrows and the
+    focused tab ended far off screen.
+  - **The bar reveals a focused control itself** (`SheetsBarUI#revealInBar`, a `focusin` listener). The
+    browser's focus scroll leaves a partly visible element where it is, so + or an arrow reached with Tab
+    stayed cut at the bar's edge. It measures fractional boxes and rounds outward, like the tab reveal. Two
+    rules keep it from fighting the rest. It reveals keyboard focus only (`:focus-visible`): a scroll between
+    a press and its release moved a clicked tab away, and the click activated nothing. And
+    `TabStrip#focusRelativeTab` reveals the tab in the strip before it moves the focus, or the bar measured
+    the tab where the strip had not put it yet and left it partly cut.
+  - **The bar shows its own scrollbar while it scrolls, the way the pagination bar does** (a plain
+    `overflow-x: auto`, no `scrollbar-width` or `::-webkit-scrollbar` hiding), so a user can see the bar
+    scrolls. Where scrollbars are always shown, the bar grows by the scrollbar's height while it overflows;
+    that is accepted, as for Pagination. The strip inside keeps hiding its own scrollbar. Pinned by
+    `tests/e2e/sheets-bar-classic-scrollbars.spec.ts`, which launches Chromium with `--force-show-scrollbars`
+    and without `--hide-scrollbars`.
+  - **Test fixtures pin the strip with `width`, not `flex`.** `tests/fixtures/demo/sheets-bar.html` forces a
+    600px strip so the arrows always show; the strip is a grid item now, so `flex: 0 0 600px` stopped applying.
+
+  Pinned by "scrolls as a whole on a table narrower than its minimum, and stays as wide as the table" and
+  "stays inside a container narrower than its minimum" in `tests/e2e/sheets-bar-ui-a11y.spec.ts`, and by the
+  narrow-container guards in `tests/e2e/bottom-slot-sizing.spec.ts`.
 - **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
   the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
-  `colorScheme` and `density` tokens of the grid stopped reaching the bar).
+  `colorScheme` and `density` tokens of the grid stopped reaching the bar). In a `uiContainer` the bar
+  gets the theme engine's scope class too (`applyUiContainerTheme()`, shared with Pagination), or it
+  matched only the theme's base rules and stayed light under a dark grid.
+- **A reveal measures fractional boxes and rounds outward, flush with the edge** (`#scrollIntoStrip`: the
+  tab's `getBoundingClientRect()` less its in-flight translation, relative to the strip; the target
+  `scrollLeft` is floored at the start and ceiled at the end). `offsetLeft`/`offsetWidth` round to whole
+  pixels, and the browser snaps `scrollLeft` to whole pixels, so either way a tab of fractional width sat up to
+  a pixel past the edge, exactly where its inset focus ring is drawn, and the controls or the arrows cut it.
+  Do not reveal with a margin instead: a `--ht-gap-size` margin left a visible empty gap in front of the
+  focused tab. The strip has `padding-inline-end: 1px` because the browser rounds the scroll range down, and
+  without it the last tab of a fractional-width row could not be scrolled fully into view (RTL). Pinned by
+  "reveals every tab the arrow keys move the focus to" in `tests/e2e/sheets-bar-ui-a11y.spec.ts`: zero
+  tolerance for the ring, and at most 1px between a revealed tab and the strip edge.
 - **The active tab's reveal is repeated whenever the strip's layout changes under it**
   (`settleReveal()`: after the overflow refresh in `#refreshUI`, from the overflow controller's
   `onResize`, and from `#onAfterSetTheme`). Two layouts changed under a first reveal: the paging
@@ -1104,7 +1253,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `@private` `_adoptViewSelection()`). The dialog stashes the selection it hides when it opens,
     and on hide it put the departing sheet's coordinates on the arriving sheet. A dialog opened
     during the switch already stashed the arriving selection, so it is left alone. This mirrors
-    EmptyDataState's `isViewChange`.
+    EmptyDataState's `isViewChange`. The departing sheet keeps the selection the dialog stashed
+    (`#withDialogSelection`, through Dialog's `@private` `_getStashedSelection()`): the grid shows none
+    while a dialog is open, so the capture alone recorded none.
   - **Gestures and async work are each plugin's own.** MoveCells, ManualRowMove,
     ManualColumnResize and ManualRowResize (`ResizeGesture#abort()`), Autofill and FreezeBar cancel a held drag on
     `beforeLoadData` (never on `updateData()`, which the React wrapper sends on every re-render); AutoColumnSize cancels its idle-task sweep; ImportFile

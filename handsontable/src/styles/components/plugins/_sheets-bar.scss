@@ -98,8 +98,13 @@ $all-sheets-visible-items: 8;
 
     &.ht-sheets-bar {
       --ht-private-tab-enter-offset: -2em;
+      --ht-private-sheets-bar-button-width: calc(
+        (2 * var(--ht-icon-button-large-padding)) + var(--ht-icon-size) + 2px
+      );
 
       width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
       color: var(--ht-bar-foreground-color);
       background: var(--ht-sheets-bar-background-color);
       font-size: var(--ht-font-size);
@@ -126,10 +131,32 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__inner {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto minmax(auto, 1fr) auto;
         align-items: stretch;
-        justify-content: space-between;
+        min-width: min-content;
         padding-inline: var(--ht-sheets-bar-horizontal-padding);
+      }
+
+      .ht-sheets-bar__tabs-sizer {
+        display: grid;
+        grid-row: 1;
+        grid-column: 2 / 4;
+        min-width: max-content;
+        height: 0;
+        overflow: clip;
+        visibility: hidden;
+        pointer-events: none;
+
+        > div {
+          grid-area: 1 / 1;
+          white-space: nowrap;
+          padding-inline: var(--ht-sheets-bar-tab-horizontal-padding) calc(
+            var(--ht-sheets-bar-tab-horizontal-padding) + var(--ht-sizing-size-1) + var(--ht-icon-size) +
+            var(--ht-gap-size) + 2px +
+            (2 * var(--ht-private-sheets-bar-button-width)) + 1px + (2 * var(--ht-gap-size))
+          );
+        }
       }
 
       .ht-sheets-bar__controls,
@@ -147,6 +174,8 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__controls {
+        grid-row: 1;
+        grid-column: 1;
         position: relative;
         padding-inline: calc(var(--ht-gap-size) * 2);
       }
@@ -171,6 +200,8 @@ $all-sheets-visible-items: 8;
       // Paired the way the add and all-sheets buttons are paired, so the two clusters read as
       // the same kind of control rather than as two different ones.
       .ht-sheets-bar__paging {
+        grid-row: 1;
+        grid-column: 3;
         position: relative;
         padding-inline-start: calc(var(--ht-gap-size) * 2);
       }
@@ -229,8 +260,11 @@ $all-sheets-visible-items: 8;
         position: relative;
         display: flex;
         align-items: stretch;
-        flex: 1 1 auto;
+        grid-row: 1;
+        grid-column: 2;
         min-width: 0;
+        contain: inline-size;
+        padding-inline-end: 1px;
         overflow-x: auto;
 
         // The strip scrolls with the paging arrows and the wheel, never with a bar of its own.
@@ -441,6 +475,7 @@ $all-sheets-visible-items: 8;
         font-family: inherit;
         cursor: pointer;
         padding: 0;
+        margin: 0;
       }
 
       // The tab is the focus stop, so the ring belongs to the whole of it. Drawn inside, so a
@@ -541,6 +576,10 @@ $all-sheets-visible-items: 8;
         box-shadow: none;
         border-radius: 0;
         padding: 0;
+        margin: 0;
+        height: auto;
+        min-height: 0;
+        max-height: none;
         // The tab's accent border is the focus indication, exactly like the cell editor it
         // borrows its tokens from — the browser's own focus ring drew a second, rounded
         // outline around the field (UX review: "like the design system").
@@ -566,6 +605,7 @@ $all-sheets-visible-items: 8;
         letter-spacing: inherit;
         font-family: inherit;
         padding: 0;
+        margin: 0;
         border: none;
       }
 

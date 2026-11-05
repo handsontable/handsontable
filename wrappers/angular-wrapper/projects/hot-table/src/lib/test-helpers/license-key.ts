@@ -2,9 +2,6 @@
  * The license key every test grid is built with. A grid built without a valid key is blocked by the
  * lock screen, so tests read the key from here and a new key is a one-line change.
  *
- * Tests use this rather than the public `NON_COMMERCIAL_LICENSE` constant, which is part of the
- * wrapper's API and is tested on its own in `hot-global-config.service.spec.ts`.
- *
  * The key is the internal test key, issued with `npm run generate-internal-test-key` in the private
  * `license-key` package. Its text says in capitals that it is not licensed for production, and it
  * works for builds released on or before 2036-11-04: renew it before then. Every test-key constant

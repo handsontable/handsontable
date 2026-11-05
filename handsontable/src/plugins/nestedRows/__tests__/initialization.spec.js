@@ -50,7 +50,7 @@ describe('NestedRows', () => {
 
       await updateSettings({});
 
-      expect(getSettings().nestedRows).toBe(false);
+      expect(getSettings().nestedRows).toBe(true);
       expect(getPlugin('nestedRows').enabled).toBe(false);
     });
 

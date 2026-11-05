@@ -17,9 +17,9 @@ import type { LicenseStateDescriptor } from '../../helpers/mixed';
  * install faults - a key that cannot be read and a key that was never set - which the specification
  * (S4.5) gives the same blocking shape as a lapsed trial. A hard-stopped SUBSCRIPTION is
  * deliberately not among them: it is developer-facing only (console error, nothing else), because
- * 18.1 never blocks a paying customer. A non-commercial key, an expired or valid legacy key, a
- * running subscription and a covered perpetual license render nothing here; their console message
- * and any bottom bar come from `initLicenseNotification`.
+ * 18.1 never blocks a paying customer. An expired or valid legacy key, a running subscription and a
+ * covered perpetual license render nothing here; their console message and any bottom bar come from
+ * `initLicenseNotification`.
  *
  * A key carrying `no-ui-warns` renders no WARNING surface - no badge and no popover - which is what
  * keeps a licensed SaaS application from showing license copy to its own end users. It does NOT

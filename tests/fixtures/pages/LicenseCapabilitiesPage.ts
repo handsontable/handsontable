@@ -2,7 +2,7 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
 
 type LicenseKeyName = 'flagged-base' | 'flagged-column-menu' | 'flagged-filters' | 'flagged-no-ui' |
-  'flagged-minimal' | 'unflagged' | 'non-commercial';
+  'flagged-minimal' | 'unflagged';
 type PluginsName = 'filters' | 'column-menu' | 'header-checkbox';
 
 /**

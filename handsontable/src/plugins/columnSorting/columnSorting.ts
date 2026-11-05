@@ -14,7 +14,12 @@ import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
 import type { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { Hooks } from '../../core/hooks';
-import { ColumnStatesManager } from './columnStatesManager';
+import {
+  ColumnStatesManager,
+  HEADER_ACTION_DEFAULT,
+  SHOW_SORT_INDICATOR_DEFAULT,
+  SORT_EMPTY_CELLS_DEFAULT,
+} from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { createTrackedIconSync } from '../../themes/engine/icons';
 import {
@@ -265,6 +270,23 @@ export class ColumnSorting extends BasePlugin {
    * @type {null|IndexesSequence}
    */
   #sortedRowOrder: IndexesSequence | null = null;
+
+  /**
+   * Returns the value each column property an object setting sets takes when the object leaves it out: an
+   * object sent again merges into the column properties the previous one set (see `BasePlugin`). Internal;
+   * not public API.
+   *
+   * @private
+   * @returns {object}
+   */
+  _getObjectSettingDefaults(): Record<string, unknown> {
+    return {
+      indicator: SHOW_SORT_INDICATOR_DEFAULT,
+      headerAction: HEADER_ACTION_DEFAULT,
+      sortEmptyCells: SORT_EMPTY_CELLS_DEFAULT,
+      compareFunctionFactory: undefined,
+    };
+  }
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}

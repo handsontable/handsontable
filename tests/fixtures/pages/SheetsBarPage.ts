@@ -123,6 +123,76 @@ export class SheetsBarPage {
     return this.page.locator('.ht-sheets-bar__tab-rename');
   }
 
+  /**
+   * The open all-sheets menu.
+   */
+  get allSheetsMenu(): Locator {
+    return this.page.locator('.htSheetsBarMenu:visible');
+  }
+
+  /**
+   * Adds a stylesheet to the end of `<head>`, after the grid's own injected stylesheet, the way a
+   * host page's rules would land.
+   */
+  async addHostStyles(css: string): Promise<void> {
+    await this.page.addStyleTag({ content: css });
+  }
+
+  /**
+   * Starts renaming the tab at `index` and returns the rendered heights of the rename field, its
+   * tab and the bar. Leaves the rename open.
+   */
+  async renameGeometry(index: number): Promise<{ input: number, tab: number, bar: number }> {
+    await this.tab(index).locator('.ht-sheets-bar__tab-label').dblclick();
+    await expect(this.renameInput).toBeFocused();
+
+    return this.page.evaluate((tabIndex) => {
+      const input = document.querySelector('.ht-sheets-bar__tab-rename') as HTMLElement;
+      const tab = document.querySelector(`[data-testid="sheet-tab-${tabIndex}"]`) as HTMLElement;
+      const bar = document.querySelector('[data-testid="sheets-bar"]') as HTMLElement;
+
+      return {
+        input: input.getBoundingClientRect().height,
+        tab: tab.getBoundingClientRect().height,
+        bar: bar.getBoundingClientRect().height,
+      };
+    }, index);
+  }
+
+  /**
+   * Opens the all-sheets menu and returns the menu height, every row height, and the check mark's
+   * box relative to the active row. Leaves the menu open.
+   */
+  async allSheetsMenuGeometry(): Promise<{
+    menu: number,
+    rows: number[],
+    mark: { top: number, right: number, width: number, height: number },
+  }> {
+    await this.allButton.click();
+    await expect(this.allSheetsMenu).toHaveCount(1);
+
+    return this.page.evaluate(() => {
+      const menu = document.querySelector('.htSheetsBarMenu') as HTMLElement;
+      const rows = Array.from(menu.querySelectorAll('.ht_master tbody tr'))
+        .map(row => row.getBoundingClientRect().height);
+      const icon = menu.querySelector('.ht_master span.selected .ht-icon') as HTMLElement;
+      const row = icon.closest('tr') as HTMLElement;
+      const iconRect = icon.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
+
+      return {
+        menu: menu.getBoundingClientRect().height,
+        rows,
+        mark: {
+          top: iconRect.top - rowRect.top,
+          right: rowRect.right - iconRect.right,
+          width: iconRect.width,
+          height: iconRect.height,
+        },
+      };
+    });
+  }
+
   get pagePrev(): Locator {
     return this.page.getByTestId('sheets-bar-page-prev');
   }
