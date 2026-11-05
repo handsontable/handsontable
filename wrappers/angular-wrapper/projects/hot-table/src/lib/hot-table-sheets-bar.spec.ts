@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, ComponentRef, CUSTOM_ELEMENTS_SCHEMA, NgZone, SimpleChange } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { Formulas, registerPlugin, SheetsBar } from 'handsontable/plugins';
+import { HyperFormula } from 'hyperformula';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
 import { HotCellRendererComponent } from './renderer/hot-cell-renderer.component';
@@ -11,8 +12,6 @@ import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 registerPlugin(SheetsBar);
 registerPlugin(Formulas);
-
-const { HyperFormula } = jest.requireActual('hyperformula');
 
 /**
  * A renderer component a sheet declares in its own `settings`.

@@ -4,6 +4,7 @@ import { registerPlugin } from 'handsontable/plugins/registry';
 import { SheetsBar } from 'handsontable/plugins/sheetsBar';
 import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 import { Formulas } from 'handsontable/plugins/formulas';
+import { HyperFormula } from 'hyperformula';
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
 import './_helpers';
@@ -14,8 +15,6 @@ config.renderStubDefaultSlot = true;
 registerPlugin(SheetsBar);
 registerPlugin(ColumnSorting);
 registerPlugin(Formulas);
-
-const { HyperFormula } = jest.requireActual('hyperformula');
 
 describe('cooperation with the SheetsBar plugin', () => {
   it('keeps the visible sheet\'s own headers when a reactive prop changes', async() => {
