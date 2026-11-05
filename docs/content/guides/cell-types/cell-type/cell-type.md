@@ -756,6 +756,12 @@ columns: [
 
 A named editor isn't an exception. For example, a grid-level `editor: 'password'` is still replaced by the editor of a column's `type`.
 
+### Change the grid-level type at runtime
+
+When you change the grid-level [`type`](@/api/options.md#type) with [`updateSettings()`](@/api/core.md#updatesettings), the grid applies the new type's editor, renderer, and validator, the same as a grid created with that `type`. The options of the previous type that the new type doesn't set go back to their defaults.
+
+Any grid-level option you set earlier, or in the same call, keeps winning over the type. That includes an [`editor`](@/api/options.md#editor), a [`renderer`](@/api/options.md#renderer), and a [`validator`](@/api/options.md#validator). An `editor` set to `false` keeps editing switched off, while the new type still supplies its renderer and validator. To let the type supply an option again, pass `undefined` for it (or `null` for the editor, the renderer, or the validator), or pass `editor: true` next to the new `type`. A column or cell with its own `type` isn't affected. A `type` name that no cell type is registered under is ignored.
+
 ## Built-in cell types example
 
 The example below shows some of the built-in cell types, i.e. combinations of cell renderers and editors available in Handsontable. The example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.

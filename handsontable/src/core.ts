@@ -6307,6 +6307,12 @@ export default function Core(
         applyUpdatedSetting(settings, i);
       }
     }
+
+    // The loop above writes the options one by one, and `type` is only a name there. Expand it once all of
+    // them are in, so an `editor`, `renderer` or `validator` of the same payload wins over the type.
+    if (!init) {
+      metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
+    }
   }
 
   /**
