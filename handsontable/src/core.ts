@@ -10202,6 +10202,8 @@ export default function Core(
 
     datamap = null!;
     grid = null!;
+    // A selection method can still be running (it closed an editor whose save destroyed the grid).
+    selection?.destroy();
     selection = null!;
     editorManager = null!;
     instance = null as unknown as HotInstance;
