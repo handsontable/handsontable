@@ -234,17 +234,35 @@ describe('Core#updateSettings with a grid-level `type`', () => {
     expect(read(hot)).toEqual(triple(CheckboxCellType));
   });
 
-  it('should treat `null` as unset for the editor and the renderer', () => {
-    const renderer = () => {};
+  it('should restore a type key the same payload unsets', () => {
+    build({ type: 'dropdown' });
+    hot.updateSettings({ type: 'checkbox', filter: undefined });
 
-    build({ type: 'checkbox' });
-    hot.updateSettings({ renderer, editor: PasswordCellType.editor });
+    const created = new Handsontable(document.createElement('div'), {
+      data: [['a']],
+      licenseKey: TEST_LICENSE_KEY,
+      type: 'checkbox',
+    });
 
-    expect(read(hot).renderer).toBe(renderer);
+    try {
+      expect(hot.getCellMeta(0, 0).filter).toBe(created.getCellMeta(0, 0).filter);
+    } finally {
+      created.destroy();
+    }
+  });
 
-    hot.updateSettings({ renderer: null, editor: null });
+  it('should leave an earlier editor alone when `editor: true` comes with an unregistered type', () => {
+    build({ type: 'dropdown', editor: PasswordCellType.editor });
 
-    expect(read(hot)).toEqual(triple(CheckboxCellType));
+    hot.updateSettings({ type: 'notRegisteredType', editor: true });
+
+    expect(hot.getSettings().type).toBe('dropdown');
+    expect(read(hot).editor).toBe(PasswordCellType.editor);
+
+    hot.updateSettings({ type: 'checkbox' });
+
+    expect(read(hot).editor).toBe(PasswordCellType.editor);
+    expect(read(hot).renderer).toBe(CheckboxCellType.renderer);
   });
 
   it('should apply a type given as an object and drop its keys when the type changes', () => {
@@ -269,6 +287,7 @@ describe('Core#updateSettings with a grid-level `type`', () => {
 
     expect(() => hot.updateSettings({ type: 'notRegisteredType', colHeaders: true })).not.toThrow();
     expect(hot.getSettings().colHeaders).toBe(true);
+    expect(hot.getSettings().type).toBe('dropdown');
     expect(read(hot)).toEqual(triple(DropdownCellType));
     expect(() => hot.updateSettings({ editor: undefined })).not.toThrow();
     expect(() => hot.updateSettings({ type: 'checkbox' })).not.toThrow();

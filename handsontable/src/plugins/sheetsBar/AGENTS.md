@@ -146,7 +146,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`
-  reads `undefined` as "not provided". The baseline and the model travel across an
+  reads `undefined` as "not provided" (the exception is `editor`, `renderer` and `validator`, `TYPE_OWNED_SETTING_KEYS`: core reads
+  `undefined` there as "unset", so the grid-level `type` supplies the option again, and `null` names none of them; the filter takes
+  an `undefined` of those keys the visible sheet declares into the baseline like any other grid-level value). The baseline and the model travel across an
   `updatePlugin` whose `sheets` value is structurally unchanged, and are dropped on a genuine
   reconfiguration. Only `sheets` decides the workbook's identity — `updateSettings` replaces
   the grid-level `sheetsBar` object wholesale, so a partial payload (`{ paging: false }`,

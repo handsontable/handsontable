@@ -96,6 +96,24 @@ describe('SheetsBar: a sheet\'s own settings win over grid-level updates', () =>
     expect(hot.getColHeader(0)).toBe('X');
   });
 
+  it('keeps the visible sheet\'s renderer when the grid-level one is unset, and gives the type\'s renderer to the other sheets', () => {
+    const plugin = buildWorkbook({ type: 'checkbox' });
+    const checkboxRenderer = Handsontable.renderers.getRenderer('checkbox');
+
+    plugin.setActiveSheet('Own');
+    hot.updateSettings({ renderer: undefined, type: 'checkbox' });
+
+    expect(hot.getCellRenderer(0, 0)).toBe(ownRenderer);
+
+    plugin.setActiveSheet('Plain');
+
+    expect(hot.getCellRenderer(0, 0)).toBe(checkboxRenderer);
+
+    plugin.setActiveSheet('Own');
+
+    expect(hot.getCellRenderer(0, 0)).toBe(ownRenderer);
+  });
+
   it('applies a grid-level value the visible sheet does not declare at once', () => {
     buildWorkbook();
 

@@ -4,24 +4,6 @@ import { extendByMetaType, normalizeEditorSetting } from '../utils';
 import metaSchemaFactory from '../metaSchema';
 
 /**
- * The options a cell type supplies and a framework wrapper sends as `null` when it takes a prop away.
- */
-const NULL_UNSETS_OPTIONS = new Set(['editor', 'renderer', 'validator']);
-
-/**
- * Checks whether a value in an `updateSettings()` payload unsets the option. `undefined` always does. `null`
- * does for the three options a cell type supplies, because the sheets bar restores a baseline it had no value
- * for as `null`, and `null` names no editor, renderer, or validator.
- *
- * @param {string} key The option name.
- * @param {*} value The value in the payload.
- * @returns {boolean}
- */
-function isUnsetValue(key: string, value: unknown): boolean {
-  return value === undefined || (value === null && NULL_UNSETS_OPTIONS.has(key));
-}
-
-/**
  * @typedef {Options} TableMeta
  */
 /**
@@ -81,6 +63,11 @@ export default class GlobalMeta {
    * The cell type object the global meta was last expanded with.
    */
   #expandedType: Record<string, unknown> | null = null;
+  /**
+   * The last `type` setting that named a registered cell type. `updateSettings()` writes a type name onto the
+   * meta before it is checked, so a name no cell type is registered under is replaced with this one.
+   */
+  #typeSetting: unknown;
 
   /**
    * Initializes the global meta layer, populates the meta prototype with schema defaults, and attaches the Handsontable instance reference.
@@ -125,6 +112,7 @@ export default class GlobalMeta {
     const type = normalizedSettings.type ?? this.meta.type;
 
     this.#expandedType = this.#resolveType(type) ?? this.#expandedType;
+    this.#typeSetting = this.#expandedType === null ? this.#typeSetting : type;
     extendByMetaType(this.meta, {
       ...normalizedSettings,
       type,
@@ -134,8 +122,7 @@ export default class GlobalMeta {
   /**
    * Keeps the grid-level `type` in step with an `updateSettings()` payload whose options are already written
    * onto the meta. The payload's keys are recorded as set by the user, and the `type` is expanded again when the
-   * payload names one, or when it unsets an option the current type supplies (`undefined`, or `null` for the
-   * editor, the renderer, and the validator).
+   * payload names one, or when it unsets an option the current type supplies (`undefined`).
    *
    * A key the user set, in this payload or an earlier one, keeps its value. The keys of the previous type are
    * restored to their defaults first, so the grid ends up as one created with the new type. A type name that
@@ -146,13 +133,19 @@ export default class GlobalMeta {
   updateTypeFromSettings(settings: Record<string, unknown>) {
     const expandedBefore = this.#expandedType;
     const clearsTypeOption = expandedBefore !== null && Object.keys(settings).some(
-      key => isUnsetValue(key, settings[key]) && hasOwnProperty(expandedBefore, key)
+      key => settings[key] === undefined && hasOwnProperty(expandedBefore, key)
     );
-    const namesType = typeof settings.type === 'string' || isObject(settings.type);
-    // A name no cell type is registered under is ignored: the unset options fall back to the type already
-    // in force, and a payload that only names the unknown type changes nothing.
+    const namesType = (typeof settings.type === 'string' || isObject(settings.type)) &&
+      this.#resolveType(settings.type) !== null;
+
+    // A name no cell type is registered under is ignored: the meta gets the type already in force back, and the
+    // unset options fall back to it too.
+    if (hasOwnProperty(settings, 'type') && !namesType && typeof settings.type === 'string') {
+      this.meta.type = this.#typeSetting;
+    }
+
     const resolvedType = namesType || clearsTypeOption ?
-      (this.#resolveType(namesType ? settings.type : this.meta.type) ?? (clearsTypeOption ? expandedBefore : null)) :
+      this.#resolveType(namesType ? settings.type : this.meta.type) ?? (clearsTypeOption ? expandedBefore : null) :
       null;
 
     this.#recordUserSetKeys(settings, namesType);
@@ -172,6 +165,7 @@ export default class GlobalMeta {
     });
 
     this.#expandedType = resolvedType;
+    this.#typeSetting = namesType ? settings.type : this.#typeSetting;
     extendByMetaType(this.meta, { type: resolvedType }, userSet, settings.editor === true, this.#typeAssigned);
   }
 
@@ -190,7 +184,7 @@ export default class GlobalMeta {
           this.#userSetKeys.delete(key);
         }
 
-      } else if (isUnsetValue(key, settings[key])) {
+      } else if (settings[key] === undefined) {
         this.#userSetKeys.delete(key);
 
       } else {
@@ -222,7 +216,8 @@ export default class GlobalMeta {
     const defaults = metaSchemaFactory() as Record<string, unknown>;
 
     this.#typeAssigned.forEach((value, key) => {
-      if (this.#userSetKeys.has(key) || this.meta[key] !== value) {
+      // A key the payload just unset holds `undefined` now, and goes back to its default as well.
+      if (this.#userSetKeys.has(key) || (this.meta[key] !== value && this.meta[key] !== undefined)) {
         return;
       }
 

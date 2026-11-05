@@ -283,6 +283,26 @@ const SELF_BASELINED_KEYS = new Set(['dataProvider', 'columnSummary', 'cell']);
 const UNFILTERED_SETTING_KEYS = new Set([PLUGIN_KEY, 'data', 'dataProvider']);
 
 /**
+ * The options a cell type supplies. For these, `undefined` is a value of its own: it unsets the option, and the
+ * grid-level `type` supplies it again (core reads it that way in `updateSettings()`). So the filter takes an
+ * `undefined` of the visible sheet's key into the baseline, and the baseline gives it back as `undefined`.
+ */
+const TYPE_OWNED_SETTING_KEYS = new Set(['editor', 'renderer', 'validator']);
+
+/**
+ * Tells what to write for a baseline value. `updateSettings()` reads `undefined` as "not provided" for most
+ * keys, so those get `null`, the value that clears. A type-owned key keeps `undefined` (see
+ * `TYPE_OWNED_SETTING_KEYS`): `null` names no editor, renderer, or validator.
+ *
+ * @param {string} key The option name.
+ * @param {*} value The baseline value.
+ * @returns {*}
+ */
+function restoredBaselineValue(key: string, value: unknown): unknown {
+  return value === undefined && !TYPE_OWNED_SETTING_KEYS.has(key) ? null : value;
+}
+
+/**
  * The view-state keys that hold flat arrays of numbers, which a duplicate copies with `slice()`.
  */
 const FLAT_VIEW_STATE_KEYS = new Set([
@@ -1836,7 +1856,7 @@ export class SheetsBar extends BasePlugin {
 
     this.#settingsBaseline.forEach((value, key) => {
       if ((key !== 'dataProvider' || this.#rebuildGridDataProvider === null) && !keptImportedKeys?.has(key)) {
-        restored[key] = value === undefined ? null : value;
+        restored[key] = restoredBaselineValue(key, value);
       }
     });
 
@@ -2090,7 +2110,8 @@ export class SheetsBar extends BasePlugin {
     const taken: Record<string, unknown> = {};
 
     Object.keys(settings).forEach((key) => {
-      if (key in own && !UNFILTERED_SETTING_KEYS.has(key) && settings[key] !== undefined) {
+      if (key in own && !UNFILTERED_SETTING_KEYS.has(key) &&
+        (settings[key] !== undefined || TYPE_OWNED_SETTING_KEYS.has(key))) {
         taken[key] = settings[key];
       } else {
         kept[key] = settings[key];
@@ -4011,7 +4032,7 @@ export class SheetsBar extends BasePlugin {
         // than resetting it — `columns: undefined` leaves the previous sheet's column meta in
         // place, so its cell types keep describing data that is no longer there. `null` is the
         // value that clears.
-        restored[key] = value === undefined ? null : value;
+        restored[key] = restoredBaselineValue(key, value);
       }
     });
 
