@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T19:02:44.790Z",
+  "generatedAt": "2026-11-05T03:58:48.750Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -501,7 +501,7 @@
       "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
       "line": null,
       "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
-      "count7": 2,
+      "count7": 0,
       "count30": 8,
       "countAll": 8,
       "runs30": 3,
@@ -537,7 +537,7 @@
       "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
       "line": null,
       "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
-      "count7": 2,
+      "count7": 0,
       "count30": 8,
       "countAll": 8,
       "runs30": 3,
@@ -573,7 +573,7 @@
       "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
       "line": null,
       "title": "StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
-      "count7": 2,
+      "count7": 0,
       "count30": 8,
       "countAll": 8,
       "runs30": 3,
@@ -609,7 +609,7 @@
       "file": "handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js",
       "line": null,
       "title": "StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
-      "count7": 2,
+      "count7": 0,
       "count30": 8,
       "countAll": 8,
       "runs30": 3,
