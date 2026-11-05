@@ -1222,7 +1222,9 @@ export class TabStrip {
   /**
    * Moves the focus along the strip from the tab that holds it. Bound to the arrow, Home and
    * End keys by the plugin. The arrows follow the reading direction: under RTL the next tab is
-   * the one to the left.
+   * the one to the left. The strip reveals the tab itself, before the focus moves: the browser's focus
+   * scroll leaves a tab that is partly in view where it is, and the bar's own reveal, which runs on the
+   * focus, must measure the tab where the strip put it.
    *
    * @param {number|'first'|'last'} step `1` or `-1` for the neighbouring tab in reading order,
    *   or an end of the strip.
@@ -1246,7 +1248,8 @@ export class TabStrip {
       index = Math.min(Math.max(index + step, 0), tabs.length - 1);
     }
 
-    tabs[index].focus();
+    this.#scrollIntoStrip(tabs[index]);
+    tabs[index].focus({ preventScroll: true });
 
     return true;
   }
@@ -1492,20 +1495,26 @@ export class TabStrip {
   }
 
   /**
-   * Scrolls the strip just far enough to bring a tab fully into view, by its layout box, which
-   * leaves out the transform of an entrance, a slide, or a drag in flight, in the coordinates
-   * `scrollLeft` uses under both directions.
+   * Scrolls the strip just far enough to bring a tab fully into view, flush with the edge it comes
+   * in at. The tab is measured by its fractional box less its in-flight translation (an entrance, a
+   * slide, or a drag), relative to the strip's visible part. `offsetLeft` and `offsetWidth` are
+   * rounded to whole pixels, so a tab of fractional width could end up to a pixel past the edge,
+   * which is exactly where its focus ring is drawn (an inset outline), and the controls or the
+   * paging arrows cut the ring. The strip is scrolled by the difference, which reads the same under
+   * both directions, and the offset is rounded away from the tab (down at the start, up at the end):
+   * the browser snaps `scrollLeft` to whole pixels, which put the tab a fraction past the edge again.
    */
   #scrollIntoStrip(tab: HTMLElement): void {
-    const start = tab.offsetLeft;
-    const end = start + tab.offsetWidth;
-    const viewStart = this.#host.scrollLeft;
-    const viewEnd = viewStart + this.#host.clientWidth;
+    const host = this.#host;
+    const visibleWidth = host.clientWidth;
+    const tabBox = tab.getBoundingClientRect();
+    const start = tabBox.left - translationOf(tab) - host.getBoundingClientRect().left - host.clientLeft;
+    const end = start + tabBox.width;
 
-    if (start < viewStart) {
-      this.#host.scrollLeft = start;
-    } else if (end > viewEnd) {
-      this.#host.scrollLeft = end - this.#host.clientWidth;
+    if (start < 0) {
+      host.scrollLeft = Math.floor(host.scrollLeft + start);
+    } else if (end > visibleWidth) {
+      host.scrollLeft = Math.ceil(host.scrollLeft + end - visibleWidth);
     }
   }
 
@@ -1902,9 +1911,11 @@ export class TabStrip {
    * `button: 0`, so the keyboard is recognized by no button being held, no pointer
    * having gone down on the tab, and no touch origin reported by the browser
    * (`sourceCapabilities.firesTouchEvents`): a repaint can end the press a long-press began
-   * before the browser raises its `contextmenu`. The long-press half is pinned by a Playwright touch test;
-   * a genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on
-   * the same flag untested.
+   * before the browser raises its `contextmenu`. The long-press half is pinned by
+   * `tests/e2e/sheets-bar-touch-menus.spec.ts`, which holds the finger with `page.clock`, and the
+   * touch-raised `contextmenu` after a repaint by a unit test in `__tests__/sheetsBar.unit.js`; a
+   * genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on the same
+   * flag untested.
    *
    * @param {Event} event The `contextmenu` event.
    */

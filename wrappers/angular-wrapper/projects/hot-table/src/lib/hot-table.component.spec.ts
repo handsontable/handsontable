@@ -6,7 +6,7 @@ import { NumericEditor, TextEditor } from 'handsontable/editors';
 import { registerCellType, NumericCellType } from 'handsontable/cellTypes';
 import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 import { HotTableModule } from './hot-table.module';
-import { HOT_DESTROYED_WARNING, HotTableComponent } from './hot-table.component';
+import { DATA_BINDING_SOURCE, HOT_DESTROYED_WARNING, HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
 import { createSpreadsheetData } from './test-helpers/create-spreadsheet-data';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
@@ -347,7 +347,7 @@ describe('HotTableComponent', () => {
       };
 
       component.ngOnChanges(changes);
-      expect(updateDataSpy).toHaveBeenCalledWith(newData);
+      expect(updateDataSpy).toHaveBeenCalledWith(newData, DATA_BINDING_SOURCE);
     });
 
     it('should not update Handsontable data if data change and it is the first change', () => {
@@ -364,7 +364,7 @@ describe('HotTableComponent', () => {
       };
 
       component.ngOnChanges(changes);
-      expect(updateDataSpy).not.toHaveBeenCalledWith(newData);
+      expect(updateDataSpy).not.toHaveBeenCalledWith(newData, DATA_BINDING_SOURCE);
     });
 
     it('should destroy old editor component refs when settings change with new column objects', () => {
@@ -562,7 +562,7 @@ describe('HotTableComponent', () => {
         data: new SimpleChange(component.data, [], false),
       });
 
-      expect(updateDataSpy).toHaveBeenCalledWith([]);
+      expect(updateDataSpy).toHaveBeenCalledWith([], DATA_BINDING_SOURCE);
     });
 
     it('should handle data changed to null', () => {
@@ -577,7 +577,7 @@ describe('HotTableComponent', () => {
         data: new SimpleChange(component.data, null, false),
       });
 
-      expect(updateDataSpy).toHaveBeenCalledWith(null);
+      expect(updateDataSpy).toHaveBeenCalledWith(null, DATA_BINDING_SOURCE);
     });
 
     it('should update both settings and data when both change simultaneously', () => {
@@ -595,7 +595,7 @@ describe('HotTableComponent', () => {
       });
 
       expect(updateSettingsSpy).toHaveBeenCalled();
-      expect(updateDataSpy).toHaveBeenCalledWith(newData);
+      expect(updateDataSpy).toHaveBeenCalledWith(newData, DATA_BINDING_SOURCE);
     });
   });
 

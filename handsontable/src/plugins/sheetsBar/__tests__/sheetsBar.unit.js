@@ -6,6 +6,7 @@ import enUS from '../../../i18n/languages/en-US';
 import * as C from '../../../i18n/constants';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
+import { NEW_NESTED_SHEET_ROW_COUNT } from '../sheetModel';
 import { syncIcon } from '../../../themes/engine/icons';
 import { ManualRowResize } from '../../manualRowResize/manualRowResize';
 import { Comments } from '../../comments/comments';
@@ -524,6 +525,46 @@ describe('SheetsBar plugin', () => {
     nestedRows.collapsingUI.collapseChildren(0);
 
     expect(hot.getData().map(row => row[0])).toEqual(['Group 1', 'Group 2', 'Line 3']);
+  });
+
+  it('starts a sheet added with NestedRows on with empty object rows, each its own object', () => {
+    hot = new Handsontable(container, {
+      nestedRows: true,
+      columns: [{ data: 'name' }, { data: 'qty' }],
+      sheetsBar: { sheets: [{ name: 'Tree', data: [{ name: 'P', qty: 1, __children: [{ name: 'C', qty: 2 }] }] }] },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const added = sheetsBar.addSheet('Blank');
+    const rows = sheetsBar.getSheetData(added.id);
+
+    expect(rows).toHaveLength(NEW_NESTED_SHEET_ROW_COUNT);
+    expect(rows.every(row => Object.keys(row).length === 0 && Object.getPrototypeOf(row) === Object.prototype))
+      .toBe(true);
+    expect(new Set(rows).size).toBe(rows.length);
+  });
+
+  it('gives a sheet added with NestedRows on and no `columns` the columns of the grid\'s rows', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      data: [{ name: 'P', qty: 3, __children: [{ name: 'C', qty: 1 }] }],
+      nestedRows: true,
+      sheetsBar: true,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const added = sheetsBar.addSheet('Blank');
+    const rows = sheetsBar.getSheetData(added.id);
+
+    sheetsBar.setActiveSheet(added.id);
+
+    expect(hot.countCols()).toBe(2);
+    expect(rows[0]).toEqual({ name: null, qty: null });
+    expect(rows[0]).not.toBe(rows[1]);
+    expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining('no columns'));
   });
 
   it('guards the enable-time sheet load: `nestedRows` stays on across a workbook declared without a top-level `data` (passes on develop, pins the load path rather than the fix)', () => {
@@ -1243,11 +1284,130 @@ describe('SheetsBar plugin', () => {
 
     before.mockClear();
 
+    const beforeAdd = jest.fn();
+    const beforeRemove = jest.fn();
+
+    hot.addHook('beforeSheetTabAdd', beforeAdd);
+    hot.addHook('beforeSheetTabRemove', beforeRemove);
+
     expect(sheetsBar.renameSheet(id, undefined)).toBe(false);
     expect(sheetsBar.renameSheet(999, 'B')).toBe(false);
     expect(sheetsBar.duplicateSheet(999)).toBe(null);
     expect(sheetsBar.removeSheet(999)).toBe(false);
     expect(before).not.toHaveBeenCalled();
+    expect(beforeAdd).not.toHaveBeenCalled();
+    expect(beforeRemove).not.toHaveBeenCalled();
+  });
+
+  describe('API guards and vetoes', () => {
+    /**
+     * Builds a grid with sheets 'A', 'B' and 'C' and spies on every workbook hook.
+     *
+     * @returns {object} The plugin and the spies by hook name.
+     */
+    function buildWithSpies() {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
+        },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      const spies = {};
+
+      [
+        'beforeSheetTabChange', 'afterSheetTabChange', 'afterSheetTabStateCapture', 'afterSheetTabStateRestore',
+        'beforeSheetTabAdd', 'afterSheetTabAdd', 'beforeSheetTabRemove', 'afterSheetTabRemove',
+      ].forEach((hookName) => {
+        spies[hookName] = jest.fn();
+        hot.addHook(hookName, spies[hookName]);
+      });
+
+      return { sheetsBar: hot.getPlugin('sheetsBar'), spies };
+    }
+
+    /**
+     * Returns the id of the sheet with the given name.
+     *
+     * @param {object} sheetsBar The plugin.
+     * @param {string} name The sheet's name.
+     * @returns {number}
+     */
+    function idOf(sheetsBar, name) {
+      return sheetsBar.getSheets().find(sheet => sheet.name === name).id;
+    }
+
+    it('refuses to activate the sheet that is already active, firing no change hook', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+
+      expect(sheetsBar.setActiveSheet('A')).toBe(false);
+      expect(sheetsBar.setActiveSheet(idOf(sheetsBar, 'A'))).toBe(false);
+      expect(spies.beforeSheetTabChange).not.toHaveBeenCalled();
+      expect(spies.afterSheetTabStateCapture).not.toHaveBeenCalled();
+      expect(spies.afterSheetTabStateRestore).not.toHaveBeenCalled();
+      expect(spies.afterSheetTabChange).not.toHaveBeenCalled();
+    });
+
+    it('answers `null` for an `addSheet()` a `beforeSheetTabAdd` listener cancels, firing no after-hook', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+
+      spies.beforeSheetTabAdd.mockReturnValue(false);
+
+      expect(sheetsBar.addSheet('New', [['n']])).toBe(null);
+      expect(spies.beforeSheetTabAdd).toHaveBeenCalledWith('New', null, 'SheetsBar.api');
+      expect(spies.afterSheetTabAdd).not.toHaveBeenCalled();
+      expect(sheetsBar.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B', 'C']);
+    });
+
+    it('refuses to remove or duplicate a sheet that does not exist, firing no hook', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+
+      expect(sheetsBar.removeSheet(999)).toBe(false);
+      expect(sheetsBar.duplicateSheet(999)).toBe(null);
+      expect(spies.beforeSheetTabRemove).not.toHaveBeenCalled();
+      expect(spies.beforeSheetTabAdd).not.toHaveBeenCalled();
+      expect(sheetsBar.getSheets()).toHaveLength(3);
+    });
+
+    it('passes the ids and the source to the change hooks', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+      const a = idOf(sheetsBar, 'A');
+      const b = idOf(sheetsBar, 'B');
+
+      expect(sheetsBar.setActiveSheet(b, 'custom')).toBe(true);
+      expect(spies.beforeSheetTabChange.mock.calls).toEqual([[a, b, 'custom']]);
+      expect(spies.afterSheetTabChange.mock.calls).toEqual([[a, b, 'custom']]);
+    });
+
+    it('passes the removed sheet\'s id and the source to the remove hooks', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+      const c = idOf(sheetsBar, 'C');
+
+      expect(sheetsBar.removeSheet(c, 'custom')).toBe(true);
+      expect(spies.beforeSheetTabRemove.mock.calls).toEqual([[c, 'custom']]);
+      expect(spies.afterSheetTabRemove.mock.calls).toEqual([[c, 'custom']]);
+      expect(spies.beforeSheetTabChange).not.toHaveBeenCalled();
+    });
+
+    it('passes the switch to the neighbor and then the removal when the active sheet is removed', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+      const a = idOf(sheetsBar, 'A');
+      const b = idOf(sheetsBar, 'B');
+
+      expect(sheetsBar.removeSheet(a, 'custom')).toBe(true);
+      expect(spies.beforeSheetTabRemove.mock.calls).toEqual([[a, 'custom']]);
+      expect(spies.afterSheetTabChange.mock.calls).toEqual([[a, b, 'custom']]);
+      expect(spies.afterSheetTabRemove.mock.calls).toEqual([[a, 'custom']]);
+    });
+
+    it('passes the copy\'s name, the original\'s id and the source to the add hooks of a duplicate', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+      const b = idOf(sheetsBar, 'B');
+      const copy = sheetsBar.duplicateSheet(b, 'custom');
+
+      expect(spies.beforeSheetTabAdd.mock.calls).toEqual([[copy.name, b, 'custom']]);
+      expect(spies.afterSheetTabAdd.mock.calls).toEqual([[copy.id, copy.name, b, 'custom']]);
+    });
   });
 
   it('leaves the bar alone when a sheet\'s settings try to reconfigure it', () => {
@@ -1598,6 +1758,72 @@ describe('SheetsBar plugin', () => {
     expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A');
     expect(announce).toHaveBeenCalledWith('Sheet name not changed: B is already in use');
     expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active').getAttribute('role')).toBe('button');
+  });
+
+  /**
+   * Renames the active tab through its inline input and presses Enter.
+   *
+   * @param {string} name The typed name.
+   */
+  function renameActiveTabTo(name) {
+    const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
+
+    tab.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const input = tab.querySelector('.ht-sheets-bar__tab-rename');
+
+    input.value = name;
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  }
+
+  it('announces a rename a `beforeSheetTabRename` listener canceled as not changed, not as a taken name', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+      beforeSheetTabRename: () => false,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+    const announce = jest.spyOn(SheetsBarUI.prototype, 'announce');
+
+    renameActiveTabTo('Fresh');
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A');
+    expect(announce.mock.calls).toEqual([['Sheet name not changed']]);
+  });
+
+  it('announces a rename refused for a frozen `sheets` entry as not changed, not as a taken name', () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [Object.freeze({ name: 'A', data: [['a']] }), { name: 'B', data: [['b']] }] },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+    const announce = jest.spyOn(SheetsBarUI.prototype, 'announce');
+
+    renameActiveTabTo('Fresh');
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A');
+    expect(announce.mock.calls).toEqual([['Sheet name not changed']]);
+  });
+
+  it('fires no rename when a declared name with a line break is confirmed unchanged in the rename input', () => {
+    const sheets = [{ name: 'A\nB', data: [['a']] }, { name: 'C', data: [['c']] }];
+    const afterRename = jest.fn();
+
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets },
+      afterSheetTabRename: afterRename,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A B');
+
+    const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
+
+    tab.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    tab.querySelector('.ht-sheets-bar__tab-rename')
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(afterRename).not.toHaveBeenCalled();
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A B');
   });
 
   it('leaves Enter and Escape to the IME while a character is being composed', () => {

@@ -81,6 +81,108 @@ describe('HotTable with a sheets bar', () => {
     expect(appData).toEqual([['app', 'app']]);
   });
 
+  it('keeps an added sheet\'s rows when the parent re-renders a `sheetsBar: true` grid with its `data` prop', () => {
+    const appData = [['A1', 'B1'], ['A2', 'B2']];
+    const props = (): HotTableProps => ({
+      licenseKey: TEST_LICENSE_KEY,
+      data: appData,
+      sheetsBar: true,
+    });
+    const ref = renderHotTableWithProps(props(), true);
+    const hot = ref.current!.hotInstance!;
+    const plugin = hot.getPlugin('sheetsBar');
+
+    act(() => {
+      plugin.addSheet('Second');
+    });
+    act(() => {
+      plugin.setActiveSheet('Second');
+    });
+    act(() => {
+      hot.setDataAtCell(0, 0, 'typed');
+    });
+    renderHotTableWithProps(props(), true, ref);
+
+    expect(hot.getDataAtCell(0, 0)).toBe('typed');
+
+    act(() => {
+      hot.setDataAtCell(0, 0, 'typed again');
+    });
+
+    expect(appData[0][0]).toBe('A1');
+
+    act(() => {
+      plugin.setActiveSheet('Sheet1');
+    });
+
+    expect(hot.getDataAtCell(0, 0)).toBe('A1');
+  });
+
+  it('puts new `data` rows into the first sheet of a `sheetsBar: true` grid while another sheet is visible', () => {
+    const ref = React.createRef<HotTableRef>();
+    let setRows: (rows: string[][]) => void = () => {};
+
+    const App = () => {
+      const [rows, setState] = React.useState([['A1', 'B1']]);
+
+      setRows = setState;
+
+      return <HotTable ref={ref} licenseKey={TEST_LICENSE_KEY} data={rows} sheetsBar />;
+    };
+
+    mountComponent(<App />);
+
+    const hot = ref.current!.hotInstance!;
+    const plugin = hot.getPlugin('sheetsBar');
+    const newRows = [['new', 'rows']];
+
+    act(() => {
+      plugin.addSheet('Second', [['second']]);
+    });
+    act(() => {
+      plugin.setActiveSheet('Second');
+    });
+    act(() => {
+      setRows(newRows);
+    });
+
+    expect(hot.getDataAtCell(0, 0)).toBe('second');
+    expect(plugin.getSheetData('Sheet1')).toBe(newRows);
+
+    act(() => {
+      plugin.setActiveSheet('Sheet1');
+    });
+
+    expect(hot.getDataAtCell(0, 0)).toBe('new');
+  });
+
+  it('keeps the visible sheet\'s rows on a `sheetsBar: true` re-render after the first sheet is removed', () => {
+    const appData = [['A1', 'B1']];
+    const props = (): HotTableProps => ({
+      licenseKey: TEST_LICENSE_KEY,
+      data: appData,
+      sheetsBar: true,
+    });
+    const ref = renderHotTableWithProps(props(), false);
+    const hot = ref.current!.hotInstance!;
+    const plugin = hot.getPlugin('sheetsBar');
+
+    act(() => {
+      plugin.addSheet('Second', [['second']]);
+      plugin.addSheet('Third', [['third']]);
+    });
+    act(() => {
+      plugin.setActiveSheet('Second');
+    });
+    act(() => {
+      plugin.removeSheet(plugin.getSheets().find(sheet => sheet.name === 'Sheet1')!.id);
+    });
+    renderHotTableWithProps(props(), false, ref);
+
+    expect(hot.getDataAtCell(0, 0)).toBe('second');
+    expect(appData).toEqual([['A1', 'B1']]);
+  });
+
   it('settles a controlled `activeSheet` that names a position in the app\'s `sheets` after a tab move', () => {
     const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }];
     const ref = React.createRef<HotTableRef>();

@@ -7,6 +7,7 @@ import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
 import { isValidDataSource } from './utils/isValidDataSource';
 import { error } from '../../helpers/console';
+import { hasOwnProperty } from '../../helpers/object';
 import type { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR, GRID_GROUP } from '../../shortcuts/contexts';
 import RowMoveController from './utils/rowMoveController';
@@ -187,13 +188,25 @@ export class NestedRows extends BasePlugin {
   #awaitsDataLoad = false;
 
   /**
+   * `true` while the plugin is off because the data it was given is not an array of objects. The user's
+   * `nestedRows` setting is left as it was, and the next `loadData()` or `updateData()` with an array of
+   * objects, or an `updateSettings()` call that carries `nestedRows`, turns the plugin back on.
+   *
+   * @type {boolean}
+   */
+  #waitsForObjectData = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
+   *
+   * It answers `false` while the plugin waits for data it can handle, so a settings update that does not
+   * carry `nestedRows` does not turn it on over the same data.
    *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return !this.#waitsForObjectData && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -352,6 +365,10 @@ export class NestedRows extends BasePlugin {
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
     const wasEnabled = this.enabled;
+
+    if (hasOwnProperty(newSettings, PLUGIN_KEY)) {
+      this.#stopWaitingForObjectData();
+    }
 
     super.onUpdateSettings(newSettings);
 
@@ -1698,11 +1715,84 @@ export class NestedRows extends BasePlugin {
 
     error(WRONG_DATA_TYPE_ERROR);
 
-    this.hot.getSettings()[PLUGIN_KEY] = false;
     this.disablePlugin();
+    this.#waitForObjectData();
 
     return false;
   }
+
+  /**
+   * Keeps the plugin off until it gets data it can handle. The plugin's own hooks are gone once it is
+   * disabled, so the next data load is watched through hooks added on the Handsontable instance.
+   * `beforeLoadData` takes `orderIndex: 1` for the same reason the plugin's own listener does: the sheets
+   * bar redirects the load at the default order, and the data checked here has to be the redirected one.
+   */
+  #waitForObjectData() {
+    if (this.#waitsForObjectData) {
+      return;
+    }
+
+    this.#waitsForObjectData = true;
+    this.hot.addHook('beforeLoadData', this.#onBeforeLoadDataWhileWaiting, 1);
+    this.hot.addHook('beforeUpdateData', this.#onBeforeUpdateDataWhileWaiting);
+  }
+
+  /**
+   * Stops watching the data loads that `#waitForObjectData()` started watching.
+   */
+  #stopWaitingForObjectData() {
+    if (!this.#waitsForObjectData) {
+      return;
+    }
+
+    this.#waitsForObjectData = false;
+    this.hot.removeHook('beforeLoadData', this.#onBeforeLoadDataWhileWaiting);
+    this.hot.removeHook('beforeUpdateData', this.#onBeforeUpdateDataWhileWaiting);
+  }
+
+  /**
+   * Turns the plugin back on for incoming data it can handle, when the settings still ask for it.
+   *
+   * @param {Array} data The incoming data.
+   * @returns {boolean} `true` when the plugin is on and takes the data.
+   */
+  #resumeFor(data: unknown[]): boolean {
+    if (!isValidDataSource(data)) {
+      return false;
+    }
+
+    this.#stopWaitingForObjectData();
+
+    if (!this.isEnabled() || this.isHardConflictBlocked()) {
+      return false;
+    }
+
+    this.enablePlugin();
+
+    return this.enabled;
+  }
+
+  /**
+   * `beforeLoadData` hook callback, added while the plugin waits for data it can handle.
+   *
+   * @param {Array} data The source data.
+   */
+  #onBeforeLoadDataWhileWaiting = (data: unknown[]) => {
+    if (this.#resumeFor(data)) {
+      this.#onBeforeLoadData(data);
+    }
+  };
+
+  /**
+   * `beforeUpdateData` hook callback, added while the plugin waits for data it can handle.
+   *
+   * @param {Array} data The source data.
+   */
+  #onBeforeUpdateDataWhileWaiting = (data: unknown[]) => {
+    if (this.#resumeFor(data)) {
+      this.#onBeforeUpdateData(data);
+    }
+  };
 
   /**
    * Forgets which parents are collapsed, and untrims the rows that collapse had hidden.
@@ -1859,6 +1949,7 @@ export class NestedRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#stopWaitingForObjectData();
     super.destroy();
   }
 }

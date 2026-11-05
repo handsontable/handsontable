@@ -589,3 +589,11 @@ object after an object still merges. Object → `false` → `true` also starts f
 (Search keeps the object's options there instead, because its options live on the plugin itself). MultiColumnSorting
 inherits all of it unchanged. Pinned by
 `__tests__/settingsReset.unit.js` and `../sheetsBar/__tests__/pluginOptionReset.unit.js`.
+
+## `_getObjectSettingDefaults()` lists every column property an object sets
+
+`@private`, read by the SheetsBar plugin (see `../base/AGENTS.md`). An object sent again merges into the column
+properties the previous one set (`ColumnStatesManager#updateAllColumnsProperties`), so the override lists the
+default of each one: `indicator`, `headerAction`, `sortEmptyCells` and `compareFunctionFactory`. A new key of the
+object form must be added there, or a sheet that leaves it out keeps the previous sheet's value. MultiColumnSorting
+inherits the override.
