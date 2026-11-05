@@ -379,16 +379,40 @@ describe('NestedRows -> filtering', () => {
     expect(hot.getDataAtCol(0)).toEqual(['Parent A']);
   });
 
+  it('should read fresh set positions from afterRowSequenceCacheUpdate', () => {
+    const filters = buildTree();
+    const { dataManager } = hot.getPlugin('nestedRows');
+    const positions = [];
+
+    filters.addCondition(0, 'contains', ['child a']);
+    filters.filter();
+
+    // Child A2 (physical row 2) is the 2nd of 2 reachable siblings; this read fills the cache.
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 2, setSize: 2 });
+
+    hot.addHook('afterRowSequenceCacheUpdate', () => {
+      positions.push(dataManager.getRowSetPosition(2));
+    });
+
+    filters.removeConditions(0);
+    filters.addCondition(0, 'eq', ['Child A2']);
+    filters.filter();
+
+    // Child A1 is gone, so Child A2 is the only reachable sibling now.
+    expect(positions[positions.length - 1]).toEqual({ position: 1, setSize: 1 });
+  });
+
   it('should not leave a row index cache listener behind across disable and enable', () => {
     buildTree();
 
-    const countCacheListeners = () => hot.rowIndexMapper._localHooks.cacheUpdated?.length ?? 0;
+    const countCacheListeners = () => (hot.rowIndexMapper._localHooks.cacheUpdated?.length ?? 0) +
+      (hot.rowIndexMapper._localHooks.beforeCacheUpdate?.length ?? 0);
     const listenersWhileEnabled = countCacheListeners();
 
     for (let cycle = 0; cycle < 3; cycle++) {
       hot.updateSettings({ nestedRows: false });
 
-      expect(countCacheListeners()).toBe(listenersWhileEnabled - 1);
+      expect(countCacheListeners()).toBe(listenersWhileEnabled - 2);
 
       hot.updateSettings({ nestedRows: true });
 

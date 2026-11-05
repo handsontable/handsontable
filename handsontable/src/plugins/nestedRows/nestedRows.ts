@@ -211,6 +211,9 @@ export class NestedRows extends BasePlugin {
     });
 
     this.dataManager = new DataManager(this, this.hot);
+    // `beforeCacheUpdate` drops the counts before the public `afterRowSequenceCacheUpdate` hook
+    // runs, and `cacheUpdated` again: a read in between would refill them from the old state.
+    this.hot.rowIndexMapper.addLocalHook('beforeCacheUpdate', this.#onRowIndexCacheUpdated);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
@@ -261,6 +264,7 @@ export class NestedRows extends BasePlugin {
    * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
+    this.hot.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onRowIndexCacheUpdated);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
@@ -1234,9 +1238,9 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * The row index mapper's `cacheUpdated` local hook callback. Drops the data manager's
-   * reachable-sibling counts after the cache changed (a trim, an untrim, a collapse, a filter), so
-   * `aria-posinset`/`aria-setsize` are recounted on the next read.
+   * The row index mapper's `beforeCacheUpdate` and `cacheUpdated` local hook callback. Drops the
+   * data manager's reachable-sibling counts around a cache change (a trim, an untrim, a collapse, a
+   * filter), so `aria-posinset`/`aria-setsize` are recounted on the next read.
    */
   #onRowIndexCacheUpdated = () => {
     this.dataManager?.invalidateSetPositions();
