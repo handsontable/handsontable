@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "public",
-  "title": "Removed writing past the last column of an object data source, deprecated in 19.0.0. A paste, `populateFromArray()`, or `setDataAtCell()` no longer adds a property named after the column index, which no column could display. Use `setDataAtRowProp()` to write a field the grid shows no column for.",
-  "type": "removed",
+  "title": "Deprecated writing past the last column of an object data source. A paste, `populateFromArray()`, or `setDataAtCell()` still adds a property named after the column index, which no column can display, and prints a one-time console warning; the write will be ignored in Handsontable 20.0.0. Use `setDataAtRowProp()` to write a field the grid shows no column for.",
+  "type": "deprecated",
   "issueOrPR": 5409,
-  "breaking": true,
+  "breaking": false,
   "framework": "none"
 }

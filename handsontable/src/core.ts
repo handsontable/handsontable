@@ -4226,11 +4226,9 @@ export default function Core(
    * [`getSourceData()`](@/api/core.md#getsourcedata) returns it while the grid never displays it.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * the change is **skipped** from 20.0.0 on, after its deprecation in 19.0.0: the value cannot become a column
-   * there, so it would only add a property the schema never declared. No value is written, and no
-   * {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is reported for it. A one-time console warning
-   * says so. {@link Hooks#afterSetDataAtCell} still fires, with the changes that were not skipped – an empty array
-   * when every change was. To write a field the grid shows no column for, address it by property name with
+   * that write is **deprecated as of 19.0.0** and will be ignored from 20.0.0 on: the value cannot become a column
+   * there, so it only adds a property the schema never declared. A one-time console warning says so. To write a
+   * field the grid shows no column for, address it by property name with
    * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. A grid that declares no columns at all is
    * exempt – there every index is past the last column, and writing is how an empty dataset gets bootstrapped.
    *
@@ -4288,15 +4286,14 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 19.0.0, skipped from 20.0.0 on. The rule, and why it
+        // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on. The rule, and why it
         // reads `!== 'array'` and exempts a grid with no columns, is in `utils/pastLastColumn.ts`.
         if (isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex)) {
-          removedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
-            'Writing past the last column of an object data source was removed in Handsontable 20.0.0. ' +
-            'The value is not written, and no change is reported for it. Use `setDataAtRowProp()` to ' +
-            'write a field the grid shows no column for.');
-
-          continue;
+          deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+            'Writing past the last column of an object data source is deprecated and will be ' +
+            'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
+            'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
+            'field the grid shows no column for.');
         }
 
         prop = visualColumnIndex;
@@ -4318,17 +4315,6 @@ export default function Core(
 
     if (!changeSource && typeof row === 'object') {
       changeSource = column as string;
-    }
-
-    // Every requested change was skipped above, so there is nothing left to report or apply.
-    // Falling through would run `processChanges([])`, which cancels the active editor - discarding
-    // a value the user is still typing in an unrelated cell - and then render for no work. An
-    // empty `input` keeps its previous path, so `setDataAtCell([])` behaves as it always has.
-    // `afterSetDataAtCell` still fires, because it is documented to fire for every call.
-    if (input.length > 0 && changes.length === 0) {
-      instance.runHooks('afterSetDataAtCell', [], changeSource);
-
-      return;
     }
 
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);

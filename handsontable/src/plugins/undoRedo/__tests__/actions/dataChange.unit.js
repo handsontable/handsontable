@@ -413,8 +413,8 @@ describe('UndoRedo -> DataChange action', () => {
     expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
   });
 
-  // `setDataAtCell()` skips a column past the last one of an object data source and fires no
-  // `afterChange` for it (#5409). The replay settles on that hook, so a change routed through the
+  // From 20.0.0 on, `setDataAtCell()` skips a column past the last one of an object data source
+  // and fires no `afterChange` for it (#5409; 19.0 only warns). The replay settles on that hook, so a change routed through the
   // grid there would leave `ignoreNewActions` on and every later edit unrecorded.
   describe('columns the grid cannot address (#5409)', () => {
     it('should undo a numeric prop past the last column and keep recording', () => {
