@@ -70,11 +70,13 @@ To pick the editor for each column, use one of these:
 | --- | --- |
 | A component built with `useHotEditor` | The `editor` prop |
 | A class that extends a built-in editor or `BaseEditor` | The `hotEditor` prop |
-| A built-in or registered editor name, such as `numeric` | The `hotEditor` prop, or the `type` prop |
+| A built-in or registered editor name, such as `numeric` | The `hotEditor` prop |
+
+A `type` such as `numeric` sets the editor, the renderer, and the validator together. It accepts cell type names only, not the names of editors you registered.
 
 A `type` set on `HotTable` applies to every column that does not set its own `type`.
 
-If you pass a class or an editor name to the `editor` prop, the wrapper uses it as `hotEditor` and logs a warning in the console. Move it to `hotEditor` to remove the warning.
+If you pass a class or an editor name to the `editor` prop, the wrapper uses it as `hotEditor` and logs a warning in the console. Move it to `hotEditor` to remove the warning. When a column also sets `hotEditor`, `hotEditor` wins over that class or name.
 
 To fall back to the editor of the column `type`, leave `editor` out. Passing `editor={undefined}` as a prop has the same effect. An `editor: undefined` key inside a `columns` entry does not: it gives the text editor, so omit the key.
 
