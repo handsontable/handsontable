@@ -619,6 +619,12 @@ export class BaseEditor {
   #waitForValidation(onAnswer: (result: boolean) => void): void {
     const wait = {};
     const onPostAfterValidate = (result: boolean) => {
+      // An earlier `postAfterValidate` listener destroyed the grid. The hook registry still reaches
+      // this listener, and every method of the destroyed instance throws.
+      if (this.hot.isDestroyed) {
+        return;
+      }
+
       if (this.hot._isAnsweringStaleValidation()) {
         return;
       }
