@@ -2438,7 +2438,8 @@ export const REGISTERED_HOOKS = [
    * matching nested row. The plugin keeps only the integers within the source row range, in
    * ascending order, without duplicates.
    *
-   * The second argument lists the matching rows whose every filtered column holds an empty cell.
+   * The second argument lists the matching rows whose every column that the conditions of this pass
+   * read holds an empty cell.
    * Such a row matches only because a condition accepts empty cells, so a listener can keep the row
    * without keeping the rows that depend on it - for example, the children of a nested parent.
    * Several listeners run in a chain: each one gets the rows the previous one returned, and the
@@ -2448,13 +2449,16 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifyFiltersMatchedRows
    * @param {number[]} matchedRows Physical indexes of the rows that match every condition, ascending.
    * @param {number[]} blankMatchedRows Physical indexes of the rows from `matchedRows` whose every
-   * filtered column holds an empty cell, ascending.
+   * column that the conditions of this pass read holds an empty cell, ascending. For a "Filter by
+   * value" list, those are the columns filtered before it.
    * @returns {number[]|undefined} The physical rows to keep, or `undefined` to keep `matchedRows`.
    * @example
    * ```js
    * // Hide the rows that match only through empty cells.
    * modifyFiltersMatchedRows(matchedRows, blankMatchedRows) {
-   *   return matchedRows.filter(row => !blankMatchedRows.includes(row));
+   *   const blank = new Set(blankMatchedRows);
+   *
+   *   return matchedRows.filter(row => !blank.has(row));
    * }
    * ```
    */

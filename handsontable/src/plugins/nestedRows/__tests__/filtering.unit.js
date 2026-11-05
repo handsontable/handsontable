@@ -212,6 +212,15 @@ describe('NestedRows -> filtering', () => {
       expect(hot.getDataAtCol(1)).toEqual([null, 'Elle King', null, 'Muse']);
     });
 
+    it('should not keep the subtree of a blank parent that a non-by_value condition accepts', () => {
+      const filters = buildAwards();
+
+      filters.addCondition(1, 'neq', ['Alabama Shakes']);
+      filters.filter();
+
+      expect(hot.getDataAtCol(1)).toEqual([null, 'Elle King', null, 'Muse']);
+    });
+
     it('should still keep the subtree of a parent that matches a non-blank value', () => {
       const filters = buildAwards();
 
