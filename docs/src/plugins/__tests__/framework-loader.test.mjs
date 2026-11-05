@@ -783,3 +783,164 @@ test('an @/framework/ prefix outside code is still stripped', async () => {
   assert.ok(html.includes('[Data file](/files/data.csv)'), 'prose link loses its @/react/ prefix');
   assert.ok(!html.includes('@/react/'), 'no @/react/ prefix should remain');
 });
+
+/**
+ * Loads a one-page fixture whose body is `body` and returns the vanilla page HTML.
+ *
+ * @param {string} body
+ * @returns {Promise<string>}
+ */
+async function loadPageWithBody(body) {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-aside-'));
+  const contentDir = join(root, 'content');
+  const introDir = join(contentDir, 'guides', 'intro');
+
+  mkdirSync(introDir, { recursive: true });
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+  writeFileSync(
+    join(introDir, 'intro.md'),
+    ['---', 'title: Introduction', 'permalink: /intro', '---', '', body, ''].join('\n')
+  );
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    return renderedHtmlOf(store, 'javascript-data-grid/intro');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test('a fenced code block inside an aside stays a markdown fence between its paragraphs', async () => {
+  const html = await loadPageWithBody([
+    '::: warning',
+    '',
+    'First paragraph with `code`.',
+    '',
+    'Second paragraph, **bold**:',
+    '',
+    '```js',
+    'hot.batch(() => {',
+    '  hot.render();',
+    '});',
+    '```',
+    '',
+    'Closing paragraph.',
+    '',
+    ':::',
+    '',
+    'After the aside.',
+  ].join('\n'));
+
+  const lines = html.split('\n');
+  const open = lines.indexOf('```js');
+  const close = lines.indexOf('```', open + 1);
+
+  assert.ok(open > 0 && close > open, 'the fence survives as its own markdown lines');
+  assert.deepEqual(lines.slice(open + 1, close), ['hot.batch(() => {', '  hot.render();', '});'], 'fence body is untouched');
+  assert.equal(lines[open - 1], '', 'a blank line precedes the fence so markdown parses it');
+  assert.equal(lines[close + 1], '', 'a blank line follows the fence so markdown parses it');
+  assert.ok(html.includes('<p>First paragraph with <code>code</code>.</p>'), 'first paragraph is its own <p>');
+  assert.ok(html.includes('<p>Second paragraph, <strong>bold</strong>:</p>'), 'second paragraph is its own <p>');
+  assert.ok(html.includes('<p>Closing paragraph.</p>'), 'text after the fence is its own <p>');
+  assert.ok(html.indexOf('</aside>') > close, 'the aside closes after the fence');
+  assert.equal(html.match(/<aside /g).length, 1, 'one aside');
+  assert.equal(html.match(/<\/aside>/g).length, 1, 'aside closed once');
+});
+
+test('an aside without a fence keeps its single-paragraph HTML', async () => {
+  const html = await loadPageWithBody('::: tip\nUse `foo` **now**.\n:::');
+
+  assert.ok(
+    html.includes('<div class="starlight-aside__content"><p>Use <code>foo</code> <strong>now</strong>.</p></div>'),
+    'unchanged output for a fence-free aside'
+  );
+});
+
+test('a longer fence in an aside is not closed by a shorter fence line inside it', async () => {
+  const html = await loadPageWithBody([
+    '::: note',
+    'Intro.',
+    '````md',
+    '```js',
+    'inner();',
+    '```',
+    '````',
+    ':::',
+  ].join('\n'));
+
+  const lines = html.split('\n');
+  const open = lines.indexOf('````md');
+  const close = lines.indexOf('````', open + 1);
+
+  assert.ok(open > 0 && close > open, 'outer four-backtick fence is kept whole');
+  assert.deepEqual(lines.slice(open + 1, close), ['```js', 'inner();', '```'], 'inner fence lines stay inside');
+  assert.ok(html.indexOf('</aside>') > close, 'the aside closes after the outer fence');
+});
+
+test('a fenced block that is the whole aside body keeps the aside well formed', async () => {
+  const html = await loadPageWithBody(['::: tip', '~~~js', 'hot.render();', '~~~', ':::'].join('\n'));
+  const lines = html.split('\n');
+
+  assert.ok(lines.includes('~~~js') && lines.includes('hot.render();'), 'tilde fence is kept as markdown');
+  assert.equal(html.match(/<aside /g).length, 1);
+  assert.equal(html.match(/<\/aside>/g).length, 1);
+  assert.ok(!html.includes('<p></p>'), 'no empty paragraph for a body that is only a fence');
+});
+
+test('an unclosed fence in an aside is closed before the aside ends', async () => {
+  const html = await loadPageWithBody(['::: tip', 'Text.', '```js', 'hot.render();', ':::', '', 'After the aside.'].join('\n'));
+  const lines = html.split('\n');
+  const open = lines.indexOf('```js');
+
+  assert.deepEqual(lines.slice(open, open + 3), ['```js', 'hot.render();', '```'], 'the fence gets its closing line');
+  assert.ok(html.indexOf('</aside>') > html.lastIndexOf('```'), 'the aside closes after the fence');
+  assert.ok(html.includes('After the aside.'), 'text after the aside is kept outside the fence');
+});
+
+test('a tilde fence is not closed by a backtick line, and an inline backtick run is not a fence', async () => {
+  const tilde = await loadPageWithBody(['::: tip', '~~~md', '```', 'x', '```', '~~~', ':::'].join('\n'));
+  const tildeLines = tilde.split('\n');
+  const open = tildeLines.indexOf('~~~md');
+
+  assert.deepEqual(tildeLines.slice(open + 1, tildeLines.indexOf('~~~', open + 1)), ['```', 'x', '```']);
+
+  const inline = await loadPageWithBody('::: tip\n```code``` stays a paragraph.\n:::');
+
+  assert.ok(
+    inline.includes('<div class="starlight-aside__content"><p>'),
+    'an info string with a backtick is not a fence, so the aside keeps the single-paragraph path'
+  );
+});
+
+test('a fence-free aside with a blank line keeps its single <p>', async () => {
+  const html = await loadPageWithBody('::: tip\nFirst.\n\nSecond.\n:::');
+
+  assert.ok(html.includes('<div class="starlight-aside__content"><p>First.\n\nSecond.</p></div>'));
+});
+
+test('the real markdown renderer highlights an aside fence and keeps the aside markup out of it', async () => {
+  const { createMarkdownProcessor } = await import('@astrojs/markdown-remark');
+  const markdown = await loadPageWithBody([
+    '::: warning',
+    '',
+    'Before the code:',
+    '',
+    '```js',
+    'hot.render();',
+    '```',
+    '',
+    ':::',
+    '',
+    'After the aside.',
+  ].join('\n'));
+  const { code } = await (await createMarkdownProcessor({})).render(markdown);
+  const aside = code.match(/<aside[\s\S]*<\/aside>/)[0];
+
+  assert.match(aside, /<p>Before the code:<\/p>\s*<pre[^>]*data-language="js"/, 'paragraph, then a highlighted block');
+  assert.ok(!aside.includes('```'), 'no literal fence markers in the aside');
+  assert.ok(!/<pre[\s\S]*<\/aside>[\s\S]*<\/pre>/.test(code), 'the aside markup is not inside the code block');
+  assert.match(code, /<\/aside>\s*<p>After the aside\.<\/p>/, 'the page continues after the aside');
+});

@@ -673,6 +673,7 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 - Both `.astro/data-store.json` and `.astro/rendered-html/` are derived caches — reset them together with `rm -rf .astro`. Never delete one without the other.
 - `npm run dev` must work with the default Node heap. Do not add `NODE_OPTIONS=--max-old-space-size` workarounds; shrink the data store instead.
 - Plugin unit tests run with `node --test src/plugins/__tests__/*.test.mjs`.
+- **`::: tip|warning|danger|note` asides are converted to raw HTML by `convertAsideBlocks()`, not parsed as markdown.** Inline code, links, and bold work (`aside-inline-markdown.mjs`). A fenced code block (three or more backticks or tildes, at column 0) is the one block that stays markdown: `buildAsideContent()` emits it between blank lines so the renderer highlights it, and splits the text around it into one `<p>` per paragraph. An unclosed fence is closed at the end of the aside, so it cannot swallow the closing markup. Lists, tables, and indented fences inside an aside are not converted, and a line that is only `:::` inside a fence still ends the aside, so do not show a container example inside an aside's fence. A new case needs a test in `framework-loader.test.mjs`; the real-renderer one pins that the aside markup stays out of the `<pre>`.
 
 ### Starting the dev server from an agent session
 
