@@ -584,13 +584,13 @@ if (value === 'Blocked') {
 }
 ```
 
-Built-in renderers replace the cell's content. A custom renderer that calls one first, as the [Extend a built-in renderer](#extend-a-built-in-renderer) section shows, starts from clean content. A renderer that builds its own nodes empties the cell itself, for example with `td.textContent = ''`, before it appends them.
+Built-in content renderers, such as `textRenderer`, replace the cell's content. A custom renderer that calls one first, as the [Extend a built-in renderer](#extend-a-built-in-renderer) section shows, starts from clean content. A renderer that builds its own nodes empties the cell itself, for example with `td.textContent = ''`, before it appends them.
 
 The [`afterRenderer`](@/api/hooks.md#afterrenderer) hook runs on the same reused `td`, after the renderer. Don't empty the cell there, because that removes the value the renderer just wrote. Remove any node you added on an earlier call, then set or remove every attribute you use, on every call.
 
 ::: warning
 
-Anything you write straight onto a cell's DOM node disappears at the next render:
+A class, style, or accessibility attribute you write straight onto a cell's DOM node disappears at the next render:
 
 ```js
 // Do not do this. The next render removes the class.
@@ -620,14 +620,13 @@ Setting `title` in a cell's configuration does not work. The [`title`](@/api/opt
 
 Because Handsontable reuses cells, a `td` can still hold the `title` of a record that was rendered in it earlier. To avoid showing the wrong tooltip, set the attribute when a cell has a description and remove it when it doesn't, on every call of the renderer.
 
-If the renderer reads state from outside the grid, as the `descriptions` lookup below does, and the grid uses [`renderMode: 'onChange'`](@/api/options.md#rendermode), set `renderMode: 'always'` on its cells, or call [`markCellChanged()`](@/api/core.md#markcellchanged) after that state changes, as described in the previous section.
+If the renderer reads state from outside the grid, as the `descriptions` lookup below does, and the grid uses [`renderMode: 'onChange'`](@/api/options.md#rendermode), see [Changes made outside a renderer do not survive](#changes-made-outside-a-renderer-do-not-survive).
 
-The renderer below calls the built-in text renderer first, then sets or removes `title` based on the cell's value:
+The renderer below calls the built-in text renderer first, then sets or removes `title` based on the cell's value. Assign it to the `renderer` option of the column that shows the description:
 
 ::: only-for javascript
 
 ```js
-import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 const descriptions = new Map([
@@ -649,15 +648,8 @@ const tooltipRenderer = (hot, td, row, column, prop, value, cellProperties) => {
   return td;
 };
 
-const hot = new Handsontable(container, {
-  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
-  data: [
-    ['SKU-4821', 'Stainless Steel Water Bottle'],
-    ['SKU-0093', 'Wireless Mouse'],
-    ['SKU-1175', 'Desk Lamp'],
-  ],
-  columns: [{ renderer: tooltipRenderer }, {}],
-});
+// In the grid settings:
+const columns = [{ renderer: tooltipRenderer }, {}];
 ```
 
 :::
@@ -665,7 +657,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 
 ```jsx
-import { HotTable } from '@handsontable/react-wrapper';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 const descriptions = new Map([
@@ -687,21 +678,8 @@ const tooltipRenderer = (hot, td, row, column, prop, value, cellProperties) => {
   return td;
 };
 
-const data = [
-  ['SKU-4821', 'Stainless Steel Water Bottle'],
-  ['SKU-0093', 'Wireless Mouse'],
-  ['SKU-1175', 'Desk Lamp'],
-];
-
+// Pass it to <HotTable columns={columns} />:
 const columns = [{ renderer: tooltipRenderer }, {}];
-
-const ExampleComponent = () => (
-  <HotTable
-    // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
-    data={data}
-    columns={columns}
-  />
-);
 ```
 
 :::
@@ -710,6 +688,7 @@ const ExampleComponent = () => (
 
 ```ts
 import Handsontable from 'handsontable/base';
+import { GridSettings } from '@handsontable/angular-wrapper';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 const descriptions = new Map<string, string>([
@@ -739,13 +718,8 @@ const tooltipRenderer = (
   return td;
 };
 
-// In the component class:
-readonly hotSettings = {
-  data: [
-    ['SKU-4821', 'Stainless Steel Water Bottle'],
-    ['SKU-0093', 'Wireless Mouse'],
-    ['SKU-1175', 'Desk Lamp'],
-  ],
+// In the component class. Pass the rows through the `[data]` input.
+readonly hotSettings: GridSettings = {
   columns: [{ renderer: tooltipRenderer }, {}],
 };
 ```
@@ -756,7 +730,6 @@ readonly hotSettings = {
 
 ```vue
 <script setup lang="ts">
-import { HotTable } from '@handsontable/vue3';
 import type { BaseRenderer } from 'handsontable/renderers';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
@@ -779,18 +752,9 @@ const tooltipRenderer: BaseRenderer = (hot, td, row, column, prop, value, cellPr
   return td;
 };
 
-const data = [
-  ['SKU-4821', 'Stainless Steel Water Bottle'],
-  ['SKU-0093', 'Wireless Mouse'],
-  ['SKU-1175', 'Desk Lamp'],
-];
-
+// Pass it to <HotTable :columns="columns" />:
 const columns = [{ renderer: tooltipRenderer }, {}];
 </script>
-
-<template>
-  <HotTable :data="data" :columns="columns" />
-</template>
 ```
 
 :::

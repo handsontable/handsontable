@@ -140,7 +140,7 @@ The same applies when an external condition that your renderer reads has changed
 
 ### Why direct DOM changes disappear
 
-Handsontable reuses `td` elements as you scroll, sort, and filter, so before it paints a cell with a renderer it resets part of the element: the cell's `class` attribute, its inline `style`, its `dir` attribute, and its accessibility attributes are cleared. Other things stay on the reused cell: most `data-*` attributes, `title`, child nodes, and properties your code assigns to the element. [Changes made outside a renderer do not survive](@/guides/cell-functions/cell-renderer/cell-renderer.md#changes-made-outside-a-renderer-do-not-survive) lists the exact rules. They then show up on whichever record the cell displays next.
+Handsontable reuses `td` elements as you scroll, sort, and filter, so before it paints a cell with a renderer it resets part of the element: the cell's `class` attribute, its inline `style`, its `dir` attribute, and its accessibility attributes are cleared. Other things stay on the reused cell: most `data-*` attributes, `title`, child nodes, and properties your code assigns to the element. These then show up on whichever record the cell displays next. [Changes made outside a renderer do not survive](@/guides/cell-functions/cell-renderer/cell-renderer.md#changes-made-outside-a-renderer-do-not-survive) lists the exact rules.
 
 Treat a class, style, or accessibility change written onto a `td` from outside a renderer as lost at the next render. In a renderer, empty the cell and set or remove every attribute you use on every render, so nothing from the previous record remains. For an example, see [Add a tooltip to a cell](@/guides/cell-functions/cell-renderer/cell-renderer.md#add-a-tooltip-to-a-cell).
 
