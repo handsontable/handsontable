@@ -418,7 +418,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   built it for the sheet), **but not one an earlier declared sheet of the same build bound to**
   (`#claimEngineName`, `#engineNameClaims` per engine, lower-cased as the engine compares names):
   `Data` and `data` were one engine sheet, and the later sheet's data overwrote the earlier one's. The
-  later sheet gets a numbered name (`freeEngineName()`, skipping names claimed in the build and taking
+  later sheet gets a numbered name (`freeEngineName()`, skipping names claimed in the build, names any
+  sheet of the build asks for, collected before it registers anything (`#engineNameRequests`, so `data`
+  numbered beside `Data` never takes the `Data (2)` a later sheet declares), and taking
   over only a numbered name an earlier build gave, `#numberedEngineNames`, so a rebuild of the same
   sheets binds each to its own sheet again and an engine sheet the host built is never taken), the
   name is written into its `formulas.sheetName`, and `warn()` names both sheets; formula text is not

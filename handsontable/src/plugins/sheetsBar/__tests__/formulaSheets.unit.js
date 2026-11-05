@@ -738,6 +738,27 @@ describe('SheetsBar formula sheets', () => {
       expect(showSheet('Summary')).toBe('biggest');
       expect(clashWarnings(warnSpy)).toHaveLength(3);
     });
+
+    it('never numbers a sheet onto an engine name a later sheet of the build declares', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = build([
+        boundSheet(engine, 'Data', [['first']]),
+        { name: 'd2', data: [['second']], settings: { formulas: { engine, sheetName: 'data' } } },
+        boundSheet(engine, 'Data (2)', [['third']]),
+        boundSheet(engine, 'Summary', [['=\'Data (2)\'!A1']]),
+      ]);
+
+      expect(engine.getSheetNames()).toEqual(['Data', 'data (3)', 'Data (2)', 'Summary']);
+      expect(showSheet('Data (2)')).toBe('third');
+      expect(showSheet('d2')).toBe('second');
+      expect(showSheet('Summary')).toBe('third');
+      expect(clashWarnings(warnSpy)).toEqual([
+        'The sheets "Data" and "d2" use the same formula engine sheet name (the engine ignores letter ' +
+          'case). "data" was registered as "data (3)". Formulas that reference "data" read the sheet "Data".',
+      ]);
+    });
   });
 
   describe('sheets bound to a shared engine without a sheetName', () => {

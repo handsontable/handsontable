@@ -923,6 +923,15 @@ export class SheetsBar extends BasePlugin {
    */
   #engineNameClaims: WeakMap<object, Map<string, { tabName: string, engineName: string }>> | null = null;
   /**
+   * The engine sheet names every sheet of the running workbook build asks for, per engine, in lower case,
+   * collected before the build registers any sheet. A numbered name never takes one of them, or a later
+   * sheet asking for it explicitly would be numbered in turn and bound away from the formulas that name it.
+   * `null` outside a build.
+   *
+   * @type {WeakMap<object, Set<string>>|null}
+   */
+  #engineNameRequests: WeakMap<object, Set<string>> | null = null;
+  /**
    * The engine sheet names a build gave a sheet whose declared name an earlier sheet of that build had
    * taken, per engine, in lower case. A rebuild that declares the same sheets binds each one to its own
    * engine sheet again instead of numbering it up, and an engine sheet the host built is never taken over.
@@ -3361,6 +3370,7 @@ export class SheetsBar extends BasePlugin {
       const targetSheet = model.getSheetById(target.id) as Sheet;
 
       this.#engineNameClaims = new WeakMap();
+      this.#engineNameRequests = this.#collectEngineNameRequests();
 
       try {
         this.#withEngineWrites(
@@ -3374,6 +3384,7 @@ export class SheetsBar extends BasePlugin {
         );
       } finally {
         this.#engineNameClaims = null;
+        this.#engineNameRequests = null;
       }
 
       model.setActiveSheet(target.id);
@@ -5285,6 +5296,33 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Returns the engine sheet names the sheets of a workbook build ask for, per engine, in lower case: the
+   * `sheetName`, or the tab name of a sheet bound without one, after the tab-name remap
+   * (`#tabBoundEngineName`). Read before the build registers any sheet.
+   *
+   * @returns {WeakMap<object, Set<string>>}
+   */
+  #collectEngineNameRequests(): WeakMap<object, Set<string>> {
+    const requests = new WeakMap<object, Set<string>>();
+
+    this.#sheetRecords().forEach((sheet) => {
+      const formulas = formulasSettingOf(sheet);
+
+      if (!formulas || !isEngineInstance(formulas.engine)) {
+        return;
+      }
+
+      const engine = formulas.engine!;
+      const names = requests.get(engine) ?? new Set<string>();
+
+      names.add(this.#tabBoundEngineName(sheet, engine, formulas.sheetName || sheet.name).toLowerCase());
+      requests.set(engine, names);
+    });
+
+    return requests;
+  }
+
+  /**
    * Moves the running build's claim to the name the sheet was bound under, when the engine reported back
    * another name than the one claimed (`engine.addSheet()` can normalize it), so a later sheet asking for
    * the bound name is seen as a collision.
@@ -5308,10 +5346,10 @@ export class SheetsBar extends BasePlugin {
   /**
    * Returns the engine sheet name a sheet of the running workbook build binds to: the requested one,
    * unless an earlier sheet of the build bound to it (the engine compares names without regard to
-   * case), in which case it is a free numbered name, with a warning. Formula text is not rewritten, so
-   * a reference to the requested name reads the earlier sheet. An engine sheet no earlier sheet of the
-   * build bound to is reused, so a sheet still binds to an engine sheet the host built for it. Outside
-   * a build it returns the requested name.
+   * case), in which case it is a free numbered name that no sheet of the build asks for, with a warning.
+   * Formula text is not rewritten, so a reference to the requested name reads the earlier sheet. An
+   * engine sheet no earlier sheet of the build bound to is reused, so a sheet still binds to an engine
+   * sheet the host built for it. Outside a build it returns the requested name.
    *
    * @param {object} sheet The sheet being registered.
    * @param {object} engine The engine.
@@ -5331,11 +5369,12 @@ export class SheetsBar extends BasePlugin {
 
     if (claimer) {
       const numbered = this.#numberedEngineNames.get(engine) ?? new Set<string>();
+      const requests = this.#engineNameRequests?.get(engine);
 
       engineName = freeEngineName(engine, requested, (name) => {
         const key = name.toLowerCase();
 
-        return claims.has(key) || (engine.doesSheetExist!(name) && !numbered.has(key));
+        return claims.has(key) || requests?.has(key) === true || (engine.doesSheetExist!(name) && !numbered.has(key));
       });
       numbered.add(engineName.toLowerCase());
       this.#numberedEngineNames.set(engine, numbered);
