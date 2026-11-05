@@ -110,6 +110,16 @@ Everything about that machinery is load-bearing:
   in a microtask, so it is already over by mouse-up — and reading `awaitsValidation` on release is wrong
   too, because by then the new selection has opened an editor on the highlighted cell. The wait happens in
   `#resolvePendingSort`, not in `applyHeaderClickSort`, so subclasses overriding that seam still get it.
+- **The waiting sort is plugin state, and every reset drops it.** Release takes the press out of
+  `#pendingHeaderSort`, so the sort that waits for the validator sits in `#awaitingHeaderSort`, and the wait runs
+  it only while that field still holds the same press. `disablePlugin()`, `destroy()`, `afterLoadData` and an
+  `'init'` column order reset clear it (`#dropHeaderSorts()`). Without that a sort waiting through
+  `updateSettings({ columnSorting: false })` threw `Cannot read properties of null (reading 'getSortStates')`, and
+  one waiting through `loadData()` sorted the loaded rows. `updateData()` keeps it on purpose: the wrappers call it
+  with the same records while an edit waits, and dropping there would lose the click. The wait still resolves on
+  the next `postAfterValidate` of any cell, so an unrelated validation that answers first sorts the rows before
+  the edit lands, and the edit is written by visual row onto another record. That is a core defect, and once
+  core keeps a waiting change on its record this wait can go.
 
 `applyHeaderClickSort(press)` is the extension seam: MultiColumnSorting overrides it to build a different
 sort config for the same gesture without repeating any of the click-versus-drag handling.
