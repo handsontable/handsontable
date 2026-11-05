@@ -33,5 +33,6 @@ Recipes in this section cover common use cases and demonstrate best practices fo
 - **Selection Controls** - Multi-select dropdowns, custom dropdowns
 - **Data Validation** - Custom validators and error handling
 - **UI Integration** - Third-party library integration
+- **Type Detection** - Assigning a cell's type from the value a user enters
 
 Each recipe includes complete code examples, configuration options, and troubleshooting tips.
