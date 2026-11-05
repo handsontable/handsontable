@@ -30,6 +30,19 @@ function countBodyNodes() {
  * the engine it builds from the `HyperFormula` class, and tears it down before every later plugin.
  * The builder has to be gone by then, or its teardown runs against a destroyed engine.
  */
+// The specs in this file provoke console output on purpose (a product warning, or a library's
+// own), and the cases that care assert it through a spy of their own. Keep the rest out of the
+// Jest output, so a warning nobody expected stands out in a run.
+let expectedConsoleSpies: jest.SpyInstance[];
+
+beforeEach(() => {
+  expectedConsoleSpies = (['warn'] as const).map(level => jest.spyOn(console, level).mockImplementation(() => {}));
+});
+
+afterEach(() => {
+  expectedConsoleSpies.forEach(spy => spy.mockRestore());
+});
+
 describe('FormulaBuilder teardown on a real grid', () => {
   let container: HTMLDivElement;
 

@@ -9,6 +9,18 @@ const NESTED_HEADERS = [[{ label: 'G', colspan: 3 }], ['a', 'b', 'c']];
  * `nestedHeaders` update, which resets the `collapsible` flags CollapsibleColumns wrote into it. The
  * flags are written again from NestedHeaders' `afterHeaderStateRebuild` local hook.
  */
+// The grids below enable CollapsibleColumns before any `nestedHeaders` arrives, on purpose, and
+// `nestedHeadersWarning.unit.js` asserts the warning that prints. Keep it out of this file's output.
+let expectedConsoleSpies;
+
+beforeEach(() => {
+  expectedConsoleSpies = ['warn'].map(level => jest.spyOn(console, level).mockImplementation(() => {}));
+});
+
+afterEach(() => {
+  expectedConsoleSpies.forEach(spy => spy.mockRestore());
+});
+
 describe('CollapsibleColumns flags after a NestedHeaders state rebuild', () => {
   let container;
   let hot;

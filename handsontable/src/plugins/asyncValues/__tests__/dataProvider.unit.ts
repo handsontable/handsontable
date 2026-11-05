@@ -49,6 +49,20 @@ async function createServerGrid(
   };
 }
 
+// The specs in this file provoke console output on purpose (a product warning, or a library's
+// own), and the cases that care assert it through a spy of their own. Keep the rest out of the
+// Jest output, so a warning nobody expected stands out in a run.
+let expectedConsoleSpies: jest.SpyInstance[];
+
+beforeEach(() => {
+  expectedConsoleSpies = (['warn', 'error'] as const)
+    .map(level => jest.spyOn(console, level).mockImplementation(() => {}));
+});
+
+afterEach(() => {
+  expectedConsoleSpies.forEach(spy => spy.mockRestore());
+});
+
 describe('AsyncValues: saveToDataProvider', () => {
   it('should send the values of one flush in one onRowsUpdate call', async() => {
     const { plugin, onRowsUpdate, destroy } = await createServerGrid();

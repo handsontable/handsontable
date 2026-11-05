@@ -6,6 +6,19 @@ import {
 } from 'handsontable/plugins';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
+// The specs in this file provoke console output on purpose (a product warning, or a library's
+// own), and the cases that care assert it through a spy of their own. Keep the rest out of the
+// Jest output, so a warning nobody expected stands out in a run.
+let expectedConsoleSpies: jest.SpyInstance[];
+
+beforeEach(() => {
+  expectedConsoleSpies = (['warn'] as const).map(level => jest.spyOn(console, level).mockImplementation(() => {}));
+});
+
+afterEach(() => {
+  expectedConsoleSpies.forEach(spy => spy.mockRestore());
+});
+
 describe('BasePlugin', () => {
   describe('`destroy()` method', () => {
     it('should stop a plugin destroyed ahead of the grid from answering `updateSettings()` (DEV-775)', () => {

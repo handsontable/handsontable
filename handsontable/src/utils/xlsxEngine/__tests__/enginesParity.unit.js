@@ -16,6 +16,19 @@ import { inferCellType } from '../../../plugins/importFile/inference';
 import { loadFixture as load, rewriteArchive, toArrayBuffer } from './helpers/fixtures';
 import { normalizeFont, normalizeStyle, strip } from './helpers/snapshotNormalize';
 
+// The specs in this file provoke console output on purpose (a product warning, or a library's
+// own), and the cases that care assert it through a spy of their own. Keep the rest out of the
+// Jest output, so a warning nobody expected stands out in a run.
+let expectedConsoleSpies;
+
+beforeEach(() => {
+  expectedConsoleSpies = ['warn'].map(level => jest.spyOn(console, level).mockImplementation(() => {}));
+});
+
+afterEach(() => {
+  expectedConsoleSpies.forEach(spy => spy.mockRestore());
+});
+
 describe('parity on the number-format fixes of the #13634 review round 4', () => {
   /**
    * Writes a workbook with ExcelJS directly, bypassing both adapters' writers.
