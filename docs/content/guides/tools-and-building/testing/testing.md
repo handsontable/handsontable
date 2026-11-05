@@ -169,7 +169,7 @@ With the `execCommand` stub, `copy()` and `cut()` run no hooks and write nothing
 Set three options on the grids you create in tests:
 
 - [`renderAllColumns: true`](@/api/options.md#renderallcolumns). jsdom has no layout, so the grid sees a viewport of zero width and renders only the first two columns. This option renders every column.
-- [`renderAllRows: true`](@/api/options.md#renderallrows). With no `height` set, the grid renders only the first two or three rows, so `getCell(5, 0)` returns `null`. With a `height` set, jsdom renders every row. Set the option in both cases, so a test doesn't depend on the grid's height.
+- [`renderAllRows: true`](@/api/options.md#renderallrows). In Jest, a grid with no `height` set renders only its first two or three rows, so `getCell(5, 0)` returns `null`. In version 19.0, `height: 'auto'` does the same. With a pixel `height` set, jsdom renders every row, and Vitest with jsdom 30 renders every row in all cases. Set the option everywhere, so a test doesn't depend on the grid's height or on the runner.
 - [`injectCoreCss: false`](@/api/options.md#injectcorecss). By default, Handsontable adds its stylesheet to the page, and jsdom spends a long time on every grid it builds there: about 6 seconds in our measurements (Node 22, jsdom 20). With the option set to `false`, a grid builds in well under a second. Tests that check data, settings, and cell text don't need the core styles.
 
 A grid with 5,000 rows took about 2.5 seconds to build with these options in the same measurements.
@@ -300,7 +300,8 @@ In Playwright, scope a locator to the overlay that owns the cell. Use `.ht_maste
 | `element.scrollIntoView is not a function`, shown after a key press | jsdom lacks `scrollIntoView`. | Add the stub. In Vitest, this error also ends the run with exit code 1, even when every test passed. |
 | `execCommand is not a function` on copy or cut | jsdom lacks `document.execCommand`. | Add the stub. Clipboard hooks still don't run, so test them in a real browser. |
 | Only the first two columns exist in the DOM | jsdom has no layout. | Set `renderAllColumns: true`. |
-| Cells below the first rows are missing, and `getCell()` returns `null` | A grid with no `height` renders only its first rows in jsdom. | Set `renderAllRows: true`. |
+| Cells below the first rows are missing, and `getCell()` returns `null` | In Jest, a grid with no `height` (or `height: 'auto'` in version 19.0) renders only its first rows. | Set `renderAllRows: true`. |
+| `Not implemented: window.scrollTo` in Jest, or `Not implemented: Window's scrollTo() method` in Vitest | Selecting a cell or scrolling to one in a grid with no `height` scrolls the page, and jsdom has no `scrollTo`. | Ignore it, because the tests still pass. To remove it, set a pixel `height`, or add `window.scrollTo = () => {};` to the setup file. |
 | Each grid takes seconds to build | jsdom processes the core stylesheet for every grid. | Set `injectCoreCss: false`. |
 | Creating a grid in Jest 27 throws `Failed to execute 'contains' on 'Node'` (seen on 19.0 builds) | The jsdom 16 that Jest 27 ships fails while it processes the core stylesheet. | Set `injectCoreCss: false`. |
 | `Could not parse CSS stylesheet` in the output (version 18.1.2) | jsdom can't parse the default theme stylesheet. | Ignore it. The grid works and the run exits with code 0. |
