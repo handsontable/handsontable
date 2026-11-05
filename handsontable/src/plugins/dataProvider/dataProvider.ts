@@ -924,7 +924,7 @@ export class DataProvider extends BasePlugin {
   /**
    * Brings the driven plugins in line with the view a context change has just shown (the steps after `callback`
    * in `_runContextChange()`). Does nothing once the grid is destroyed: a listener the owner fires inside the
-   * change (the sheets bar's `afterSheetTabStateRestore`) can destroy it, and every step reads the instance.
+   * change can destroy it, and every step reads the instance.
    */
   #syncAfterContextChange() {
     if (!this.hot) {
