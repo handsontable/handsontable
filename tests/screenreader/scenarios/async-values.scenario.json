@@ -12,19 +12,19 @@
       "id": "arrow-right-pending",
       "action": {"press": "ArrowRight"},
       "expect": [["old a"], ["loading"]],
-      "note": "Two requests are out for the Name column, rows 1 and 2. The cell keeps its old value, `Old A`, and carries the visually hidden text `Loading...`, because no common reader says `aria-busy` on a cell."
+      "note": "Two requests are out for the Name column, rows 1 and 2. The cell keeps its old value, `Old A`, and carries the visually hidden text `Loading...`, because no common reader says `aria-busy` on a cell. VoiceOver with WebKit said nothing on this first key, as on the first key of other scenarios."
     },
     {
       "id": "value-resolves",
       "action": {"call": ["resolveRequest", 0, "New A"]},
       "expect": [["new a"]],
-      "note": "The server answers the request for the cell the user is on with `New A`. Finding: the plugin announces no resolved value, so a reader is not told that the value it read as loading has arrived."
+      "note": "The server answers the request for the cell the user is on with `New A`. The plugin announces no resolved value. Finding: NVDA and VoiceOver with Chromium say nothing, so a reader is not told that the value it read as loading has arrived; with Firefox and WebKit they read the cell again."
     },
     {
       "id": "arrow-down-pending",
       "action": {"press": "ArrowDown"},
       "expect": [["old b"], ["loading"]],
-      "note": "The next row's cell is still pending."
+      "note": "The next row's cell is still pending. Finding: VoiceOver with WebKit runs the visually hidden text into the value (`Old BLoading...`), so neither reads on its own."
     },
     {
       "id": "request-fails",
@@ -42,7 +42,7 @@
       "id": "arrow-down-failed",
       "action": {"press": "ArrowDown"},
       "expect": [["old b"], ["price service unavailable"]],
-      "note": "The failed cell keeps its old value and carries the error message as visually hidden text, read with the cell."
+      "note": "The failed cell keeps its old value and carries the error message as visually hidden text, read with the cell. Finding: VoiceOver with WebKit runs the message into the value (`Old BPrice service unavailable`), as with the pending text."
     }
   ]
 }

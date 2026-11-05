@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "scenario": "sheets-bar",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T14:00:05.132Z"
+  },
+  "steps": {
+    "tab-add-sheet": "add sheet button",
+    "tab-all-sheets": "all sheets menu pop up collapsed button",
+    "tab-active-sheet": "alpha menu pop up collapsed current item button sheets group",
+    "arrow-right-sheet": "beta button group",
+    "enter-switch-sheet": "sheet beta activated",
+    "enter-sheet-menu": "rename menu item group table",
+    "enter-rename": "beta contents selected sheet name current item edit text sheets group",
+    "type-name": "",
+    "enter-commit-rename": "budget menu pop up collapsed current item button",
+    "shift-tab-all-sheets": "all sheets menu pop up collapsed button",
+    "shift-tab-add-sheet": "add sheet button",
+    "shift-tab-grid": "b b4 column 2 row b3 b4 budget tree grid 3 columns 7 rows"
+  }
+}

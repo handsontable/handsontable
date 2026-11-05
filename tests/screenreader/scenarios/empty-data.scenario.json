@@ -18,7 +18,7 @@
       "id": "tab-empty-message",
       "action": {"press": "Tab"},
       "expect": [["no data available"], ["nothing to display yet"]],
-      "note": "Tab after the last header reaches the empty data message, `No data available. There's nothing to display yet.`"
+      "note": "Tab after the last header reaches the empty data message, `No data available. There's nothing to display yet.` Finding: NVDA with Firefox reads only `section`, and VoiceOver with WebKit reads the title and not the description (`No data available and 1 more item`)."
     },
     {
       "id": "tab-out",
@@ -30,7 +30,7 @@
       "id": "shift-tab-empty-message",
       "action": {"press": "Shift+Tab"},
       "expect": [["no data available"]],
-      "note": "Shift+Tab comes back to the message."
+      "note": "Shift+Tab comes back to the message. Finding: NVDA with Firefox reads only `section`, as on the way in."
     },
     {
       "id": "shift-tab-header",

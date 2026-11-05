@@ -12,7 +12,7 @@
       "id": "tab-add-sheet",
       "action": {"press": "Tab"},
       "expect": [["add sheet"]],
-      "note": "Tab leaves the grid for the bar's first control, the add sheet button."
+      "note": "Tab leaves the grid for the bar's first control, the add sheet button. VoiceOver with WebKit said nothing on this first key, as on the first key of other scenarios."
     },
     {
       "id": "tab-all-sheets",
@@ -48,7 +48,7 @@
       "id": "enter-rename",
       "action": {"press": "Enter"},
       "expect": [["sheet name"], ["beta"]],
-      "note": "Rename opens the field over the tab, named `Sheet name`, holding the name selected."
+      "note": "Rename opens the field over the tab, named `Sheet name`, holding the name selected. Finding: VoiceOver with WebKit reads only the value, `Beta`, not the field's name."
     },
     {
       "id": "type-name",
@@ -78,7 +78,7 @@
       "id": "shift-tab-grid",
       "action": {"press": "Shift+Tab"},
       "expect": [["b4", "b 4"], ["budget"]],
-      "note": "Shift+Tab goes back into the grid, now showing the Budget sheet, on its cell `B4`. The grid takes its name from the active tab, so a reader that names the grid it enters says `Budget`."
+      "note": "Shift+Tab goes back into the grid, now showing the Budget sheet, on its cell `B4`. The grid takes its name from the active tab, so a reader that names the grid it enters says `Budget`. Finding: NVDA with Firefox names the grid by the sheet's old name, `Beta`."
     }
   ]
 }

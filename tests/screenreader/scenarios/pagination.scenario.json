@@ -12,7 +12,7 @@
       "id": "tab-page-size",
       "action": {"press": "Tab"},
       "expect": [["page size"], ["10"]],
-      "note": "Tab leaves the last cell of the first row for the bar's first control, the page size select, which holds 10. The scenario starts on the page (`start: page`): the page's first item is the `Input top` field, not the grid."
+      "note": "Tab leaves the last cell of the first row for the bar's first control, the page size select, which holds 10. The scenario starts on the page (`start: page`): the page's first item is the `Input top` field, not the grid. VoiceOver with WebKit said nothing on this first key, as on the first key of other scenarios."
     },
     {
       "id": "tab-next-page",
@@ -36,7 +36,7 @@
       "id": "enter-last-page",
       "action": {"press": "Enter"},
       "expect": [["page 10 of 10"], ["go to previous page"]],
-      "note": "Enter goes to the last page, which disables the next and last page buttons, so the plugin hands the focus to the previous page button. A reader says the page and the button the focus landed on."
+      "note": "Enter goes to the last page, which disables the next and last page buttons, so the plugin hands the focus to the previous page button. A reader says the page and the button the focus landed on. Finding: VoiceOver with WebKit says only the page, not the button."
     },
     {
       "id": "enter-previous-page",
@@ -54,7 +54,7 @@
       "id": "enter-first-page",
       "action": {"press": "Enter"},
       "expect": [["page 1 of 10"], ["go to next page"]],
-      "note": "Enter goes back to the first page, which disables the first and previous page buttons, so the focus moves to the next page button."
+      "note": "Enter goes back to the first page, which disables the first and previous page buttons, so the focus moves to the next page button. Finding: VoiceOver with WebKit says only the page, not the button, as on the last page."
     },
     {
       "id": "shift-tab-page-size",

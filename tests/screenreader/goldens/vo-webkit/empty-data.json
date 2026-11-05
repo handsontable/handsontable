@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "empty-data",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:55:46.077Z"
+  },
+  "steps": {
+    "tab-last-header": "qty menu pop up",
+    "tab-empty-message": "no data available and 1 more item group",
+    "tab-out": "after the grid button",
+    "shift-tab-empty-message": "no data available and 1 more item group",
+    "shift-tab-header": "qty menu pop up table 8 columns",
+    "arrow-left-header": "in stock menu pop up"
+  }
+}

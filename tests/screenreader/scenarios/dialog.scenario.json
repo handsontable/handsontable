@@ -12,7 +12,7 @@
       "id": "dialog-opens",
       "action": {"call": ["htShowDialog"]},
       "expect": [["confirm"], ["this is a confirm"], ["cancel"]],
-      "note": "The application opens the confirm dialog (closable, so Escape closes it) while the grid has the focus. The dialog takes the focus to its first button: a reader says the dialog's name, `Confirm`, its description and the button. The page's own dialog, shown on load before the user touched the grid, does not take the focus, by design. The scenario starts on the page (`start: page`): the page's first item is the `Input` field."
+      "note": "The application opens the confirm dialog (closable, so Escape closes it) while the grid has the focus. The dialog takes the focus to its first button: a reader says the dialog's name, `Confirm`, its description and the button. The page's own dialog, shown on load before the user touched the grid, does not take the focus, by design. The scenario starts on the page (`start: page`): the page's first item is the `Input` field. VoiceOver with WebKit said nothing on this first step, and read the same dialog when it opened again."
     },
     {
       "id": "tab-ok",

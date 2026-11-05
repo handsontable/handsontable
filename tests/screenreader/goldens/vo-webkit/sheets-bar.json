@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "scenario": "sheets-bar",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T14:00:47.943Z"
+  },
+  "steps": {
+    "tab-add-sheet": "",
+    "tab-all-sheets": "all sheets menu pop up button",
+    "tab-active-sheet": "alpha menu pop up current item button sheets group",
+    "arrow-right-sheet": "beta button",
+    "enter-switch-sheet": "sheet beta activated",
+    "enter-sheet-menu": "rename menu item group table 1 column 6 rows",
+    "enter-rename": "beta",
+    "type-name": "t budget",
+    "enter-commit-rename": "budget menu pop up current item button",
+    "shift-tab-all-sheets": "all sheets menu pop up button",
+    "shift-tab-add-sheet": "add sheet button",
+    "shift-tab-grid": "b b4 budget table 3 columns"
+  }
+}

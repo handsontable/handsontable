@@ -12,7 +12,7 @@
       "id": "tab-loading-overlay",
       "action": {"press": "Tab"},
       "expect": [["loading data"], ["please wait"]],
-      "note": "The Orders sheet's first fetch is still out (the fixture's server holds every request until the scenario releases it), so the grid shows its loading overlay, and Tab from the top of the page lands on it."
+      "note": "The Orders sheet's first fetch is still out (the fixture's server holds every request until the scenario releases it), so the grid shows its loading overlay, and Tab from the top of the page lands on it. Finding: NVDA with Firefox reads only `section, busy`, without the message, and VoiceOver with WebKit reads the title and not the description (`Loading data and 1 more item`)."
     },
     {
       "id": "tab-add-sheet",
@@ -42,7 +42,7 @@
       "id": "enter-switch-sheet",
       "action": {"press": "Enter"},
       "expect": [["sheet customers activated"], ["loading data"]],
-      "note": "Enter switches to Customers, whose rows come from the server, and the plugin announces the switch. Its fetch starts, and the loading overlay shows again. Finding: the overlay is not a live region, so no reader is told the sheet is loading."
+      "note": "Enter switches to Customers, whose rows come from the server, and the plugin announces the switch. Its fetch starts, and the loading overlay shows again. Finding: the overlay is not a live region, so no reader says the sheet is loading."
     },
     {
       "id": "server-fails",
