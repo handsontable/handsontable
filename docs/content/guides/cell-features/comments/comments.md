@@ -25,6 +25,8 @@ The Comments plugin lets users attach text notes to individual cells. Use it whe
 
 The plugin shows and edits a comment in a text field, so it doesn't parse the comment as HTML. If you use the comment text elsewhere, for example in your own interface, escape or sanitize it first.
 
+To show a read-only hover hint on a cell instead of a note that users can edit, see [Add a tooltip to a cell](@/guides/cell-functions/cell-renderer/cell-renderer.md#add-a-tooltip-to-a-cell).
+
 ## Enable the plugin
 
 Set the [`comments`](@/api/options.md#comments) configuration option to `true` to enable the feature and add all the needed context menu items. For example:

@@ -559,7 +559,30 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 
 ## Changes made outside a renderer do not survive
 
-Handsontable resets a cell's `td` element before it runs a renderer, so only what a renderer writes back survives. [Understanding rendering](@/guides/optimization/rendering/rendering.md#why-direct-dom-changes-disappear) lists exactly what the reset clears.
+Handsontable reuses `td` elements as you scroll, sort, filter, and load data. Before it paints a cell with a renderer, it resets only part of the element:
+
+- **Cleared before each repaint:** the `class` attribute, the inline `style`, the `dir` attribute, and the accessibility attributes. The reset removes every attribute whose name contains `role` or `aria-`, so it also removes `data-role` and `data-aria-label`.
+- **Kept on the reused cell:** other `data-*` attributes, the `title` attribute, child nodes, and properties that your code assigns to the element.
+
+What a renderer leaves behind in the second group shows up on whichever record the cell displays next. A stale tag, tooltip, or `data-*` attribute then appears on the wrong row. [Understanding rendering](@/guides/optimization/rendering/rendering.md#why-direct-dom-changes-disappear) explains when a render happens.
+
+To keep a reused cell correct, follow this rule: on every render, empty the cell, and set or remove every attribute your renderer uses. Don't write an attribute only when a condition is true.
+
+```js
+// Do not do this. The cell keeps the attribute after it shows another record.
+if (value === 'Blocked') {
+  td.setAttribute('data-status', 'blocked');
+}
+
+// Do this instead. The attribute matches the current value on every render.
+if (value === 'Blocked') {
+  td.setAttribute('data-status', 'blocked');
+} else {
+  td.removeAttribute('data-status');
+}
+```
+
+Built-in renderers replace the cell's content. A custom renderer that calls one first, as the [Extend a built-in renderer](#extend-a-built-in-renderer) section shows, starts from clean content. A renderer that builds its own nodes empties the cell itself, for example with `td.textContent = ''`, before it appends them.
 
 ::: warning
 
@@ -584,6 +607,184 @@ You have two supported ways to make a visual change stick:
 - Write a custom renderer. A renderer runs on every render, so what it writes is always reapplied. If your renderer reads state outside the grid and the grid uses [`renderMode: 'onChange'`](@/api/options.md#rendermode), set `renderMode: 'always'` on its cells, or call [`markCellChanged()`](@/api/core.md#markcellchanged) after that state changes.
 
 For the full picture of when a render happens and what it covers, see [Understanding rendering](@/guides/optimization/rendering/rendering.md).
+
+## Add a tooltip to a cell
+
+To show a description when users hover over a cell, set the HTML `title` attribute of the cell's `td` element in a custom renderer. The browser displays the attribute's value as a native tooltip. Browsers show a `title` tooltip only on mouse hover, so keyboard and touch users usually don't see it, and screen readers can ignore it on a grid cell. Don't put information that users need only in the tooltip.
+
+Setting `title` in a cell's configuration does not work. The [`title`](@/api/options.md#title) option sets a column header's label, so `cells: () => ({ title: 'Description' })` adds no `title` attribute to the `td`. Set the attribute on the element in the renderer.
+
+Because Handsontable reuses cells, a `td` can still hold the `title` of a record that was rendered in it earlier. To avoid showing the wrong tooltip, set the attribute when a cell has a description and remove it when it doesn't, on every call of the renderer.
+
+If the renderer reads state from outside the grid, as the `descriptions` lookup below does, and the grid uses [`renderMode: 'onChange'`](@/api/options.md#rendermode), set `renderMode: 'always'` on its cells, or call [`markCellChanged()`](@/api/core.md#markcellchanged) after that state changes, as described in the previous section.
+
+The renderer below calls the built-in text renderer first, then sets or removes `title` based on the cell's value:
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable/base';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const descriptions = new Map([
+  ['SKU-4821', 'Back in stock on 2025-07-14.'],
+  ['SKU-0093', 'Discontinued by the supplier.'],
+]);
+
+const tooltipRenderer = (hot, td, row, column, prop, value, cellProperties) => {
+  textRenderer(hot, td, row, column, prop, value, cellProperties);
+
+  const description = descriptions.get(value);
+
+  if (description) {
+    td.title = description;
+  } else {
+    td.removeAttribute('title');
+  }
+
+  return td;
+};
+
+const hot = new Handsontable(container, {
+  data: [
+    ['SKU-4821', 'Stainless Steel Water Bottle'],
+    ['SKU-0093', 'Wireless Mouse'],
+    ['SKU-1175', 'Desk Lamp'],
+  ],
+  columns: [{ renderer: tooltipRenderer }, {}],
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { HotTable } from '@handsontable/react-wrapper';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const descriptions = new Map([
+  ['SKU-4821', 'Back in stock on 2025-07-14.'],
+  ['SKU-0093', 'Discontinued by the supplier.'],
+]);
+
+const tooltipRenderer = (hot, td, row, column, prop, value, cellProperties) => {
+  textRenderer(hot, td, row, column, prop, value, cellProperties);
+
+  const description = descriptions.get(value);
+
+  if (description) {
+    td.title = description;
+  } else {
+    td.removeAttribute('title');
+  }
+
+  return td;
+};
+
+const data = [
+  ['SKU-4821', 'Stainless Steel Water Bottle'],
+  ['SKU-0093', 'Wireless Mouse'],
+  ['SKU-1175', 'Desk Lamp'],
+];
+
+const columns = [{ renderer: tooltipRenderer }, {}];
+
+const ExampleComponent = () => <HotTable data={data} columns={columns} />;
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import Handsontable from 'handsontable/base';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const descriptions = new Map<string, string>([
+  ['SKU-4821', 'Back in stock on 2025-07-14.'],
+  ['SKU-0093', 'Discontinued by the supplier.'],
+]);
+
+const tooltipRenderer = (
+  hot: Handsontable,
+  td: HTMLTableCellElement,
+  row: number,
+  column: number,
+  prop: string | number,
+  value: string,
+  cellProperties: Handsontable.CellProperties
+) => {
+  textRenderer(hot, td, row, column, prop, value, cellProperties);
+
+  const description = descriptions.get(value);
+
+  if (description) {
+    td.title = description;
+  } else {
+    td.removeAttribute('title');
+  }
+
+  return td;
+};
+
+// In the component class:
+readonly hotSettings = {
+  data: [
+    ['SKU-4821', 'Stainless Steel Water Bottle'],
+    ['SKU-0093', 'Wireless Mouse'],
+    ['SKU-1175', 'Desk Lamp'],
+  ],
+  columns: [{ renderer: tooltipRenderer }, {}],
+};
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { HotTable } from '@handsontable/vue3';
+import type { BaseRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const descriptions = new Map<string, string>([
+  ['SKU-4821', 'Back in stock on 2025-07-14.'],
+  ['SKU-0093', 'Discontinued by the supplier.'],
+]);
+
+const tooltipRenderer: BaseRenderer = (hot, td, row, column, prop, value, cellProperties) => {
+  textRenderer(hot, td, row, column, prop, value, cellProperties);
+
+  const description = descriptions.get(String(value));
+
+  if (description) {
+    td.title = description;
+  } else {
+    td.removeAttribute('title');
+  }
+
+  return td;
+};
+
+const data = [
+  ['SKU-4821', 'Stainless Steel Water Bottle'],
+  ['SKU-0093', 'Wireless Mouse'],
+  ['SKU-1175', 'Desk Lamp'],
+];
+
+const columns = [{ renderer: tooltipRenderer }, {}];
+</script>
+
+<template>
+  <HotTable :data="data" :columns="columns" />
+</template>
+```
+
+:::
+
+To attach a note that users can add, edit, and delete, use the [`comments`](@/guides/cell-features/comments/comments.md) plugin instead of a tooltip.
 
 ## Performance considerations
 
