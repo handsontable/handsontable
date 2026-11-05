@@ -359,8 +359,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   rewritten, so `=data!A1` still reads `Data`. A declared sheet with a built engine and no
   `sheetName` is registered under its tab name in the build: unregistered, the Formulas plugin kept
   the engine sheet the grid was bound to before the switch and wrote this sheet's data into it.
-  Runtime `addSheet()` and duplicate are unchanged. Pinned by the "declared sheets whose engine sheet
-  names collide" block of `__tests__/formulaSheets.unit.js` and `tests/e2e/sheets-bar-formulas-order.spec.ts`.
+  A sheet `addSheet()` adds with a built engine and no `sheetName` gets `freeEngineName()` of its tab
+  name, written into its `formulas.sheetName`, so it never binds another sheet's engine sheet (a duplicate
+  of it then copies that name's sheet). Pinned by the "declared sheets whose engine sheet
+  names collide" and "sheets bound to a shared engine without a sheetName" blocks of `__tests__/formulaSheets.unit.js` and `tests/e2e/sheets-bar-formulas-order.spec.ts`.
   A rename whose new name already identifies another engine sheet is
   rejected up front (`#renameCollidesInEngine`), the way a tab-name collision is — committing
   the tab first would leave it showing a name its formulas do not resolve against. The binding

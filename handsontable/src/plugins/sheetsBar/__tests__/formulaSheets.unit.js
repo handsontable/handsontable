@@ -708,6 +708,88 @@ describe('SheetsBar formula sheets', () => {
     });
   });
 
+  describe('sheets bound to a shared engine without a sheetName', () => {
+    const pricesSheet = engine => boundSheet(engine, 'Prices', [[100]]);
+    const showSheet = (name) => {
+      sheetsBar().setActiveSheet(idOf(name));
+    };
+    const pricesValues = engine => engine.getSheetValues(engine.getSheetId('Prices'));
+
+    it('keeps a declared sheet on its own engine sheet through a round trip', () => {
+      const engine = buildEngine();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          activeSheet: 1,
+          sheets: [
+            pricesSheet(engine),
+            { name: 'Calc', data: [[1, '=Prices!A1+A1']], settings: { formulas: { engine } } },
+          ],
+        },
+        licenseKey: LICENSE_KEY,
+      });
+      showSheet('Prices');
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc');
+      expect(pricesValues(engine)).toEqual([[100]]);
+    });
+
+    it('gives a sheet added at runtime an engine sheet of its own', () => {
+      const engine = buildEngine();
+
+      hot = build([pricesSheet(engine)]);
+      sheetsBar().addSheet('Calc', [[1, '=Prices!A1+A1']], { formulas: { engine } });
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc');
+      expect(pricesValues(engine)).toEqual([[100]]);
+
+      showSheet('Prices');
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc');
+      expect(pricesValues(engine)).toEqual([[100]]);
+    });
+
+    it('gives a sheet added at runtime a free engine name when the host built one under its tab name', () => {
+      const engine = buildEngine();
+
+      engine.addSheet('Calc');
+      engine.setSheetContent(engine.getSheetId('Calc'), [['host']]);
+      hot = build([pricesSheet(engine)]);
+      sheetsBar().addSheet('Calc', [[1, '=Prices!A1+A1']], { formulas: { engine } });
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc (2)');
+      expect(engine.getSheetValues(engine.getSheetId('Calc'))).toEqual([['host']]);
+      expect(pricesValues(engine)).toEqual([[100]]);
+    });
+
+    it('gives a duplicate of a sheet added at runtime an engine sheet of its own', () => {
+      const engine = buildEngine();
+
+      hot = build([pricesSheet(engine)]);
+      sheetsBar().addSheet('Calc', [[1, '=Prices!A1+A1']], { formulas: { engine } });
+      sheetsBar().duplicateSheet(idOf('Calc'));
+      showSheet('Calc (2)');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc (2)');
+      expect(pricesValues(engine)).toEqual([[100]]);
+
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc');
+      expect(pricesValues(engine)).toEqual([[100]]);
+    });
+  });
+
   describe('other sheets after a structural change', () => {
     it('brings back a reference an undone row removal turned into #REF!', () => {
       const engine = buildEngine();

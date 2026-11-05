@@ -4756,12 +4756,12 @@ export class SheetsBar extends BasePlugin {
    * another sheet can reference it before it has ever been activated. Without this, such a
    * reference reads `#REF!` until the first visit feeds the engine.
    *
-   * Only a sheet that names its `sheetName` in a built engine instance is registered, and, in a
-   * workbook build, a sheet that names a built engine instance without a `sheetName`, under its tab
-   * name: the Formulas plugin would otherwise keep the engine sheet the grid was bound to before the
-   * switch and write this sheet's data into it. A sheet handing over the `HyperFormula` class instead
-   * gets an engine of its own per enable, which no other sheet can reference — worth a warning when a
-   * `sheetName` suggests the intent was a shared workbook.
+   * Only a sheet that names a built engine instance is registered. One without a `sheetName` is
+   * registered under its tab name in a workbook build, and under a free engine name based on it when
+   * it is added at runtime: the Formulas plugin would otherwise keep the engine sheet the grid was
+   * bound to before the switch and write this sheet's data into it. A sheet handing over the
+   * `HyperFormula` class instead gets an engine of its own per enable, which no other sheet can
+   * reference — worth a warning when a `sheetName` suggests the intent was a shared workbook.
    */
   #registerFormulaSheet(
     sheet: Sheet | null,
@@ -4773,8 +4773,11 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    const isBuildBinding = this.#engineNameClaims !== null && isEngineInstance(formulas.engine);
-    const requestedName = formulas.sheetName || (isBuildBinding ? sheet.name : undefined);
+    let requestedName = formulas.sheetName;
+
+    if (!requestedName && isEngineInstance(formulas.engine)) {
+      requestedName = this.#engineNameClaims === null ? freeEngineName(formulas.engine!, sheet.name) : sheet.name;
+    }
 
     if (!requestedName) {
       return;
