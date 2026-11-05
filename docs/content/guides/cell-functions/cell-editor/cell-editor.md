@@ -72,6 +72,12 @@ To pick the editor for each column, use one of these:
 | A class that extends a built-in editor or `BaseEditor` | The `hotEditor` prop |
 | A built-in or registered editor name, such as `numeric` | The `hotEditor` prop, or the `type` prop |
 
+A `type` set on `HotTable` applies to every column that does not set its own `type`.
+
+If you pass a class or an editor name to the `editor` prop, the wrapper uses it as `hotEditor` and logs a warning in the console. Move it to `hotEditor` to remove the warning.
+
+To fall back to the editor of the column `type`, leave `editor` out. Passing `editor={undefined}` as a prop has the same effect. An `editor: undefined` key inside a `columns` entry does not: it gives the text editor, so omit the key.
+
 To customize the editor of an autocomplete column, keep `type="autocomplete"` and pass a class that extends `AutocompleteEditor` to `hotEditor`:
 
 ```jsx
