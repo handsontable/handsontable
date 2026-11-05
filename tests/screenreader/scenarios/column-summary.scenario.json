@@ -11,25 +11,25 @@
       "id": "arrow-down-data-row",
       "action": {"press": "ArrowDown"},
       "expect": [["4"]],
-      "note": "A4, the last data row, before the summary row. The column headers are letters (`A`, `B`, `C`), so no header word satisfies the summary group of the later steps."
+      "note": "A4, the last data row, before the summary row. The column headers are letters (`A`, `B`, `C`), so no header word satisfies the summary group of the later steps. Finding: VoiceOver says nothing on this first arrow key, on both browsers."
     },
     {
       "id": "arrow-down-summary-cell",
       "action": {"press": "ArrowDown"},
       "expect": [["10"], ["sum", "summary", "total"], ["read only"]],
-      "note": "A5 is the summary of column A: the sum of the four data rows, 10, calculated by the plugin into the last row. The grid marks the summary cell with a class (`columnSummaryResult`) only, so a reader should say it is a summary before a user takes 10 for a data value. The cell is read only (the plugin's default), and it carries aria-readonly."
+      "note": "A5 is the summary of column A: the sum of the four data rows, 10, calculated by the plugin into the last row. The grid marks the summary cell with a class (`columnSummaryResult`) only, so a reader should say it is a summary before a user takes 10 for a data value. The cell is read only (the plugin's default), and it carries aria-readonly. Finding: every reader reads `10` as a plain cell; none says it is a summary, and none says it is read only."
     },
     {
       "id": "enter-on-read-only-summary",
       "action": {"press": "Enter"},
       "expect": [],
-      "note": "Enter on the read-only summary opens no editor, and the selection stays on the last row. Nothing is required: the transcript records what a reader says when Enter does nothing."
+      "note": "Enter on the read-only summary opens no editor, and the selection stays on the last row. Nothing is required: the transcript records what a reader says when Enter does nothing. Every reader says nothing, so the user gets no word that the cell cannot be edited."
     },
     {
       "id": "arrow-right-editable-summary",
       "action": {"press": "ArrowRight"},
       "expect": [["100"], ["sum", "summary", "total"]],
-      "note": "B5 is the summary of column B, 100, which the fixture configures `readOnly: false`: the same summary fact, without the read-only state."
+      "note": "B5 is the summary of column B, 100, which the fixture configures `readOnly: false`: the same summary fact, without the read-only state. Finding: as on A5, no reader says it is a summary."
     },
     {
       "id": "arrow-up-source-cell",
@@ -41,7 +41,7 @@
       "id": "open-editor",
       "action": {"press": "Enter"},
       "expect": [["40"], ["edit", "editable", "text area", "multi line", "text entry area"]],
-      "note": "Enter opens the text editor on B4: its value and its editable role, the words grid-core's open-editor takes."
+      "note": "Enter opens the text editor on B4: its value and its editable role, the words grid-core's open-editor takes. Finding: VoiceOver with WebKit says the value alone (`40`), without the field's role, as in grid-core."
     },
     {
       "id": "select-all",
@@ -59,7 +59,7 @@
       "id": "commit-to-summary",
       "action": {"press": "Enter"},
       "expect": [["110"]],
-      "note": "Enter commits 50 and moves the selection one row down (enterMoves), onto the summary, which the plugin recalculated: 10 + 20 + 30 + 50."
+      "note": "Enter commits 50 and moves the selection one row down (enterMoves), onto the summary, which the plugin recalculated: 10 + 20 + 30 + 50. Every reader reads `110`."
     }
   ]
 }
