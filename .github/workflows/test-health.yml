@@ -29,14 +29,17 @@
 # A fifth family is the accessibility nightlies' evidence: the check documents
 # and the axe findings of `A11y nightly` (`a11y-checks-evidence`,
 # `a11y-axe-results`) and the transcripts of `Screen reader nightly`
-# (`screenreader-transcripts-*`). Those of develop runs go to
-# `test-health/a11y.json`: one row per finding across nights (first and last
-# seen, nights seen, new / persisting / flapping / resolved), sorted into
-# root-cause clusters by `tests/a11y/issues.json`, 90 days. The page's
-# "Accessibility" section draws them. Both nightlies are schedules, so the rule
-# is the branch, not a push; a dispatch of this workflow with a nightly's run id
-# backfills it. An `a11y.json` the collector cannot read, or a catalog that does
-# not validate, is left as it is, with a warning, and never stops the ledger.
+# (`screenreader-transcripts-*`). Those of the two nightlies on develop, run by
+# their schedule or a dispatch, go to `test-health/a11y.json`: one row per
+# finding across nights (first and last seen, nights seen, new / persisting /
+# flapping / resolved), sorted into root-cause clusters by
+# `tests/a11y/issues.json`, 90 days. The page's "Accessibility" section draws
+# them. The branch alone is not the rule: `Tests` uploads the same artifacts
+# from a pull request's own code, and a fork's pull request from the fork's
+# `develop` reports `develop` as its branch; a fork cannot start a schedule or
+# a dispatch here. A dispatch of this workflow with a nightly's run id backfills
+# it. An `a11y.json` the collector cannot read, or a catalog that does not
+# validate, is left as it is, with a warning, and never stops the ledger.
 #
 # `workflow_run` on purpose, not a step inside `Tests`: this workflow runs in the
 # BASE repository's context with a write token whatever started the run, so a
@@ -124,7 +127,7 @@ jobs:
           # Only develop pushes have their Playwright durations recorded; the lib owns that rule.
           DEVELOP_PUSH=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; import { isDevelopPush } from './.github/scripts/lib/playwright-durations.mjs'; import { runContextFromRun } from './.github/scripts/lib/test-health.mjs'; console.log(isDevelopPush(runContextFromRun(JSON.parse(readFileSync('run.json', 'utf8')))));")
           echo "DEVELOP_PUSH=${DEVELOP_PUSH}" >> "$GITHUB_ENV"
-          # Only develop runs have their accessibility evidence recorded (the nightlies are schedules); the lib owns that rule too.
+          # Only the two nightlies on develop, by schedule or dispatch, have their accessibility evidence recorded; the lib owns that rule too.
           A11Y_RUN=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; import { isA11yRun } from './.github/scripts/lib/a11y-ledger.mjs'; import { runContextFromRun } from './.github/scripts/lib/test-health.mjs'; console.log(isA11yRun(runContextFromRun(JSON.parse(readFileSync('run.json', 'utf8')))));")
           echo "A11Y_RUN=${A11Y_RUN}" >> "$GITHUB_ENV"
           echo "Collecting run ${RUN_ID} ($(node -p 'const r = JSON.parse(require("fs").readFileSync("run.json", "utf8")); `${r.name} · ${r.head_branch} · attempt ${r.run_attempt} · ${r.conclusion}`'))"
@@ -133,7 +136,7 @@ jobs:
       # the durations family only for a develop push, the one run it records, and
       # the accessibility family (the two evidence artifacts by their exact names,
       # and the transcripts by prefix; never the HTML report, the Playwright
-      # reports or the recordings) only for a develop run. An expired or vanished
+      # reports or the recordings) only for a nightly's run. An expired or vanished
       # artifact is a warning, never a failure: the other legs of the run still
       # get recorded.
       - name: Download the run's test artifacts

@@ -14,9 +14,13 @@
  * gating scan; `reader`: the screen reader lanes) and any of: `checks` (check ids, or reader projects),
  * `kinds`, `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria` (WCAG
  * ids), `pages` (anchored patterns on the page id, or the reader scenario), `themes`, `where` (patterns
- * searched in the masked selector or step) and `axeIssues` (the baseline issue a known axe finding is
- * filed under). The values of a field are ORed, the fields of a rule ANDed, the rules of a cluster
- * ORed.
+ * searched in the finding's `where`) and `axeIssues` (the baseline issue an axe finding is filed under,
+ * or the one the scan suggests for a new finding of a known rule and target). The values of a field are
+ * ORed, the fields of a rule ANDed, the rules of a cluster ORed. A finding's `where` is its masked
+ * selector, its step, or both joined as `<masked selector> @ <step>` (a keyboard-walker stop, a probe), so
+ * a pattern anchored with `^` reads from the selector's start and one anchored with `$` up to the step's end.
+ * A field a finding of the rule's source never carries (a reader step has no rule, theme or criterion; a
+ * check has no baseline issue) is refused, because such a rule could never match.
  *
  * `maskSelector()` is what keeps a finding's identity across nights: the formula builder marks each
  * reference's cells with a class that carries the instance's random id (`ht-formula-ref-fill-ht_<hash>-2`),
@@ -27,8 +31,8 @@
  * The ledger that reads this lives in `.github/scripts/lib/a11y-ledger.mjs`; the policy is
  * `tests/AGENTS.md`, "A11y: the findings ledger and the cluster catalog". No I/O in here.
  */
-import { VOLATILE_CLASSES } from './a11y-baseline.mjs';
-import { EVIDENCE_CHECKS } from './a11y-evidence.mjs';
+import { A11Y_THEMES, VOLATILE_CLASSES } from './a11y-baseline.mjs';
+import { EVIDENCE_CHECKS, WCAG_CRITERIA } from './a11y-evidence.mjs';
 
 export const ISSUES_SCHEMA = 1;
 export const ISSUES_FILE = 'a11y/issues.json';
@@ -41,6 +45,27 @@ export const FINDING_SOURCES = ['checks', 'axe', 'reader'];
  * The fields a match rule may carry, `source` first. A rule needs `source` and at least one other.
  */
 export const MATCH_FIELDS = ['source', 'checks', 'kinds', 'rules', 'causes', 'criteria', 'pages', 'themes', 'where', 'axeIssues'];
+/**
+ * The gating axe scan's findings as the ledger reads them: one check and one kind, whatever the baseline says
+ * of the location (known, grown, new), so a finding keeps its identity when it is baselined.
+ */
+export const AXE_SCAN_CHECK = 'axe';
+export const AXE_SCAN_KIND = 'axe-violation';
+/**
+ * The two kinds of a screen reader step: a required token group missing from the announcement, and an
+ * announcement whose wording differs from the recorded golden.
+ */
+export const READER_TOKEN_MISSING = 'token-missing';
+export const READER_GOLDEN_DIFFERS = 'golden-differs';
+export const READER_KINDS = [READER_TOKEN_MISSING, READER_GOLDEN_DIFFERS];
+/**
+ * The fields a finding of each source never carries: a rule naming one could never match.
+ */
+const NEVER_CARRIED = Object.freeze({
+  checks: ['axeIssues'],
+  axe: ['causes'],
+  reader: ['rules', 'causes', 'criteria', 'themes', 'axeIssues'],
+});
 
 const LIST_FIELDS = MATCH_FIELDS.slice(1);
 const PATTERN_FIELDS = new Set(['pages', 'where']);
@@ -69,14 +94,30 @@ export function maskSelector(text) {
 }
 
 /**
+ * The shape of a finding: what the triage ratchet counts, and what the sample of a night keeps one row of
+ * (`lib/__tests__/fixtures/a11y-findings-sample.json`). The theme, the state and the variant are left out, so
+ * one defect on three themes is one shape.
+ *
+ * @param {{source: string, check: string, kind: string, rule?: string|null, cause?: string|null, page: string, where: string}} finding The finding or row.
+ * @returns {string} The shape key.
+ */
+export function findingShape(finding) {
+  return [finding.source, finding.check, finding.kind, finding.rule ?? '', finding.cause ?? '', finding.page, finding.where].join('|');
+}
+
+/**
  * Why the catalog document is not acceptable: one line per problem, empty when it is. Run by the tooling
  * test on the committed file and by the collector before it reads a night, so a malformed rule is a
  * refused catalog, never a finding silently sorted.
  *
  * @param {unknown} doc The parsed `issues.json`.
+ * @param {object} [known] The ids a rule may name, when the caller can read them: the tooling test passes both,
+ * the collector neither.
+ * @param {string[]} [known.axeIssues] The issue ids of the axe baseline (`a11y/axe-baseline.json`).
+ * @param {string[]} [known.readerProjects] The screen reader projects (`playwright.screenreader.config.ts`).
  * @returns {string[]} The problems.
  */
-export function validateIssuesCatalog(doc) {
+export function validateIssuesCatalog(doc, known = {}) {
   if (doc === null || typeof doc !== 'object' || Array.isArray(doc)) {
     return ['the catalog must be a JSON object with "schema", "triageLimit" and "clusters"'];
   }
@@ -139,10 +180,25 @@ export function validateIssuesCatalog(doc) {
 
       return;
     }
-    cluster.match.forEach((rule, ruleIndex) => validateRule(rule, `${label}, rule ${ruleIndex + 1}`, problems));
+    cluster.match.forEach((rule, ruleIndex) => validateRule(rule, `${label}, rule ${ruleIndex + 1}`, problems, known));
   });
 
   return problems;
+}
+
+/**
+ * The values of a list field outside an allowed list, as one problem.
+ *
+ * @param {string[]} values The rule's values.
+ * @param {Iterable<string>} allowed The allowed values.
+ * @param {string} message What the values must be, as a phrase after "names".
+ * @returns {string|null} The problem, or `null`.
+ */
+function outside(values, allowed, message) {
+  const set = new Set(allowed);
+  const unknown = values.filter(value => !set.has(value));
+
+  return unknown.length > 0 ? `names ${unknown.map(value => JSON.stringify(value)).join(', ')}, ${message}` : null;
 }
 
 /**
@@ -151,8 +207,9 @@ export function validateIssuesCatalog(doc) {
  * @param {unknown} rule The rule.
  * @param {string} label Where it sits.
  * @param {string[]} problems Where a problem goes.
+ * @param {{axeIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
  */
-function validateRule(rule, label, problems) {
+function validateRule(rule, label, problems, known) {
   if (rule === null || typeof rule !== 'object' || Array.isArray(rule)) {
     problems.push(`${label} is not an object`);
 
@@ -187,12 +244,55 @@ function validateRule(rule, label, problems) {
         }
       }
     }
-    if (field === 'checks' && rule.source === 'checks') {
-      for (const check of values.filter(name => !Object.hasOwn(EVIDENCE_CHECKS, name))) {
-        problems.push(`${label}: "checks" names ${check}, which is not a check of EVIDENCE_CHECKS (tests/lib/a11y-evidence.mjs)`);
-      }
+    if (FINDING_SOURCES.includes(rule.source) && NEVER_CARRIED[rule.source].includes(field)) {
+      problems.push(`${label}: "${field}" on a ${rule.source} rule: a ${rule.source} finding never carries it, so the rule could never match`);
+      continue;
+    }
+
+    const problem = valuesProblem(field, values, rule.source, known);
+
+    if (problem !== null) {
+      problems.push(`${label}: "${field}" ${problem}`);
     }
   }
+}
+
+/**
+ * The problem with a list field's values against what a finding of the rule's source can carry, or `null`.
+ *
+ * @param {string} field The field.
+ * @param {string[]} values Its values.
+ * @param {string} source The rule's source.
+ * @param {{axeIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
+ * @returns {string|null} The problem.
+ */
+function valuesProblem(field, values, source, known) {
+  if (field === 'criteria') {
+    return outside(values, Object.keys(WCAG_CRITERIA), 'not a WCAG 2.2 criterion (WCAG_CRITERIA, tests/lib/a11y-evidence.mjs)');
+  }
+  if (field === 'themes') {
+    return outside(values, A11Y_THEMES, `not a theme (${A11Y_THEMES.join(', ')})`);
+  }
+  if (field === 'checks' && source === 'checks') {
+    return outside(values, Object.keys(EVIDENCE_CHECKS), 'not a check of EVIDENCE_CHECKS (tests/lib/a11y-evidence.mjs)');
+  }
+  if (field === 'checks' && source === 'axe') {
+    return outside(values, [AXE_SCAN_CHECK], `not the axe scan's check ("${AXE_SCAN_CHECK}")`);
+  }
+  if (field === 'checks' && source === 'reader' && Array.isArray(known.readerProjects)) {
+    return outside(values, known.readerProjects, 'not a screen reader project (playwright.screenreader.config.ts)');
+  }
+  if (field === 'kinds' && source === 'axe') {
+    return outside(values, [AXE_SCAN_KIND], `not the axe scan's kind ("${AXE_SCAN_KIND}")`);
+  }
+  if (field === 'kinds' && source === 'reader') {
+    return outside(values, READER_KINDS, `not a reader kind (${READER_KINDS.join(', ')})`);
+  }
+  if (field === 'axeIssues' && Array.isArray(known.axeIssues)) {
+    return outside(values, known.axeIssues, 'not an issue of the axe baseline (a11y/axe-baseline.json)');
+  }
+
+  return null;
 }
 
 /**

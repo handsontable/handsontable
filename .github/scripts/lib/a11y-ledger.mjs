@@ -16,28 +16,42 @@
  *
  * The rules that keep the ledger honest:
  *
- * - Develop only (`isA11yRun`). The nightlies are schedules, so the rule is the branch, not a push.
- * - A night is read once. A run already recorded, or one that completed before the latest night of its
- *   source, changes nothing: statuses are derived night by night, in order.
- * - A row is resolved only when its target was measured again and the finding was gone: a check that did
- *   not run, a target that errored, an incomplete axe scan or a transcript that stopped leaves its rows as
- *   they were. A row that comes back after being resolved is `flapping` until it has been seen on
- *   `A11Y_FLAP_NIGHTS` nights in a row.
+ * - Only the two nightlies, run on develop by their schedule or a dispatch (`isA11yRun`). A pull request's
+ *   evidence, a fork's included, is produced by the pull request's own code, and a fork can name its branch
+ *   `develop`: the branch alone is not enough. A night's source is its workflow's.
+ * - A night is read once per attempt, in order: a run already recorded at that attempt, or one that completed
+ *   before the latest night of its source, changes nothing. A later attempt of the latest night of its source
+ *   fills in what the recorded attempt did not measure, and leaves what it did measure as it was.
+ * - A row is resolved only when its target was measured again and the finding was gone: a check that did not
+ *   run, a target that errored or reported a tooling problem, a finding the reader dropped, an incomplete axe
+ *   scan, a transcript that stopped, and a golden that was not compared leave their rows as they were. A row
+ *   that comes back after being resolved is `flapping` until it has been seen `A11Y_FLAP_NIGHTS` nights in a
+ *   row.
  * - The artifacts are a nightly's, on develop, but they are read as untrusted input all the same: every
  *   document and transcript is checked field by field, every string is bounded, a file over the cap is
- *   skipped, and the page builds links from run numbers alone.
+ *   skipped, a map keyed by a name from an artifact is read through `Object.hasOwn`, and the page builds
+ *   links from run numbers alone.
  * - Rows stay `A11Y_RETENTION_DAYS` from their last sighting; past `A11Y_CAP_BYTES` the oldest resolved rows
- *   go first, then the oldest nights.
- * - `updatedAt` moves only when the stored text changed, so a collection that adds nothing leaves the
- *   published file byte-identical, like the flake ledger and the durations document.
+ *   go first, then the oldest nights, never an open row or the latest night of a source.
+ * - A collection that adds nothing returns the stored document as it was, so the published file stays
+ *   byte-identical, like the flake ledger and the durations document.
  *
  * No I/O in here. `scripts/test-health-collect.mjs` reads the artifacts and writes the file;
  * `.github/workflows/test-health.yml` runs it. The policy is `tests/AGENTS.md`, "A11y: the findings ledger
  * and the cluster catalog".
  */
 
-import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, SEVERITIES, WCAG_CRITERIA, compareCriteria } from '../../../tests/lib/a11y-evidence.mjs';
-import { TRIAGE_ID, clusterOf, maskSelector } from '../../../tests/lib/a11y-issues.mjs';
+import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, SEVERITIES, WCAG_CRITERIA, compareCriteria, targetKey } from '../../../tests/lib/a11y-evidence.mjs';
+import {
+  AXE_SCAN_CHECK,
+  AXE_SCAN_KIND,
+  READER_GOLDEN_DIFFERS,
+  READER_TOKEN_MISSING,
+  TRIAGE_ID,
+  clusterOf,
+  findingShape,
+  maskSelector,
+} from '../../../tests/lib/a11y-issues.mjs';
 
 export const A11Y_VERSION = 1;
 /**
@@ -50,7 +64,7 @@ export const A11Y_RETENTION_DAYS = 90;
  * rather than multiplies, so the open rows of the whole product weigh about 4.5 MB (measured on the first
  * nightly, every row with its key, reason and url); the rest is the resolved rows of the last 90 days and
  * the nights. Past the cap, the oldest resolved rows go first, then the oldest nights (the trend), never an
- * open row.
+ * open row or the latest night of a source.
  */
 export const A11Y_CAP_BYTES = 12 * 1024 * 1024;
 /**
@@ -64,7 +78,7 @@ export const A11Y_FILE_CAP_BYTES = 16 * 1024 * 1024;
 export const A11Y_TREND_NIGHTS = 30;
 /**
  * A row that was resolved and came back is `flapping` until it has been seen this many nights in a row
- * since the gap; after that it is `persisting` again.
+ * since the gap, the night it came back included; on that night it is `persisting` again.
  */
 export const A11Y_FLAP_NIGHTS = 5;
 /**
@@ -92,9 +106,21 @@ export const READER_TRANSCRIPT_SCHEMA = 1;
  */
 export const A11Y_NIGHTLY_WORKFLOW = 'A11y nightly';
 export const READER_NIGHTLY_WORKFLOW = 'Screen reader nightly';
+/**
+ * The events a nightly's run is recorded from: its schedule, and a dispatch (the proof run of a change, and
+ * how a missed night is run again). Both nightlies also run on a pull request that touches them, to validate
+ * their graph; such a run is never recorded.
+ */
+export const A11Y_EVENTS = ['schedule', 'workflow_dispatch'];
+
+/**
+ * The most the collector reads of one document, and the longest string it keeps: a document past a count
+ * limit is read up to it and covers nothing that night.
+ */
+export const A11Y_LIMITS = Object.freeze({ findings: 20000, steps: 500, where: 300, reason: 300, url: 300, issues: 200, locations: 20000 });
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const LIMITS = Object.freeze({ findings: 20000, steps: 500, where: 300, reason: 300, url: 300, issues: 200, locations: 20000 });
+const LIMITS = A11Y_LIMITS;
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const PAGE_ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
 const THEME = /^[a-z0-9-]{1,40}$/;
@@ -106,36 +132,44 @@ const PROJECT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ROOT_JSON = /^([a-z0-9]+(?:-[a-z0-9]+)*)\.json$/;
 const TRANSCRIPT_PATH = new RegExp(`^${READER_TRANSCRIPTS_DIR}/[^/]+\\.json$`);
 const RUN_ID = /^\d{1,20}$/;
-const AXE_STATUSES = ['new', 'grown', 'improved'];
 const SOURCE_OF_NIGHT = Object.freeze({ checks: 'a11y', axe: 'a11y', reader: 'reader' });
+const SOURCE_OF_WORKFLOW = Object.freeze({ [A11Y_NIGHTLY_WORKFLOW]: 'a11y', [READER_NIGHTLY_WORKFLOW]: 'reader' });
+const NIGHT_SOURCES = ['a11y', 'reader'];
 
 /**
  * @typedef {object} Finding
  * @property {'checks'|'axe'|'reader'} source Where it came from.
  * @property {string} check The check id, `axe` for the gating scan, or the reader project (`nvda-chromium`).
- * @property {string} kind The finding kind; `axe-known`, `axe-new`, `axe-grown` or `axe-improved` for the scan;
- * `token-missing` or `golden-differs` for a reader step.
+ * @property {string} kind The finding kind; `axe-violation` for every finding of the scan; `token-missing` or
+ * `golden-differs` for a reader step.
  * @property {string|null} rule The axe rule, when the finding names one.
  * @property {string|null} cause The discovery run's needs-review cause, when the finding names one.
  * @property {string} page The page id, or the reader scenario.
  * @property {string|null} theme The theme; `null` for a reader step.
  * @property {string|null} state The catalog state the target was in.
  * @property {string|null} variant The target's variant (`dark`, `rtl`, a check's own).
- * @property {string} where The masked selector, the step, or both (`selector @ step`).
+ * @property {string} where The masked selector, the step, or both (`<masked selector> @ <step>`).
  * @property {string[]} criteria The WCAG criteria.
- * @property {string|null} severity One of `SEVERITIES`; `null` for a known axe location, whose impact the baseline holds.
+ * @property {string|null} severity One of `SEVERITIES`; `null` for a baselined axe location, whose impact the baseline holds.
  * @property {string} reason One sentence, bounded.
  * @property {string|null} url The fixture path, when the finding names one.
- * @property {string|null} issue The baseline issue a known axe finding is filed under.
+ * @property {string|null} issue The baseline issue an axe finding is filed under, or the one the scan suggests for a new one.
+ */
+
+/**
+ * @typedef {object} Coverage
+ * @property {Record<string, string[]>} checks Per check, the targets (`page|theme|variant`) it measured with every
+ * step taken and every finding read.
+ * @property {boolean|null} axe Whether the axe scan was complete and read whole; `null` without one.
+ * @property {string[]} reader The complete transcripts, every step read (`project|scenario`).
+ * @property {string[]} golden The complete transcripts whose wording was compared with a golden, every difference read.
  */
 
 /**
  * @typedef {object} Night
  * @property {'a11y'|'reader'} source Which nightly the artifacts are.
  * @property {Finding[]} findings What the night found.
- * @property {{checks: Record<string, string[]>, axe: boolean|null, reader: string[]}} coverage What the night measured:
- * per check the measured targets (`page|theme|variant`), whether the axe scan was complete (`null` without one), and
- * the complete transcripts (`project|scenario`). A row is resolved only inside this coverage.
+ * @property {Coverage} coverage What the night measured. A row is resolved only inside it.
  * @property {number} problems The tooling problems the night reported.
  * @property {Record<string, {targets: number, measured: number, findings: number, problems: number}>} checks Per check document.
  * @property {{complete: boolean, findings: number, problems: number}|null} axe The scan document.
@@ -165,14 +199,28 @@ export function classifyA11yArtifact(name) {
 }
 
 /**
- * Whether a run's accessibility artifacts are recorded: develop, on any event. The nightlies are
- * schedules, a backfill is a dispatch, and a pull request's evidence stays in its own run.
+ * Whether a run's accessibility artifacts are recorded: a run of the `A11y nightly` or the `Screen reader
+ * nightly` on develop, started by its schedule or a dispatch. The branch alone is not enough: the `Tests`
+ * pipeline uploads the same artifacts from a pull request's own code, and a fork's pull request opened from
+ * the fork's `develop` reports `develop` as its branch. A fork cannot start a schedule or a dispatch here.
  *
- * @param {{branch: string}} run The run.
+ * @param {{branch: string, event: string, workflow: string}} run The run.
  * @returns {boolean} The verdict.
  */
 export function isA11yRun(run) {
-  return run.branch === 'develop';
+  return run.branch === 'develop' && A11Y_EVENTS.includes(run.event) && Object.hasOwn(SOURCE_OF_WORKFLOW, run.workflow);
+}
+
+/**
+ * An own property of an object, or `undefined`: a map keyed by a name from an artifact (a project, a
+ * scenario) is never read through the prototype, where `constructor` would answer.
+ *
+ * @param {unknown} object The object.
+ * @param {string} key The key.
+ * @returns {unknown} The value.
+ */
+function own(object, key) {
+  return isObject(object) && Object.hasOwn(object, key) ? object[key] : undefined;
 }
 
 /**
@@ -230,13 +278,17 @@ function optionalToken(value, pattern) {
 }
 
 /**
- * The key that names a target within a check: page, theme and variant (`targetKey` of the evidence module).
+ * The target a record of a check names (a target or a finding), when its page, theme and variant read as
+ * the evidence shape promises; `null` otherwise.
  *
- * @param {{page: string, theme: string, variant?: string|null}} target The target or finding.
- * @returns {string} The key.
+ * @param {unknown} item The record.
+ * @returns {{page: string, theme: string, variant: string|null}|null} The target.
  */
-function targetKey(target) {
-  return `${target.page}|${target.theme}|${target.variant ?? ''}`;
+function readableTarget(item) {
+  return isObject(item) && typeof item.page === 'string' && PAGE_ID.test(item.page) && typeof item.theme === 'string'
+    && THEME.test(item.theme) && optionalToken(item.variant, TOKEN)
+    ? { page: item.page, theme: item.theme, variant: item.variant ?? null }
+    : null;
 }
 
 /**
@@ -248,12 +300,9 @@ function targetKey(target) {
  * @returns {Finding|null} The finding.
  */
 function checkFinding(check, item) {
-  if (!isObject(item) || typeof item.kind !== 'string' || !KEBAB.test(item.kind) || item.kind.length > 60
-    || typeof item.page !== 'string' || !PAGE_ID.test(item.page)
-    || typeof item.theme !== 'string' || !THEME.test(item.theme)
+  if (readableTarget(item) === null || typeof item.kind !== 'string' || !KEBAB.test(item.kind) || item.kind.length > 60
     || !SEVERITIES.includes(item.severity) || !validCriteria(item.criteria)
-    || !optionalToken(item.state, TOKEN) || !optionalToken(item.variant, TOKEN)
-    || !optionalToken(item.rule, RULE) || !optionalToken(item.cause, CAUSE)
+    || !optionalToken(item.state, TOKEN) || !optionalToken(item.rule, RULE) || !optionalToken(item.cause, CAUSE)
     || (typeof item.selector !== 'string' && typeof item.step !== 'string')) {
     return null;
   }
@@ -282,7 +331,10 @@ function checkFinding(check, item) {
 }
 
 /**
- * Reads one check document into the night.
+ * Reads one check document into the night. Its coverage is the targets the check measured with every step
+ * taken (a target with a tooling problem evaluates no criterion, `mergeEvidence()`, because the steps that
+ * did not run left no finding), less the target of a finding the reader dropped; a document cut at the
+ * findings limit, or a dropped finding with no readable target, covers nothing.
  *
  * @param {{artifact: string, path: string, text: string}} file The file.
  * @param {string} label The file, for a note.
@@ -324,39 +376,56 @@ function readEvidence(file, label, night, notes) {
     return;
   }
 
-  const measured = doc.targets.filter(target => isObject(target) && target.status === 'measured'
-    && typeof target.page === 'string' && PAGE_ID.test(target.page) && typeof target.theme === 'string' && THEME.test(target.theme)
-    && optionalToken(target.variant, TOKEN));
-  const findings = doc.findings.length > LIMITS.findings ? doc.findings.slice(0, LIMITS.findings) : doc.findings;
+  const measured = doc.targets.filter(target => readableTarget(target) !== null && target.status === 'measured');
+  const coverage = new Set(measured.filter(target => !(Number(target.problems) > 0)).map(targetKey));
+  const truncated = doc.findings.length > LIMITS.findings;
+  const findings = truncated ? doc.findings.slice(0, LIMITS.findings) : doc.findings;
   const kept = [];
   let malformed = 0;
+  let unplaced = false;
 
-  if (doc.findings.length > LIMITS.findings) {
-    notes.push(`${label}: ${doc.findings.length} findings, only the first ${LIMITS.findings} read`);
-  }
   for (const item of findings) {
     const finding = checkFinding(check, item);
 
-    if (finding === null) {
-      malformed += 1;
-    } else {
+    if (finding !== null) {
       kept.push(finding);
+      continue;
+    }
+    malformed += 1;
+
+    const target = readableTarget(item);
+
+    if (target === null) {
+      unplaced = true;
+    } else {
+      coverage.delete(targetKey(target));
     }
   }
+  if (truncated) {
+    notes.push(`${label}: ${doc.findings.length} findings, only the first ${LIMITS.findings} read; the check resolves nothing tonight`);
+  }
   if (malformed > 0) {
-    notes.push(`${label}: ${malformed} malformed finding(s) dropped`);
+    notes.push(`${label}: ${malformed} malformed finding(s) dropped; `
+      + `${unplaced ? 'one names no readable target, so the check resolves nothing tonight' : 'their targets resolve nothing tonight'}`);
+  }
+  if (truncated || unplaced) {
+    coverage.clear();
   }
 
   const problems = Array.isArray(doc.problems) ? doc.problems.length : 0;
 
   night.findings.push(...kept);
-  night.coverage.checks[check] = [...new Set(measured.map(targetKey))].sort();
+  night.coverage.checks[check] = [...coverage].sort();
   night.checks[check] = { targets: doc.targets.length, measured: measured.length, findings: kept.length, problems };
   night.problems += problems;
 }
 
 /**
- * Reads the axe scan's findings document into the night.
+ * Reads the axe scan's findings document into the night: every baselined location once (matched, grown or
+ * improved, `issues[].locations`), and every new finding (`needsAction` with `status: 'new'`). A grown or
+ * improved entry of `needsAction` is a location already read; a `fixed` one is gone. All of them are one kind,
+ * so a finding keeps its row when it is baselined. The scan covers its rows only when it was complete (no
+ * tooling problem, no unverified page) and read whole.
  *
  * @param {{artifact: string, path: string, text: string}} file The file.
  * @param {string} label The file, for a note.
@@ -386,6 +455,8 @@ function readAxe(file, label, night, notes) {
   }
 
   const kept = [];
+  const truncated = doc.issues.length > LIMITS.issues || doc.needsAction.length > LIMITS.locations
+    || doc.issues.some(issue => Array.isArray(issue?.locations) && issue.locations.length > LIMITS.locations);
   let malformed = 0;
   const location = (item, fields) => {
     if (!isObject(item) || typeof item.page !== 'string' || !PAGE_ID.test(item.page) || typeof item.theme !== 'string'
@@ -396,7 +467,8 @@ function readAxe(file, label, night, notes) {
     }
     kept.push({
       source: 'axe',
-      check: 'axe',
+      check: AXE_SCAN_CHECK,
+      kind: AXE_SCAN_KIND,
       rule: item.rule,
       cause: null,
       page: item.page,
@@ -415,7 +487,6 @@ function readAxe(file, label, night, notes) {
     }
     for (const item of issue.locations.slice(0, LIMITS.locations)) {
       location(item, {
-        kind: 'axe-known',
         criteria: [...issue.wcag].sort(compareCriteria),
         severity: null,
         reason: cut(issue.title, LIMITS.reason),
@@ -425,32 +496,31 @@ function readAxe(file, label, night, notes) {
     }
   }
   for (const item of doc.needsAction.slice(0, LIMITS.locations)) {
-    if (!isObject(item) || !AXE_STATUSES.includes(item.status)) {
-      // A `fixed` entry is a baseline entry that no longer reproduces: not a finding to keep.
-      if (!isObject(item) || item.status !== 'fixed') {
-        malformed += 1;
-      }
+    if (isObject(item) && ['grown', 'improved', 'fixed'].includes(item.status)) {
       continue;
     }
-    if (!validCriteria(item.wcag) || !optionalToken(item.issue, KEBAB)) {
+    if (!isObject(item) || item.status !== 'new' || !validCriteria(item.wcag) || !optionalToken(item.issue, KEBAB)
+      || !optionalToken(item.suggestedIssue, KEBAB)) {
       malformed += 1;
       continue;
     }
     location(item, {
-      kind: `axe-${item.status}`,
       criteria: [...item.wcag].sort(compareCriteria),
       severity: SEVERITIES.includes(item.impact) ? item.impact : null,
       reason: cut(item.help ?? item.rule, LIMITS.reason),
       url: fixturePath(item.url),
-      issue: item.issue ?? null,
+      issue: item.issue ?? item.suggestedIssue ?? null,
     });
   }
+  if (truncated) {
+    notes.push(`${label}: past the issues or locations limit, only the first entries read; the scan resolves nothing tonight`);
+  }
   if (malformed > 0) {
-    notes.push(`${label}: ${malformed} malformed finding(s) dropped`);
+    notes.push(`${label}: ${malformed} malformed finding(s) dropped; the scan resolves nothing tonight`);
   }
 
   const problems = Array.isArray(doc.problems) ? doc.problems.length : 0;
-  const complete = problems === 0 && doc.counts.unverified === 0;
+  const complete = problems === 0 && doc.counts.unverified === 0 && !truncated && malformed === 0;
 
   night.findings.push(...kept);
   night.coverage.axe = complete;
@@ -459,7 +529,9 @@ function readAxe(file, label, night, notes) {
 }
 
 /**
- * Reads one transcript into the reader night.
+ * Reads one transcript into the reader night. A complete transcript, every step read, covers its token rows;
+ * its golden rows only when its wording was compared with a golden (`match` or `differs`, every difference
+ * read): a transcript that recorded the golden or had none compared nothing.
  *
  * @param {{artifact: string, path: string, text: string}} file The file.
  * @param {string} label The file, for a note.
@@ -495,14 +567,15 @@ function readTranscript(file, label, night, notes) {
 
     return;
   }
-  if (night.reader[project]?.[doc.scenario]) {
+  if (own(own(night.reader, project), doc.scenario) !== undefined) {
     notes.push(`${label}: a second transcript of ${doc.scenario} on ${project}, skipped`);
 
     return;
   }
 
   const scenario = doc.scenario;
-  const stepList = doc.steps.length > LIMITS.steps ? doc.steps.slice(0, LIMITS.steps) : doc.steps;
+  const truncatedSteps = doc.steps.length > LIMITS.steps;
+  const stepList = truncatedSteps ? doc.steps.slice(0, LIMITS.steps) : doc.steps;
   const steps = [];
   const failed = [];
   let malformed = 0;
@@ -524,8 +597,8 @@ function readTranscript(file, label, night, notes) {
     issue: null,
   });
 
-  if (doc.steps.length > LIMITS.steps) {
-    notes.push(`${label}: ${doc.steps.length} steps, only the first ${LIMITS.steps} read`);
+  if (truncatedSteps) {
+    notes.push(`${label}: ${doc.steps.length} steps, only the first ${LIMITS.steps} read; the transcript resolves nothing tonight`);
   }
   for (const step of stepList) {
     if (!isObject(step) || typeof step.id !== 'string' || !STEP_ID.test(step.id) || !isObject(step.tokens)
@@ -541,38 +614,58 @@ function readTranscript(file, label, night, notes) {
         .map(group => group.synonyms.map(synonym => cut(synonym, 60)).join(' | '));
 
       failed.push(step.id);
-      night.findings.push(reader('token-missing', step.id, 'serious', `the announcement lacks: ${missing.join(', ')}`));
+      night.findings.push(reader(READER_TOKEN_MISSING, step.id, 'serious', `the announcement lacks: ${missing.join(', ')}`));
     }
   }
   if (malformed > 0) {
-    notes.push(`${label}: ${malformed} malformed step(s) dropped`);
+    notes.push(`${label}: ${malformed} malformed step(s) dropped; the transcript resolves nothing tonight`);
   }
 
   const golden = isObject(doc.golden) && typeof doc.golden.status === 'string' ? cut(doc.golden.status, 20) : 'missing';
-  const differences = Array.isArray(doc.golden?.differences) ? doc.golden.differences.slice(0, LIMITS.steps) : [];
+  const rawDifferences = Array.isArray(doc.golden?.differences) ? doc.golden.differences : [];
+  const truncatedDifferences = rawDifferences.length > LIMITS.steps;
+  let malformedDifferences = 0;
 
-  for (const difference of differences) {
+  for (const difference of rawDifferences.slice(0, LIMITS.steps)) {
+    if (!isObject(difference) || typeof difference.id !== 'string' || !STEP_ID.test(difference.id)) {
+      malformedDifferences += 1;
+      continue;
+    }
     // A recorded step the scenario no longer has (`actual: null`) is the golden's to update, not a finding.
-    if (!isObject(difference) || typeof difference.id !== 'string' || !STEP_ID.test(difference.id) || difference.actual === null) {
+    if (difference.actual === null) {
       continue;
     }
 
     const heard = `heard ${JSON.stringify(cut(difference.actual, 100))}`;
 
-    night.findings.push(reader('golden-differs', difference.id, 'advisory', difference.expected === null || difference.expected === undefined
+    night.findings.push(reader(READER_GOLDEN_DIFFERS, difference.id, 'advisory', difference.expected === null || difference.expected === undefined
       ? `no golden for this step, ${heard}`
       : `expected ${JSON.stringify(cut(difference.expected, 100))}, ${heard}`));
   }
+  if (truncatedDifferences || malformedDifferences > 0) {
+    notes.push(`${label}: the golden differences were not read whole; its golden rows resolve nothing tonight`);
+  }
 
   const incomplete = isObject(doc.incomplete) && typeof doc.incomplete.step === 'string' ? cut(doc.incomplete.step, 100) : null;
+  const complete = incomplete === null && !truncatedSteps && malformed === 0;
+  const pair = `${project}|${scenario}`;
 
-  if (incomplete === null) {
-    night.coverage.reader.push(`${project}|${scenario}`);
+  if (complete) {
+    night.coverage.reader.push(pair);
     night.coverage.reader.sort();
-  } else {
+
+    if ((golden === 'match' || golden === 'differs') && !truncatedDifferences && malformedDifferences === 0) {
+      night.coverage.golden.push(pair);
+      night.coverage.golden.sort();
+    }
+  }
+  if (incomplete !== null) {
     night.problems += 1;
   }
-  night.reader[project] = night.reader[project] ?? {};
+  // The project and the scenario are kebab-case, never `__proto__`; a plain assignment defines an own property.
+  if (own(night.reader, project) === undefined) {
+    night.reader[project] = {};
+  }
   night.reader[project][scenario] = { steps, failed, golden, incomplete };
 }
 
@@ -617,7 +710,15 @@ function parse(file, label, notes) {
  * @returns {Night} The night.
  */
 function emptyNight(source) {
-  return { source, findings: [], coverage: { checks: {}, axe: null, reader: [] }, problems: 0, checks: {}, axe: null, reader: {} };
+  return {
+    source,
+    findings: [],
+    coverage: { checks: {}, axe: null, reader: [], golden: [] },
+    problems: 0,
+    checks: {},
+    axe: null,
+    reader: {},
+  };
 }
 
 /**
@@ -660,7 +761,7 @@ export function readA11yArtifacts(files) {
 /**
  * What identifies a finding across nights: its source, check and kind, the axe rule and cause it names,
  * its target (page, theme, state, variant) and the masked selector or step. Never the reason, the
- * severity or the criteria, which a check may reword.
+ * severity, the criteria or the baseline issue, which a check or a baseline change may reword or refile.
  *
  * @param {Finding} finding The finding or row.
  * @returns {string} The key.
@@ -716,21 +817,85 @@ function nightSourceOf(row) {
 }
 
 /**
- * Whether a night measured a row's target, so that the row's absence means the finding is gone.
+ * A night's coverage in the stored form: every list sorted, the checks by id.
  *
- * @param {object} row The row.
- * @param {Night['coverage']} coverage The night's coverage.
- * @returns {boolean} The verdict.
+ * @param {Coverage} coverage The coverage.
+ * @returns {Coverage} The copy.
  */
-function covered(row, coverage) {
-  if (row.source === 'checks') {
-    return (coverage.checks[row.check] ?? []).includes(targetKey(row));
-  }
-  if (row.source === 'axe') {
-    return coverage.axe === true;
+function storedCoverage(coverage) {
+  const checks = coverage?.checks ?? {};
+
+  return {
+    checks: Object.fromEntries(Object.keys(checks).sort().map(check => [check, [...checks[check]].sort()])),
+    axe: coverage?.axe ?? null,
+    reader: [...(coverage?.reader ?? [])].sort(),
+    golden: [...(coverage?.golden ?? [])].sort(),
+  };
+}
+
+/**
+ * What two attempts of one night measured together.
+ *
+ * @param {Coverage} a One attempt's coverage.
+ * @param {Coverage} b The other's.
+ * @returns {Coverage} The union, in the stored form.
+ */
+function unionCoverage(a, b) {
+  const checks = {};
+
+  for (const coverage of [a, b]) {
+    for (const check of Object.keys(coverage?.checks ?? {})) {
+      checks[check] = [...new Set([...(own(checks, check) ?? []), ...coverage.checks[check]])];
+    }
   }
 
-  return coverage.reader.includes(`${row.check}|${row.page}`);
+  let axe = null;
+
+  if (a?.axe === true || b?.axe === true) {
+    axe = true;
+  } else if (a?.axe === false || b?.axe === false) {
+    axe = false;
+  }
+
+  return storedCoverage({
+    checks,
+    axe,
+    reader: [...new Set([...(a?.reader ?? []), ...(b?.reader ?? [])])],
+    golden: [...new Set([...(a?.golden ?? []), ...(b?.golden ?? [])])],
+  });
+}
+
+/**
+ * A coverage as sets, for `covered()`.
+ *
+ * @param {Coverage} coverage The coverage.
+ * @returns {{checks: Map<string, Set<string>>, axe: boolean, reader: Set<string>, golden: Set<string>}} The index.
+ */
+function coverageIndex(coverage) {
+  return {
+    checks: new Map(Object.keys(coverage?.checks ?? {}).map(check => [check, new Set(coverage.checks[check])])),
+    axe: coverage?.axe === true,
+    reader: new Set(coverage?.reader ?? []),
+    golden: new Set(coverage?.golden ?? []),
+  };
+}
+
+/**
+ * Whether a night measured a row's target, so that the row's absence means the finding is gone.
+ *
+ * @param {object} row The row or finding.
+ * @param {ReturnType<typeof coverageIndex>} index The night's coverage.
+ * @returns {boolean} The verdict.
+ */
+function covered(row, index) {
+  if (row.source === 'checks') {
+    return index.checks.get(row.check)?.has(targetKey(row)) ?? false;
+  }
+  if (row.source === 'axe') {
+    return index.axe;
+  }
+
+  return (row.kind === READER_GOLDEN_DIFFERS ? index.golden : index.reader).has(`${row.check}|${row.page}`);
 }
 
 /**
@@ -744,7 +909,7 @@ function seenStatus(row) {
     return 'new';
   }
 
-  return row.gaps > 0 && row.seenSinceGap <= A11Y_FLAP_NIGHTS ? 'flapping' : 'persisting';
+  return row.gaps > 0 && row.seenSinceGap < A11Y_FLAP_NIGHTS ? 'flapping' : 'persisting';
 }
 
 /**
@@ -797,35 +962,115 @@ function assemble(head, nights, rows) {
 }
 
 /**
+ * A night's counts, read from the rows after its merge: the rows of its source it sighted (`lastRun`), the
+ * ones that were new on it (`firstRun`), the ones it resolved (`resolvedAt` is its time), and per cluster.
+ *
+ * @param {object[]} rows The rows.
+ * @param {string} runId The night's run.
+ * @param {'a11y'|'reader'} source The night's source.
+ * @param {string} at The night's time.
+ * @returns {object} The counts.
+ */
+function nightStats(rows, runId, source, at) {
+  const ofSource = rows.filter(row => nightSourceOf(row) === source);
+  const sighted = ofSource.filter(row => row.lastRun === runId);
+  const resolved = ofSource.filter(row => row.status === 'resolved' && row.resolvedAt === at);
+  const triage = sighted.filter(row => row.cluster === TRIAGE_ID);
+  const clusters = new Map();
+  const bump = (id, field) => {
+    const entry = clusters.get(id) ?? { seen: 0, new: 0, resolved: 0 };
+
+    entry[field] += 1;
+    clusters.set(id, entry);
+  };
+
+  for (const row of sighted) {
+    bump(row.cluster, 'seen');
+
+    if (row.firstRun === runId) {
+      bump(row.cluster, 'new');
+    }
+  }
+  for (const row of resolved) {
+    bump(row.cluster, 'resolved');
+  }
+
+  return {
+    findings: sighted.length,
+    new: sighted.filter(row => row.firstRun === runId).length,
+    resolved: resolved.length,
+    flapping: sighted.filter(row => row.status === 'flapping').length,
+    triage: triage.length,
+    triageShapes: new Set(triage.map(findingShape)).size,
+    clusters: Object.fromEntries([...clusters.keys()].sort().map(id => [id, clusters.get(id)])),
+  };
+}
+
+/**
+ * The night's per-check, scan and transcript summaries, with a later attempt's over an earlier one's.
+ *
+ * @param {object|null} earlier The recorded night, when a later attempt amends it.
+ * @param {Night} night The night.
+ * @returns {object} The fields for the night record.
+ */
+function nightSummaries(earlier, night) {
+  if (night.source === 'a11y') {
+    return { checks: { ...(earlier?.checks ?? {}), ...night.checks }, axe: night.axe ?? earlier?.axe ?? null };
+  }
+
+  const reader = {};
+
+  for (const source of [earlier?.reader ?? {}, night.reader]) {
+    for (const project of Object.keys(source)) {
+      reader[project] = { ...(own(reader, project) ?? {}), ...source[project] };
+    }
+  }
+
+  return { reader: Object.fromEntries(Object.keys(reader).sort().map(project => [project, reader[project]])) };
+}
+
+/**
  * Merges one night into the ledger.
  *
  * - Every finding of the night becomes a row, or updates its row: `lastSeen`, `nightsSeen`, the latest
- *   severity, criteria, reason and url. A row seen for the first time is `new`; one seen again is
- *   `persisting`, or `flapping` when it came back after being resolved and has not yet been seen
+ *   severity, criteria, reason, url and baseline issue. A row seen for the first time is `new`; one seen again
+ *   is `persisting`, or `flapping` when it came back after being resolved and has not yet been seen
  *   `A11Y_FLAP_NIGHTS` nights in a row since.
  * - A row of the night's source that the night did not find is `resolved` when the night measured its
  *   target (`coverage`), and left as it was otherwise.
+ * - A later attempt of the latest night of its source (a "Re-run failed jobs" of the nightly, which keeps the
+ *   run id and replaces its artifacts) amends that night: it adds the sightings and the resolutions on what
+ *   the recorded attempt did not measure, and leaves what the recorded attempt measured as it was. The night
+ *   keeps its time, and its coverage grows. An attempt that measured nothing new changes nothing.
  * - Every row is then sorted into its cluster by the catalog, so an edit to the catalog re-sorts the whole
- *   ledger on the next night; an ambiguous finding goes to the first cluster, with a note.
- * - The night is recorded with its counts, per cluster, for the trend. A run already recorded, a run older
- *   than the latest night of its source, or a night with no readable document changes nothing.
+ *   ledger on the next night; a row that matches two clusters goes to the first, with one note per set of
+ *   clusters.
+ * - The night is recorded with its counts, per cluster, for the trend, and with its coverage while it is the
+ *   latest night of its source (what a later attempt is measured against). A run of another workflow than the
+ *   night's source, an attempt already recorded, a run older than the latest night of its source, or a night
+ *   with no readable document changes nothing.
  * - Rows past the retention window (from their last sighting) and nights past it go; past the cap, the
- *   oldest resolved rows go first, then the oldest nights.
+ *   oldest resolved rows go first, then the oldest nights, never the latest night of a source.
  *
  * @param {object|null} previous The ledger as read from `gh-pages`, or `null`.
  * @param {Night} night The night (`readA11yArtifacts`).
- * @param {import('./test-health.mjs').RunContext} run The collected run.
+ * @param {import('./test-health.mjs').RunContext} run The collected run (`isA11yRun`).
  * @param {object} catalog The compiled cluster catalog (`compileIssuesCatalog`).
  * @param {object} options Options.
  * @param {Date} options.now The current time.
  * @param {number} [options.retentionDays] Override of `A11Y_RETENTION_DAYS`.
  * @param {number} [options.capBytes] Override of `A11Y_CAP_BYTES`.
- * @returns {{doc: object, changed: boolean, notes: string[], recorded: object|null}} The ledger, whether its text
- * changed, the notes, and what the night recorded (`null` when nothing was).
+ * @returns {{doc: object, changed: boolean, notes: string[], recorded: object|null, ambiguous: Array<{clusters: string[], rows: number}>}}
+ * The ledger, whether its text changed, the notes, what the night recorded (`null` when nothing was), and the
+ * sets of clusters some rows match more than one of.
  */
 export function mergeA11yLedger(previous, night, run, catalog, { now, retentionDays = A11Y_RETENTION_DAYS, capBytes = A11Y_CAP_BYTES }) {
   assertA11yVersion(previous ?? null);
 
+  if (!isA11yRun(run)) {
+    throw new Error(`run ${run.runId} is a ${run.event} run of ${run.workflow} on ${run.branch}; only the A11y and Screen reader `
+      + 'nightlies on develop, by schedule or dispatch, are recorded');
+  }
   if (!RUN_ID.test(String(run.runId))) {
     throw new Error(`run id ${JSON.stringify(run.runId)} is not a run id`);
   }
@@ -838,26 +1083,43 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
 
   const prior = previous ?? emptyA11yLedger({ retentionDays, capBytes });
   const notes = [];
-  const unchanged = () => ({ doc: prior, changed: false, notes, recorded: null });
+  const unchanged = () => ({ doc: prior, changed: false, notes, recorded: null, ambiguous: [] });
   const { source } = night;
   const where = `run ${run.runId} (${source})`;
-  const readable = night.findings.length > 0 || Object.keys(night.coverage.checks).length > 0 || night.coverage.axe !== null
-    || night.coverage.reader.length > 0;
+
+  if (SOURCE_OF_WORKFLOW[run.workflow] !== source) {
+    notes.push(`${where}: a ${run.workflow} run holds no ${source} night, nothing recorded`);
+
+    return unchanged();
+  }
+
+  // A night is readable when one of its documents was read, whatever it covers: a night of transcripts that
+  // all stopped resolves nothing, and is still recorded, so the page shows where they stopped.
+  const readable = night.findings.length > 0 || Object.keys(night.checks).length > 0 || night.axe !== null
+    || Object.keys(night.reader).length > 0;
 
   if (!readable) {
     notes.push(`${where}: no readable accessibility document, nothing recorded`);
 
     return unchanged();
   }
-  if (prior.nights.some(entry => entry.runId === run.runId)) {
-    notes.push(`${where} is already recorded; a run is read once, nothing recorded`);
+
+  const earlier = prior.nights.find(entry => entry.runId === run.runId) ?? null;
+  const latest = prior.latest?.[source] ?? null;
+
+  if (earlier !== null && run.runAttempt <= earlier.runAttempt) {
+    notes.push(`${where} attempt ${run.runAttempt} is already recorded (attempt ${earlier.runAttempt}); a run is read once per attempt, `
+      + 'nothing recorded');
 
     return unchanged();
   }
+  if (earlier !== null && (earlier.source !== source || latest?.runId !== run.runId || !isObject(earlier.coverage))) {
+    notes.push(`${where} attempt ${run.runAttempt}: attempt ${earlier.runAttempt} is recorded and a later ${source} night followed it; `
+      + 'a later attempt amends the latest night of its source only, nothing recorded');
 
-  const latest = prior.latest?.[source] ?? null;
-
-  if (latest && seenAt < Date.parse(latest.seenAt)) {
+    return unchanged();
+  }
+  if (earlier === null && latest && seenAt < Date.parse(latest.seenAt)) {
     notes.push(`${where} completed ${run.seenAt}, before the latest ${source} night ${latest.runId} (${latest.seenAt}); `
       + 'nights are recorded in order, nothing recorded');
 
@@ -865,22 +1127,35 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
   }
 
   // The run's completion time as the API gives it, like the flake ledger's `seenAt`: never re-serialized, so a
-  // re-collection compares equal.
-  const at = run.seenAt;
+  // re-collection compares equal. A later attempt keeps the night's time: it is the same night.
+  const at = earlier?.seenAt ?? run.seenAt;
+  const measuredBefore = earlier === null ? null : coverageIndex(earlier.coverage);
+  const tonight = coverageIndex(night.coverage);
   const rows = new Map(prior.rows.map(row => [row.key, { ...row }]));
-  const seen = new Set();
-  const resolvedNow = new Set();
+  const handled = new Set();
+  let sightings = 0;
+  let resolutions = 0;
 
   for (const finding of night.findings) {
     const key = findingKey(finding);
 
-    if (seen.has(key)) {
+    if (handled.has(key)) {
       continue;
     }
-    seen.add(key);
+    handled.add(key);
+
+    // Where the recorded attempt measured, its verdict stands; a row it sighted is not counted twice.
+    if (measuredBefore !== null && covered(finding, measuredBefore)) {
+      continue;
+    }
 
     const latestFields = { criteria: finding.criteria, severity: finding.severity, reason: finding.reason, url: finding.url, issue: finding.issue };
     const row = rows.get(key);
+
+    if (row?.lastRun === run.runId) {
+      continue;
+    }
+    sightings += 1;
 
     if (row === undefined) {
       rows.set(key, {
@@ -922,23 +1197,29 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
     row.status = seenStatus(row);
   }
 
+  // No guard for what an earlier attempt measured: that attempt resolved every row it measured and did not see,
+  // and the rows it saw carry this run as `lastRun`.
   for (const row of rows.values()) {
-    if (nightSourceOf(row) !== source || seen.has(row.key) || row.status === 'resolved' || !covered(row, night.coverage)) {
+    if (nightSourceOf(row) !== source || row.lastRun === run.runId || row.status === 'resolved' || !covered(row, tonight)) {
       continue;
     }
     row.status = 'resolved';
     row.resolvedAt = at;
     row.gaps += 1;
     row.seenSinceGap = 0;
-    resolvedNow.add(row.key);
+    resolutions += 1;
   }
 
-  const clusters = {};
-  const bump = (id, field) => {
-    clusters[id] = clusters[id] ?? { seen: 0, new: 0, resolved: 0 };
-    clusters[id][field] += 1;
-  };
-  const counts = { findings: seen.size, new: 0, resolved: resolvedNow.size, flapping: 0, triage: 0 };
+  const coverage = earlier === null ? storedCoverage(night.coverage) : unionCoverage(earlier.coverage, night.coverage);
+
+  if (earlier !== null && sightings === 0 && resolutions === 0 && JSON.stringify(coverage) === JSON.stringify(storedCoverage(earlier.coverage))) {
+    notes.push(`${where} attempt ${run.runAttempt} measured nothing attempt ${earlier.runAttempt} had not; the night is already recorded, `
+      + 'nothing recorded');
+
+    return unchanged();
+  }
+
+  const overlaps = new Map();
 
   for (const row of rows.values()) {
     const verdict = clusterOf(row, catalog);
@@ -947,28 +1228,19 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
     row.tracker = verdict.tracker;
 
     if (verdict.ambiguous.length > 0) {
-      notes.push(`${row.key}: matches ${verdict.ambiguous.length} clusters (${verdict.ambiguous.join(', ')}); sorted to ${verdict.id}; `
-        + 'tests/a11y/issues.json needs one rule per finding');
-    }
-    if (seen.has(row.key)) {
-      bump(row.cluster, 'seen');
+      const set = verdict.ambiguous.join(', ');
 
-      if (row.status === 'new') {
-        bump(row.cluster, 'new');
-        counts.new += 1;
-      }
-      if (row.status === 'flapping') {
-        counts.flapping += 1;
-      }
-      if (row.cluster === TRIAGE_ID) {
-        counts.triage += 1;
-      }
-    }
-    if (resolvedNow.has(row.key)) {
-      bump(row.cluster, 'resolved');
+      overlaps.set(set, (overlaps.get(set) ?? 0) + 1);
     }
   }
 
+  const ambiguous = [...overlaps].sort(([a], [b]) => a.localeCompare(b)).map(([set, count]) => ({ clusters: set.split(', '), rows: count }));
+
+  for (const { clusters, rows: count } of ambiguous) {
+    notes.push(`${count} row(s) match clusters ${clusters.join(', ')}; sorted to ${clusters[0]}; tests/a11y/issues.json needs one rule per finding`);
+  }
+
+  const stats = nightStats([...rows.values()], run.runId, source, at);
   const record = {
     runId: run.runId,
     runAttempt: run.runAttempt,
@@ -978,18 +1250,26 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
     branch: run.branch,
     headSha: run.headSha,
     seenAt: at,
-    ...counts,
+    findings: stats.findings,
+    new: stats.new,
+    resolved: stats.resolved,
+    flapping: stats.flapping,
+    triage: stats.triage,
+    triageShapes: stats.triageShapes,
     problems: night.problems,
-    clusters: Object.fromEntries(Object.keys(clusters).sort().map(id => [id, clusters[id]])),
-    ...(source === 'a11y' ? { checks: night.checks, axe: night.axe } : { reader: night.reader }),
+    clusters: stats.clusters,
+    ...nightSummaries(earlier, night),
+    coverage,
   };
 
-  // Retention: from a row's last sighting, and a night's completion.
+  // Retention: from a row's last sighting, and a night's completion. Only the latest night of a source keeps its
+  // coverage: it is what a later attempt of that night is measured against.
   const cutoff = now.getTime() - (retentionDays * DAY_MS);
   const keptRows = [...rows.values()].filter(row => Date.parse(row.lastSeen) >= cutoff);
   const droppedRows = rows.size - keptRows.length;
-  const allNights = sortNights([...prior.nights, record]);
-  const keptNights = allNights.filter(entry => Date.parse(entry.seenAt) >= cutoff);
+  const others = prior.nights.filter(entry => entry.runId !== run.runId)
+    .map(({ coverage: stored, ...entry }) => (entry.source === source ? entry : { ...entry, ...(stored ? { coverage: stored } : {}) }));
+  const keptNights = sortNights([...others, record]).filter(entry => Date.parse(entry.seenAt) >= cutoff);
 
   if (droppedRows > 0) {
     notes.push(`${droppedRows} row(s) older than ${retentionDays} days dropped`);
@@ -997,14 +1277,15 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
 
   const head = {
     version: A11Y_VERSION,
-    // Sized with a timestamp in place: the final value is `now` or the prior stamp, both of this length.
+    // Sized with a timestamp in place: the final value is `now`, of this length.
     updatedAt: now.toISOString(),
     retentionDays,
     capBytes,
     trendNights: A11Y_TREND_NIGHTS,
     flapNights: A11Y_FLAP_NIGHTS,
-    latest: { ...prior.latest, [source]: { runId: run.runId, seenAt: at } },
+    latest: earlier === null ? { ...prior.latest, [source]: { runId: run.runId, seenAt: at } } : { ...prior.latest },
   };
+  const latestRuns = new Set(NIGHT_SOURCES.map(entry => head.latest?.[entry]?.runId).filter(Boolean));
   let currentRows = sortRows(keptRows);
   let currentNights = keptNights;
   let { doc, size } = assemble(head, currentNights, currentRows);
@@ -1029,8 +1310,14 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
     shedRows += victims.size;
     ({ doc, size } = assemble(head, currentNights, currentRows));
   }
-  while (size > capBytes && currentNights.length > 1) {
-    currentNights = currentNights.slice(0, -1);
+  // Then the oldest nights (the list is newest first), never the latest night of a source.
+  while (size > capBytes) {
+    const oldest = currentNights.findLastIndex(entry => !latestRuns.has(entry.runId));
+
+    if (oldest === -1) {
+      break;
+    }
+    currentNights = currentNights.filter((_, index) => index !== oldest);
     shedNights += 1;
     ({ doc, size } = assemble(head, currentNights, currentRows));
   }
@@ -1044,21 +1331,24 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
     notes.push(`a11y.json: ${size} bytes even without resolved rows and older nights, over the ${capBytes}-byte cap`);
   }
 
-  // A merge that reaches here added a night record, so the text always changed; the no-ops (a run already
-  // recorded, one out of order, one with nothing readable) returned the prior document above, stamp included.
-  const changed = true;
-
-  doc.updatedAt = now.toISOString();
-
   const recorded = {
     source,
     runId: run.runId,
-    ...counts,
-    clusters: Object.entries(clusters).map(([id, entry]) => [id, entry.seen])
+    runAttempt: run.runAttempt,
+    amended: earlier !== null,
+    findings: stats.findings,
+    new: stats.new,
+    resolved: stats.resolved,
+    flapping: stats.flapping,
+    triage: stats.triage,
+    triageShapes: stats.triageShapes,
+    clusters: Object.entries(stats.clusters).map(([id, entry]) => [id, entry.seen])
       .sort((a, b) => Number(a[0] === TRIAGE_ID) - Number(b[0] === TRIAGE_ID) || b[1] - a[1] || a[0].localeCompare(b[0])),
   };
 
-  return { doc, changed, notes, recorded };
+  // A merge that reaches here added or amended a night record, so the text changed; the no-ops returned the
+  // prior document above, stamp included.
+  return { doc, changed: true, notes, recorded, ambiguous };
 }
 
 /**
@@ -1105,6 +1395,10 @@ function worse(a, b) {
  * verdicts, the triage queue and the nights, all derived from the ledger so the page needs no fetch. No
  * task id is in it: the page says whether a cluster has a tracker, never which.
  *
+ * A cluster's trend has one series per source its rules or rows come from, over that source's nights only:
+ * the two nightlies run an hour apart, and one series over both would draw a reader-only cluster at zero on
+ * every A11y night.
+ *
  * @param {object|null} doc The ledger.
  * @param {object} catalog The compiled cluster catalog.
  * @returns {object|null} The view, or `null` before any night was recorded.
@@ -1116,9 +1410,10 @@ export function a11yView(doc, catalog) {
 
   const rows = doc.rows ?? [];
   const open = rows.filter(row => row.status !== 'resolved');
-  const nightsBySource = ['a11y', 'reader'].flatMap(source => sortNights(doc.nights.filter(night => night.source === source))
+  const nightsBySource = NIGHT_SOURCES.flatMap(source => sortNights(doc.nights.filter(night => night.source === source))
     .slice(0, A11Y_TREND_NIGHTS));
   const nights = nightsBySource.sort((a, b) => Date.parse(a.seenAt) - Date.parse(b.seenAt) || a.runId.localeCompare(b.runId, 'en', { numeric: true }));
+  const nightSources = NIGHT_SOURCES.filter(source => nights.some(night => night.source === source));
   const nightOf = source => sortNights(doc.nights.filter(night => night.source === source))[0] ?? null;
   const latestOf = (source) => {
     const night = nightOf(source);
@@ -1130,10 +1425,12 @@ export function a11yView(doc, catalog) {
   const clusterIds = [...new Set([...catalog.clusters.map(cluster => cluster.id), ...rows.map(row => row.cluster)])]
     .filter(id => id !== TRIAGE_ID);
   const clusterView = (id) => {
-    const own = rows.filter(row => row.cluster === id);
-    const ownOpen = own.filter(row => row.status !== 'resolved');
-    const byStatus = status => own.filter(row => row.status === status).length;
+    const members = rows.filter(row => row.cluster === id);
+    const ownOpen = members.filter(row => row.status !== 'resolved');
+    const byStatus = status => members.filter(row => row.status === status).length;
     const entry = titles.get(id);
+    const named = new Set([...(entry?.match ?? []).map(rule => SOURCE_OF_NIGHT[rule.source]), ...members.map(nightSourceOf)]);
+    const sources = named.size > 0 ? NIGHT_SOURCES.filter(source => named.has(source)) : nightSources;
 
     return {
       id,
@@ -1145,19 +1442,22 @@ export function a11yView(doc, catalog) {
       persisting: byStatus('persisting'),
       flapping: byStatus('flapping'),
       resolved: byStatus('resolved'),
-      nightsSeen: doc.nights.filter(night => (night.clusters?.[id]?.seen ?? 0) > 0).length,
-      lastSeen: own.reduce((last, row) => (last === null || Date.parse(row.lastSeen) > Date.parse(last) ? row.lastSeen : last), null),
+      nightsSeen: doc.nights.filter(night => (own(night.clusters, id)?.seen ?? 0) > 0).length,
+      lastSeen: members.reduce((last, row) => (last === null || Date.parse(row.lastSeen) > Date.parse(last) ? row.lastSeen : last), null),
       severities: Object.fromEntries(countBy(ownOpen, row => row.severity)),
       criteria: countBy(ownOpen.flatMap(row => row.criteria), id2 => id2).sort((a, b) => compareCriteria(a[0], b[0])),
       sources: countBy(ownOpen, row => row.source),
       kinds: countBy(ownOpen, row => row.kind).slice(0, 8),
       pages: countBy(ownOpen, row => row.page).slice(0, 5),
-      // [night index, seen, new, resolved] for every night of the trend.
-      trend: nights.map((night, index) => {
-        const counts = night.clusters?.[id] ?? { seen: 0, new: 0, resolved: 0 };
+      // One series per source: [night index, seen, new, resolved] for every night of that source in the trend.
+      trends: sources.map(source => ({
+        source,
+        points: nights.map((night, index) => [index, night]).filter(([, night]) => night.source === source).map(([index, night]) => {
+          const counts = own(night.clusters, id) ?? { seen: 0, new: 0, resolved: 0 };
 
-        return [index, counts.seen, counts.new, counts.resolved];
-      }),
+          return [index, counts.seen, counts.new, counts.resolved];
+        }),
+      })),
     };
   };
   const clusters = [...clusterIds.map(clusterView), clusterView(TRIAGE_ID)]
@@ -1185,12 +1485,13 @@ export function a11yView(doc, catalog) {
   const reader = { projects: [], scenarios: [] };
 
   if (latestReader) {
-    const goldenRows = new Set(rows.filter(row => row.source === 'reader' && row.kind === 'golden-differs' && row.lastRun === latestReader.runId)
+    const goldenRows = new Set(rows.filter(row => row.source === 'reader' && row.kind === READER_GOLDEN_DIFFERS && row.lastRun === latestReader.runId)
       .map(row => `${row.check}|${row.page}|${row.where}`));
+    const transcripts = isObject(latestReader.reader) ? latestReader.reader : {};
 
-    reader.projects = Object.keys(latestReader.reader ?? {}).sort();
+    reader.projects = Object.keys(transcripts).sort();
 
-    const scenarioIds = [...new Set(reader.projects.flatMap(project => Object.keys(latestReader.reader[project])))].sort();
+    const scenarioIds = [...new Set(reader.projects.flatMap(project => Object.keys(transcripts[project] ?? {})))].sort();
 
     reader.scenarios = scenarioIds.map((scenario) => {
       const steps = [];
@@ -1199,9 +1500,9 @@ export function a11yView(doc, catalog) {
       const incomplete = {};
 
       for (const project of reader.projects) {
-        const transcript = latestReader.reader[project][scenario];
+        const transcript = own(transcripts[project], scenario);
 
-        if (!transcript) {
+        if (!isObject(transcript)) {
           continue;
         }
         for (const step of transcript.steps) {
@@ -1239,16 +1540,14 @@ export function a11yView(doc, catalog) {
     shapes.set(key, shape);
   }
 
-  const triageShapes = [...shapes.values()].map(shape => ({
+  const triageShapes = [...shapes.values()].map(({ statuses, ...shape }) => ({
     ...shape,
     criteria: [...shape.criteria].sort(compareCriteria),
     pages: shape.pages.size,
-    status: shape.statuses.has('flapping') ? 'flapping' : (shape.statuses.has('persisting') ? 'persisting' : 'new'),
-    statuses: undefined,
-  })).map(({ statuses, ...shape }) => shape)
-    .sort((a, b) => b.pages - a.pages
-      || SEVERITIES.indexOf(a.severity ?? 'advisory') - SEVERITIES.indexOf(b.severity ?? 'advisory')
-      || `${a.check}|${a.kind}|${a.where}`.localeCompare(`${b.check}|${b.kind}|${b.where}`));
+    status: statuses.has('flapping') ? 'flapping' : (statuses.has('persisting') ? 'persisting' : 'new'),
+  })).sort((a, b) => b.pages - a.pages
+    || SEVERITIES.indexOf(a.severity ?? 'advisory') - SEVERITIES.indexOf(b.severity ?? 'advisory')
+    || `${a.check}|${a.kind}|${a.where}`.localeCompare(`${b.check}|${b.kind}|${b.where}`));
 
   return {
     updatedAt: doc.updatedAt,
@@ -1266,8 +1565,9 @@ export function a11yView(doc, catalog) {
       clusters: catalog.clusters.length,
       nights: doc.nights.length,
     },
-    // [run id, seen at, source, findings, new, resolved, need triage, problems], oldest first.
-    nights: nights.map(night => [night.runId, night.seenAt, night.source, night.findings, night.new, night.resolved, night.triage, night.problems]),
+    // [run id, seen at, source, findings, new, resolved, need triage, problems, attempt], oldest first.
+    nights: nights.map(night => [night.runId, night.seenAt, night.source, night.findings, night.new, night.resolved, night.triage,
+      night.problems, night.runAttempt]),
     clusters,
     criteria,
     checks,
@@ -1283,7 +1583,8 @@ export function a11yView(doc, catalog) {
  * @returns {string} One Markdown line.
  */
 export function renderA11yLine(recorded) {
-  return recorded.filter(Boolean).map(entry => `Accessibility: ${entry.source} night ${entry.runId} recorded ${entry.findings} findings `
+  return recorded.filter(Boolean).map(entry => `Accessibility: ${entry.source} night ${entry.runId} `
+    + `${entry.amended ? `amended by attempt ${entry.runAttempt}, now` : 'recorded'} ${entry.findings} findings `
     + `(${entry.new} new, ${entry.resolved} resolved, ${entry.flapping} flapping, ${entry.triage} need triage)`
     + (entry.clusters.length > 0 ? `; clusters: ${entry.clusters.map(([id, seen]) => `${id} ${seen}`).join(', ')}.` : '.')).join(' ');
 }

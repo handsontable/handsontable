@@ -16,12 +16,14 @@
  * section draws. A durations.json it cannot read is left as it is, with a
  * warning, and never stops the ledger. The fifth family, the accessibility
  * nightlies' evidence (`a11y-checks-evidence`, `a11y-axe-results`,
- * `screenreader-transcripts-*`), goes to `a11y.json`, from develop runs only:
- * one row per finding across nights, sorted into root-cause clusters by the
- * catalog `--catalog` names (`tests/a11y/issues.json`), which the page's
- * "Accessibility" section draws. An a11y.json it cannot read, or a catalog
- * that does not validate, is left as it is, with a warning, and never stops
- * the ledger. Prints the step-summary Markdown to stdout.
+ * `screenreader-transcripts-*`), goes to `a11y.json`, from the two nightlies'
+ * develop runs only (`isA11yRun`): one row per finding across nights, sorted
+ * into root-cause clusters by the catalog `--catalog` names
+ * (`tests/a11y/issues.json`), which the page's "Accessibility" section draws.
+ * A row that matches two clusters, or a night with more triage shapes than the
+ * catalog's `triageLimit`, raises a `::warning`. An a11y.json it cannot read,
+ * or a catalog that does not validate, is left as it is, with a warning, and
+ * never stops the ledger. Prints the step-summary Markdown to stdout.
  *
  * Never fails the job over its input: an artifact that does not parse is noted
  * and skipped, and a run with nothing to record still rewrites the summary and
@@ -248,6 +250,7 @@ const a11yPath = path.join(options['ledger-dir'], 'a11y.json');
 let a11yText = null;
 let a11yPage = null;
 let a11yRecorded = [];
+const a11yWarnings = [];
 
 // The accessibility half follows the durations half's rule: it never stops the flake ledger and never overwrites
 // a file it cannot read. On any error a11y.json stays as it is, the page and the step summary name the error,
@@ -276,8 +279,21 @@ try {
         changed = changed || merged.changed;
         notes.push(...merged.notes);
 
+        // The catalog's guarantees are tested against a sampled night; a live night that breaks one says so on
+        // the run, where whoever reads the step summary sees it, not only in the notes.
+        for (const { clusters, rows } of merged.ambiguous) {
+          a11yWarnings.push(`${rows} accessibility row(s) match clusters ${clusters.join(', ')}: tests/a11y/issues.json needs one rule per finding`);
+        }
         if (merged.recorded) {
           a11yRecorded.push(merged.recorded);
+
+          if (merged.recorded.triageShapes > catalog.triageLimit) {
+            const over = `the ${merged.recorded.source} night ${merged.recorded.runId} has ${merged.recorded.triageShapes} finding shape(s) `
+              + `in needs-triage, over the catalog's triageLimit of ${catalog.triageLimit}: sort them into clusters in tests/a11y/issues.json`;
+
+            notes.push(over);
+            a11yWarnings.push(over);
+          }
         }
       }
       if (changed) {
@@ -287,13 +303,14 @@ try {
       }
       a11yPage = a11yView(doc, catalog);
     } else {
-      // Only develop runs are recorded: the nightlies run there, and a pull request's evidence stays in its own run.
+      // Only the two nightlies' runs on develop are recorded: a pull request's evidence, a fork's included, comes
+      // from the pull request's own code and stays in its own run.
       assertA11yVersion(previousA11y);
       a11yPage = a11yView(previousA11y, catalog);
 
       if (a11yFiles.length > 0) {
-        notes.push(`${a11yFiles.length} accessibility artifact file(s) not recorded: only develop runs are, `
-          + 'and this run keeps its own for 3 days');
+        notes.push(`${a11yFiles.length} accessibility artifact file(s) not recorded: only the A11y and Screen reader nightlies `
+          + 'on develop are, and this run keeps its own');
       }
     }
   }
@@ -305,6 +322,9 @@ try {
   a11yRecorded = [];
   notes.push(`a11y.json was left as it is: ${reason}`);
   process.stderr.write(`::warning title=Test health::a11y.json was left as it is: ${reason}\n`);
+}
+for (const warning of a11yWarnings) {
+  process.stderr.write(`::warning title=Test health::${warning}\n`);
 }
 
 const aggregated = aggregate(ledger, { now });

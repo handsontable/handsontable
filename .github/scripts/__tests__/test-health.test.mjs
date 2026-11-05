@@ -384,7 +384,7 @@ test('renderPage inlines the summary and survives a `</script>` inside a title',
   assert.ok(html.includes('renders \\u003c/script>\\u003cb>bold\\u003c/b> safely'),
     'every `<` is escaped inside the JSON');
   assert.equal((html.match(/<\/script>/g) ?? []).length, 4,
-    'only the template\'s own three script elements close (the summary, the durations, the code)');
+    'only the template\'s own four script elements close (the summary, the durations, the a11y data, the code)');
 });
 
 // The three places that must agree on where the Playwright JSON report is and
@@ -1225,7 +1225,8 @@ test('renderPage draws the "Where the time goes" section from the inlined durati
   assert.ok(html.includes('stalls \\u003c/script>\\u003cb>bold\\u003c/b> forever'),
     'a title cannot close the data element');
   assert.ok(html.includes('fix/x\\u003c!--\\u003cscript>y'), 'nor can a branch open a comment in it');
-  assert.equal((html.match(/<\/script>/g) ?? []).length, 4);
+  assert.equal((html.match(/<\/script>/g) ?? []).length, 4,
+    'only the template\'s own four script elements close (the summary, the durations, the a11y data, the code)');
 
   const dataOf = (id) => {
     const open = `<script id="${id}" type="application/json">`;

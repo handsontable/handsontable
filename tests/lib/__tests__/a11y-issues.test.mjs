@@ -1,14 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  AXE_SCAN_CHECK,
+  AXE_SCAN_KIND,
   FINDING_SOURCES,
   ISSUES_FILE,
   ISSUES_SCHEMA,
   MATCH_FIELDS,
+  READER_KINDS,
   TRIAGE_ID,
+  findingShape,
   clusterOf,
   compileIssuesCatalog,
   maskSelector,
@@ -23,6 +27,32 @@ const CATALOG_PATH = path.join(TESTS_ROOT, ISSUES_FILE);
 const SAMPLE_PATH = path.join(TESTS_ROOT, 'lib/__tests__/fixtures/a11y-findings-sample.json');
 
 const readCatalog = () => JSON.parse(readFileSync(CATALOG_PATH, 'utf8'));
+const readSample = () => JSON.parse(readFileSync(SAMPLE_PATH, 'utf8'));
+// The live sources of the ids a rule may name, which the frozen sample cannot speak for.
+const AXE_ISSUES = JSON.parse(readFileSync(path.join(TESTS_ROOT, 'a11y/axe-baseline.json'), 'utf8')).issues.map(issue => issue.id);
+const READER_PROJECTS = [...readFileSync(path.join(TESTS_ROOT, 'playwright.screenreader.config.ts'), 'utf8')
+  .matchAll(/\{ name: '([a-z0-9-]+)', use:/g)].map(([, name]) => name);
+
+/**
+ * Every kebab-case string literal in the checks' code: the kinds a check can emit are among them.
+ *
+ * @param {string} dir A directory under `tests/`.
+ * @returns {string[]} The literals.
+ */
+function literalsUnder(dir) {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      return entry.name === '__tests__' ? [] : literalsUnder(full);
+    }
+    if (!/\.(mjs|ts)$/.test(entry.name)) {
+      return [];
+    }
+
+    return [...readFileSync(full, 'utf8').matchAll(/'([a-z0-9]+(?:-[a-z0-9]+)+)'/g)].map(([, literal]) => literal);
+  });
+}
 
 /**
  * A catalog with one cluster per entry, for the matcher tests.
@@ -127,6 +157,45 @@ test('validateIssuesCatalog accepts the documented shape and names every problem
     /no match rule/);
 });
 
+test('validateIssuesCatalog refuses a field no finding of the rule\'s source carries, and an id its live source does not have', () => {
+  const problems = validateIssuesCatalog(catalogOf(
+    ['bad-criterion', [{ source: 'checks', criteria: ['9.9.9'] }]],
+    ['bad-theme', [{ source: 'checks', themes: ['dark'] }]],
+    ['axe-check', [{ source: 'axe', checks: ['keyboard-walker'] }]],
+    ['axe-kind', [{ source: 'axe', kinds: ['axe-known'] }]],
+    ['axe-cause', [{ source: 'axe', causes: ['color-contrast:bgOverlap'] }]],
+    ['reader-kind', [{ source: 'reader', kinds: ['focus-lost'] }]],
+    ['reader-rule', [{ source: 'reader', rules: ['region'] }]],
+    ['reader-theme', [{ source: 'reader', kinds: ['token-missing'], themes: ['main'] }]],
+    ['check-issue', [{ source: 'checks', axeIssues: ['menu-roles'] }]],
+    ['unknown-issue', [{ source: 'axe', axeIssues: ['no-such-issue'] }]],
+    ['unknown-project', [{ source: 'reader', checks: ['no-such-project'] }]],
+  ), { axeIssues: ['menu-roles'], readerProjects: ['nvda-chromium'] });
+  const expect = (pattern) => assert.ok(problems.some(problem => pattern.test(problem)),
+    `expected a problem matching ${pattern}; got:\n${problems.join('\n')}`);
+
+  expect(/"bad-criterion".*"criteria" names "9\.9\.9", not a WCAG 2\.2 criterion/);
+  expect(/"bad-theme".*"themes" names "dark", not a theme/);
+  expect(/"axe-check".*"checks" names "keyboard-walker", not the axe scan's check \("axe"\)/);
+  expect(/"axe-kind".*"kinds" names "axe-known", not the axe scan's kind \("axe-violation"\)/);
+  expect(/"axe-cause".*"causes" on a axe rule: a axe finding never carries it/);
+  expect(/"reader-kind".*"kinds" names "focus-lost", not a reader kind/);
+  expect(/"reader-rule".*"rules" on a reader rule/);
+  expect(/"reader-theme".*"themes" on a reader rule/);
+  expect(/"check-issue".*"axeIssues" on a checks rule/);
+  expect(/"unknown-issue".*"axeIssues" names "no-such-issue", not an issue of the axe baseline/);
+  expect(/"unknown-project".*"checks" names "no-such-project", not a screen reader project/);
+  assert.equal(problems.length, 11, problems.join('\n'));
+  // The collector compiles the catalog without the live lists, so those two ids are the test's to check.
+  assert.deepEqual(validateIssuesCatalog(catalogOf(
+    ['unknown-issue', [{ source: 'axe', axeIssues: ['no-such-issue'] }]],
+    ['unknown-project', [{ source: 'reader', checks: ['no-such-project'] }]],
+  )), []);
+  assert.equal(AXE_SCAN_CHECK, 'axe');
+  assert.equal(AXE_SCAN_KIND, 'axe-violation');
+  assert.deepEqual(READER_KINDS, ['token-missing', 'golden-differs']);
+});
+
 test('matchClusters ANDs the fields of a rule, ORs the values in a field and the rules of a cluster', () => {
   const catalog = compileIssuesCatalog(catalogOf(
     ['by-kind', [{ source: 'checks', checks: ['keyboard-walker'], kinds: ['focus-not-returned', 'focus-lost'] }]],
@@ -150,15 +219,15 @@ test('matchClusters ANDs the fields of a rule, ORs the values in a field and the
   assert.deepEqual(matchClusters(finding({ kind: 'unnamed-header', page: 'grid' }), catalog), ['by-page']);
   assert.deepEqual(matchClusters(finding({ kind: 'unnamed-header', page: 'rtl-grid' }), catalog), [], 'a page pattern is anchored');
   assert.deepEqual(matchClusters(finding({ check: 'axe-discovery', kind: 'axe-violation', rule: 'aria-required-parent' }), catalog), ['by-rule']);
-  assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-known', rule: 'aria-required-parent', issue: 'menu-roles' }), catalog), ['by-rule']);
-  assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-known', rule: 'aria-required-parent', issue: 'grid-roles' }), catalog), [],
+  assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-violation', rule: 'aria-required-parent', issue: 'menu-roles' }), catalog), ['by-rule']);
+  assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-violation', rule: 'aria-required-parent', issue: 'grid-roles' }), catalog), [],
     'an axe row is matched by its baseline issue, not by its rule alone');
   assert.deepEqual(matchClusters(finding({ check: 'axe-discovery', kind: 'axe-needs-review', rule: 'color-contrast', cause: 'color-contrast:bgOverlap' }), catalog), ['by-cause']);
   assert.deepEqual(matchClusters(finding({ check: 'axe-discovery', kind: 'axe-needs-review', rule: 'color-contrast', cause: 'color-contrast:nonBmp' }), catalog), []);
   assert.deepEqual(matchClusters(finding({ check: 'reflow', kind: 'needs-horizontal-scroll', criteria: ['1.4.10'] }), catalog), ['by-criteria']);
   assert.deepEqual(matchClusters(finding({ check: 'reflow', kind: 'text-clipped', criteria: ['1.4.4', '1.4.12'] }), catalog), []);
-  assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-new', rule: 'color-contrast', theme: 'classic' }), catalog), ['by-theme']);
-  assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-new', rule: 'color-contrast', theme: 'horizon' }), catalog), []);
+  assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-violation', rule: 'color-contrast', theme: 'classic' }), catalog), ['by-theme']);
+  assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-violation', rule: 'color-contrast', theme: 'horizon' }), catalog), []);
   assert.deepEqual(matchClusters(finding({ source: 'reader', check: 'nvda-chromium', kind: 'token-missing', page: 'grid-core', theme: null, where: 'close-editor', criteria: [] }), catalog), ['reader-step']);
   assert.deepEqual(matchClusters(finding({ source: 'reader', check: 'nvda-chromium', kind: 'token-missing', page: 'grid-core', theme: null, where: 'close-editor-again', criteria: [] }), catalog), []);
 });
@@ -179,10 +248,12 @@ test('clusterOf names the cluster and its tracker, sends an unmatched finding to
   assert.deepEqual(clusterOf(finding({}), catalog), { id: 'one', tracker: 'DEV-3603', ambiguous: ['one', 'two'] });
 });
 
-test('the committed catalog validates, and its ids are the ones the ledger and the page read', () => {
+test('the committed catalog validates against the live baseline issues and screen reader projects, and keeps its cluster ids', () => {
   const doc = readCatalog();
 
-  assert.deepEqual(validateIssuesCatalog(doc), []);
+  assert.ok(AXE_ISSUES.includes('menu-roles') && READER_PROJECTS.includes('nvda-chromium') && READER_PROJECTS.includes('vo-webkit'),
+    'read the baseline issues and the screen reader projects');
+  assert.deepEqual(validateIssuesCatalog(doc, { axeIssues: AXE_ISSUES, readerProjects: READER_PROJECTS }), []);
   assert.equal(doc.schema, ISSUES_SCHEMA);
   assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader']);
   assert.deepEqual(MATCH_FIELDS, ['source', 'checks', 'kinds', 'rules', 'causes', 'criteria', 'pages', 'themes', 'where', 'axeIssues']);
@@ -208,20 +279,46 @@ test('the committed catalog validates, and its ids are the ones the ledger and t
   }
 });
 
-test('every sampled finding maps to one cluster or to needs-triage, and the triage count only goes down', () => {
+test('every kind a check rule names is one the checks\' code can emit', () => {
+  // A kind is a string literal in the check's code (tests/lib, tests/a11y/checks); one that no literal spells is a
+  // typo or a renamed kind, and its rule would send every live finding of the real kind to needs-triage.
+  const literals = new Set([...literalsUnder(path.join(TESTS_ROOT, 'lib')), ...literalsUnder(path.join(TESTS_ROOT, 'a11y/checks'))]);
+  const unknown = readCatalog().clusters.flatMap(cluster => cluster.match
+    .filter(rule => rule.source === 'checks' && Array.isArray(rule.kinds))
+    .flatMap(rule => rule.kinds.filter(kind => !literals.has(kind)).map(kind => `${cluster.id}: ${kind}`)));
+
+  assert.ok(literals.has('focus-not-returned') && literals.has('axe-needs-review') && literals.has('moves-over-five-seconds'),
+    'read the checks\' kinds');
+  assert.deepEqual(unknown, []);
+});
+
+test('every rule of every cluster matches a sampled finding', () => {
+  // A rule that matches nothing is misspelled (an axe rule, a cause, a where pattern) or dead: fix it or delete it.
+  const catalog = compileIssuesCatalog(readCatalog());
+  const { findings } = readSample();
+  const dead = catalog.clusters.flatMap(cluster => cluster.match.map((rule, index) => ({ cluster, rule, index })))
+    .filter(({ cluster, rule }) => !findings.some(item => matchClusters(item, { clusters: [{ ...cluster, match: [rule] }] }).length > 0))
+    .map(({ cluster, index }) => `${cluster.id}, rule ${index + 1}`);
+
+  assert.deepEqual(dead, []);
+});
+
+test('every sampled finding maps to one cluster or to needs-triage, and the triage count is exact', () => {
   // The sample is one row per distinct finding shape (source, check, kind, rule, cause, page, where) of two
   // real nights (fixtures/a11y-findings-sample.json says which). A rule that matches two clusters is refused
   // here, not sorted at collection time, and the needs-triage count is pinned exactly: a change to the
-  // catalog or to a check that moves it changes `triageLimit` in tests/a11y/issues.json in the same change.
+  // catalog or to a check that moves it changes `triageLimit` in tests/a11y/issues.json in the same change:
+  // lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one.
   const doc = readCatalog();
   const catalog = compileIssuesCatalog(doc);
-  const sample = JSON.parse(readFileSync(SAMPLE_PATH, 'utf8'));
+  const sample = readSample();
   const A11Y_TRIAGE_LIMIT = doc.triageLimit;
   const ambiguous = [];
   const triage = [];
   const matched = new Map(catalog.clusters.map(cluster => [cluster.id, 0]));
 
   assert.ok(sample.findings.length > 100, 'the sample holds the two nights');
+  assert.equal(new Set(sample.findings.map(findingShape)).size, sample.findings.length, 'one row per finding shape');
 
   for (const item of sample.findings) {
     const verdict = clusterOf(item, catalog);

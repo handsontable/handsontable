@@ -9,9 +9,11 @@ import {
   A11Y_AXE_ARTIFACT,
   A11Y_AXE_FILE,
   A11Y_CAP_BYTES,
+  A11Y_EVENTS,
   A11Y_EVIDENCE_ARTIFACT,
   A11Y_FILE_CAP_BYTES,
   A11Y_FLAP_NIGHTS,
+  A11Y_LIMITS,
   A11Y_NIGHTLY_WORKFLOW,
   A11Y_RETENTION_DAYS,
   A11Y_TREND_NIGHTS,
@@ -49,7 +51,7 @@ const NOW = new Date('2026-11-03T12:00:00Z');
 const DAY = 24 * 60 * 60 * 1000;
 const night = offset => new Date(NOW.getTime() + (offset * DAY)).toISOString();
 
-// The A11y nightly on develop: a schedule, never a push, which is why the rule is "develop", not "develop push".
+// The A11y nightly on develop: a schedule, never a push, which is why the rule names the workflow and the event.
 const NIGHTLY = {
   id: 41584742628,
   run_attempt: 1,
@@ -283,13 +285,30 @@ test('classifyA11yArtifact knows the three families, and the flake collector fil
   assert.equal(classifyArtifact('a11y-report.html'), null);
 });
 
-test('isA11yRun is develop on any event: the nightlies are schedules, a backfill is a dispatch', () => {
+test('isA11yRun takes the two nightlies on develop by schedule or dispatch, and nothing a pull request can start', () => {
   assert.equal(isA11yRun(runContextFromRun(NIGHTLY)), true);
-  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'workflow_dispatch' })), true);
-  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'push' })), true);
+  assert.equal(isA11yRun(runContextFromRun(READER_RUN)), true);
+  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'workflow_dispatch' })), true, 'a proof run, or a missed night run again');
+  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'push' })), false);
+  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'pull_request' })), false, 'the nightly validating its own graph');
   assert.equal(isA11yRun(runContextFromRun(PULL_REQUEST)), false);
+  // A fork's pull request opened from the fork's own develop reports develop as its branch, and the Tests pipeline
+  // uploads the same artifacts from the pull request's code.
+  assert.equal(isA11yRun(runContextFromRun({ ...PULL_REQUEST, head_branch: 'develop' })), false);
+  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, name: 'Tests' })), false, 'a Tests dispatch on develop');
+  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, name: 'E2E nightly' })), false);
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, head_branch: 'master' })), false);
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, head_branch: 'release/18.1.x' })), false);
+  assert.deepEqual(A11Y_EVENTS, ['schedule', 'workflow_dispatch']);
+
+  // The merge refuses such a run itself, and a night of another source than the run's workflow.
+  assert.throws(() => mergeA11yLedger(null, nightOf(nightlyFiles()), runContextFromRun({ ...PULL_REQUEST, head_branch: 'develop' }), CATALOG,
+    { now: NOW }), /only the A11y and Screen reader nightlies on develop/);
+
+  const wrong = mergeA11yLedger(null, nightOf(readerFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: NOW });
+
+  assert.equal(wrong.changed, false);
+  assert.match(wrong.notes[0], /run 41584742628 \(reader\): a A11y nightly run holds no reader night, nothing recorded/);
 });
 
 test('collectArtifactFiles hands the a11y family over unparsed, root documents and transcripts only', () => {
@@ -342,10 +361,10 @@ test('readA11yArtifacts turns a night\'s documents into masked findings with the
   const axe = night.findings.filter(item => item.source === 'axe');
 
   assert.deepEqual(axe.map(item => [item.kind, item.page, item.theme, item.where, item.issue, item.severity]), [
-    ['axe-known', 'context-menu', 'main', 'td[role="menuitem"]', 'menu-roles', null],
-    ['axe-known', 'context-menu', 'classic', 'td[role="menuitem"]', 'menu-roles', null],
-    ['axe-new', 'dark-grid', 'classic', 'td[role="gridcell"]', null, 'serious'],
-  ], 'a known location keys on its baseline issue and has no impact of its own; a new finding carries axe\'s');
+    ['axe-violation', 'context-menu', 'main', 'td[role="menuitem"]', 'menu-roles', null],
+    ['axe-violation', 'context-menu', 'classic', 'td[role="menuitem"]', 'menu-roles', null],
+    ['axe-violation', 'dark-grid', 'classic', 'td[role="gridcell"]', 'classic-contrast', 'serious'],
+  ], 'one kind for the scan: a baselined location has no impact of its own; a new finding carries axe\'s and the issue the scan suggests');
   assert.deepEqual(axe[2].criteria, ['1.4.3']);
   assert.equal(axe[0].check, 'axe');
 
@@ -353,6 +372,7 @@ test('readA11yArtifacts turns a night\'s documents into masked findings with the
   assert.deepEqual(night.coverage.checks['tree-snapshots'], ['grid|classic|', 'grid|main|']);
   assert.equal(night.coverage.axe, true, 'a complete scan resolves what it does not find');
   assert.deepEqual(night.coverage.reader, []);
+  assert.deepEqual(night.coverage.golden, []);
   assert.equal(night.problems, 0);
   assert.deepEqual(night.checks['keyboard-walker'], { targets: 2, measured: 2, findings: 3, problems: 0 });
 });
@@ -378,6 +398,8 @@ test('readA11yArtifacts turns a reader night\'s transcripts into step findings, 
     variant: null, where: 'close-editor', criteria: [], severity: 'serious', reason: 'the announcement lacks: alice', url: null, issue: null,
   });
   assert.deepEqual(night.coverage.reader, ['nvda-chromium|grid-core', 'nvda-chromium|nested-rows', 'vo-webkit|grid-core']);
+  assert.deepEqual(night.coverage.golden, ['nvda-chromium|grid-core', 'nvda-chromium|nested-rows', 'vo-webkit|grid-core'],
+    'every transcript was compared with its golden');
   assert.deepEqual(night.reader['nvda-chromium']['grid-core'], {
     steps: ['arrow-right', 'close-editor', 'open-context-menu'], failed: ['close-editor', 'open-context-menu'], golden: 'match', incomplete: null,
   });
@@ -431,16 +453,147 @@ test('readA11yArtifacts refuses what it cannot trust, one note each, and keeps t
 
   assert.ok(a11y && reader, 'both nights survive');
   assert.deepEqual(Object.keys(a11y.coverage.checks), ['tree-snapshots'], 'the refused documents cover nothing');
+  assert.deepEqual(a11y.coverage.checks['tree-snapshots'], [], 'a dropped finding with no readable target: the check covers nothing');
   assert.equal(a11y.coverage.axe, null, 'and an unreadable axe document resolves nothing');
   assert.equal(a11y.findings.length, TREE_FINDINGS.length + 1, 'the dropped findings are gone, the bounded one stays');
+  expectNote(/tree-snapshots\.json: 4 malformed finding\(s\) dropped; one names no readable target, so the check resolves nothing tonight/);
 
   const bounded = a11y.findings.at(-1);
 
   assert.equal(bounded.where.length, 300);
   assert.equal(bounded.reason.length, 300);
   assert.equal(bounded.url, null, 'only a fixture path is kept as a url');
-  assert.deepEqual(reader.coverage.reader, ['nvda-chromium|grid-core', 'vo-webkit|grid-core']);
+  assert.deepEqual(reader.coverage.reader, ['nvda-chromium|grid-core'], 'a transcript that lost a step covers nothing');
   assert.equal(reader.findings.filter(item => item.check === 'vo-webkit').length, 0);
+});
+
+test('coverage leaves out what the night did not fully measure: a target with a tooling problem, a dropped finding\'s target, a cut document', () => {
+  // A target measured with a step that did not run, as mergeEvidence() writes it: `measured` with `problems`.
+  const walker = evidenceDoc('keyboard-walker', [], [
+    { page: 'autocomplete-editor', theme: 'main', status: 'measured', problems: 1 },
+    { page: 'multiselect-editor', theme: 'main', status: 'measured', problems: 0 },
+  ]);
+  const tree = evidenceDoc('tree-snapshots', [...TREE_FINDINGS,
+    { kind: 'Bad Kind', criteria: ['1.3.2'], severity: 'moderate', step: 'x', reason: 'r', page: 'grid', theme: 'main' }]);
+  const { nights: [read], notes } = readA11yArtifacts(nightlyFiles({
+    [`${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker.json`]: walker,
+    [`${A11Y_EVIDENCE_ARTIFACT}/tree-snapshots.json`]: tree,
+  }));
+
+  assert.deepEqual(read.coverage.checks['keyboard-walker'], ['multiselect-editor|main|']);
+  assert.deepEqual(read.coverage.checks['tree-snapshots'], ['grid|classic|'], 'the dropped finding\'s target covers nothing, the other does');
+  assert.ok(notes.some(note => /tree-snapshots\.json: 1 malformed finding\(s\) dropped; their targets resolve nothing tonight/.test(note)));
+
+  // A row found on one night is not resolved on the next night its step could not run, and comes back as nothing.
+  const first = mergeA11yLedger(null, nightOf(nightlyFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: NOW }).doc;
+  const second = mergeA11yLedger(first, nightOf(nightlyFiles({ [`${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker.json`]: walker })),
+    runContextFromRun({ ...NIGHTLY, id: 41600000000, updated_at: night(1) }), CATALOG, { now: new Date(night(1)) }).doc;
+  const walkerRows = second.rows.filter(row => row.check === 'keyboard-walker');
+
+  assert.deepEqual(walkerRows.map(row => [row.page, row.kind, row.status]), [
+    ['multiselect-editor', 'focus-lost', 'resolved'],
+    ['autocomplete-editor', 'focus-not-returned', 'new'],
+    ['autocomplete-editor', 'tab-keeps-focus', 'new'],
+  ], 'the target whose step could not run keeps its rows; the measured one resolves');
+
+  // A document cut at the findings limit covers nothing, whatever its targets say.
+  const many = Array.from({ length: A11Y_LIMITS.findings + 1 }, (_, index) => ({ ...TREE_FINDINGS[0], step: `step ${index}` }));
+  const cut = readA11yArtifacts(nightlyFiles({ [`${A11Y_EVIDENCE_ARTIFACT}/tree-snapshots.json`]: evidenceDoc('tree-snapshots', many) }));
+
+  assert.deepEqual(cut.nights[0].coverage.checks['tree-snapshots'], []);
+  assert.ok(cut.notes.some(note => new RegExp(`${A11Y_LIMITS.findings + 1} findings, only the first ${A11Y_LIMITS.findings} read; `
+    + 'the check resolves nothing tonight').test(note)));
+});
+
+test('the axe scan is one row per location: a grown entry is the location, a baselined new finding keeps its row, a malformed entry covers nothing', () => {
+  const grown = {
+    ...AXE_DOC,
+    needsAction: [...AXE_DOC.needsAction,
+      { status: 'grown', page: 'context-menu', theme: 'main', rule: 'aria-required-parent', target: 'td[role="menuitem"]', wcag: ['1.3.1'],
+        impact: 'critical', nodes: 15, recordedNodes: 13, issue: 'menu-roles' },
+      { status: 'fixed', page: 'context-menu', theme: 'horizon', rule: 'aria-required-parent', target: 'td[role="menuitem"]', wcag: ['1.3.1'],
+        issue: 'menu-roles' }],
+  };
+  const [read] = readA11yArtifacts(nightlyFiles({ [`${A11Y_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: grown })).nights;
+
+  assert.equal(read.findings.filter(item => item.source === 'axe').length, 3, 'the grown entry is the location issues[] already holds');
+  assert.equal(read.coverage.axe, true);
+
+  // Baselining the new finding moves it from needsAction to its issue's locations; its row keeps its history.
+  const first = mergeA11yLedger(null, nightOf(nightlyFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: NOW }).doc;
+  const baselined = {
+    ...AXE_DOC,
+    needsAction: [],
+    issues: [...AXE_DOC.issues, {
+      id: 'classic-contrast', title: 'Text contrast is below 4.5:1 in the classic theme', tracker: 'DEV-3494', rules: ['color-contrast'],
+      wcag: ['1.4.3'], findings: 1, nodes: 3,
+      locations: [{ page: 'dark-grid', theme: 'classic', rule: 'color-contrast', target: 'td.current[role="gridcell"]', nodes: 3, selector: 'td',
+        domPath: null }],
+    }],
+  };
+  const second = mergeA11yLedger(first, nightOf(nightlyFiles({ [`${A11Y_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: baselined })),
+    runContextFromRun({ ...NIGHTLY, id: 41600000000, updated_at: night(1) }), CATALOG, { now: new Date(night(1)) }).doc;
+  const axeRows = second.rows.filter(row => row.source === 'axe');
+
+  assert.equal(axeRows.length, 3);
+  assert.ok(axeRows.every(row => row.status === 'persisting' && row.nightsSeen === 2));
+  assert.equal(axeRows.find(row => row.page === 'dark-grid').issue, 'classic-contrast');
+
+  // An entry the collector cannot read: the scan resolves nothing that night.
+  const broken = { ...AXE_DOC, needsAction: [...AXE_DOC.needsAction, { status: 'new', page: '../x', theme: 'main', rule: 'region', target: 'div',
+    wcag: [] }] };
+  const { nights: [partial], notes } = readA11yArtifacts(nightlyFiles({ [`${A11Y_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: broken }));
+
+  assert.equal(partial.coverage.axe, false);
+  assert.ok(notes.some(note => /a11y-findings\.json: 1 malformed finding\(s\) dropped; the scan resolves nothing tonight/.test(note)));
+});
+
+test('a transcript covers its golden rows only when its wording was compared with a golden', () => {
+  const first = mergeA11yLedger(null, nightOf(readerFiles()), runContextFromRun(READER_RUN), CATALOG, { now: NOW }).doc;
+  const goldenKey = 'reader|vo-webkit|golden-differs|||grid-core||||open-context-menu';
+
+  assert.equal(statusOf(first, goldenKey), 'new');
+
+  // The update-goldens dispatch records the golden, and a project without one compares nothing: no difference
+  // is listed, and none is resolved.
+  for (const [offset, status] of [[1, 'recorded'], [2, 'missing']]) {
+    const uncompared = readerFiles({
+      [`${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`]: transcript('vo-webkit', 'grid-core',
+        [['arrow-right', ['row 2', 'column 3']], ['close-editor', null], ['open-context-menu', null]], { golden: { status, differences: [] } }),
+    });
+    const [read] = readA11yArtifacts(uncompared).nights;
+
+    assert.ok(read.coverage.reader.includes('vo-webkit|grid-core') && !read.coverage.golden.includes('vo-webkit|grid-core'), status);
+
+    const next = mergeA11yLedger(first, read, runContextFromRun({ ...READER_RUN, id: 41579067604 + offset, updated_at: night(offset) }),
+      CATALOG, { now: new Date(night(offset)) }).doc;
+
+    assert.equal(statusOf(next, goldenKey), 'new', `a ${status} golden resolves no difference`);
+    assert.equal(statusOf(next, 'reader|vo-webkit|token-missing|||grid-core||||arrow-right'), 'persisting', 'its token rows still count');
+  }
+});
+
+test('a project or scenario named like an Object property stays the night\'s own data', () => {
+  const files = readerFiles({
+    [`${READER_ARTIFACT_PREFIX}constructor/${READER_TRANSCRIPTS_DIR}/constructor--grid-core.json`]: transcript('constructor', 'grid-core', GRID_CORE),
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--constructor.json`]: transcript('nvda-chromium', 'constructor',
+      [['arrow-right', ['row 2']]]),
+  });
+  const { nights: [read], notes } = readA11yArtifacts(files);
+
+  assert.deepEqual(notes, []);
+  assert.equal(Object.hasOwn(Object, 'grid-core'), false, 'nothing is written onto Object');
+  assert.ok(Object.hasOwn(read.reader, 'constructor'));
+  assert.deepEqual(read.reader.constructor['grid-core'].failed, ['close-editor', 'open-context-menu']);
+  assert.deepEqual(read.reader['nvda-chromium'].constructor.failed, ['arrow-right']);
+
+  const view = a11yView(mergeA11yLedger(null, read, runContextFromRun(READER_RUN), CATALOG, { now: NOW }).doc, CATALOG);
+
+  assert.deepEqual(view.reader.projects, ['constructor', 'nvda-chromium', 'vo-webkit']);
+  assert.deepEqual(Object.keys(view.reader.scenarios.find(item => item.scenario === 'constructor').verdicts), ['nvda-chromium'],
+    'a project without the scenario has no verdicts for it, never the prototype\'s');
+  assert.deepEqual(view.reader.scenarios.find(item => item.scenario === 'grid-core').verdicts.constructor,
+    { 'arrow-right': 'pass', 'close-editor': 'fail', 'open-context-menu': 'fail' });
 });
 
 test('an incomplete axe scan covers nothing: an unverified page or a tooling problem leaves the known rows as they were', () => {
@@ -506,15 +659,18 @@ test('mergeA11yLedger records a first night as new rows, each with its cluster a
 
   assert.deepEqual([byKind('focus-not-returned').cluster, byKind('focus-not-returned').tracker], ['focus-not-returned-after-escape', ['DEV-3603', 'DEV-3604']]);
   assert.deepEqual([byKind('headers-after-data').cluster, byKind('headers-after-data').tracker], ['overlay-clones-split-tree', 'DEV-3652']);
-  assert.deepEqual([byKind('axe-known').cluster, byKind('axe-known').tracker], ['menu-semantics', 'DEV-3491']);
-  assert.deepEqual([byKind('axe-new').cluster, byKind('axe-new').tracker], ['contrast-and-focus-visibility', 'DEV-2946']);
+  const axeRow = page => doc.rows.find(row => row.source === 'axe' && row.page === page);
+
+  assert.deepEqual([axeRow('context-menu').cluster, axeRow('context-menu').tracker], ['menu-semantics', 'DEV-3491']);
+  assert.deepEqual([axeRow('dark-grid').cluster, axeRow('dark-grid').tracker], ['contrast-and-focus-visibility', 'DEV-2946']);
   assert.deepEqual([byKind('tab-keeps-focus').cluster, byKind('tab-keeps-focus').tracker], [TRIAGE_ID, null]);
   assert.deepEqual(byKind('axe-needs-review').cluster, 'contrast-and-focus-visibility');
 
   assert.equal(doc.nights.length, 1);
   assert.deepEqual(doc.nights[0], {
     runId: '41584742628', runAttempt: 1, source: 'a11y', workflow: A11Y_NIGHTLY_WORKFLOW, event: 'schedule', branch: 'develop',
-    headSha: NIGHTLY.head_sha, seenAt: NIGHTLY.updated_at, findings: 11, new: 11, resolved: 0, flapping: 0, triage: 2, problems: 0,
+    headSha: NIGHTLY.head_sha, seenAt: NIGHTLY.updated_at, findings: 11, new: 11, resolved: 0, flapping: 0, triage: 2, triageShapes: 2,
+    problems: 0,
     clusters: {
       'contrast-and-focus-visibility': { seen: 2, new: 2, resolved: 0 },
       'focus-not-returned-after-escape': { seen: 2, new: 2, resolved: 0 },
@@ -528,9 +684,21 @@ test('mergeA11yLedger records a first night as new rows, each with its cluster a
       'tree-snapshots': { targets: 2, measured: 2, findings: 2, problems: 0 },
     },
     axe: { complete: true, findings: 3, problems: 0 },
+    // What a later attempt of this night is measured against; only the latest night of a source keeps it.
+    coverage: {
+      checks: {
+        'axe-discovery': ['context-menu|main|', 'formula-builder|main|', 'grid|main|'],
+        'keyboard-walker': ['autocomplete-editor|main|', 'multiselect-editor|main|'],
+        'tree-snapshots': ['grid|classic|', 'grid|main|'],
+      },
+      axe: true,
+      reader: [],
+      golden: [],
+    },
   });
   assert.deepEqual(doc.latest, { a11y: { runId: '41584742628', seenAt: NIGHTLY.updated_at }, reader: null });
-  assert.deepEqual(recorded, { source: 'a11y', runId: '41584742628', findings: 11, new: 11, resolved: 0, flapping: 0, triage: 2,
+  assert.deepEqual(recorded, { source: 'a11y', runId: '41584742628', runAttempt: 1, amended: false, findings: 11, new: 11, resolved: 0,
+    flapping: 0, triage: 2, triageShapes: 2,
     clusters: [['menu-semantics', 3], ['contrast-and-focus-visibility', 2], ['focus-not-returned-after-escape', 2], ['overlay-clones-split-tree', 2], ['needs-triage', 2]] });
   assert.equal(doc.updatedAt, NOW.toISOString());
 });
@@ -581,15 +749,20 @@ test('a second night resolves what its measured targets no longer show, keeps th
   assert.equal(third.recorded.flapping, 1);
   assert.equal(statusOf(third.doc, 'checks|keyboard-walker|focus-not-returned|||autocomplete-editor|main|editor||Escape on the editor state'), 'persisting');
 
-  // Seen on enough nights after its gap, a flapping row is persisting again.
+  // A flapping row is persisting again on the A11Y_FLAP_NIGHTS-th night in a row it is seen, the comeback included.
   let doc = third.doc;
 
-  for (let offset = 3; offset <= A11Y_FLAP_NIGHTS + 2; offset += 1) {
+  for (let inRow = 2; inRow <= A11Y_FLAP_NIGHTS; inRow += 1) {
+    const offset = inRow + 1;
+
     doc = mergeA11yLedger(doc, nightOf(nightlyFiles()), runContextFromRun({ ...NIGHTLY, id: 41700000000 + offset, updated_at: night(offset) }),
       CATALOG, { now: new Date(night(offset)) }).doc;
+
+    const row = doc.rows.find(item => item.kind === 'focus-lost');
+
+    assert.equal(row.seenSinceGap, inRow);
+    assert.equal(row.status, inRow < A11Y_FLAP_NIGHTS ? 'flapping' : 'persisting', `night ${inRow} in a row since the gap`);
   }
-  assert.equal(doc.rows.find(row => row.kind === 'focus-lost').status, 'persisting');
-  assert.equal(doc.rows.find(row => row.kind === 'focus-lost').seenSinceGap, A11Y_FLAP_NIGHTS + 1);
 });
 
 test('a reader night touches only reader rows, and the two sources keep their own latest night', () => {
@@ -645,8 +818,13 @@ test('a night is recorded once, in order, and a re-collection or an older night 
 
   assert.equal(again.changed, false);
   assert.equal(serializeA11yLedger(again.doc), serializeA11yLedger(first.doc), 'byte-identical, updatedAt included');
-  assert.match(again.notes[0], /run 41584742628 .*already recorded/);
+  assert.match(again.notes[0], /run 41584742628 \(a11y\) attempt 2 measured nothing attempt 1 had not; the night is already recorded/);
   assert.equal(again.recorded, null);
+
+  const same = mergeA11yLedger(first.doc, nightOf(nightlyFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: new Date(night(1)) });
+
+  assert.equal(same.changed, false);
+  assert.match(same.notes[0], /run 41584742628 \(a11y\) attempt 1 is already recorded \(attempt 1\); a run is read once per attempt/);
 
   const older = mergeA11yLedger(first.doc, nightOf(nightlyFiles()), runContextFromRun({ ...NIGHTLY, id: 41500000000, updated_at: night(-1) }),
     CATALOG, { now: new Date(night(1)) });
@@ -660,6 +838,82 @@ test('a night is recorded once, in order, and a re-collection or an older night 
 
   assert.equal(empty.changed, false);
   assert.match(empty.notes[0], /run 41600000000 .*no readable accessibility document/);
+});
+
+test('a later attempt of the latest night fills in what the recorded attempt did not measure, and leaves what it measured', () => {
+  // Attempt 1: the walker's autocomplete target hit a tooling problem after one finding, and the tree snapshots
+  // left no document.
+  const attempt1 = nightlyFiles({
+    [`${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker.json`]: evidenceDoc('keyboard-walker',
+      WALKER_FINDINGS.filter(item => item.page === 'multiselect-editor' || item.kind === 'focus-not-returned'), [
+        { page: 'autocomplete-editor', theme: 'main', status: 'measured', problems: 1 },
+        { page: 'multiselect-editor', theme: 'main', status: 'measured' },
+      ]),
+    [`${A11Y_EVIDENCE_ARTIFACT}/tree-snapshots.json`]: null,
+  });
+  // "Re-run failed jobs": attempt 2 measured every target, the tree too. On the multiselect target attempt 1
+  // measured, it no longer saw attempt 1's finding and saw another one: attempt 1's verdict there stands.
+  const attempt2 = nightlyFiles({
+    [`${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker.json`]: evidenceDoc('keyboard-walker', [
+      ...WALKER_FINDINGS.filter(item => item.page === 'autocomplete-editor'),
+      { kind: 'focus-stop-unnamed', criteria: ['4.1.2'], severity: 'serious', selector: 'input.ht-multi-select-editor-search-input',
+        step: 'where the popup put the focus', reason: 'The focus lands on a textbox with no accessible name', page: 'multiselect-editor',
+        theme: 'main', state: 'editor' },
+    ], [
+      { page: 'autocomplete-editor', theme: 'main', status: 'measured' },
+      { page: 'multiselect-editor', theme: 'main', status: 'measured' },
+    ]),
+  });
+  const first = mergeA11yLedger(null, nightOf(attempt1), runContextFromRun(NIGHTLY), CATALOG, { now: NOW });
+
+  assert.equal(first.doc.rows.length, 8);
+
+  const rerun = runContextFromRun({ ...NIGHTLY, run_attempt: 2, updated_at: '2026-11-03T07:10:00Z' });
+  const second = mergeA11yLedger(first.doc, nightOf(attempt2), rerun, CATALOG, { now: new Date(night(0.1)) });
+  const kinds = second.doc.rows.filter(row => row.check === 'keyboard-walker' || row.check === 'tree-snapshots')
+    .map(row => [row.kind, row.page, row.theme, row.status, row.lastSeen]);
+
+  assert.equal(second.changed, true);
+  assert.deepEqual(kinds, [
+    ['focus-lost', 'multiselect-editor', 'main', 'new', NIGHTLY.updated_at],
+    ['focus-not-returned', 'autocomplete-editor', 'main', 'new', NIGHTLY.updated_at],
+    ['tab-keeps-focus', 'autocomplete-editor', 'main', 'new', NIGHTLY.updated_at],
+    ['headers-after-data', 'grid', 'classic', 'new', NIGHTLY.updated_at],
+    ['headers-after-data', 'grid', 'main', 'new', NIGHTLY.updated_at],
+  ], 'the night keeps its time; on the target attempt 1 measured, its verdict stands, and attempt 2\'s new finding there is not added');
+  assert.ok(second.doc.rows.every(row => row.nightsSeen === 1), 'a row attempt 1 sighted on a target it could not finish is not counted twice');
+  assert.equal(second.doc.nights.length, 1);
+  assert.deepEqual([second.doc.nights[0].runAttempt, second.doc.nights[0].seenAt, second.doc.nights[0].findings, second.doc.nights[0].new],
+    [2, NIGHTLY.updated_at, 11, 11]);
+  assert.deepEqual(second.doc.nights[0].coverage.checks['keyboard-walker'], ['autocomplete-editor|main|', 'multiselect-editor|main|']);
+  assert.deepEqual(second.doc.nights[0].coverage.checks['tree-snapshots'], ['grid|classic|', 'grid|main|']);
+  assert.deepEqual(second.doc.latest.a11y, { runId: '41584742628', seenAt: NIGHTLY.updated_at });
+  assert.deepEqual([second.recorded.amended, second.recorded.runAttempt, second.recorded.findings], [true, 2, 11]);
+  assert.match(renderA11yLine([second.recorded]), /^Accessibility: a11y night 41584742628 amended by attempt 2, now 11 findings \(11 new,/);
+
+  // An attempt that measured nothing new changes nothing.
+  const third = mergeA11yLedger(second.doc, nightOf(attempt2), runContextFromRun({ ...NIGHTLY, run_attempt: 3 }), CATALOG,
+    { now: new Date(night(0.2)) });
+
+  assert.equal(third.changed, false);
+  assert.match(third.notes[0], /attempt 3 measured nothing attempt 2 had not/);
+
+  // Once a later night of the source is recorded, an attempt of the earlier one changes nothing, and only the latest
+  // night of a source keeps its coverage.
+  const later = mergeA11yLedger(second.doc, nightOf(nightlyFiles()), runContextFromRun({ ...NIGHTLY, id: 41600000000, updated_at: night(1) }),
+    CATALOG, { now: new Date(night(1)) }).doc;
+  const refused = mergeA11yLedger(later, nightOf(attempt2), runContextFromRun({ ...NIGHTLY, run_attempt: 4 }), CATALOG, { now: new Date(night(1)) });
+
+  assert.equal(refused.changed, false);
+  assert.match(refused.notes[0], /attempt 4: attempt 2 is recorded and a later a11y night followed it/);
+  assert.ok(later.nights.find(entry => entry.runId === '41600000000').coverage);
+  assert.equal('coverage' in later.nights.find(entry => entry.runId === '41584742628'), false);
+
+  // The rule is the latest night, not the stored coverage: an older night that still carries one is refused too.
+  const tampered = { ...later, nights: later.nights.map(entry => (entry.runId === '41584742628' ? { ...entry, coverage: second.doc.nights[0].coverage } : entry)) };
+
+  assert.equal(mergeA11yLedger(tampered, nightOf(attempt2), runContextFromRun({ ...NIGHTLY, run_attempt: 4 }), CATALOG,
+    { now: new Date(night(1)) }).changed, false);
 });
 
 test('the catalog decides the cluster on every merge, and an ambiguous rule is noted and sorted to the first', () => {
@@ -678,8 +932,10 @@ test('the catalog decides the cluster on every merge, and an ambiguous rule is n
 
   assert.deepEqual(walker.map(row => row.cluster), ['escape-focus', 'escape-focus', 'escape-focus']);
   assert.ok(next.doc.rows.filter(row => row.check !== 'keyboard-walker').every(row => row.cluster === TRIAGE_ID));
-  assert.equal(next.notes.filter(note => /matches 2 clusters \(escape-focus, editors\)/.test(note)).length, 2,
-    'one note per ambiguous finding: the two walker rows on the autocomplete editor page');
+  // One note per set of clusters, with its row count: an overlapping rule over hundreds of rows is one line.
+  assert.deepEqual(next.ambiguous, [{ clusters: ['escape-focus', 'editors'], rows: 2 }]);
+  assert.deepEqual(next.notes.filter(note => /match clusters/.test(note)),
+    ['2 row(s) match clusters escape-focus, editors; sorted to escape-focus; tests/a11y/issues.json needs one rule per finding']);
 });
 
 test('rows and nights fall out after the retention window, and the cap evicts the oldest resolved rows first', () => {
@@ -742,6 +998,29 @@ test('rows and nights fall out after the retention window, and the cap evicts th
   assert.equal(small.doc.nights.length, 3, 'no night was needed');
   assert.deepEqual(small.notes, [`a11y.json: dropped 2 resolved row(s) to stay under ${capBytes} bytes`]);
   assert.equal(small.doc.capBytes, capBytes);
+
+  // Past what the resolved rows free, the oldest night goes first, never an open row or the latest night of a source.
+  const withReader = mergeA11yLedger(doc, nightOf(readerFiles()), runContextFromRun({ ...READER_RUN, id: 41000000005, updated_at: at(5) }),
+    CATALOG, { now: new Date(at(10)) }).doc;
+  const full = mergeA11yLedger(withReader, emptyNight(), third, CATALOG, { now: new Date(at(11)) }).doc;
+  const openRows = full.rows.filter(row => row.status !== 'resolved');
+  const oneNightLess = serializeA11yLedger({ ...full, rows: openRows, nights: full.nights.filter(entry => entry.runId !== '41000000000') });
+  const nightCap = Buffer.byteLength(oneNightLess);
+  const evicted = mergeA11yLedger(withReader, emptyNight(), third, CATALOG, { now: new Date(at(11)), capBytes: nightCap });
+
+  assert.deepEqual(evicted.doc.nights.map(entry => entry.runId), ['41000000011', '41000000010', '41000000005'], 'the oldest night went first');
+  assert.deepEqual(evicted.doc.rows, openRows, 'every open row stayed');
+  assert.deepEqual(evicted.notes, [
+    `a11y.json: dropped 5 resolved row(s) to stay under ${nightCap} bytes`,
+    `a11y.json: dropped the 1 oldest night(s) to stay under ${nightCap} bytes`,
+  ]);
+
+  // A cap no history fits: every older night goes, the latest a11y and reader nights stay, and the note says it is over.
+  const tiny = mergeA11yLedger(withReader, emptyNight(), third, CATALOG, { now: new Date(at(11)), capBytes: 1000 });
+
+  assert.deepEqual(tiny.doc.nights.map(entry => entry.runId), ['41000000011', '41000000005']);
+  assert.deepEqual(tiny.doc.rows, openRows);
+  assert.match(tiny.notes.at(-1), /^a11y\.json: \d+ bytes even without resolved rows and older nights, over the 1000-byte cap$/);
 });
 
 test('serializeA11yLedger writes one night and one row per line, and reads back as the same document', () => {
@@ -779,11 +1058,11 @@ test('a11yView derives the clusters, their trend, the criteria, the reader verdi
     a11y: { runId: '41600000000', runAttempt: 1, seenAt: night(1), headSha: NIGHTLY.head_sha.slice(0, 10), workflow: A11Y_NIGHTLY_WORKFLOW },
     reader: { runId: '41579067604', runAttempt: 1, seenAt: READER_RUN.updated_at, headSha: NIGHTLY.head_sha.slice(0, 10), workflow: READER_NIGHTLY_WORKFLOW },
   });
-  // Nights oldest first, as the trend reads them: [run id, seen at, source, findings, new, resolved, triage, problems].
+  // Nights oldest first, as the trend reads them: [run id, seen at, source, findings, new, resolved, triage, problems, attempt].
   assert.deepEqual(view.nights, [
-    ['41579067604', READER_RUN.updated_at, 'reader', 5, 5, 0, 4, 0],
-    ['41584742628', NIGHTLY.updated_at, 'a11y', 11, 11, 0, 2, 0],
-    ['41600000000', night(1), 'a11y', 10, 0, 1, 2, 0],
+    ['41579067604', READER_RUN.updated_at, 'reader', 5, 5, 0, 4, 0, 1],
+    ['41584742628', NIGHTLY.updated_at, 'a11y', 11, 11, 0, 2, 0, 1],
+    ['41600000000', night(1), 'a11y', 10, 0, 1, 2, 0, 1],
   ]);
 
   const focus = view.clusters.find(cluster => cluster.id === 'focus-not-returned-after-escape');
@@ -794,7 +1073,13 @@ test('a11yView derives the clusters, their trend, the criteria, the reader verdi
   assert.deepEqual([focus.open, focus.new, focus.persisting, focus.flapping, focus.resolved], [2, 1, 1, 0, 1]);
   assert.equal(focus.nightsSeen, 3);
   assert.equal(focus.lastSeen, night(1));
-  assert.deepEqual(focus.trend, [[0, 1, 1, 0], [1, 2, 2, 0], [2, 1, 0, 1]], '[night index, seen, new, resolved]');
+  // One series per nightly the cluster comes from, over that nightly's nights only: [night index, seen, new, resolved].
+  assert.deepEqual(focus.trends, [
+    { source: 'a11y', points: [[1, 2, 2, 0], [2, 1, 0, 1]] },
+    { source: 'reader', points: [[0, 1, 1, 0]] },
+  ]);
+  assert.deepEqual(view.clusters.find(cluster => cluster.id === 'overlay-clones-split-tree').trends.map(series => series.source), ['a11y'],
+    'a cluster of the checks alone draws no reader night at zero');
   assert.deepEqual(focus.sources, [['checks', 1], ['reader', 1]]);
   assert.deepEqual(focus.kinds, [['focus-not-returned', 1], ['token-missing', 1]]);
   assert.deepEqual(focus.pages, [['autocomplete-editor', 1], ['grid-core', 1]]);
@@ -952,8 +1237,8 @@ test('the rendered accessibility section is accessible markup: tables with heade
 
   const code = template.slice(template.indexOf("document.getElementById('a11y-data').textContent"));
 
-  assert.ok(code.includes("chart.setAttribute('role', 'img')") && code.includes("chart.setAttribute('aria-label', cluster.title"),
-    'a trend chart is an image named after its cluster');
+  assert.ok(code.includes("chart.setAttribute('role', 'img')") && code.includes("chart.setAttribute('aria-label', cluster.title + ', ' + name"),
+    'a trend chart is an image named after its cluster and its nightly');
 });
 
 test('test-health.yml chains on the two nightlies, downloads the three artifacts for a develop run only, and hands the collector the catalog', () => {
@@ -1098,13 +1383,60 @@ test('a pull request run with accessibility artifacts records nothing, and a run
 
     assert.equal(pullRequest.status, 0, pullRequest.stderr);
     assert.deepEqual(sandbox.snapshot(), before, 'a pull request\'s evidence changes no published byte');
-    assert.match(pullRequest.stdout, /4 accessibility artifact file\(s\) not recorded: only develop runs are/);
+    assert.match(pullRequest.stdout, /4 accessibility artifact file\(s\) not recorded: only the A11y and Screen reader nightlies on develop are/);
+
+    // A fork's pull request opened from the fork's own develop: its Tests run reports develop as its branch, and its
+    // evidence would resolve every walker row its code no longer shows.
+    const forkDevelop = sandbox.collect({ ...PULL_REQUEST, id: 41799999999, head_branch: 'develop' }, sandbox.artifacts('fork', nightlyFiles({
+      [`${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker.json`]: evidenceDoc('keyboard-walker', [], [
+        { page: 'autocomplete-editor', theme: 'main', status: 'measured' }, { page: 'multiselect-editor', theme: 'main', status: 'measured' }]),
+    })), '2026-11-03T08:30:00Z');
+
+    assert.equal(forkDevelop.status, 0, forkDevelop.stderr);
+    assert.deepEqual(sandbox.snapshot(), before, 'a pull request from a branch named develop changes no published byte');
+    assert.ok(!forkDevelop.stdout.includes('Accessibility:'));
 
     const nothing = sandbox.collect({ ...NIGHTLY, id: 41584742999, name: 'E2E nightly' }, sandbox.artifacts('empty', []), '2026-11-03T09:00:00Z');
 
     assert.equal(nothing.status, 0, nothing.stderr);
     assert.deepEqual(sandbox.snapshot(), before, 'a develop run without the family changes nothing');
     assert.ok(!nothing.stdout.includes('Accessibility:'));
+  } finally {
+    sandbox.remove();
+  }
+});
+
+test('the collector warns on the run when a row matches two clusters or a night has more triage shapes than the catalog allows', () => {
+  const sandbox = collectorSandbox();
+
+  try {
+    const catalogFile = path.join(sandbox.ledgerDir, '..', 'overlapping-catalog.json');
+
+    mkdirSync(sandbox.ledgerDir, { recursive: true });
+    writeFileSync(catalogFile, JSON.stringify({
+      schema: ISSUES_SCHEMA,
+      triageLimit: 1,
+      clusters: [
+        { id: 'escape-focus', title: 'Escape', match: [{ source: 'checks', kinds: ['focus-not-returned', 'focus-lost'] }] },
+        { id: 'editors', title: 'Overlaps the first', match: [{ source: 'checks', pages: ['autocomplete-editor'] }] },
+      ],
+    }));
+
+    const run = sandbox.collect(NIGHTLY, sandbox.artifacts('nightly', nightlyFiles()), '2026-11-03T06:00:00Z', { catalog: catalogFile });
+
+    // The walker's focus-not-returned on the autocomplete editor page matches both clusters. Eight rows need triage
+    // (the discovery's three, the scan's three, the tree's two), in six shapes: a shape leaves the theme out.
+    assert.equal(run.status, 0, run.stderr);
+    assert.match(run.stderr, /^::warning title=Test health::1 accessibility row\(s\) match clusters escape-focus, editors: tests\/a11y\/issues\.json needs one rule per finding$/m);
+    assert.match(run.stderr, /^::warning title=Test health::the a11y night 41584742628 has 6 finding shape\(s\) in needs-triage, over the catalog's triageLimit of 1/m);
+    assert.match(run.stdout, /has 6 finding shape\(s\) in needs-triage/, 'and the step summary says it too');
+
+    // The committed catalog over the same night raises neither.
+    const clean = sandbox.collect({ ...NIGHTLY, id: 41584742700, updated_at: '2026-11-04T05:44:30Z' }, sandbox.artifacts('nightly-2', nightlyFiles()),
+      '2026-11-04T06:00:00Z');
+
+    assert.equal(clean.status, 0, clean.stderr);
+    assert.ok(!clean.stderr.includes('::warning'), clean.stderr);
   } finally {
     sandbox.remove();
   }

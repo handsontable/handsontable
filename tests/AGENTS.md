@@ -1887,16 +1887,25 @@ its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI
 A raw night leaves thousands of records (the discovery run alone about 3,900), most of them the same few
 defects on many pages, and a check's artifact says nothing about the night before. The findings ledger
 accumulates them: `test-health.yml` chains on `A11y nightly` and `Screen reader nightly`, and the
-collector reads every check document, the axe findings and every transcript of a develop run into
-`test-health/a11y.json` on `gh-pages`, one row per finding across nights, which the "Accessibility" section
-of <https://handsontable.github.io/handsontable/test-health/> draws. The pure half is
-`.github/scripts/lib/a11y-ledger.mjs`; the catalog that sorts the rows is `a11y/issues.json`, read through
-`lib/a11y-issues.mjs`. The CI mechanics (the trigger, the download filter, the develop rule, the caps) are
-in `.ai/CI.md`; this section is the policy.
+collector reads every check document, the axe findings and every transcript of those two nightlies on
+develop, run by schedule or dispatch, into `test-health/a11y.json` on `gh-pages`, one row per finding across
+nights, which the "Accessibility" section of <https://handsontable.github.io/handsontable/test-health/>
+draws. The pure half is `.github/scripts/lib/a11y-ledger.mjs`; the catalog that sorts the rows is
+`a11y/issues.json`, read through `lib/a11y-issues.mjs`. The CI mechanics (the trigger, the download filter,
+the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
+
+- **Only the nightlies' evidence is a night.** A pull request's run uploads the same artifacts, made by the
+  pull request's own code, and a fork's pull request from the fork's `develop` reports `develop` as its
+  branch; recording it would resolve every row its code no longer shows. `isA11yRun()` takes a run of
+  `A11y nightly` or `Screen reader nightly`, on develop, started by its schedule or a dispatch, and nothing
+  else.
 
 - **A finding keeps its identity across nights, or the ledger shows nothing but churn.** A row is keyed by
   its source, check and kind, the axe rule and cause it names, its page, theme, state and variant, and the
-  masked selector or step, never by the reason, the severity or the criteria, which a check may reword.
+  masked selector or step, never by the reason, the severity, the criteria or the baseline issue, which a
+  check or a baseline change may reword or refile. Every finding of the gating axe scan is one kind,
+  `axe-violation`, read once per location, so a location keeps its row when it grows, shrinks or is
+  baselined.
   `maskSelector()` masks what the run decided: a generated instance id (`ht_<hash>`, `wt_<hash>`) becomes
   `ht_*` wherever it sits, a positional index becomes `:nth-child(n)`, and the axe baseline's
   `VOLATILE_CLASSES` (a state, a layer, a layout) are dropped, so one list decides for the baseline's
@@ -1906,26 +1915,39 @@ in `.ai/CI.md`; this section is the policy.
   follow a state; `lib/__tests__/a11y-issues.test.mjs` pins the mask on every class of the list.
 - **A row is resolved by evidence of absence, never by silence.** A row of the night's source that the
   night did not find is `resolved` only when the night measured its target: for a check, the target
-  (page, theme, variant) is `measured` in the check's document; for the axe scan, the document has no
-  tooling problem and no unverified page; for a reader step, the transcript of its scenario on its project
-  is there and did not stop. A check that did not run, a target that errored or a transcript that stopped
-  leaves its rows as they were, so a red tooling night never reads as a night of fixes. A row seen for the
-  first time is `new`, one seen again `persisting`, and one that comes back after being resolved
-  `flapping` until it has been seen `A11Y_FLAP_NIGHTS` nights in a row: a fix that did not hold, or a check
-  that measures unevenly, shows there before it shows anywhere else.
-- **Nights are read once, in order.** A run already recorded, or one that completed before the latest
-  night of its source, changes nothing: statuses are derived night by night, so a backfill
-  (`workflow_dispatch` of `test-health.yml` with the nightly's run id) goes in order. The two sources keep
-  their own latest night, because the reader nightly completes an hour before the A11y nightly.
+  (page, theme, variant) is `measured` in the check's document with no tooling problem (`problems` > 0
+  means a step did not run, and `mergeEvidence()` counts such a target as evaluating no criterion), and no
+  finding on it was dropped by the collector; for the axe scan, the document has no tooling problem, no
+  unverified page and no entry the collector could not read; for a reader step, the transcript of its
+  scenario on its project is there, did not stop and lost no step, and for a golden difference the
+  transcript's wording was compared with a golden (`match` or `differs`; `recorded` and `missing` compared
+  nothing). Anything less leaves its rows as they were, so a red tooling night never reads as a night of
+  fixes. A row seen for the first time is `new`, one seen again `persisting`, and one that comes back after
+  being resolved `flapping` until it has been seen `A11Y_FLAP_NIGHTS` nights in a row, the night it came
+  back included: a fix that did not hold, or a check that measures unevenly, shows there before it shows
+  anywhere else.
+- **Nights are read once per attempt, in order.** An attempt already recorded, or a run that completed
+  before the latest night of its source, changes nothing: statuses are derived night by night, so a backfill
+  (`workflow_dispatch` of `test-health.yml` with the nightly's run id) goes in order. A later attempt of the
+  latest night of its source ("Re-run failed jobs", which keeps the run id and replaces the artifacts) fills
+  in what the recorded attempt did not measure, against the coverage that night keeps in its record, and
+  leaves what the recorded attempt measured as it was: undoing a recorded night would need every row's state
+  from before it. The two sources keep their own latest night, because the reader nightly completes an hour
+  before the A11y nightly, and a cluster's trend on the page has one series per nightly for the same reason.
 - **The catalog sorts every row into one root-cause cluster, and every merge re-sorts.** `a11y/issues.json`
   extends the axe baseline's issue catalog: a cluster has a stable kebab-case `id`, a `title` that says what
   the problem is, an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
   never printed on the page, which says only that a cluster is tracked) and `match` rules. A rule names its
   `source` (`checks`, `axe` or `reader`) and any of `checks` (check ids, or reader projects), `kinds`,
   `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria`, `pages` (patterns
-  anchored to the page id, or the scenario), `themes`, `where` (patterns searched in the masked selector or
-  step) and `axeIssues` (the baseline issue a known axe finding is filed under). Values in a field are ORed,
-  fields in a rule ANDed, rules in a cluster ORed. The rows carry `cluster` and `tracker` as the catalog
+  anchored to the page id, or the scenario), `themes`, `where` (patterns searched in the finding's `where`)
+  and `axeIssues` (the baseline issue an axe finding is filed under, or the one the scan suggests for a new
+  finding of a known rule and target). Values in a field are ORed, fields in a rule ANDed, rules in a
+  cluster ORed. A finding's `where` is its masked selector, its step, or both joined as
+  `<masked selector> @ <step>` (a keyboard-walker stop, a probe), so `^` anchors at the selector and `$` at
+  the step: write a step pattern without `^` when the finding also names an element. A field no finding of
+  the rule's source carries (a reader step has no rule, cause, criterion, theme or baseline issue; a check
+  has no baseline issue; the axe scan has no cause) is refused, because the rule could never match. The rows carry `cluster` and `tracker` as the catalog
   says on the night they were last merged, so renaming a cluster or moving a rule is one change to the
   file and takes effect on the next night, with no migration.
 
@@ -1943,14 +1965,20 @@ in `.ai/CI.md`; this section is the policy.
   }
   ```
 
-- **One cluster per finding, and the triage queue only shrinks.** A finding no rule matches lands in
+- **One cluster per finding, and the triage count is exact.** A finding no rule matches lands in
   `needs-triage`, which the page lists by shape (check, kind, rule and where, widest first). A finding that
   two rules match is a catalog error: `lib/__tests__/a11y-issues.test.mjs` maps every row of
   `lib/__tests__/fixtures/a11y-findings-sample.json` (one row per distinct finding shape of a real night, with
   the check that had not run yet written by hand and said so) and fails on an ambiguous one, on a cluster
-  that matches nothing in the sample (a cluster leaves the catalog with its last finding, like a baseline
-  issue), and on a triage count other than `triageLimit`, exactly: the change that sorts a shape into a
-  cluster lowers the number, and a change that adds one raises it in the same pull request, visibly. A
+  or a rule that matches nothing in the sample (a cluster leaves the catalog with its last finding, like a
+  baseline issue), and on a triage count other than `triageLimit`, exactly: lowered when a shape is sorted
+  into a cluster, raised only visibly, in the change that adds one. The sample is frozen, so the test also
+  checks every id a rule names against its live source: `criteria` against `WCAG_CRITERIA`, `themes` against
+  the scan's themes, `axeIssues` against `a11y/axe-baseline.json`, a reader rule's `checks` against the
+  projects of `playwright.screenreader.config.ts`, and a check rule's `kinds` against the kinds the checks'
+  code can emit. Renaming one of those fails the catalog's test until the catalog follows. On a live night
+  the collector raises a `::warning` on its run for a row two clusters match and for a night with more
+  triage shapes than `triageLimit`, which is the sign to refresh the sample and sort the new shapes. A
   cluster is a root cause, not a bucket: add one when its findings would be fixed by one change (the
   overlay clones split the tree, the focus is not returned after Escape), name it by what is wrong, and
   put a screen reader's own behavior in a cluster that says so rather than in the queue. The axe baseline's
@@ -1959,8 +1987,9 @@ in `.ai/CI.md`; this section is the policy.
 - **The sample is a real night, deduplicated.** To refresh it after a check changes what it records, run the
   collector over the night's artifacts (`gh run download <run id> -n a11y-checks-evidence -n a11y-axe-results`,
   and the `screenreader-transcripts-<project>` artifacts of a reader nightly), read them with
-  `readA11yArtifacts()` and keep one row per `source|check|kind|rule|cause|page|where`, the fields the
-  matcher reads plus `theme`, `criteria`, `issue` and `severity`; say in `about` which runs it came from.
+  `readA11yArtifacts()` and keep one row per `findingShape()` (`source|check|kind|rule|cause|page|where`),
+  the fields the matcher reads plus `theme`, `criteria`, `issue` and `severity`; say in `about` which runs it
+  came from.
 - **Locally, the collector is the dry run.** Download a night's artifacts into one directory per artifact,
   write the run's payload with `gh api repos/handsontable/handsontable/actions/runs/<id>`, and run
   `node .github/scripts/test-health-collect.mjs --run run.json --artifacts <dir> --ledger-dir <scratch>/test-health
