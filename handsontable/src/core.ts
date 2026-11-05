@@ -662,6 +662,7 @@ export default function Core(
    * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
    */
   let slotsResizeObserver: ResizeObserver | null = null;
+  let reserveSlotsChangedAtInit: (() => boolean) | null = null;
   /**
    * Stops watching the document's web font loads (see `refreshAfterFontsLoad()`), or `null` before
    * `init` started watching.
@@ -2990,6 +2991,20 @@ export default function Core(
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
       let lastSlotsHeight = measureSlotsHeight();
+      const reserveChangedSlots = () => {
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return false;
+        }
+
+        lastSlotsHeight = slotsHeight;
+        reapplyPixelRootHeight(instance, tableMeta.height);
+
+        return true;
+      };
+
+      reserveSlotsChangedAtInit = reserveChangedSlots;
 
       // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
       // bar that mounts late or changes height would keep a stale reservation until an unrelated
@@ -3002,17 +3017,9 @@ export default function Core(
           return;
         }
 
-        const slotsHeight = measureSlotsHeight();
-
-        if (slotsHeight === lastSlotsHeight) {
-          return;
+        if (reserveChangedSlots()) {
+          instance.render();
         }
-
-        lastSlotsHeight = slotsHeight;
-
-        reapplyPixelRootHeight(instance, tableMeta.height);
-
-        instance.render();
       });
       slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
@@ -3045,7 +3052,22 @@ export default function Core(
 
     instance.runHooks('init');
 
+    // An `init` listener can fill a slot: the license notification writes the missing-features bar there,
+    // once every plugin's ready step has reported what the key leaves out. The slot observer would reserve
+    // its height a frame later, so the first render would size the grid as if the bar took no room. Reserve
+    // it now, and once more after the first render, which sets the slot's width to the table's and can wrap
+    // the bar onto more lines. Both run before `afterInit`, so its listeners read the final viewport.
+    const reserveSlots = reserveSlotsChangedAtInit;
+
+    reserveSlotsChangedAtInit = null;
+    reserveSlots?.();
+
     instance.render();
+
+    // A listener of the first render can destroy the grid, which sets `instance` to `null`.
+    if (reserveSlots !== null && instance && !instance.isDestroyed && reserveSlots()) {
+      instance.render();
+    }
 
     if (stopWatchingFontLoads === null) {
       stopWatchingFontLoads = watchFontLoads(instance.rootDocument, refreshAfterFontsLoad);
