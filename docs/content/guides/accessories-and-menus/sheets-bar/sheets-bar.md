@@ -408,6 +408,47 @@ A sheet added with the **Add sheet** button, or with `addSheet()` without `setti
 
 Use each sheet's tab name as its `sheetName`. A tab rename then renames the engine sheet and rewrites the references to it, also in your `data` arrays. Inserting, removing, or moving rows or columns rewrites formula text in your `data` arrays too.
 
+### Create tabs from a HyperFormula instance
+
+If your HyperFormula instance already holds sheets, set `sheetsBar: true` without `sheets`, and pass the instance in the grid-level `formulas` option. The bar shows one tab per engine sheet, in the engine's order, named after the engine sheet:
+
+```js
+const hf = HyperFormula.buildFromSheets({
+  Revenue: [['Acme Corp', 4200000], ['Vertex Industries', 18700000]],
+  Summary: [['=SUM(Revenue!B1:B2)']],
+});
+
+const hot = new Handsontable(container, {
+  formulas: { engine: hf },
+  sheetsBar: true,
+});
+```
+
+This is the same as declaring each engine sheet in `sheets` with `{ formulas: { engine: hf, sheetName } }`. Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead.
+
+Each tab shows its engine sheet's content as entered, formulas included. Rows are padded to the widest row, and an empty engine sheet gets the blank data of a new sheet.
+
+If you also set `data`, it becomes one more tab:
+
+- With `formulas.sheetName` naming an engine sheet, the tab shows `data` and replaces that sheet's content. The sheet gets no second tab.
+- With `formulas.sheetName` naming a sheet the engine doesn't have, the engine gets a new sheet of that name.
+- Without `formulas.sheetName`, the engine gets a new sheet named like the tab, for example `Sheet1`.
+
+The tab the grid opens on is always the first tab:
+
+- The `data` tab, if you set `data`.
+- Otherwise, the `formulas.sheetName` sheet. If the engine has no such sheet, the bar logs a warning and opens the first engine sheet. No engine sheet is created.
+- Otherwise, the `activeSheet` sheet, counted in the engine's order.
+- Otherwise, the first engine sheet.
+
+Adding, renaming, duplicating, and removing tabs works on the engine as it does for declared sheets. Removing a tab removes its engine sheet.
+
+::: only-for vue
+
+Wrap the instance in `markRaw()`, for example `formulas: { engine: markRaw(hf) }`. A reactive proxy of the engine is a different object, so formulas would read another engine.
+
+:::
+
 ## Import and export
 
 An import with the [`ImportFile`](@/api/importFile.md) plugin changes the active sheet only: its data, layout, and cell styles. The imported layout becomes part of that sheet's settings, so change it with [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings).
@@ -431,6 +472,7 @@ With `exportFormulas: true`, a formula that references another sheet keeps that 
 - When the plugin loads new rows for a sheet that isn't shown (for example, a server response), your entry's `data` keeps the old array.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - With formulas, a sheet that is sorted or has moved rows or columns doesn't see changes you make in place to its `data` while it's hidden. Pass a new `sheets` value instead, which rebuilds the workbook.
+- Tabs created from a HyperFormula instance are read once, when the bar is enabled. Sheets you add, remove, or rename in the engine yourself after that don't change the tabs, and a different engine passed later through [`updateSettings()`](@/api/core.md#updatesettings) doesn't rebuild them.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. Read the current name from `hot.getPlugin('formulas').sheetName`.
 - With formulas, a rename that rewrites references inside a frozen `data` array (for example, from Immer) writes them into a copy, not into your array, so update your store yourself. On the active sheet, this also clears the undo history.
 - A sheet comes back with the invalid marks it had when you left it. A cell that becomes invalid while its sheet is hidden isn't marked until it's validated again, for example by an edit or [`validateCells()`](@/api/core.md#validatecells).
