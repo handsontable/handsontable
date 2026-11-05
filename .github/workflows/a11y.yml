@@ -36,14 +36,23 @@ name: A11y
 # every level: a finding is a row in the job summary and a `neutral` `A11y / <check> report` check
 # run, a check run is never `failure`, and the job carries `continue-on-error`, so a tooling failure
 # turns the job red, as it does the axe job, and never the Tests pipeline.
-# A pull request runs the checks that finish in under two minutes (`pullRequest` in EVIDENCE_CHECKS,
-# tests/lib/a11y-evidence.mjs); the A11y nightly (a11y-nightly.yml, `nightly: true`) runs them all.
+# The job runs only when the caller sets `checks: true`: the A11y nightly (a11y-nightly.yml) does, the
+# pull-request Tests pipeline (test.yml) does not, so a pull request runs the axe scan alone. The checks
+# are report-only and the accessibility program is still building its picture, so a pull request learned
+# nothing from them it could act on; the nightly on develop keeps every check and its evidence. `nightly`
+# picks the suite: every check, or the short suite a check earns by finishing in under two minutes
+# (`pullRequest` in EVIDENCE_CHECKS, tests/lib/a11y-evidence.mjs), which a developer runs locally or
+# through a dispatch of the nightly that asks for it.
 # The policy is tests/AGENTS.md, "A11y: the checks beyond axe".
 on:
   workflow_call:
     inputs:
+      checks:
+        description: Run the checks beyond axe. Off by default, so a pull request runs the axe scan only; the A11y nightly turns it on.
+        type: boolean
+        default: false
       nightly:
-        description: Run every check beyond axe, not only the ones pull requests run, and keep the evidence longer.
+        description: Run every check beyond axe, not only the short suite, and keep the evidence longer.
         type: boolean
         default: false
 
@@ -141,6 +150,9 @@ jobs:
 
   checks:
     name: checks
+    # Only when the caller asks (the A11y nightly does, test.yml does not). A skipped job runs no step,
+    # so a pull request gets no `A11y / <check> report` check run, stale or otherwise.
+    if: ${{ inputs.checks }}
     runs-on: ubuntu-26.04
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
@@ -173,8 +185,8 @@ jobs:
       # step is a tooling failure the document already records: it turns the job red, the steps below
       # still run (`!cancelled()`), and the job's `continue-on-error` keeps the Tests pipeline green.
       # The step times out before the job (a step timeout is a step failure, so the evidence, the summary
-      # and the check runs below still come), sized per suite: a pull request runs only the checks that
-      # finish in under two minutes, and a hung one holds the Tests pipeline until the timeout.
+      # and the check runs below still come), sized per suite: the short suite runs only the checks that
+      # finish in under two minutes, every check gets twenty.
       - name: Run the checks beyond axe
         id: run
         timeout-minutes: ${{ inputs.nightly && 20 || 10 }}

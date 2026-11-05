@@ -73,8 +73,11 @@ describe('entitlementLicenseKey/detectFormat', () => {
   it('should tell the other key formats apart without validating them', () => {
     expect(detectLicenseKeyFormat('852a2-94216-cca54-21009-14a44')).toBe('legacy');
     expect(detectLicenseKeyFormat('00000-00000-00000-00000-00000')).toBe('legacy');
-    expect(detectLicenseKeyFormat('non-commercial-and-evaluation')).toBe('non-commercial-and-evaluation');
-    expect(detectLicenseKeyFormat('NON-COMMERCIAL-AND-EVALUATION')).toBe('non-commercial-and-evaluation');
+    // Handsontable 19.0 recognizes no literal key: the non-commercial key reads as an unknown string,
+    // which the legacy path rejects as invalid (PRO-1356).
+    expect(detectLicenseKeyFormat('non-commercial-and-evaluation')).toBe('unknown');
+    expect(detectLicenseKeyFormat('NON-COMMERCIAL-AND-EVALUATION')).toBe('unknown');
+    expect(detectLicenseKeyFormat('ht68e-1f2b7-47158-70b05-0842f')).toBe('unknown');
     // `gpl-v3` is NOT a Handsontable format - the specification's legacy list covers HyperFormula
     // too, and the frozen validator has never recognized it. It reads as an unknown string.
     expect(detectLicenseKeyFormat('gpl-v3')).toBe('unknown');

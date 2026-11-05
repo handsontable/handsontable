@@ -13,6 +13,15 @@ import { addressesChangedColumn, type ColumnChangeTest } from './stepColumns';
 import { haveSameIndexMaps } from '../../translations/indexMapperSnapshot';
 import { LICENSE } from './feature.generated';
 
+/**
+ * `HotInstance` augmented with the internal `_getValueToValidate` method. It exists on the Core runtime
+ * object but is intentionally NOT part of the public `HotInstance` type, so it is not exposed to
+ * third-party code. The re-validation of restored cells reads the value it validates through it.
+ */
+type HotInstanceInternal = HotInstance & {
+  _getValueToValidate(row: number, column: number): unknown;
+};
+
 const SHORTCUTS_GROUP = 'undoRedo';
 
 export interface UndoRedoAction {
@@ -1104,9 +1113,12 @@ export class UndoRedo extends BasePlugin {
       }
     };
 
+    // The value an edit of the cell would validate: for a key/value or multiselect cell that is the stored
+    // value, and its `valueGetter` output fails its own validator.
     validated.forEach(([row, column]) => {
       this.hot.validateCell(
-        this.hot.getDataAtCell(row, column), this.hot.getCellMeta(row, column), onValidated, 'UndoRedo.revalidate',
+        (this.hot as HotInstanceInternal)._getValueToValidate(row, column), this.hot.getCellMeta(row, column),
+        onValidated, 'UndoRedo.revalidate',
       );
     });
   }

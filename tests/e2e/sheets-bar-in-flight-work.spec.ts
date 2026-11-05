@@ -188,4 +188,35 @@ test.describe('SheetsBar switch with work still in flight', () => {
 
     expect(await grid.selected()).toEqual([[0, 0, 0, 0]]);
   });
+
+  [true, false].forEach((hideOnBeta) => {
+    test(`keeps each sheet's selection across a round trip under the Loading overlay, hidden on ${hideOnBeta ? 'Beta' : 'Alpha'}`, async() => {
+      await grid.goto('loading');
+
+      await grid.openSheet('Beta');
+      await grid.selectCell(0, 0);
+      await grid.openSheet('Alpha');
+      await grid.selectCell(2, 1);
+
+      await grid.setLoading(true);
+
+      expect(await grid.setActiveSheet('Beta')).toBe(true);
+
+      if (hideOnBeta) {
+        await grid.setLoading(false);
+
+        expect(await grid.selected()).toEqual([[0, 0, 0, 0]]);
+        expect(await grid.setActiveSheet('Alpha')).toBe(true);
+        expect(await grid.selected()).toEqual([[2, 1, 2, 1]]);
+      } else {
+        expect(await grid.setActiveSheet('Alpha')).toBe(true);
+
+        await grid.setLoading(false);
+
+        expect(await grid.selected()).toEqual([[2, 1, 2, 1]]);
+        expect(await grid.setActiveSheet('Beta')).toBe(true);
+        expect(await grid.selected()).toEqual([[0, 0, 0, 0]]);
+      }
+    });
+  });
 });

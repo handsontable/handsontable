@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed editor lists, menus, and the Filters value list injecting the core stylesheet when `injectCoreCss` is set to `false`. A grid in a shadow root with that setting now needs the core CSS loaded in the document as well, or its menus render unstyled.",
+  "type": "fixed",
+  "issueOrPR": 14140,
+  "breaking": false,
+  "framework": "none"
+}

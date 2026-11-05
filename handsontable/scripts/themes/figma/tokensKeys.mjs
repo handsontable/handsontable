@@ -67,6 +67,9 @@ const tokensKeys = [
   'cell-autofill-background-color',
   'cell-autofill-fill-border-color',
 
+  // Custom Borders Variables
+  'custom-borders-default-color',
+
   // Cell Editor Variables
   'cell-editor-border-width',
   'cell-editor-border-color',
@@ -326,15 +329,11 @@ const tokensKeys = [
   'resize-indicator-color',
 
   // Freeze Bar Variables
-  // These three are not in the Figma design system yet. Regenerating the themes from a Figma export that lacks them
-  // drops them from the generated files, so add them to the Figma file first.
   'freeze-bar-color',
   'freeze-bar-hover-color',
   'freeze-bar-highlight-color',
 
   // Async Values Variables
-  // These two are not in the Figma design system yet. Regenerating the themes from a Figma export that lacks them
-  // drops them from the generated files, so add them to the Figma file first.
   'async-indicator-color',
   'async-error-background-color',
   'async-error-marker-color',

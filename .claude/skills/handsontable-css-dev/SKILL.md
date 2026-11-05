@@ -70,21 +70,22 @@ The glyph comes from the per-theme `--ht-icon-<name>` variable plus a generated 
 - **Migrating a site: move the state rules too.** Re-key every `:hover`, `:focus`, `:disabled`, `:checked`, or `.is-active` rule that colored the old pseudo-element onto `.ht-icon` (or a class the `<i>` carries); otherwise the glyph stays visually dead on state changes.
 - **Adding or renaming an icon touches four lists** that a test or `tsc` cross-checks: the generator side in `handsontable/scripts/themes/figma/.ai/CONVENTIONS.md` ("Adding or changing an icon") and `IconKey`/`ICON_NAMES`/`VALID_ICON_KEYS` at runtime.
 
-## Adding a new theme token: four layers
+## Adding a new theme token: Figma first, then four layers
 
 For a `--ht-<component>-<property>` variable and its JS token. A rename or removal follows the same playbook plus a legacy-alias path. Group the new entry next to related ones in each file.
 
-### Layer 1: static CSS defaults (6 files)
+**The rule: a new or changed theme token goes into the Handsontable Design System in Figma FIRST, while the PR is open, and reaches the code only through `npm run generate:themes`.** Never hand-edit `src/themes/static/`: the generator wipes it on every run, and aborts when the Figma export lacks a key listed in `tokensKeys.mjs`. Never merge a token that is in the code but not in Figma, and never leave a "not in Figma yet" note for later (the freezeBar and asyncValues tokens shipped that way and had to be added to Figma afterwards). `src/themes/__tests__/staticThemesGenerated.unit.js` fails on any hand edit of the static files. The only layers you edit by hand are 3 and 4 below, `tokensKeys.mjs`, the SCSS that consumes the variable, and the docs.
 
-`handsontable/src/themes/static/css/theme/ht-theme-{main,classic,horizon}{,-no-icons}.css`
+### Layers 1 and 2: Figma, then the generator
 
-Define `--ht-<kebab-case-name>` and its resolved default per theme, usually via `var(...)` of lower-level tokens so overrides keep cascading. All themes declare the same key set. Symptom when missing: the variable is undefined in DevTools while ThemeBuilder tests that skip rendered styles pass.
+These are the 6 static CSS files (`handsontable/src/themes/static/css/theme/ht-theme-{main,classic,horizon}{,-no-icons}.css`) and the 3 token modules (`handsontable/src/themes/static/variables/tokens/{main,classic,horizon}.ts`), which drive `ThemeBuilder`. Both are generated:
 
-### Layer 2: token JS runtime defaults (3 files)
+1. **Add the variable in Figma** (file `LGHQ25fTQMJouoO4qSdZJV`, `themes` collection, one mode per theme) with `use_figma` (load the `figma-use` and `figma-generate-library` skills first), or ask the designer. Name it `component/<area>/<kebab-key>`, and keep the last name segment unique in the collection: the generator looks a key up by it. Alias an existing variable in every mode (a `themes` variable such as `common/colors/accent-color`, a `mode` variable for a light/dark pair, or a `sizing`/`density` one) rather than typing a raw value, so overrides keep cascading. Set explicit `scopes`, `codeSyntax.WEB` = `var(--ht-<kebab-key>)` and a description. The precedents are `component/freeze-bar/*` and `component/async-values/*`.
+2. **Add the kebab-case key to `handsontable/scripts/themes/figma/tokensKeys.mjs`**, in its feature group. A key that is in Figma but not in this list is dropped.
+3. **The user exports `tokens.json`** with the Design Tokens plugin (Variables only) to `handsontable/scripts/themes/figma/tokens.json`. An agent cannot run the plugin; ask for the export and wait.
+4. **Run `npm run generate:themes`** from `handsontable/`. Review the `src/themes/static` diff: the new key in all 6 CSS files and all 3 token modules, and nothing else (an unrelated change means the export is out of date or Figma drifted). Commit the diff together with `scripts/themes/figma/static-manifest.json`, which the run rewrites.
 
-`handsontable/src/themes/static/variables/tokens/{main,classic,horizon}.ts`
-
-These drive `ThemeBuilder`. camelCase keys mirror the CSS variable (`paginationButtonBorderColor` for `--ht-pagination-button-border-color`); values use `'tokens.otherTokenName'` strings or primitive arrays like `['colors.palette.100', 'colors.palette.700']`. Symptom when missing: `createTheme()` ignores the token.
+camelCase keys mirror the CSS variable (`paginationButtonBorderColor` for `--ht-pagination-button-border-color`); values come out as `'tokens.otherTokenName'` strings or light/dark arrays like `['colors.palette.100', 'colors.palette.700']`. Symptom when missing: the variable is undefined in DevTools, and `createTheme()` ignores the token.
 
 ### Layer 3: validation allow-list
 
@@ -108,8 +109,8 @@ Reference the variable from the component SCSS under `src/styles/components/` (e
 
 ### Pre-flight
 
-1. CSS in all 6 theme files.
-2. JS token in all 3 runtime files.
+1. Variable in Figma (every theme mode, aliased, scoped, with code syntax), in this PR.
+2. Key in `tokensKeys.mjs`; `npm run generate:themes` run from a fresh export; the CSS (6 files) and JS (3 files) came from it, with the manifest.
 3. Key in the `validation.ts` allow-list.
 4. Key in `TokenKey`.
 5. `npm run test:unit --prefix handsontable --testPathPattern=themes` passes.

@@ -6,7 +6,6 @@
 export type LicenseKeyFormat =
   | 'entitlement'
   | 'legacy'
-  | 'non-commercial-and-evaluation'
   | 'unknown';
 
 /**

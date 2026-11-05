@@ -9,6 +9,9 @@ import React, {
 } from 'react';
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable/base';
+import { getEditor } from 'handsontable/editors/registry';
+import { getRenderer } from 'handsontable/renderers/registry';
+import { getCellType } from 'handsontable/cellTypes/registry';
 import { HotRendererProps, HotTableProps } from './types';
 
 let bulkComponentContainer: DocumentFragment | null = null;
@@ -53,6 +56,15 @@ export const UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING = 'Unexpected children nodes 
  */
 export const CLASSIC_FUNCTION_RENDERER_WARNING = 'The `renderer` prop expects a React component. ' +
   'Pass a Handsontable function renderer to `hotRenderer` instead.';
+
+/**
+ * Warning when a Handsontable editor (an editor class or a registered editor name) is passed to the
+ * React `editor` prop.
+ *
+ * That prop is a React component. A Handsontable editor belongs on `hotEditor`.
+ */
+export const NATIVE_EDITOR_IN_EDITOR_PROP_WARNING = 'The `editor` prop expects a React component. ' +
+  'Pass a Handsontable editor class or editor name to `hotEditor` instead.';
 
 /**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
@@ -192,16 +204,129 @@ function hasChildElementOfType(children: ReactNode, type: 'hot-renderer' | 'hot-
 }
 
 /**
- * Check whether the `editor` prop holds a component editor, as opposed to a boolean flag.
+ * Check whether the `editor` prop holds a component editor, as opposed to a boolean flag or a
+ * Handsontable editor passed there by mistake.
  *
  * Both editor props accept a boolean, so a truthy check alone is not enough to tell a component
- * apart from a bare `editor={true}`.
+ * apart from a bare `editor={true}`. An editor class or editor name is not a component either (see
+ * `isNativeEditor()`).
  *
  * @param {HotTableProps['editor']} editor The `editor` prop.
- * @returns {boolean} `true` when the prop carries a component to render.
+ * @returns {boolean} `true` when the prop carries a React component to render.
  */
 export function isComponentEditor(editor: HotTableProps['editor']): boolean {
-  return !!editor && typeof editor !== 'boolean';
+  return !!editor && typeof editor !== 'boolean' && !isNativeEditor(editor);
+}
+
+/**
+ * Methods every Handsontable editor class inherits from `BaseEditor`.
+ */
+const NATIVE_EDITOR_METHODS = ['prepare', 'beginEditing', 'getValue', 'setValue', 'open', 'close'];
+
+/**
+ * Check whether a value is a Handsontable editor: a registered editor name or an editor class.
+ *
+ * A class is recognized by the `BaseEditor` methods on its prototype rather than with `instanceof`,
+ * so a class built on another copy of Handsontable is still recognized. A React class component
+ * carries `prototype.isReactComponent`, and a function component does not have these methods, so
+ * neither one matches.
+ *
+ * @param {*} editor The value to check.
+ * @returns {boolean} `true` when the value is a Handsontable editor.
+ */
+export function isNativeEditor(editor: unknown): boolean {
+  if (typeof editor === 'string') {
+    return editor !== '';
+  }
+
+  if (typeof editor !== 'function') {
+    return false;
+  }
+
+  const prototype = editor.prototype;
+
+  if (!prototype || prototype.isReactComponent) {
+    return false;
+  }
+
+  return NATIVE_EDITOR_METHODS.every(method => typeof prototype[method] === 'function');
+}
+
+/**
+ * Check whether an editor is registered under a name.
+ *
+ * It asks `getEditor()`, which throws for an unknown name, instead of `hasEditor()`: the UMD build
+ * maps the editor registry to `Handsontable.editors`, which exposes `getEditor()` only.
+ *
+ * @param {string} name The editor name.
+ * @returns {boolean} `true` when an editor is registered under the name.
+ */
+function isRegisteredEditorName(name: string): boolean {
+  try {
+    getEditor(name);
+
+    return true;
+
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns the editor or the renderer a cell type supplies, the value a grid created with that `type` and no
+ * `editor` or `renderer` setting gets. Core expands a grid-level `type` only when the grid is created, so
+ * the wrapper passes this value itself when an `editor` or `renderer` prop that replaced it is removed.
+ *
+ * @param {*} type The `type` the grid was created with: a registered cell type name, a cell type object, or
+ * `undefined`. Core throws on an unregistered name at creation, so no other name reaches this function.
+ * @param {'editor'|'renderer'} key The setting to read.
+ * @returns {*} The type's value, or the text editor or renderer when the type supplies none.
+ */
+export function getCellTypeSetting(type: unknown, key: 'editor' | 'renderer'): unknown {
+  const cellType: unknown = typeof type === 'string' ? getCellType(type) : type;
+  const value = cellType !== null && typeof cellType === 'object' ?
+    (cellType as Record<string, unknown>)[key] :
+    undefined;
+
+  if (value !== undefined) {
+    return value;
+  }
+
+  return key === 'editor' ? getEditor('text') : getRenderer('text');
+}
+
+/**
+ * Editor classes that already produced `NATIVE_EDITOR_IN_EDITOR_PROP_WARNING`.
+ */
+const warnedNativeEditorClasses = new WeakSet<object>();
+
+/**
+ * Editor names that already produced `NATIVE_EDITOR_IN_EDITOR_PROP_WARNING`.
+ */
+const warnedNativeEditorNames = new Set<string>();
+
+/**
+ * Warn once per value that a Handsontable editor was passed to the `editor` prop.
+ *
+ * @param {Function|string} editor The editor class or editor name.
+ */
+function warnAboutNativeEditorInEditorProp(editor: object | string): void {
+  if (typeof editor === 'string') {
+    if (warnedNativeEditorNames.has(editor)) {
+      return;
+    }
+
+    warnedNativeEditorNames.add(editor);
+
+  } else {
+    if (warnedNativeEditorClasses.has(editor)) {
+      return;
+    }
+
+    warnedNativeEditorClasses.add(editor);
+  }
+
+  warn(NATIVE_EDITOR_IN_EDITOR_PROP_WARNING);
 }
 
 /**
@@ -221,6 +346,12 @@ export function isComponentEditor(editor: HotTableProps['editor']): boolean {
  * the `hotEditor` value. A component `editor` outranks both: it is picked by `isComponentEditor()`
  * before this function is reached, so `editor={MyComponent} hotEditor={false}` keeps the component.
  *
+ * A Handsontable editor (a class or a registered name) passed to `editor` is a mistake: that prop
+ * renders a React component. It is used as if it were passed to `hotEditor`, with a one-time
+ * warning. A `hotEditor` value that names an editor or disables editing still wins over it. A name
+ * that no editor is registered under is dropped after the warning, so a typo does not make the core
+ * throw.
+ *
  * @param {HotTableProps['editor']} editor The `editor` prop.
  * @param {HotTableProps['hotEditor']} hotEditor The `hotEditor` prop.
  * @returns {*} The editor setting, or `undefined` when neither prop names one.
@@ -239,6 +370,18 @@ export function resolveEditorSetting(
     return hotEditor as Handsontable.GridSettings['editor'];
   }
 
+  if (isNativeEditor(editor)) {
+    warnAboutNativeEditorInEditorProp(editor as unknown as object | string);
+
+    // An unregistered name (a typo) would make the core throw on every selection of the cell, so
+    // it is dropped and the cell keeps the editor its column type or the grid supplies.
+    if (typeof editor === 'string' && !isRegisteredEditorName(editor)) {
+      return undefined;
+    }
+
+    return editor as unknown as Handsontable.GridSettings['editor'];
+  }
+
   return editor === false ? false : undefined;
 }
 
@@ -255,11 +398,12 @@ export function createEditorPortal(
   Editor: HotTableProps['editor'] | undefined | boolean,
   portalHost?: HTMLElement | null
 ): ReactPortal | null {
-  if (!doc || !Editor || typeof Editor === 'boolean' || !portalHost) {
+  if (!doc || !portalHost || !isComponentEditor(Editor)) {
     return null;
   }
 
-  const editorElement = <Editor />;
+  const EditorComponent = Editor as ComponentType;
+  const editorElement = <EditorComponent />;
   const containerProps = getContainerAttributesProps({}, false);
 
   containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
@@ -380,13 +524,21 @@ function isArray(value: unknown): value is unknown[] {
 }
 
 /**
- * Deep-compare plain objects and arrays used by wrapper settings.
+ * Deep-compare plain objects and arrays used by wrapper settings. Functions, class instances and any
+ * other value are compared by reference, and a `RegExp` by its source and flags. A pair of objects
+ * already being compared higher up reads as equal, so a value with a cycle (tree rows with a `parent`
+ * link) ends instead of overflowing the stack.
  *
  * @param {unknown} previousValue Previous value.
  * @param {unknown} currentValue Current value.
+ * @param {WeakMap<object, WeakSet<object>>} [visited] The object pairs on the current comparison path.
  * @returns {boolean} `true` if values are equivalent.
  */
-export function areEquivalentSettingsValue(previousValue: unknown, currentValue: unknown): boolean {
+export function areEquivalentSettingsValue(
+  previousValue: unknown,
+  currentValue: unknown,
+  visited: WeakMap<object, WeakSet<object>> = new WeakMap(),
+): boolean {
   if (previousValue === currentValue) {
     return true;
   }
@@ -400,41 +552,72 @@ export function areEquivalentSettingsValue(previousValue: unknown, currentValue:
       previousValue.flags === currentValue.flags;
   }
 
-  if (isArray(previousValue) && isArray(currentValue)) {
-    if (previousValue.length !== currentValue.length) {
-      return false;
-    }
+  const bothArrays = isArray(previousValue) && isArray(currentValue);
+  const bothPlainObjects = !isArray(previousValue) && !isArray(currentValue) &&
+    isPlainObject(previousValue) && isPlainObject(currentValue);
 
-    for (let index = 0; index < previousValue.length; index++) {
-      if (!areEquivalentSettingsValue(previousValue[index], currentValue[index])) {
-        return false;
-      }
-    }
+  if (!bothArrays && !bothPlainObjects) {
+    return false;
+  }
 
+  const previousObject = previousValue as Record<string, unknown>;
+  const currentObject = currentValue as Record<string, unknown>;
+  const comparedWith = visited.get(previousObject);
+
+  if (comparedWith?.has(currentObject)) {
     return true;
   }
 
-  if (isArray(previousValue) || isArray(currentValue)) {
-    return false;
+  if (comparedWith) {
+    comparedWith.add(currentObject);
+  } else {
+    visited.set(previousObject, new WeakSet([currentObject]));
   }
 
-  if (!isObjectLike(previousValue) || !isObjectLike(currentValue)) {
-    return false;
+  const previousKeys = Object.keys(previousObject);
+
+  return previousKeys.length === Object.keys(currentObject).length &&
+    previousKeys.every(key => Object.prototype.hasOwnProperty.call(currentObject, key) &&
+      areEquivalentSettingsValue(previousObject[key], currentObject[key], visited));
+}
+
+/**
+ * Copies the plain objects and arrays of a settings value, keeping every other value (functions, class
+ * instances) by reference. The copy is what an update compares the next value with, so a value the app
+ * changes in place reads as changed. A value with a cycle is copied with the same cycle.
+ *
+ * @param {unknown} value The value to copy.
+ * @param {WeakMap<object, unknown>} [copies] The copies made so far, by original.
+ * @returns {unknown} The copy.
+ */
+export function copySettingsValue(value: unknown, copies: WeakMap<object, unknown> = new WeakMap()): unknown {
+  if (!isArray(value) && !isPlainObject(value)) {
+    return value;
   }
 
-  if (!isPlainObject(previousValue) || !isPlainObject(currentValue)) {
-    return false;
+  if (copies.has(value)) {
+    return copies.get(value);
   }
 
-  const previousKeys = Object.keys(previousValue);
-  const currentKeys = Object.keys(currentValue);
+  if (isArray(value)) {
+    const copy: unknown[] = [];
 
-  if (previousKeys.length !== currentKeys.length) {
-    return false;
+    copies.set(value, copy);
+    value.forEach((item) => {
+      copy.push(copySettingsValue(item, copies));
+    });
+
+    return copy;
   }
 
-  return previousKeys.every(key => Object.prototype.hasOwnProperty.call(currentValue, key) &&
-    areEquivalentSettingsValue(previousValue[key], currentValue[key]));
+  const copy: Record<string, unknown> = {};
+
+  copies.set(value, copy);
+  Object.keys(value).forEach((key) => {
+    copy[key] = copySettingsValue(value[key], copies);
+  });
+
+  return copy;
 }
 
 /**

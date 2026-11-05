@@ -28,6 +28,16 @@ export const NEW_SHEET_COLUMN_COUNT = 26;
 export const NEW_SHEET_ROW_COUNT = 1000;
 
 /**
+ * Rows a sheet starts with when no data is supplied and the sheet shows with NestedRows on. Each row is an
+ * empty object (`createEmptyObjectRows()`), not an array: NestedRows takes an array of objects only, and on
+ * an array of arrays it turns itself off for the rest of the session. A blank grid of 1000 object rows opens
+ * from the add button within the time a plain blank sheet takes (measured in Chrome).
+ *
+ * @type {number}
+ */
+export const NEW_NESTED_SHEET_ROW_COUNT = 1000;
+
+/**
  * The longest a sheet name may be, counted in characters rather than in UTF-16 units so an
  * emoji or an accented letter costs the same as a plain one.
  *
@@ -57,15 +67,24 @@ export function truncateSheetName(name: string, limit: number = MAX_SHEET_NAME_L
 const VISIBLE_CHARACTER = /[^\s\p{Cf}]/u;
 
 /**
- * Trims a name and cuts it to the length limit. A name with no visible character comes back empty, the
- * way a blank one does, so it cannot label a tab that looks blank.
+ * Matches a run of line breaks and other control characters (`\p{Cc}`, the line and paragraph separators).
+ *
+ * @type {RegExp}
+ */
+const CONTROL_CHARACTERS = /[\p{Cc}\u2028\u2029]+/gu;
+
+/**
+ * Trims a name and cuts it to the length limit. A run of line breaks or other control characters becomes
+ * one space: the rename input is a single line and drops them, so a stored `A\nB` read back from the input
+ * as `AB`, and confirming the rename unchanged renamed the sheet. A name with no visible character comes
+ * back empty, the way a blank one does, so it cannot label a tab that looks blank.
  *
  * @param {string} name The requested name.
  * @param {number} [limit] The longest the result may be.
  * @returns {string} The name as it may be stored, or `''`.
  */
 export function clampSheetName(name: string, limit: number = MAX_SHEET_NAME_LENGTH): string {
-  const clamped = truncateSheetName(name.trim(), limit).trim();
+  const clamped = truncateSheetName(name.replace(CONTROL_CHARACTERS, ' ').trim(), limit).trim();
 
   return VISIBLE_CHARACTER.test(clamped) ? clamped : '';
 }
@@ -97,6 +116,48 @@ export function createEmptySheetData(
   columns: number = NEW_SHEET_COLUMN_COUNT,
 ): unknown[][] {
   return Array.from({ length: rows }, () => Array.from({ length: columns }, () => null));
+}
+
+/**
+ * Builds a row with the keys of `row` and every value `null`, a nested object kept as an object of the same
+ * shape, and `__children` left out.
+ *
+ * @param {object} row The row to take the keys from.
+ * @returns {object}
+ */
+function blankRowLike(row: Record<string, unknown>): Record<string, unknown> {
+  const blank: Record<string, unknown> = {};
+
+  Object.keys(row).forEach((key) => {
+    if (key === '__children') {
+      return;
+    }
+
+    const value = row[key];
+
+    blank[key] = value !== null && typeof value === 'object' && !Array.isArray(value)
+      ? blankRowLike(value as Record<string, unknown>)
+      : null;
+  });
+
+  return blank;
+}
+
+/**
+ * Builds the blank rows a new sheet with NestedRows on starts from: top-level rows with no children, each its
+ * own object, so an edit in one row never shows up in another. With a `template` row, each blank row has its
+ * keys (see `blankRowLike()`): the grid reads the columns of object rows from the first row's keys when neither
+ * `columns` nor `dataSchema` names them, so empty objects showed a sheet with no columns.
+ *
+ * @param {number} [rows] Row count.
+ * @param {object} [template] The row whose keys each blank row gets.
+ * @returns {object[]} A fresh data array, safe for the caller to mutate.
+ */
+export function createEmptyObjectRows(
+  rows: number = NEW_NESTED_SHEET_ROW_COUNT,
+  template?: Record<string, unknown>,
+): Record<string, unknown>[] {
+  return Array.from({ length: rows }, () => (template ? blankRowLike(template) : {}));
 }
 
 /**
@@ -185,7 +246,8 @@ export class SheetModel {
 
   /**
    * Resolves a sheet id from an id or a unique name. Returns `null` when not found, and for a value that
-   * is neither a number nor a string.
+   * is neither a number nor a string. A name is read the way it is stored (`clampSheetName()`), so the name a
+   * sheet was given finds it, line breaks and surrounding spaces included.
    */
   resolveId(idOrName: unknown): number | null {
     if (typeof idOrName === 'number') {
@@ -196,8 +258,10 @@ export class SheetModel {
       return null;
     }
 
+    const name = clampSheetName(idOrName);
+
     for (const sheet of this.#sheets.values()) {
-      if (isSameName(sheet.name, idOrName)) {
+      if (isSameName(sheet.name, name)) {
         return sheet.id;
       }
     }

@@ -105,7 +105,7 @@ export interface GridSelectionApiStub {
     } | null;
     render: jest.Mock;
   };
-  selection: { highlight: HighlightStub };
+  selection: { highlight: HighlightStub; getSelectionSource: () => string };
   _createCellCoords: (row: number, col: number) => CoordsStub;
   _createCellRange: (highlight: CoordsStub, from?: CoordsStub, to?: CoordsStub) => RangeStub;
 }
@@ -174,7 +174,7 @@ export function makeGridSelectionApiStub(guid = 'ht_teststub'): GridSelectionApi
       countFixedColumnsStart: () => 0,
       countFixedColumnsEnd: () => 0,
     },
-    selection: { highlight: makeHighlightStub() },
+    selection: { highlight: makeHighlightStub(), getSelectionSource: () => 'unknown' },
     _createCellCoords: (row: number, col: number) => ({ row, col }),
     _createCellRange: makeRangeStub,
   };

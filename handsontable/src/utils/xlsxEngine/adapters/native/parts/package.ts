@@ -70,6 +70,9 @@ export const REL_TYPES = {
   // Microsoft's own namespace, not the office one: a strict package keeps it as it is, so
   // `normalizeRelType()` has nothing to rewrite here.
   vbaProject: 'http://schemas.microsoft.com/office/2006/relationships/vbaProject',
+  // The rich-value parts (`xl/richData`), Microsoft's own namespace too.
+  richValue: 'http://schemas.microsoft.com/office/2017/06/relationships/rdRichValue',
+  richValueStructure: 'http://schemas.microsoft.com/office/2017/06/relationships/rdRichValueStructure',
 } as const;
 
 export const MAIN_NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';

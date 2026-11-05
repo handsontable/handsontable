@@ -218,7 +218,7 @@ describe('Layout slots', () => {
   });
 
   it('appends the license notification as the last element of the bottom slot when present', async() => {
-    // Pass `true` so the test helper does not inject the default evaluation key, and set a legacy
+    // Pass `true` so the test helper does not inject the shared test key, and set a legacy
     // key that expired on 23/05/2011 - a lapsed key is the state that still renders the bar. A
     // MISSING key would not: from 18.1 it renders the blocking modal instead (DEV-2562).
     const hot = handsontable({ data: createSpreadsheetData(3, 3), licenseKey: EXPIRED_LICENSE_KEY }, true);

@@ -7,8 +7,8 @@ import { EVIDENCE_CHECKS, checksForSuite } from './lib/a11y-evidence.mjs';
  * `reporters/a11y-checks.ts` merging what each test attached into one evidence document per check
  * (`test-results/a11y-checks/<check>.json`; policy in `tests/AGENTS.md`, "A11y: the checks beyond
  * axe"). The projects are the checks of `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, one each, named by
- * the check: `HOT_A11Y_CHECKS_SUITE=pull-request` keeps the ones that run on pull requests, `nightly` or
- * no value keeps them all (`checksForSuite()`).
+ * the check: `HOT_A11Y_CHECKS_SUITE=pull-request` keeps the short suite (the ones with `pullRequest`),
+ * `nightly` or no value keeps them all (`checksForSuite()`).
  *
  * A separate config, the way the axe scan's is: the e2e config's project list is pinned by
  * `e2e/leg-declarations.spec.ts` and `.github/scripts/__tests__/e2e-legs.test.mjs`, and the

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the cell editor staying at its old position when the grid's size changed during editing, which hid it under the Android soft keyboard in a WebView that resizes its content. The grid now scrolls the edited cell into view and moves the editor onto it.",
+  "type": "fixed",
+  "issueOrPR": 14130,
+  "breaking": false,
+  "framework": "none"
+}

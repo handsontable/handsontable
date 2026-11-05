@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `updateSettings()` emptying a grid backed by a `dataProvider` when the update sent `data`, and refetching the rows when it sent the same `dataProvider` object again. The React and Angular wrappers now pass only the settings that changed, so a render no longer resets the filters or the page.",
+  "type": "fixed",
+  "issueOrPR": 14110,
+  "breaking": false,
+  "framework": "none"
+}

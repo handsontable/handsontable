@@ -1,4 +1,5 @@
 import { warn } from '../../../helpers/console';
+import { listEngineElements } from './engineElements';
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
 import { getDecreasedIndexes, getIncreasedIndexes } from '../../../translations/maps/utils/actionsOnIndexes';
@@ -30,13 +31,16 @@ interface HfTranslationCache {
 
 /**
  * What an axis syncer knows about the engine's order: the physical indexes the engine holds, in its
- * own order, the grid's sequence at the moment the engine's sheet was found empty, and the held
- * indexes whose line was only added to carry an order (`paddedElements`).
+ * own order, the grid's sequence at the moment the engine's sheet was found empty, the held
+ * indexes whose line was only added to carry an order (`paddedElements`), and how far the orders the
+ * engine was handed moved each line (`orderShifts`, `[physicalIndex, shift]` pairs, see
+ * `AxisSyncer#getOrderShift()`).
  */
 export interface EngineOrder {
   sequence: number[];
   fillSequence: number[] | null;
   paddedElements: number[];
+  orderShifts?: Array<[number, number]>;
 }
 
 interface ParentIndexSyncer {
@@ -101,6 +105,15 @@ class AxisSyncer {
    * @type {Set<number>}
    */
   #paddedElements = new Set<number>();
+  /**
+   * How far the orders the engine was handed (`setRowOrder()`, `setColumnOrder()`) moved each line since the
+   * engine's order was last physical, by physical index; a line they left in place has no entry. The engine
+   * moves a line's formulas keeping their relative offsets on such an order, while a move (`moveRows()`,
+   * `moveColumns()`), an insert, and a removal keep every reference on its cell.
+   *
+   * @type {Map<number, number>}
+   */
+  #orderShifts = new Map<number, number>();
   /**
    * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
    *
@@ -177,10 +190,25 @@ class AxisSyncer {
           getIncreasedIndexes(Array.from(this.#paddedElements), insertedIndexes).concat(insertedIndexes),
         );
       }
+
+      if (this.#orderShifts.size > 0) {
+        const lines = Array.from(this.#orderShifts.keys());
+        const renumbered = getIncreasedIndexes(lines, insertedIndexes);
+
+        this.#orderShifts = new Map(lines.map((line, index) => [renumbered[index], this.#orderShifts.get(line)!]));
+      }
     });
     this.#indexMapper.addLocalHook('indexesRemoved', (removedIndexes: number[]) => {
       if (this.#paddedElements.size > 0) {
         this.#paddedElements = new Set(getDecreasedIndexes(Array.from(this.#paddedElements), removedIndexes));
+      }
+
+      if (this.#orderShifts.size > 0) {
+        const removed = new Set(removedIndexes);
+        const lines = Array.from(this.#orderShifts.keys()).filter(line => !removed.has(line));
+        const renumbered = getDecreasedIndexes(lines, removedIndexes);
+
+        this.#orderShifts = new Map(lines.map((line, index) => [renumbered[index], this.#orderShifts.get(line)!]));
       }
     });
   }
@@ -223,24 +251,7 @@ class AxisSyncer {
    * @returns {number[]}
    */
   #getHeldEngineSequence(gridSequence: number[]): number[] {
-    const length = gridSequence.length;
-    const sequence: number[] = [];
-    const held = new Set<number>();
-    const take = (physicalIndex: number) => {
-      if (physicalIndex < length && !held.has(physicalIndex)) {
-        sequence.push(physicalIndex);
-        held.add(physicalIndex);
-      }
-    };
-
-    this.#indexesSequence.forEach(take);
-    this.#fillSequence?.forEach(take);
-
-    for (let physicalIndex = 0; sequence.length < length; physicalIndex += 1) {
-      take(physicalIndex);
-    }
-
-    return sequence;
+    return listEngineElements(this.#indexesSequence, this.#fillSequence, gridSequence.length);
   }
 
   /**
@@ -330,7 +341,22 @@ class AxisSyncer {
       sequence: this.#indexesSequence.slice(),
       fillSequence: this.#fillSequence === null ? null : this.#fillSequence.slice(),
       paddedElements: Array.from(this.#paddedElements),
+      orderShifts: Array.from(this.#orderShifts),
     };
+  }
+
+  /**
+   * Returns how far the orders the engine was handed moved a line since its order was last physical. The
+   * engine moves formulas keeping their relative offsets on such an order (a sort, an order a hold sends
+   * when it ends), so a formula the engine holds reads its relative references this many lines away from
+   * where the data has it. A move, an insert, and a removal keep every reference on its cell and add
+   * nothing. `0` while the engine's order is physical, where the engine's text is the data's.
+   *
+   * @param {number} physicalIndex The line's physical index.
+   * @returns {number}
+   */
+  getOrderShift(physicalIndex: number): number {
+    return this.#orderShifts.get(physicalIndex) ?? 0;
   }
 
   /**
@@ -349,6 +375,7 @@ class AxisSyncer {
     const held = new Set<number>(order.sequence);
 
     this.#paddedElements = new Set<number>(order.paddedElements.filter(physicalIndex => held.has(physicalIndex)));
+    this.#orderShifts = new Map(order.orderShifts ?? []);
     this.#translationCache = null;
 
     if (!this.#orderHeld) {
@@ -804,12 +831,14 @@ class AxisSyncer {
       this.#fillSequence = targetSequence.slice();
       this.#indexesSequence = [];
       this.#paddedElements = new Set<number>();
+      this.#orderShifts = new Map<number, number>();
 
       return false;
     }
 
+    const engineElements = this.#getEngineElements(sizeForAxis);
     const { engineOrder, reordered, padded } = this.#planOrder(
-      this.#getEngineElements(sizeForAxis),
+      engineElements,
       targetSequence,
       engineIndex => this.#isEngineLineEmpty(engine, sheetId, engineIndex, sizeForOtherAxis),
     );
@@ -847,11 +876,41 @@ class AxisSyncer {
       }
     }
 
+    this.#addOrderShifts(engineElements, engineOrder);
     this.#indexesSequence = reordered;
     this.#fillSequence = this.#followsPhysicalOrderBehind(reordered, targetSequence) ? null : targetSequence.slice();
     this.#paddedElements = padded;
+    this.#clearOrderShiftsWhenPhysical();
 
     return true;
+  }
+
+  /**
+   * Adds how far an order the engine took moved each line it held to `#orderShifts`.
+   *
+   * @param {number[]} engineElements Physical indexes the engine held, in engine order, before the order.
+   * @param {number[]} engineOrder The order sent: the new place of each engine line.
+   */
+  #addOrderShifts(engineElements: number[], engineOrder: number[]) {
+    engineElements.forEach((physicalIndex, engineIndex) => {
+      const shift = (this.#orderShifts.get(physicalIndex) ?? 0) + engineOrder[engineIndex] - engineIndex;
+
+      if (shift === 0) {
+        this.#orderShifts.delete(physicalIndex);
+      } else {
+        this.#orderShifts.set(physicalIndex, shift);
+      }
+    });
+  }
+
+  /**
+   * Forgets the shifts once the engine holds its lines in physical order again: from there, the engine's text
+   * is what the data holds, so the next order is measured from it.
+   */
+  #clearOrderShiftsWhenPhysical() {
+    if (this.#orderShifts.size > 0 && this.isEngineOrderPhysical()) {
+      this.#orderShifts = new Map<number, number>();
+    }
   }
 
   /**
@@ -996,7 +1055,10 @@ class AxisSyncer {
 
       if (source !== 'move' && source !== 'insert' && source !== 'remove') {
         this.#paddedElements = new Set<number>();
+        this.#orderShifts = new Map<number, number>();
       }
+
+      this.#clearOrderShiftsWhenPhysical();
     };
   }
 
@@ -1043,6 +1105,7 @@ class AxisSyncer {
     this.#indexesSequence = [];
     this.#fillSequence = null;
     this.#paddedElements = new Set<number>();
+    this.#orderShifts = new Map<number, number>();
     this.#translationCache = null;
 
     this.#syncInitialOrder();
