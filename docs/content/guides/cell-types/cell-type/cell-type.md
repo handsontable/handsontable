@@ -758,7 +758,7 @@ A named editor isn't an exception. For example, a grid-level `editor: 'password'
 
 ### Change the grid-level type at runtime
 
-When you change the grid-level [`type`](@/api/options.md#type) with [`updateSettings()`](@/api/core.md#updatesettings), the grid applies the new type's editor, renderer, and validator, the same as a grid created with that `type`. The options of the previous type that the new type doesn't set go back to their defaults.
+When you change the grid-level [`type`](@/api/options.md#type) with [`updateSettings()`](@/api/core.md#updatesettings), the grid applies the new type's editor, renderer, and validator, the same as a grid created with that `type`. The options of the previous type that the new type doesn't set go back to their defaults. Cells that were already drawn also lose what the previous type's renderer stored on them, such as the alignment class of the [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) type.
 
 Any grid-level option you set earlier, or in the same call, keeps winning over the type. That includes an [`editor`](@/api/options.md#editor), a [`renderer`](@/api/options.md#renderer), and a [`validator`](@/api/options.md#validator). An `editor` set to `false` keeps editing switched off, while the new type still supplies its renderer and validator. To let the type supply an option again, pass `undefined` for it (an option the grid was created with as `undefined` stays unset), or pass `editor: true` next to the new `type`. A column or cell with its own `type` isn't affected. A `type` name that no cell type is registered under is ignored.
 

@@ -758,12 +758,14 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * Called after the settings were updated. There is a need to refresh cell metas after the settings update with
-   * the `columns` property as the Core resets the cell metas to their initial state.
+   * the `columns`, `cells`, `cell` or the grid-level `type` property as the Core resets the cell metas to their
+   * initial state.
    *
    * @param {object} settings The settings object.
    */
   #onAfterUpdateSettings = (settings: Record<string, unknown>) => {
-    if (settings.columns !== undefined) {
+    if (settings.columns !== undefined || settings.cells !== undefined || settings.cell !== undefined ||
+        settings.type !== undefined) {
       this.endpoints!.refreshCellMetas();
     }
   };
