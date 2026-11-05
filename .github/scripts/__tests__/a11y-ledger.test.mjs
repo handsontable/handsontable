@@ -377,6 +377,28 @@ test('readA11yArtifacts turns a night\'s documents into masked findings with the
   assert.deepEqual(night.checks['keyboard-walker'], { targets: 2, measured: 2, findings: 3, problems: 0 });
 });
 
+test('a reader step is recorded at the severity of the worst group it missed, as its check run counts it', () => {
+  const declared = transcript('nvda-chromium', 'grid-core', [['close-editor', ['alice']]]);
+
+  declared.steps[0].tokens.groups[1].severity = 'minor';
+
+  const critical = transcript('nvda-chromium', 'nested-rows', [['down-to-child', ['level 2']]]);
+
+  critical.steps[0].tokens.groups.push({ synonyms: ['1 of 3'], matched: null, severity: 'critical' });
+
+  const night = nightOf(readerFiles({
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`]: declared,
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`]: critical,
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium/screenreader-grid-core-nvda-chromium/attachments/transcript-94f4.json`]: null,
+    [`${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`]: null,
+  }));
+
+  assert.deepEqual(night.findings.map(item => [item.page, item.where, item.severity]), [
+    ['grid-core', 'close-editor', 'minor'],
+    ['nested-rows', 'down-to-child', 'critical'],
+  ], 'a declared severity is kept; a group without one (a transcript recorded before groups carried one) is serious');
+});
+
 test('readA11yArtifacts turns a reader night\'s transcripts into step findings, failed tokens and golden differences', () => {
   const { nights, notes } = readA11yArtifacts(readerFiles());
 
