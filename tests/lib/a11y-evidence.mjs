@@ -204,7 +204,8 @@ export const EVIDENCE_CHECKS = Object.freeze({
 });
 /**
  * Which checks a run covers: `pull-request` (the short suite: the checks with `pullRequest`) or
- * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check.
+ * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check, and
+ * a run with `A11Y_CHECKS` covers the checks it names instead (`checksForRun()`).
  */
 export const CHECK_SUITES = ['pull-request', 'nightly'];
 
@@ -221,6 +222,35 @@ export function checksForSuite(suite, checks = EVIDENCE_CHECKS) {
   }
 
   return Object.entries(checks).filter(([, check]) => suite !== 'pull-request' || check.pullRequest === true).map(([id]) => id);
+}
+
+/**
+ * The checks a run covers: the ones `A11Y_CHECKS` names (a subset run, the A11y nightly's `checks`
+ * input, comma-separated), otherwise the suite `HOT_A11Y_CHECKS_SUITE` picks. The config builds its
+ * projects from this, so an id the registry does not know is refused before a test runs, and the
+ * report script expects a document of each.
+ *
+ * @param {Record<string, string|undefined>} env The environment (`A11Y_CHECKS`, `HOT_A11Y_CHECKS_SUITE`).
+ * @param {Record<string, {pullRequest?: boolean}>} [checks] The registry; defaults to `EVIDENCE_CHECKS`.
+ * @returns {string[]} The check ids, in registry order.
+ */
+export function checksForRun(env, checks = EVIDENCE_CHECKS) {
+  const suite = checksForSuite(env.HOT_A11Y_CHECKS_SUITE, checks);
+  const subset = env.A11Y_CHECKS;
+
+  if (subset === undefined || subset.trim() === '') {
+    return suite;
+  }
+
+  const ids = Object.keys(checks);
+  const named = subset.split(',').map(id => id.trim()).filter(id => id !== '');
+  const unknown = named.find(id => !ids.includes(id));
+
+  if (named.length === 0 || unknown !== undefined) {
+    throw new Error(`A11Y_CHECKS names no check "${unknown ?? subset}"; the checks are ${ids.join(', ')}.`);
+  }
+
+  return ids.filter(id => named.includes(id));
 }
 
 /**

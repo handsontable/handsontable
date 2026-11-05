@@ -1416,7 +1416,8 @@ left no document gets a neutral tooling check run instead of none.
   failure turns the job red, as it does the axe job, and never the Tests pipeline), and one
   `A11y / <check> report` check run per check on the run's head commit (behind the canonical fork
   guard). The job runs only when the caller sets the `checks` input: the `A11y nightly`
-  (`a11y-nightly.yml`, weeknights on develop, and a dispatch from any branch) does, and the pull-request
+  (`a11y-nightly.yml`: a dispatch on develop is the audit, a dispatch from any branch is a proof run,
+  and there is no schedule; "A11y: the audit and the proof runs" below) does, and the pull-request
   Tests pipeline (`test.yml`) does not, so a pull request runs the axe scan, its baseline ratchet and
   the sticky comment alone. The reason is what a pull request gets out of them: the checks are
   report-only and the accessibility program is still building its picture, so a pull request learned
@@ -1426,15 +1427,19 @@ left no document gets a neutral tooling check run instead of none.
   `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), for a
   developer to run locally or through a dispatch of the nightly that asks for it
   (`gh workflow run a11y-nightly.yml --ref <branch> -f suite=pull-request`; a plain dispatch runs every
-  check). The evidence goes up as `a11y-checks-evidence`, outside the `playwright-report-*` glob the
-  flake ledger reads, for 30 days from a run of every check (what the report cites) and 7 from the
-  short suite. `EVIDENCE_CHECKS` is the one list: the config builds its projects from it
-  (`checksForSuite()`), and the report script posts a neutral tooling check run for a check of the
-  suite that left no document. Locally, after `build:umd`, `build:styles.min` and
+  check). The `checks` input runs the named checks instead of the suite
+  (`-f checks=<id>[,<id>]`, the proof run of a change to one check): it reaches the job as
+  `A11Y_CHECKS`, the config builds the named projects only (`checksForRun()`, which refuses an unknown
+  id before a test runs), the report script expects a document of each and names the subset in the job
+  summary, and the check runs keep their names. The evidence goes up as `a11y-checks-evidence`, outside
+  the `playwright-report-*` glob the flake ledger reads, for 30 days from a run of every check (what
+  the report cites) and 7 from the short suite. `EVIDENCE_CHECKS` is the one list: the config builds
+  its projects from it (`checksForRun()`), and the report script posts a neutral tooling check run for
+  a check of the suite that left no document. Locally, after `build:umd`, `build:styles.min` and
   `build:themes-css.min`: `npm --prefix tests run test:a11y-checks` runs every check,
   `HOT_A11Y_CHECKS_SUITE=pull-request npm --prefix tests run test:a11y-checks` the short suite, and
-  `-- --project=<check>` one check; the reporter writes the documents only when the config's reporters
-  run, so do not pass `--reporter` on the command line.
+  `-- --project=<check>` or `A11Y_CHECKS=<check>` one check; the reporter writes the documents only when
+  the config's reporters run, so do not pass `--reporter` on the command line.
 
 ### The keyboard walker
 
@@ -1887,12 +1892,13 @@ half presses and drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,
 its `spec` (the file name under `a11y/checks/`), the `criteria` it evidences, and `pullRequest` (whether
 the short suite runs it, which it earns by finishing in under two minutes). The config builds one project
-per entry from that list (`checksForSuite()`), so never add a project by hand: it would run the check
+per entry from that list (`checksForRun()`), so never add a project by hand: it would run the check
 twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
-removes a focus ring or a name), shown in the check run of a nightly dispatch from its branch
-(`gh workflow run a11y-nightly.yml --ref <branch>`, which posts on the branch's head commit, so the
-check run shows on the pull request, whose own pipeline runs the axe scan alone), then reverted. Document
+removes a focus ring or a name), shown in the check run of a dispatch from its branch
+(`gh workflow run a11y-nightly.yml --ref <branch> -f checks=<id>`, which runs that check alone and posts
+on the branch's head commit, so the check run shows on the pull request, whose own pipeline runs the
+axe scan alone), then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
 ## A11y: the findings ledger and the cluster catalog
@@ -1901,7 +1907,8 @@ A raw night leaves thousands of records (the discovery run alone about 3,900), m
 defects on many pages, and a check's artifact says nothing about the night before. The findings ledger
 accumulates them: `test-health.yml` chains on `A11y nightly` and `Screen reader nightly`, and the
 collector reads every check document, the axe findings and every transcript of those two nightlies on
-develop, run by schedule or dispatch, into `test-health/a11y.json` on `gh-pages`, one row per finding across
+develop, run by dispatch (the audit; "A11y: the audit and the proof runs" below) or by a schedule, which
+is off today, into `test-health/a11y.json` on `gh-pages`, one row per finding across
 nights, which the "Accessibility" section of <https://handsontable.github.io/handsontable/test-health/>
 draws. The pure half is `.github/scripts/lib/a11y-ledger.mjs`; the catalog that sorts the rows is
 `a11y/issues.json`, read through `lib/a11y-issues.mjs`. The CI mechanics (the trigger, the download filter,
@@ -1910,8 +1917,9 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
 - **Only the nightlies' evidence is a night.** A pull request's run uploads the same artifacts, made by the
   pull request's own code, and a fork's pull request from the fork's `develop` reports `develop` as its
   branch; recording it would resolve every row its code no longer shows. `isA11yRun()` takes a run of
-  `A11y nightly` or `Screen reader nightly`, on develop, started by its schedule or a dispatch, and nothing
-  else.
+  `A11y nightly` or `Screen reader nightly`, on develop, started by a dispatch or a schedule, and nothing
+  else. A subset dispatch (`checks`, `projects`) is a night of its subset only: coverage is per check
+  document and per project and scenario transcript, so it resolves nothing outside what it ran.
 
 - **A finding keeps its identity across nights, or the ledger shows nothing but churn.** A row is keyed by
   its source, check and kind, the axe rule and cause it names, its page, theme, state and variant, and the
@@ -2010,6 +2018,40 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   `a11y.json` and the page into the scratch directory and prints the night's counts and clusters. Never
   dispatch `test-health.yml` with a run id to try a change: that publishes to the live site.
 
+## A11y: the audit and the proof runs
+
+The two accessibility workflows, `A11y nightly` (`.github/workflows/a11y-nightly.yml`) and
+`Screen reader nightly` (`screenreader-nightly.yml`), have no schedule: they run on `workflow_dispatch`
+only, from any ref, and the `pull_request` trigger that validates each file still runs a startup-only
+check. The accessibility program runs one audit, fixes what it finds, and re-audits, so a cron would
+spend the compute (a headed Windows and macOS runner per browser for the screen reader lanes) on
+nights nobody reads. The names stay: the ledger, the Slack text and this file know the workflows as
+nightlies, and the tiers come back with the schedule, not before: a pull request runs the axe scan
+(today's `test.yml`), a nightly runs a semi-lite set chosen then, and a release candidate and a stable
+release run the full set. The CI mechanics are in `.ai/CI.md`; this section is the procedure.
+
+- **An audit is a dispatch on develop with no inputs, and only on develop.** Dispatch the screen reader
+  workflow, then the checks (`gh workflow run screenreader-nightly.yml --ref develop`, then
+  `gh workflow run a11y-nightly.yml --ref develop`), wait for both, then dispatch `test-health.yml` with
+  each run id in the order the runs completed (`gh workflow run test-health.yml -f run-id=<id>`). The
+  `workflow_run` chain collects a develop dispatch on its own; the dispatch is the backfill, and it is
+  idempotent (a night collected twice changes nothing, "Nights are read once per attempt, in order"
+  above). It publishes to the live site, which is why no run from a branch goes through it, and why a
+  branch's proof run is never an audit. Never dispatch two screen reader runs at once, on any refs: two
+  share the organization's five macOS slots and slow every VoiceOver step, and the transcripts carry the
+  timings.
+- **A proof run on a branch dispatches the subset that changed.** `gh workflow run a11y-nightly.yml
+  --ref <branch> -f checks=<id>[,<id>]` runs the named checks beyond axe (the `checks` input; the job
+  summary names the subset, the check runs keep their `A11y / <check> report` names, and an unknown id
+  fails the run step before a test runs). `gh workflow run screenreader-nightly.yml --ref <branch>
+  -f projects=<project>[,<project>] -f groups=<group>[,<group>]` runs the named reader projects
+  (`nvda-chromium`, `nvda-firefox`, `vo-webkit`, `vo-chromium`; comma-separated, no spaces): a lane job
+  none of whose projects is named skips itself, the other browser of a lane is dropped from its matrix,
+  and the check runs keep their `Screen reader / <project> report` names. `groups` is declared ahead of
+  the scenario group axis: until the lane has one, every scenario runs on the named projects. A subset
+  run is a night of its subset only (the ledger resolves nothing outside it), and a proof run on a
+  branch is not a night at all: `isA11yRun()` takes develop only.
+
 ## Screen readers: the NVDA and VoiceOver lanes
 
 `screenreader/screenreader.spec.ts` drives a real screen reader through Guidepup
@@ -2020,8 +2062,9 @@ of the lockfile) over the scenarios of `screenreader/scenarios/`, one Playwright
 reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-firefox`, `vo-webkit`,
 `vo-chromium`). It writes a transcript per scenario, and `scripts/screenreader-report.mjs` turns the
 transcripts into the job summary and the `Screen reader / <project> report` check run. CI runs it on its
-own nightly (`.github/workflows/screenreader-nightly.yml` calling `screenreader.yml`: NVDA on
-`windows-2025` and VoiceOver on `macos-26`, one job per screen reader and browser), never in the
+own workflow, the `Screen reader nightly` (`.github/workflows/screenreader-nightly.yml` calling
+`screenreader.yml`: NVDA on `windows-2025` and VoiceOver on `macos-26`, one job per screen reader and
+browser; a dispatch, never a schedule, "A11y: the audit and the proof runs" above), never in the
 pull-request Tests pipeline. It is the evidence a future version of the Accessibility
 Conformance Report can cite for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
 4.1.2, 4.1.3): the axe scan reads the accessibility tree, this lane reads what a screen reader makes of
@@ -2077,8 +2120,8 @@ screen readers (`docs/AGENTS.md` 2.20).
   every project's goldens on its runner (`HOT_SR_UPDATE_GOLDENS=1`, or Playwright's
   `--update-snapshots` through `npm run test:screenreader:update-goldens`) and uploads them as
   `screenreader-goldens-<project>`; download, commit under `screenreader/goldens/<project>/`, done.
-  The dispatch runs every job, so it records the NVDA goldens too: commit only the projects the change
-  is about. A run with `update-goldens` compares nothing and reports `recorded`. A golden pins the wording
+  The dispatch runs every job unless `projects` names the ones to record (`-f projects=vo-webkit`), so
+  with no subset it records the NVDA goldens too: commit only the projects the change is about. A run with `update-goldens` compares nothing and reports `recorded`. A golden pins the wording
   as recorded, a finding included: a step NVDA stays silent on is an empty string in it, and a wrong
   row is the wrong row. The scenario's `note` says which steps record a finding (`Finding: …`), so a
   golden difference on such a step can be the fix; re-record the golden when the finding is fixed.
@@ -2212,8 +2255,9 @@ screen readers (`docs/AGENTS.md` 2.20).
   `?theme=`/`?bundle=` block, `window.hot`, a constructor throw captured as `htBuildError`), small
   enough that every step's target is rendered; the file `screenreader/scenarios/<surface>.scenario.json`
   with the setup and the steps; `HOT_SR_LANE=dom-echo npm run test:screenreader` to see the shape of
-  the announcements; a nightly dispatch from the branch for the real ones; the goldens from an
-  `update-goldens` dispatch, read before they are committed. Keep every step's `"id"` on its own line:
+  the announcements; a dispatch from the branch for the real ones (`projects` and `groups` keep it to
+  the changed group on one project); the goldens from an `update-goldens` dispatch, read before they
+  are committed. Keep every step's `"id"` on its own line:
   the check run annotates that line.
 - **Locally**: the UMD build with the minified stylesheets, then `npm run test:screenreader`. The lane
   follows the platform, and `HOT_SR_LANE` (`nvda`, `voiceover`, `dom-echo`) picks one explicitly. On

@@ -1,24 +1,28 @@
 name: A11y nightly
 
-# Every accessibility check on develop, every weeknight: the axe scan and every check beyond axe
+# Every accessibility check on develop, on a dispatch: the axe scan and every check beyond axe
 # (a11y.yml with `checks: true` and `nightly: true`; tests/AGENTS.md, "A11y: the checks beyond axe").
+# Manual trigger only, no schedule: the accessibility program runs one audit, fixes, and re-audits
+# (.ai/CI.md), so a cron would spend the compute on nights nobody reads. The tiers come back with the
+# schedule, not before: axe on a pull request (test.yml today), a semi-lite set on a nightly, the full
+# set on a release candidate and a stable release. The name stays: the ledger, the Slack text and the
+# docs know this workflow as the A11y nightly.
 # This is the only run of the checks beyond axe: the pull-request Tests pipeline runs the axe scan
 # alone, because the checks are report-only and the accessibility program is still building its
 # picture, so a pull request learned nothing from them it could act on. The evidence is kept 30 days,
-# which is what the Accessibility Conformance Report cites per criterion. A dispatch runs every check
-# too, unless it asks for the short suite (`suite: pull-request`), the one a developer runs locally.
+# which is what the Accessibility Conformance Report cites per criterion. A plain dispatch runs every
+# check (the audit, on develop); a dispatch may ask for the short suite (`suite: pull-request`), the one
+# a developer runs locally, or name the checks to run (`checks: keyboard-walker`), the proof run of a
+# change to one check from its branch.
 # Report-only: the checks job carries `continue-on-error`, and the verdict of each check is its
 # `A11y / <check> report` check run and the job summary.
 #
 # Triage. A finding is about the product: record it, never fix it in the check's change. A target
 # that was not measured, or one flagged flaky, is a finding against the check: fix the measurement.
 on:
-  schedule:
-    # 05:30 UTC Tue–Sat: after the screen reader nightly (04:30), clear of the E2E nightly (03:30), the
-    # visual nightly (02:00), the visual stability run (02:30), the code-quality baseline (03:00), the
-    # readme (04:00) and the docs sync (05:00).
-    - cron: '30 5 * * 2-6'
-  # From any ref: a dispatch from a feature branch is how a new check proves itself before it merges.
+  # From any ref: a dispatch on develop with no inputs is the audit (test-health.yml collects it into
+  # the findings ledger), and a dispatch from a feature branch is how a new check proves itself before
+  # it merges. Never dispatch two screen reader runs at once; this workflow has no such limit.
   workflow_dispatch:
     inputs:
       suite:
@@ -26,6 +30,10 @@ on:
         type: choice
         options: [ nightly, pull-request ]
         default: nightly
+      checks:
+        description: "The checks beyond axe to run instead of the suite: comma-separated check ids (keyboard-walker,reflow). Empty runs the suite."
+        type: string
+        default: ''
   # Self-validation, as screenreader-nightly.yml does it: this file never runs on an ordinary pull
   # request, so a broken workflow_call graph would first execute after merging. With this trigger a
   # pull request that touches the file gets a startup-validated run whose jobs skip themselves.
@@ -56,9 +64,10 @@ jobs:
     uses: ./.github/workflows/a11y.yml
     with:
       checks: true
-      # Every check on the cron and on a plain dispatch (`inputs` is empty on the cron); a dispatch may
-      # ask for the short suite instead.
+      # Every check on a plain dispatch; a dispatch may ask for the short suite instead.
       nightly: ${{ inputs.suite != 'pull-request' }}
+      # A subset dispatch names its checks; empty (the audit, the pull_request trigger) runs the suite.
+      check-ids: ${{ inputs.checks }}
     # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
 
   # Optional Slack ping, develop only, when the run never reached the checks (the UMD build failed or

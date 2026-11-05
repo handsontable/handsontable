@@ -174,6 +174,8 @@ test('the checks job is report-only: continue-on-error on the job, a red job on 
     `${A11Y}: the evidence and its check runs name the pull request's head, never the merge commit. ${CHECKS_DOC}`);
   assert.match(checks, /^ {6}HOT_A11Y_CHECKS_SUITE: \$\{\{ inputs\.nightly && 'nightly' \|\| 'pull-request' \}\}$/m,
     `${A11Y}: a pull request runs the quick checks, the nightly every check. ${CHECKS_DOC}`);
+  assert.match(checks, /^ {6}A11Y_CHECKS: \$\{\{ inputs\.check-ids \}\}$/m,
+    `${A11Y}: the check-ids input reaches the run step and the report script as A11Y_CHECKS: the config runs the named checks instead of the suite, and the summary names them. ${CHECKS_DOC}`);
 
   const [, image] = /^ {6}image: (mcr\.microsoft\.com\/playwright:v[\d.]+-noble)$/m.exec(checks) ?? [];
   const [, axeImage] = /^ {6}image: (mcr\.microsoft\.com\/playwright:v[\d.]+-noble)$/m.exec(job(workflow, 'axe')) ?? [];
@@ -217,8 +219,8 @@ test('the checks config builds on the e2e config, takes its projects from the re
   assert.match(config, /\.\.\.base,/, `${CHECKS_CONFIG} must spread the base config, so the server and its port are shared. ${CHECKS_DOC}`);
   assert.match(config, /testDir: 'a11y\/checks'/, `${CHECKS_CONFIG}: the checks live in a11y/checks/, outside the leg-declaration sweep. ${CHECKS_DOC}`);
   assert.match(config, /outputDir: 'test-results\/a11y-checks'/, `${CHECKS_CONFIG}: the outputDir is what the checks job uploads. ${CHECKS_DOC}`);
-  assert.match(config, /checksForSuite\(process\.env\.HOT_A11Y_CHECKS_SUITE\)/,
-    `${CHECKS_CONFIG}: the projects come from EVIDENCE_CHECKS, filtered by the suite. ${CHECKS_DOC}`);
+  assert.match(config, /checksForRun\(process\.env\)/,
+    `${CHECKS_CONFIG}: the projects come from EVIDENCE_CHECKS, through checksForRun(): the checks A11Y_CHECKS names (a subset dispatch), otherwise the suite HOT_A11Y_CHECKS_SUITE picks. ${CHECKS_DOC}`);
   assert.match(config, /failOnFlakyTests: false/, `${CHECKS_CONFIG}: a flaky check is a finding against the check, recorded, never a red run. ${CHECKS_DOC}`);
   assert.match(config, /\['\.\/reporters\/a11y-checks\.ts'\]\s*,?\s*\]/, `${CHECKS_CONFIG}: the checks reporter writes the documents. ${CHECKS_DOC}`);
   assert.doesNotMatch(config, /quarantine/, `${CHECKS_CONFIG}: no quarantine reporter in a check. ${CHECKS_DOC}`);
@@ -226,11 +228,16 @@ test('the checks config builds on the e2e config, takes its projects from the re
     `${CONFIG}: the axe config collects its one spec, never the checks in a11y/checks/. ${CHECKS_DOC}`);
 });
 
-test('the A11y nightly builds the UMD bundle and calls the module with every check, on a weeknight cron', () => {
+test('the A11y nightly builds the UMD bundle and calls the module with every check, on a dispatch and never a cron', () => {
   const workflow = stripYamlComments(read(NIGHTLY));
 
   assert.deepEqual(jobIds(workflow), ['build', 'a11y', 'notify']);
-  assert.match(workflow, /^ {4}- cron: '30 5 \* \* 2-6'$/m, `${NIGHTLY}: weeknights at 05:30 UTC, after the screen reader nightly and clear of the docs sync. ${CHECKS_DOC}`);
+  assert.doesNotMatch(workflow, /^ {2}schedule:$/m,
+    `${NIGHTLY}: manual trigger only. The accessibility program runs one audit, fixes, and re-audits; a cron would spend the compute on nights nobody reads. The tiers (axe on a pull request, a semi-lite set on a nightly, the full set on a release candidate and a stable release) come back with the schedule, not before. ${CHECKS_DOC}`);
+  assert.doesNotMatch(workflow, /cron/, `${NIGHTLY}: no cron, under any key. ${CHECKS_DOC}`);
+  assert.match(workflow, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch from any ref is the audit and the proof run. ${CHECKS_DOC}`);
+  assert.match(workflow, /^ {2}pull_request:\n {4}paths: \[ '\.github\/workflows\/a11y-nightly\.yml' \]$/m,
+    `${NIGHTLY}: the self-validating trigger stays; without it a broken workflow_call graph first runs after merging. ${CHECKS_DOC}`);
 
   const a11y = job(workflow, 'a11y');
 
@@ -242,6 +249,10 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
     `${NIGHTLY}: a dispatch picks the suite, every check by default. ${CHECKS_DOC}`);
   assert.match(workflow, /^ {8}default: nightly$/m,
     `${NIGHTLY}: a plain dispatch runs every check, as tests/AGENTS.md and .ai/CI.md say; only a dispatch that asks for the short suite runs it. ${CHECKS_DOC}`);
+  assert.match(workflow, /^ {6}checks:\n(?: {8}.*\n)*? {8}type: string\n(?: {8}.*\n)*? {8}default: ''$/m,
+    `${NIGHTLY}: the checks input names the checks beyond axe to run, comma-separated, and its default, empty, runs the suite: a proof run on a branch dispatches the changed check alone. ${CHECKS_DOC}`);
+  assert.match(a11y, /^ {6}check-ids: \$\{\{ inputs\.checks \}\}$/m,
+    `${NIGHTLY}: the checks input is forwarded as the module's check-ids input, which reaches the config as A11Y_CHECKS. ${CHECKS_DOC}`);
   assert.doesNotMatch(a11y, /secrets: inherit/, `${NIGHTLY}: the called workflow reads only GITHUB_TOKEN.`);
   assert.match(job(workflow, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the checks consume the UMD build artifact.`);
   for (const id of ['build', 'a11y']) {
@@ -262,6 +273,11 @@ test('the checks beyond axe run only when the caller asks for them: the A11y nig
   assert.match(input, /^ {8}type: boolean$/m, `${A11Y}: the checks input is a boolean of workflow_call. ${CHECKS_DOC}`);
   assert.match(input, /^ {8}default: false$/m,
     `${A11Y}: the checks are off unless the caller asks, so a caller that passes nothing runs the axe scan only. ${CHECKS_DOC}`);
+
+  const ids = header.split(/^ {6}(?=[A-Za-z0-9_-]+:$)/m).find(block => block.startsWith('check-ids:')) ?? '';
+
+  assert.match(ids, /^ {8}type: string$/m, `${A11Y}: check-ids is a comma-separated string of check ids. ${CHECKS_DOC}`);
+  assert.match(ids, /^ {8}default: ''$/m, `${A11Y}: an empty check-ids runs the suite, so every caller that passes nothing keeps its checks. ${CHECKS_DOC}`);
   assert.match(job(workflow, 'checks'), /^ {4}if: \$\{\{ inputs\.checks \}\}$/m,
     `${A11Y}: the checks job runs only when the caller asks; a skipped job runs no step and posts no check run. ${CHECKS_DOC}`);
   assert.doesNotMatch(job(workflow, 'axe'), /^ {4}if:/m,

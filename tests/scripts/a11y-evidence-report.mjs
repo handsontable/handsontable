@@ -20,6 +20,7 @@
 import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { escapeMarkdownText } from '../lib/a11y-baseline.mjs';
 import { pageLines } from '../lib/a11y-check-run.mjs';
 import { buildEvidenceCheckRun, checksForSuite, renderEvidenceSummary, validateEvidence } from '../lib/a11y-evidence.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
@@ -59,9 +60,15 @@ for (const check of expected.filter(name => !reports.some(report => report.check
 }
 
 const payloads = reports.map(report => buildEvidenceCheckRun({ ...report, pages, runUrl, artifactUrl }));
+// A subset run names what ran, so nobody reads the missing checks as clean: the ledger resolves a row only
+// where its check measured, and the summary says the same.
+const subsetLine = env.A11Y_CHECKS
+  ? [`A subset run: ${escapeMarkdownText(expected.join(', '))} (the \`checks\` input). The other checks did not run and measured nothing.`, '']
+  : [];
 const summary = [
   '## A11y: the checks beyond axe',
   '',
+  ...subsetLine,
   ...reports.map((report, index) => (report.doc && report.problems.length === 0
     ? renderEvidenceSummary(report.doc, { runUrl, artifactUrl })
     : `### ${payloads[index].name}\n\n${payloads[index].summary}\n`)),

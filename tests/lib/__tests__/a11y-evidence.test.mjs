@@ -12,6 +12,7 @@ import {
   WCAG_CRITERIA,
   buildEvidenceCheckRun,
   checkRunName,
+  checksForRun,
   checksForSuite,
   compareCriteria,
   criterionInfo,
@@ -93,6 +94,21 @@ test('a suite picks its checks: pull requests run the quick ones, the nightly an
   assert.deepEqual(checksForSuite('nightly', checks), ['quick', 'slow']);
   assert.deepEqual(checksForSuite(undefined, checks), ['quick', 'slow']);
   assert.throws(() => checksForSuite('pr', checks), /must be one of pull-request, nightly/);
+});
+
+test('a subset dispatch names its checks: A11Y_CHECKS wins over the suite, in registry order, and an unknown id is refused before a test runs', () => {
+  const checks = { quick: { pullRequest: true }, slow: { pullRequest: false }, other: { pullRequest: false } };
+
+  assert.deepEqual(checksForRun({ A11Y_CHECKS: 'slow', HOT_A11Y_CHECKS_SUITE: 'pull-request' }, checks), ['slow'],
+    'the named checks run, whatever the suite says');
+  assert.deepEqual(checksForRun({ A11Y_CHECKS: ' other, quick ,quick, ' }, checks), ['quick', 'other'],
+    'trimmed, deduplicated, in registry order');
+  assert.deepEqual(checksForRun({ HOT_A11Y_CHECKS_SUITE: 'pull-request' }, checks), ['quick'], 'no subset: the suite');
+  assert.deepEqual(checksForRun({ A11Y_CHECKS: '' }, checks), ['quick', 'slow', 'other'], 'an empty subset is no subset');
+  assert.deepEqual(checksForRun({}, checks), ['quick', 'slow', 'other']);
+  assert.throws(() => checksForRun({ A11Y_CHECKS: 'quick,sloww' }, checks), /A11Y_CHECKS names no check "sloww"; the checks are quick, slow, other/);
+  assert.throws(() => checksForRun({ A11Y_CHECKS: ',' }, checks), /A11Y_CHECKS names no check/);
+  assert.throws(() => checksForRun({ HOT_A11Y_CHECKS_SUITE: 'pr' }, checks), /must be one of pull-request, nightly/);
 });
 
 test('the WCAG table is WCAG 2.2: 31 A, 24 AA and 31 AAA criteria, without the obsolete 4.1.1', () => {

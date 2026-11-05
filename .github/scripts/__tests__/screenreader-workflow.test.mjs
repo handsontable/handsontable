@@ -46,6 +46,34 @@ test('screenreader.yml is an NVDA job on Windows and a VoiceOver job on macOS, n
     `${LANE} runs one job per screen reader: Guidepup drives one screen reader per machine. ${DOC}`);
 });
 
+test('a subset dispatch runs the named projects only: each lane job skips itself when none of its projects is named, and the matrix drops the others', () => {
+  const workflow = stripYamlComments(read(LANE));
+  const [header] = workflow.split(/^jobs:$/m);
+  const input = name => header.split(/^ {6}(?=[A-Za-z0-9_-]+:$)/m).find(block => block.startsWith(`${name}:`)) ?? '';
+
+  ['groups', 'projects'].forEach((name) => {
+    assert.match(input(name), /^ {8}type: string$/m, `${LANE}: ${name} is a comma-separated subset. ${DOC}`);
+    assert.match(input(name), /^ {8}default: ''$/m, `${LANE}: an empty ${name} runs every one, so a caller that passes nothing runs the full set. ${DOC}`);
+  });
+
+  // `contains(format(',{0},', inputs.projects), ',<project>,')`: a whole-name match inside the comma-separated
+  // list, so `vo-chromium` never matches a `chromium` and an empty list matches nothing.
+  const named = project => `contains\\(format\\(',\\{0\\},', inputs\\.projects\\), ',${project},'\\)`;
+
+  [['nvda', 'nvda-chromium', 'nvda-firefox'], ['voiceover', 'vo-webkit', 'vo-chromium']].forEach(([id, ...projects]) => {
+    const body = job(workflow, id);
+
+    assert.match(body, new RegExp(`^ {4}if: \\$\\{\\{ inputs\\.projects == '' \\|\\| ${named(projects[0])} \\|\\| ${named(projects[1])} \\}\\}$`, 'm'),
+      `${LANE} ${id}: the job runs on an empty projects input, or when it names one of the job's projects; a job-level if reads inputs, never matrix, so the browser filter is the exclude below. ${DOC}`);
+    projects.forEach((project) => {
+      const browser = project.split('-')[1];
+
+      assert.match(body, new RegExp(`^ {10}- browser: \\$\\{\\{ inputs\\.projects != '' && !${named(project)} && '${browser}' \\|\\| '' \\}\\}$`, 'm'),
+        `${LANE} ${id}: a projects input that does not name ${project} excludes its browser from the matrix; an empty input excludes nothing (an exclude of '' matches no combination). The browser axis stays literal, so the group axis the scenario work adds composes with it. ${DOC}`);
+    });
+  });
+});
+
 test('the NVDA job: Windows, one browser per job, report-only, running the screen reader config against the UMD artifact', () => {
   const workflow = stripYamlComments(read(LANE));
 
@@ -209,12 +237,22 @@ test('every lane job bounds each step that downloads, under a job timeout above 
   });
 });
 
-test('screenreader-nightly.yml calls the lane after the UMD build, on its own cron and from any ref, and the Tests pipeline never calls it', () => {
+test('screenreader-nightly.yml calls the lane after the UMD build, on a dispatch from any ref and never a cron, and the Tests pipeline never calls it', () => {
   const nightly = stripYamlComments(read(NIGHTLY));
 
   assert.deepEqual(jobIds(nightly), ['build', 'screenreader', 'notify'], `${NIGHTLY}: build, the lane, the Slack ping. ${DOC}`);
-  assert.match(nightly, /^ {4}- cron: '30 4 \* \* 2-6'$/m, `${NIGHTLY}: weeknights, after the E2E nightly.`);
+  assert.doesNotMatch(nightly, /^ {2}schedule:$/m,
+    `${NIGHTLY}: manual trigger only. The accessibility program runs one audit, fixes, and re-audits; a cron would spend a headed Windows and macOS runner per browser on nights nobody reads. The tiers (axe on a pull request, a semi-lite set on a nightly, the full set on a release candidate and a stable release) come back with the schedule, not before. ${DOC}`);
+  assert.doesNotMatch(nightly, /cron/, `${NIGHTLY}: no cron, under any key. ${DOC}`);
   assert.match(nightly, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch from a feature branch is the proof run and the golden recorder.`);
+  assert.match(nightly, /^ {2}pull_request:\n {4}paths: \[ '\.github\/workflows\/screenreader-nightly\.yml' \]$/m,
+    `${NIGHTLY}: the self-validating trigger stays; without it a broken workflow_call graph first runs after merging. ${DOC}`);
+  ['groups', 'projects'].forEach((input) => {
+    assert.match(nightly, new RegExp(`^ {6}${input}:\\n(?: {8}.*\\n)*? {8}type: string\\n(?: {8}.*\\n)*? {8}default: ''$`, 'm'),
+      `${NIGHTLY}: the ${input} input is a comma-separated subset, and its default, empty, runs every one: a proof run on a branch dispatches the changed group on one project instead of every lane. ${DOC}`);
+    assert.match(job(nightly, 'screenreader'), new RegExp(`^ {6}${input}: \\$\\{\\{ inputs\\.${input} \\}\\}$`, 'm'),
+      `${NIGHTLY}: the ${input} input is forwarded to the lane as it is; the inputs context is empty on the pull_request trigger, where the job skips itself anyway. ${DOC}`);
+  });
   assert.match(job(nightly, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the lane needs the UMD artifact.`);
   ['build', 'screenreader'].forEach((id) => {
     assert.match(job(nightly, id), /^ {4}if: github\.event_name != 'pull_request'$/m,
