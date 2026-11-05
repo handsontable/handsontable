@@ -33,7 +33,7 @@ export const SR_PAGE_COVERAGE = {
   'nested-rows': { scenarios: ['nested-rows'] },
   'exact-row-heights': { none: 'an exact row height clips what is drawn, not what is in the accessibility tree: a reader reads the cells the grid page reads' },
   'merge-cells': { gap: 'a merged cell (its value read once, its span, the arrows into and across it) is read by no scenario' },
-  'column-summary': { gap: 'the summary row\'s identity and its calculated, read-only cells are read by no scenario' },
+  'column-summary': { scenarios: ['column-summary'] },
   loading: { gap: 'the loading overlay\'s message over the grid is read by no scenario' },
   'empty-data': { gap: 'the empty-data state\'s message under the headers is read by no scenario' },
   'sheets-bar': { gap: 'switching and renaming a sheet tab, and what each announces, are read by no scenario' },
@@ -59,11 +59,11 @@ export const SR_PAGE_COVERAGE = {
   'select-editor': { scenarios: ['select-editor'] },
   'date-editor': { scenarios: ['date-editor'] },
   'datetime-editor': { gap: 'the intl-datetime editor is read by no scenario' },
-  comments: { gap: 'the comment editor opened from the keyboard (its name, typing, closing) and a commented cell are read by no scenario' },
+  comments: { scenarios: ['comment-editor'] },
   'freeze-bar': { gap: 'the freeze bars on the header corners are read by no scenario' },
   'selection-handles': { none: 'the drag handles of a desktop selection are drawn under the pointer only, with no role, name or focus a reader meets' },
   'mobile-selection-handles': { gap: 'the touch handles a phone draws on a selection are for the mobile readers, whose lanes do not exist yet' },
-  'auto-link': { gap: 'a link autoLink draws in a cell (its name, its activation) is read by no scenario' },
+  'auto-link': { scenarios: ['auto-link'] },
   'row-selection': { scenarios: ['row-selection'] },
   'async-values': { gap: 'a cell whose value is pending, then its value, is read by no scenario' },
   'time-editor': { gap: 'the time editor is read by no scenario' },
@@ -88,7 +88,7 @@ export const SR_FEATURE_COVERAGE = {
   // Plugins.
   asyncValues: { gap: 'a pending value and its arrival are read by no scenario' },
   autoColumnSize: { none: 'measures column widths and draws nothing a reader meets' },
-  autoLink: { gap: 'the links it draws in cells are read by no scenario' },
+  autoLink: { scenarios: ['auto-link'] },
   autoRowHeaderSize: { none: 'measures the row header width and draws nothing a reader meets' },
   autoRowSize: { none: 'measures row heights and draws nothing a reader meets' },
   autofill: { none: 'draws a pointer-only drag handle with no role, name or focus' },
@@ -96,8 +96,8 @@ export const SR_FEATURE_COVERAGE = {
   checkboxHeader: { scenarios: ['checkbox-header'] },
   collapsibleColumns: { gap: 'a collapse and an expand of a column group are read by no scenario' },
   columnSorting: { scenarios: ['grid-core'] },
-  columnSummary: { gap: 'the summary row is read by no scenario' },
-  comments: { gap: 'the comment editor and a commented cell are read by no scenario' },
+  columnSummary: { scenarios: ['column-summary'] },
+  comments: { scenarios: ['comment-editor'] },
   contextMenu: { scenarios: ['grid-core'] },
   copyPaste: { none: 'handles clipboard events, which announce nothing by design; its menu items read like every context menu item' },
   customBorders: { none: 'draws borders, a decoration with no role, name or text' },
@@ -158,4 +158,4 @@ export const SR_FEATURE_COVERAGE = {
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 57;
+export const SR_GAP_LIMIT = 51;

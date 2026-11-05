@@ -83,9 +83,10 @@ export const STARTS = ['grid', 'page'];
  * groups, each a matrix entry of `.github/workflows/screenreader.yml` with its own job, check run and
  * artifacts (`tests/AGENTS.md`, "Screen readers"). `keyboard`: what a keyboard user does in the grid
  * itself. `reading`: the reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the
- * filters inside them. `editors`: the cell editors and the checkbox cell. `selection`: row selection, the
- * check all header, and the selection paging through a virtualized grid. A new group joins this list and
- * the workflow's matrix together; the workflow test keeps the two equal.
+ * filters inside them, the comment editor, the column summary row and the links autoLink draws. `editors`:
+ * the cell editors and the checkbox cell. `selection`: row selection, the check all header, and the
+ * selection paging through a virtualized grid. A new group joins this list and the workflow's matrix
+ * together; the workflow test keeps the two equal.
  */
 export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection'];
 /**
