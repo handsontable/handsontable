@@ -793,7 +793,7 @@ const columns = [{ renderer: tooltipRenderer }, {}];
 
 :::
 
-If you need a tooltip that keyboard users can reach, or one with your own markup, render your own element instead of `title`. Show it from [`afterOnCellMouseOver`](@/api/hooks.md#afteroncellmouseover) and hide it in [`afterOnCellMouseOut`](@/api/hooks.md#afteroncellmouseout). Also show it from [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) and hide it in [`afterDeselect`](@/api/hooks.md#afterdeselect), so that moving the selection with the arrow keys shows it too.
+If you need a tooltip that keyboard users can reach, or one with your own markup, render your own element instead of `title`. Show it from [`afterOnCellMouseOver`](@/api/hooks.md#afteroncellmouseover) and hide it in [`afterOnCellMouseOut`](@/api/hooks.md#afteroncellmouseout). Also show it from [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) and hide it in [`afterDeselect`](@/api/hooks.md#afterdeselect), so that moving the selection with the arrow keys shows it too. In `afterOnCellMouseOut`, show the tip of the selected cell again instead of hiding it, so that a mouse pass doesn't hide the tip of a cell the keyboard has selected.
 
 To attach a note that users can add, edit, and delete, use the [`comments`](@/guides/cell-features/comments/comments.md) plugin instead of a tooltip.
 
