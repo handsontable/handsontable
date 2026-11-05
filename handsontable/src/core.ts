@@ -662,6 +662,7 @@ export default function Core(
    * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
    */
   let slotsResizeObserver: ResizeObserver | null = null;
+  let reserveSlotsChangedAtInit: (() => boolean) | null = null;
   /**
    * Stops watching the document's web font loads (see `refreshAfterFontsLoad()`), or `null` before
    * `init` started watching.
@@ -2949,6 +2950,20 @@ export default function Core(
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
       let lastSlotsHeight = measureSlotsHeight();
+      const reserveChangedSlots = () => {
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return false;
+        }
+
+        lastSlotsHeight = slotsHeight;
+        reapplyPixelRootHeight(instance, tableMeta.height);
+
+        return true;
+      };
+
+      reserveSlotsChangedAtInit = reserveChangedSlots;
 
       // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
       // bar that mounts late or changes height would keep a stale reservation until an unrelated
@@ -2961,17 +2976,9 @@ export default function Core(
           return;
         }
 
-        const slotsHeight = measureSlotsHeight();
-
-        if (slotsHeight === lastSlotsHeight) {
-          return;
+        if (reserveChangedSlots()) {
+          instance.render();
         }
-
-        lastSlotsHeight = slotsHeight;
-
-        reapplyPixelRootHeight(instance, tableMeta.height);
-
-        instance.render();
       });
       slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
@@ -3030,6 +3037,16 @@ export default function Core(
     }
 
     instance.runHooks('afterInit');
+
+    // An `afterInit` listener can fill a slot: the missing-features bar is written after the first render,
+    // because the header checkbox is checked only then. The slot observer would reserve its height a frame
+    // later, so a height read right after the constructor would still count the bar's room as grid. Reserve
+    // it now and draw at that height, before the constructor returns.
+    if (reserveSlotsChangedAtInit !== null && !instance.isDestroyed && reserveSlotsChangedAtInit()) {
+      instance.render();
+    }
+
+    reserveSlotsChangedAtInit = null;
   }
 
   /**

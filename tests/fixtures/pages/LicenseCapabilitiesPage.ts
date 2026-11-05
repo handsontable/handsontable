@@ -71,6 +71,18 @@ export class LicenseCapabilitiesPage {
   }
 
   /**
+   * The grid's outer height (the root plus its top and bottom slots) and whether the license bar was in the
+   * page, read by the fixture in the same task as the constructor.
+   *
+   * @returns {Promise<{ barMounted: boolean, outerHeight: number }>}
+   */
+  async sizeAtConstruction(): Promise<{ barMounted: boolean; outerHeight: number }> {
+    return this.page.evaluate(() => (window as unknown as {
+      sizeAtConstruction: { barMounted: boolean; outerHeight: number };
+    }).sizeAtConstruction);
+  }
+
+  /**
    * Whether a plugin of the grid is on.
    *
    * @param {string} pluginName The plugin key.

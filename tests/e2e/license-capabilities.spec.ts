@@ -48,6 +48,16 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
       expect(license.licenseErrors()[0]).toContain('Copy and paste (feat:copy_paste)');
     });
 
+  test('keeps the declared height with the bar the first render writes, as soon as the constructor returns',
+    async() => {
+      await license.goto({ key: 'flagged-minimal', plugins: 'header-checkbox' });
+
+      const size = await license.sizeAtConstruction();
+
+      expect(size.barMounted).toBe(true);
+      expect(size.outerHeight).toBe(200);
+    });
+
   test('shows no Filters items in a column menu the key does list', async() => {
     await license.goto({ key: 'flagged-column-menu', plugins: 'column-menu' });
 

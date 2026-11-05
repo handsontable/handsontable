@@ -105,6 +105,15 @@
       window.htBuildError = String(error && error.message || error);
       throw error;
     }
+
+    // Read in the same task as the constructor, before any observer or frame: the height a page reads
+    // right after building the grid.
+    window.sizeAtConstruction = {
+      barMounted: window.hot.rootSlotBottomElement.querySelector('.hot-display-license-info') !== null,
+      outerHeight: window.hot.rootElement.offsetHeight +
+        window.hot.rootSlotTopElement.offsetHeight +
+        window.hot.rootSlotBottomElement.offsetHeight,
+    };
   </script>
 </body>
 </html>

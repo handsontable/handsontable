@@ -239,6 +239,57 @@ describe('license gates of the plugins that are on in every grid', () => {
       expect(barLines[0].textContent).toContain('Copy and paste');
     });
 
+    it('should print one message when an `init` listener updates the settings before the first render', async() => {
+      const hot = createGrid({
+        licenseKey: FLAGGED_MINIMAL_KEY,
+        ...settings,
+        colWidths: 60,
+        init() {
+          this.updateSettings({ readOnly: false });
+        },
+      });
+      const printedAtInit = missingFeatureErrors();
+
+      expect(printedAtInit.length).toBe(1);
+      expect(printedAtInit[0]).toContain('Checkbox header (feat:checkbox_header)');
+      expect(printedAtInit[0]).toContain('Copy and paste (feat:copy_paste)');
+
+      await Promise.resolve();
+
+      const barLines = hot.rootSlotBottomElement.querySelectorAll('.hot-display-license-info_missing-features');
+
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
+      expect(barLines.length).toBe(1);
+      expect(barLines[0].textContent).toContain('Checkbox header');
+    });
+
+    it('should print one message when a gated call made before the first render throws', async() => {
+      let thrown = null;
+
+      createGrid({
+        licenseKey: FLAGGED_MINIMAL_KEY,
+        ...settings,
+        colWidths: 60,
+        init() {
+          try {
+            this.getPlugin('viewState').getViewState();
+          } catch (error) {
+            thrown = error;
+          }
+        },
+      });
+      const printedAtInit = missingFeatureErrors();
+
+      expect(thrown).not.toBeNull();
+      expect(printedAtInit.length).toBe(1);
+      expect(printedAtInit[0]).toContain('Checkbox header (feat:checkbox_header)');
+      expect(printedAtInit[0]).toContain('View state (feat:view_state)');
+
+      await Promise.resolve();
+
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
+    });
+
     it('should write nothing more for a refused header checkbox when a key that covers it arrives', async() => {
       // The first render refuses the header checkbox and leaves a write to a microtask; the key below is passed
       // before that microtask runs, so the write finds nothing missing.
