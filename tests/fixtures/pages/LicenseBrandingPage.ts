@@ -15,8 +15,8 @@ export const INSTANT = {
 } as const;
 
 type LicenseKeyName = 'trial' | 'trial-external' | 'subscription' |
-  'tampered' | 'legacy-expired' | 'non-commercial-padded' | 'missing' |
-  'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'trial-v1' |
+  'tampered' | 'legacy-expired' | 'legacy-expired-padded' | 'non-commercial' | 'missing' |
+  'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'subscription-padded' | 'trial-v1' |
   'sponsored-badge' | 'sponsored-badge-external' | 'sponsored-no-badge';
 export interface PixelBox { minX: number; maxX: number; minY: number; maxY: number }
 

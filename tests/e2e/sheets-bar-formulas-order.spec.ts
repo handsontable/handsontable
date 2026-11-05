@@ -96,6 +96,213 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
       await expect(grid.cell(0, 0)).toHaveText('#REF!');
       expect(await grid.declaredSheetCell(1, 0, 0)).toBe('=#REF!');
     });
+
+    test('moves the references of a sorted sheet the user left, so a later order keeps its values', async() => {
+      await grid.goto('sortedSummary');
+
+      expect(await grid.switchTo('Summary')).toEqual([true]);
+
+      await grid.sort(1, 'asc');
+
+      expect(await grid.getData()).toEqual([[10, 'a'], [50, 'b']]);
+      expect(await grid.switchTo('Data')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.declaredSheetCell(1, 0, 0)).toBe('=Data!$A$6');
+      expect(await grid.declaredSheetCell(1, 1, 0)).toBe('=Data!$A$2');
+      expect(await grid.switchTo('Summary')).toEqual([true]);
+      expect(await grid.getData()).toEqual([[10, 'a'], [50, 'b']]);
+
+      await grid.sort(1, 'desc');
+
+      expect(await grid.switchTo('Data', 'Summary')).toEqual([true, true]);
+      expect(await grid.getData()).toEqual([[50, 'b'], [10, 'a']]);
+
+      await grid.clearSort();
+
+      expect(await grid.switchTo('Data', 'Summary')).toEqual([true, true]);
+      expect(await grid.getData()).toEqual([[50, 'b'], [10, 'a']]);
+      expect(await grid.declaredSheetCell(1, 0, 0)).toBe('=Data!$A$6');
+      expect(await grid.declaredSheetCell(1, 1, 0)).toBe('=Data!$A$2');
+      expect(await grid.consoleMessages()).toEqual([]);
+    });
+  });
+
+  test.describe('a sorted sheet the user left, after a structural change on the sheet it reads', () => {
+    for (const [workbook, first] of [['ownRefFirst', true], ['ownRefSecond', false]] as const) {
+      test(`keeps its own references in its own order (${first ? 'sorted as the first sheet' : 'sorted after a switch'})`, async() => {
+        await grid.goto(workbook);
+
+        if (!first) {
+          expect(await grid.switchTo('S')).toEqual([true]);
+        }
+
+        await grid.sort(0, 'asc');
+
+        expect(await grid.getData()).toEqual([[1, 11], [2, 12], [3, 13]]);
+        expect(await grid.switchTo('Main')).toEqual([true]);
+
+        await grid.alter('insert_row_above', 0);
+
+        expect(await grid.sheetData('S')).toEqual([
+          [3, '=Main!$A$2+A1'], [1, '=Main!$A$2+A2'], [2, '=Main!$A$2+A3'],
+        ]);
+
+        await grid.alter('remove_row', 0);
+
+        expect(await grid.sheetData('S')).toEqual([
+          [3, '=Main!$A$1+A1'], [1, '=Main!$A$1+A2'], [2, '=Main!$A$1+A3'],
+        ]);
+        expect(await grid.switchTo('S')).toEqual([true]);
+
+        await grid.clearSort();
+
+        expect(await grid.switchTo('Main', 'S')).toEqual([true, true]);
+        expect(await grid.getData()).toEqual([[3, 13], [1, 11], [2, 12]]);
+      });
+    }
+
+    test('keeps relative references and a formula typed after the sort in its own order', async() => {
+      await grid.goto('relativeDesc');
+
+      expect(await grid.switchTo('S')).toEqual([true]);
+
+      await grid.sort(0, 'desc');
+      await grid.setDataAtCell(6, 1, '=Main!A3');
+
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual([
+        ...[1, 2, 3, 4, 5, 6].map(n => [n, `=Main!A${n + 1}`]),
+        [null, '=Main!A4'],
+      ]);
+      expect(await grid.switchTo('S')).toEqual([true]);
+
+      await grid.clearSort();
+
+      expect(await grid.switchTo('Main', 'S')).toEqual([true, true]);
+      expect(await grid.getData()).toEqual([
+        ...[1, 2, 3, 4, 5, 6].map(n => [n, n * 10]),
+        [null, 30],
+      ]);
+    });
+  });
+
+  test.describe('a moved sheet the user left, after a structural change on the sheet it reads', () => {
+    const expectedRows = [1, 2, 3, 4].map(n => [n, `=Main!A${n + 1}`]);
+
+    test('keeps the references of a row moved up on the cells they read', async() => {
+      await grid.goto('movedRows');
+      await grid.moveRow(3, 0);
+
+      expect(await grid.getData()).toEqual([[4, 40], [1, 10], [2, 20], [3, 30]]);
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual(expectedRows);
+      expect(await grid.switchTo('S')).toEqual([true]);
+      expect(await grid.getData()).toEqual([[4, 40], [1, 10], [2, 20], [3, 30]]);
+    });
+
+    test('keeps the references of a row moved down on the cells they read', async() => {
+      await grid.goto('movedRows');
+      await grid.moveRow(0, 3);
+
+      expect(await grid.getData()).toEqual([[2, 20], [3, 30], [4, 40], [1, 10]]);
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual(expectedRows);
+      expect(await grid.switchTo('S')).toEqual([true]);
+      expect(await grid.getData()).toEqual([[2, 20], [3, 30], [4, 40], [1, 10]]);
+    });
+
+    test('keeps the references of a moved column on the cells they read', async() => {
+      await grid.goto('movedColumnRefs');
+      await grid.moveColumn(2, 0);
+
+      expect(await grid.getData()).toEqual([[30, 10, 20]]);
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_col_start', 0);
+
+      expect(await grid.sheetData('S')).toEqual([['=Main!B1', '=Main!C1', '=Main!D1']]);
+      expect(await grid.switchTo('S')).toEqual([true]);
+      expect(await grid.getData()).toEqual([[30, 10, 20]]);
+    });
+
+    test('shifts back only what the sort moved, on a sheet moved and then sorted', async() => {
+      await grid.goto('movedRows');
+      await grid.moveRow(3, 0);
+      await grid.sort(0, 'desc');
+
+      expect(await grid.getData()).toEqual([[4, 40], [3, 10], [2, 20], [1, 30]]);
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual(expectedRows);
+      expect(await grid.switchTo('S')).toEqual([true]);
+      expect(await grid.getData()).toEqual([[4, 40], [3, 10], [2, 20], [1, 30]]);
+
+      await grid.clearSort();
+
+      expect(await grid.getData()).toEqual([[4, 40], [1, 10], [2, 20], [3, 30]]);
+      expect(await grid.consoleMessages()).toEqual([]);
+    });
+  });
+
+  test.describe('a moved sheet\'s references to its own cells, after a structural change on the sheet it reads', () => {
+    test('keeps a moved column\'s own references on the cells they read', async() => {
+      await grid.goto('ownRefColumns');
+      await grid.moveColumn(2, 0);
+
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual([
+        [1, 2, '=Main!A2+B1', '=C1*2'],
+        [3, 4, '=Main!A3+B2', '=C2*2'],
+      ]);
+      expect(await grid.switchTo('S')).toEqual([true]);
+
+      await grid.moveColumn(0, 2);
+
+      expect(await grid.switchTo('Main', 'S')).toEqual([true, true]);
+      expect(await grid.getData()).toEqual([[1, 2, 12, 24], [3, 4, 24, 48]]);
+    });
+
+    test('keeps a moved row\'s own references on the cells they read', async() => {
+      await grid.goto('ownRefRows');
+      await grid.moveRow(0, 3);
+
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual(
+        [1, 2, 3, 4, 5].map(n => [n, `=SUM(Main!A${n + 1}:A${n + 2})`, `=Main!B${n + 1}*A${n}`]),
+      );
+    });
+
+    test('keeps the own references of a sheet moved and then sorted on the cells they read', async() => {
+      await grid.goto('ownRefSorted');
+      await grid.moveRow(3, 0);
+      await grid.sort(0, 'desc');
+
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual([1, 2, 3, 4].map(n => [n, `=Main!A${n + 1}+A${n}`]));
+      expect(await grid.consoleMessages()).toEqual([]);
+    });
   });
 
   test.describe('round trips', () => {

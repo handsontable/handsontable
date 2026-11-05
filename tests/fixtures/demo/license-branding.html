@@ -84,11 +84,9 @@
       // A real legacy key that expired on 23/05/2011: valid once, merely lapsed - it must KEEP its
       // bottom bar while the two faults above take the modal.
       'legacy-expired': 'd0134-95841-770f2-c4f21-3751d',
-      // The same free key the docs tell people to paste, with the trailing newline an email or a
-      // chat window adds to it. It is a LICENSED grid: the whitespace must be trimmed away before
-      // the key is classified, or the checksum fails, the key reads as invalid, and 18.1 locks a
-      // grid that is entitled to run.
-      'non-commercial-padded': 'non-commercial-and-evaluation\n',
+      // The non-commercial key. Handsontable 19.0 no longer recognizes it, so it reads as an
+      // invalid key and takes the same lock as the install faults above (PRO-1356).
+      'non-commercial': 'non-commercial-and-evaluation',
       missing: '',
     };
 
@@ -102,6 +100,12 @@
     //                          wraps it (valid)
     LICENSE_KEYS['edited-prose'] = LICENSE_KEYS.subscription.replace('valid until 2027-08-12', 'valid until 2099-08-12');
     LICENSE_KEYS['subscription-pasted'] = `${LICENSE_KEYS.subscription.replace(/ /g, '\r\n')}\\n`;
+    // The subscription key with the spaces and the trailing newline an email or a chat window
+    // leaves around a pasted key. It is a LICENSED grid and must stay one.
+    LICENSE_KEYS['subscription-padded'] = `  ${LICENSE_KEYS.subscription}\n`;
+    // The lapsed legacy key with the same padding. The 25-character alphabet has no whitespace, so
+    // the key must be trimmed before its checksum runs, or it reads as invalid and the grid locks.
+    LICENSE_KEYS['legacy-expired-padded'] = `  ${LICENSE_KEYS['legacy-expired']}\n`;
     LICENSE_KEYS['subscription-wrapped'] = LICENSE_KEYS.subscription.slice(0, LICENSE_KEYS.subscription.lastIndexOf('[')) +
       LICENSE_KEYS.subscription.slice(LICENSE_KEYS.subscription.lastIndexOf('[')).match(/.{1,60}/g).join('\n');
 
@@ -115,9 +119,8 @@
       'no-headers-frozen': { rowHeaders: false, colHeaders: false, fixedRowsTop: 2, fixedColumnsStart: 2 },
       'narrow-corner': { rowHeaders: true, colHeaders: true, rowHeaderWidth: 16 },
       dialog: { rowHeaders: true, colHeaders: true, dialog: true },
-      // A grid narrower than the modal's longest unbreakable token
-      // ('non-commercial-and-evaluation', 29 chars). `width` comes after the shared default below,
-      // so the variant wins.
+      // A grid narrower than the modal's longest unbreakable token (support@handsontable.com, 24
+      // chars). `width` comes after the shared default below, so the variant wins.
       narrow: { rowHeaders: true, colHeaders: true, width: 150 },
       nested: {
         rowHeaders: true,

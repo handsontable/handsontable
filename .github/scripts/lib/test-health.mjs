@@ -21,6 +21,12 @@
  * hands those to the caller separately; `./playwright-durations.mjs` merges them into their own
  * document (`test-health/durations.json`, 30 days, a different shape), never into the ledger.
  *
+ * A fifth family is the accessibility nightlies' evidence: the check documents and the axe findings
+ * of the `A11y nightly` (`a11y-checks-evidence`, `a11y-axe-results`) and the transcripts of the
+ * `Screen reader nightly` (`screenreader-transcripts-*`). `collectArtifactFiles` hands the files of
+ * those artifacts to the caller unparsed; `./a11y-ledger.mjs` reads them into the findings ledger
+ * (`test-health/a11y.json`, 90 days, one row per finding across nights), never into this one.
+ *
  * These helpers turn those artifacts into ledger entries, merge them into the
  * ledger that lives on `gh-pages` (`test-health/ledger.json`), prune it, and
  * aggregate it per test into the summary the page renders: how often a test
@@ -38,6 +44,7 @@ import {
   parseLegArtifact,
   renderDurationsLine,
 } from './playwright-durations.mjs';
+import { classifyA11yArtifact, renderA11yLine } from './a11y-ledger.mjs';
 
 export const LEDGER_VERSION = 1;
 
@@ -142,8 +149,9 @@ export function runContextFromRun(run) {
  * Which kind of evidence an artifact holds, by its name.
  *
  * @param {string} name The artifact name.
- * @returns {'playwright'|'jasmine'|'visual'|'durations'|null} The tier (`durations` is a leg's timing, not a
- * tier of the flake ledger), or `null` for an unrelated artifact.
+ * @returns {'playwright'|'jasmine'|'visual'|'durations'|'a11y'|null} The tier (`durations` is a leg's timing and
+ * `a11y` an accessibility nightly's evidence, neither a tier of the flake ledger), or `null` for an unrelated
+ * artifact.
  */
 export function classifyArtifact(name) {
   if (name.startsWith(PLAYWRIGHT_ARTIFACT_PREFIX)) {
@@ -157,6 +165,9 @@ export function classifyArtifact(name) {
   }
   if (name.startsWith(VISUAL_ARTIFACT_PREFIX)) {
     return 'visual';
+  }
+  if (classifyA11yArtifact(name) !== null) {
+    return 'a11y';
   }
 
   return null;
@@ -344,16 +355,23 @@ export function parseVisualRecord(record, run) {
  * report upload, so a report artifact does not hold the file today, but the failure upload ships all of
  * `tests/test-results`, and if the steps were ever reordered, reading it there would count the leg twice.
  *
+ * An accessibility artifact is not a source of entries either: its files are returned unparsed in `a11y`,
+ * the ones at the paths the ledger reads (`./a11y-ledger.mjs`: a check document at the evidence artifact's
+ * root, the findings at the axe artifact's root, a transcript under `transcripts/`), for the caller to read
+ * on a develop run only.
+ *
  * @param {Array<{artifact: string, path: string, text: string}>} files Each file with the artifact it came from
  * and its path inside that artifact.
  * @param {RunContext} run The run the artifacts belong to.
- * @returns {{entries: Entry[], notes: string[], durations: import('./playwright-durations.mjs').LegSummary[]}}
- * The entries, one note per skipped file or empty artifact, and the leg summaries.
+ * @returns {{entries: Entry[], notes: string[], durations: import('./playwright-durations.mjs').LegSummary[],
+ * a11y: Array<{artifact: string, path: string, text: string}>}} The entries, one note per skipped file or empty
+ * artifact, the leg summaries, and the accessibility files.
  */
 export function collectArtifactFiles(files, run) {
   const entries = [];
   const notes = [];
   const durations = [];
+  const a11y = [];
   const seenArtifacts = new Set(files.map(file => file.artifact));
   const durationsFile = PLAYWRIGHT_DURATIONS_FILE.split('/').pop();
   // Only the file at the artifact's root: the upload names one file, so that is where it lands, and a
@@ -367,6 +385,12 @@ export function collectArtifactFiles(files, run) {
     const isVisualRecord = tier === 'visual' && /(^|\/)visual-compare-[^/]*\.json$/.test(file.path);
     const isDurations = tier === 'durations' && isDurationsFile(file.path);
 
+    if (tier === 'a11y') {
+      if (isA11yFile(file)) {
+        a11y.push(file);
+      }
+      continue;
+    }
     if (!isReport && !isRecord && !isVisualRecord && !isDurations) {
       continue;
     }
@@ -432,7 +456,28 @@ export function collectArtifactFiles(files, run) {
     }
   }
 
-  return { entries, notes, durations };
+  return { entries, notes, durations, a11y };
+}
+
+/**
+ * Whether a file of an accessibility artifact sits where the ledger reads it: a check document at the
+ * evidence artifact's root, the findings at the axe artifact's root, a transcript one level down under
+ * `transcripts/`. Everything else (per-test folders, detail files, the comparison, the scans) is skipped.
+ *
+ * @param {{artifact: string, path: string}} file The file.
+ * @returns {boolean} The verdict.
+ */
+function isA11yFile(file) {
+  const family = classifyA11yArtifact(file.artifact);
+
+  if (family === 'checks') {
+    return /^[a-z0-9-]+\.json$/.test(file.path);
+  }
+  if (family === 'axe') {
+    return file.path === 'a11y-findings.json';
+  }
+
+  return /^transcripts\/[^/]+\.json$/.test(file.path);
 }
 
 /**
@@ -685,9 +730,11 @@ export function inlineCode(value) {
  * @param {import('./playwright-durations.mjs').LegSummary[]} [input.durations] The leg durations the run
  * recorded (`recorded` from `mergeDurations`, so a skipped leg is not counted). When there are any, one line
  * names each leg's wall-clock and the heaviest spec file; a run without Playwright legs gets no line.
+ * @param {object[]} [input.a11y] The accessibility nights the run recorded (`recorded` from `mergeA11yLedger`).
+ * When there are any, one line names each night's counts and clusters.
  * @returns {string} The Markdown.
  */
-export function renderStepSummary({ run, added, notes, summary, pageUrl, durations }) {
+export function renderStepSummary({ run, added, notes, summary, pageUrl, durations, a11y }) {
   const lines = [`## Test health — run ${run.runId} (attempt ${run.runAttempt}, \`${run.branch}\`)`, ''];
 
   if (added.length === 0) {
@@ -723,6 +770,9 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl, duratio
   if (Array.isArray(durations) && durations.length > 0) {
     lines.push('', renderDurationsLine(durations));
   }
+  if (Array.isArray(a11y) && a11y.filter(Boolean).length > 0) {
+    lines.push('', renderA11yLine(a11y));
+  }
 
   if (notes.length > 0) {
     // A note quotes artifact names, paths and error messages: code spans keep them literal.
@@ -740,14 +790,16 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl, duratio
  * as well as from GitHub Pages) and spares it a fetch that a viewer's blocker
  * could stop.
  *
- * @param {string} template The template with `__SUMMARY_JSON__`, `__DURATIONS_JSON__` and `__GENERATED_AT__`
- * placeholders.
+ * @param {string} template The template with `__SUMMARY_JSON__`, `__DURATIONS_JSON__`, `__A11Y_JSON__` and
+ * `__GENERATED_AT__` placeholders.
  * @param {object} summary The aggregate.
  * @param {object|null} [durations] The durations view (`durationsView` in `./playwright-durations.mjs`),
  * `null` before any was collected, or `{ error }` when the stored file could not be read.
+ * @param {object|null} [a11y] The accessibility view (`a11yView` in `./a11y-ledger.mjs`), `null` before any night
+ * was collected, or `{ error }` when the stored file or the catalog could not be read.
  * @returns {string} The HTML.
  */
-export function renderPage(template, summary, durations = null) {
+export function renderPage(template, summary, durations = null, a11y = null) {
   // No `<` reaches the script element at all: `</script>` would end it early, and `<!--` followed by
   // `<script` puts the tokenizer in a state where the template's own `</script>` no longer closes it,
   // which blanks the whole page. A branch name is enough for that. `\u003c` reads back as `<`.
@@ -755,9 +807,10 @@ export function renderPage(template, summary, durations = null) {
   const values = {
     __SUMMARY_JSON__: inline(summary),
     __DURATIONS_JSON__: inline(durations),
+    __A11Y_JSON__: inline(a11y),
     __GENERATED_AT__: summary.generatedAt,
   };
 
   // One pass: a placeholder spelled inside a test title must stay text, not be filled by a later pass.
-  return template.replace(/__SUMMARY_JSON__|__DURATIONS_JSON__|__GENERATED_AT__/g, token => values[token]);
+  return template.replace(/__SUMMARY_JSON__|__DURATIONS_JSON__|__A11Y_JSON__|__GENERATED_AT__/g, token => values[token]);
 }

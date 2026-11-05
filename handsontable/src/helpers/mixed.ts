@@ -100,9 +100,9 @@ let _notified = false;
 // The entitlement-key console message is deduplicated PER KEY, and deliberately SEPARATE from the
 // legacy `_notified` flag above - do NOT merge them. Two reasons for each half:
 //
-// Separate from `_notified`, because the frozen legacy path sets it even when it prints nothing (a
-// non-commercial key's console message is empty), so a shared flag would let a silent non-commercial
-// grid initialized first suppress a later entitlement key's warning.
+// Separate from `_notified`, because the frozen legacy path sets it the first time it prints, for
+// any key, so a shared flag would let a legacy grid initialized first suppress a later entitlement
+// key's warning.
 //
 // Keyed by the key string rather than a single boolean, because these messages have severity tiers
 // the legacy path never had: a notice window prints `warn`, every stop prints `error`. With one flag,
@@ -122,7 +122,6 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
   missing: () => toSingleLine`
     The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
     If you need any help, contact us at support@handsontable.com.`,
-  non_commercial: () => '',
 };
 
 /**
@@ -187,7 +186,6 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
     { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },
     '.',
   ],
-  non_commercial: () => [],
 };
 
 /**
@@ -461,8 +459,6 @@ export function _injectProductInfo(
   }
 
   const hasValidType = !isEmpty(key);
-  const isNonCommercial = typeof key === 'string' &&
-    (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
   const hotVersion = process.env.HOT_VERSION;
   let keyValidityDate;
   let consoleMessageState = 'invalid';
@@ -472,11 +468,7 @@ export function _injectProductInfo(
 
   const schemaValidity = _checkKeySchema(key);
 
-  if (isNonCommercial) {
-    consoleMessageState = 'non_commercial';
-    domMessageState = 'valid';
-
-  } else if (hasValidType || schemaValidity) {
+  if (hasValidType || schemaValidity) {
     if (schemaValidity) {
       const resolvedReleaseDate = releaseDate ?? process.env.HOT_RELEASE_DATE ?? '';
       const [dd, mm, yyyy] = resolvedReleaseDate.split('/').map(Number);
@@ -514,17 +506,10 @@ export function _injectProductInfo(
   }
 
   if (!_notified && consoleMessageState !== 'valid') {
-    const message = consoleMessages[consoleMessageState]({
+    console.warn(consoleMessages[consoleMessageState]({
       keyValidityDate,
       hotVersion,
-    });
-
-    if (message) {
-      console[consoleMessageState === 'non_commercial' ? 'info' : 'warn'](consoleMessages[consoleMessageState]({
-        keyValidityDate,
-        hotVersion,
-      }));
-    }
+    }));
     _notified = true;
   }
 
@@ -591,10 +576,11 @@ function _releaseDateToIsoDate(releaseDate: string): string {
 
 /**
  * The states outside the entitlement format: the legacy 25-character family classified the same way
- * the frozen legacy emitter classifies it (valid, expired, missing, non-commercial), plus "invalid"
- * (a broken legacy key, or an entitlement key that cannot be read).
+ * the frozen legacy emitter classifies it (valid, expired, missing), plus "invalid" (a broken legacy
+ * key, an entitlement key that cannot be read, or the `non-commercial-and-evaluation` key, which
+ * Handsontable 19.0 no longer recognizes).
  */
-type NonEntitlementLifecycleState = 'legacy_valid' | 'legacy_expired' | 'missing' | 'non_commercial' | 'invalid';
+type NonEntitlementLifecycleState = 'legacy_valid' | 'legacy_expired' | 'missing' | 'invalid';
 
 /**
  * The lifecycle facet a consumer reads: the entitlement states plus the states outside the format.
@@ -642,7 +628,7 @@ const OPEN_CHANNELS: LicenseChannels = Object.freeze({ console: true, ui: true }
 
 /**
  * Builds the lifecycle facet for a state outside the entitlement format (the legacy 25-character
- * family, a missing key, the non-commercial key, or an unreadable entitlement key).
+ * family, a missing key, or an unreadable entitlement key).
  *
  * @param {string} state The state outside the entitlement format.
  * @param {string|null} [licensedUntil] The expiration date ("YYYY-MM-DD") of a legacy expired key.
@@ -662,8 +648,8 @@ function _nonEntitlementLifecycle(
 
 /**
  * Classifies a legacy license key into its lifecycle state. This mirrors - read-only - the exact
- * checks of the frozen legacy branch of `_injectProductInfo` (the non-commercial comparison, the
- * empty-key test, the key schema checksum, and the release-days versus validity-days comparison),
+ * checks of the frozen legacy branch of `_injectProductInfo` (the empty-key test, the key schema
+ * checksum, and the release-days versus validity-days comparison),
  * so the branding UI sees the same state the legacy console/DOM messaging acts on. The legacy
  * emitter itself is untouched.
  *
@@ -672,12 +658,6 @@ function _nonEntitlementLifecycle(
  * @returns {LicenseLifecycleFacet}
  */
 function _classifyLegacyKey(key?: string, releaseDate?: string): LicenseLifecycleFacet {
-  const isNonCommercial = typeof key === 'string' &&
-    (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
-
-  if (isNonCommercial) {
-    return _nonEntitlementLifecycle('non_commercial');
-  }
   if (isEmpty(key)) {
     return _nonEntitlementLifecycle('missing');
   }

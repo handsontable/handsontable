@@ -56,11 +56,14 @@ const ISSUE_FIELDS = new Set(['id', 'title', 'tracker']);
 const IMPACTS = new Set(['minor', 'moderate', 'serious', 'critical']);
 const KEY_FIELDS = ['page', 'theme', 'rule', 'target'];
 const START_TAG = /^<([a-z][a-z0-9-]*)([^>]*)>/i;
-// Classes that say which instance, theme, state or layout rendered a node rather than what the
-// node is: a key built on one would change with the selection, the scroll position or the
-// platform. `htDisabled` is the measured case: a menu item is disabled or not depending on what
-// is selected when the menu opens.
-const VOLATILE_CLASSES = new Set([
+/**
+ * Classes that say which instance, theme, state or layout rendered a node rather than what the
+ * node is: a key built on one would change with the selection, the scroll position or the
+ * platform. `htDisabled` is the measured case: a menu item is disabled or not depending on what
+ * is selected when the menu opens. The findings ledger's mask (`lib/a11y-issues.mjs`) strips the
+ * same classes from the checks' selectors, so one list decides for both.
+ */
+export const VOLATILE_CLASSES = new Set([
   'handsontable', 'current', 'area', 'highlight', 'fill', 'htDisabled', 'htDimmed', 'htInvalid',
   'htCustomMenuRenderer', 'htSelectionDisabled', 'htMacScroll', 'htScrollbarHidden',
   'afterHiddenRow', 'afterHiddenColumn', 'beforeHiddenRow', 'beforeHiddenColumn',

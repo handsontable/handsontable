@@ -3346,7 +3346,8 @@ export default function Core(
    * @param {Array<object>} pendingRowMetas The cell meta of the cells validated in not-yet-existing rows.
    */
   function discardResultsOfUncreatedRows(pendingRowMetas: Array<{ row?: number, valid?: boolean }>) {
-    if (pendingRowMetas.length === 0) {
+    // An `afterChange` listener of the applied set can destroy the grid, and its meta is gone with it.
+    if (pendingRowMetas.length === 0 || !instance) {
       return;
     }
 
@@ -3571,6 +3572,11 @@ export default function Core(
           }(i, cellProperties, changes[i])), source);
         } finally {
           isValidatingChange = false;
+        }
+
+        // A `beforeValidate` listener destroyed the grid, so no other change is validated.
+        if (!instance) {
+          return;
         }
       }
     }
@@ -3939,6 +3945,12 @@ export default function Core(
       const loadGeneration = validationLoadGeneration;
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
+
+      // A `beforeValidate` listener destroyed the grid. Nothing is recorded yet, so validation ends here.
+      if (!instance) {
+        return;
+      }
+
       // The validator answers after the call that asked for it has returned. What it and the
       // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
       // was not recorded – so the answer runs inside the call's operation.
@@ -3992,6 +4004,13 @@ export default function Core(
               hold.resume(() => {
                 valid = instance
                   .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
+
+                // Every call into user code can destroy the grid (an `afterValidate` listener here, the
+                // callback in `done()` below), and nothing after it may read the destroyed instance.
+                if (!instance) {
+                  return;
+                }
+
                 cellProperties.valid = valid;
                 markCellMetaChanged(cellProperties);
 
@@ -3999,6 +4018,10 @@ export default function Core(
                 countAnswer();
 
                 done(valid);
+
+                if (!instance) {
+                  return;
+                }
 
                 const wasAnsweringStaleValidation = isAnsweringStaleValidation;
 
@@ -8835,6 +8858,12 @@ export default function Core(
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
+
+        // A `beforeValidate` listener destroyed the grid, so no other cell is validated.
+        if (!instance) {
+          return;
+        }
+
         j -= 1;
       }
       i -= 1;

@@ -468,7 +468,7 @@ They are written in different places and can drift. Keep this in mind:
   the reason a runtime toggle is not a free operation to hand a user a button for.
 - **The `beforeLoadData` listener is registered with `orderIndex: 1`, and that number is load-bearing.**
   `#onBeforeLoadData` validates the incoming array through `#acceptsData()` and, on a non-nested
-  shape, flips the `nestedRows` setting to `false` and disables the plugin for the grid's life. It
+  shape, disables the plugin until data it can handle arrives (next bullet). It
   is a filter hook: every listener sees the value the previous one returned, in registration order,
   and registration follows ascending `PLUGIN_PRIORITY` — so at 300 this plugin used to run before
   `sheetsBar` (910) redirected the init load at the active sheet's array. A grid declaring a
@@ -492,6 +492,21 @@ They are written in different places and can drift. Keep this in mind:
   and the no-`data` two-sheet shape — a guard that passes on develop and pins sheetsBar's
   enable-time load, not the fix. In `__tests__/dataHooks.unit.js` here: a host `beforeLoadData`
   returning a nested array, which fails without the `orderIndex`.
+- **Data that is not an array of objects turns the plugin off, never the user's setting.**
+  `#acceptsData()` logs the error, disables the plugin and sets `#waitsForObjectData`. It used to
+  write `nestedRows = false` into the grid settings instead, which left an own `false` on the table
+  meta that shadowed the user's value for the grid's life: a later `loadData()` with a tree, a sheets
+  bar switch back to a tree sheet, or `updateSettings({ nestedRows: true })` could not turn the plugin
+  back on, and `getSettings().nestedRows` reported `false`. While the flag is set, `isEnabled()` answers
+  `false`, so a settings update without `nestedRows` (any React re-render) does not enable the plugin
+  over the same data and leave it with an empty data manager. Disabling removed the plugin's own data
+  hooks, so the wait adds `beforeLoadData` (`orderIndex: 1`, behind the sheets bar redirect, as below)
+  and `beforeUpdateData` listeners straight on the instance; an array of objects there drops the
+  flag, enables the plugin and hands the data to `#onBeforeLoadData` / `#onBeforeUpdateData` itself,
+  because a listener added during a hook run does not fire in that run. An `updateSettings()` that
+  carries `nestedRows` drops the flag before `BasePlugin#onUpdateSettings`, and `updatePlugin()`
+  validates the settings' `data` again. Pinned by `tests/e2e/nested-rows-runtime-enable.spec.ts` and
+  `tests/e2e/nested-rows-sheet-switch.spec.ts` (the `Flat` sheet).
 - **In React, `updatePlugin()` runs on every re-render.** `SettingsMapper.getSettings()` copies every
   prop except `children` into the `updateSettings` payload, so the `nestedRows` key is always present
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is

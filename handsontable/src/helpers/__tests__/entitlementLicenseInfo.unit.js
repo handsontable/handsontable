@@ -321,10 +321,12 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
       expect(node).toBe(null);
     });
 
-    it('should keep the non-commercial key silent', () => {
+    it('should report the non-commercial key as invalid, without a bar (Handsontable 19.0)', () => {
       const { node } = inject('non-commercial-and-evaluation', { now: SUBSCRIPTION_RUNNING });
 
-      expect(console.warn).not.toHaveBeenCalled();
+      expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(
+        'The license key for Handsontable is invalid.'
+      ));
       expect(console.error).not.toHaveBeenCalled();
       expect(node).toBe(null);
     });

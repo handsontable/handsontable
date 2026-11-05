@@ -2,10 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import {
   HotGlobalConfigService,
   HotGlobalConfig,
-  NON_COMMERCIAL_LICENSE,
   PredefinedTheme,
   ThemeName, HOT_GLOBAL_CONFIG,
 } from './hot-global-config.service';
+import * as publicApi from '../../public-api';
 import { take } from 'rxjs/operators';
 
 describe('HotGlobalConfigService', () => {
@@ -28,8 +28,14 @@ describe('HotGlobalConfigService', () => {
     expect(config.themeName).toBeUndefined();
   });
 
+  it('should still export the deprecated NON_COMMERCIAL_LICENSE constant until 20.0', () => {
+    // Deprecated in 19.0, so an existing import keeps compiling. The key it holds reads as invalid
+    // from 19.0 on, which section 55 of the 18.1 to 19.0 migration guide documents.
+    expect(publicApi.NON_COMMERCIAL_LICENSE).toBe('non-commercial-and-evaluation');
+  });
+
   it('should update license when provided', () => {
-    const license = NON_COMMERCIAL_LICENSE;
+    const license = 'your-license-key';
     service.setConfig({ license });
     const config = service.getConfig();
     expect(config.license).toEqual(license);

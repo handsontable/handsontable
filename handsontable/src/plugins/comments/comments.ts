@@ -356,6 +356,7 @@ export class Comments extends BasePlugin {
        value: unknown, cellProperties: Record<string, unknown>) =>
         this.#onAfterRenderer(TD, cellProperties));
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeUndo', this.#onBeforeUndoRedo);
     this.addHook('beforeRedo', this.#onBeforeUndoRedo);
     this.addHook('afterUndo', this.#onAfterUndoRedo);
@@ -1294,6 +1295,23 @@ export class Comments extends BasePlugin {
   #onAfterScroll = () => {
     if (!this.#preventEditorHiding) {
       this.hide();
+    }
+  };
+
+  /**
+   * Drops a show still waiting on the display delay when `loadData()` leaves its cell without a comment. The
+   * hover that armed it rested on a cell of the old data, so the show ran over a cell of the new data (a
+   * switch to another data set) and opened an empty editor there. A cell that still has a comment keeps its
+   * show: an app that reloads the same data more often than the delay never let a hovered comment open. A
+   * pending hide stays armed. `updateData()` is left alone: the wrappers send it on every re-render with the
+   * data the grid already shows.
+   */
+  #onAfterLoadData = () => {
+    const cell = this.#displaySwitch?.getPendingShowCell() ?? null;
+    const comment = cell ? this.getCommentAtCell(cell.row, cell.col) : undefined;
+
+    if (cell && (comment === undefined || comment === null)) {
+      this.#displaySwitch?.cancelShow();
     }
   };
 

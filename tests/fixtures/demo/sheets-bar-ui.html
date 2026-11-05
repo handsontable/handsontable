@@ -32,6 +32,7 @@
     <div id="grid" data-testid="grid"></div>
   </div>
   <div id="outside-bar" data-testid="outside-bar"></div>
+  <div id="outside-pagination" data-testid="outside-pagination"></div>
 
   <script>
     const loadBundle = () => {
@@ -47,8 +48,8 @@
       document.head.appendChild(bundleScript);
     };
 
-    const sheetData = index => Array.from({ length: 6 }, (_, row) => (
-      Array.from({ length: 4 }, (__, col) => `S${index}-${row}-${col}`)
+    const sheetData = (index, columns = 4) => Array.from({ length: 6 }, (_, row) => (
+      Array.from({ length: columns }, (__, col) => `S${index}-${row}-${col}`)
     ));
 
     /**
@@ -65,11 +66,17 @@
      * @param {boolean} [config.ariaTags=true] The `ariaTags` option.
      * @param {string} [config.hostLabel] An `aria-label` the host puts on the grid's root.
      * @param {boolean} [config.menus=false] Turns on the context menu, the dropdown menu and the filters.
+     * @param {number[]} [config.columnCounts] How many columns each sheet has, by position (4 when absent).
+     * @param {boolean} [config.fixedHeight=true] Gives the grid a `height`; `false` leaves the grid to the
+     *   window's scroll on both axes.
+     * @param {string[]} [config.tabNames] The sheet names, by position (`Sheet {n}` when absent).
+     * @param {boolean} [config.pagination=false] Turns on Pagination, in its own `uiContainer` beside the
+     *   bar's when `config.uiContainer` is set.
      */
     window.buildGrid = (config = {}) => {
       const {
         sheets = 3, activeSheet = 0, rtl = false, uiContainer = false, hidden = false,
-        colorScheme, density, ariaTags = true, hostLabel, menus = false,
+        colorScheme, density, ariaTags = true, hostLabel, menus = false, pagination = false, tabNames = [], columnCounts = [], fixedHeight = true,
       } = config;
       const container = document.querySelector('[data-testid="grid"]');
       const host = document.querySelector('[data-testid="host"]');
@@ -86,19 +93,22 @@
         const hot = new Handsontable(container, {
           colHeaders: true,
           rowHeaders: true,
-          height: 260,
+          ...(fixedHeight ? { height: 260 } : {}),
           ariaTags,
           contextMenu: menus,
           dropdownMenu: menus,
           filters: menus,
+          ...(pagination ? {
+            pagination: uiContainer ? { uiContainer: document.querySelector('[data-testid="outside-pagination"]') } : true,
+          } : {}),
           layoutDirection: rtl ? 'rtl' : 'ltr',
           ...(useThemeEngine ? { theme: Handsontable.themes.getTheme(window.htTheme) } : {}),
           ...(colorScheme !== undefined ? { colorScheme } : {}),
           ...(density !== undefined ? { density } : {}),
           sheetsBar: {
             sheets: Array.from({ length: sheets }, (_, index) => ({
-              name: `Sheet ${index + 1}`,
-              data: sheetData(index),
+              name: tabNames[index] ?? `Sheet ${index + 1}`,
+              data: sheetData(index, columnCounts[index]),
             })),
             activeSheet,
             ...(uiContainer ? { uiContainer: document.querySelector('[data-testid="outside-bar"]') } : {}),

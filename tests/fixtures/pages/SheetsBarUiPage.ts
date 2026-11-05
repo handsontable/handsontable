@@ -2,6 +2,12 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
 /**
+ * How far, in pixels, an element may stick out of the bar's client box and still count as wholly in view:
+ * a fractional box rounds by up to half a pixel.
+ */
+const BAR_EDGE_TOLERANCE = 0.5;
+
+/**
  * The layout `window.buildGrid()` builds (see fixtures/demo/sheets-bar-ui.html).
  */
 export interface SheetsBarUiConfig {
@@ -15,6 +21,10 @@ export interface SheetsBarUiConfig {
   ariaTags?: boolean;
   hostLabel?: string;
   menus?: boolean;
+  pagination?: boolean;
+  tabNames?: string[];
+  columnCounts?: number[];
+  fixedHeight?: boolean;
 }
 
 /**
@@ -175,10 +185,94 @@ export class SheetsBarUiPage {
   }
 
   /**
-   * Whether a tab lies wholly inside the strip's visible part.
+   * Whether a tab's border box, which carries its focus ring, lies wholly inside the strip's visible part,
+   * with no slack: a ring cut by a fraction of a pixel fails.
    *
    * @param {number} index The tab's position.
    * @returns {Promise<boolean>} `true` when the tab is fully in view.
+   */
+  tabWhollyInStrip(index: number): Promise<boolean> {
+    return this.page.evaluate((position) => {
+      const strip = document.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
+      const tab = strip.querySelectorAll('.ht-sheets-bar__tab')[position] as HTMLElement;
+      const stripBox = strip.getBoundingClientRect();
+      const tabBox = tab.getBoundingClientRect();
+
+      return tabBox.left >= stripBox.left && tabBox.right <= stripBox.right;
+    }, index);
+  }
+
+  /**
+   * Whether a control of the bar lies wholly inside the bar's visible part (`BAR_EDGE_TOLERANCE`).
+   *
+   * @param {string} selector The control's selector inside the bar.
+   * @returns {Promise<boolean>} `true` when the control is fully in view.
+   */
+  controlWhollyInBar(selector: string): Promise<boolean> {
+    return this.#whollyInBar({ selector });
+  }
+
+  /**
+   * Whether a tab lies wholly inside the bar's visible part (`BAR_EDGE_TOLERANCE`).
+   *
+   * @param {number} index The tab's position.
+   * @returns {Promise<boolean>} `true` when the tab is fully in view.
+   */
+  tabWhollyInBar(index: number): Promise<boolean> {
+    return this.#whollyInBar({ tab: index });
+  }
+
+  /**
+   * Whether an element of the bar lies inside the bar's client box, give or take `BAR_EDGE_TOLERANCE`, which
+   * covers the half pixel a fractional box rounds to.
+   *
+   * @param {object} target A `selector`, or the `tab` position.
+   * @returns {Promise<boolean>}
+   */
+  #whollyInBar(target: { selector?: string; tab?: number }): Promise<boolean> {
+    return this.page.evaluate(([{ selector, tab }, tolerance]) => {
+      const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+      const left = bar.getBoundingClientRect().left + bar.clientLeft;
+      const element = (selector === undefined
+        ? bar.querySelectorAll('.ht-sheets-bar__tab')[tab!]
+        : bar.querySelector(selector)) as HTMLElement;
+      const box = element.getBoundingClientRect();
+
+      return box.left >= left - tolerance && box.right <= left + bar.clientWidth + tolerance;
+    }, [target, BAR_EDGE_TOLERANCE] as const);
+  }
+
+  /**
+   * The tab strip's `scrollLeft`.
+   *
+   * @returns {Promise<number>}
+   */
+  stripScrollLeft(): Promise<number> {
+    return this.page.evaluate(() => (document.querySelector('.ht-sheets-bar__tabs') as HTMLElement).scrollLeft);
+  }
+
+  /**
+   * The distance between a tab and the strip edge nearest to it, in pixels: `0` for a tab flush with an edge.
+   *
+   * @param {number} index The tab's position.
+   * @returns {Promise<number>}
+   */
+  tabGapToStripEdge(index: number): Promise<number> {
+    return this.page.evaluate((position) => {
+      const strip = document.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
+      const tab = strip.querySelectorAll('.ht-sheets-bar__tab')[position] as HTMLElement;
+      const stripBox = strip.getBoundingClientRect();
+      const tabBox = tab.getBoundingClientRect();
+
+      return Math.min(Math.abs(tabBox.left - stripBox.left), Math.abs(stripBox.right - tabBox.right));
+    }, index);
+  }
+
+  /**
+   * Whether a tab lies wholly inside the strip's visible part, with a pixel of slack at each end.
+   *
+   * @param {number} index The tab's position.
+   * @returns {Promise<boolean>} `true` when the tab is in view.
    */
   tabInStrip(index: number): Promise<boolean> {
     return this.page.evaluate((position) => {

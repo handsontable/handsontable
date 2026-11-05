@@ -22,6 +22,16 @@ export class NestedRowsSheetSwitchPage extends NestedRowsPage {
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
+  /** Whether the NestedRows plugin reports itself as running. */
+  isPluginEnabled(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('nestedRows').enabled);
+  }
+
+  /** What the grid currently holds for the `nestedRows` setting. */
+  nestedRowsSetting(): Promise<unknown> {
+    return this.page.evaluate(() => window.hot.getSettings().nestedRows);
+  }
+
   /**
    * Switches to the sheet under the given tab and waits until the bar reports it active.
    */
