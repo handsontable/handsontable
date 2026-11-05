@@ -52,6 +52,8 @@ Each Handsontable release is built to run on a minimum version of each browser. 
 
 Handsontable 18.x declares minimum versions for Chrome, Firefox, and Safari only. It declares none for Edge or for Safari on iOS. Chrome and Firefox on Android have no minimum declared separately.
 
+Handsontable doesn't ship polyfills. In a browser below the minimum, the grid can fail with errors such as `X is not a function`. Transpiling or polyfilling Handsontable yourself isn't tested.
+
 The minimum versions are not the versions Handsontable is tested on. Tests run on the two latest versions of each browser, which are newer than the minimums.
 
 If you upgrade from 18.1 to 19.0, see [The minimum browser versions are higher](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-minimum-browser-versions-are-higher).

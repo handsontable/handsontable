@@ -3162,7 +3162,7 @@ The theme stylesheets use CSS nesting, logical properties, and the `light-dark()
 
 ### Who is affected
 
-You are affected if your app must run in a browser older than the 19.0 minimum, for example Chrome 129, Firefox 131, or Safari 18.1 on a Mac, iPhone, or iPad.
+You are affected if your app must run in a browser older than the 19.0 minimum, on desktop or on an iPhone or iPad. Handsontable 19.0 isn't tested in those versions.
 
 ### How to migrate
 
