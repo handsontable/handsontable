@@ -17,6 +17,9 @@
  * Cookiebot swallowed it, so the module dispatches the click again on the same element at once and
  * drops Cookiebot's late copy.
  *
+ * A click made before the page has loaded is left to Cookiebot as well: the page's handlers are not
+ * attached yet, so an immediate replay would reach nothing.
+ *
  * Links are left to Cookiebot. A synthetic click on a link navigates, and Cookiebot's delay keeps
  * the navigation from cutting the consent request short. A button that navigates or submits a form
  * on click is in the same position, so it should be a link, or it will leave before Cookiebot has
@@ -52,6 +55,20 @@ export function installFirstClickReplay(win = window) {
   let replaying = false;
   let lateReplayTarget = null;
 
+  // Before the load event the header, the search, and the sidebar have no click handlers yet. A
+  // replay then reaches nothing, and dropping Cookiebot's later copy would lose the click for good.
+  // Such a click stays with Cookiebot, which replays it after the page has loaded.
+  let loaded = win.document?.readyState === 'complete';
+
+  if (!loaded) {
+    win.addEventListener('load', () => {
+      // The page's own load handlers defer their setup by one task, so wait for it too.
+      win.setTimeout(() => {
+        loaded = true;
+      }, 0);
+    }, { once: true });
+  }
+
   /**
    * Whether the click is one that Cookiebot's implied-consent listener could stop.
    *
@@ -61,7 +78,7 @@ export function installFirstClickReplay(win = window) {
   const isCandidate = (event) => {
     const { target } = event;
 
-    if (!event.isTrusted || !target || typeof target.closest !== 'function') {
+    if (!loaded || !event.isTrusted || !target || typeof target.closest !== 'function') {
       return false;
     }
 

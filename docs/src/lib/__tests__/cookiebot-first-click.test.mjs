@@ -44,9 +44,18 @@ function createHarness() {
 
   class FakeMouseEvent extends FakeEvent {}
 
+  const loadListeners = [];
+
   const win = {
     MouseEvent: FakeMouseEvent,
+    document: { readyState: 'complete' },
     addEventListener(type, listener, capture) {
+      if (type === 'load') {
+        loadListeners.push(listener);
+
+        return;
+      }
+
       assert.equal(type, 'click');
       (capture ? windowCapture : windowBubble).push(listener);
     },
@@ -155,6 +164,10 @@ function createHarness() {
     },
     untrustedClick(target) {
       dispatch(new FakeMouseEvent(), target);
+    },
+    fireLoad() {
+      win.document.readyState = 'complete';
+      loadListeners.splice(0).forEach(listener => listener());
     },
     advance(ms) {
       now += ms;
@@ -401,6 +414,40 @@ test('does nothing where Cookiebot is absent', () => {
   harness.advance(10000);
 
   assert.equal(button.clicks, 2);
+});
+
+test('leaves a click made before the page loaded to Cookiebot, and does not drop its copy', () => {
+  const harness = createHarness();
+  const button = harness.createTarget();
+
+  harness.win.document.readyState = 'loading';
+  harness.installFakeCookiebot();
+  installFirstClickReplay(harness.win);
+
+  harness.click(button);
+  harness.advance(0);
+  assert.equal(button.clicks, 0, 'no replay: the page handlers are not attached yet');
+
+  harness.advance(5000);
+  assert.equal(button.clicks, 1, "Cookiebot's own replay reaches the control");
+});
+
+test('replays a swallowed click once the load event and the task after it have passed', () => {
+  const harness = createHarness();
+  const button = harness.createTarget();
+
+  harness.win.document.readyState = 'loading';
+  harness.installFakeCookiebot();
+  installFirstClickReplay(harness.win);
+  harness.fireLoad();
+  harness.advance(0);
+
+  harness.click(button);
+  harness.advance(0);
+  assert.equal(button.clicks, 1, 'replayed at once');
+
+  harness.advance(5000);
+  assert.equal(button.clicks, 1, "Cookiebot's late copy is dropped");
 });
 
 test('installs once per window', () => {
