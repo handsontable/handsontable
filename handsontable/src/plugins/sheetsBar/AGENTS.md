@@ -617,6 +617,26 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   call update a hidden sheet, and a no-op once the first sheet was removed. The Angular wrapper keeps
   `updateData()` instead of `updateSettings({ data })` because the latter also fires the settings hooks and
   every plugin's settings update.
+- **A `sheetsBar: true` workbook on an engine instance takes its tabs from the engine** (`#planEngineSheets`,
+  `planEngineWorkbook()` in `engineSheets.ts`, pure and unit-tested in `__tests__/engineSheetsPlan.unit.js`).
+  It applies when `sheets` is not a non-empty array and the grid-level `formulas.engine` is an instance holding a
+  sheet; a class, an empty engine, or a declared `sheets` keep the old builds. The engine is read only by a
+  genuine (non-preserved) enable, so a wrapper re-render never reads it again, and engine sheets the host adds,
+  removes or renames later are not followed (documented limitations). The entries go through the same build as a
+  declared workbook (`#buildSheetsWorkbook`) with `declared: false`, so nothing lands in `#declaredEntries` and
+  the workbook behaves as `sheetsBar: true` (no host array to write into, `#topLevelDataOwnerId` is the first
+  tab). Four rules ride along. (1) **The opening tab is always the first tab**: the grid's `data` tab, else the
+  `formulas.sheetName` sheet, else `activeSheet` counted in engine order, else the first engine sheet; the build
+  then opens position 0. (2) **No engine sheet is fed at the build** (`#registerWorkbookFormulaSheets(null)`):
+  each already holds its tab's content, and the opening sheet's load writes once. (3) **Every tab, the opening
+  one included, carries a `formulas.sheetName`**, so the opening sheet's settings bind Formulas to an existing
+  engine sheet before the first load. The stray-sheet trap is what happens without it: `sheetsBar: true` with
+  an engine and no `data` used to wrap the grid's default empty rows as `Sheet1` with the grid-level
+  `formulas` (no `sheetName`), and Formulas added an empty engine sheet (`Sheet3` on a two-sheet engine) to
+  the host's engine. The test "leaves the engine with its own sheets only when no data is given" pins it. (4) **A `sheetName` the engine lacks, without `data`,
+  warns and opens the first tab; nothing is created**, while the same name with `data` creates that sheet (as
+  Formulas would). The data tab without a `sheetName` is named `peekDefaultName()` made free against the engine
+  names, so tab and engine sheet share the name. Pinned by `__tests__/engineSheets.unit.js`.
 - **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**
   (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
   arrays by logging an error and turning itself off until the next sheet with object rows, so the add
