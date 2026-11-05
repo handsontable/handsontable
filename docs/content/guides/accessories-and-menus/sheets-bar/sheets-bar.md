@@ -424,9 +424,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-This is the same as declaring each engine sheet in `sheets` with `{ formulas: { engine: hf, sheetName } }`. Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead.
-
-Each tab shows its engine sheet's content as entered, formulas included. Rows are padded to the widest row, and an empty engine sheet gets the blank data of a new sheet.
+Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead.
 
 If you also set `data`, it becomes one more tab:
 
@@ -437,17 +435,11 @@ If you also set `data`, it becomes one more tab:
 The tab the grid opens on is always the first tab:
 
 - The `data` tab, if you set `data`.
-- Otherwise, the `formulas.sheetName` sheet. If the engine has no such sheet, the bar logs a warning and opens the first engine sheet. No engine sheet is created.
+- Otherwise, the `formulas.sheetName` sheet. If the engine has no such sheet, the bar logs a warning and opens the first engine sheet.
 - Otherwise, the `activeSheet` sheet, counted in the engine's order.
 - Otherwise, the first engine sheet.
 
 Adding, renaming, duplicating, and removing tabs works on the engine as it does for declared sheets. Removing a tab removes its engine sheet.
-
-::: only-for vue
-
-Wrap the instance in `markRaw()`, for example `formulas: { engine: markRaw(hf) }`. A reactive proxy of the engine is a different object, so formulas would read another engine.
-
-:::
 
 ## Import and export
 
@@ -473,7 +465,7 @@ With `exportFormulas: true`, a formula that references another sheet keeps that 
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - With formulas, a sheet that is sorted or has moved rows or columns doesn't see changes you make in place to its `data` while it's hidden. Pass a new `sheets` value instead, which rebuilds the workbook.
 - Tabs created from a HyperFormula instance are read once, when the bar is enabled. Sheets you add, remove, or rename in the engine yourself after that don't change the tabs, and a different engine passed later through [`updateSettings()`](@/api/core.md#updatesettings) doesn't rebuild them.
-- If you create the grid with a HyperFormula instance but without `data` and without the sheets bar, the grid adds an empty sheet to the engine for its own cells. Turning the sheets bar on later shows that sheet as a tab too. Set `sheetsBar` when you create the grid to avoid it.
+- If you create the grid with a HyperFormula instance and no `data`, and turn the sheets bar on later, the bar shows one extra, empty tab. Set `sheetsBar` when you create the grid to avoid it.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. Read the current name from `hot.getPlugin('formulas').sheetName`.
 - With formulas, a rename that rewrites references inside a frozen `data` array (for example, from Immer) writes them into a copy, not into your array, so update your store yourself. On the active sheet, this also clears the undo history.
 - A sheet comes back with the invalid marks it had when you left it. A cell that becomes invalid while its sheet is hidden isn't marked until it's validated again, for example by an edit or [`validateCells()`](@/api/core.md#validatecells).
