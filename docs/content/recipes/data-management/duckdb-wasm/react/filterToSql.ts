@@ -88,22 +88,24 @@ function join(fragments: SqlFragment[], operator: 'AND' | 'OR'): SqlFragment | n
 
 function columnToSql(filter: FilterColumn): SqlFragment | null {
   const column = getColumn(filter.prop);
-  const fragments = filter.conditions
+  const toFragments = (conditions: FilterCondition[]) => conditions
     .map((condition) => conditionToSql(column, condition))
     .filter((fragment): fragment is SqlFragment => fragment !== null);
 
   switch (filter.operation) {
     case 'disjunction':
-      return join(fragments, 'OR');
+      return join(toFragments(filter.conditions), 'OR');
     case 'disjunctionWithExtraCondition': {
       // (a OR b OR ...) AND last: the shape Handsontable's Filters plugin produces.
-      const last = fragments.at(-1);
-      const either = join(fragments.slice(0, -1), 'OR');
+      // Split the conditions before mapping them, so a skipped last condition can't
+      // promote one of the OR conditions to the AND side.
+      const either = join(toFragments(filter.conditions.slice(0, -1)), 'OR');
+      const extra = join(toFragments(filter.conditions.slice(-1)), 'AND');
 
-      return join([either, last].filter((fragment): fragment is SqlFragment => !!fragment), 'AND');
+      return join([either, extra].filter((fragment): fragment is SqlFragment => fragment !== null), 'AND');
     }
     default:
-      return join(fragments, 'AND');
+      return join(toFragments(filter.conditions), 'AND');
   }
 }
 
