@@ -5183,13 +5183,54 @@ export class SheetsBar extends BasePlugin {
 
     const engine = formulas.engine!;
 
-    this.#withEngineWrite(
-      engine,
-      () => this.#feedFormulaSheet(sheet, formulas, engine, this.#claimEngineName(sheet, engine, requestedName), {
-        feed,
-        beforeFeed,
-      }),
-    );
+    this.#withEngineWrite(engine, () => {
+      const claimedName = this.#claimEngineName(sheet, engine, this.#tabBoundEngineName(sheet, engine, requestedName));
+      const boundName = this.#feedFormulaSheet(sheet, formulas, engine, claimedName, { feed, beforeFeed });
+
+      this.#recordBoundEngineName(engine, claimedName, boundName);
+    });
+  }
+
+  /**
+   * Returns the engine sheet name a declared `sheetName` binds under before any claim is checked. A name the
+   * tab stores normalized (`clampSheetName()`: a line break becomes a space) binds under the tab's name,
+   * unless the engine already holds the declared one: the model and the engine then agree, and a rename
+   * reaches the engine. Before, the engine kept `Q1\nQ2` beside a tab named `Q1 Q2`, and a rename left the
+   * engine on the old name. Resolved before the claim, so a later sheet asking for the tab's name is seen as
+   * a collision.
+   *
+   * @param {object} sheet The sheet being registered.
+   * @param {object} engine The engine.
+   * @param {string} requested The engine sheet name the sheet asks for.
+   * @returns {string}
+   */
+  #tabBoundEngineName(sheet: Sheet, engine: NonNullable<SheetFormulas['engine']>, requested: string): string {
+    if (requested !== sheet.name && clampSheetName(requested) === sheet.name && !engine.doesSheetExist!(requested)) {
+      return sheet.name;
+    }
+
+    return requested;
+  }
+
+  /**
+   * Moves the running build's claim to the name the sheet was bound under, when the engine reported back
+   * another name than the one claimed (`engine.addSheet()` can normalize it), so a later sheet asking for
+   * the bound name is seen as a collision.
+   *
+   * @param {object} engine The engine.
+   * @param {string} claimedName The name the claim was recorded under.
+   * @param {string} boundName The name the sheet was bound under.
+   */
+  #recordBoundEngineName(engine: NonNullable<SheetFormulas['engine']>, claimedName: string, boundName: string) {
+    const claims = this.#engineNameClaims?.get(engine);
+    const claim = claims?.get(claimedName.toLowerCase());
+
+    if (!claims || !claim || boundName === claimedName) {
+      return;
+    }
+
+    claims.delete(claimedName.toLowerCase());
+    claims.set(boundName.toLowerCase(), { ...claim, engineName: boundName });
   }
 
   /**
@@ -5240,11 +5281,7 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Adds the sheet to `engine` under `requestedName` when the engine does not hold it yet, and feeds it
-   * the sheet's data. The sheet's `formulas.sheetName` follows the name it is bound to. A declared
-   * `sheetName` the tab stores normalized (`clampSheetName()`: a line break becomes a space) binds the engine
-   * sheet under the tab's name, unless the engine already holds the declared one: the model and the engine
-   * then agree, and a rename reaches the engine. Before, the engine kept `Q1\nQ2` beside a tab named `Q1 Q2`,
-   * and a rename left the engine on the old name.
+   * the sheet's data. The sheet's `formulas.sheetName` follows the name it is bound to, which it returns.
    */
   #feedFormulaSheet(
     sheet: Sheet,
@@ -5252,13 +5289,8 @@ export class SheetsBar extends BasePlugin {
     engine: NonNullable<SheetFormulas['engine']>,
     requestedName: string,
     { feed, beforeFeed }: { feed: boolean, beforeFeed?: (sheetId: number) => void },
-  ) {
+  ): string {
     let engineName = requestedName;
-
-    if (engineName !== sheet.name && clampSheetName(engineName) === sheet.name
-      && !engine.doesSheetExist!(engineName)) {
-      engineName = sheet.name;
-    }
 
     if (!engine.doesSheetExist!(engineName)) {
       // The engine may normalize the name it is asked for — two tabs the model tells apart can
@@ -5274,7 +5306,7 @@ export class SheetsBar extends BasePlugin {
     const sheetId = engine.getSheetId!(engineName);
 
     if (typeof sheetId !== 'number') {
-      return;
+      return engineName;
     }
 
     beforeFeed?.(sheetId);
@@ -5295,6 +5327,8 @@ export class SheetsBar extends BasePlugin {
         engine.setSheetContent!(sheetId, content);
       }
     }
+
+    return engineName;
   }
 
   /**

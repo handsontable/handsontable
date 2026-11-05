@@ -418,7 +418,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   over only a numbered name an earlier build gave, `#numberedEngineNames`, so a rebuild of the same
   sheets binds each to its own sheet again and an engine sheet the host built is never taken), the
   name is written into its `formulas.sheetName`, and `warn()` names both sheets; formula text is not
-  rewritten, so `=data!A1` still reads `Data`. A declared sheet with a built engine and no
+  rewritten, so `=data!A1` still reads `Data`. The claim is the name the sheet is actually bound under:
+  a declared `Q1\nQ2` that binds under its tab name `Q1 Q2` is resolved before the claim
+  (`#tabBoundEngineName`), and a name `engine.addSheet()` reports back moves the claim
+  (`#recordBoundEngineName`), or a later `q1 q2` bound the same engine sheet. A declared sheet with a built engine and no
   `sheetName` is registered under its tab name in the build: unregistered, the Formulas plugin kept
   the engine sheet the grid was bound to before the switch and wrote this sheet's data into it.
   A sheet `addSheet()` adds with a built engine and no `sheetName` gets `freeEngineName()` of its tab

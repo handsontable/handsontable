@@ -686,6 +686,24 @@ describe('SheetsBar formula sheets', () => {
       expect(clashWarnings(warnSpy)).toHaveLength(1);
     });
 
+    it('registers a later sheet under a free engine name when an earlier one bound its name through the tab name', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = build([
+        boundSheet(engine, 'Q1\nQ2', [['first']]),
+        { name: 'Second', data: [['second']], settings: { formulas: { engine, sheetName: 'q1 q2' } } },
+      ]);
+
+      expect(engine.getSheetNames()).toEqual(['Q1 Q2', 'q1 q2 (2)']);
+      expect(showSheet('Second')).toBe('second');
+      expect(showSheet('Q1 Q2')).toBe('first');
+      expect(clashWarnings(warnSpy)).toEqual([
+        'The sheets "Q1 Q2" and "Second" use the same formula engine sheet name (the engine ignores letter ' +
+          'case). "q1 q2" was registered as "q1 q2 (2)". Formulas that reference "q1 q2" read the sheet "Q1 Q2".',
+      ]);
+    });
+
     it('binds a sheet to an engine sheet the host built before, without a warning', () => {
       const engine = buildEngine();
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
