@@ -85,10 +85,16 @@ const HotTableInner = forwardRef<
 
   /**
    * Whether the settings last passed to the grid named a grid-level editor (`editor`, `hotEditor`) and a
-   * grid-level renderer (`renderer`, `hotRenderer`). Started again for every new instance.
+   * grid-level renderer (`renderer`, `hotRenderer`).
    */
   const namedGlobalEditor = useRef(false);
   const namedGlobalRenderer = useRef(false);
+
+  /**
+   * The grid-level `type` the current instance was created with. Core expands it only at creation, so a
+   * removed `editor` or `renderer` prop is replaced with this type's value, not with a later `type`.
+   */
+  const createdCellType = useRef<unknown>(undefined);
 
   /**
    * HotTable context exposing helper functions.
@@ -196,17 +202,16 @@ const HotTableInner = forwardRef<
     }
 
     if (init) {
-      namedGlobalEditor.current = false;
-      namedGlobalRenderer.current = false;
+      createdCellType.current = newSettings.type;
     }
 
     // The grid-level `type` supplies the editor and the renderer no prop names. Core expands it only when
     // the grid is created and only when the same settings carry no `editor` or `renderer`, so an unnamed
-    // one is left out. When the prop that named one is removed, the type's own value is passed instead.
-    const cellType = Object.hasOwn(newSettings, 'type') ? newSettings.type : liveSettings?.type;
+    // one is left out. When the prop that named one is removed, the creation-time type's value is passed
+    // instead, matching the key core expanded and the rule that a `type` changed after mount changes nothing.
     const applyUnnamedSetting = (key: 'editor' | 'renderer', wasNamed: boolean) => {
       if (wasNamed) {
-        (newSettings as Record<string, unknown>)[key] = getCellTypeSetting(cellType, key);
+        (newSettings as Record<string, unknown>)[key] = getCellTypeSetting(createdCellType.current, key);
 
       } else {
         delete newSettings[key];

@@ -1760,15 +1760,32 @@ describe('Grid-level cell type', () => {
     expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
   });
 
-  it('should not throw when one commit removes the props and sets an unregistered type name', () => {
+  it.each(['checkbox', 'notRegisteredType'])(
+    'should go back to the creation-time type when one commit removes the props and sets `type` to `%s`',
+    (newType) => {
+      const ref = React.createRef<HotTableRef>();
+      const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+      render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+
+      expect(() => render({ ...props, type: newType }, ref)).not.toThrow();
+
+      const hotInstance = ref.current!.hotInstance!;
+
+      expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+      expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+    }
+  );
+
+  it('should keep the editor and renderer matched when one commit removes one prop and changes `type`', () => {
     const ref = React.createRef<HotTableRef>();
     const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
 
-    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+    render({ ...props, hotEditor: 'password' }, ref);
+    const hotInstance = render({ ...props, type: 'checkbox' }, ref);
 
-    expect(() => render({ ...props, type: 'notRegisteredType' }, ref)).not.toThrow();
-    expect(ref.current!.hotInstance!.getSettings().editor).toBe(getEditor('text'));
-    expect(ref.current!.hotInstance!.getSettings().renderer).toBe(getRenderer('text'));
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
   });
 
   it('should keep the text editor and renderer on a grid with no type', () => {
