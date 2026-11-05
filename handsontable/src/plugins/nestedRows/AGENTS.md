@@ -762,10 +762,13 @@ row semantics. Six things look simpler than they are.
   sorting and filtering limitations in the guide are prose only.
 - **MergeCells** detects a collapse by watching the row trimming map, because no hook existed when it
   was written. The new hooks are a better signal — worth migrating.
-- **Filters keep the tree whole (DEV-512).** The plugin listens to the `@private`
+- **Filters keep the tree whole (DEV-512).** The plugin listens to the public
   `modifyFiltersMatchedRows` hook and returns `DataManager#getRowsToKeepForMatches()`: every matching
   row, all its ancestors, and its whole subtree (a matching parent keeps every descendant, matching or
-  not). The walk reads the flatten cache (descendants = the following rows deeper than the match),
+  not). **A row in the hook's second argument (`blankMatchedRows`: every conditioned column reads
+  empty) keeps its ancestors but never its subtree.** Parents often hold empty cells, so with
+  "(Blank cells)" checked in a by-value list every parent matched and pulled back each child the user
+  had just unchecked; a parent matching a real value still keeps its subtree. The walk reads the flatten cache (descendants = the following rows deeper than the match),
   never the live `__children`, for the same drift reason as `#collectDescendants()`. Filters calls the
   hook once per pass on the final match set, so a row another column rejects stays out unless it is
   an ancestor or descendant of a row that matched every column. Kept ancestors carry no special class

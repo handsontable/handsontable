@@ -309,6 +309,18 @@ describe('DataManager#getRowSetPosition', () => {
       });
     });
 
+    it('should keep a blank match with its ancestors but not its subtree', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      // A-2 (row 2) matches only through a blank cell: it keeps A, but not A-2-a or A-2-b. B (row 5)
+      // matches a value, so it keeps B-1.
+      expect(dataManager.getRowsToKeepForMatches([2, 5], [2])).toEqual([0, 2, 5, 6]);
+      // A blank match inside the subtree of a value match is kept with that subtree.
+      expect(dataManager.getRowsToKeepForMatches([0, 2], [2])).toEqual([0, 1, 2, 3, 4]);
+      // A blank-only parent still keeps a child that matches on its own.
+      expect(dataManager.getRowsToKeepForMatches([2, 4], [2])).toEqual([0, 2, 4]);
+    });
+
     it('should keep every match while the cache is empty', () => {
       const dataManager = dataManagerWith(sampleTree());
 

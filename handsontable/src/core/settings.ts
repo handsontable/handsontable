@@ -837,7 +837,7 @@ export interface GridSettings {
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
   modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
-  modifyFiltersMatchedRows?: (matchedRows: number[]) => number[] | void;
+  modifyFiltersMatchedRows?: (matchedRows: number[], blankMatchedRows: number[]) => number[] | void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;

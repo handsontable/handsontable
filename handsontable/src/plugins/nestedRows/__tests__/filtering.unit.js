@@ -176,6 +176,116 @@ describe('NestedRows -> filtering', () => {
     expect(filters._getValueListDataAtColumn(1).map(({ value }) => value)).toEqual(['group', 'leaf']);
   });
 
+  describe('a match through a blank cell', () => {
+    /**
+     * Builds the grid of the review report: two parents with no artist, their children carrying one.
+     *
+     * @param {object} [overrides] Settings merged over the defaults.
+     * @returns {object} The Filters plugin.
+     */
+    function buildAwards(overrides = {}) {
+      return buildGrid([
+        {
+          cat: 'Song',
+          artist: null,
+          __children: [{ artist: 'Alabama Shakes' }, { artist: 'Elle King' }],
+        },
+        {
+          cat: 'Album',
+          artist: null,
+          __children: [{ artist: 'Muse' }],
+        },
+      ], {
+        nestedRows: true,
+        columns: [{ data: 'cat' }, { data: 'artist' }],
+        ...overrides,
+      }).getPlugin('filters');
+    }
+
+    it('should not keep the subtree of a parent that matches only through a blank cell', () => {
+      const filters = buildAwards();
+
+      filters.addCondition(1, 'by_value', [['', 'Elle King', 'Muse']]);
+      filters.filter();
+
+      // Unchecking "Alabama Shakes" while "(Blank cells)" stays checked must hide that artist.
+      expect(hot.getDataAtCol(1)).toEqual([null, 'Elle King', null, 'Muse']);
+    });
+
+    it('should still keep the subtree of a parent that matches a non-blank value', () => {
+      const filters = buildAwards();
+
+      filters.addCondition(0, 'by_value', [['Song']]);
+      filters.filter();
+
+      expect(hot.getDataAtCol(1)).toEqual([null, 'Alabama Shakes', 'Elle King']);
+    });
+
+    it('should judge blankness on every conditioned column', () => {
+      const filters = buildAwards();
+
+      // Song matches the artist condition through a blank cell, but the category condition
+      // through a value, so the match is not blank-only and keeps its subtree.
+      filters.addCondition(0, 'by_value', [['Song']]);
+      filters.addCondition(1, 'by_value', [['', 'Elle King', 'Muse']]);
+      filters.filter();
+
+      expect(hot.getDataAtCol(1)).toEqual([null, 'Alabama Shakes', 'Elle King']);
+    });
+
+    it('should judge blankness on the condition subset of a value list', () => {
+      const filters = buildGrid([
+        {
+          cat: null,
+          artist: 'Various',
+          __children: [{ cat: 'Rock', artist: 'Muse' }],
+        },
+      ], {
+        nestedRows: true,
+        dropdownMenu: true,
+        columns: [{ data: 'cat' }, { data: 'artist' }],
+      }).getPlugin('filters');
+      const storedList = column => filters.components.get('filter_by_value')
+        .state.getValueAtIndex(column).itemsSnapshot.map(({ value }) => value);
+
+      // The parent matches column 0 only through its blank category. Column 1's list is built from
+      // the column 0 conditions alone, so the parent is blank-only there - although its artist,
+      // which column 1's own condition reads, is not blank.
+      filters.addCondition(0, 'by_value', [['']]);
+      filters.addCondition(1, 'by_value', [['Various', 'Muse']]);
+      filters.filter();
+
+      expect(filters._getValueListDataAtColumn(1).map(({ value }) => value)).toEqual(['Various']);
+      expect(storedList(1)).toEqual(['Various']);
+    });
+
+    it('should not read cell values for the blank test on a grid with no listener', () => {
+      const filters = buildGrid([['a', ''], ['', 'b'], ['a', 'c']]).getPlugin('filters');
+      const readColumnSpy = jest.spyOn(filters, '_readColumn');
+
+      filters.addCondition(0, 'by_value', [['', 'a']]);
+      filters.addCondition(1, 'by_value', [['', 'b', 'c']]);
+      readColumnSpy.mockClear();
+      filters.filter();
+
+      expect(hot.countRows()).toBe(3);
+      // One read per conditioned column, by the conditions themselves - none for the blank test.
+      expect(readColumnSpy.mock.calls.map(([column]) => column)).toEqual([0, 1]);
+    });
+
+    it('should hand the blank-only matches to a listener', () => {
+      const filters = buildGrid([['a', ''], ['', 'b'], ['', ''], ['a', 'c']]).getPlugin('filters');
+      const matchedRowsSpy = jasmine.createSpy('modifyFiltersMatchedRows');
+
+      hot.addHook('modifyFiltersMatchedRows', matchedRowsSpy);
+      filters.addCondition(0, 'by_value', [['', 'a']]);
+      filters.addCondition(1, 'by_value', [['', 'b', 'c']]);
+      filters.filter();
+
+      expect(matchedRowsSpy).toHaveBeenCalledWith([0, 1, 2, 3], [2]);
+    });
+  });
+
   describe('the list of a column filtered by value', () => {
     /**
      * Reads the value list `updateState()` stored for a column that carries a by-value condition,
@@ -296,7 +406,7 @@ describe('NestedRows -> filtering', () => {
       filters.filter();
 
       expect(hot.getDataAtCol(0)).toEqual(['Child A1', 'Child A2']);
-      expect(matchedRowsSpy).toHaveBeenCalledWith([1, 2]);
+      expect(matchedRowsSpy).toHaveBeenCalledWith([1, 2], []);
     });
 
     it('should not run the hook on a grid with no listener', () => {

@@ -545,6 +545,17 @@ export class FiltersValueListPage {
     }, { row, col, value });
   }
 
+  /**
+   * The values of every row the grid keeps in the given column, read through `getDataAtCol()`, so
+   * rows outside the rendered viewport count too.
+   *
+   * @param {number} col The visual column index.
+   * @returns {Promise<Array>} One value per visual row.
+   */
+  async columnData(col: number): Promise<unknown[]> {
+    return this.page.evaluate(column => window.hot.getDataAtCol(column), col);
+  }
+
   /** The number of rows the grid currently shows (source rows minus the filtered-out ones). */
   async visibleRowCount(): Promise<number> {
     return this.page.evaluate(() => window.hot.countRows());

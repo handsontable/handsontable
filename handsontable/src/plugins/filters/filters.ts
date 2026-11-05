@@ -739,7 +739,7 @@ export class Filters extends BasePlugin {
    */
   #writeTrimmedRows(): boolean {
     const dataFilter = this._createDataFilter();
-    const rowIndexesToShow = this.#modifyMatchedRows(dataFilter.filter());
+    const rowIndexesToShow = this.#modifyMatchedRows(dataFilter.filter(), this.conditionCollection);
     const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
     const countSourceRows = this.hot.countSourceRows();
     // `getDataMapAtColumn()` never handed the pinned rows to the conditions, so they are absent
@@ -774,21 +774,56 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Gets the matching rows whose every conditioned column reads empty - the rows that match only
+   * through blank cells. A value reads empty the way the conditions see it: through `_readColumn()`,
+   * so a `valueGetter` and the `modifyData` hook apply, and after `toEmptyString()`.
+   *
+   * @param {number[]} matchedRows Physical indexes of the matching rows, ascending.
+   * @param {ConditionCollection | null | undefined} conditionCollection The conditions the rows were
+   * matched with.
+   * @returns {number[]} Physical indexes of the blank-only matches, ascending.
+   */
+  #getBlankMatchedRows(matchedRows: number[], conditionCollection: ConditionCollection | null | undefined): number[] {
+    const conditionedColumns = conditionCollection?.getFilteredColumns() ?? [];
+
+    if (conditionedColumns.length === 0) {
+      return [];
+    }
+
+    let blankRows = matchedRows;
+
+    // Each column narrows the candidates down, so a later column reads only the rows still blank.
+    for (let index = 0; index < conditionedColumns.length && blankRows.length > 0; index++) {
+      const { rows, values } = this._readColumn(conditionedColumns[index], blankRows);
+
+      blankRows = rows.filter((_, entryIndex) => values[entryIndex] === '');
+    }
+
+    return blankRows;
+  }
+
+  /**
    * Passes the rows that match every condition through the `modifyFiltersMatchedRows` hook, once per
    * filter pass, and normalizes what the listeners return: only integers within the source row
    * range are kept, ascending and without duplicates, so a listener cannot corrupt the trimming map.
    * A listener that returns no array leaves the matches as they are. A grid with no listener skips
-   * the hook and keeps the matches unchanged.
+   * the hook and keeps the matches unchanged, and reads no cell for the blank test.
    *
    * @param {number[]} matchedRows Physical indexes of the matching rows, ascending.
+   * @param {ConditionCollection | null | undefined} conditionCollection The conditions the rows were
+   * matched with - the whole stack, or the subset a value list is built from.
    * @returns {number[]} Physical indexes of the rows to keep, ascending.
    */
-  #modifyMatchedRows(matchedRows: number[]): number[] {
+  #modifyMatchedRows(matchedRows: number[], conditionCollection: ConditionCollection | null | undefined): number[] {
     if (!this.hot.hasHook('modifyFiltersMatchedRows')) {
       return matchedRows;
     }
 
-    const modifiedRows: unknown = this.hot.runHooks('modifyFiltersMatchedRows', matchedRows.slice());
+    const modifiedRows: unknown = this.hot.runHooks(
+      'modifyFiltersMatchedRows',
+      matchedRows.slice(),
+      this.#getBlankMatchedRows(matchedRows, conditionCollection),
+    );
 
     if (!Array.isArray(modifiedRows)) {
       return matchedRows;
@@ -1061,7 +1096,8 @@ export class Filters extends BasePlugin {
         this.conditionCollection,
         (physicalColumn: number, physicalRows?: number[]) =>
           this._readColumn(physicalColumn, physicalRows),
-        (matchedRows: number[]) => this.#modifyMatchedRows(matchedRows),
+        (matchedRows: number[], conditionCollection: ConditionCollection) =>
+          this.#modifyMatchedRows(matchedRows, conditionCollection),
       );
       this.conditionUpdateObserver.addLocalHook('update',
         (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
@@ -2922,7 +2958,10 @@ export class Filters extends BasePlugin {
     // have been overwritten since.
     // Widened the same way as the trimming pass, so the list offers the values of the rows the
     // earlier columns keep - the ancestors of a matching nested row among them (DEV-512).
-    const survivingRows = this.#modifyMatchedRows(this._createDataFilter(splitConditionCollection).filter());
+    const survivingRows = this.#modifyMatchedRows(
+      this._createDataFilter(splitConditionCollection).filter(),
+      splitConditionCollection,
+    );
     const survivingRowsAssertion = createArrayAssertion(survivingRows);
 
     splitConditionCollection.destroy();

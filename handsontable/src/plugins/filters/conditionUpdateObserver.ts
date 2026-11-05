@@ -40,7 +40,8 @@ class ConditionUpdateObserver {
   /**
    * Function which turns the rows that match the conditions into the rows that survive them (the
    * Filters plugin passes them through `modifyFiltersMatchedRows` and normalizes the answer). It
-   * runs once per list build, on a fresh `DataFilter` result.
+   * runs once per list build, on a fresh `DataFilter` result, and gets the condition collection the
+   * rows were matched with, so the blank test reads only the columns those conditions read.
    *
    * @type {Function}
    */
@@ -93,7 +94,8 @@ class ConditionUpdateObserver {
     conditionCollection: ConditionCollection,
     columnDataFactory: (physicalColumn: number, physicalRows?: number[]) => ColumnDataMap =
     () => ColumnDataMap.empty(),
-    matchedRowsModifier: (matchedRows: number[]) => number[] = matchedRows => matchedRows
+    matchedRowsModifier: (matchedRows: number[], conditionCollection: ConditionCollection) => number[] =
+    matchedRows => matchedRows
   ) {
     this.hot = hot;
     this.conditionCollection = conditionCollection;
@@ -287,7 +289,7 @@ class ConditionUpdateObserver {
       const visibleRowsAssertion = createArrayAssertion(this.matchedRowsModifier((new DataFilter(
         splitConditionCollection,
         (physicalColumn: number, physicalRows?: number[]) => this.#getColumnData(physicalColumn, physicalRows)
-      )).filter()));
+      )).filter(), splitConditionCollection));
 
       splitConditionCollection.destroy();
 

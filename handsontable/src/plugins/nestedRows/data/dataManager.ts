@@ -678,12 +678,18 @@ class DataManager {
    * stretch a subtree over its next sibling. A matching row the cache has no level for stays, but
    * its subtree and ancestors are not walked.
    *
+   * A row that matches only through blank cells keeps its ancestors but not its subtree: a parent
+   * with an empty cell must not bring back the children the filter excluded (DEV-512).
+   *
    * @private
    * @param {number[]} matchedRows Physical indexes of the matching rows.
+   * @param {number[]} [blankMatchedRows] Physical indexes of the matching rows whose every
+   * conditioned column reads empty.
    * @returns {number[]} Physical indexes of the rows to keep, ascending.
    */
-  getRowsToKeepForMatches(matchedRows: number[]): number[] {
+  getRowsToKeepForMatches(matchedRows: number[], blankMatchedRows: number[] = []): number[] {
     const cachedRowCount = this.cache.rows.length;
+    const isBlankMatch = new Set(blankMatchedRows);
     // A match past the cache (an empty or stale cache) still stays, so the range covers it too. The
     // Filters plugin bounds the answer by the source row count.
     const rowCount = matchedRows.reduce((count, row) => Math.max(count, row + 1), cachedRowCount);
@@ -706,19 +712,21 @@ class DataManager {
         return;
       }
 
-      isSubtreeKept[matchedRow] = 1;
+      if (!isBlankMatch.has(matchedRow)) {
+        isSubtreeKept[matchedRow] = 1;
 
-      // The cache is flattened depth-first, so the descendants are the rows right after the match
-      // that sit deeper than it.
-      for (let row = matchedRow + 1; row < cachedRowCount; row++) {
-        const rowLevel = this.getRowLevel(row);
+        // The cache is flattened depth-first, so the descendants are the rows right after the match
+        // that sit deeper than it.
+        for (let row = matchedRow + 1; row < cachedRowCount; row++) {
+          const rowLevel = this.getRowLevel(row);
 
-        if (rowLevel === null || rowLevel <= level) {
-          break;
+          if (rowLevel === null || rowLevel <= level) {
+            break;
+          }
+
+          isKept[row] = 1;
+          isSubtreeKept[row] = 1;
         }
-
-        isKept[row] = 1;
-        isSubtreeKept[row] = 1;
       }
 
       let parentRow = this.getRowIndex(this.getRowParent(matchedRow));

@@ -1246,13 +1246,16 @@ export class NestedRows extends BasePlugin {
    * `modifyFiltersMatchedRows` hook callback. Keeps the tree whole while the Filters plugin filters:
    * a matching row keeps its ancestors, so it is never shown without its parents (and a collapse
    * cannot leave the grid empty), and its descendants, so a matching parent shows its whole subtree
-   * (DEV-512).
+   * (DEV-512). A row that matches only through blank cells keeps its ancestors but not its
+   * subtree, so an empty parent cell cannot bring back the children the filter excluded.
    *
    * @param {number[]} matchedRows Physical indexes of the rows that match every condition.
+   * @param {number[]} blankMatchedRows Physical indexes of the matching rows whose every conditioned
+   * column reads empty.
    * @returns {number[]}
    */
-  #onModifyFiltersMatchedRows = (matchedRows: number[]) => {
-    return this.dataManager!.getRowsToKeepForMatches(matchedRows);
+  #onModifyFiltersMatchedRows = (matchedRows: number[], blankMatchedRows: number[]) => {
+    return this.dataManager!.getRowsToKeepForMatches(matchedRows, blankMatchedRows);
   };
 
   /**

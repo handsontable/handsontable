@@ -85,6 +85,26 @@ test.describe('Filters — the parent-child tree of a filtered nested grid', () 
     ]);
   });
 
+  test('unchecks one artist while blank cells stay checked', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle, 'filters-nested-rows.html');
+
+    await grid.goto();
+    await expect.poll(() => grid.visibleRowCount()).toBe(26);
+    await grid.openMenu('Artist');
+    await grid.uncheckValue('Alabama Shakes');
+    await grid.confirmMenu();
+
+    // Every parent has an empty artist, so "(Blank cells)" keeps the parents. It must not bring
+    // back their unchecked children: only the two "Alabama Shakes" rows go.
+    await expect.poll(() => grid.visibleRowCount()).toBe(24);
+
+    const artists = await grid.columnData(1);
+
+    expect(artists).not.toContain('Alabama Shakes');
+    expect(artists).toContain('Elle King');
+    expect(await grid.columnData(0)).toContain('Best Rock Song');
+  });
+
   test('collapses and expands a filtered tree', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle, 'filters-nested-rows.html');
 
