@@ -24,6 +24,11 @@ module.exports = {
     '<rootDir>/node_modules/'
   ],
   testRunner: 'jest-jasmine2',
+  // babel-jest, with a cache key that follows the env variables Babel inlines into the source.
+  // See the transformer's own comment.
+  transform: {
+    '\\.[jt]sx?$': '<rootDir>/test/babelJestTransformer.js',
+  },
   // hyperformula-ui ships ES modules only; babel-jest must transform it like our own source.
   transformIgnorePatterns: ['/node_modules/(?!(\\.pnpm/)?hyperformula-ui[@/])'],
   moduleNameMapper: {
