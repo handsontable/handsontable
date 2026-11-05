@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "freeze-bar",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T11:02:19.910Z"
+  },
+  "steps": {
+    "f6-to-first-bar": "frozen columns at the start separator 2",
+    "arrow-grow": "3",
+    "arrow-shrink": "2",
+    "f6-to-next-bar": "frozen rows at the top separator 2",
+    "arrow-down-grow": "3",
+    "home-unfreeze": "0",
+    "escape-to-grid": "table c 3 c row 4 b a column 4"
+  }
+}

@@ -11,7 +11,7 @@
       "id": "arrow-down-into-merge",
       "action": {"press": "ArrowDown"},
       "expect": [["1 1"]],
-      "note": "ArrowDown from `0-1` enters the merged block that starts at row 1, column 1 and spans two rows and two columns; its value is `1-1`."
+      "note": "ArrowDown from `0-1` enters the merged block that starts at row 1, column 1 and spans two rows and two columns; its value is `1-1`. Finding (known): VoiceOver says nothing on the first arrow key of the page, with both browsers."
     },
     {
       "id": "arrow-down-out-below",
@@ -22,8 +22,8 @@
     {
       "id": "arrow-up-back-in",
       "action": {"press": "ArrowUp"},
-      "expect": [["1 1"]],
-      "note": "ArrowUp enters the block again from below."
+      "expect": [["1 1"], ["through row 3 column 3"]],
+      "note": "ArrowUp enters the block again from below. The second group is the block's span. Finding: only NVDA with Chromium reads it (`through row 3 column 3`); NVDA with Firefox and VoiceOver read the block as one plain cell, though the cell carries native `rowspan` and `colspan`: the readers' behavior."
     },
     {
       "id": "arrow-right-out-right",
