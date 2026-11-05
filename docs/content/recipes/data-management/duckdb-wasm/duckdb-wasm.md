@@ -24,6 +24,37 @@ category: Data Management
 
 In this tutorial, you will back a Handsontable DataGrid with [DuckDB-Wasm](https://duckdb.org/docs/stable/clients/wasm/overview), the in-process SQL database compiled to WebAssembly. DuckDB holds a million rows in a Web Worker, and the grid holds one page at a time. Every page, sort, filter, and edit runs as SQL in the browser, with no server, no API, and no account.
 
+<iframe src="https://demos.handsontable.com/embed/16i6w2p2k2/"
+  style="width:100%; height: 780px; border:0; border-radius: 4px; overflow:hidden;"
+  title="A Handsontable DataGrid over a million rows held in DuckDB-Wasm"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-downloads allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>
+
+[**Open in the demo runner**](https://demos.handsontable.com/share/16i6w2p2k2)
+
+The grid above generates a million orders in DuckDB when it loads. Sort a column, filter **Region** or **Qty**, or page to the end. The status bar shows how many rows match and how long the last query took. The demo loads the DuckDB engine from jsDelivr, while this recipe serves it from your own app with Vite.
+
+<script>
+  // Keep the embedded demo in the same light/dark mode as this page. The
+  // demos.handsontable.com embed wrapper posts { source, ready } when it loads
+  // and applies any { source, mode } it receives.
+  (() => {
+    const SOURCE = 'hot-runner-scheme';
+    const ORIGIN = 'https://demos.handsontable.com';
+    const mode = () => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+    const frames = () => Array.from(document.querySelectorAll('iframe[src^="' + ORIGIN + '"]'));
+    const send = (win) => win && win.postMessage({ source: SOURCE, mode: mode() }, ORIGIN);
+    window.addEventListener('message', (event) => {
+      if (event.origin === ORIGIN && event.data && event.data.source === SOURCE && event.data.ready) send(event.source);
+    });
+    new MutationObserver(() => frames().forEach((frame) => send(frame.contentWindow))).observe(
+      document.documentElement,
+      { attributes: true, attributeFilter: ['data-theme'] },
+    );
+  })();
+</script>
+
 [[toc]]
 
 ## Overview
