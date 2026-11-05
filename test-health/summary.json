@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-05T06:07:55.798Z",
+  "generatedAt": "2026-11-05T07:52:54.815Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,7 +9,7 @@
   "retentionDays": 90,
   "totals": {
     "tests": 431,
-    "needsTicket": 28,
+    "needsTicket": 26,
     "quarantined": 0,
     "entries": 2244
   },
@@ -887,41 +887,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "tier": "playwright",
-      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
-      "line": 87,
-      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "count7": 0,
-      "count30": 3,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-14T09:10:38Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426/attempts/2",
-        "branch": "feature/DEV-918_colWidths-physical-indexes",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "visual|visual-tests/tests/js-only/notification/rtl/notification-top-end.spec.ts|js-only/notification/rtl/notification-top-end-1",
       "tier": "visual",
       "file": "visual-tests/tests/js-only/notification/rtl/notification-top-end.spec.ts",
@@ -983,39 +948,6 @@
         "leg": "e2e-webkit",
         "status": "failed",
         "error": "Error: expect(locator).not.toHaveValue(expected) failed",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
-      "tier": "playwright",
-      "file": "e2e/fixed-columns-end.spec.ts",
-      "line": 224,
-      "title": "fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-classic-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-06T07:58:15Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37429408994",
-        "branch": "feature/DEV-152_Header-selection-grows-on-untrim",
-        "leg": "e2e-classic-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
@@ -1212,286 +1144,6 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-cell-types-demo-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
-      "line": null,
-      "title": "selection-cell-types-demo-1",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:35:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
-        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 62616edcc4e7",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-cell-types-demo-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
-      "line": null,
-      "title": "selection-cell-types-demo-2",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:35:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
-        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 f23145b3f6da",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-merged-cells-demo-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
-      "line": null,
-      "title": "selection-merged-cells-demo-1",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:35:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
-        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 3e715a857ff5",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-merged-cells-demo-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
-      "line": null,
-      "title": "selection-merged-cells-demo-2",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:35:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
-        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 f6b7a31c2df6",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-nested-headers-demo-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
-      "line": null,
-      "title": "selection-nested-headers-demo-1",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:35:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
-        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 4fe829da2652",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-nested-headers-demo-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
-      "line": null,
-      "title": "selection-nested-headers-demo-2",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:35:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
-        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 2894e02e363c",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-nested-rows-demo-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
-      "line": null,
-      "title": "selection-nested-rows-demo-1",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:35:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
-        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 da84f597aeed",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-nested-rows-demo-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
-      "line": null,
-      "title": "selection-nested-rows-demo-2",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T07:35:59Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
-        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
-        "leg": "cross-browser/chromium",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 dd4a404fe935",
         "source": "ci"
       },
       "needsTicket": false
@@ -2016,6 +1668,286 @@
       "needsTicket": false
     },
     {
+      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-cell-types-demo-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
+      "line": null,
+      "title": "selection-cell-types-demo-1",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T07:35:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
+        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
+        "leg": "cross-browser/chromium",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 62616edcc4e7",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-cell-types-demo-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
+      "line": null,
+      "title": "selection-cell-types-demo-2",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T07:35:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
+        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
+        "leg": "cross-browser/chromium",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 f23145b3f6da",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-merged-cells-demo-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
+      "line": null,
+      "title": "selection-merged-cells-demo-1",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T07:35:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
+        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
+        "leg": "cross-browser/chromium",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 3e715a857ff5",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-merged-cells-demo-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
+      "line": null,
+      "title": "selection-merged-cells-demo-2",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T07:35:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
+        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
+        "leg": "cross-browser/chromium",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 f6b7a31c2df6",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-nested-headers-demo-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
+      "line": null,
+      "title": "selection-nested-headers-demo-1",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T07:35:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
+        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
+        "leg": "cross-browser/chromium",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 4fe829da2652",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-nested-headers-demo-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
+      "line": null,
+      "title": "selection-nested-headers-demo-2",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T07:35:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
+        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
+        "leg": "cross-browser/chromium",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 2894e02e363c",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-nested-rows-demo-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
+      "line": null,
+      "title": "selection-nested-rows-demo-1",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T07:35:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
+        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
+        "leg": "cross-browser/chromium",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 da84f597aeed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/selection.spec.ts|selection-nested-rows-demo-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/selection.spec.ts",
+      "line": null,
+      "title": "selection-nested-rows-demo-2",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T07:35:59Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37495688172",
+        "branch": "feature/DEV-3257_Cross-browser-state-consolidation",
+        "leg": "cross-browser/chromium",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 dd4a404fe935",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
       "tier": "playwright",
       "file": "e2e/formula-builder-picking.spec.ts",
@@ -2181,6 +2113,41 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected $[3][0] = 33 to equal null.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "tier": "playwright",
+      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
+      "line": 87,
+      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-14T09:10:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426/attempts/2",
+        "branch": "feature/DEV-918_colWidths-physical-indexes",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false
@@ -2933,6 +2900,39 @@
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
         "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
         "leg": "e2e-main-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end.spec.ts",
+      "line": 224,
+      "title": "fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-06T07:58:15Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37429408994",
+        "branch": "feature/DEV-152_Header-selection-grows-on-untrim",
+        "leg": "e2e-classic-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
