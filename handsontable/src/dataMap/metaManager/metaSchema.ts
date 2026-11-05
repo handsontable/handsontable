@@ -1035,7 +1035,23 @@ export default (): Record<string, unknown> => {
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
-     * It takes the following parameters:
+     *
+     * Handsontable merges the object that `cells` returns into the cell's meta. It doesn't replace the meta.
+     * A key that the function returned before and doesn't return now keeps its last value.
+     * For example, a cell stays `readOnly: true` after `cells` returns `{}`.
+     * To avoid this, return the value for every key on every call (for example, `readOnly: false`).
+     * Or, outside the `cells` function, call [`removeCellMeta()`](@/api/core.md#removecellmeta)
+     * with the cell's visual coordinates to remove the key. The key comes back if `cells` returns it again.
+     * The meta resets in three cases:
+     * - Any [`updateSettings()`](@/api/core.md#updatesettings) call that carries `cells`, `cell`, or `columns`.
+     * In React, that happens when you pass `cells` as a new function.
+     * - A [`loadData()`](@/api/core.md#loaddata) call. [`updateData()`](@/api/core.md#updatedata) and
+     * `updateSettings({ data })` don't reset it.
+     * - A row that scrolls more than one viewport out of view and back, unless it is the row of the selected cell.
+     * Cells with meta you set with `setCellMeta()` or the `cell` option, and cells marked invalid, keep their meta.
+     * Horizontal scrolling doesn't reset it.
+     *
+     * `cells` takes the following parameters:
      *
      * | Parameter | Required | Type             | Description                                                                                                                                                                                                                                                                                                                             |
      * | --------- | -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -3901,6 +3917,11 @@ export default (): Record<string, unknown> => {
      * If your layout direction is RTL, the end edge is the left-hand edge.
      *
      * The frozen columns are the last columns of the grid. They stay in place while the rest of the grid scrolls horizontally.
+     *
+     * Hidden columns count toward `fixedColumnsEnd`. The frozen area is always the last `fixedColumnsEnd` columns,
+     * hidden ones included. A trimmed column gives up its slot.
+     * See [Hidden columns](@/guides/columns/column-freezing/column-freezing.md#hidden-columns).
+     *
      * Use `fixedColumnsEnd` together with [`fixedColumnsStart`](#fixedcolumnsstart), [`fixedRowsTop`](#fixedrowstop),
      * and [`fixedRowsBottom`](#fixedrowsbottom) to freeze all four edges.
      *
@@ -3983,6 +4004,10 @@ export default (): Record<string, unknown> => {
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the right-hand edge of the grid.
      *
+     * Hidden columns count toward `fixedColumnsStart`. With `fixedColumnsStart: 3` and column 1 hidden by
+     * [`HiddenColumns`](@/api/hiddenColumns.md), the grid freezes 2 visible columns.
+     * See [Hidden columns](@/guides/columns/column-freezing/column-freezing.md#hidden-columns).
+     *
      * ::: tip
      * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
@@ -4032,6 +4057,10 @@ export default (): Record<string, unknown> => {
      * The `fixedRowsBottom` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md)
      * at the bottom of the grid.
      *
+     * Rows hidden with [`HiddenRows`](@/api/hiddenRows.md) count toward `fixedRowsBottom`. The frozen area is
+     * always the last `fixedRowsBottom` rows, hidden ones included. A trimmed or filtered row gives up its slot.
+     * See [Hidden rows](@/guides/rows/row-freezing/row-freezing.md#hidden-rows).
+     *
      * ::: tip
      * For the bottom frozen rows area to appear with a scroll separator, you must also set the [`height`](#height) option
      * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
@@ -4067,6 +4096,10 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `fixedRowsTop` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md) at the top of the grid.
+     *
+     * Hidden rows count toward `fixedRowsTop`. With `fixedRowsTop: 3` and row 1 hidden by
+     * [`HiddenRows`](@/api/hiddenRows.md), the grid freezes 2 visible rows.
+     * See [Hidden rows](@/guides/rows/row-freezing/row-freezing.md#hidden-rows).
      *
      * ::: tip
      * For the top frozen rows area to be visually separated from the scrollable body, you must also set the [`height`](#height) option

@@ -113,6 +113,12 @@ The [`cells`](@/api/options.md#cells) function overrides all three levels. Hands
 
 The merge only adds keys. If `cells` returns `{ readOnly: true }` for a cell once, and `{}` on a later render, the cell keeps `readOnly: true`. Return the key in every branch, for example `{ readOnly: false }`.
 
+The kept value goes away when the meta resets:
+
+- An [`updateSettings()`](@/api/core.md#updatesettings) call that carries `cells`, `cell`, or `columns` resets it.
+- A [`loadData()`](@/api/core.md#loaddata) call resets it. [`updateData()`](@/api/core.md#updatedata) and `updateSettings({ data })` don't.
+- A row that scrolls more than one viewport out of view and back resets it, unless it is the row of the selected cell. Cells with meta you set with [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cell`](@/api/options.md#cell) option, and cells marked invalid, keep their meta. Horizontal scrolling doesn't reset it.
+
 The function runs once per cell for each full render, not on every cached read. Reading a cell with [`getCellMeta()`](@/api/core.md#getcellmeta) between two renders returns the result of the last run. [`getCellMetaTransient()`](@/api/core.md#getcellmetatransient) has no such cache: it runs the function again on every call for a cell with no stored metadata. Bulk reads such as `validateCells()` go through it. On a grid of 2000 rows and 3 columns, the function ran about 6,000 times during initialization and again about 6,000 times in `validateCells()`.
 
 The `row` and `col` arguments of `cells` are physical indexes. Use the `cells` function only when no other level fits.

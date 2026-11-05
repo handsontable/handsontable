@@ -103,6 +103,15 @@ Some actions change the counts without `afterFreezeChange`, such as undo, `alter
 
 The plugin hides the bars for rows when the [`Pagination`](@/api/pagination.md) plugin is on, because Pagination doesn't support frozen rows. For the full guide, see [Column freezing: Freeze columns by dragging](@/guides/columns/column-freezing/column-freezing.md#freeze-columns-by-dragging).
 
+## Hidden rows
+
+A row hidden with the [`HiddenRows`](@/api/hiddenRows.md) plugin keeps its slot in the frozen area. This applies to both [`fixedRowsTop`](@/api/options.md#fixedrowstop) and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom). Hiding a row inside the frozen area shrinks the frozen area by that row, and no other row moves in.
+
+- **Top rows.** The frozen area is always the first `fixedRowsTop` rows, hidden ones included. With `fixedRowsTop: 3` and row 1 hidden, the grid freezes 2 visible rows: rows 0 and 2.
+- **Bottom rows.** The frozen area is always the last `fixedRowsBottom` rows, hidden ones included. A trimmed or filtered row gives up its slot.
+
+To keep a set number of visible rows frozen, raise the option by the number of hidden rows inside the frozen area. Hidden columns work the same way. See [Column freezing: Hidden columns](@/guides/columns/column-freezing/column-freezing.md#hidden-columns).
+
 ## Result
 
 After completing this guide, the rows you specify with `fixedRowsTop` or `fixedRowsBottom` stay visible while you scroll through the rest of the grid.
