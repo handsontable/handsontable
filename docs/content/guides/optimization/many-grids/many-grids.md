@@ -40,7 +40,7 @@ Handsontable creates a grid as soon as you call the constructor or mount the com
 
 ## Give each grid a fixed height
 
-Set the height of every grid to a fixed value: either a number of pixels in the [`height`](@/api/options.md#height) option, or a CSS `height` together with `overflow: hidden` (or `auto`) on the grid's container. The grid then scrolls its own rows inside that box, and scrolling the page costs it nothing. A container with a CSS `height` but no `overflow` doesn't size the grid.
+Set the height of every grid to a fixed value: either a number of pixels or a CSS length (such as `'75vh'`) in the [`height`](@/api/options.md#height) option, or a CSS `height` together with `overflow: hidden` (or `auto`) on the grid's container. The grid then scrolls its own rows inside that box, and scrolling the page costs it nothing. A container with a CSS `height` but no `overflow` doesn't size the grid.
 
 A grid without a fixed height grows with its rows and lets the page scroll them. That includes [`height: 'auto'`](@/api/options.md#height), which costs the same as no height. Such a grid listens to the scroll events of the page, or of the nearest scrolling element around it. So every grid runs code on every scroll step, and the grids in view redraw their rows. In a test with 100 grids of 60 rows and 8 columns each, 40 page-scroll steps made hundreds of thousands of DOM changes when the grids had no height, and none when each grid had a height of 200 pixels.
 
@@ -105,7 +105,7 @@ For all the ways to size a grid, see [Grid size](@/guides/getting-started/grid-s
 
 ## Load the theme CSS once
 
-A grid with no [`themeName`](@/api/options.md#themename) set uses the Theme API, and each such grid adds its own `<style>` element with its theme, about 45 KB. With 100 grids, that is about 4.5 MB of CSS. The core styles are different: Handsontable adds them once for the page, however many grids it has.
+A grid that builds its theme with the Theme API adds its own `<style>` element with that theme, about 45 KB. A grid does that when you pass a theme object in [`theme`](@/api/options.md#theme), or when it has no theme set at all: no `theme`, no [`themeName`](@/api/options.md#themename), and no `ht-theme-*` class on its container. With 100 grids, that is about 4.5 MB of CSS. The core styles are different: Handsontable adds them once for the page, however many grids it has.
 
 On a page with many grids, load the theme's CSS files once and give each grid the theme's name, for example `themeName: 'ht-theme-main'`. Each grid then adds no styles of its own. In a test with 20 grids, this cut the setup time from about 5.6 ms to about 2 ms per grid. If your page loads the core CSS file too, also set [`injectCoreCss: false`](@/api/options.md#injectcorecss). To change colors and sizes, use the `--ht-*` CSS variables.
 
@@ -290,7 +290,7 @@ Both cost about the same. How much faster they are than recreating the grid depe
 The two differ in what they keep:
 
 - Hidden columns stay part of the grid. They are still in [`getData()`](@/api/core.md#getdata), they are copied to the clipboard by default, and their validators still run. Sorting, filters, and the columns that users moved or resized stay as they are.
-- A new `columns` array removes the other columns from `getData()` and from copied data. It can also reset sorting, filters, and the columns that users moved, hid, or resized. To keep that state, hide columns instead.
+- A new `columns` array removes the other columns from `getData()` and from copied data. It also resets sorting, filters, and the columns that users moved, hid, or resized, apart from what the plugin options declare. To keep that state, hide columns instead.
 
 If you pass a new `columns` array, give each column its header in its own [`title`](@/api/options.md#title). A [`colHeaders`](@/api/options.md#colheaders) array is matched to the columns by position, so after you remove a column, the headers no longer match the columns below them.
 
@@ -302,12 +302,13 @@ If you pass a new `columns` array, give each column its header in its own [`titl
 hot.getPlugin('hiddenColumns').hideColumns([2]);
 hot.render();
 
-// or replace the column set
+// or replace the column set, each column with its own header
 hot.updateSettings({
+  colHeaders: true,
   columns: [
-    { data: 'sku' },
-    { data: 'product' },
-    { data: 'stock', type: 'numeric' },
+    { data: 'sku', title: 'SKU' },
+    { data: 'product', title: 'Product' },
+    { data: 'stock', title: 'In stock', type: 'numeric' },
   ],
 });
 ```
@@ -341,10 +342,12 @@ Assign a new settings object. The wrapper updates the grid in place. Don't remov
 ```ts
 this.settings = {
   ...this.settings,
+  // replace the `colHeaders` array with each column's own `title`
+  colHeaders: true,
   columns: [
-    { data: 'sku' },
-    { data: 'product' },
-    { data: 'stock', type: 'numeric' },
+    { data: 'sku', title: 'SKU' },
+    { data: 'product', title: 'Product' },
+    { data: 'stock', title: 'In stock', type: 'numeric' },
   ],
 };
 ```
@@ -358,10 +361,12 @@ Assign a new value to the settings. The wrapper updates the grid in place. Don't
 ```js
 hotSettings.value = {
   ...hotSettings.value,
+  // replace the `colHeaders` array with each column's own `title`
+  colHeaders: true,
   columns: [
-    { data: 'sku' },
-    { data: 'product' },
-    { data: 'stock', type: 'numeric' },
+    { data: 'sku', title: 'SKU' },
+    { data: 'product', title: 'Product' },
+    { data: 'stock', title: 'In stock', type: 'numeric' },
   ],
 };
 ```
