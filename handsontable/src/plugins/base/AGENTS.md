@@ -204,6 +204,11 @@ outcomes in this order:
    no plugin restores them again in its own `updatePlugin()`. Pinned by
    `__tests__/onUpdateSettingsFallback.unit.js`.
 
+Before any branch, a plugin with no `hot` returns: a listener earlier in the same `afterUpdateSettings`
+run can destroy the grid, and `Hooks#run` keeps walking the listeners it started with, so the later plugins
+read a deleted `hot` (`getSettings()` in `isHardConflictBlocked()`). Core's `applySettings()` stops right
+after that hook when the grid is gone.
+
 Branch 3 exists so a plugin already running gets switched off when a conflicting option appears later, even
 when its own `SETTING_KEYS` do not overlap the payload. `relevantToSettings` is computed **before** those
 branches, on purpose: branches 1 and 2 must not depend on it.

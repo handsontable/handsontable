@@ -610,11 +610,15 @@ function isSameSheetName(first: string, second: string): boolean {
  * label can still identify another sheet's engine data, and registering under it would
  * overwrite that data and fuse the two tabs onto one engine sheet.
  */
-function freeEngineName(engine: NonNullable<SheetFormulas['engine']>, requested: string): string {
+function freeEngineName(
+  engine: NonNullable<SheetFormulas['engine']>,
+  requested: string,
+  isTaken: (name: string) => boolean = name => engine.doesSheetExist!(name),
+): string {
   let candidate = requested;
   let counter = 2;
 
-  while (engine.doesSheetExist!(candidate)) {
+  while (isTaken(candidate)) {
     candidate = `${requested} (${counter})`;
     counter += 1;
   }
@@ -930,6 +934,31 @@ export class SheetsBar extends BasePlugin {
    * @type {WeakMap<object, object>}
    */
   #engineOrders = new WeakMap<Sheet, { order: FormulasEngineSheetOrder; data: unknown[]; length: number }>();
+  /**
+   * The engine sheet names the sheets declared so far in the running workbook build bound to, per engine,
+   * keyed by the lower-case name (the engine compares names that way), with the tab that bound each one.
+   * `null` outside a build: an added or a duplicated sheet takes a free engine name of its own instead.
+   *
+   * @type {WeakMap<object, Map<string, object>>|null}
+   */
+  #engineNameClaims: WeakMap<object, Map<string, { tabName: string, engineName: string }>> | null = null;
+  /**
+   * The engine sheet names every sheet of the running workbook build asks for, per engine, in lower case,
+   * collected before the build registers any sheet. A numbered name never takes one of them, or a later
+   * sheet asking for it explicitly would be numbered in turn and bound away from the formulas that name it.
+   * `null` outside a build.
+   *
+   * @type {WeakMap<object, Set<string>>|null}
+   */
+  #engineNameRequests: WeakMap<object, Set<string>> | null = null;
+  /**
+   * The engine sheet names a build gave a sheet whose declared name an earlier sheet of that build had
+   * taken, per engine, in lower case. A rebuild that declares the same sheets binds each one to its own
+   * engine sheet again instead of numbering it up, and an engine sheet the host built is never taken over.
+   *
+   * @type {WeakMap<object, Set<string>>}
+   */
+  #numberedEngineNames = new WeakMap<object, Set<string>>();
   /**
    * The formula texts the engine gave each hidden sheet's cells in the last sync (`#syncInactiveSheetsFromEngine`).
    * Such a text is already in the engine's own spelling, so when a cell still holds one and the engine now
@@ -1337,6 +1366,7 @@ export class SheetsBar extends BasePlugin {
         syncIcon: syncIconForHot,
         rootWindow: this.hot.rootWindow,
         labelIdPrefix: `${this.hot.guid}-sheet-tab-label`,
+        committedLabel: (id: number, draft: string) => this.#committedTabLabel(id, draft),
       });
       this.#tabStrip.setDragSlide(this.#animation().move);
       this.#tabStrip
@@ -1617,6 +1647,16 @@ export class SheetsBar extends BasePlugin {
    * @returns {boolean} `true` when the entry can be written.
    */
   #canWriteDeclaredName(id: number): boolean {
+    return this.#refuseUnwritable(this.#isDeclaredNameWritable(id));
+  }
+
+  /**
+   * Answers whether a sheet's entry in the host's `sheets` array can take a new `name`, without a warning.
+   *
+   * @param {number} id The sheet about to be renamed.
+   * @returns {boolean} `true` when the entry can be written.
+   */
+  #isDeclaredNameWritable(id: number): boolean {
     const entry = this.#declaredEntries.get(id);
 
     if (!entry) {
@@ -1624,11 +1664,34 @@ export class SheetsBar extends BasePlugin {
     }
 
     const descriptor = Object.getOwnPropertyDescriptor(entry, 'name');
-    const isWritable = descriptor
+
+    return descriptor
       ? descriptor.writable === true || typeof descriptor.set === 'function'
       : Object.isExtensible(entry);
+  }
 
-    return this.#refuseUnwritable(isWritable);
+  /**
+   * Returns the name a tab shows once its rename commits `draft`: the clamped draft when `#commitRename`
+   * would accept it, else the sheet's current name (a blank draft, a name taken in the bar or in the formula
+   * engine, an entry the host froze). The tab strip sizes the rename input by it, so the tab keeps its width
+   * whatever the commit decides. A `beforeSheetTabRename` listener that cancels the rename is not foreseen.
+   *
+   * @param {number} id The sheet being renamed.
+   * @param {string} draft The text in the rename input.
+   * @returns {string}
+   */
+  #committedTabLabel(id: number, draft: string): string {
+    const sheet = this.#model?.getSheetById(id);
+
+    if (!this.#model || !sheet) {
+      return draft;
+    }
+
+    const name = clampSheetName(draft);
+    const isRefused = name === '' || this.#model.isNameTaken(name, id)
+      || this.#renameCollidesInEngine(sheet, sheet.name, name) || !this.#isDeclaredNameWritable(id);
+
+    return isRefused ? sheet.name : name;
   }
 
   /**
@@ -1734,13 +1797,24 @@ export class SheetsBar extends BasePlugin {
     const target = targetId === undefined ? undefined : this.getSheets().find(sheet => sheet.id === targetId);
 
     if (target && !target.isActive) {
-      if (
-        this.#isSwitching || this.#isRunningBeforeHook || !this.#finishEditing() ||
-        (!this.setActiveSheet(target.id) && !this.#isEditingSettled())
-      ) {
+      if (this.#isSwitching || this.#isRunningBeforeHook || !this.#finishEditing()) {
         warn(ACTIVE_SHEET_REFUSED_WARNING);
 
         return;
+      }
+
+      const model = this.#model;
+
+      if (!this.setActiveSheet(target.id)) {
+        if (!this.#isLive(model)) {
+          return;
+        }
+
+        if (!this.#isEditingSettled()) {
+          warn(ACTIVE_SHEET_REFUSED_WARNING);
+
+          return;
+        }
       }
     }
 
@@ -2531,6 +2605,10 @@ export class SheetsBar extends BasePlugin {
           this.#isSwitching = false;
         }
 
+        if (!this.#isLive(model)) {
+          return false;
+        }
+
         if (isDialogOpen) {
           dialog?._adoptViewSelection();
         }
@@ -2632,7 +2710,16 @@ export class SheetsBar extends BasePlugin {
    * grid is not destroyed, the bar is on, and the workbook was not replaced.
    */
   #isLive(model: SheetModel | null): boolean {
-    return !!this.hot && !this.hot.isDestroyed && this.enabled && this.#model === model;
+    return !this.#isGridDestroyed() && this.enabled && this.#model === model;
+  }
+
+  /**
+   * Tells whether a listener destroyed the grid while the bar was running host code (a settings update,
+   * a data load, a hook). The plugin's `hot` is gone then, so a `finally` and every step after that code
+   * ask this before they touch the grid.
+   */
+  #isGridDestroyed(): boolean {
+    return !this.hot || this.hot.isDestroyed;
   }
 
   /**
@@ -2872,7 +2959,9 @@ export class SheetsBar extends BasePlugin {
     try {
       operations();
     } finally {
-      this.hot.resumeRender();
+      if (!this.#isGridDestroyed()) {
+        this.hot.resumeRender();
+      }
     }
   }
 
@@ -3226,6 +3315,10 @@ export class SheetsBar extends BasePlugin {
         cellMeta: viewState?.cellMeta,
       });
 
+      if (this.#isGridDestroyed()) {
+        return;
+      }
+
       if (viewState) {
         restoreViewState(this.hot, viewState, keptParts);
       }
@@ -3244,6 +3337,10 @@ export class SheetsBar extends BasePlugin {
         }
       }, engineOrder);
     });
+
+    if (this.#isGridDestroyed()) {
+      return;
+    }
 
     this.#redeclaredParts.delete(newSheet);
 
@@ -3312,14 +3409,23 @@ export class SheetsBar extends BasePlugin {
 
       const targetSheet = model.getSheetById(target.id) as Sheet;
 
-      this.#withEngineWrites(
-        this.#sheetRecords().flatMap((sheet) => {
-          const engine = formulasSettingOf(sheet)?.engine;
+      this.#engineNameClaims = new WeakMap();
+      this.#engineNameRequests = this.#collectEngineNameRequests();
 
-          return isEngineInstance(engine) ? [engine!] : [];
-        }),
-        () => this.#sheetRecords().forEach(sheet => this.#registerFormulaSheet(sheet, { feed: sheet !== targetSheet }))
-      );
+      try {
+        this.#withEngineWrites(
+          this.#sheetRecords().flatMap((sheet) => {
+            const engine = formulasSettingOf(sheet)?.engine;
+
+            return isEngineInstance(engine) ? [engine!] : [];
+          }),
+          () => this.#sheetRecords()
+            .forEach(sheet => this.#registerFormulaSheet(sheet, { feed: sheet !== targetSheet })),
+        );
+      } finally {
+        this.#engineNameClaims = null;
+        this.#engineNameRequests = null;
+      }
 
       model.setActiveSheet(target.id);
 
@@ -3409,6 +3515,10 @@ export class SheetsBar extends BasePlugin {
       } finally {
         this.#loadingSheet = null;
         this.#pendingHookSync = null;
+      }
+
+      if (this.#isGridDestroyed()) {
+        return;
       }
 
       if (this.hot.view) {
@@ -5161,10 +5271,12 @@ export class SheetsBar extends BasePlugin {
    * another sheet can reference it before it has ever been activated. Without this, such a
    * reference reads `#REF!` until the first visit feeds the engine.
    *
-   * Only a sheet that names its `sheetName` in a built engine instance is registered. A sheet
-   * handing over the `HyperFormula` class instead gets an engine of its own per enable, which
-   * no other sheet can reference — worth a warning when a `sheetName` suggests the intent was
-   * a shared workbook.
+   * Only a sheet that names a built engine instance is registered. One without a `sheetName` is
+   * registered under its tab name in a workbook build, and under a free engine name based on it when
+   * it is added at runtime: the Formulas plugin would otherwise keep the engine sheet the grid was
+   * bound to before the switch and write this sheet's data into it. A sheet handing over the
+   * `HyperFormula` class instead gets an engine of its own per enable, which no other sheet can
+   * reference — worth a warning when a `sheetName` suggests the intent was a shared workbook.
    */
   #registerFormulaSheet(
     sheet: Sheet | null,
@@ -5172,7 +5284,17 @@ export class SheetsBar extends BasePlugin {
   ) {
     const formulas = sheet ? formulasSettingOf(sheet) : null;
 
-    if (!sheet || !formulas?.sheetName) {
+    if (!sheet || !formulas) {
+      return;
+    }
+
+    let requestedName = formulas.sheetName;
+
+    if (!requestedName && isEngineInstance(formulas.engine)) {
+      requestedName = this.#engineNameClaims === null ? freeEngineName(formulas.engine!, sheet.name) : sheet.name;
+    }
+
+    if (!requestedName) {
       return;
     }
 
@@ -5188,45 +5310,158 @@ export class SheetsBar extends BasePlugin {
 
     const engine = formulas.engine!;
 
-    this.#withEngineWrite(engine, () => this.#feedFormulaSheet(sheet, formulas, engine, feed, beforeFeed));
+    this.#withEngineWrite(engine, () => {
+      const claimedName = this.#claimEngineName(sheet, engine, this.#tabBoundEngineName(sheet, engine, requestedName));
+      const boundName = this.#feedFormulaSheet(sheet, formulas, engine, claimedName, { feed, beforeFeed });
+
+      this.#recordBoundEngineName(engine, claimedName, boundName);
+    });
   }
 
   /**
-   * Adds the sheet to `engine` when the engine does not hold it yet, and feeds it the sheet's data. A declared
-   * `sheetName` the tab stores normalized (`clampSheetName()`: a line break becomes a space) binds the engine
-   * sheet under the tab's name, unless the engine already holds the declared one: the model and the engine
-   * then agree, and a rename reaches the engine. Before, the engine kept `Q1\nQ2` beside a tab named `Q1 Q2`,
-   * and a rename left the engine on the old name.
+   * Returns the engine sheet name a declared `sheetName` binds under before any claim is checked. A name the
+   * tab stores normalized (`clampSheetName()`: a line break becomes a space) binds under the tab's name,
+   * unless the engine already holds the declared one: the model and the engine then agree, and a rename
+   * reaches the engine. Before, the engine kept `Q1\nQ2` beside a tab named `Q1 Q2`, and a rename left the
+   * engine on the old name. Resolved before the claim, so a later sheet asking for the tab's name is seen as
+   * a collision.
+   *
+   * @param {object} sheet The sheet being registered.
+   * @param {object} engine The engine.
+   * @param {string} requested The engine sheet name the sheet asks for.
+   * @returns {string}
+   */
+  #tabBoundEngineName(sheet: Sheet, engine: NonNullable<SheetFormulas['engine']>, requested: string): string {
+    if (requested !== sheet.name && clampSheetName(requested) === sheet.name && !engine.doesSheetExist!(requested)) {
+      return sheet.name;
+    }
+
+    return requested;
+  }
+
+  /**
+   * Returns the engine sheet names the sheets of a workbook build ask for, per engine, in lower case: the
+   * `sheetName`, or the tab name of a sheet bound without one, after the tab-name remap
+   * (`#tabBoundEngineName`). Read before the build registers any sheet.
+   *
+   * @returns {WeakMap<object, Set<string>>}
+   */
+  #collectEngineNameRequests(): WeakMap<object, Set<string>> {
+    const requests = new WeakMap<object, Set<string>>();
+
+    this.#sheetRecords().forEach((sheet) => {
+      const formulas = formulasSettingOf(sheet);
+
+      if (!formulas || !isEngineInstance(formulas.engine)) {
+        return;
+      }
+
+      const engine = formulas.engine!;
+      const names = requests.get(engine) ?? new Set<string>();
+
+      names.add(this.#tabBoundEngineName(sheet, engine, formulas.sheetName || sheet.name).toLowerCase());
+      requests.set(engine, names);
+    });
+
+    return requests;
+  }
+
+  /**
+   * Moves the running build's claim to the name the sheet was bound under, when the engine reported back
+   * another name than the one claimed (`engine.addSheet()` can normalize it), so a later sheet asking for
+   * the bound name is seen as a collision.
+   *
+   * @param {object} engine The engine.
+   * @param {string} claimedName The name the claim was recorded under.
+   * @param {string} boundName The name the sheet was bound under.
+   */
+  #recordBoundEngineName(engine: NonNullable<SheetFormulas['engine']>, claimedName: string, boundName: string) {
+    const claims = this.#engineNameClaims?.get(engine);
+    const claim = claims?.get(claimedName.toLowerCase());
+
+    if (!claims || !claim || boundName === claimedName) {
+      return;
+    }
+
+    claims.delete(claimedName.toLowerCase());
+    claims.set(boundName.toLowerCase(), { ...claim, engineName: boundName });
+  }
+
+  /**
+   * Returns the engine sheet name a sheet of the running workbook build binds to: the requested one,
+   * unless an earlier sheet of the build bound to it (the engine compares names without regard to
+   * case), in which case it is a free numbered name that no sheet of the build asks for, with a warning.
+   * Formula text is not rewritten, so a reference to the requested name reads the earlier sheet. An
+   * engine sheet no earlier sheet of the build bound to is reused, so a sheet still binds to an engine
+   * sheet the host built for it. Outside a build it returns the requested name.
+   *
+   * @param {object} sheet The sheet being registered.
+   * @param {object} engine The engine.
+   * @param {string} requested The engine sheet name the sheet asks for.
+   * @returns {string}
+   */
+  #claimEngineName(sheet: Sheet, engine: NonNullable<SheetFormulas['engine']>, requested: string): string {
+    if (this.#engineNameClaims === null) {
+      return requested;
+    }
+
+    const claims = this.#engineNameClaims.get(engine) ?? new Map<string, { tabName: string, engineName: string }>();
+    const claimer = claims.get(requested.toLowerCase());
+    let engineName = requested;
+
+    this.#engineNameClaims.set(engine, claims);
+
+    if (claimer) {
+      const numbered = this.#numberedEngineNames.get(engine) ?? new Set<string>();
+      const requests = this.#engineNameRequests?.get(engine);
+
+      engineName = freeEngineName(engine, requested, (name) => {
+        const key = name.toLowerCase();
+
+        return claims.has(key) || requests?.has(key) === true || (engine.doesSheetExist!(name) && !numbered.has(key));
+      });
+      numbered.add(engineName.toLowerCase());
+      this.#numberedEngineNames.set(engine, numbered);
+
+      warn(`The sheets "${claimer.tabName}" and "${sheet.name}" use the same formula engine sheet name` +
+        `${claimer.engineName === requested ? '' : ' (the engine ignores letter case)'}. "${requested}" was ` +
+        `registered as "${engineName}". Formulas that reference "${requested}" read the sheet ` +
+        `"${claimer.engineName}".`);
+    }
+
+    claims.set(engineName.toLowerCase(), { tabName: sheet.name, engineName });
+
+    return engineName;
+  }
+
+  /**
+   * Adds the sheet to `engine` under `requestedName` when the engine does not hold it yet, and feeds it
+   * the sheet's data. The sheet's `formulas.sheetName` follows the name it is bound to, which it returns.
    */
   #feedFormulaSheet(
     sheet: Sheet,
     formulas: SheetFormulas,
     engine: NonNullable<SheetFormulas['engine']>,
-    feed: boolean,
-    beforeFeed?: (sheetId: number) => void,
-  ) {
-    let engineName = formulas.sheetName!;
-
-    if (engineName !== sheet.name && clampSheetName(engineName) === sheet.name
-      && !engine.doesSheetExist!(engineName)) {
-      engineName = sheet.name;
-    }
+    requestedName: string,
+    { feed, beforeFeed }: { feed: boolean, beforeFeed?: (sheetId: number) => void },
+  ): string {
+    let engineName = requestedName;
 
     if (!engine.doesSheetExist!(engineName)) {
       // The engine may normalize the name it is asked for — two tabs the model tells apart can
       // be one sheet to the engine — so the binding follows the name `addSheet()` reports back,
       // or the id lookups below would come up empty.
       engineName = engine.addSheet!(engineName);
+    }
 
-      if (engineName !== formulas.sheetName) {
-        sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: engineName } };
-      }
+    if (engineName !== formulas.sheetName) {
+      sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: engineName } };
     }
 
     const sheetId = engine.getSheetId!(engineName);
 
     if (typeof sheetId !== 'number') {
-      return;
+      return engineName;
     }
 
     beforeFeed?.(sheetId);
@@ -5247,6 +5482,8 @@ export class SheetsBar extends BasePlugin {
         engine.setSheetContent!(sheetId, content);
       }
     }
+
+    return engineName;
   }
 
   /**

@@ -6085,6 +6085,11 @@ export default function Core(
             const metaPhase = applySettings(
               filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
             );
+
+            if (!instance || instance.isDestroyed) {
+              return;
+            }
+
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -6124,7 +6129,7 @@ export default function Core(
         }
       }));
     } finally {
-      if (suspendsRender) {
+      if (suspendsRender && instance && !instance.isDestroyed) {
         instance.resumeRender();
       }
     }
@@ -7163,6 +7168,10 @@ export default function Core(
 
     if (!init) {
       notifySettingsUpdated(notifiedSettings);
+
+      if (!instance || instance.isDestroyed) {
+        return null;
+      }
     }
 
     if (!defersDataWork) {
