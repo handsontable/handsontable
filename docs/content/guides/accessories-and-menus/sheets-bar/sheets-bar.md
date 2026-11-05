@@ -347,9 +347,9 @@ For the `dataProvider` setup itself, see [Server-side data](@/guides/getting-sta
 
 ## Use formulas across sheets
 
-To reference other sheets in a formula, give each sheet the same [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods) engine instance and its own `sheetName`, in its `formulas` setting.
+To reference other sheets in a formula, pass a [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods) instance that holds your sheets in the `formulas` setting, and set `sheetsBar: true`. The bar shows one tab per engine sheet. If you also set `data`, it becomes one more tab. Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead. Removing a tab removes its engine sheet.
 
-The example below also turns on the [formula builder](@/guides/formulas/formula-builder/formula-builder.md), which adds a formula bar and an inline editor with colored references and autocomplete. Set `editor: 'formula'` and `formulaBuilder` at the grid level, outside `sheets`, so every sheet uses them. Select a cell in the **VAT** column of the **Budget** sheet to see its `Rates!B1` reference in the formula bar.
+The example below also turns on the [formula builder](@/guides/formulas/formula-builder/formula-builder.md), which adds a formula bar and an inline editor with colored references and autocomplete. Set `editor: 'formula'` and `formulaBuilder` at the grid level, so every sheet uses them. Select a cell in the **VAT** column of the **Budget** sheet to see its `Rates!B1` reference in the formula bar.
 
 ::: only-for react
 
@@ -402,31 +402,11 @@ You can type a reference to another sheet, such as `Rates!B1`, in the formula ba
 
 :::
 
-Pass a built engine (`HyperFormula.buildEmpty()`), not the `HyperFormula` class. With the class, each sheet gets its own engine and can't read the other sheets' data.
+Pass a built engine, such as one from `HyperFormula.buildFromSheets()`, not the `HyperFormula` class. With the class, each sheet gets its own engine and can't read the other sheets' data.
 
 A sheet added with the **Add sheet** button, or with `addSheet()` without `settings`, joins the shared engine, so other sheets can reference it right away.
 
-Use each sheet's tab name as its `sheetName`. A tab rename then renames the engine sheet and rewrites the references to it, also in your `data` arrays. Inserting, removing, or moving rows or columns rewrites formula text in your `data` arrays too.
-
-### Create tabs from a HyperFormula instance
-
-If your HyperFormula instance already holds sheets, pass it in the `formulas` option and set `sheetsBar: true`. The bar shows one tab per engine sheet:
-
-```js
-const hf = HyperFormula.buildFromSheets({
-  Revenue: [['Acme Corp', 4200000], ['Vertex Industries', 18700000]],
-  Summary: [['=SUM(Revenue!B1:B2)']],
-});
-
-const hot = new Handsontable(container, {
-  formulas: { engine: hf },
-  sheetsBar: true,
-});
-```
-
-If you also set `data`, it becomes one more tab. Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead.
-
-Removing a tab removes its engine sheet.
+If you declare `sheets`, give each sheet the same engine and use its tab name as its `sheetName`. A tab rename then renames the engine sheet and rewrites the references to it, also in your `data` arrays. Inserting, removing, or moving rows or columns rewrites formula text in your `data` arrays too.
 
 ## Import and export
 
