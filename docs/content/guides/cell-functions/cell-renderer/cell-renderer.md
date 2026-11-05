@@ -562,7 +562,7 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 Handsontable reuses `td` elements as you scroll, sort, filter, and load data. Before it paints a cell with a renderer, it resets only part of the element:
 
 - **Cleared before each repaint:** the `class` attribute, the inline `style`, the `dir` attribute, and the accessibility attributes. The reset removes every attribute whose name contains `role` or `aria-`, so it also removes `data-role` and `data-aria-label`.
-- **Kept on the reused cell:** other `data-*` attributes, the `title` attribute, child nodes, and properties that your code assigns to the element.
+- **Kept on the reused cell:** other `data-*` attributes, the `title` attribute, child nodes, event listeners (see [Add event listeners in cell renderer function](#add-event-listeners-in-cell-renderer-function)), and properties that your code assigns to the element.
 
 What a renderer leaves behind in the second group shows up on whichever record the cell displays next. A stale tag, tooltip, or `data-*` attribute then appears on the wrong row. [Understanding rendering](@/guides/optimization/rendering/rendering.md#why-direct-dom-changes-disappear) explains when a render happens.
 
@@ -583,6 +583,8 @@ if (value === 'Blocked') {
 ```
 
 Built-in renderers replace the cell's content. A custom renderer that calls one first, as the [Extend a built-in renderer](#extend-a-built-in-renderer) section shows, starts from clean content. A renderer that builds its own nodes empties the cell itself, for example with `td.textContent = ''`, before it appends them.
+
+The [`afterRenderer`](@/api/hooks.md#afterrenderer) hook runs on the same reused `td`, after the renderer. Don't empty the cell there, because that removes the value the renderer just wrote. Remove any node you added on an earlier call, then set or remove every attribute you use, on every call.
 
 ::: warning
 
@@ -646,6 +648,7 @@ const tooltipRenderer = (hot, td, row, column, prop, value, cellProperties) => {
 };
 
 const hot = new Handsontable(container, {
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     ['SKU-4821', 'Stainless Steel Water Bottle'],
     ['SKU-0093', 'Wireless Mouse'],
@@ -690,7 +693,13 @@ const data = [
 
 const columns = [{ renderer: tooltipRenderer }, {}];
 
-const ExampleComponent = () => <HotTable data={data} columns={columns} />;
+const ExampleComponent = () => (
+  <HotTable
+    // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+    data={data}
+    columns={columns}
+  />
+);
 ```
 
 :::
@@ -712,12 +721,12 @@ const tooltipRenderer = (
   row: number,
   column: number,
   prop: string | number,
-  value: string,
+  value: unknown,
   cellProperties: Handsontable.CellProperties
 ) => {
   textRenderer(hot, td, row, column, prop, value, cellProperties);
 
-  const description = descriptions.get(value);
+  const description = descriptions.get(String(value));
 
   if (description) {
     td.title = description;
@@ -783,6 +792,8 @@ const columns = [{ renderer: tooltipRenderer }, {}];
 ```
 
 :::
+
+If you need a tooltip that keyboard users can reach, or one with your own markup, render your own element instead of `title`. Show it from [`afterOnCellMouseOver`](@/api/hooks.md#afteroncellmouseover) and hide it in [`afterOnCellMouseOut`](@/api/hooks.md#afteroncellmouseout). Also show it from [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) and hide it in [`afterDeselect`](@/api/hooks.md#afterdeselect), so that moving the selection with the arrow keys shows it too.
 
 To attach a note that users can add, edit, and delete, use the [`comments`](@/guides/cell-features/comments/comments.md) plugin instead of a tooltip.
 
