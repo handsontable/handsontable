@@ -30,6 +30,8 @@ Use React components as editors with the `useHotEditor` hook. The hook returns `
 
 The wrapper mounts the editor in the grid portal, so a click on the editor does not deselect the cell. Form controls in the editor inherit the grid theme `color-scheme`. The `value` from `useHotEditor` updates in the same render as `setValue`. Still call `event.stopPropagation()` on the `mousedown` event of the editor's root element as a backup.
 
+With `useHotEditor`, you position the editor element yourself. The example below places it in `onPrepare`, when a cell is selected, so the editor stays where it was when the grid scrolls or changes size while it is open. To keep the editor on its cell, use [`EditorComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#react). It moves the editor onto the edited cell when the grid scrolls and after the grid changes size.
+
 ::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-editor/react/example1.jsx)

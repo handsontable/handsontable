@@ -38,4 +38,16 @@ test.describe('NestedRows collapse state across a sheet switch', { tag: THEMES_T
     await grid.switchToSheet(1);
     await expect.poll(() => grid.visibleNames()).toEqual(['Fruit', 'Apple', 'Vegetables']);
   });
+
+  test('a tree sheet shown after a sheet of arrays turns the plugin back on', async () => {
+    await grid.switchToSheet(2);
+    await expect.poll(() => grid.isPluginEnabled()).toBe(false);
+    expect(await grid.nestedRowsSetting()).toBe(true);
+
+    await grid.switchToSheet(0);
+
+    await expect.poll(() => grid.isPluginEnabled()).toBe(true);
+    await expect.poll(() => grid.visibleNames()).toEqual(['Europe', 'Poland', 'Germany', 'Asia', 'Japan']);
+    await expect(grid.collapseButton(0)).toBeVisible();
+  });
 });

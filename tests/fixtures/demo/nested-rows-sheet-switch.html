@@ -34,7 +34,8 @@
   <!--
     DEV-3042: a two-sheet workbook with NestedRows on. A sheet switch runs `loadData()`, which
     drops the NestedRows collapsed state, so the bar has to carry each sheet's collapsed parents
-    across the switch itself.
+    across the switch itself. The third sheet holds arrays, which NestedRows cannot handle, so it
+    turns itself off there and has to come back on with the next tree.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -75,6 +76,10 @@
               { name: 'Fruit', __children: [{ name: 'Apple' }] },
               { name: 'Vegetables', __children: [{ name: 'Carrot' }] },
             ],
+          },
+          {
+            name: 'Flat',
+            data: [['Row 1'], ['Row 2']],
           },
         ],
       },

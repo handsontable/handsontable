@@ -268,8 +268,8 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
       jspdf-autotable:
-        specifier: ^5.0.7
-        version: 5.0.8(jspdf@4.2.1)
+        specifier: ^5.0.9
+        version: 5.0.9(jspdf@4.2.1)
       lucide:
         specifier: ^1.43.0
         version: 1.43.0
@@ -283,8 +283,8 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0
       papaparse:
-        specifier: ^5.5.3
-        version: 5.5.3
+        specifier: ^5.7.0
+        version: 5.7.0
       pikaday:
         specifier: ^1.8.2
         version: 1.8.2
@@ -10371,11 +10371,6 @@ packages:
   jsonfile@6.2.1:
     resolution: {integrity: sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q==}
 
-  jspdf-autotable@5.0.8:
-    resolution: {integrity: sha512-Hy05N86yBO7CXBrnSLOge7i1ZYpKH2DjQ94iybaP7vBhSInjvRBgDc99ngKzSbSO8Jc98ZCally8I6n0tj2RJQ==}
-    peerDependencies:
-      jspdf: ^2 || ^3 || ^4
-
   jspdf-autotable@5.0.9:
     resolution: {integrity: sha512-wIOG2ggjG6Y7qvqjgFACZZeu+oHxoxrhwCn1lTMxjPhojLVVvu2U2yS2srVCYl0CXe6pqiG/jQMIIS0CFn1ssw==}
     peerDependencies:
@@ -11487,9 +11482,6 @@ packages:
 
   pako@2.1.0:
     resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
-
-  papaparse@5.5.3:
-    resolution: {integrity: sha512-5QvjGxYVjxO59MGU2lHVYpRWBBtKHnlIAcSe1uNFCkkptUh63NFRj0FJQm7nR67puEruUci/ZkjmEFrjCAyP4A==}
 
   papaparse@5.7.0:
     resolution: {integrity: sha512-qBGxg/7Q3Kl9Wfhrz2Z74UnvnHTXLNG6jmKJFeBvP2+y4lV7So+7SR62+Zd47JvdrCkX+nDcnr0ObPzek/+6RA==}
@@ -26046,10 +26038,6 @@ snapshots:
     optionalDependencies:
       graceful-fs: 4.2.11
 
-  jspdf-autotable@5.0.8(jspdf@4.2.1):
-    dependencies:
-      jspdf: 4.2.1
-
   jspdf-autotable@5.0.9(jspdf@4.2.1):
     dependencies:
       jspdf: 4.2.1
@@ -27466,8 +27454,6 @@ snapshots:
   pako@1.0.11: {}
 
   pako@2.1.0: {}
-
-  papaparse@5.5.3: {}
 
   papaparse@5.7.0: {}
 

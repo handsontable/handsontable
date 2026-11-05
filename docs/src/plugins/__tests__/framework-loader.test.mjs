@@ -680,3 +680,106 @@ test('{{$examplesBranch}} placeholder resolves to the matching handsontable/exam
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+/**
+ * Builds a temp content tree whose page holds `@/` in code (a project path
+ * alias, as in the custom-theme recipe) and in prose, plus an API page that a
+ * fenced `@/...md` link resolves to.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createCodeAliasFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-code-alias-'));
+  const contentDir = join(root, 'content');
+  const introDir = join(contentDir, 'guides', 'intro');
+  const apiDir = join(contentDir, 'api');
+
+  mkdirSync(introDir, { recursive: true });
+  mkdirSync(apiDir, { recursive: true });
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+  writeFileSync(
+    join(introDir, 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      '```tsx',
+      'import { colorsShadcn } from "@/lib/theme/colorsShadcn";',
+      '```',
+      '',
+      'Use it: `import DataGrid from "@/lib/DataGrid"` and render it.',
+      '',
+      '::: tip',
+      'Aside code: `@/lib/asideHelper`',
+      ':::',
+      '',
+      '```js',
+      '/**',
+      ' * The [`BasePlugin`](@/api/basePlugin.md)\'s constructor adds `this.hot`.',
+      ' */',
+      '```',
+      '',
+      '[Data file](@/react/files/data.csv)',
+      '',
+    ].join('\n')
+  );
+  writeFileSync(
+    join(apiDir, 'basePlugin.md'),
+    ['---', 'title: BasePlugin', 'permalink: /api/base-plugin', '---', '', 'API body.', ''].join('\n')
+  );
+
+  return { contentDir, root };
+}
+
+/**
+ * Loads the code-alias fixture and returns the vanilla intro page.
+ *
+ * @returns {Promise<string>}
+ */
+async function loadCodeAliasPage() {
+  const { contentDir, root } = createCodeAliasFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    return renderedHtmlOf(store, 'javascript-data-grid/intro');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test('an @/ path alias inside a code fence is not stripped', async () => {
+  const html = await loadCodeAliasPage();
+
+  assert.ok(html.includes('import { colorsShadcn } from "@/lib/theme/colorsShadcn";'), 'fenced import keeps @/lib/');
+  assert.ok(!html.includes('"/theme/colorsShadcn"'), 'the @/lib/ segment must not be stripped from the fence');
+});
+
+test('an @/ path alias inside inline code is not stripped', async () => {
+  const html = await loadCodeAliasPage();
+
+  assert.ok(html.includes('`import DataGrid from "@/lib/DataGrid"`'), 'inline code keeps @/lib/');
+  // Asides turn inline code into <code> HTML before the strip runs.
+  assert.ok(html.includes('<code>@/lib/asideHelper</code>'), 'aside inline code keeps @/lib/');
+});
+
+test('an @/...md link inside a code fence still resolves', async () => {
+  const html = await loadCodeAliasPage();
+
+  assert.ok(
+    html.includes('[`BasePlugin`](/docs/javascript-data-grid/api/base-plugin/)'),
+    'the fenced JSDoc link resolves to the API page permalink'
+  );
+  assert.ok(!html.includes('@/api/'), 'no unresolved @/api/ link should remain');
+});
+
+test('an @/framework/ prefix outside code is still stripped', async () => {
+  const html = await loadCodeAliasPage();
+
+  assert.ok(html.includes('[Data file](/files/data.csv)'), 'prose link loses its @/react/ prefix');
+  assert.ok(!html.includes('@/react/'), 'no @/react/ prefix should remain');
+});

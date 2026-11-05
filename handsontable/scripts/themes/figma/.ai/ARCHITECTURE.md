@@ -52,7 +52,7 @@ Primitive values get units based on the key name:
 
 ### Per-theme tokens — `processThemeTokens`
 
-Iterates `tokensKeys.mjs` in order, looks up each key recursively in the theme's value tree, and runs `processTokenValue`. Keys not found in the tree are silently skipped. This is the allow-list that defines the public surface of a theme.
+Iterates `tokensKeys.mjs` in order, looks up each key recursively in the theme's value tree, and runs `processTokenValue`. Keys not found in the tree are skipped here; `findUnresolvedTokens()` reports them afterwards and `main()` aborts before the wipe. This is the allow-list that defines the public surface of a theme.
 
 ## Stage 2 — JS serialization (`utils/jsGeneration.mjs`)
 

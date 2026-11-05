@@ -57,7 +57,7 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
   test('takes the message away for a key passed later, and brings it back reachable for another', async() => {
     await license.goto({ key: 'flagged-base', plugins: 'filters' });
 
-    await license.updateLicenseKey('non-commercial');
+    await license.updateLicenseKey('unflagged');
 
     await expect(license.bar).toHaveCount(0);
     expect(await license.isPluginEnabled('filters')).toBe(true);
@@ -80,16 +80,14 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
     expect(license.licenseErrors()).toEqual([FILTERS_MESSAGE]);
   });
 
-  for (const key of ['unflagged', 'non-commercial'] as const) {
-    test(`unlocks every feature for the ${key} key`, async() => {
-      await license.goto({ key, plugins: 'column-menu' });
+  test('unlocks every feature for the unflagged key', async() => {
+    await license.goto({ key: 'unflagged', plugins: 'column-menu' });
 
-      expect(await license.isPluginEnabled('filters')).toBe(true);
-      await expect(license.columnMenuButtons.first()).toBeVisible();
-      await expect(license.missingFeatures).toHaveCount(0);
-      expect(license.licenseErrors()).toEqual([]);
-    });
-  }
+    expect(await license.isPluginEnabled('filters')).toBe(true);
+    await expect(license.columnMenuButtons.first()).toBeVisible();
+    await expect(license.missingFeatures).toHaveCount(0);
+    expect(license.licenseErrors()).toEqual([]);
+  });
 
   test('leaves the Filters value list, a nested grid, alone', async() => {
     await license.goto({ key: 'flagged-filters', plugins: 'column-menu' });

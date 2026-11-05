@@ -13,7 +13,7 @@ type ParsedPayload = {
 type ParsedCellValue = string | number | boolean | null;
 type ParsedRow = Record<string, ParsedCellValue>;
 
-const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
+const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.7.0/papaparse.min.js';
 
 declare global {
   interface Window {

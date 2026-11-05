@@ -132,6 +132,26 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   let isCtrlKeySilenced = false;
 
   /**
+   * Set by `destroy()`. A shortcut callback can destroy the grid (a listener of the save an editor
+   * shortcut makes), and the shortcuts still queued for the same keydown belong to the destroyed grid.
+   *
+   * @type {boolean}
+   */
+  let isManagerDestroyed = false;
+
+  /**
+   * Tells whether the context belongs to this manager, which has been destroyed. A shortcut can forward
+   * its keys to a context of another manager (a submenu forwards Tab to the main menu after closing
+   * itself, which destroys the submenu's grid and its manager), and that one still runs.
+   *
+   * @param {object} context The context to check.
+   * @returns {boolean}
+   */
+  const isContextOfDestroyedManager = (context: Context): boolean => {
+    return isManagerDestroyed && CONTEXTS.getItems().some(([, ownContext]) => ownContext === context);
+  };
+
+  /**
    * Runs every shortcut the given context registers for the pressed keys, without consulting its
    * fallback.
    *
@@ -146,7 +166,10 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     let hasRunAnyShortcut = false;
     let isExecutionCancelled = false;
 
-    for (let index = 0; index < shortcuts.length; index++) {
+    // A shortcut callback can destroy the manager. The loop then stops, and so does every later run of
+    // its contexts for the same keydown: a context a shortcut forwards to, and the recorder's virtual
+    // "control/meta" pass.
+    for (let index = 0; index < shortcuts.length && !isContextOfDestroyedManager(context); index++) {
       const {
         callback,
         runOnlyIf,
@@ -347,6 +370,14 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
      * @type {Function}
      * @memberof ShortcutManager#
      */
-    destroy: () => keyRecorder.unmount(),
+    destroy: () => {
+      // `unmount()` releases a listener count shared by every manager of the document, so it runs once.
+      if (isManagerDestroyed) {
+        return;
+      }
+
+      isManagerDestroyed = true;
+      keyRecorder.unmount();
+    },
   };
 };

@@ -6,7 +6,8 @@ export type CommentsPluginOffHoverLayout = 'plain' | 'sheets';
 /**
  * Page object for the comments-plugin-off-hover fixture (fixtures/demo/comments-plugin-off-hover.html):
  * cell (0, 0) carries a comment shown 300 ms after the pointer rests on it, on a plain grid (`plain`)
- * or on sheet 'Alpha' of a workbook whose sheet 'Beta' turns the plugin off (`sheets`). The spec
+ * or on sheet 'Alpha' of a workbook whose sheet 'Beta' turns the plugin off and whose sheet 'Gamma' keeps it
+ * on with no comment (`sheets`). The spec
  * installs `page.clock` before `goto()`, so the display delay is crossed on demand.
  */
 export class CommentsPluginOffHoverPage {
@@ -72,6 +73,20 @@ export class CommentsPluginOffHoverPage {
    */
   async openSheet(name: string): Promise<void> {
     await this.page.evaluate(sheetName => window.hot.getPlugin('sheetsBar').setActiveSheet(sheetName), name);
+  }
+
+  /**
+   * Replaces the grid's data through `loadData()`.
+   */
+  async loadData(data: unknown[][]): Promise<void> {
+    await this.page.evaluate(rows => window.hot.loadData(rows), data);
+  }
+
+  /**
+   * The comment on a cell of the grid's current data, or `null`.
+   */
+  async commentAt(row: number, col: number): Promise<string | null> {
+    return this.page.evaluate(([r, c]) => window.hot.getPlugin('comments').getCommentAtCell(r, c) ?? null, [row, col]);
   }
 
   /**

@@ -166,7 +166,7 @@ describe('BasePlugin license gate', () => {
       expect(missingFeatureErrors()).toEqual([]);
     });
 
-    it('should not restrict the non-commercial key', () => {
+    it('should not restrict the non-commercial key, which reads as invalid since 19.0', () => {
       const hot = createGrid({ licenseKey: 'non-commercial-and-evaluation', filters: true });
 
       expect(hot.getPlugin('filters').enabled).toBe(true);

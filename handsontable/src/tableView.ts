@@ -1918,6 +1918,11 @@ class TableView {
           cellCoordsFactory: (row: number, column: number) => this.hot._createCellCoords(row, column),
         });
 
+        // The click closed the editor, and a listener of that save destroyed the grid.
+        if (this.hot.isDestroyed) {
+          return;
+        }
+
         this.hot.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
         this.activeWt = this._wt;
       },

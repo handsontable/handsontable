@@ -456,7 +456,7 @@ beforePasteParse(clipboardData, event) {
 
 **Related:** [`beforePasteParse`](@/api/hooks.md#beforepasteparse)
 
-### Hooks
+### Paste hooks
 
 The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
 
@@ -466,11 +466,17 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to mani
 
 The hooks run in this order: `beforePasteParse`, then `beforePaste`, then `afterPaste`.
 
+`afterPaste` doesn't wait for the values to be written. When a pasted cell has a [validator](@/guides/cell-functions/cell-validator/cell-validator.md), the validator runs after `afterPaste`, so the cell still holds its previous value and `valid` flag. A cell has a validator when you set one, when its cell type provides one (for example `numeric`, `date`, `dropdown`, or `autocomplete`), or when you set a [`maxLength`](@/api/options.md#maxlength) that is a finite number of 0 or more. If such a paste adds rows, `afterPaste` also runs before those rows exist. The order is then `afterPaste`, [`afterCreateRow`](@/api/hooks.md#aftercreaterow), and [`afterChange`](@/api/hooks.md#afterchange). Without a validator, [`afterChange`](@/api/hooks.md#afterchange) runs first and `afterPaste` follows. A paste that adds rows runs [`afterCreateRow`](@/api/hooks.md#aftercreaterow) before `afterChange`.
+
+To change or cancel the pasted values, use [`beforePaste`](@/api/hooks.md#beforepaste). To react once the cells hold the new values, use [`afterChange`](@/api/hooks.md#afterchange) and check for the `'CopyPaste.paste'` source. When the [`copyPaste`](@/api/options.md#copypaste) option sets `pasteMode` to `'shift_down'` or `'shift_right'`, the source is `'populateFromArray'`.
+
 Examples of how to use them are provided in their descriptions.
 
 ### Copy cell appearance on paste
 
 The [`CopyPaste`](@/api/copyPaste.md) plugin copies cell values by default. To copy cell appearance, save each copied or cut cell's `className` metadata in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and then apply it to the pasted range in [`afterPaste`](@/api/hooks.md#afterpaste).
+
+If the pasted cells have validators, they don't hold the pasted values yet when `afterPaste` runs, and rows the paste adds don't exist yet. See [Paste hooks](#paste-hooks). In that case, apply the saved metadata in [`afterChange`](@/api/hooks.md#afterchange) instead.
 
 Copy or cut a styled range from the grid, and paste it into another range to copy the cell values and appearance.
 
@@ -511,7 +517,7 @@ Copy or cut a styled range from the grid, and paste it into another range to cop
 
 ### Copy comments on paste
 
-To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste).
+To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste). If the pasted cells have validators, use [`afterChange`](@/api/hooks.md#afterchange) instead. See [Paste hooks](#paste-hooks).
 
 Copy or cut a commented range from the grid, and paste it into another range to copy the cell values and comments.
 
