@@ -224,6 +224,8 @@ The controller receives this as a raw `String`, and the service deserializes it 
 | `gt`, `gte`, `lt`, `lte`, `between`, `not_between` | Numeric comparison, on `price` and `stock` only |
 | `empty`, `not_empty` | `NULL` check, plus an empty-string check on text columns |
 
+The negated conditions `neq`, `not_contains`, and `not_between` also match `NULL` cells, the same as the grid's own filter. A SQL comparison with `NULL` is never true, so each of them is joined with an `IS NULL` check.
+
 The conditions of one column are joined with `OR` when `operation` is `disjunction`, and with `AND` otherwise. Different columns are always joined with `AND`. A column outside `ALLOWED_COLUMNS`, an unknown condition name, or a non-numeric argument to a numeric condition is skipped. A column whose conditions are all skipped adds no predicate, because an empty `OR` would match no rows.
 
 ### Page response mapping

@@ -233,7 +233,9 @@ public class ProductService {
      * Maps one HOT condition to a predicate, or returns null to skip it.
      *
      * Text comparisons are case-insensitive. Numeric comparisons (gt, gte, lt,
-     * lte, between, not_between) apply only to NUMERIC_COLUMNS.
+     * lte, between, not_between) apply only to NUMERIC_COLUMNS. The negated
+     * conditions (neq, not_contains, not_between) keep NULL cells, as the grid's
+     * own filter does: SQL comparisons with NULL are never true.
      */
     private Predicate buildCondition(Root<Product> root, CriteriaBuilder builder,
             String column, String name, List<?> args) {
@@ -259,13 +261,14 @@ public class ProductService {
                         ? builder.equal(path.as(BigDecimal.class), new BigDecimal(value))
                         : builder.equal(text, value.toLowerCase());
                 case "neq":
-                    return numeric
+                    return builder.or(builder.isNull(path), numeric
                         ? builder.notEqual(path.as(BigDecimal.class), new BigDecimal(value))
-                        : builder.notEqual(text, value.toLowerCase());
+                        : builder.notEqual(text, value.toLowerCase()));
                 case "contains":
                     return builder.like(text, "%" + escapeLike(value) + "%", '\\');
                 case "not_contains":
-                    return builder.notLike(text, "%" + escapeLike(value) + "%", '\\');
+                    return builder.or(builder.isNull(path),
+                        builder.notLike(text, "%" + escapeLike(value) + "%", '\\'));
                 case "begins_with":
                     return builder.like(text, escapeLike(value) + "%", '\\');
                 case "ends_with":
@@ -297,7 +300,8 @@ public class ProductService {
                     BigDecimal high = first.max(second);
                     return name.equals("between")
                         ? builder.between(number, low, high)
-                        : builder.or(builder.lessThan(number, low), builder.greaterThan(number, high));
+                        : builder.or(builder.isNull(path),
+                            builder.lessThan(number, low), builder.greaterThan(number, high));
                 default:
                     return null;
             }
