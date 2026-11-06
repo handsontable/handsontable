@@ -234,6 +234,12 @@ export class ColumnSorting extends BasePlugin {
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
   /**
+   * Sorts of released header presses that wait for a mid-edit cell to finish validating, in press order. A wait
+   * runs its press only while the set still holds it, so turning the plugin off, a data load, and a column order
+   * reset drop them all, and a second press made during the wait keeps the first.
+   */
+  #awaitingHeaderSorts = new Set<HeaderSortPress>();
+  /**
    * `true` from an `enablePlugin()` until the settings sort of that enable runs in the ready step.
    * `onDataReady()` sorts itself, so it clears it too.
    */
@@ -420,7 +426,7 @@ export class ColumnSorting extends BasePlugin {
     this.columnStatesManager?.destroy();
     this.columnMetaCache = null;
     this.columnStatesManager = null;
-    this.#pendingHeaderSort = null;
+    this.#dropHeaderSorts();
 
     this.unregisterShortcuts();
     super.disablePlugin();
@@ -1438,7 +1444,8 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Callback for the `afterLoadData` hook. Sorts the rows an `init` listener loads: that load replaces the rows
+   * Callback for the `afterLoadData` hook. Drops the header sorts waiting for a validator, because the presses
+   * were made on the rows the load replaced. Sorts the rows an `init` listener loads: that load replaces the rows
    * the ready step sorted, and it skips the load's own ready step pass. Only that load has a truthy
    * `initialLoad` while the view exists; the load made before the view and every load after init pass by.
    *
@@ -1446,6 +1453,8 @@ export class ColumnSorting extends BasePlugin {
    * @param {boolean|Array} initialLoad Whether the load is made during init.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: unknown) => {
+    this.#awaitingHeaderSorts.clear();
+
     if (initialLoad && this.hot.view) {
       this.#loadOrSortBySettings();
     }
@@ -1609,8 +1618,24 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    void pending.validation.then(() => this.applyHeaderClickSort(pending));
+    this.#awaitingHeaderSorts.add(pending);
+
+    void pending.validation.then(() => {
+      if (!this.#awaitingHeaderSorts.delete(pending)) {
+        return;
+      }
+
+      this.applyHeaderClickSort(pending);
+    });
   };
+
+  /**
+   * Drops the queued press and every sort that waits for a validator.
+   */
+  #dropHeaderSorts(): void {
+    this.#pendingHeaderSort = null;
+    this.#awaitingHeaderSorts.clear();
+  }
 
   /**
    * Marks a queued press as spent once ManualColumnMove has moved the column.
@@ -1622,15 +1647,15 @@ export class ColumnSorting extends BasePlugin {
   };
 
   /**
-   * Drops a queued press when the column order starts over (`loadData()`, `updateSettings()` with `columns`,
-   * or new data with another column layout). The press names a column of the order it was made on, so the
-   * release would sort another column.
+   * Drops a queued press and a sort waiting for a validator when the column order starts over (`loadData()`,
+   * `updateSettings()` with `columns`, or new data with another column layout). The press names a column of the
+   * order it was made on, so the release would sort another column.
    *
    * @param {string} source The source of the sequence change.
    */
   #onAfterColumnSequenceChange = (source: string) => {
     if (source === 'init') {
-      this.#pendingHeaderSort = null;
+      this.#dropHeaderSorts();
     }
   };
 
@@ -1649,7 +1674,7 @@ export class ColumnSorting extends BasePlugin {
   destroy(): void {
     // `BasePlugin.destroy` nulls enumerable own properties, which cannot reach a `#private`
     // field, so drop the queued press here.
-    this.#pendingHeaderSort = null;
+    this.#dropHeaderSorts();
 
     this.hot.removeHook('afterGetColHeader', this.#onAfterGetColHeaderWhileDisabled);
 
