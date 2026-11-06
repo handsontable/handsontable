@@ -177,7 +177,7 @@ test('a press is a Playwright key name or chord, checked on the pull request', (
 
 test('the action vocabulary is the five primitives the runner implements, and the setup has its own', () => {
   assert.deepEqual([...ACTIONS], ['press', 'type', 'selectCell', 'read', 'activate']);
-  assert.deepEqual([...SETUP_ACTIONS], ['press', 'type', 'selectCell', 'updateSettings', 'sentinels', 'focus']);
+  assert.deepEqual([...SETUP_ACTIONS], ['press', 'type', 'selectCell', 'updateSettings', 'spreadsheetData', 'sentinels', 'focus']);
 });
 
 test('the fixture URL carries the project theme and bundle first, then the scenario query', () => {
@@ -222,9 +222,9 @@ test('a scenario opens exactly one place, names its criteria, and says where the
 test('a scenario runs in one group, the job of the lane workflow that runs it, and a variant may move to another', () => {
   const problems = shape => validateScenario({ ...valid(), ...shape }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
 
-  assert.deepEqual([...SCENARIO_GROUPS], ['keyboard', 'reading']);
-  assert.match(problems({ group: undefined }), /group must be one of keyboard, reading/);
-  assert.match(problems({ group: 'slow' }), /group must be one of keyboard, reading/);
+  assert.deepEqual([...SCENARIO_GROUPS], ['keyboard', 'reading', 'menus']);
+  assert.match(problems({ group: undefined }), /group must be one of keyboard, reading, menus/);
+  assert.match(problems({ group: 'slow' }), /group must be one of keyboard, reading, menus/);
   assert.equal(problems({ group: 'reading' }), '');
 
   const variant = { schema: 1, id: 'v', surface: 'A variant of the sample.', variantOf: 'sample' };
@@ -241,6 +241,9 @@ test('the setup sets the scene: settings, sentinels and a focus, and never a rea
 
   assert.equal(setup([{ updateSettings: { fixedRowsTop: 1 } }, { sentinels: true }, { focus: '[data-sr-sentinel="before"]' }]), '');
   assert.match(setup([{ updateSettings: {} }]), /updateSettings takes an object of settings/);
+  assert.equal(setup([{ spreadsheetData: [200, 3] }]), '', 'a grid larger than its viewport');
+  [[0, 3], [200], [1001, 3], [200, 27], [2.5, 3], 'A1'].forEach(value => assert.match(setup([{ spreadsheetData: value }]),
+    /spreadsheetData takes \[rows, columns\], at most 1000 rows and 26 columns/, JSON.stringify(value)));
   assert.match(setup([{ sentinels: 'yes' }]), /sentinels takes true/);
   assert.match(setup([{ focus: '' }]), /focus takes the selector/);
   assert.match(setup([{ read: 'next' }]), /unknown action "read"/, 'a lane that cannot drive a reader command has no way to declare it in the setup');

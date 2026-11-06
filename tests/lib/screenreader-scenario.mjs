@@ -35,12 +35,19 @@ export const ACTIONS = ['press', 'type', 'selectCell', 'read', 'activate'];
  * What a `setup` may do before the reader settles: the step primitives the page drives (`press`, `type`,
  * `selectCell`), and three that set the scene without a user's key: `updateSettings` (an object passed to
  * the instance's `updateSettings()`, to turn a catalog page into the shape a scenario needs: frozen panes,
- * a navigation mode), `sentinels` (`true`: a button before and one after the grid's root container, so a
+ * a navigation mode), `spreadsheetData` (`[rows, columns]`: the grid loads that many rows of `A1`-style
+ * values, the way `Handsontable.helper.createSpreadsheetData()` builds them, for a grid larger than its
+ * viewport), `sentinels` (`true`: a button before and one after the grid's root container, so a
  * Tab out of the grid lands on the page and never leaves the document, as the keyboard walker brackets a
  * grid) and `focus` (a selector of an element to focus, such as a sentinel). The reader's own commands
  * never run in the setup: a reader that cannot drive one would have no way to declare it.
  */
-export const SETUP_ACTIONS = ['press', 'type', 'selectCell', 'updateSettings', 'sentinels', 'focus'];
+export const SETUP_ACTIONS = ['press', 'type', 'selectCell', 'updateSettings', 'spreadsheetData', 'sentinels', 'focus'];
+/**
+ * The largest grid a `spreadsheetData` setup loads: enough rows for a virtualized grid, few enough that a
+ * scenario never waits on the load.
+ */
+export const SPREADSHEET_LIMITS = Object.freeze({ rows: 1000, columns: 26 });
 export const READ_DIRECTIONS = ['next', 'previous', 'in', 'out'];
 /**
  * The screen reader lanes a step can declare `unsupported` on, by the reader that drives them. A project
@@ -72,13 +79,14 @@ export const LANE_PRIMITIVES = Object.freeze({
 export const STARTS = ['grid', 'page'];
 /**
  * The scenario groups a lane job runs one of. Guidepup runs one scenario at a time per machine, so a
- * project's scenarios run in series; once a project's run passes 15 minutes its scenarios split into
- * groups, each a matrix entry of `.github/workflows/screenreader.yml` with its own job, check run and
- * artifacts (`tests/AGENTS.md`, "Screen readers"). `keyboard`: what a keyboard user does in the grid and
- * its surfaces. `reading`: the reading-mode traversals, minutes each on VoiceOver. A new group joins
- * this list and the workflow's matrix together; the workflow test keeps the two equal.
+ * project's scenarios run in series, and they split into groups that each fit the 40-minute run step
+ * (`scenarioBudgetMs()` below, summed per group by the workflow test), each a matrix entry of
+ * `.github/workflows/screenreader.yml` with its own job, check run and artifacts (`tests/AGENTS.md`,
+ * "Screen readers"). `keyboard`: what a keyboard user does in the grid itself. `reading`: the
+ * reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the filters inside them. A
+ * new group joins this list and the workflow's matrix together; the workflow test keeps the two equal.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading'];
+export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus'];
 /**
  * What a scenario may take on a slow runner: a step costs four to five seconds on VoiceOver and about
  * thirteen when it is silent, and a run on a busy macOS runner took every step 1.7 to 2 times as long, so a
@@ -596,6 +604,10 @@ function validateAction(action, where, vocabulary) {
   }
   if (name === 'updateSettings' && (!isPlainObject(value) || Object.keys(value).length === 0)) {
     return [`${where}: updateSettings takes an object of settings`];
+  }
+  if (name === 'spreadsheetData' && !(Array.isArray(value) && value.length === 2 && value.every(Number.isInteger)
+    && value[0] >= 1 && value[0] <= SPREADSHEET_LIMITS.rows && value[1] >= 1 && value[1] <= SPREADSHEET_LIMITS.columns)) {
+    return [`${where}: spreadsheetData takes [rows, columns], at most ${SPREADSHEET_LIMITS.rows} rows and ${SPREADSHEET_LIMITS.columns} columns`];
   }
   if (name === 'focus' && (typeof value !== 'string' || value.length === 0 || value.length > SELECTOR_LIMIT)) {
     return [`${where}: focus takes the selector of the element to focus`];

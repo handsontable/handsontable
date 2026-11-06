@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "id": "filters-by-value",
+  "surface": "The column menu's Filter by value: the Tab order to the search input, the checkbox value list, a toggled value, and OK applying the filter.",
+  "group": "menus",
+  "page": "dropdown-menu",
+  "state": "dropdown-menu",
+  "criteria": ["1.3.1", "2.1.1", "3.3.2", "4.1.2"],
+  "setup": [{"selectCell": [1, 1]}],
+  "steps": [
+    {
+      "id": "open-menu",
+      "action": {"press": "Shift+Alt+ArrowDown"},
+      "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
+      "expect": [["insert column left"], ["menu"]],
+      "note": "The menu of the Color column opens with its first item highlighted. The value list of this column holds Blue, Green and Red, sorted by label. Finding: VoiceOver says nothing when the column menu opens, on both browsers, as dropdown-menu records; NVDA with Chromium names a table and no menu."
+    },
+    {
+      "id": "tab-to-condition",
+      "action": {"press": "Tab"},
+      "expect": [["none"]],
+      "note": "The first Tab leaves the menu's own highlight for the first component, the Filter by condition select: a listbox that shows its current option, `None`. The tree golden gives that listbox no name of its own (the `Filter by condition:` label is the menu item's), so only the option is required. Finding: the condition select is read as `list` (NVDA, both browsers) or `list box` (VoiceOver with Chromium), with neither its name nor its current option; only VoiceOver with WebKit reads the option."
+    },
+    {
+      "id": "tab-to-search",
+      "action": {"press": "Tab"},
+      "expect": [["search"], ["edit", "edit text", "text field", "text entry", "textbox"]],
+      "note": "With no condition chosen the operators and the second condition are hidden, so the next Tab stop is the value list's search input (filters-menu-focus-order.spec.ts: select, search input, Select all, Select none, OK, Cancel). Its name is its `Search` placeholder (tree golden: textbox Search); the role words are NVDA's `edit` and VoiceOver's `text field`. VoiceOver with WebKit reads the field's name without its role, as it does for the cell editor in grid-core."
+    },
+    {
+      "id": "type-search",
+      "action": {"type": "re"},
+      "expect": [],
+      "note": "`re` narrows the value list to Green and Red. Nothing is required: a reader echoes the typed characters, and the list says nothing about how many values are left, which is a finding candidate for status messages (4.1.3), not a fact this step can require."
+    },
+    {
+      "id": "arrow-into-list",
+      "action": {"press": "ArrowDown"},
+      "expect": [["green"], ["checked"]],
+      "note": "ArrowDown from the search input (not Tab) enters the value list on its first row. A row's accessible name reads `Checked Green`: the checkbox's aria-label carries the state, and every value starts checked. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state."
+    },
+    {
+      "id": "arrow-down-next",
+      "action": {"press": "ArrowDown"},
+      "expect": [["red"], ["checked"]],
+      "note": "The next value in the narrowed list."
+    },
+    {
+      "id": "space-uncheck",
+      "action": {"press": "Space"},
+      "expect": [["unchecked", "not checked"]],
+      "note": "Space toggles the focused value and the focus stays on it; the row's name becomes `Unchecked Red`. Only the state is required: a reader that announces a state change says `not checked` without repeating the name. The focus is on the list's grid cell, and the checkbox inside it changes. Finding: with Chromium, NVDA and VoiceOver say nothing when Space unchecks the value; with Firefox and WebKit they read `Unchecked Red`."
+    },
+    {
+      "id": "tab-to-ok",
+      "action": {"press": "Tab"},
+      "expect": [["ok"], ["button"]],
+      "note": "Tab leaves the list forwards to OK (the list itself is no Tab stop; Select all and Select none sit before it in the order)."
+    },
+    {
+      "id": "apply-filter",
+      "action": {"press": "Enter"},
+      "after": {"hidden": ".htDropdownMenu .ht_master .htCore tbody td"},
+      "expect": [["green"]],
+      "note": "Enter on OK applies the filter (Red rows hidden, Blue and Green kept) and closes the menu; the focus returns to the grid's focus cell, row 0 of the Color column, which is now Bob's `Green` (filters-menu-focus-order.spec.ts: the focus is back on the grid's focus cell). Every reader reads the cell (the recording): applying a filter keeps the focus in the grid, where Escape in dropdown-menu does not."
+    },
+    {
+      "id": "arrow-down-filtered",
+      "action": {"press": "ArrowDown"},
+      "expect": [["blue"]],
+      "note": "The grid now shows Bob/Green, Charlie/Blue and Dave/Green, so ArrowDown from the first row reads the second row's color, `Blue`: the filter result a user can read. Silence means the focus did not come back to the grid."
+    }
+  ]
+}
