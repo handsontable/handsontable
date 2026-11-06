@@ -29,8 +29,9 @@
 </head>
 <body>
   <!--
-    A grid over object data whose columns come from the `columns` option, with the three plugins that keep
-    their state in column index maps: ManualColumnResize (width), HiddenColumns and ColumnSorting.
+    A grid over object data whose columns come from the `columns` option, with the plugins that keep
+    their state in column index maps (ManualColumnResize for width, HiddenColumns, ColumnSorting) and Filters, whose
+    conditions name a column while its trimming map holds rows.
 
     A wrapper (React) sends `data` with every `updateSettings()` call, so a change of its `columns` prop reaches the
     core as `{ data, columns }`. `updateColumns()` sends that same payload, with a new `data` array and a new
@@ -85,6 +86,8 @@
           manualColumnResize: true,
           hiddenColumns: true,
           columnSorting: true,
+          filters: true,
+          dropdownMenu: true,
           licenseKey: window.htTestLicenseKey,
         });
       } catch (error) {

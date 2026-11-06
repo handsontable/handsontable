@@ -4,6 +4,7 @@ import { awaitBundle, BUNDLE_POLLING_MS, type Bundle } from '../bundle';
 type HotWindow = Window & {
   hot: {
     countCols(): number;
+    countRows(): number;
     render(): void;
     getColWidth(column: number): number;
     getPlugin(name: string): {
@@ -12,6 +13,9 @@ type HotWindow = Window & {
       getHiddenColumns(): number[];
       hideColumn(column: number): void;
       setManualSize(column: number, width: number): void;
+      addCondition(column: number, name: string, args: unknown[]): void;
+      filter(): void;
+      exportConditions(): unknown[];
     };
   };
   buildGrid(props: string[]): void;
@@ -94,6 +98,39 @@ export class ColumnsLayoutUpdatePage {
   async sortColumn(column: number): Promise<void> {
     await this.page.evaluate((index) => (window as unknown as HotWindow).hot.getPlugin('columnSorting')
       .sort({ column: index, sortOrder: 'asc' }), column);
+  }
+
+  /**
+   * Filters a column to the rows whose value equals the given text, the way the filter plugin's API does.
+   *
+   * @param {number} column The visual column index.
+   * @param {string} value The value the rows keep.
+   */
+  async filterColumn(column: number, value: string): Promise<void> {
+    await this.page.evaluate(({ index, text }) => {
+      const filters = (window as unknown as HotWindow).hot.getPlugin('filters');
+
+      filters.addCondition(index, 'eq', [text]);
+      filters.filter();
+    }, { index: column, text: value });
+  }
+
+  /**
+   * The number of rows the grid shows, after the filter.
+   *
+   * @returns {Promise<number>}
+   */
+  async rowCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as HotWindow).hot.countRows());
+  }
+
+  /**
+   * The conditions the `Filters` plugin holds.
+   *
+   * @returns {Promise<unknown[]>}
+   */
+  async filterConditions(): Promise<unknown[]> {
+    return this.page.evaluate(() => (window as unknown as HotWindow).hot.getPlugin('filters').exportConditions());
   }
 
   /**

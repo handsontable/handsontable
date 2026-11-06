@@ -101,4 +101,25 @@ test.describe('Column state after updateSettings() with data and columns', () =>
     expect((await grid.columnWidths())[1]).toBe(MANUAL_WIDTH);
     expect(await grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
   });
+
+  test('shows the rows a filter trimmed when its column goes away with the conditions', async() => {
+    await grid.filterColumn(2, 'c3');
+    expect(await grid.rowCount()).toBe(1);
+    expect(await grid.filterConditions()).toHaveLength(1);
+
+    await grid.updateColumns(WITHOUT_FIRST);
+
+    // The conditions and the rows they trimmed go together: no hidden rows are left that the UI cannot clear.
+    expect(await grid.filterConditions()).toEqual([]);
+    expect(await grid.rowCount()).toBe(3);
+  });
+
+  test('keeps the filter when the columns do not change', async() => {
+    await grid.filterColumn(2, 'c3');
+
+    await grid.updateColumns(ALL_COLUMNS);
+
+    expect(await grid.filterConditions()).toHaveLength(1);
+    expect(await grid.rowCount()).toBe(1);
+  });
 });
