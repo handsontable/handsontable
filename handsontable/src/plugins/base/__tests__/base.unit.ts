@@ -483,8 +483,7 @@ describe('BasePlugin', () => {
     let hot;
 
     expect(() => {
-      hot = new Handsontable(document.createElement('div'), {
-        licenseKey: TEST_LICENSE_KEY, });
+      hot = new Handsontable(document.createElement('div'), { licenseKey: TEST_LICENSE_KEY });
     }).toThrowWithCause(`The BarPlugin plugin requires the following modules:
  - FooPlugin (plugin)
 

@@ -3,8 +3,9 @@
  * square brackets must be the same as property name of `variables` object.
  *
  * Lives in its own module, not in `helpers/string`, so that `helpers/console` can use it without
- * importing `helpers/string`. A helper module that imports `helpers/console` would close a cycle
- * and leave one of the two modules reading an uninitialized binding.
+ * importing `helpers/string`. This module imports nothing, so `helpers/string` is free to import
+ * `helpers/console` (the removed `sanitize()` did) without closing a cycle that would leave one of
+ * the two modules reading an uninitialized binding.
  *
  * @param {string} template Template string.
  * @param {object} variables Object which contains all available values which can be injected into template.

@@ -1,7 +1,8 @@
 import { stringify } from './mixed';
 
 // Re-exported to keep `substitute` reachable from its documented `helpers/string` path. The
-// implementation lives in a leaf module so that `helpers/console` can use it without a cycle.
+// implementation lives in a leaf module so that `helpers/console` can use it, and this module can
+// import `helpers/console`, without a cycle.
 export { substitute } from './templateString';
 
 /**
