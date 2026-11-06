@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "auto-link",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T14:07:20.196Z"
+  },
+  "steps": {
+    "arrow-up-plain-url": "https slash slash example dot com slash optout b row 2 column 3",
+    "arrow-left-link": "https slash slash example dot com slash one a row 2 column 2",
+    "arrow-down-inline-link": "visit https slash slash example dot com slash two for details selected a row 3 column 2",
+    "arrow-down-mailto-link": "someone at example dot com a row 4 column 2",
+    "select-formula-link": "hf label f row 2 column 7",
+    "select-local-link": "http slash slash localhost 8123 slash tests slash fixtures slash demo slash grid dot html a row 8 column 2",
+    "open-link": "handsontable e 2e fixture document busy button add row"
+  }
+}

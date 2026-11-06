@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "comment-editor",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T14:08:14.592Z"
+  },
+  "steps": {
+    "arrow-right-plain-cell": "b 1 b row 2 column 3",
+    "arrow-down-commented-cell": "b 2 b row 3 column 3",
+    "open-comment-editor": "edit multi line check the totals before friday",
+    "type-in-comment": "",
+    "save-with-control-enter": "handsontable e 2e fixture comment editor resize document",
+    "reopen-saved-comment": "edit multi line ana",
+    "close-with-escape": "handsontable e 2e fixture comment editor resize document",
+    "arrow-down-after-close": "table b 3 b row 4 column 3",
+    "arrow-down-again": "b 4 b row 5 column 3",
+    "arrow-left-second-comment": "a 4 a row 5 column 2"
+  }
+}
