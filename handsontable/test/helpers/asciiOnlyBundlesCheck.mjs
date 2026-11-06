@@ -8,21 +8,22 @@ import { fileURLToPath } from 'node:url';
 import rspack from '@rspack/core';
 
 /**
- * Lives in the tooling suite (one Node process per file), not in Jest: `@rspack/core` is a native
- * binding whose thread pool, GC hook and threadsafe function outlive any JavaScript teardown, so a
- * Jest worker that loaded it could never exit gracefully and every full run ended with Jest
- * force-killing a worker. `node --test` lets the process end with the file.
+ * The ASCII-bundle checks, written for `node --test` and run from `test/__tests__/asciiOnlyBundles.unit.js`
+ * in a child process. Not a Jest test itself: `@rspack/core` is a native binding whose thread pool, GC
+ * hook and threadsafe function outlive any JavaScript teardown, so a Jest worker that loaded it could
+ * never exit gracefully and every full run ended with Jest force-killing a worker. A process of its own
+ * ends with the file. Not in the root `test:tooling` suite either: that job installs no dependencies.
  */
 const require = createRequire(import.meta.url);
-const CONFIG_DIR = resolve(fileURLToPath(import.meta.url), '../../../../.config');
+const CONFIG_DIR = resolve(fileURLToPath(import.meta.url), '../../../.config');
 const HELPER_PATH = join(CONFIG_DIR, 'helper/swc-minimizer.js');
 
 // The build configs read `src/` relative to the working directory, which is the core package when
-// `npm run build` runs them. The tooling suite starts at the monorepo root, in a process this file owns.
+// `npm run build` runs them. Pin it, whatever directory the parent process started in.
 process.chdir(resolve(CONFIG_DIR, '..'));
 
-const { createSwcJsMinimizer } = require('../../../.config/helper/swc-minimizer.js');
-const assertAsciiOutput = require('../../../.config/plugin/rspack/assert-ascii-output.js');
+const { createSwcJsMinimizer } = require('../../.config/helper/swc-minimizer.js');
+const assertAsciiOutput = require('../../.config/plugin/rspack/assert-ascii-output.js');
 
 const ASSERT_ASCII_PLUGIN_NAME = assertAsciiOutput.PLUGIN_NAME;
 
