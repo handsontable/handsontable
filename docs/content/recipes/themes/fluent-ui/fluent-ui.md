@@ -18,6 +18,7 @@ react:
 searchCategory: Recipes
 category: Themes
 type: how-to
+menuTag: updated
 ---
 
 In this tutorial, you will integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing. You will learn how to map Fluent UI tokens to Handsontable theme parameters through the Theme API.
@@ -44,7 +45,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Flue
 
 - A reusable Handsontable theme (`registerTheme('fluent-data-grid', { icons, colors, tokens })`) that maps to Fluent UI colors.
 - A React grid component that applies Fluent-like typography (`Segoe UI`), neutral table colors, and roomier cell paddings.
-- A working baseline you can extend with dark mode and custom icon overrides.
+- A light-mode baseline you can extend with dark mode and custom icon overrides.
 
 ## Prerequisites
 
@@ -52,7 +53,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Flue
 - Handsontable and the React wrapper installed.
 - A `FluentProvider` at your app root.
 
-## Step 1: Install dependencies with pinned Handsontable versions
+## Step 1: Install dependencies
 
 ```bash
 npm install handsontable @handsontable/react-wrapper @fluentui/react-components
@@ -76,35 +77,39 @@ export function AppRoot() {
 
 ## Step 3: Create Fluent color mapping for Theme API
 
-Handsontable's Theme API expects the `palette`, `primary`, `white`, `black`, and `transparent` structure.
+Handsontable's Theme API expects the `palette`, `primary`, `white`, `black`, and `transparent` structure. The `palette` runs from the lightest color (`50`) to the darkest (`950`).
+
+Read the values from the Fluent theme object, not from Fluent's CSS variables. Fluent names its variables in camelCase (for example, `--colorNeutralBackground1`), and the Theme API converts color values to kebab case, so `var(--colorNeutralBackground1)` would point to a variable that doesn't exist.
 
 **File: `src/theme/colorsFluent.ts`**
 
 ```ts
+import { webLightTheme } from '@fluentui/react-components';
+
 const colorsFluent = {
   palette: {
-    50: 'var(--colorNeutralBackground1)',
-    100: 'var(--colorNeutralBackground2)',
-    200: 'var(--colorNeutralBackground3)',
-    300: 'var(--colorNeutralBackground4)',
-    400: 'var(--colorNeutralStroke1)',
-    500: 'var(--colorNeutralStroke2)',
-    600: 'var(--colorNeutralForeground3)',
-    700: 'var(--colorNeutralForeground2)',
-    800: 'var(--colorNeutralForeground1)',
-    900: 'var(--colorNeutralForegroundOnBrand)',
-    950: 'var(--colorNeutralForegroundOnBrand)',
+    50: webLightTheme.colorNeutralBackground1,
+    100: webLightTheme.colorNeutralBackground2,
+    200: webLightTheme.colorNeutralBackground3,
+    300: webLightTheme.colorNeutralBackground4,
+    400: webLightTheme.colorNeutralStroke2,
+    500: webLightTheme.colorNeutralStroke1,
+    600: webLightTheme.colorNeutralForeground3,
+    700: webLightTheme.colorNeutralForeground2,
+    800: webLightTheme.colorNeutralForeground1,
+    900: webLightTheme.colorNeutralForeground1,
+    950: webLightTheme.colorNeutralForeground1,
   },
   primary: {
-    100: 'var(--colorBrandBackground)',
-    200: 'var(--colorBrandBackground2)',
-    300: 'var(--colorBrandBackgroundInverted)',
-    400: 'var(--colorBrandStroke1)',
-    500: 'var(--colorBrandForeground1)',
-    600: 'var(--colorBrandForeground2)',
+    100: webLightTheme.colorBrandBackground,
+    200: webLightTheme.colorBrandBackground2,
+    300: webLightTheme.colorBrandBackgroundInverted,
+    400: webLightTheme.colorBrandStroke1,
+    500: webLightTheme.colorBrandForeground1,
+    600: webLightTheme.colorBrandForeground2,
   },
-  white: 'var(--colorNeutralBackground1)',
-  black: 'var(--colorNeutralForeground1)',
+  white: webLightTheme.colorNeutralBackground1,
+  black: webLightTheme.colorNeutralForeground1,
   transparent: 'transparent',
 };
 
@@ -115,11 +120,15 @@ export default colorsFluent;
 
 Import `icons` together with `colors` and `tokens`. `registerTheme()` requires `icons` - if omitted, ThemeBuilder throws an error.
 
+The colors and the `.params()` overrides are Fluent's light values, so `.setColorScheme('light')` pins the theme to light mode. Without it, the theme follows the operating system's color scheme, and a visitor in dark mode gets Horizon's dark token values mixed with these light colors.
+
+**File: `src/theme/fluentDataGridTheme.ts`**
+
 ```tsx
 import { registerTheme } from 'handsontable/themes';
 import iconsHorizon from 'handsontable/themes/static/variables/icons/horizon';
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
-import colorsFluent from './theme/colorsFluent';
+import colorsFluent from './colorsFluent';
 
 export const fluentDataGridTheme = registerTheme('fluent-data-grid', {
   icons: iconsHorizon,
@@ -153,7 +162,7 @@ export const fluentDataGridTheme = registerTheme('fluent-data-grid', {
     cellSelectionBorderColor: '#0f6cbd',
     cellSelectionBackgroundColor: '#deecf9',
   },
-});
+}).setColorScheme('light');
 ```
 
 ## Step 5: Build a themed grid component
@@ -225,10 +234,10 @@ export default function App() {
 
 ## What you learned
 
-- How to read Fluent UI design token values and map them to Handsontable Theme API parameters to align colors, typography, and spacing.
-- How to wrap the Handsontable grid in a `FluentProvider` so it receives the correct theme context alongside other Fluent components.
-- How to switch between `webLightTheme` and `webDarkTheme` and update the Handsontable theme in the same render cycle.
-- How to replace the default Handsontable icon set with Fluent icons using the `iconsHorizon` icon key structure.
+- How to map Fluent UI color tokens from `webLightTheme` to the Theme API `colors` structure.
+- How to register a custom theme with `registerTheme()`, Horizon icons and tokens, and `.params()` overrides for Fluent typography, spacing, and colors.
+- How to pin the theme to light mode with `.setColorScheme('light')` so it matches the light Fluent values.
+- How to render the grid inside a `FluentProvider` next to other Fluent components.
 
 ## Next steps
 
