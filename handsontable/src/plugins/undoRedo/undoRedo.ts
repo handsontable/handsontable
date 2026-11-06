@@ -10,7 +10,7 @@ import { createStep, type SelectionSnapshot, type StepRecord, type StepSelection
 import { isStructural, restoreStep, type RestoreDirection } from './restore';
 import { collectRestoredCells, toCellChanges, toVisibleCells, type RestoredCell } from './restoredCells';
 import { addressesChangedColumn, type ColumnChangeTest } from './stepColumns';
-import { hasSameRows } from './sameRows';
+import { copyRows, hasSameRows } from './sameRows';
 import { haveSameIndexMaps } from '../../translations/indexMapperSnapshot';
 import { LICENSE } from './feature.generated';
 
@@ -208,8 +208,15 @@ export class UndoRedo extends BasePlugin {
   #lastState: GridStateSnapshot | null = null;
 
   /**
-   * The dataset array the history was recorded on, as the last data load or update left it. An
-   * `updateData()` call that brings the same rows keeps the history; one that brings other rows drops it.
+   * The dataset array the history was recorded on, as the last data load or update installed it.
+   */
+  #datasetArray: unknown[] | null = null;
+
+  /**
+   * A copy of the dataset array the history was recorded on: the rows the last data load or update, or the
+   * last step that added or removed rows, left. A copy, because the application can reorder or replace the
+   * rows of the live array in place, and the live array then no longer tells what the history was made on.
+   * An `updateData()` call that brings the same rows keeps the history; one that brings other rows drops it.
    */
   #datasetRows: unknown[] | null = null;
 
@@ -315,7 +322,7 @@ export class UndoRedo extends BasePlugin {
     scope.addOpenListener(this.#onTransactionOpen);
     scope.addSettleListener(this.#onTransactionSettle);
 
-    this.#datasetRows = this.hot.getSettings().data ?? null;
+    this.#setDataset(this.hot.getSettings().data);
 
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterLoadData', this.#onAfterLoadData);
@@ -1373,6 +1380,7 @@ export class UndoRedo extends BasePlugin {
     this.#tracker = null;
     this.#lastState = null;
     this.#datasetRows = null;
+    this.#datasetArray = null;
     this.#pending.clear();
     this.#joined.clear();
     this.#owesColumnsCheck = false;
@@ -1414,6 +1422,35 @@ export class UndoRedo extends BasePlugin {
   };
 
   /**
+   * Follows the rows the grid itself added to or removed from the dataset array (a step, or the filler rows
+   * of `minSpareRows`), so that a later `updateData()` with that array still reads as the same rows. The
+   * copy is taken only when the row count moved, or while a plugin reshapes the source (NestedRows); an
+   * application that changed the array in place without a step is not followed, so its change drops the history.
+   */
+  #followGridRows() {
+    const rows = this.#datasetRows;
+    const live = this.#datasetArray;
+
+    if (rows === null || live === null) {
+      return;
+    }
+
+    if (rows.length !== live.length || (this.#lastState?.sourceStructures.size ?? 0) > 0) {
+      this.#datasetRows = copyRows(live);
+    }
+  }
+
+  /**
+   * Remembers the dataset array a data load or update installed, and a copy of its rows.
+   *
+   * @param {Array|undefined|null} array The dataset array.
+   */
+  #setDataset(array: unknown[] | null | undefined) {
+    this.#datasetArray = Array.isArray(array) ? array : null;
+    this.#datasetRows = copyRows(array);
+  }
+
+  /**
    * Records a finished step, then runs the `columns` check a settings update made while a transaction
    * was pending owes, once none is pending anymore.
    *
@@ -1421,6 +1458,7 @@ export class UndoRedo extends BasePlugin {
    */
   #onTransactionSettle = (transaction: OperationTransaction) => {
     this.#recordSettled(transaction);
+    this.#followGridRows();
 
     if (this.#owesColumnsCheck && this.#pending.size === 0) {
       this.#owesColumnsCheck = false;
@@ -1535,7 +1573,7 @@ export class UndoRedo extends BasePlugin {
    * @param {Array} sourceData The loaded data.
    */
   #onAfterLoadData = (sourceData: unknown[]) => {
-    this.#datasetRows = sourceData;
+    this.#setDataset(sourceData);
   };
 
   /**
@@ -1547,11 +1585,17 @@ export class UndoRedo extends BasePlugin {
    * @param {Array} sourceData The data the call installed.
    */
   #onAfterUpdateData = (sourceData: unknown[]) => {
+    // The rows a step that has not settled yet added or removed are the grid's own.
+    if (this.#pending.size > 0) {
+      this.#followGridRows();
+    }
+
+    const previousArray = this.#datasetArray;
     const previousRows = this.#datasetRows;
 
-    this.#datasetRows = sourceData;
+    this.#setDataset(sourceData);
 
-    if (!this.#keepsHistory(previousRows, sourceData)) {
+    if (!this.#keepsHistory(previousArray, previousRows, sourceData)) {
       this.#resetHistory();
     }
   };
@@ -1559,20 +1603,22 @@ export class UndoRedo extends BasePlugin {
   /**
    * Tells whether the history describes the data an `updateData()` call installed.
    *
-   * @param {Array|null} previousRows The rows the history was recorded on.
+   * @param {Array|null} previousArray The dataset array the history was recorded on.
+   * @param {Array|null} previousRows A copy of its rows.
    * @param {Array} sourceData The data the call installed.
    * @returns {boolean}
    */
-  #keepsHistory(previousRows: unknown[] | null, sourceData: unknown[]): boolean {
+  #keepsHistory(previousArray: unknown[] | null, previousRows: unknown[] | null, sourceData: unknown[]): boolean {
     const hasHistory = this.doneActions.length > 0 || this.undoneActions.length > 0;
 
-    // The values of a row that is another object are read only while there is a history to protect.
-    if (!hasSameRows(previousRows, sourceData, hasHistory)) {
+    // The values of a row that is another object are read only while there is a history to protect. A step
+    // that is still pending is one: its edit is already in the rows, and its handler can pass them again.
+    if (!hasSameRows(previousRows, sourceData, hasHistory || this.#pending.size > 0)) {
       return false;
     }
 
     // A recorded source shape (NestedRows) names the array it was captured on, and a copy is another one.
-    if (previousRows !== sourceData && (this.#lastState?.sourceStructures.size ?? 0) > 0) {
+    if (previousArray !== sourceData && (this.#lastState?.sourceStructures.size ?? 0) > 0) {
       return false;
     }
 

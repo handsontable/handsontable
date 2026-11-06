@@ -1,4 +1,23 @@
 /**
+ * The most rows that may differ from the rows of the previous dataset by reference and still be accepted for
+ * the values they hold. An immutable update copies the rows it changes, a few at a time, so a bound keeps the
+ * value compare to a fixed number of cells. A dataset whose rows were all copied (`rows.map(row => ({ ...row }))`)
+ * is another dataset, and ends the walk here instead of reading every cell on every render.
+ */
+export const MAX_COPIED_ROWS = 1000;
+
+/**
+ * Copies the row references of a dataset array. A dataset that is not an array (a collection with `push` and
+ * `splice`) has no rows to keep.
+ *
+ * @param {Array|undefined|null} rows The dataset array.
+ * @returns {Array|null}
+ */
+export function copyRows(rows: unknown[] | null | undefined): unknown[] | null {
+  return Array.isArray(rows) ? rows.slice() : null;
+}
+
+/**
  * Tells whether two rows hold the same values: the same object, or two arrays, or two plain objects, whose
  * cells are strictly equal. A cell is compared by reference, so a nested object that was copied reads as
  * another value.
@@ -49,7 +68,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * array in place, so the rows of the previous array hold what the grid shows now.
  *
  * Rows are compared by reference first, and the values of a row only when its reference differs and `byValue`
- * is set. The first difference ends the walk.
+ * is set, for at most `MAX_COPIED_ROWS` rows. The first difference ends the walk.
  *
  * @param {Array|null} previous The rows the history was recorded on.
  * @param {Array} next The rows an `updateData()` call brings.
@@ -76,8 +95,16 @@ export function hasSameRows(previous: unknown[] | null, next: unknown[], byValue
     return false;
   }
 
+  let copiedRows = 0;
+
   for (let row = 0; row < rowsCount; row += 1) {
-    if (previous[row] !== next[row] && !(byValue && haveEqualValues(previous[row], next[row]))) {
+    if (previous[row] === next[row]) {
+      continue;
+    }
+
+    copiedRows += 1;
+
+    if (!byValue || copiedRows > MAX_COPIED_ROWS || !haveEqualValues(previous[row], next[row])) {
       return false;
     }
   }

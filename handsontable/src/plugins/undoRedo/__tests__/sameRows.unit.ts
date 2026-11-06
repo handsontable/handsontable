@@ -1,4 +1,4 @@
-import { hasSameRows } from '../sameRows';
+import { copyRows, hasSameRows, MAX_COPIED_ROWS } from '../sameRows';
 
 describe('hasSameRows', () => {
   const a = ['A'];
@@ -59,5 +59,37 @@ describe('hasSameRows', () => {
       expect(hasSameRows([[{ id: 1 }]], [[{ id: 1 }]], true)).toBe(false);
       expect(hasSameRows([new Row()], [new Row()], true)).toBe(false);
     });
+
+    it('should accept as many copied rows as the limit, and refuse one more', () => {
+      const rows = Array.from({ length: MAX_COPIED_ROWS + 1 }, (_, row) => [row]);
+      const copy = rows.map(row => row.slice());
+
+      expect(hasSameRows(rows.slice(0, MAX_COPIED_ROWS), copy.slice(0, MAX_COPIED_ROWS), true)).toBe(true);
+      expect(hasSameRows(rows, copy, true)).toBe(false);
+    });
+
+    it('should not count a row that is the same object against the limit', () => {
+      const rows = Array.from({ length: MAX_COPIED_ROWS + 5 }, (_, row) => [row]);
+      const next = rows.map((row, index) => (index < 5 ? row.slice() : row));
+
+      expect(hasSameRows(rows, next, true)).toBe(true);
+    });
+  });
+});
+
+describe('copyRows', () => {
+  it('should copy the row references of an array', () => {
+    const row = ['A'];
+    const rows = [row];
+    const copy = copyRows(rows);
+
+    expect(copy).not.toBe(rows);
+    expect(copy?.[0]).toBe(row);
+  });
+
+  it('should answer `null` for what is not an array', () => {
+    expect(copyRows(undefined)).toBeNull();
+    expect(copyRows(null)).toBeNull();
+    expect(copyRows({ push() {}, splice() {} } as unknown as unknown[])).toBeNull();
   });
 });

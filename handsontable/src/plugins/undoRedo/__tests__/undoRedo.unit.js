@@ -1656,6 +1656,90 @@ describe('UndoRedo plugin', () => {
       expect(plugin.isUndoAvailable()).toBe(false);
     });
 
+    it('should drop the history when the rows were reordered in the array in place and a copy comes back', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']];
+      const plugin = createEditedGrid(data);
+
+      data.reverse();
+      hot.updateData([...data]);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should drop the history when the rows were reordered in the array in place and it comes back', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']];
+      const plugin = createEditedGrid(data);
+
+      data.reverse();
+      hot.updateData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should drop the history when a row of the array was replaced in place', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      data[1] = ['X2', 'Y2'];
+      hot.updateData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should keep the history when the rows the grid added come back in the same array', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.alter('insert_row_below', 1);
+      hot.updateData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.countRows()).toBe(2);
+    });
+
+    it('should keep the first edit when its `afterChange` handler passes copies of the rows', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data,
+        undo: true,
+        afterChange(changes, source) {
+          if (source === 'edit') {
+            this.updateData(this.getSourceData().map(row => row.slice()));
+          }
+        },
+      });
+      hot.setDataAtCell(0, 0, 'edited');
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should keep the history when as many rows as the limit are copies', () => {
+      const data = Array.from({ length: 1000 }, (_, row) => [`A${row}`, `B${row}`]);
+      const plugin = createEditedGrid(data);
+
+      hot.updateData(data.map(row => row.slice()));
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+    });
+
+    it('should drop the history when more rows than the limit are copies', () => {
+      const data = Array.from({ length: 1001 }, (_, row) => [`A${row}`, `B${row}`]);
+      const plugin = createEditedGrid(data);
+
+      hot.updateData(data.map(row => row.slice()));
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
     it('should fire no stack hook when the same rows keep the history', () => {
       const data = [['A1', 'B1'], ['A2', 'B2']];
       const stackHooks = jest.fn();
