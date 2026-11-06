@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the column menu button and the sort styles staying in the group header row when `nestedHeaders` added a header row, or when `dropdownMenu` or `columnSorting` was turned off in the same update.",
+  "type": "fixed",
+  "issueOrPR": 14192,
+  "breaking": false,
+  "framework": "none"
+}

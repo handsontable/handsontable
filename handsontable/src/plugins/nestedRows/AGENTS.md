@@ -11,7 +11,9 @@ and several methods that look usable but are not.
 `collapsedRowsMap` is a `TrimmingMap`, created in `enablePlugin()`:
 
 ```ts
-this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming');
+this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming', false, {
+  keepsRowsInFilterScope: true,
+});
 ```
 
 A trimmed row is dropped from the DataMap and from `countRows()`, so **it has no visual index at
@@ -26,6 +28,12 @@ row keeps its visual index. That single difference explains the whole public API
 
 `trimRows` is physical throughout for the same reason. When you add anything to this plugin, decide
 the index type from *whether the row can be trimmed*, not from the house rule alone.
+
+The map is created with `keepsRowsInFilterScope: true` (the internal fourth argument of
+`createAndRegisterIndexMap()`). A collapse only folds rows away, and Filters still evaluates them, so
+the Filters plugin keeps their values in its "Filter by value" list; it reads the flag off the map and
+never names this plugin (DEV-512, `filters/AGENTS.md`). Drop the flag and a collapsed child's value
+vanishes from that list while it still filters.
 
 ## Files
 
@@ -691,13 +699,22 @@ row semantics. Six things look simpler than they are.
   commit (all pinned in `tests/e2e/nested-rows-treegrid-a11y.spec.ts`).
   A grid without `rowHeaders` therefore gets no row attributes at all - it has no button and no
   focusable header either - and every overlay copy of a row gets identical attributes.
+- **`getRowSetPosition()` counts only the siblings that no trimming map hides.** While any trimming map
+  (a filter, `TrimRows`, a collapse) is active, `aria-posinset`/`aria-setsize` count the untrimmed
+  siblings under the same parent, so a screen reader hears "1 of 2" for two surviving rows, not "1 of 5".
+  Rows `HiddenRows` hides are not trimmed, so they still count. With nothing trimmed it returns the
+  cached structural answer.
 - **The sibling position comes from the flatten cache, never from `indexOf`, and it counts the
   data.** `#cacheSiblings()` records `position` and `setSize` in `nodeInfo`, counting only object
-  entries (a `null` among the children is not a row), so the per-row read during a render is O(1).
-  An `indexOf` over a 10k-row top level, per rendered row, per overlay copy, is millions of
-  comparisons per scroll. The cost of the cache: siblings that `HiddenRows` or `TrimRows` takes out
-  of view are still counted. That limit is documented in the guide; lifting it means recounting on
-  every hiding or trimming change.
+  entries (a `null` among the children is not a row). While rows are trimmed, `getRowSetPosition()`
+  makes one pass per sibling list and keeps the untrimmed positions in `#reachableSiblings`, so the
+  per-row read during a render is O(1) after that pass. The cache is dropped by
+  `invalidateSetPositions()`, which the plugin calls from the row index mapper's `cacheUpdated` local
+  hook (`#onRowIndexCacheUpdated`, added in `enablePlugin()`, removed in `disablePlugin()`; the removal
+  is pinned in `__tests__/filtering.unit.js`) and `rewriteCache()` calls on a tree
+  change. NestedRows never names the Filters plugin. An `indexOf` over a 10k-row top level, per
+  rendered row, per overlay copy, is millions of comparisons per scroll. Pinned in
+  `__tests__/data/dataManager.unit.js` and `tests/e2e/nested-rows-treegrid-a11y.spec.ts`.
 - **Only user gestures announce.** `toggleParentByUser()` (the button, <kbd>Enter</kbd>, the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords)
   wraps the choke point and announces through the shared announcer's POLITE region
   (`announce(message, 'polite')`). Both regions are created in `install()`: some screen readers ignore
@@ -760,8 +777,20 @@ row semantics. Six things look simpler than they are.
   sorting and filtering limitations in the guide are prose only.
 - **MergeCells** detects a collapse by watching the row trimming map, because no hook existed when it
   was written. The new hooks are a better signal — worth migrating.
-- **Filters** are hijacked: the `filterData` hook physically splices `__children` and rewrites the
-  cache, so filtering **mutates the nested source structure** instead of trimming indexes.
+- **Filters keep the tree whole (DEV-512).** The plugin listens to the public
+  `modifyFiltersMatchedRows` hook and returns `DataManager#getRowsToKeepForMatches()`: every
+  matching row, all its ancestors, and its whole subtree (a matching parent keeps every descendant,
+  matching or not). **A row in the hook's second argument (`blankMatchedRows`: every conditioned
+  column reads empty) keeps its ancestors but never its subtree.** Parents often hold empty cells,
+  so with "(Blank cells)" checked in a by-value list every parent matched and pulled back each child
+  the user had just unchecked; a parent matching a real value still keeps its subtree. The walk
+  reads the flatten cache (descendants = the following rows deeper than the match), never the live
+  `__children`, for the same drift reason as `#collectDescendants()`. Filters calls the hook once
+  per pass on the final match set, so a row another column rejects stays out unless it is an
+  ancestor or descendant of a row that matched every column. Kept ancestors carry no special class
+  or announcement. A collapse still folds kept rows (Filters' trim and the collapse trim combine),
+  so a filtered `collapseAll()` shows the kept top-level parents. (The `filterData` hook is NOT
+  filtering: it is the row-removal splice, named after `DataMap#filterData`.)
 - **ManualRowMove is cancelled outright.** `rowMoveController.onBeforeRowMove` returns `false`, does
   its own `__children` restructuring, and then fires `afterRowMove` by hand. So a nested-rows move is
   a source-data change, not an index permutation — `IndexesSequence` is untouched, and visual and
@@ -835,6 +864,8 @@ row semantics. Six things look simpler than they are.
 | `tests/e2e/nested-rows-autofill.spec.ts` | Playwright: the fill handle dragged past the last row adds children to the dragged row's parent, undo, and a collapsed top-level parent |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 | `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |
+| `__tests__/filtering.unit.js` | Filtering keeps ancestors and subtrees, widens once per pass, survives collapse/undo, and the hook's normalization on a plain grid (DEV-512) |
+| `tests/e2e/filters-nested-rows.spec.ts` | Playwright: the Filter by value list of a nested grid, and the parent chain and subtree a filter keeps |
 | `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included, with a listener removing rows mid-clear, and when every visible cell is read-only), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
 
 Physical layouts of the shared fixtures, which the specs depend on:

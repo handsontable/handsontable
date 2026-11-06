@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error, or a sort of the new rows, when ColumnSorting was turned off or loadData() ran while a header-click sort waited for a cell validator.",
+  "type": "fixed",
+  "issueOrPR": 14193,
+  "breaking": false,
+  "framework": "none"
+}
