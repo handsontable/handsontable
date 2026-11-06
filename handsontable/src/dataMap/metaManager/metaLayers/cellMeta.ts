@@ -102,6 +102,22 @@ function getKeySet(
 }
 
 /**
+ * Reads a stored meta value for a snapshot (the replay after a cache reset, the undo journal). A
+ * renderer appends its own class names to the stored `className` (`numericRenderer` adds
+ * `htRight htNumeric`). Handed back, they would count as the user's own and stay on a cell that
+ * stopped being numeric, so a `className` read leaves them out.
+ *
+ * @param {object} meta The cell meta object.
+ * @param {string} key The key.
+ * @returns {*} The stored value, without the class names a renderer appended.
+ */
+function readUserClassNames(meta: CellProperties, key: string): unknown {
+  const value: unknown = meta[key];
+
+  return key === 'className' ? stripRendererClassNames(meta, value) : value;
+}
+
+/**
  * Tells which origin bucket a stored key is filed in.
  *
  * @param {object} meta The cell meta object.
@@ -609,7 +625,7 @@ export default class CellMeta {
 
     return {
       hadOwn: true,
-      value: cellMeta[key],
+      value: readUserClassNames(cellMeta, key),
       origin: getKeyOrigin(cellMeta, key),
     };
   }
@@ -798,7 +814,9 @@ export default class CellMeta {
       const origin = getKeyOrigin(meta, key);
 
       if (origin !== 'none' && hasOwnProperty(meta, key)) {
-        target.push({ physicalRow, physicalColumn, key, state: { hadOwn: true, value: meta[key], origin } });
+        const value = readUserClassNames(meta, key);
+
+        target.push({ physicalRow, physicalColumn, key, state: { hadOwn: true, value, origin } });
       }
     });
   }
@@ -824,12 +842,7 @@ export default class CellMeta {
 
         props.forEach((key) => {
           if (hasOwnProperty(meta, key)) {
-            // A renderer appends its own class names to the stored `className` (`numericRenderer`
-            // adds `htRight htNumeric`). Replaying them would hand them back as the user's own
-            // and keep them on a cell that stopped being numeric, so the snapshot leaves them out.
-            const value: unknown = key === 'className' ? stripRendererClassNames(meta, meta[key]) : meta[key];
-
-            result.push({ physicalRow, physicalColumn, key, value });
+            result.push({ physicalRow, physicalColumn, key, value: readUserClassNames(meta, key) });
           }
         });
       }

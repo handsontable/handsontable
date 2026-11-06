@@ -44,6 +44,17 @@ test.describe('numericRenderer tokens after a type change', { tag: THEMES_TAG },
     expect(await grid.storedClassName(gridId, row, column)).toBe('myMarker');
   }
 
+  /** The cell no longer looks numeric, and the cell meta holds none of the renderer's class names. */
+  async function expectNoRendererTokens(gridId: string, row: number, column: number): Promise<void> {
+    const cell = grid.cell(gridId, row, column);
+
+    await expect(cell).not.toHaveClass(NUMERIC_TOKENS);
+    await expect(cell).not.toHaveClass(NUMERIC_MARKER);
+    await expect(cell).toHaveCSS('text-align', NOT_RIGHT_ALIGNED);
+    expect(String(await grid.storedClassName(gridId, row, column) ?? '')).not.toMatch(NUMERIC_TOKENS);
+    expect(String(await grid.storedClassName(gridId, row, column) ?? '')).not.toMatch(NUMERIC_MARKER);
+  }
+
   test.describe('a className the user stored', () => {
     test('set through setCellMeta() loses the tokens when its column becomes text', async() => {
       await grid.setClassName(Page.SET_CELL_META, 0, 0, 'myMarker');
@@ -93,6 +104,75 @@ test.describe('numericRenderer tokens after a type change', { tag: THEMES_TAG },
       // The renderer has always joined an array into a string, so the stored value is the same
       // classes in string form.
       expect(await grid.storedClassName(Page.ARRAY, 0, 0)).toBe('a b');
+    });
+  });
+
+  test.describe('a className journaled for undo or copied by moveCells', () => {
+    test('undo of a later className write brings back the user class without the tokens', async() => {
+      await grid.setClassName(Page.UNDO_LATER_WRITE, 0, 0, 'myMarker');
+      await expectNumericWithMarker(Page.UNDO_LATER_WRITE, 0, 0);
+
+      await grid.setClassName(Page.UNDO_LATER_WRITE, 0, 0, 'myMarker2');
+      await expect(grid.cell(Page.UNDO_LATER_WRITE, 0, 0)).toHaveClass(/\bmyMarker2\b/);
+      await expect(grid.cell(Page.UNDO_LATER_WRITE, 0, 0)).toHaveClass(NUMERIC_TOKENS);
+
+      await grid.undo(Page.UNDO_LATER_WRITE);
+
+      // The undo took the later write back, and the cell is still numeric.
+      await expect(grid.cell(Page.UNDO_LATER_WRITE, 0, 0)).not.toHaveClass(/\bmyMarker2\b/);
+      await expectNumericWithMarker(Page.UNDO_LATER_WRITE, 0, 0);
+
+      await grid.switchFirstColumnToText(Page.UNDO_LATER_WRITE);
+
+      await expectMarkerOnly(Page.UNDO_LATER_WRITE, 0, 0);
+    });
+
+    test('moveCells of a plain numeric cell does not hand the tokens to the destination', async() => {
+      const destination = grid.cell(Page.MOVE_PLAIN, 2, 0);
+
+      await expect(destination).toHaveClass(NUMERIC_TOKENS);
+      await expect(destination).toHaveClass(NUMERIC_MARKER);
+      await expect(destination).toHaveCSS('text-align', RIGHT_ALIGNED);
+
+      expect(await grid.moveCell(Page.MOVE_PLAIN, [0, 0], [2, 0])).toBe(true);
+      await expect(destination).toHaveText('1');
+      await expect(destination).toHaveClass(NUMERIC_TOKENS);
+
+      await grid.switchFirstColumnToText(Page.MOVE_PLAIN);
+
+      await expectNoRendererTokens(Page.MOVE_PLAIN, 2, 0);
+    });
+
+    test('moveCells of a numeric cell with a user class moves the class and not the tokens', async() => {
+      await grid.setClassName(Page.MOVE_WITH_CLASS, 0, 0, 'myMarker');
+      await expectNumericWithMarker(Page.MOVE_WITH_CLASS, 0, 0);
+
+      expect(await grid.moveCell(Page.MOVE_WITH_CLASS, [0, 0], [2, 0])).toBe(true);
+      await expect(grid.cell(Page.MOVE_WITH_CLASS, 2, 0)).toHaveText('1');
+      await expectNumericWithMarker(Page.MOVE_WITH_CLASS, 2, 0);
+
+      await grid.switchFirstColumnToText(Page.MOVE_WITH_CLASS);
+
+      await expectMarkerOnly(Page.MOVE_WITH_CLASS, 2, 0);
+    });
+
+    test('undo of a row removal restores the user class without the tokens', async() => {
+      await grid.setClassName(Page.UNDO_ROW_REMOVAL, 0, 0, 'myMarker');
+      await expectNumericWithMarker(Page.UNDO_ROW_REMOVAL, 0, 0);
+
+      await grid.removeRow(Page.UNDO_ROW_REMOVAL, 0);
+      // The row is gone: the cell on its place now shows the next row.
+      await expect(grid.cell(Page.UNDO_ROW_REMOVAL, 0, 0)).toHaveText('3');
+      await expect(grid.cell(Page.UNDO_ROW_REMOVAL, 0, 0)).not.toHaveClass(/\bmyMarker\b/);
+
+      await grid.undo(Page.UNDO_ROW_REMOVAL);
+
+      await expect(grid.cell(Page.UNDO_ROW_REMOVAL, 0, 0)).toHaveText('1');
+      await expectNumericWithMarker(Page.UNDO_ROW_REMOVAL, 0, 0);
+
+      await grid.switchFirstColumnToText(Page.UNDO_ROW_REMOVAL);
+
+      await expectMarkerOnly(Page.UNDO_ROW_REMOVAL, 0, 0);
     });
   });
 

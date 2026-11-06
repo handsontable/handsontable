@@ -30,6 +30,15 @@ export class NumericClassNameTypeChangePage {
   /** Baseline: no `className` of the cell's own. */
   static readonly BASELINE = 'baseline';
 
+  /** Undo of a `className` write that followed an earlier one. */
+  static readonly UNDO_LATER_WRITE = 'undo-later-write';
+  /** `moveCells` of a numeric cell with no `className` of its own. */
+  static readonly MOVE_PLAIN = 'move-plain';
+  /** `moveCells` of a numeric cell with a user `className`. */
+  static readonly MOVE_WITH_CLASS = 'move-with-class';
+  /** Undo of a row removal; the removed cell had a user `className`. */
+  static readonly UNDO_ROW_REMOVAL = 'undo-row-removal';
+
   /** Every grid the fixture builds. Built from the ids above, so a renamed id cannot drift out. */
   static readonly ALL_GRIDS = [
     NumericClassNameTypeChangePage.SET_CELL_META,
@@ -39,6 +48,10 @@ export class NumericClassNameTypeChangePage {
     NumericClassNameTypeChangePage.ALIGNMENT,
     NumericClassNameTypeChangePage.ARRAY,
     NumericClassNameTypeChangePage.BASELINE,
+    NumericClassNameTypeChangePage.UNDO_LATER_WRITE,
+    NumericClassNameTypeChangePage.MOVE_PLAIN,
+    NumericClassNameTypeChangePage.MOVE_WITH_CLASS,
+    NumericClassNameTypeChangePage.UNDO_ROW_REMOVAL,
   ];
 
   readonly page: Page;
@@ -119,6 +132,64 @@ export class NumericClassNameTypeChangePage {
   /** `updateSettings({ type: 'text' })`: the grid-level type changes. */
   async switchGridTypeToText(gridId: string): Promise<void> {
     await this.updateSettings(gridId, { type: 'text' });
+  }
+
+  /** Undoes the last step through the UndoRedo plugin and waits for the draw that follows. */
+  async undo(gridId: string): Promise<void> {
+    await this.afterDraw(gridId, () => this.page.evaluate(
+      (id) => {
+        (window as unknown as {
+          hots: Record<string, { getPlugin: (name: string) => { undo: () => void } }>;
+        }).hots[id].getPlugin('undoRedo').undo();
+      },
+      gridId
+    ));
+  }
+
+  /** Removes one row through `alter('remove_row')` and waits for the draw that follows. */
+  async removeRow(gridId: string, row: number): Promise<void> {
+    await this.afterDraw(gridId, () => this.page.evaluate(
+      ([id, r]) => {
+        (window as unknown as {
+          hots: Record<string, { alter: (action: string, index: number) => void }>;
+        }).hots[id as string].alter('remove_row', r as number);
+      },
+      [gridId, row] as const
+    ));
+  }
+
+  /**
+   * Moves one cell, data and meta, through the `moveCells` plugin API and waits for the draw that
+   * follows. Resolves to whether the plugin carried the move out.
+   */
+  async moveCell(gridId: string, from: [number, number], to: [number, number]): Promise<boolean> {
+    let moved = false;
+
+    await this.afterDraw(gridId, async() => {
+      moved = await this.page.evaluate(
+        ([id, source, target]) => {
+          type Coords = unknown;
+          const hot = (window as unknown as {
+            hots: Record<string, {
+              _createCellCoords: (row: number, col: number) => Coords;
+              _createCellRange: (highlight: Coords, from: Coords, to: Coords) => unknown;
+              getPlugin: (name: string) => { moveCellRange: (range: unknown, target: Coords) => boolean };
+            }>;
+          }).hots[id as string];
+          const [fromRow, fromCol] = source as [number, number];
+          const [toRow, toCol] = target as [number, number];
+          const start = hot._createCellCoords(fromRow, fromCol);
+
+          return hot.getPlugin('moveCells').moveCellRange(
+            hot._createCellRange(start, start, start),
+            hot._createCellCoords(toRow, toCol)
+          );
+        },
+        [gridId, from, to] as const
+      );
+    });
+
+    return moved;
   }
 
   /** The `className` the cell meta stores, as the grid reports it through `getCellMeta()`. */

@@ -42,7 +42,8 @@
     Every grid is 3x2 numeric data. The grids are built by the inline script below, AFTER the
     bundle loads; the cases that need a `setCellMeta()` call or an `updateSettings()` call are
     driven from the page object, so the grid is in its numeric state first and the spec can assert
-    that before it switches the type.
+    that before it switches the type. The undo and `moveCells` grids journal or copy the stored
+    `className` too, so a renderer's class names must not come back through them either.
   -->
   <div id="set-cell-meta" class="grid" data-testid="set-cell-meta"></div>
   <div id="cell-option" class="grid" data-testid="cell-option"></div>
@@ -51,6 +52,10 @@
   <div id="alignment" class="grid" data-testid="alignment"></div>
   <div id="array" class="grid" data-testid="array"></div>
   <div id="baseline" class="grid" data-testid="baseline"></div>
+  <div id="undo-later-write" class="grid" data-testid="undo-later-write"></div>
+  <div id="move-plain" class="grid" data-testid="move-plain"></div>
+  <div id="move-with-class" class="grid" data-testid="move-with-class"></div>
+  <div id="undo-row-removal" class="grid" data-testid="undo-row-removal"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -119,6 +124,14 @@
       array: build('array', { columns: numericColumns() }),
       // Baseline: the cell never gets a `className` of its own.
       baseline: build('baseline', { columns: numericColumns() }),
+      // The undo journal: a `className` write, then a later one, then an undo.
+      'undo-later-write': build('undo-later-write', { columns: numericColumns(), undo: true }),
+      // `moveCells`: a numeric cell with no `className` of its own is moved.
+      'move-plain': build('move-plain', { columns: numericColumns(), moveCells: true }),
+      // `moveCells`: a numeric cell with a user `className` is moved.
+      'move-with-class': build('move-with-class', { columns: numericColumns(), moveCells: true }),
+      // The undo journal: a row holding a user `className` is removed, then restored by an undo.
+      'undo-row-removal': build('undo-row-removal', { columns: numericColumns(), undo: true }),
     };
   </script>
 </body>

@@ -1,4 +1,5 @@
 import { collectMovableMeta, MOVABLE_META_KEYS } from '../movableMeta';
+import { recordRendererClassNames } from '../../helpers/rendererClassNames';
 
 describe('MOVABLE_META_KEYS', () => {
   it('exports the meta keys that travel with a moved cell', () => {
@@ -40,5 +41,43 @@ describe('collectMovableMeta', () => {
     };
 
     expect(collectMovableMeta(hot, 0, 0, 1, 1)).toEqual([]);
+  });
+});
+
+describe('collectMovableMeta and the class names a renderer appended', () => {
+  /**
+   * Builds a fake instance whose transient meta for cell 0:0 is the given object.
+   *
+   * @param {object} cellMeta The meta object of cell 0:0.
+   * @returns {object}
+   */
+  function createHot(cellMeta) {
+    return {
+      getCellMetaTransient: () => cellMeta,
+    };
+  }
+
+  it('should move a className without the class names the renderer appended', () => {
+    const cellMeta = { className: 'mark htRight htNumeric' };
+
+    recordRendererClassNames(cellMeta, ['htRight', 'htNumeric']);
+
+    expect(collectMovableMeta(createHot(cellMeta), 0, 0, 0, 0)).toEqual([
+      { row: 0, col: 0, meta: { className: 'mark' } },
+    ]);
+  });
+
+  it('should move nothing for a className that holds only the class names the renderer appended', () => {
+    const cellMeta = { className: 'htRight htNumeric' };
+
+    recordRendererClassNames(cellMeta, ['htRight', 'htNumeric']);
+
+    expect(collectMovableMeta(createHot(cellMeta), 0, 0, 0, 0)).toEqual([]);
+  });
+
+  it('should still move an empty className the user set', () => {
+    expect(collectMovableMeta(createHot({ className: '' }), 0, 0, 0, 0)).toEqual([
+      { row: 0, col: 0, meta: { className: '' } },
+    ]);
   });
 });

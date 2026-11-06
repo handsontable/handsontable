@@ -76,6 +76,41 @@ describe('MetaManager and the class names a renderer adds', () => {
     ]);
   });
 
+  it('should report a className without the renderer class names in the key state the undo journal stores', () => {
+    const metaManager = new MetaManager();
+
+    metaManager.setCellMeta(0, 0, 'className', 'myMarker');
+    renderNumeric(metaManager, 0, 0);
+
+    expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).className)
+      .toBe('myMarker htRight htNumeric');
+    expect(metaManager.cellMeta.getMetaKeyState(0, 0, 'className')).toEqual({
+      hadOwn: true,
+      value: 'myMarker',
+      origin: 'user',
+    });
+  });
+
+  it('should report a className without the renderer class names in the row snapshot the undo journal stores', () => {
+    const metaManager = new MetaManager();
+
+    metaManager.setCellMeta(0, 0, 'className', 'myMarker');
+    renderNumeric(metaManager, 0, 0);
+
+    const states = [];
+
+    metaManager.cellMeta.captureRowMetaKeyStates(0, states);
+
+    expect(states).toEqual([
+      expect.objectContaining({
+        physicalRow: 0,
+        physicalColumn: 0,
+        key: 'className',
+        state: { hadOwn: true, value: 'myMarker', origin: 'user' },
+      }),
+    ]);
+  });
+
   it('should leave the value of any other key untouched', () => {
     const metaManager = new MetaManager();
 

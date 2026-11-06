@@ -1,5 +1,6 @@
 import type { HotInstance } from '../core/types';
 import { hasOwnProperty } from '../helpers/object';
+import { stripRendererClassNames } from '../helpers/rendererClassNames';
 
 /**
  * The cell-meta keys that travel with a cell moved by the `moveCells` feature. Shared between the
@@ -59,8 +60,18 @@ export function collectMovableMeta(
 
       for (const key of MOVABLE_META_KEYS) {
         if (hasOwnProperty(cellMeta, key)) {
+          // A moved `className` leaves the class names a renderer appended behind: the destination
+          // is drawn by its own renderer, and a copy would hand them over as the user's own.
+          const value = key === 'className' ? stripRendererClassNames(cellMeta, cellMeta[key]) : cellMeta[key];
+
+          // A value that held only renderer class names has nothing of the user's to move. An empty
+          // value the user set is still moved.
+          if (value === '' && cellMeta[key] !== '') {
+            continue; // eslint-disable-line no-continue
+          }
+
           meta = meta ?? {};
-          meta[key] = cellMeta[key];
+          meta[key] = value;
         }
       }
 
