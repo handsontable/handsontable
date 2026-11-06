@@ -177,6 +177,50 @@ describe('updateSettings() with data and columns', () => {
     });
   });
 
+  describe('when the same `columns` array is mutated before the update', () => {
+    it('should keep the state when a column was appended to it in place', () => {
+      // The React wrapper builds `columns` from its `<HotColumn>` children in one array and appends to that array
+      // before it calls `updateSettings()`, so the grid already holds the longer array while its index mappers
+      // still have the old length.
+      const columns = buildColumns(ALL_COLUMNS);
+
+      createGrid({ columns });
+      hot.getPlugin('manualColumnResize').setManualSize(2, 222);
+      hot.getPlugin('hiddenColumns').hideColumn(1);
+
+      columns.push({ data: 'e' });
+      hot.updateSettings({ data: buildData([...ALL_COLUMNS, 'e']), columns });
+
+      expect(hot.countCols()).toBe(5);
+      expect(hot.getColWidth(2)).toBe(222);
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([1]);
+    });
+
+    it('should start the state over when a column was removed from it in place', () => {
+      const columns = buildColumns(ALL_COLUMNS);
+
+      createGrid({ columns });
+      hot.getPlugin('manualColumnResize').setManualSize(2, 222);
+
+      columns.shift();
+      hot.updateSettings({ data: buildData(WITHOUT_FIRST), columns });
+
+      expect(hot.getColWidth(2)).not.toBe(222);
+    });
+  });
+
+  describe('when `minSpareCols` adds a column to the index mappers', () => {
+    it('should keep the state of an unchanged `columns` array', () => {
+      // The mappers are longer than the `columns` array here, so their length is not the layout's column count.
+      createGrid({ minSpareCols: 1 });
+      hot.getPlugin('manualColumnResize').setManualSize(2, 222);
+
+      hot.updateSettings({ data: buildData(ALL_COLUMNS), columns: buildColumns(ALL_COLUMNS) });
+
+      expect(hot.getColWidth(2)).toBe(222);
+    });
+  });
+
   describe('when the layout changes without removing a column', () => {
     it('should start the state over when a property is renamed', () => {
       createGrid();

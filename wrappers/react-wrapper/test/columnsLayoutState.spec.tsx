@@ -154,6 +154,28 @@ describe('Column state when the columns of the React wrapper change', () => {
       expect(hot.getDataAtCol(0)).toEqual(['b3', 'b1', 'b2']);
     });
 
+    it('should keep the state when a column is appended', async() => {
+      const hotTableRef = React.createRef<HotTableRef>();
+      const withAppended = [...ALL_COLUMNS, 'e'];
+
+      renderHotTableWithProps(build(ALL_COLUMNS, {}), false, hotTableRef);
+
+      const hot = hotTableRef.current!.hotInstance!;
+
+      setColumnState(hot, 'width', 2);
+      setColumnState(hot, 'hidden', 1);
+      setColumnState(hot, 'sort', 2);
+
+      await act(async() => {
+        renderHotTableWithProps(build(withAppended, {}), false, hotTableRef);
+      });
+
+      expect(hot.countCols()).toBe(5);
+      expect(hot.getColWidth(2)).toBe(MANUAL_WIDTH);
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([1]);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+    });
+
     it('should keep the state when the columns render again unchanged', async() => {
       const hotTableRef = React.createRef<HotTableRef>();
 

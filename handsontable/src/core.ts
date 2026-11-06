@@ -6320,15 +6320,22 @@ export default function Core(
   };
 
   /**
-   * Reads what decides the columns of a grid without a `columns` option: the number of columns the schema or the
-   * data resolves to, and the property each one reads.
+   * Reads what decides the columns of a grid: the number of columns the `columns` option, the schema, or the data
+   * resolves to, and the property each one reads.
    *
    * @private
+   * @param {boolean} [cappedByMapper] `true` to read the layout the index mappers were built for: the count never
+   * exceeds their length. A wrapper may append to the array it passed as `columns` before it calls
+   * `updateSettings()`, so the grid already counts the new column while its mappers and property cache do not. The
+   * mappers can only be longer than the layout (the `min*` options append columns), never shorter, so the cap
+   * leaves every other read as it was.
    * @returns {ColumnLayout}
    */
-  function readColumnLayout(): ColumnLayout {
+  function readColumnLayout(cappedByMapper = false): ColumnLayout {
+    const count = instance.getInitialColumnCount();
+
     return {
-      count: instance.getInitialColumnCount(),
+      count: cappedByMapper ? Math.min(count, instance.columnIndexMapper.getNumberOfIndexes()) : count,
       props: datamap.colToPropCache.slice(),
     };
   }
@@ -7028,7 +7035,7 @@ export default function Core(
       previousColumnLayout: !firstRun && (
         (!tableMeta.columns && hasOwnProperty(settings, 'dataSchema')) ||
         isColumnsPayloadWithData(settings)
-      ) ? readColumnLayout() : null,
+      ) ? readColumnLayout(true) : null,
       // The stored `height` and `width` before this call. An unreadable value is ignored by
       // `applyRootSize()`, and the stored setting must stay on the size the grid uses. On init the
       // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.
