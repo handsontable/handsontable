@@ -5514,7 +5514,10 @@ export default function Core(
    * - Keeps columns' states (e.g. column order)
    *   (`updateSettings({ data, columns })` is the exception: it resets them when the columns changed, see {@link Core#updateSettings})
    * - Keeps the sorted row order and the trimmed rows. It does not sort or filter the new values again. To apply them, call `sort(getSortConfig())` of the `ColumnSorting` or `MultiColumnSorting` plugin, or `filter()` of the `Filters` plugin.
-   * - Clears the undo and redo history of the `UndoRedo` plugin.
+   * - Clears the undo and redo history of the `UndoRedo` plugin, unless `data` is what the grid shows
+   *   already: the same array, a copy of it, or rows that hold the same values. Cells are compared with `===`, so a
+   *   nested object that was copied counts as another value, and a copy of the array clears the history when the
+   *   `NestedRows` plugin is on.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
    *

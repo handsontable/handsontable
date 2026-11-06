@@ -2349,8 +2349,8 @@ screen readers (`docs/AGENTS.md` 2.20).
   half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
   scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
   keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the menus
-  and the filters inside them, `editors` for the cell editors and the checkbox cell), each group is
-  a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
+  and the filters inside them, `editors` for the cell editors and the checkbox cell, `selection` for row
+  selection and the check all header), each group is a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
   runs every group. When a group's budgets plus one retry of its largest no longer fit the 40-minute run

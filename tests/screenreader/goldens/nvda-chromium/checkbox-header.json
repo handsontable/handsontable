@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "checkbox-header",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T08:40:56.476Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "check all 1 of 5 checked done column header row 8 column 3",
+    "space-check-all": "",
+    "space-uncheck-all": "",
+    "arrow-down-to-cell": "unchecked check all 0 of 5 checked done row 2 task column 3",
+    "space-check-one": "check all 1 of 5 checked done",
+    "arrow-up-header-mixed": "check all 1 of 5 checked done column header row 8 column 3"
+  }
+}

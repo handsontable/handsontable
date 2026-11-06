@@ -1,12 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA, SimpleChange } from '@angular/core';
-import { registerPlugin, MergeCells } from 'handsontable/plugins';
+import { registerPlugin, MergeCells, UndoRedo } from 'handsontable/plugins';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
 import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 registerPlugin(MergeCells);
+registerPlugin(UndoRedo);
 
 /**
  * A new `settings` object reaches `ngOnChanges` with every key, and the component passes only the keys
@@ -103,5 +104,37 @@ describe('HotTableComponent settings passed again on a change', () => {
       });
     }).not.toThrow();
     expect(updateSettingsSpy.mock.calls[0][0]).toEqual({});
+  });
+
+  it('should keep the undo history when the new settings object passes the same data again', () => {
+    const data = [['A1', 'B1'], ['A2', 'B2']];
+    const settings: GridSettings = { data, height: 200 };
+    const component = render(settings);
+    const hot = component.hotInstance;
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.setDataAtCell(0, 0, 'edited');
+    component.ngOnChanges({
+      settings: new SimpleChange(settings, { ...settings }, false),
+    });
+
+    expect(undoRedo.isUndoAvailable()).toBe(true);
+
+    undoRedo.undo();
+
+    expect(hot.getDataAtCell(0, 0)).toBe('A1');
+  });
+
+  it('should drop the undo history when the new settings object passes other rows', () => {
+    const settings: GridSettings = { data: [['A1', 'B1'], ['A2', 'B2']], height: 200 };
+    const component = render(settings);
+    const hot = component.hotInstance;
+
+    hot.setDataAtCell(0, 0, 'edited');
+    component.ngOnChanges({
+      settings: new SimpleChange(settings, { ...settings, data: [['A1', 'B1'], ['A2', 'B2']] }, false),
+    });
+
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
   });
 });

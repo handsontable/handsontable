@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "checkbox-header",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T08:41:06.876Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "",
+    "space-check-all": "check all 5 of 5 checked done",
+    "space-uncheck-all": "check all 0 of 5 checked done",
+    "arrow-down-to-cell": "check all 0 of 5 checked done unchecked",
+    "space-check-one": "check all 1 of 5 checked done checked",
+    "arrow-up-header-mixed": "check all 1 of 5 checked done"
+  }
+}
