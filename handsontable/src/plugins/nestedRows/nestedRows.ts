@@ -1935,9 +1935,9 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    // Replaying a state the user already chose is not a new action, so the hooks stay silent, and
-    // The grid paints once the whole `updateSettings()` call has applied its settings - a render here would be
-    // a second one.
+    // Replaying a state the user already chose is not a new action, so the hooks stay silent. The caller paints
+    // once this hook returns (`replaceData()` for `updateData()`, `fitGridToSettings()` for `updateSettings()`),
+    // so a render here would be a second one.
     this.collapsingUI.toggleCollapsedRows(parentsToCollapse, 'collapse', false, false);
 
     // The Core clamped the selection before this hook ran, against a grid that was still fully

@@ -5976,6 +5976,10 @@ export default function Core(
 
         try {
           applySettings(applied, init, false, null, null, notified);
+        } catch (error) {
+          repaintAfterFailedDataCall(applied, init);
+
+          throw error;
         } finally {
           dataWorkPhase = outerPhase;
         }
@@ -7082,10 +7086,32 @@ export default function Core(
     try {
       callback();
     } finally {
-      // Never below the saved value: a listener that resumed rendering once more than it suspended would leave
-      // the counter below zero, and the next `suspendRender()` would not hold. A suspension a listener made on
-      // its own is kept for its own `resumeRender()`.
-      renderState.renderSuspendedCounter = Math.max(renderState.renderSuspendedCounter - 1, suspendedBefore);
+      // Never below zero: a listener that resumed rendering once more than it suspended would leave the counter
+      // negative, and the next `suspendRender()` would not hold. Not floored at the value saved on entry, because
+      // a listener that resumes a suspension the caller made takes it away, as it would outside this call, and
+      // the render that follows must then be free to paint.
+      renderState.renderSuspendedCounter = Math.max(renderState.renderSuspendedCounter - 1, 0);
+    }
+  }
+
+  /**
+   * Paints the new rows when a settings call that carries `data` throws after its data phase. The data load no
+   * longer paints on its own, so a listener that throws before `fitGridToSettings()` would leave the old rows on
+   * screen over the new data. A failure of the paint itself is not reported: the error that ended the call is.
+   *
+   * @private
+   * @param {object} settings The settings of the call that threw.
+   * @param {boolean} init `true` while the grid initializes.
+   */
+  function repaintAfterFailedDataCall(settings: SettingsUpdate, init: boolean): void {
+    if (init || firstRun || settings.data === undefined || !instance.view || instance.isDestroyed) {
+      return;
+    }
+
+    try {
+      instance.render();
+    } catch {
+      // The error that ended the call is the one to report.
     }
   }
 

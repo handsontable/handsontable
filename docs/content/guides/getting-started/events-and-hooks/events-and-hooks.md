@@ -433,9 +433,11 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 
 After initialization, [`updateSettings()`](@/api/core.md#updatesettings) uses [`updateData()`](@/api/core.md#updatedata) internally when its settings object includes `data`. The [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive `source === 'updateSettings'`. The resulting [`afterChange`](@/api/hooks.md#afterchange) hook receives `changes === null` and `source === 'updateData'`.
 
-Loading the data adds no paint of its own. The grid paints after [`updateSettings()`](@/api/core.md#updatesettings) has applied all its settings. Until then, [`isRenderSuspended()`](@/api/core.md#isrendersuspended) returns `true` in [`afterUpdateData`](@/api/hooks.md#afterupdatedata) and [`afterChange`](@/api/hooks.md#afterchange). [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) runs before the paint as well.
+Loading the data adds no paint of its own. The grid paints after [`updateSettings()`](@/api/core.md#updatesettings) has applied all its settings. Until then, [`isRenderSuspended()`](@/api/core.md#isrendersuspended) returns `true` in [`afterUpdateData`](@/api/hooks.md#afterupdatedata) and [`afterChange`](@/api/hooks.md#afterchange). A call to [`render()`](@/api/core.md#render) in those two hooks paints nothing.
 
-In these hooks, [`getCell()`](@/api/core.md#getcell) returns the cell element from the previous render, or `null` for a new row. A call to [`render()`](@/api/core.md#render) there paints nothing. To read the new cells, use [`afterRender`](@/api/hooks.md#afterrender).
+[`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) runs before the paint as well, but rendering is no longer held there. A call to [`render()`](@/api/core.md#render) in it adds a paint.
+
+In all three hooks, [`getCell()`](@/api/core.md#getcell) returns the cell element from the previous render, or `null` for a new row. To read the new cells, use [`afterRender`](@/api/hooks.md#afterrender).
 
 Calling `updateSettings({ data })` inside `afterChange` triggers `afterChange` again. Check the source before replacing data to prevent a feedback loop. In this callback snippet, `nextData` contains the dataset supplied by your application:
 

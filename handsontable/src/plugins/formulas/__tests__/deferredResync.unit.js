@@ -206,9 +206,11 @@ describe('Formulas deferred resync', () => {
     writes.mockClear();
 
     expect(() => hot.updateSettings({ data: [[5, '=A1*2']] })).toThrow('listener failure');
-    expect(writes).not.toHaveBeenCalled();
 
-    // The read drains the owed resync against the layout the grid now holds.
+    // The call paints the new rows before it rethrows, and that draw drains the owed resync.
+    expect(writes).toHaveBeenCalledTimes(1);
+
+    // Nothing is owed any more, so the read scans again for nothing and serves the synced sheet.
     expect(hot.getDataAtCell(0, 1)).toBe(10);
     expect(writes).toHaveBeenCalledTimes(1);
     expect(sheetContent(engine)).toEqual([[5, '=A1*2']]);

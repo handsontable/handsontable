@@ -42,7 +42,10 @@ describe('Core#updateSettings carrying `data`', () => {
     hot.updateSettings({ data: [['X1', 'Y1'], ['X2', 'Y2']] });
 
     expect(afterRender).toHaveBeenCalledTimes(1);
-    expect(hot.getDataAtCell(0, 0)).toBe('X1');
+    // The one paint shows the new rows: the text of the first cell and the number of rendered rows changed.
+    expect(hot.getCell(0, 0).textContent).toBe('X1');
+    expect(hot.getCell(2, 0)).toBeNull();
+    expect(hot.countRenderedRows()).toBe(2);
   });
 
   it('should render once when the payload carries `columns` and the same `data` array', () => {
@@ -146,6 +149,25 @@ describe('Core#updateSettings carrying `data`', () => {
       expect(afterRender).toHaveBeenCalledTimes(1);
     });
 
+    it('should paint after the call when a listener resumes the caller\'s own `suspendRender()`', () => {
+      let resumed = false;
+
+      hot.addHook('afterUpdateData', () => {
+        if (!resumed) {
+          resumed = true;
+          hot.resumeRender();
+        }
+      });
+
+      hot.suspendRender();
+      hot.updateSettings({ data: [['X1', 'Y1']] });
+
+      // The listener took the caller's hold away, as it would outside this call, so the call's own paint runs.
+      expect(hot.isRenderSuspended()).toBe(false);
+      expect(afterRender).toHaveBeenCalled();
+      expect(hot.getCell(0, 0).textContent).toBe('X1');
+    });
+
     it('should paint once after a `batch()` that holds the call', () => {
       hot.batch(() => {
         hot.updateSettings({ data: [['X1', 'Y1']] });
@@ -213,6 +235,20 @@ describe('Core#updateSettings carrying `data`', () => {
 
       other.destroy();
       otherContainer.remove();
+    });
+  });
+
+  describe('a call that throws after the data phase', () => {
+    it('should paint the new rows before it rethrows', () => {
+      hot.addHook('afterUpdateSettings', () => {
+        throw new Error('listener');
+      });
+
+      expect(() => hot.updateSettings({ data: [['X1', 'Y1']] })).toThrow('listener');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('X1');
+      expect(hot.getCell(0, 0).textContent).toBe('X1');
+      expect(hot.isRenderSuspended()).toBe(false);
     });
   });
 
