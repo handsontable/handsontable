@@ -252,6 +252,48 @@ describe('Core#updateSettings carrying `data`', () => {
     });
   });
 
+  describe('the cell meta memo while rendering is held by the caller', () => {
+    let cellsCalls;
+
+    beforeEach(() => {
+      cellsCalls = 0;
+      hot.updateSettings({
+        cells() {
+          cellsCalls += 1;
+
+          return {};
+        },
+      });
+      hot.getCellMeta(0, 0);
+    });
+
+    it('should keep the memo for a settings-only call', () => {
+      hot.suspendRender();
+
+      const callsBefore = cellsCalls;
+
+      hot.updateSettings({ width: 300 });
+      hot.getCellMeta(0, 0);
+
+      expect(cellsCalls).toBe(callsBefore);
+
+      hot.resumeRender();
+    });
+
+    it('should clear the memo for a call that carries `data`', () => {
+      hot.suspendRender();
+
+      const callsBefore = cellsCalls;
+
+      hot.updateSettings({ data: [['X1', 'Y1']] });
+      hot.getCellMeta(0, 0);
+
+      expect(cellsCalls).toBeGreaterThan(callsBefore);
+
+      hot.resumeRender();
+    });
+  });
+
   describe('cell meta read while the call applies its settings', () => {
     it('should resolve a `cells()` function against the new data in an `afterUpdateSettings` listener', () => {
       hot.updateSettings({
