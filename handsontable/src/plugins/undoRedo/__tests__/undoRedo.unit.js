@@ -1464,6 +1464,364 @@ describe('UndoRedo plugin', () => {
     });
   });
 
+  // A wrapper passes `data` again on every render. Passing the rows the grid already holds, in the
+  // same array or in a copy of it, replaces nothing, so the steps recorded on them stay valid.
+  describe('`updateData()` with the rows the grid already holds', () => {
+    /**
+     * Builds a grid with one recorded edit.
+     *
+     * @param {Array} data The data to load.
+     * @param {object} [settings] More settings.
+     * @returns {UndoRedo} The plugin.
+     */
+    function createEditedGrid(data, settings = {}) {
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data,
+        undo: true,
+        ...settings,
+      });
+
+      hot.setDataAtCell(0, 0, 'edited');
+
+      return hot.getPlugin('undoRedo');
+    }
+
+    it('should keep the history when `updateData()` gets the same array', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.updateData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should keep the history when `updateSettings()` gets the same array in `data`', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.updateSettings({ data });
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should keep the history when `updateData()` gets a copy of the array with the same rows', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.updateData(data.slice());
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should keep the history of a grid of objects when `updateData()` gets a copy of the array', () => {
+      const data = [{ a: 'A1', b: 'B1' }, { a: 'A2', b: 'B2' }];
+      const plugin = createEditedGrid(data);
+
+      hot.updateData([...data]);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should keep the redo stack and keep recording after the same rows came back', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      plugin.undo();
+      hot.updateData(data.slice());
+
+      expect(plugin.isRedoAvailable()).toBe(true);
+
+      plugin.redo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('edited');
+
+      hot.setDataAtCell(1, 1, 'second');
+      hot.updateData(data);
+      plugin.undo();
+
+      expect(hot.getDataAtCell(1, 1)).toBe('B2');
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should keep the history for the same rows on a grid with `minSpareRows`', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data, { minSpareRows: 1 });
+
+      hot.updateData(data.slice());
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should keep the history when `updateData()` gets other row arrays that hold the values the grid shows', () => {
+      const plugin = createEditedGrid([['A1', 'B1'], ['A2', 'B2']]);
+
+      hot.updateData([['edited', 'B1'], ['A2', 'B2']]);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should keep the history when only the edited row is a new array', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.updateData([data[0].slice(), data[1]]);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+    });
+
+    it('should keep the history when only the edited row is a new object', () => {
+      const data = [{ a: 'A1', b: 'B1' }, { a: 'A2', b: 'B2' }];
+      const plugin = createEditedGrid(data);
+
+      hot.updateData([{ ...data[0] }, data[1]]);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should drop the history when `updateData()` gets rows that hold other values', () => {
+      const plugin = createEditedGrid([['A1', 'B1'], ['A2', 'B2']]);
+
+      hot.updateData([['A1', 'B1'], ['A2', 'B2']]); // the grid shows `edited` in the first cell
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+      expect(plugin.isRedoAvailable()).toBe(false);
+    });
+
+    it('should drop the history when a row holds a copy of a nested object', () => {
+      const data = [[{ id: 1 }, 'B1'], [{ id: 2 }, 'B2']];
+      const plugin = createEditedGrid(data, { columns: [{ data: 1 }, { data: 0 }] });
+
+      hot.updateData(JSON.parse(JSON.stringify(data)));
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should drop the history when the copy holds the rows in another order', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.updateData([data[1], data[0]]);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should drop the history when the copy holds fewer rows', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.updateData([data[0]]);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should drop the history when rows were spliced out of the array in place', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']];
+      const plugin = createEditedGrid(data);
+
+      data.splice(2, 1);
+      hot.updateData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should fire no stack hook when the same rows keep the history', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const stackHooks = jest.fn();
+
+      createEditedGrid(data);
+      hot.addHook('afterUndoStackChange', stackHooks);
+      hot.addHook('afterRedoStackChange', stackHooks);
+      hot.updateData(data.slice());
+
+      expect(stackHooks).not.toHaveBeenCalled();
+    });
+
+    it('should keep the history for the rows `loadData()` installed', () => {
+      const rows = [['A1', 'B1'], ['A2', 'B2']];
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data: [['X1', 'Y1']],
+        undo: true,
+      });
+      hot.loadData(rows);
+      hot.setDataAtCell(0, 0, 'edited');
+      hot.updateData(rows.slice());
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+    });
+
+    it('should keep the history for the rows of a plugin turned on at runtime', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+
+      hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, data, undo: false });
+      hot.updateSettings({ undo: true });
+      hot.setDataAtCell(0, 0, 'edited');
+      hot.updateData(data);
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+    });
+
+    it('should keep the history for the rows of a plugin turned off and on again', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+
+      hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, data, undo: true });
+      hot.updateSettings({ undo: false });
+      hot.updateData([['C1', 'D1']]);
+      hot.updateSettings({ undo: true });
+      hot.setDataAtCell(0, 0, 'edited');
+      hot.updateData(hot.getSettings().data.slice());
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+    });
+
+    it('should judge the rows a `beforeUpdateData` listener returns', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data, { beforeUpdateData: () => data });
+
+      hot.updateData([['C1', 'D1']]);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      hot.updateSettings({ beforeUpdateData: () => [['E1', 'F1']] });
+      hot.updateData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should undo a row insertion recorded before the same rows came back in a copy', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.alter('insert_row_below', 1);
+      hot.updateData(hot.getSettings().data.slice());
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.countRows()).toBe(2);
+    });
+
+    it('should keep the history of a step that waits for its validator when the same rows come back', async() => {
+      const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+      let release = null;
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        columns: [{}, { validator: (value, callback) => { release = () => callback(true); } }],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.batch(() => {
+        hot.alter('remove_row', 2);
+        hot.setDataAtCell(1, 1, 'v');
+      });
+      await settle();
+      hot.updateData(hot.getSettings().data);
+      release();
+      await settle();
+
+      expect(plugin.doneActions.length).toBe(1);
+
+      plugin.undo();
+
+      expect(hot.countRows()).toBe(3);
+      expect(hot.getDataAtCell(1, 1)).toBe('B2');
+    });
+
+    it('should keep the steps of a column that stays when the same rows come back and `columns` loses another', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data, { columns: [{ data: 0 }, { data: 1 }] });
+
+      hot.updateSettings({ data, columns: [{ data: 0 }] });
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should drop the history of a nested rows grid when the rows come back in a copy', () => {
+      const data = [
+        { name: 'Root A', __children: [{ name: 'A-1' }] },
+        { name: 'Root B', __children: [{ name: 'B-1' }] },
+      ];
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data,
+        columns: [{ data: 'name' }],
+        nestedRows: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.alter('remove_row', 2);
+      hot.updateData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      hot.updateData(data.slice());
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should keep the history for a copy of an array the grid has not filled with spare rows yet', () => {
+      // The grid adds its own spare row object to each copy, and the two spare rows hold the same values.
+      const rows = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(rows.slice(), { minSpareRows: 1 });
+
+      hot.updateData(rows.slice());
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+    });
+
+    it('should drop the history when `loadData()` gets the same array', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+      const plugin = createEditedGrid(data);
+
+      hot.loadData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+  });
+
   // Every drop of the history is announced through the stack hooks, so a toolbar that follows them
   // disables its buttons at once.
   describe('a dropped history', () => {

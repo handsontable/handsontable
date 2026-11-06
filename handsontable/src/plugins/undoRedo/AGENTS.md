@@ -267,6 +267,33 @@ a settings update that disables and enables a plugin again (a framework wrapper 
 render) re-registers the same names and keeps the history (`haveSameIndexMaps`). No warning is logged
 on a drop: `updateData` is routine in the wrappers, so one would fire on every data prop change.
 
+**`updateData()` drops the history only when it brings other data (DEV-3754).** A wrapper passes `data`
+again on every render (`ALWAYS_FORWARDED_SETTINGS` in the React and Angular wrappers, so an app that
+changes rows in place still reloads), so clearing on every call made an unrelated re-render empty both
+stacks. `#onAfterUpdateData` compares the data it installed with the array of the last load or update
+(`#datasetRows`, set by `#onAfterLoadData`, `#onAfterUpdateData` and `enablePlugin()`) through
+`hasSameRows()` (`sameRows.ts`). The array must have the same length, and each row must be the same object or,
+while a stack holds a step, an array or plain object whose cells are `===` equal to the row at that index. The
+grid writes into the rows of its array in place, so the previous array holds what the grid shows: equal values
+mean the recorded steps still describe the data. This is what keeps the history for the same array, for
+`data.slice()`, for an immutable row update (`rows.map(...)` that copies the edited row, with no filler row
+mismatch under `minSpareRows`) and for a JSON clone of flat rows. The reference compare runs first, so the
+common case is O(rows) with no cell read, and the value compare ends on the first difference (a typical reload
+costs about nothing; 100k rows by 20 columns that are all equal cost about 3 ms for arrays and 40 ms for
+objects). A kept history runs a row-count and index-map check (`#keepsHistory()`), so rows spliced out of the
+array in place (the index mapper was already fitted to the new length) still drop it. It captures the grid state
+only when a stack holds a step and no transaction is pending, because a wrapper calls it on every render.
+The columns are left to `#checkSettingsUpdate()`, which keeps the steps that address no changed column.
+Limits: (1) the same array changed in place with the row count kept (`reverse()`, `sort()`, `data[i] = newRow`)
+cannot be seen, so the history stays and an undo writes by physical index into another row, as in 18.1;
+(2) a nested object cell that was copied reads as another value, so the history goes;
+(3) with a recorded source shape (NestedRows, `#lastState.sourceStructures`) a copy clears the history,
+because the shape names the array it was captured on and `restoreShape()` skips another one;
+(4) `loadData()` with any array clears it (`#onAfterChange`). Vue never reaches this path (its `HotTable.vue`
+deletes `settings.data` and relies on the reference). Pinned by the `updateData() with the rows the grid
+already holds` cases in `__tests__/undoRedo.unit.js`, `__tests__/sameRows.unit.ts`,
+`tests/e2e/undo-after-same-rows.spec.ts`, and the re-render cases in the React and Angular wrapper tests.
+
 An UNRECORDED transaction - a blocked one (root source `auto`, the grid's own rows) or an ignored one
 (a legacy `done()` action's undo or redo) - does not open an epoch when it only adds or removes rows
 and columns at the END of an axis (`changesOnlyAxisEnds`): Enter on the last row with `minSpareRows`
