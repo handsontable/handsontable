@@ -6,10 +6,10 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-03T19:26:42.671Z"
+    "at": "2026-11-06T09:10:45.632Z"
   },
   "steps": {
-    "to-grid": "table with minus 1 rows and 11 columns row 3 column 2 a 1",
+    "to-grid": "table with minus 1 rows and 6 columns row 3 column 2 a 1",
     "read-1": "column 3 b 1",
     "read-2": "column 4 c 1",
     "read-3": "column 5 d 1",

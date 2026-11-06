@@ -26,6 +26,7 @@ export function evidencePart(transcript: Transcript, scenario: Scenario): Record
 export function buildScreenreaderEvidence(input: {
   project: string;
   lane: string;
+  group?: string;
   transcripts: Transcript[];
   scenarios: Scenario[];
   run?: Record<string, unknown>;

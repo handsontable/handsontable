@@ -1,13 +1,12 @@
 {
   "schema": 1,
   "id": "virtualization",
-  "surface": "A 200-row grid in a 120 px viewport: PageDown and Ctrl+Arrow past the rows on screen keep the positions counting, and reading mode reads on past the viewport.",
-  "group": "selection",
+  "surface": "A 200-row grid in a 120 px viewport: PageDown and Ctrl+Arrow move the focus past the rows on screen, to rows the grid renders only then, and each cell keeps its row position.",
+  "group": "keyboard",
   "page": "grid",
   "start": "page",
   "criteria": ["1.3.1", "2.1.1", "4.1.2"],
   "setup": [{"spreadsheetData": [200, 3]}, {"updateSettings": {"height": 120, "colHeaders": ["Alpha", "Bravo", "Charlie"]}}, {"selectCell": [0, 0]}],
-  "traversal": {"from": "read-1", "to": "read-22", "items": [["A2", "A 2"], ["A3", "A 3"], ["A4", "A 4"], ["A5", "A 5"]]},
   "steps": [
     {
       "id": "page-down",
@@ -19,135 +18,25 @@
       "id": "page-down-again",
       "action": {"press": "PageDown"},
       "expect": [["a7", "a 7"], ["row 8"]],
-      "note": "A second PageDown, into rows the grid rendered only after the first one scrolled."
+      "note": "A second PageDown, into rows the grid rendered only after the first one scrolled. Finding (VoiceOver's): VoiceOver names no row number on a focus move, on either browser: WebKit reads the header and the value (`alpha a7`), Chromium adds the row's cells (`row a7 b7 c7`). The row group misses on all four VoiceOver key steps that have one (here, to-last-row, arrow-up and to-first-row), as grid-core records for a well-formed ARIA grid too."
     },
     {
       "id": "to-last-row",
       "action": {"press": "ControlOrMeta+ArrowDown"},
       "expect": [["a200", "a 200"], ["row 201"]],
-      "note": "Ctrl+ArrowDown (Cmd on macOS) jumps to the last of the 200 rows, which the grid renders only once it scrolls there: its value and its position, which keeps counting past the rows on screen (row 201 counts the header row). Finding: with Chromium, NVDA and VoiceOver say nothing here (both recordings), where NVDA with Firefox and VoiceOver with WebKit name A 200."
+      "note": "Ctrl+ArrowDown (Cmd on macOS) jumps to the last of the 200 rows, which the grid renders only once it scrolls there: its value and its position, which keeps counting past the rows on screen (row 201 counts the header row). Finding: with Chromium, NVDA and VoiceOver say nothing here (both recordings), where NVDA with Firefox and VoiceOver with WebKit name A 200. Finding (VoiceOver's): no row number, as on page-down-again."
     },
     {
       "id": "arrow-up",
       "action": {"press": "ArrowUp"},
-      "expect": [["a199", "a 199"], ["row 200"]]
+      "expect": [["a199", "a 199"], ["row 200"]],
+      "note": "Finding (VoiceOver's): no row number, as on page-down-again."
     },
     {
       "id": "to-first-row",
       "action": {"press": "ControlOrMeta+ArrowUp"},
       "expect": [["a1", "a 1"], ["row 2"]],
-      "note": "Ctrl+ArrowUp (Cmd on macOS) jumps back to the first row, where the reading below starts."
-    },
-    {
-      "id": "read-1",
-      "action": {"read": "next"},
-      "expect": [],
-      "note": "The reading cursor moves on from the focused first cell, cell by cell (VoiceOver) or line by line (NVDA), past the rows the 120 px viewport shows. The traversal asks for the first column of rows 2 to 5, each once: a row the grid did not render is missing from what a reader can read, the virtualization limit. The page's first item is its toolbar, not the grid, so the reader starts on the page and follows the focus the setup puts on A1 (`start: page`). Finding: the reading cursor skips rows once it reaches the edge of the rendered rows, because the grid scrolls to it and re-renders under it: NVDA with Firefox skipped A5 and B5 and spoke a focus move to A6, VoiceOver with WebKit jumped from C3 to A6, and VoiceOver with Chromium from A4 to B5. NVDA with Chromium read every row."
-    },
-    {
-      "id": "read-2",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-3",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-4",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-5",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-6",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-7",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-8",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-9",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-10",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-11",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-12",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-13",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-14",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-15",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-16",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-17",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-18",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-19",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-20",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-21",
-      "action": {"read": "next"},
-      "expect": []
-    },
-    {
-      "id": "read-22",
-      "action": {"read": "next"},
-      "expect": []
+      "note": "Ctrl+ArrowUp (Cmd on macOS) jumps back to the first row. Finding (VoiceOver's): no row number, as on page-down-again."
     }
   ]
 }

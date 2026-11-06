@@ -236,6 +236,18 @@ rows are copied. Cell values and row headers are **not** projected, and that is 
 - **The copyable range array's identity is captured before `beforeCopy`**, which may reshape the array.
   Identity is what survives that — do not switch the check to a content comparison.
 - `modifyCopyableRange` is the hook for constraining what may be copied (DEV-844).
+- **Every hook run and write in `onPaste()`, `onCut()`, `onCopy()` and `setCopyableText()` is followed by
+  `if (!this.hot)`.** A listener of `beforeChange`, `afterChange`, `afterRender`, `beforePasteParse`,
+  `beforePaste`, `beforeCut`, `beforeCopy`, `modifyCopyableRange` or `afterCopyLimit` can call `hot.destroy()`,
+  which clears `this.hot`. Without the check the rest of the handler throws an uncaught `TypeError` after the
+  grid is gone (`runHooks('afterCut')`, `getRangedData()`). Add the check after each new hook run or write in
+  these methods. `#onAfterChange` needs none: the hook run stops reaching the plugin's listeners once a
+  listener destroyed the grid, even one ordered before it. Not covered, because the plugin cannot get control
+  back or the hook runs per cell: the `modifyData` hook that `getRangedData()` reaches for every cell, the
+  `sanitizer` and `textExtractor` callbacks, the selection hooks of the paste's `selectCell()`, and the
+  `afterCreateRow` and `afterCreateCol` hooks of a paste that adds rows or columns. The last two throw inside
+  core (`selectCell()`, `alter()`) before this plugin runs again. Pinned by `__tests__/destroyInHook.unit.ts`,
+  where setting any of these checks to `false` fails a case.
 
 ## The `beforePasteParse` hook (DEV-2930)
 

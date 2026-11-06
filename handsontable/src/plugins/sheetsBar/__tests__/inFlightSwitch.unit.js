@@ -123,6 +123,33 @@ describe('SheetsBar switch with work still in flight', () => {
       expect(hot.isDestroyed).toBe(true);
       expect(afterChange).not.toHaveBeenCalled();
     });
+    it('stops the switch when afterSheetTabStateRestore destroys the grid', () => {
+      const afterChange = jasmine.createSpy('afterSheetTabChange');
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }, { name: 'Gamma', data: [['g']] }],
+        },
+        afterSheetTabChange: afterChange,
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.setActiveSheet('Beta');
+      plugin.setActiveSheet('Alpha');
+      afterChange.calls.reset();
+      hot.addHook('afterSheetTabStateRestore', () => hot.destroy());
+
+      let result;
+
+      expect(() => {
+        result = plugin.setActiveSheet('Beta');
+      }).not.toThrow();
+      expect(result).toBe(false);
+      expect(hot.isDestroyed).toBe(true);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('a workbook change made from beforeSheetTabChange', () => {

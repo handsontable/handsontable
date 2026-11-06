@@ -7,8 +7,13 @@ name: A11y nightly
 # picture, so a pull request learned nothing from them it could act on. The evidence is kept 30 days,
 # which is what the Accessibility Conformance Report cites per criterion. A dispatch runs every check
 # too, unless it asks for the short suite (`suite: pull-request`), the one a developer runs locally.
-# Report-only: the checks job carries `continue-on-error`, and the verdict of each check is its
-# `A11y / <check> report` check run and the job summary.
+# Each check's verdict is its `A11y / <check> report` check run and the job summary, by the severity rule
+# (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a critical or serious finding, neutral with
+# a warning on a moderate or minor one, green on none. The run is an audit, so every open finding counts,
+# tracked or not. No finding fails a scan or stops one: the checks job carries `continue-on-error`, and
+# every scan runs to the end. Then the `verdict` job reads the check runs this run posted and fails the
+# run when any is red, so the run's own conclusion says what its checks found. Only `CI Gate` is
+# required, and it is not in this run, so a red nightly blocks no merge.
 #
 # Triage. A finding is about the product: record it, never fix it in the check's change. A target
 # that was not measured, or one flagged flaky, is a finding against the check: fix the measurement.
@@ -61,9 +66,44 @@ jobs:
       nightly: ${{ inputs.suite != 'pull-request' }}
     # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
 
+  # The run's verdict: the worst of the check runs this run posted (tests/scripts/a11y-run-verdict.mjs),
+  # red when any is red or one the suite should have posted is missing. It runs after every scan and
+  # check has finished (`!cancelled()`, so a red job before it never skips it), reads the check runs by
+  # the run id their posters stamp as `external_id`, and fails this job, which fails the run. It stops
+  # nothing: by the time it runs, everything else has run and reported. Never on the self-validating
+  # pull request run, whose jobs post nothing.
+  verdict:
+    name: Verdict
+    needs: [ a11y ]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      # The script and the modules it imports, nothing else: no package to install, no build.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Follow the worst check run of this run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.sha }}
+          # Every check on the cron (`inputs` is empty there) and on a plain dispatch, as the a11y job runs them.
+          A11Y_SUITE: ${{ inputs.suite == 'pull-request' && 'pull-request' || 'nightly' }}
+        run: node tests/scripts/a11y-run-verdict.mjs --prefix "A11y / " --a11y-suite "$A11Y_SUITE"
+
   # Optional Slack ping, develop only, when the run never reached the checks (the UMD build failed or
   # the called workflow could not start). The checks job carries `continue-on-error`, so a red check is
-  # never reported here; its verdict is its check run. The same webhook as the other nightlies.
+  # never reported here, and neither is the `verdict` job's red: their verdict is the check runs. The
+  # same webhook as the other nightlies.
   notify:
     name: Notify Slack
     needs: [ a11y ]

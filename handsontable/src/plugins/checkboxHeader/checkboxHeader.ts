@@ -33,6 +33,7 @@ import {
 } from '../../utils/checkboxColumn';
 import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 import { isLicensedUse } from '../../utils/licenseNotification';
+import { hasLicenseCapability } from '../../utils/licenseCapabilities';
 
 export const PLUGIN_KEY = 'checkboxHeader';
 export const PLUGIN_PRIORITY = 390;
@@ -239,6 +240,7 @@ export class CheckboxHeader extends BasePlugin {
     this.addHook('afterLoadData', this.#invalidate);
     this.addHook('afterUpdateData', this.#invalidate);
     this.addHook('afterUpdateSettings', this.#invalidate);
+    this.addHook('afterUpdateSettings', this.#reportUnlicensedColumns);
     this.addHook('afterPageChange', this.#invalidate);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#invalidate);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#invalidate);
@@ -247,6 +249,14 @@ export class CheckboxHeader extends BasePlugin {
     this.#registerShortcuts();
 
     super.enablePlugin();
+  }
+
+  /**
+   * Reports the header checkboxes the license key does not cover before the grid's first render, so the
+   * license message the grid writes then names them.
+   */
+  onGridReady() {
+    this.#reportUnlicensedColumns();
   }
 
   /**
@@ -285,6 +295,24 @@ export class CheckboxHeader extends BasePlugin {
     // The plugin is on in every grid, so the license is checked where a column asks for the checkbox.
     return isLicensedUse(this.hot, LICENSE);
   }
+
+  /**
+   * Checks every column that asks for a header checkbox against the license key, from the column settings.
+   * The header render checks only the columns it draws, so a column outside the rendered ones, or a grid
+   * built hidden, would name the feature in a second license message once the header is drawn. Does nothing
+   * when the key covers the feature, so a grid pays no column read for it.
+   */
+  #reportUnlicensedColumns = () => {
+    if (hasLicenseCapability(this.hot, LICENSE.capability)) {
+      return;
+    }
+
+    const columnCount = this.hot.countCols();
+
+    for (let column = 0; column < columnCount; column += 1) {
+      this.hasHeaderCheckbox(column);
+    }
+  };
 
   /**
    * Tells whether the [`RowSelection`](@/api/rowSelection.md) plugin renders its checkboxes in the

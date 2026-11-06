@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the German (`de-DE` and `de-CH`) label of the \"Filter by value\" section in the filters dropdown menu, which read \"Nach Zahlen filtern\" (\"filter by numbers\").",
+  "type": "fixed",
+  "issueOrPR": 14202,
+  "breaking": false,
+  "framework": "none"
+}

@@ -4,6 +4,7 @@
   "surface": "The select editor, a native select over the cell: opening it, choosing an option with the arrow keys, and Enter committing it.",
   "group": "editors",
   "page": "select-editor",
+  "state": "editor",
   "criteria": ["2.1.1", "4.1.2"],
   "setup": [{"selectCell": [0, 3]}],
   "steps": [

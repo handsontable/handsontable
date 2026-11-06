@@ -110,12 +110,15 @@ function isEditingDisabled(metaObject: Record<string, unknown>) {
  * @param {object} settingsToCompareWith The object to compare which properties need to be updated.
  * @param {boolean} [typeEditorRequested=false] Whether the settings carried `editor: true`, which
  * `normalizeEditorSetting()` removes. It asks for the type's editor even when editing is disabled.
+ * @param {Map} [assigned] When passed, receives every key the expansion wrote with the value it wrote. The global
+ * layer keeps no `_automaticallyAssignedMetaProps`, so this is how it learns what a later type change must undo.
  */
 export function extendByMetaType(
   metaObject: Record<string, unknown>,
   settings: Record<string, unknown>,
   settingsToCompareWith: Record<string, unknown> = metaObject,
   typeEditorRequested = false,
+  assigned?: Map<string, unknown>,
 ) {
   const validType = typeof settings.type === 'string' ? getCellType(settings.type) : settings.type;
 
@@ -153,6 +156,7 @@ export function extendByMetaType(
     if (canBeOverwritten(property, settingsToCompareWith)) {
       expandedType[property] = value;
       (metaObject._automaticallyAssignedMetaProps as Set<string> | undefined)?.add(property);
+      assigned?.set(property, value);
 
       if (property === 'editor') {
         TYPE_ASSIGNED_EDITOR.set(metaObject, value);

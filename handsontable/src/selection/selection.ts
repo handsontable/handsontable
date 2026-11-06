@@ -306,6 +306,14 @@ class Selection {
    */
   #highlightPhysicalRow: number | null = null;
   /**
+   * Set by `destroy()`. Laying a range closes and saves an open editor, and a listener of that save can
+   * destroy the grid while a method of this class is still running. The methods that lay more than one
+   * range, or fire a hook after the range, stop when it is set.
+   *
+   * @type {boolean}
+   */
+  #isDestroyed = false;
+  /**
    * The PHYSICAL column of the record the active highlight points at, or `null`. The column twin of
    * {@link Selection#highlightPhysicalRow}.
    *
@@ -598,6 +606,14 @@ class Selection {
    */
   begin() {
     this.inProgress = true;
+  }
+
+  /**
+   * Marks the selection as belonging to a destroyed grid, so a method that is still running when the
+   * grid is destroyed stops at its next range instead of reading the destroyed grid.
+   */
+  destroy() {
+    this.#isDestroyed = true;
   }
 
   /**
@@ -2736,6 +2752,11 @@ class Selection {
     }
 
     this.setRangeEnd(endCoords);
+
+    if (this.#isDestroyed) {
+      return;
+    }
+
     this.runLocalHooks('afterSelectAll', startCoords, endCoords, highlight);
     this.finish();
   }
@@ -2788,12 +2809,16 @@ class Selection {
       this.clear();
       this.setExpectedLayers(selectionRanges.length);
 
-      selectionRanges.forEach((selection) => {
-        const { from, to } = selectionSchemaNormalizer(selection);
+      for (let i = 0; i < selectionRanges.length; i++) {
+        const { from, to } = selectionSchemaNormalizer(selectionRanges[i]);
 
         this.setRangeStartOnly(from.clone(), false);
         this.setRangeEnd(to.clone());
-      });
+
+        if (this.#isDestroyed) {
+          return isValid;
+        }
+      }
 
       this.finish();
     }
@@ -2859,6 +2884,11 @@ class Selection {
       // A column selection covers every row by construction, so its row extent follows the grid.
       this.#rowExtentSpansGrid.add(this.getLayerLevel());
       this.setRangeEnd(to);
+
+      if (this.#isDestroyed) {
+        return isValid;
+      }
+
       this.runLocalHooks('afterSelectColumns', from, to, highlight);
 
       // For mouse-driven selection the process is finished by the document-level `mouseup`/`touchend`
@@ -2925,6 +2955,11 @@ class Selection {
       // A row selection covers every column by construction.
       this.#columnExtentSpansGrid.add(this.getLayerLevel());
       this.setRangeEnd(to);
+
+      if (this.#isDestroyed) {
+        return isValid;
+      }
+
       this.runLocalHooks('afterSelectRows', from, to, highlight);
 
       // For mouse-driven selection the process is finished by the document-level `mouseup`/`touchend`

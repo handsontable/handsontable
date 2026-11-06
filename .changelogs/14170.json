@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the grid's `aria-colcount` not updating when the number of row headers or columns changed after initialization.",
+  "type": "fixed",
+  "issueOrPR": 14170,
+  "breaking": false,
+  "framework": "none"
+}

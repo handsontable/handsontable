@@ -4,6 +4,7 @@
   "surface": "The grid as one tab stop (tabNavigation: false): Tab leaves the grid from any cell, Shift+Tab returns to the cell it left, and the arrows still move inside.",
   "group": "keyboard",
   "fixture": "screenreader-grid.html",
+  "catalogPages": ["grid"],
   "criteria": ["2.1.1", "2.1.2", "2.4.3", "4.1.2"],
   "setup": [{"sentinels": true}, {"updateSettings": {"tabNavigation": false}}, {"selectCell": [1, 1]}],
   "steps": [
@@ -11,7 +12,7 @@
       "id": "tab-out-forward",
       "action": {"press": "Tab"},
       "expect": [["after the grid"], ["button"]],
-      "note": "With tabNavigation off, Tab from a cell in the middle of the grid leaves it for the page's next control. Finding: VoiceOver says nothing here on both browsers (the recording), where it names the same button when Tab leaves the grid from a row's last cell (default-mode); NVDA names it."
+      "note": "With tabNavigation off, Tab from a cell in the middle of the grid leaves it for the page's next control. NVDA names it. Finding (unconfirmed, likely the setup): VoiceOver says nothing here on both browsers, where it names the same button when Tab leaves the grid from a row's last cell (default-mode). Two things set this step apart from that one: it is the page's first key, which VoiceOver is silent on in some runs, and VoiceOver still interacts with the grid (this scenario starts in it, default-mode on the page). The Shift+Tab out later in this run, after the reader left the grid, is announced. A run with `start: page` tells the two apart before this is reported as the grid's."
     },
     {
       "id": "shift-tab-back-in",

@@ -91,7 +91,11 @@ the checkbox (`gate: 'call'` in `feature.json`). `hasHeaderCheckbox()` is the on
 (the header render, the shortcuts, `toggleColumn()`, `setColumnChecked()`), so it answers `false` when the key
 does not cover `feat:checkbox_header`, after the column-meta checks so a grid without the option pays nothing
 more. It must not throw, because it runs inside the header render: `isLicensedUse()` records the feature and
-writes the license message in a microtask, after the render. Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
+writes the license message in a microtask, after the render. The render draws only the headers in view, and
+none in a hidden grid, so `#reportUnlicensedColumns()` also calls it for every column from `onGridReady()` and
+on `afterUpdateSettings`, before the license message is written: otherwise a column out of view printed a
+second, longer message once it was drawn. It returns at once when the key covers the feature.
+Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Where to look next
 
