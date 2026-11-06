@@ -132,9 +132,6 @@ importers:
       babel-plugin-forbidden-imports:
         specifier: ^0.1.2
         version: 0.1.2
-      babel-plugin-transform-inline-environment-variables:
-        specifier: ^0.4.3
-        version: 0.4.4
       babel-plugin-transform-require-ignore:
         specifier: ^0.1.1
         version: 0.1.1
@@ -559,9 +556,6 @@ importers:
       babel-jest:
         specifier: ^27.5.1
         version: 27.5.1(@babel/core@7.29.7)
-      babel-plugin-transform-inline-environment-variables:
-        specifier: ^0.4.3
-        version: 0.4.4
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -7267,9 +7261,6 @@ packages:
     resolution: {integrity: sha512-M762rNHfSF1EV3SLtnCJXFoQbbIIz0OyRwnCmV0KPC7qosSfCO0QLTSuJX3ayAebubhE6oYBAYPrBA5ljowaZg==}
     peerDependencies:
       '@babel/core': ^7.11.4
-
-  babel-plugin-transform-inline-environment-variables@0.4.4:
-    resolution: {integrity: sha512-bJILBtn5a11SmtR2j/3mBOjX4K3weC6cq+NNZ7hG22wCAqpc3qtj/iN7dSe9HDiS46lgp1nHsQgeYrea/RUe+g==}
 
   babel-plugin-transform-require-ignore@0.1.1:
     resolution: {integrity: sha512-A7EmlVd3ZYWJI3eg3dklAXn1yfq8Y5omHMQgAUo0FwGLYRuL5daLR6+LtCVHi4f9+fStr7HuPkW9rmKtcmY67w==}
@@ -21519,8 +21510,6 @@ snapshots:
       '@babel/helper-define-polyfill-provider': 0.6.8(@babel/core@7.29.7)
     transitivePeerDependencies:
       - supports-color
-
-  babel-plugin-transform-inline-environment-variables@0.4.4: {}
 
   babel-plugin-transform-require-ignore@0.1.1: {}
 

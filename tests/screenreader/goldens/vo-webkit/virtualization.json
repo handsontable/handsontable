@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "virtualization",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T11:04:05.532Z"
+  },
+  "steps": {
+    "page-down": "",
+    "page-down-again": "alpha a7",
+    "to-last-row": "alpha a200",
+    "arrow-up": "alpha a199",
+    "to-first-row": "alpha a1"
+  }
+}

@@ -96,6 +96,52 @@ describe('SheetsBar: a sheet\'s own settings win over grid-level updates', () =>
     expect(hot.getColHeader(0)).toBe('X');
   });
 
+  it('keeps the visible sheet\'s renderer when the grid-level one is unset, and gives the type\'s renderer to the other sheets', () => {
+    const plugin = buildWorkbook({ type: 'checkbox' });
+    const checkboxRenderer = Handsontable.renderers.getRenderer('checkbox');
+
+    plugin.setActiveSheet('Own');
+    hot.updateSettings({ renderer: undefined, type: 'checkbox' });
+
+    expect(hot.getCellRenderer(0, 0)).toBe(ownRenderer);
+
+    plugin.setActiveSheet('Plain');
+
+    expect(hot.getCellRenderer(0, 0)).toBe(checkboxRenderer);
+
+    plugin.setActiveSheet('Own');
+
+    expect(hot.getCellRenderer(0, 0)).toBe(ownRenderer);
+  });
+
+  it('keeps a grid-level editor created as `undefined` on the sheets that do not declare one', () => {
+    const passwordEditor = Handsontable.editors.getEditor('password');
+
+    hot = new Handsontable(container, {
+      type: 'checkbox',
+      editor: undefined,
+      sheetsBar: {
+        sheets: [
+          { name: 'Plain', data: [[true, false]] },
+          { name: 'Own', data: [[true, false]], settings: { editor: passwordEditor } },
+        ],
+      },
+      licenseKey: LICENSE_KEY,
+    });
+
+    const plugin = hot.getPlugin('sheetsBar');
+
+    expect(hot.getCellMeta(0, 0).editor).toBeUndefined();
+
+    plugin.setActiveSheet('Own');
+
+    expect(hot.getCellMeta(0, 0).editor).toBe(passwordEditor);
+
+    plugin.setActiveSheet('Plain');
+
+    expect(hot.getCellMeta(0, 0).editor).toBeUndefined();
+  });
+
   it('applies a grid-level value the visible sheet does not declare at once', () => {
     buildWorkbook();
 

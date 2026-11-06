@@ -131,6 +131,41 @@ test('a matrix entry tested in its own browsers names them, and only a tested en
     'a not-tested entry is never rendered, so it names no browsers');
 });
 
+test('an automated entry says what its scenarios ran and could not drive, and only an automated entry may', () => {
+  const nightly = name => data.matrix
+    .find(entry => entry.name === name && entry.howTested.includes('automated-nightly'));
+
+  // tests/AGENTS.md, "Screen readers": the coverage test of the scenarios keeps these equal to the
+  // committed scenario set; here only their shape is checked.
+  assert.ok(Number.isInteger(nightly('NVDA')?.scenarios) && Array.isArray(nightly('NVDA')?.unsupported),
+    'the NVDA nightly entry carries its scenario count and its unsupported primitives');
+  assert.ok(Number.isInteger(nightly('VoiceOver')?.scenarios) && Array.isArray(nightly('VoiceOver')?.unsupported),
+    'the VoiceOver nightly entry carries its scenario count and its unsupported primitives');
+  assert.deepEqual(validateAccessibilityData(data), []);
+
+  const audited = structuredClone(data);
+  const audit = audited.matrix.findIndex(entry => entry.howTested.includes('audit'));
+
+  audited.matrix[audit].scenarios = 3;
+  audited.matrix[audit].unsupported = [];
+  assert.ok(validateAccessibilityData(audited)
+    .some(e => e.includes(`matrix[${audit}].scenarios and unsupported describe an automated run`)),
+  'an audited entry ran no scenarios');
+
+  const shapes = [[0, []], [1.5, []], ['8', []], [8, 'read in'], [8, ['']], [8, undefined], [undefined, []]];
+
+  shapes.forEach(([scenarios, unsupported]) => {
+    const broken = structuredClone(data);
+    const entry = broken.matrix.find(item => item.howTested.includes('automated-nightly'));
+
+    entry.scenarios = scenarios;
+    entry.unsupported = unsupported;
+
+    assert.ok(validateAccessibilityData(broken).length > 0, `scenarios ${JSON.stringify(scenarios)} with unsupported `
+      + `${JSON.stringify(unsupported)} is rejected: a positive count and a list of names, together`);
+  });
+});
+
 test('report.next.sentence is empty when no next version is planned, and limitations cite the report ref', () => {
   const fixture = structuredClone(data);
 

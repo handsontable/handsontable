@@ -235,7 +235,7 @@ test('the checks config builds on the e2e config, takes its projects from the re
 test('the A11y nightly builds the UMD bundle and calls the module with every check, on a weeknight cron', () => {
   const workflow = stripYamlComments(read(NIGHTLY));
 
-  assert.deepEqual(jobIds(workflow), ['build', 'a11y', 'notify']);
+  assert.deepEqual(jobIds(workflow), ['build', 'a11y', 'verdict', 'notify']);
   assert.match(workflow, /^ {4}- cron: '30 5 \* \* 2-6'$/m, `${NIGHTLY}: weeknights at 05:30 UTC, after the screen reader nightly and clear of the docs sync. ${CHECKS_DOC}`);
 
   const a11y = job(workflow, 'a11y');
@@ -254,9 +254,33 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
     assert.match(job(workflow, id), /^ {4}if: github\.event_name != 'pull_request'$/m,
       `${NIGHTLY}: a pull request that touches the file gets a validated run whose jobs skip themselves.`);
   }
-  assert.match(job(workflow, 'notify'), /^ {4}needs: \[ a11y \]$/m);
+  assert.match(job(workflow, 'notify'), /^ {4}needs: \[ a11y \]$/m,
+    `${NIGHTLY}: Slack hears of the build and the called workflow only, never of the verdict job's red. ${CHECKS_DOC}`);
   assert.match(job(workflow, 'notify'), /^ {4}if: \$\{\{ failure\(\) && github\.event_name != 'pull_request' && github\.ref_name == 'develop' \}\}$/m,
     `${NIGHTLY}: Slack hears of a run that never reached the checks (failure()), on develop only. ${CHECKS_DOC}`);
+});
+
+const VERDICT_DOC = 'See tests/AGENTS.md, "A11y: the verdict of a check run".';
+
+test('the A11y nightly ends on a verdict job that follows its worst check run, after every scan and check has run', () => {
+  const workflow = stripYamlComments(read(NIGHTLY));
+  const verdict = job(workflow, 'verdict');
+  const run = steps(verdict).find(entry => /^- name: Follow the worst check run of this run$/m.test(entry)) ?? '';
+
+  assert.match(verdict, /^ {4}needs: \[ a11y \]$/m, `${NIGHTLY}: the verdict waits for the scan and every check. ${VERDICT_DOC}`);
+  assert.match(verdict, /^ {4}if: \$\{\{ !cancelled\(\) && github\.event_name != 'pull_request' \}\}$/m,
+    `${NIGHTLY}: !cancelled(), or a red job before it would skip the verdict (the implicit success(), .ai/CI.md); never on the validation run. ${VERDICT_DOC}`);
+  assert.deepEqual(permissions(verdict), ['contents: read', 'checks: read'], `${NIGHTLY}: the verdict only reads check runs. ${VERDICT_DOC}`);
+  assert.doesNotMatch(verdict, /continue-on-error/, `${NIGHTLY}: the verdict's red is the run's red; that is its point. ${VERDICT_DOC}`);
+  assert.match(verdict, /^ {6}- uses: actions\/checkout@[0-9a-f]{40}\s*$/m, `${NIGHTLY}: a pinned checkout. ${VERDICT_DOC}`);
+  assert.match(verdict, /^ {10}persist-credentials: false$/m);
+  assert.match(verdict, /^ {10}sparse-checkout: \|\n {12}tests\/lib\n {12}tests\/scripts$/m,
+    `${NIGHTLY}: the script and the modules it imports, nothing else. ${VERDICT_DOC}`);
+  assert.match(run, /GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}/);
+  assert.match(run, /HEAD_SHA: \$\{\{ github\.sha \}\}/, `${NIGHTLY}: the commit the posters posted on, a nightly's own. ${VERDICT_DOC}`);
+  assert.match(run, /A11Y_SUITE: \$\{\{ inputs\.suite == 'pull-request' && 'pull-request' \|\| 'nightly' \}\}/,
+    `${NIGHTLY}: the verdict expects the checks of the suite the a11y job ran. ${VERDICT_DOC}`);
+  assert.match(run, /run: node tests\/scripts\/a11y-run-verdict\.mjs --prefix "A11y \/ " --a11y-suite "\$A11Y_SUITE"$/m, VERDICT_DOC);
 });
 
 

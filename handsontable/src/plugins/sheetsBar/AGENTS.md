@@ -117,6 +117,22 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   press moves the focus on its own; a touch press does not, and the rename input's blur-driven
   commit used to repaint the strip in the middle of `#moveAround`, which then threw
   `NotFoundError`. Pinned by the rename case in `tests/e2e/sheets-bar-touch-drag.spec.ts`.
+- **A tab being renamed is as wide as its committed name will make it** (`#syncRenameWidth` in
+  `ui/tabStrip.ts`: the input gets the width of the name the tab will show after the commit plus the
+  room the gap and the chevron take then). The plugin hands the strip that name
+  (`committedLabel`, `#committedTabLabel`): the clamped draft when `#commitRename` would accept it,
+  the saved name when it would refuse it (blank, taken in the bar or the engine, a frozen entry), so a
+  refused name keeps the tab's width too. Keep the two in step when `#commitRename` gains a rule; a
+  `beforeSheetTabRename` veto is not foreseen. A press on
+  another tab commits the rename on the input's blur, before the release, and the repaint then showed
+  the chevron again. When that changed the tab's width, the tabs after it moved, the release landed on
+  another element than the press, and the browser sent the `click` to the strip, so the sheet did not
+  switch (a press on the chevron still switched, because the shift kept it inside its own tab). Do not
+  bring back a width floor held for the whole edit: a narrower committed name moves the tabs the other
+  way, and do not bring back a CSS `min-width` on the input: it held a one- or two-character name 7 to
+  13px wider than its committed tab, and a press near the next tab's end edge then released on the tab
+  after it. Pinned by the "during a rename that widens/narrows the tab", "during a rename to a taken
+  name" and "a press near the end of the next tab" cases in `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
 - **A drag's Escape listener sits on the window in the capture phase** (`TabDrag#start`). While a
   drag started with a fresh press runs, the bar's focus scope is inactive: the focus manager skips
   `focusin` while the mouse is down and activates scopes on the `click` that follows. That click
@@ -146,7 +162,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`
-  reads `undefined` as "not provided". The baseline and the model travel across an
+  reads `undefined` as "not provided" (the exception is `editor`, `renderer` and `validator`, `TYPE_OWNED_SETTING_KEYS`: core reads
+  `undefined` there as "unset", so the grid-level `type` supplies the option again, and `null` names none of them; the filter takes
+  an `undefined` of those keys the visible sheet declares into the baseline like any other grid-level value). The baseline and the model travel across an
   `updatePlugin` whose `sheets` value is structurally unchanged, and are dropped on a genuine
   reconfiguration. Only `sheets` decides the workbook's identity — `updateSettings` replaces
   the grid-level `sheetsBar` object wholesale, so a partial payload (`{ paging: false }`,
@@ -400,7 +418,27 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `../formulas/AGENTS.md` ("The engine's sheet size is not the grid's axis length"). A brand-new binding (add,
   duplicate) goes through `freeEngineName()` — a `sheetName` may differ from its tab name, so
   a free tab label can still identify another sheet's engine data, and reusing it would
-  overwrite that data. A rename whose new name already identifies another engine sheet is
+  overwrite that data. **A workbook build reuses an engine sheet that exists** (the host may have
+  built it for the sheet), **but not one an earlier declared sheet of the same build bound to**
+  (`#claimEngineName`, `#engineNameClaims` per engine, lower-cased as the engine compares names):
+  `Data` and `data` were one engine sheet, and the later sheet's data overwrote the earlier one's. The
+  later sheet gets a numbered name (`freeEngineName()`, skipping names claimed in the build, names any
+  sheet of the build asks for, collected before it registers anything (`#engineNameRequests`, so `data`
+  numbered beside `Data` never takes the `Data (2)` a later sheet declares), and taking
+  over only a numbered name an earlier build gave, `#numberedEngineNames`, so a rebuild of the same
+  sheets binds each to its own sheet again and an engine sheet the host built is never taken), the
+  name is written into its `formulas.sheetName`, and `warn()` names both sheets; formula text is not
+  rewritten, so `=data!A1` still reads `Data`. The claim is the name the sheet is actually bound under:
+  a declared `Q1\nQ2` that binds under its tab name `Q1 Q2` is resolved before the claim
+  (`#tabBoundEngineName`), and a name `engine.addSheet()` reports back moves the claim
+  (`#recordBoundEngineName`), or a later `q1 q2` bound the same engine sheet. A declared sheet with a built engine and no
+  `sheetName` is registered under its tab name in the build: unregistered, the Formulas plugin kept
+  the engine sheet the grid was bound to before the switch and wrote this sheet's data into it.
+  A sheet `addSheet()` adds with a built engine and no `sheetName` gets `freeEngineName()` of its tab
+  name, written into its `formulas.sheetName`, so it never binds another sheet's engine sheet (a duplicate
+  of it then copies that name's sheet). Pinned by the "declared sheets whose engine sheet
+  names collide" and "sheets bound to a shared engine without a sheetName" blocks of `__tests__/formulaSheets.unit.js` and `tests/e2e/sheets-bar-formulas-order.spec.ts`.
+  A rename whose new name already identifies another engine sheet is
   rejected up front (`#renameCollidesInEngine`), the way a tab-name collision is — committing
   the tab first would leave it showing a name its formulas do not resolve against. The binding
   follows the name `engine.addSheet()` reports back — the engine can normalize a name the
@@ -1262,7 +1300,18 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     neighbor from inside its own commit, and an `afterSheetTabChange` listener may still switch
     again; `#removeSheet` then checks that the sheet it removes is no longer the active one.
   - **A listener that destroys the grid, turns the bar off, or rebuilds the workbook stops the
-    change** (`#isLive`, checked after the before-hook and after `afterSheetTabStateCapture`).
+    change** (`#isLive`, checked after the before-hook, after `afterSheetTabStateCapture`, and after
+    `#switchTo` returns, which covers `afterSheetTabStateRestore`). The last check comes before
+    `_adoptViewSelection()`, `#refreshUI()` and `#showServerSheet()`, which read the instance; and
+    DataProvider's `_runContextChange()` skips its after-steps once its plugin is destroyed, since the
+    restore hook fires inside that callback. `#applyActiveSheetSetting` (the `updateSettings({ sheetsBar: {
+    activeSheet } })` path) checks `#isLive` too when `setActiveSheet()` answers `false`, before it asks
+    `#isEditingSettled()`, which reads the instance. A listener that destroys the grid from inside
+    `_applySettingsAndData()` (`afterUpdateSettings`) ends that call before its load, and `#applySheet`,
+    `#showSheet` and every `#batchRender` `finally` stop on `#isGridDestroyed()` (the plugin's `hot` is gone),
+    so the switch returns `false` the same way. Pinned by `__tests__/inFlightSwitch.unit.js`,
+    `__tests__/restoreHookDestroy.unit.js` (the full build, local and server sheet) and the tab-click case
+    in `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
   - **The `activeSheet` setting is recorded once its switch reaches the listeners**
     (`#applyActiveSheetSetting`). A switch a `beforeSheetTabChange` listener cancels stays recorded:
     otherwise every wrapper re-render sent the value again, saved the cell the user was typing in, and

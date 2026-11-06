@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "dropdown-editor",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T14:18:55.722Z"
+  },
+  "steps": {
+    "open-editor": "al expanded group 9 items",
+    "arrow-down-second": "alfa",
+    "arrow-down-third": "alto table 3 columns",
+    "commit-choice": "collapsed al",
+    "back-to-committed": "a alto table 3 columns"
+  }
+}

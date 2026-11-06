@@ -174,6 +174,20 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   anything else is a literal key (`DataSource#setAtCell` with `byProp`, `getRawAtCellByProp`). The
   general `setProperty()` always walks dots, so with `dataDotNotation: false` an undo created `row.a.b`
   and left `row['a.b']` at the new value. `setSourceDataAtCell()` outside a replay keeps walking dots.
+- **Every call into user code in the undo and redo paths is followed by `if (!this.hot)`.** The paths are
+  `undo()`, `redo()`, `#restore()`, `#takeStep()`, `#putBackStep()`, `#pushStep()`, `#dropSteps()`,
+  `#dropFromStack()`, `#revalidateChangedCells()`, `#restoreSelection()` and the custom-action paths of
+  `done()`. A listener of `beforeUndo`, `afterChange`, `afterRender` (the restore ends in `hot.render()`, and a
+  structural step renders again to re-validate), `beforeValidate`, `afterDeselect` or a stack-change hook can
+  destroy the grid, which clears `this.hot` and both stacks. `#restore()` then returns `false`, which is NOT a
+  veto: `undo()`/`redo()` test `this.hot` first and return, because a veto would put the step back on its
+  stack and fire hooks on a destroyed grid. Add the check after any new hook run in these methods. Some checks
+  are left out on purpose because the next statement already ends the call: `#restore()` returns `false` when
+  the tracker is gone, and a stale history returns before it reads `this.hot`. Not covered: the hooks
+  `restoreStep()` fires while `alter()` replays a row or column change, which throw inside core's `alter()`
+  (`runInShiftScope`) before this plugin gets control back, and the `afterSelection` and `afterSelectionEnd`
+  hooks of `selectCells()` in `#restoreSelection()`, which throw inside core's selection code. Pinned by
+  `__tests__/destroyInHook.unit.ts`, where setting any of these checks to `false` fails a case.
 - **Undo and redo do not run the operation again.** A step's own hooks - `beforeColumnSort`,
   `beforeFilter`, `beforeRowMove`, `beforeMoveCells` - do not fire and cannot veto. `beforeUndo`/
   `beforeRedo` are the veto points, and both are asked BEFORE the stack changes: a vetoed step stays
@@ -252,6 +266,43 @@ replaced dataset, and recorded in the new epoch it would write them into the new
 a settings update that disables and enables a plugin again (a framework wrapper does it on every
 render) re-registers the same names and keeps the history (`haveSameIndexMaps`). No warning is logged
 on a drop: `updateData` is routine in the wrappers, so one would fire on every data prop change.
+
+**`updateData()` drops the history only when it brings other data (DEV-3754).** A wrapper passes `data`
+again on every render (`ALWAYS_FORWARDED_SETTINGS` in the React and Angular wrappers, so an app that
+changes rows in place still reloads), so clearing on every call made an unrelated re-render empty both
+stacks. `#onAfterUpdateData` compares the data it installed with a COPY of the rows of the last load or update
+(`#datasetRows`, set through `#setDataset()` by `#onAfterLoadData`, `#onAfterUpdateData` and `enablePlugin()`; the
+live array is `#datasetArray`) through `hasSameRows()` (`sameRows.ts`). The copy is the point: the application can
+reorder or replace rows of the live array in place, and the live array would then agree with itself. The array must
+have the same length, and each row must be the same object as the copy holds or, while a stack holds a step or a
+step is pending, an array or plain object whose cells are `===` equal to the row at that index, for at most
+`MAX_COPIED_ROWS` (1000) such rows. The grid writes into the rows in place, so the rows of the copy hold what the
+grid shows: equal values mean the recorded steps still describe the data. This keeps the history for the same
+array, for `data.slice()`, and for an immutable row update (`rows.map(...)` that copies the edited row, with no
+filler row mismatch under `minSpareRows`). A dataset whose rows were all copied (`rows.map(row => ({ ...row }))`,
+a JSON clone) is kept up to the cap and counts as other data past it, so the value walk stays bounded. The
+reference compare runs first and the value compare ends on the first difference. The copy exists only while there
+is a history to protect: `#ensureDatasetRows()` takes it when a transaction opens, an update that keeps the history
+copies again, and `#resetHistory()` drops it, so a render with no step recorded copies and compares nothing (the
+wrapper's common case costs nothing). With a history, a call costs one `slice()` of the rows (about 0.1 ms at 100k
+rows, 3 ms at 1M), the compare (about 0.2 ms at 100k, 2 ms at 1M), and the cell reads of at most 1000 rows. The
+copy follows the grid's own row changes: `#followGridRows()` runs when a transaction settles, and when `updateData()`
+arrives while one is pending, and copies again only when the row count moved or a source shape is recorded. A change
+of the array that no step made is not followed, so it drops the history. A kept history runs a row-count and index-map check (`#keepsHistory()`), so rows spliced out of the
+array in place (the index mapper was already fitted to the new length) still drop it. It captures the grid state
+only when a stack holds a step and no transaction is pending, because a wrapper calls it on every render.
+The columns are left to `#checkSettingsUpdate()`, which keeps the steps that address no changed column.
+Limits: (1) a value changed in place in a row outside the grid (`data[0][0] = 'x'`) is not seen, so the history
+stays and an undo writes the old value back over it, as in 18.1; a reorder or replacement of rows is seen;
+(2) a nested object cell that was copied reads as another value, so the history goes;
+(3) with a recorded source shape (NestedRows, `#lastState.sourceStructures`) a copy clears the history,
+because the shape names the array it was captured on (`#datasetArray`) and `restoreShape()` skips another one;
+(4) `loadData()` with any array clears it (`#onAfterChange`). Vue reaches this path only when column
+modification is not allowed and the source column count changed (its `HotTable.vue` then keeps `settings.data`
+and passes it to `updateSettings()`); otherwise it deletes `settings.data` and relies on the reference. Pinned by
+the `updateData() with the rows the grid already holds` cases in `__tests__/undoRedo.unit.js`,
+`__tests__/sameRows.unit.ts`,
+`tests/e2e/undo-after-same-rows.spec.ts`, and the re-render cases in the React and Angular wrapper tests.
 
 An UNRECORDED transaction - a blocked one (root source `auto`, the grid's own rows) or an ignored one
 (a legacy `done()` action's undo or redo) - does not open an epoch when it only adds or removes rows

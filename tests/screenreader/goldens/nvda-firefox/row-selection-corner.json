@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "row-selection-corner",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T08:41:22.869Z"
+  },
+  "steps": {
+    "arrow-left-row-checkbox": "select row 1 row header selected 1 row 2 column 2",
+    "space-select-row": "select row 1 row header 1 row 2 column 2 row 1 selected",
+    "arrow-up-corner": "select whole grid selected row 1 column 2",
+    "space-select-all": "select whole grid selected row 1 column 2 5 of 5 rows selected",
+    "space-clear-all": "select whole grid selected row 1 column 2 0 of 5 rows selected",
+    "arrow-down-row-header": "select row 1 row header selected 1 row 2 column 2",
+    "arrow-right-cell": "a 1 selected a row 2 column 3",
+    "select-all-cells": "",
+    "arrow-down-after-select-all": "a 2 not selected a row 3 column 3"
+  }
+}

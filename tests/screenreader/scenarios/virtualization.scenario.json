@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "virtualization",
+  "surface": "A 200-row grid in a 120 px viewport: PageDown and Ctrl+Arrow move the focus past the rows on screen, to rows the grid renders only then, and each cell keeps its row position.",
+  "group": "keyboard",
+  "page": "grid",
+  "start": "page",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"spreadsheetData": [200, 3]}, {"updateSettings": {"height": 120, "colHeaders": ["Alpha", "Bravo", "Charlie"]}}, {"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "page-down",
+      "action": {"press": "PageDown"},
+      "expect": [["a4", "a 4"], ["row 5"]],
+      "note": "PageDown moves the selection one viewport down, past the rows a user saw: the cell it lands on and its row position. Finding: VoiceOver says nothing on the first PageDown, on both browsers (both recordings); NVDA names the cell."
+    },
+    {
+      "id": "page-down-again",
+      "action": {"press": "PageDown"},
+      "expect": [["a7", "a 7"], ["row 8"]],
+      "note": "A second PageDown, into rows the grid rendered only after the first one scrolled. Finding (VoiceOver's): VoiceOver names no row number on a focus move, on either browser: WebKit reads the header and the value (`alpha a7`), Chromium adds the row's cells (`row a7 b7 c7`). The row group misses on all four VoiceOver key steps that have one (here, to-last-row, arrow-up and to-first-row), as grid-core records for a well-formed ARIA grid too."
+    },
+    {
+      "id": "to-last-row",
+      "action": {"press": "ControlOrMeta+ArrowDown"},
+      "expect": [["a200", "a 200"], ["row 201"]],
+      "note": "Ctrl+ArrowDown (Cmd on macOS) jumps to the last of the 200 rows, which the grid renders only once it scrolls there: its value and its position, which keeps counting past the rows on screen (row 201 counts the header row). Finding: with Chromium, NVDA and VoiceOver say nothing here (both recordings), where NVDA with Firefox and VoiceOver with WebKit name A 200. Finding (VoiceOver's): no row number, as on page-down-again."
+    },
+    {
+      "id": "arrow-up",
+      "action": {"press": "ArrowUp"},
+      "expect": [["a199", "a 199"], ["row 200"]],
+      "note": "Finding (VoiceOver's): no row number, as on page-down-again."
+    },
+    {
+      "id": "to-first-row",
+      "action": {"press": "ControlOrMeta+ArrowUp"},
+      "expect": [["a1", "a 1"], ["row 2"]],
+      "note": "Ctrl+ArrowUp (Cmd on macOS) jumps back to the first row. Finding (VoiceOver's): no row number, as on page-down-again."
+    }
+  ]
+}

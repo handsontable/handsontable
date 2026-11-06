@@ -32,6 +32,8 @@ describe('AutoColumnSize and a pinned column width after a column move', () => {
   function createMovedGrid() {
     hot = new Core(container, {
       licenseKey: TEST_LICENSE_KEY,
+      // A raw `Core` is not a root instance, so no default theme is picked for it; name one.
+      themeName: 'ht-theme-main',
       data: [['a', 'b', 'c']],
       columns: [{ width: 200 }, {}, {}],
     });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadScenarios } from '../screenreader-scenario.mjs';
+import { laneOfProject, loadScenarios, unsupportedReason } from '../screenreader-scenario.mjs';
 import { GOLDEN_SCHEMA, normalizeAnnouncement } from '../screenreader-transcript.mjs';
 
 // tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes", "Recording goldens"): a golden is recorded on
@@ -78,8 +78,9 @@ test('every committed golden belongs to a screen reader project and its scenario
     assert.ok(scenario, `${where}: the scenario "${id}" exists under screenreader/scenarios/`);
     assert.ok(typeof golden.steps === 'object' && golden.steps !== null && !Array.isArray(golden.steps),
       `${where}: "steps" is an object of step id to normalized announcement, got ${JSON.stringify(golden.steps)}`);
-    assert.deepEqual(Object.keys(golden.steps), scenario.steps.map(step => step.id),
-      `${where}: the golden's steps are the scenario's step ids, in order. A step renamed, added, removed or moved needs the golden re-recorded (the nightly's update-goldens dispatch).`);
+    assert.deepEqual(Object.keys(golden.steps), scenario.steps.filter(step => unsupportedReason(step, laneOfProject(project)) === null).map(step => step.id),
+      `${where}: the golden's steps are the scenario's step ids its lane drives (a step unsupported there has no announcement), in order. `
+      + 'A step renamed, added, removed or moved needs the golden re-recorded (the nightly\'s update-goldens dispatch).');
     Object.entries(golden.steps).forEach(([step, announcement]) => {
       assert.equal(typeof announcement, 'string', `${where}: step "${step}" is a string, got ${JSON.stringify(announcement)}`);
       assert.equal(announcement, normalizeAnnouncement(announcement),

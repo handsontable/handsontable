@@ -1814,11 +1814,7 @@ class TableView {
         this.#rowHeadersCount = headerRenderers.length;
 
         if (this.hot.getSettings().ariaTags) {
-          // Update the aria-colcount attribute.
-          // Only needs to be done once after initialization/data update.
-          if (this.#getAriaColcount() === this.hot.countCols()) {
-            this.#updateAriaColcount(this.#rowHeadersCount);
-          }
+          this.#syncAriaColcount();
         }
 
         return headerRenderers;
@@ -1921,6 +1917,11 @@ class TableView {
           controller,
           cellCoordsFactory: (row: number, column: number) => this.hot._createCellCoords(row, column),
         });
+
+        // The click closed the editor, and a listener of that save destroyed the grid.
+        if (this.hot.isDestroyed) {
+          return;
+        }
 
         this.hot.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
         this.activeWt = this._wt;
@@ -3725,14 +3726,16 @@ class TableView {
   }
 
   /**
-   * Update the `aria-colcount` attribute by the provided value.
-   *
-   * @param {number} delta The number of columns to add or remove to the aria tag.
+   * Sets the `aria-colcount` attribute to the number of data columns plus the number of row-header
+   * columns. The attribute is written only when the value changed, because the row headers are
+   * resolved on every draw.
    */
-  #updateAriaColcount(delta: number) {
-    const colCount = this.#getAriaColcount() + delta;
+  #syncAriaColcount() {
+    const colCount = this.hot.countCols() + this.#rowHeadersCount;
 
-    setAttribute(this.hot.rootElement, [A11Y_COLCOUNT(colCount)]);
+    if (this.#getAriaColcount() !== colCount) {
+      setAttribute(this.hot.rootElement, [A11Y_COLCOUNT(colCount)]);
+    }
   }
 
   /**

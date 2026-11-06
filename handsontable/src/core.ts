@@ -63,7 +63,7 @@ import {
 } from './core/minimumSizes';
 import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
-import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
+import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -124,6 +124,24 @@ import { createWriteLedger, getCellWriteKey, isValidatorCorrection } from './cor
 import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
+
+/**
+ * The part of a sorting plugin that core reads and calls.
+ */
+interface SortingPluginLike {
+  isSorted(): boolean;
+  clearSort(): void;
+}
+
+/**
+ * The part of the Filters plugin that core reads and calls.
+ */
+interface FiltersPluginLike {
+  enabled: boolean;
+  exportConditions(): unknown[];
+  clearConditions(): void;
+  filter(): void;
+}
 
 let activeGuid: string | null = null;
 
@@ -487,6 +505,20 @@ export default function Core(
    */
   let initReadyStepsRunning = false;
   /**
+   * The column layout a data replacement made by `updateSettings()` must compare with the one it builds: the layout
+   * read before the payload merged, and whether columns added after the existing ones leave it as it was. `null`
+   * outside such a replacement.
+   */
+  let pendingColumnLayoutCheck: { previousLayout: ColumnLayout, columnsPath: boolean } | null = null;
+
+  /**
+   * Set while an `updateData()` call starts the column state over beside a sort or a filter, so they are cleared once
+   * the call has finished. Both name columns and change the rows, so the rows would keep a result the column state no
+   * longer describes.
+   */
+  let rowStateToClearAfterDataUpdate: { sorting: SortingPluginLike | null, filters: FiltersPluginLike | null } | null =
+    null;
+  /**
    * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
    */
   let isBeingDestroyed = false;
@@ -662,6 +694,7 @@ export default function Core(
    * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
    */
   let slotsResizeObserver: ResizeObserver | null = null;
+  let reserveSlotsChangedAtInit: (() => boolean) | null = null;
   /**
    * Stops watching the document's web font loads (see `refreshAfterFontsLoad()`), or `null` before
    * `init` started watching.
@@ -1533,6 +1566,11 @@ export default function Core(
 
     if (!['shift', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       editorManager.closeEditor();
+
+      // Closing the editor saves it, and a listener of the save can destroy the grid.
+      if (!instance) {
+        return;
+      }
     }
 
     // A `shift` re-lay (`alter()`'s shifts, the trim clamp and the DEV-152 grow) replays every layer
@@ -1541,6 +1579,12 @@ export default function Core(
 
     if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource) && !isIntermediateShiftLayer) {
       instance.view.render();
+
+      // An `afterRender` listener can destroy the grid.
+      if (!instance) {
+        return;
+      }
+
       editorManager.prepareEditor();
     }
   });
@@ -1559,12 +1603,29 @@ export default function Core(
     }
 
     editorManager.closeEditor();
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     editorManager.prepareEditor();
   });
 
   this.selection.addLocalHook('afterSelectionFinished',
     (cellRanges: Array<{from: {row: number, col: number}, to: {row: number, col: number}}>) => {
+      // A listener of the save the selection made (it closed the editor) destroyed the grid.
+      if (!instance) {
+        return;
+      }
+
       const selectionLayerLevel = cellRanges.length - 1;
       const { from, to } = cellRanges[selectionLayerLevel];
 
@@ -1590,7 +1651,18 @@ export default function Core(
 
   this.selection.addLocalHook('afterDeselect', () => {
     editorManager.closeEditor();
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
@@ -2897,7 +2969,9 @@ export default function Core(
       // (toolbars, pagination, license notification) aligns with the grid.
       const lastEdgeWidths = { top: -1, bottom: -1 };
       const syncEdgeSlotsWidth = () => {
-        if (instance.isDestroyed) {
+        // A listener from the settings runs before this one, and the hook run keeps walking its
+        // listeners after such a listener destroyed the grid, which nulls `instance`.
+        if (!instance || instance.isDestroyed) {
           return;
         }
 
@@ -2949,6 +3023,20 @@ export default function Core(
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
       let lastSlotsHeight = measureSlotsHeight();
+      const reserveChangedSlots = () => {
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return false;
+        }
+
+        lastSlotsHeight = slotsHeight;
+        reapplyPixelRootHeight(instance, tableMeta.height);
+
+        return true;
+      };
+
+      reserveSlotsChangedAtInit = reserveChangedSlots;
 
       // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
       // bar that mounts late or changes height would keep a stale reservation until an unrelated
@@ -2961,17 +3049,9 @@ export default function Core(
           return;
         }
 
-        const slotsHeight = measureSlotsHeight();
-
-        if (slotsHeight === lastSlotsHeight) {
-          return;
+        if (reserveChangedSlots()) {
+          instance.render();
         }
-
-        lastSlotsHeight = slotsHeight;
-
-        reapplyPixelRootHeight(instance, tableMeta.height);
-
-        instance.render();
       });
       slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
@@ -3004,7 +3084,22 @@ export default function Core(
 
     instance.runHooks('init');
 
+    // An `init` listener can fill a slot: the license notification writes the missing-features bar there,
+    // once every plugin's ready step has reported what the key leaves out. The slot observer would reserve
+    // its height a frame later, so the first render would size the grid as if the bar took no room. Reserve
+    // it now, and once more after the first render, which sets the slot's width to the table's and can wrap
+    // the bar onto more lines. Both run before `afterInit`, so its listeners read the final viewport.
+    const reserveSlots = reserveSlotsChangedAtInit;
+
+    reserveSlotsChangedAtInit = null;
+    reserveSlots?.();
+
     instance.render();
+
+    // A listener of the first render can destroy the grid, which sets `instance` to `null`.
+    if (reserveSlots !== null && instance && !instance.isDestroyed && reserveSlots()) {
+      instance.render();
+    }
 
     if (stopWatchingFontLoads === null) {
       stopWatchingFontLoads = watchFontLoads(instance.rootDocument, refreshAfterFontsLoad);
@@ -3739,11 +3834,21 @@ export default function Core(
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
 
+      // A listener of `beforeChangeRender`, of the render (`afterRender`), or of `afterChange` can
+      // destroy the grid, and nothing after it may read the destroyed instance or its editor.
+      if (!instance) {
+        return;
+      }
+
       if (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) {
         editorManager.closeEditor();
       }
 
       instance.render();
+
+      if (!instance) {
+        return;
+      }
 
       if (
         (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) ||
@@ -3753,6 +3858,10 @@ export default function Core(
       }
 
       instance.runHooks('afterChange', changes, source || 'edit');
+
+      if (!instance) {
+        return;
+      }
 
       if (
         activeEditor &&
@@ -4117,6 +4226,12 @@ export default function Core(
         openedEditor.prop!)
       : true;
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    // A `beforeChange` listener destroyed the grid, so nothing is left to apply the changes to.
+    if (!instance) {
+      return [];
+    }
+
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
@@ -4273,7 +4388,17 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
+    // `beforeChange` and `afterSetDataAtCell` listeners can destroy the grid, and nothing after them
+    // may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
+
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
+
+    if (!instance) {
+      return;
+    }
 
     validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
@@ -4390,7 +4515,17 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
+    // `beforeChange` and `afterSetDataAtRowProp` listeners can destroy the grid, and nothing after
+    // them may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
+
     instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
+
+    if (!instance) {
+      return;
+    }
 
     validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
@@ -4453,7 +4588,18 @@ export default function Core(
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.closeEditor(revertOriginal);
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
@@ -5374,8 +5520,12 @@ export default function Core(
    * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Keeps rows' states (e.g. row order)
    * - Keeps columns' states (e.g. column order)
+   *   (`updateSettings({ data, columns })` is the exception: it resets them when the columns changed, see {@link Core#updateSettings})
    * - Keeps the sorted row order and the trimmed rows. It does not sort or filter the new values again. To apply them, call `sort(getSortConfig())` of the `ColumnSorting` or `MultiColumnSorting` plugin, or `filter()` of the `Filters` plugin.
-   * - Clears the undo and redo history of the `UndoRedo` plugin.
+   * - Clears the undo and redo history of the `UndoRedo` plugin, unless `data` is what the grid shows
+   *   already: the same array, a copy of it, or rows that hold the same values. Cells are compared with `===`, so a
+   *   nested object that was copied counts as another value, and a copy of the array clears the history when the
+   *   `NestedRows` plugin is on.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
    *
@@ -5435,8 +5585,25 @@ export default function Core(
         // creation hooks and `selection.refresh()` the selection hooks, so a hook that throws
         // would otherwise leave the scope open for the rest of the task (DEV-2831).
         try {
-          instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
-          instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+          const layoutCheck = pendingColumnLayoutCheck;
+
+          if (layoutCheck && hasColumnLayoutChanged(layoutCheck.previousLayout, layoutCheck.columnsPath)) {
+            // The index state would now apply to the columns of a new schema or `columns` option. Starting it over
+            // here replaces `fitToLength()`, so each mapper updates its cache once.
+            if (layoutCheck.columnsPath) {
+              // A `columns` change speaks of columns, so the rows keep their order, hiding and trimming, and
+              // their generated ids. A sort lives in both axes: it names columns and orders rows, so it is cleared
+              // after this call, once the grid is consistent again.
+              rowStateToClearAfterDataUpdate = readRowStateOfColumns();
+              instance.columnIndexMapper.initToLength(instance.getInitialColumnCount());
+              instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+            } else {
+              instance.initIndexMappers();
+            }
+          } else {
+            instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
+            instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+          }
 
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
@@ -5783,7 +5950,7 @@ export default function Core(
    * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
    *
    * Passing `columns` inside the `settings` object resets the states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states.
+   * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states, with one exception: when the same call changes the column layout through `columns`, the column states (width, hiding, order, sort) start over. Adding columns to the end, or removing them from the end, keeps the states of the other columns. Rows keep theirs.
    *
    * After initialization, passing `data` calls [`updateData()`](@/api/core.md#updatedata) internally.
    * The resulting [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and
@@ -5971,6 +6138,11 @@ export default function Core(
             const metaPhase = applySettings(
               filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
             );
+
+            if (!instance || instance.isDestroyed) {
+              return;
+            }
+
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -6010,7 +6182,7 @@ export default function Core(
         }
       }));
     } finally {
-      if (suspendsRender) {
+      if (suspendsRender && instance && !instance.isDestroyed) {
         instance.resumeRender();
       }
     }
@@ -6187,30 +6359,99 @@ export default function Core(
   };
 
   /**
-   * Reads what decides the columns of a grid without a `columns` option: the number of columns the schema or the
-   * data resolves to, and the property each one reads.
+   * Reads what decides the columns of a grid: the number of columns the `columns` option, the schema, or the data
+   * resolves to, and the property each one reads.
    *
    * @private
+   * @param {boolean} [cappedByMapper] `true` to read the layout the index mappers were built for: the count never
+   * exceeds their length. A wrapper may append to the array it passed as `columns` before it calls
+   * `updateSettings()`, so the grid already counts the new column while its mappers and property cache do not. The
+   * mappers can only be longer than the layout (the `min*` options append columns), never shorter, so the cap
+   * leaves every other read as it was.
+   * @param {boolean} [fillIndexHoles] `true` to name a column without `data` by its own index when the rows are
+   * arrays, as the `columns` path compares layouts.
    * @returns {ColumnLayout}
    */
-  function readColumnLayout(): ColumnLayout {
+  function readColumnLayout(cappedByMapper = false, fillIndexHoles = false): ColumnLayout {
+    const initialCount = instance.getInitialColumnCount();
+    const count = cappedByMapper ?
+      Math.min(initialCount, instance.columnIndexMapper.getNumberOfIndexes()) :
+      initialCount;
+    const props = datamap.colToPropCache.slice();
+
+    if (fillIndexHoles && instance.dataType === 'array') {
+      // On rows that are arrays, a column without `data` reads the source column at its own index, so it names the
+      // same property as `data: <index>` does.
+      for (let index = 0; index < count; index += 1) {
+        if (props[index] === undefined) {
+          props[index] = index;
+        }
+      }
+    }
+
+    return { count, props };
+  }
+
+  /**
+   * Reads the sort and the filter conditions the grid holds, as they stand before the column state starts over.
+   *
+   * @private
+   * @returns {object} The sorting plugin that holds a sort and the Filters plugin that holds conditions, `null` for
+   * each one that does not.
+   */
+  function readRowStateOfColumns() {
+    const sortingPlugins = [instance.getPlugin('columnSorting'), instance.getPlugin('multiColumnSorting')];
+    const filters = instance.getPlugin('filters') as FiltersPluginLike | undefined;
+
     return {
-      count: instance.getInitialColumnCount(),
-      props: datamap.colToPropCache.slice(),
+      sorting: (sortingPlugins as (SortingPluginLike | undefined)[])
+        .find(plugin => plugin?.isSorted() === true) ?? null,
+      filters: filters?.enabled === true && filters.exportConditions().length > 0 ? filters : null,
     };
   }
 
   /**
+   * Clears the sort and the filter conditions that the column state restart of the last data update left behind. The
+   * column states are gone by now, so a sort returns the rows to their unsorted order and the cleared filter shows the
+   * rows it trimmed, and the indicators match the rows.
+   *
+   * @private
+   */
+  function clearRowStateAfterDataUpdate(): void {
+    const rowState = rowStateToClearAfterDataUpdate;
+
+    rowStateToClearAfterDataUpdate = null;
+    rowState?.sorting?.clearSort();
+
+    if (rowState?.filters) {
+      rowState.filters.clearConditions();
+      rowState.filters.filter();
+    }
+  }
+
+  /**
    * Checks whether a settings update changed the columns the grid resolves, comparing them with the layout read
-   * before the update. A grid with a `columns` option has its columns decided by that option, not by the schema.
+   * before the update.
    *
    * @private
    * @param {ColumnLayout|null} previousLayout The layout read before the update, `null` when the update could not
    * change it.
+   * @param {boolean} [tolerateAppend] `true` for the `columns` path: columns added after the existing ones, or
+   * dropped from the end, leave the layout as it was, because the `columns` option names every column and the
+   * ones that remain keep their place.
    * @returns {boolean}
    */
-  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null): boolean {
-    return previousLayout !== null && !tableMeta.columns && !isSameColumnLayout(previousLayout, readColumnLayout());
+  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null, tolerateAppend = false): boolean {
+    if (previousLayout === null) {
+      return false;
+    }
+
+    const layout = readColumnLayout(false, tolerateAppend);
+    const isUnchanged = tolerateAppend ?
+      isColumnLayoutKept(previousLayout, layout) :
+      isSameColumnLayout(previousLayout, layout);
+
+    return !isUnchanged;
   }
 
   /**
@@ -6283,8 +6524,9 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @returns {boolean} `true` when the payload changed the grid-level `type` to another one.
    */
-  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): void {
+  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): boolean {
     let i;
 
     // eslint-disable-next-line no-restricted-syntax
@@ -6307,6 +6549,14 @@ export default function Core(
         applyUpdatedSetting(settings, i);
       }
     }
+
+    // The loop above writes the options one by one, and `type` is only a name there. Expand it once all of
+    // them are in, so an `editor`, `renderer` or `validator` of the same payload wins over the type.
+    if (init) {
+      return false;
+    }
+
+    return metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
   }
 
   /**
@@ -6717,12 +6967,21 @@ export default function Core(
       dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
 
     } else if (settings.data !== undefined) {
-      dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
+      // `updateData()` keeps the index state, which would now apply to the properties of a new schema or to the
+      // columns of a new `columns` option. A wrapper sends `data` with every call, so `columns` reaches this branch
+      // beside it. The replacement compares the layouts and starts the state over when they differ. Columns added
+      // after the existing ones keep their place, and with them the state.
+      pendingColumnLayoutCheck = previousColumnLayout === null ?
+        null :
+        { previousLayout: previousColumnLayout, columnsPath: settings.columns !== undefined };
 
-      // `updateData()` keeps the index state, which would now apply to the properties of a new schema.
-      if (hasColumnLayoutChanged(previousColumnLayout)) {
-        instance.initIndexMappers();
+      try {
+        dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
+      } finally {
+        pendingColumnLayoutCheck = null;
       }
+
+      clearRowStateAfterDataUpdate();
 
     } else if (settings.columns !== undefined) {
       datamap.createMap();
@@ -6779,13 +7038,17 @@ export default function Core(
    * @param {Array|null} restoredCellOptionMetas `cell`-option meta, by physical indexes, to put back instead of
    * applying `settings.cell` (see `_applySettingsAndData()`).
    * @param {object|null} keptCellMetas The user-set meta and invalid marks to put back (see `_applySettingsAndData()`).
+   * @param {boolean} gridTypeChanged Whether the call changed the grid-level `type` to another one. The cells already
+   * drawn keep what the previous type's renderer wrote onto their meta (the numeric alignment class, the checkbox
+   * templates), so they are reset the way a `columns` change resets them.
    */
   function applyMetaPhase(
     settings: SettingsUpdate,
     columnPhase: { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean },
     isCellOptionRestated: boolean,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null,
-    keptCellMetas: KeptCellMetas | null
+    keptCellMetas: KeptCellMetas | null,
+    gridTypeChanged: boolean
   ): void {
     const { earlyColumnsSetting, resetsColumnMetaBeforeLoad } = columnPhase;
     const clen = instance.countCols();
@@ -6793,7 +7056,8 @@ export default function Core(
     // Clear the meta caches, unless the early column pass (`applyColumnMetaBeforeLoad()`) already did it for this
     // call.
     if (earlyColumnsSetting === null && !resetsColumnMetaBeforeLoad &&
-        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined ||
+          gridTypeChanged)) {
       resetMetaCaches(isCellOptionRestated);
     }
 
@@ -6824,6 +7088,20 @@ export default function Core(
   }
 
   /**
+   * Checks whether a payload sends `columns` beside `data`, as a wrapper does with every change of its columns.
+   * The function form is left out: counting its columns calls the user's function once per source column, and a
+   * wrapper that writes it inline would pay that twice on every render.
+   *
+   * @private
+   * @param {object} settings A settings object (see {@link Options}).
+   * @returns {boolean}
+   */
+  function isColumnsPayloadWithData(settings: SettingsUpdate): boolean {
+    return settings.data !== undefined && settings.columns !== undefined &&
+      !isFunction(settings.columns) && !isFunction(tableMeta.columns);
+  }
+
+  /**
    * Reads the state an `updateSettings()` call must compare against, before the payload merges into the table meta.
    *
    * @private
@@ -6841,12 +7119,16 @@ export default function Core(
         minCols: tableMeta.minCols,
         minSpareCols: tableMeta.minSpareCols,
       },
-      // A call that carries `dataSchema` may change the columns the grid resolves, and the data phase can only tell
-      // by comparing them with the ones the grid has now. Without `columns`, the schema decides both the number of
-      // columns and the property each one reads. The key counts even when its value is `undefined`, which falls back
-      // to the schema read off the data.
-      previousColumnLayout: !firstRun && !tableMeta.columns &&
-        hasOwnProperty(settings, 'dataSchema') ? readColumnLayout() : null,
+      // A call that carries `dataSchema`, or `columns` beside `data`, may change the columns the grid resolves, and
+      // the data phase can only tell by comparing them with the ones the grid has now. Without `columns`, the schema
+      // decides both the number of columns and the property each one reads. The key counts even when its value is
+      // `undefined`, which falls back to the schema read off the data. A call with `columns` and no `data` starts
+      // the index state over on its own branch, so it needs no baseline. A `columns` function is never compared (see
+      // `isColumnsPayloadWithData()`), also beside a `dataSchema` on a grid that had no `columns`.
+      previousColumnLayout: !firstRun && (
+        (!tableMeta.columns && hasOwnProperty(settings, 'dataSchema') && !isFunction(settings.columns)) ||
+        isColumnsPayloadWithData(settings)
+      ) ? readColumnLayout(true, isColumnsPayloadWithData(settings)) : null,
       // The stored `height` and `width` before this call. An unreadable value is ignored by
       // `applyRootSize()`, and the stored setting must stay on the size the grid uses. On init the
       // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.
@@ -6998,7 +7280,8 @@ export default function Core(
       previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataSource,
     } = readSettingsBaseline(settings, init);
 
-    mergeSettingsIntoMeta(settings, init);
+    const gridTypeChanged = mergeSettingsIntoMeta(settings, init);
+
     applyThemeSettings(settings, init);
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
@@ -7026,7 +7309,7 @@ export default function Core(
     }
 
     const metaPhase = () => applyMetaPhase(
-      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas
+      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas, gridTypeChanged
     );
 
     if (!defersDataWork) {
@@ -7043,6 +7326,10 @@ export default function Core(
 
     if (!init) {
       notifySettingsUpdated(notifiedSettings);
+
+      if (!instance || instance.isDestroyed) {
+        return null;
+      }
     }
 
     if (!defersDataWork) {
@@ -8701,9 +8988,12 @@ export default function Core(
    * Validates every cell in the data set,
    * using a [validator function](@/guides/cell-functions/cell-validator/cell-validator.md) configured for each cell.
    *
-   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md),
-   * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md)
+   * or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
+   *
+   * Does validate rows hidden with [`HiddenRows`](@/api/hiddenRows.md) and columns hidden with
+   * [`HiddenColumns`](@/api/hiddenColumns.md). Those cells stay in the data set.
    *
    * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
    * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
@@ -9608,6 +9898,11 @@ export default function Core(
       }
     }
 
+    // The selection closed the editor, and a listener of that save destroyed the grid.
+    if (!instance) {
+      return wasSelected;
+    }
+
     if (wasSelected && changeListener) {
       instance.listen();
     }
@@ -10105,6 +10400,8 @@ export default function Core(
 
     datamap = null!;
     grid = null!;
+    // A selection method can still be running (it closed an editor whose save destroyed the grid).
+    selection?.destroy();
     selection = null!;
     editorManager = null!;
     instance = null as unknown as HotInstance;

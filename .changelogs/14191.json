@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where cells that were already drawn kept the previous type's alignment class and templates after changing the grid-level `type` with `updateSettings()`, and where the result cells of the `columnSummary` plugin became editable after an `updateSettings()` call with `cells` or `cell`.",
+  "type": "fixed",
+  "issueOrPR": 14191,
+  "breaking": false,
+  "framework": "none"
+}

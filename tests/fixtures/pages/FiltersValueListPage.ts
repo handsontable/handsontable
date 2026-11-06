@@ -264,6 +264,91 @@ export class FiltersValueListPage {
   }
 
   /**
+   * Every item of the "filter by value" list, including those past the fold.
+   *
+   * The list is virtualized, so `listedValues()` sees only the rows that are rendered. This scrolls
+   * the list from top to bottom one page at a time, collects each page, and scrolls back to the top.
+   * Each page is read in one evaluation (Walkontable recycles row nodes, so separate reads could pair
+   * one row's checkbox with another row's label), and each scroll waits until the rendered labels
+   * change or the end of the list is reached, never a frame count.
+   *
+   * @returns {Promise<Array>} One entry per listed value, in display order.
+   */
+  async allListedValues(): Promise<{ checked: boolean; label: string }[]> {
+    const holder = this.menu.locator('.htUIMultipleSelect .ht_master .wtHolder');
+    // One evaluation per page, so a row's checkbox and label always come from the same node: Walkontable
+    // recycles `<tr>` nodes on scroll. The list table is `role="presentation"` and carries no
+    // `aria-rowcount`, so "last item rendered" cannot be read from the DOM; the end is found instead
+    // from the scroll position clamping (set synchronously by the browser). Each scroll waits until the
+    // rendered rows cover the whole viewport again: a repaint that has not happened yet leaves the old
+    // rows scrolled out of view and a gap at the bottom.
+    const readRows = () => holder.evaluate(el => Array.from(el.querySelectorAll('.htCore tbody tr')).map((row) => {
+      const checkbox = row.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+      const label = row.querySelector('label') as HTMLElement | null;
+
+      if (!checkbox || !label) {
+        throw new Error('A rendered row of the filter-by-value list has no checkbox or label.');
+      }
+
+      return { checked: checkbox.checked, label: label.innerText.trim() };
+    }));
+    // A render-state wait, not an assertion: the rows only have to cover the viewport, which says
+    // nothing about the theme's row heights.
+    const waitForViewportCovered = async() => this.page.waitForFunction((el) => {
+      if (!el) {
+        return false;
+      }
+
+      const rows = el.querySelectorAll('.htCore tbody tr');
+      const first = rows[0]?.getBoundingClientRect();
+      const last = rows[rows.length - 1]?.getBoundingClientRect();
+      const box = el.getBoundingClientRect();
+
+      return !!first && !!last && first.top <= box.top + 1 && box.bottom - last.bottom < last.height;
+    }, await holder.elementHandle(), { polling: 50 });
+    const scrollTo = (top: number) => holder.evaluate((el, value) => {
+      el.scrollTop = value;
+
+      return el.scrollTop;
+    }, top);
+    const collected: { checked: boolean; label: string }[] = [];
+    const MAX_PAGES = 200;
+
+    await scrollTo(0);
+    await expect.poll(async () => (await readRows()).length).toBeGreaterThan(0);
+
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const rows = await readRows();
+
+      for (const item of rows) {
+        if (!collected.some(({ label }) => label === item.label)) {
+          collected.push(item);
+        }
+      }
+
+      const { top, height } = await holder.evaluate(el => ({ top: el.scrollTop, height: el.clientHeight }));
+
+      // The browser clamps `scrollTop` at once, so an unchanged position means the end was reached and
+      // the rows read above are the last render.
+      if (await scrollTo(top + height - 1) === top) {
+        break;
+      }
+
+      if (page === MAX_PAGES - 1) {
+        throw new Error(`The filter-by-value list did not reach its end within ${MAX_PAGES} pages; ` +
+          `${collected.length} values were read, so the list would be returned incomplete.`);
+      }
+
+      // Settled once the repaint has filled the viewport.
+      await waitForViewportCovered();
+    }
+
+    await scrollTo(0);
+
+    return collected;
+  }
+
+  /**
    * Check the "filter by value" item carrying the given label.
    *
    * The value box is about 110px tall and virtualized, so it holds roughly four rows. A row at or
@@ -460,8 +545,53 @@ export class FiltersValueListPage {
     }, { row, col, value });
   }
 
+  /**
+   * The values of every row the grid keeps in the given column, read through `getDataAtCol()`, so
+   * rows outside the rendered viewport count too.
+   *
+   * @param {number} col The visual column index.
+   * @returns {Promise<Array>} One value per visual row.
+   */
+  async columnData(col: number): Promise<unknown[]> {
+    return this.page.evaluate(column => window.hot.getDataAtCol(column), col);
+  }
+
   /** The number of rows the grid currently shows (source rows minus the filtered-out ones). */
   async visibleRowCount(): Promise<number> {
     return this.page.evaluate(() => window.hot.countRows());
+  }
+
+  /**
+   * Collapse a nested parent by clicking the collapse button in its row header (the inline-start
+   * clone paints the headers the user sees), then wait until the grid shows fewer rows. The header is
+   * found by the `row-header-<visual row>` test id the fixture stamps in `afterGetRowHeader`, never by
+   * its rendered position, which differs from the visual row once the grid scrolls.
+   *
+   * @param {number} row The parent's visual row index.
+   */
+  async collapseNestedParent(row: number): Promise<void> {
+    const rowsBefore = await this.visibleRowCount();
+
+    await this.page
+      .locator(`.ht_clone_inline_start [data-testid="row-header-${row}"] .ht_nestingCollapse`)
+      .click();
+
+    await expect.poll(() => this.visibleRowCount()).toBeLessThan(rowsBefore);
+  }
+
+  /**
+   * Expand a collapsed nested parent by clicking the expand button in its row header (found by its
+   * `row-header-<visual row>` test id), then wait until the grid shows more rows.
+   *
+   * @param {number} row The parent's visual row index.
+   */
+  async expandNestedParent(row: number): Promise<void> {
+    const rowsBefore = await this.visibleRowCount();
+
+    await this.page
+      .locator(`.ht_clone_inline_start [data-testid="row-header-${row}"] .ht_nestingExpand`)
+      .click();
+
+    await expect.poll(() => this.visibleRowCount()).toBeGreaterThan(rowsBefore);
   }
 }

@@ -42,7 +42,9 @@
       "version": "macOS 26",
       "platform": "macOS",
       "browsers": ["WebKit (Playwright)", "Chromium"],
-      "howTested": ["automated-nightly"]
+      "howTested": ["automated-nightly"],
+      "scenarios": 24,
+      "unsupported": []
     },
     {
       "name": "VoiceOver",
@@ -61,7 +63,9 @@
       "version": "2026.2",
       "platform": "Windows Server 2025",
       "browsers": ["Chromium", "Firefox (Playwright)"],
-      "howTested": ["automated-nightly"]
+      "howTested": ["automated-nightly"],
+      "scenarios": 24,
+      "unsupported": ["read in"]
     },
     {
       "name": "JAWS",

@@ -98,6 +98,7 @@ const jsPaths = [
   { path: 'guides/optimization/batch-operations/batch-operations' },
   // TODO { path: 'guides/optimization/touch-events/touch-events' },
   { path: 'guides/optimization/performance/performance' },
+  { path: 'guides/optimization/many-grids/many-grids' },
   // TODO { path: 'guides/optimization/key-concepts/key-concepts' },
   { path: 'guides/optimization/bundle-size/bundle-size' },
   { path: 'guides/security/security/security' },
@@ -220,6 +221,7 @@ const reactPaths = [
   { path: 'guides/optimization/batch-operations/batch-operations' },
   // TODO { path: 'guides/optimization/touch-events/touch-events' },
   { path: 'guides/optimization/performance/performance' },
+  { path: 'guides/optimization/many-grids/many-grids' },
   // TODO { path: 'guides/optimization/key-concepts/key-concepts' },
   { path: 'guides/optimization/bundle-size/bundle-size' },
   { path: 'guides/security/security/security' },
@@ -339,6 +341,7 @@ const angularPaths = [
   { path: 'guides/optimization/batch-operations/batch-operations' },
   // TODO { path: 'guides/optimization/touch-events/touch-events' },
   { path: 'guides/optimization/performance/performance' },
+  { path: 'guides/optimization/many-grids/many-grids' },
   // TODO { path: 'guides/optimization/key-concepts/key-concepts' },
   { path: 'guides/optimization/bundle-size/bundle-size' },
   { path: 'guides/security/security/security' },
@@ -491,6 +494,7 @@ const vuePaths = [
   // Optimization
   { path: 'guides/optimization/batch-operations/batch-operations' },
   { path: 'guides/optimization/performance/performance' },
+  { path: 'guides/optimization/many-grids/many-grids' },
   { path: 'guides/optimization/bundle-size/bundle-size' },
   // Security
   { path: 'guides/security/security/security' },

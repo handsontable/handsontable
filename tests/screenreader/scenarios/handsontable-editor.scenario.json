@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "id": "handsontable-editor",
+  "surface": "The handsontable editor, a grid of choices under a text field: opening it, arrowing down its rows, and Enter committing the highlighted row.",
+  "group": "editors",
+  "page": "handsontable-editor",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["al"], ["edit", "text entry area"]],
+      "note": "Enter opens the editor on the cell holding `Al`: a text field over a one-column grid of Alpha, Alfa and Alto. The editor moves through that grid with ArrowUp and ArrowDown only; ArrowLeft and ArrowRight move the caret in the text field, so no key crosses the inner grid's columns. Required: the text and the field's role (NVDA `edit`, VoiceOver with Chromium `text entry area`). VoiceOver with WebKit names no role for an editor (grid-core)."
+    },
+    {
+      "id": "arrow-down-first",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alpha"]],
+      "note": "ArrowDown highlights the inner grid's first row while the focus stays in the text field. Finding: nothing is said on any reader, on this step or the next two: the editor sets no aria-activedescendant and the inner grid is built with ariaTags off, so the highlighted row is never exposed."
+    },
+    {
+      "id": "arrow-down-second",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alfa"]]
+    },
+    {
+      "id": "arrow-down-third",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alto"]]
+    },
+    {
+      "id": "commit-row",
+      "action": {"press": "Enter"},
+      "expect": [["al"], ["row 3"]],
+      "note": "Enter commits the highlighted row and moves the selection one row down (enterMoves); the focus reaches the next row's cell, `Al`, and every reader reads it. VoiceOver names no row (its behavior)."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["alto"]],
+      "note": "ArrowUp moves to the edited cell, which now holds the committed row's value, `Alto`."
+    }
+  ]
+}

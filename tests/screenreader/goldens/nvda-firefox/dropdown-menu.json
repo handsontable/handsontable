@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "dropdown-menu",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T10:50:55.307Z"
+  },
+  "steps": {
+    "open-menu": "table insert column left row 1 column 1 menu",
+    "arrow-down-insert-right": "table insert column right row 2",
+    "arrow-down-remove": "remove column row 4",
+    "arrow-down-clear": "clear column row 6",
+    "arrow-down-read-only": "read only not checked row 8",
+    "close-menu": "handsontable e 2e fixture filters value list document",
+    "arrow-down-in-grid": "table green not selected color row 3 column 3"
+  }
+}

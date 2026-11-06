@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "row-selection-corner",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T08:41:23.012Z"
+  },
+  "steps": {
+    "arrow-left-row-checkbox": "select row 1 row header 1 row 8 column 2",
+    "space-select-row": "row 1 selected",
+    "arrow-up-corner": "select whole grid selected row 13 column 2",
+    "space-select-all": "5 of 5 rows selected",
+    "space-clear-all": "0 of 5 rows selected",
+    "arrow-down-row-header": "select row 1 row header 1 row 8 column 2",
+    "arrow-right-cell": "a 1 a row 2 column 3",
+    "select-all-cells": "",
+    "arrow-down-after-select-all": "a 2 a row 3 column 3"
+  }
+}

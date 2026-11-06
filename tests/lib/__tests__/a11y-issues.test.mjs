@@ -13,11 +13,13 @@ import {
   MATCH_FIELDS,
   READER_KINDS,
   TRIAGE_ID,
+  catalogFinding,
   findingShape,
   clusterOf,
   compileIssuesCatalog,
   maskSelector,
   matchClusters,
+  trackedBy,
   validateIssuesCatalog,
 } from '../a11y-issues.mjs';
 import { VOLATILE_CLASSES } from '../a11y-baseline.mjs';
@@ -195,7 +197,7 @@ test('validateIssuesCatalog refuses a field no finding of the rule\'s source car
   )), []);
   assert.equal(AXE_SCAN_CHECK, 'axe');
   assert.equal(AXE_SCAN_KIND, 'axe-violation');
-  assert.deepEqual(READER_KINDS, ['token-missing', 'golden-differs']);
+  assert.deepEqual(READER_KINDS, ['token-missing', 'golden-differs', 'traversal-off']);
 });
 
 test('a docs rule names the docs scan\'s check, its color schemes and the docs baseline\'s issues', () => {
@@ -267,6 +269,46 @@ test('matchClusters ANDs the fields of a rule, ORs the values in a field and the
   assert.deepEqual(matchClusters(finding({ source: 'axe', check: 'axe', kind: 'axe-violation', rule: 'color-contrast', theme: 'horizon' }), catalog), []);
   assert.deepEqual(matchClusters(finding({ source: 'reader', check: 'nvda-chromium', kind: 'token-missing', page: 'grid-core', theme: null, where: 'close-editor', criteria: [] }), catalog), ['reader-step']);
   assert.deepEqual(matchClusters(finding({ source: 'reader', check: 'nvda-chromium', kind: 'token-missing', page: 'grid-core', theme: null, where: 'close-editor-again', criteria: [] }), catalog), []);
+});
+
+test('catalogFinding reads a check run\'s finding the way the ledger does, so a cluster rule matches it at PR time too', () => {
+  assert.deepEqual(catalogFinding('checks', 'keyboard-walker', {
+    kind: 'focus-lost', criteria: ['2.4.3'], page: 'grid', theme: 'main', selector: 'td.ht_1a2b3c4d.current', step: 'Tab 3',
+    severity: 'serious', reason: 'r',
+  }), {
+    source: 'checks', check: 'keyboard-walker', kind: 'focus-lost', rule: null, cause: null, criteria: ['2.4.3'],
+    page: 'grid', theme: 'main', where: 'td.ht_* @ Tab 3', issue: null,
+  });
+  assert.equal(catalogFinding('checks', 'reflow', { kind: 'k', criteria: [], page: 'p', theme: 'main', step: 'only a step' }).where, 'only a step');
+  assert.deepEqual(catalogFinding('axe', 'axe', {
+    page: 'context-menu', theme: 'main', rule: 'aria-required-parent', target: 'td.htSeparator.current[role="menuitem"]',
+    wcag: ['1.3.1'], suggestedIssue: 'menu-separators',
+  }), {
+    source: 'axe', check: AXE_SCAN_CHECK, kind: AXE_SCAN_KIND, rule: 'aria-required-parent', cause: null, criteria: ['1.3.1'],
+    page: 'context-menu', theme: 'main', where: 'td.htSeparator[role="menuitem"]', issue: 'menu-separators',
+  });
+  assert.equal(catalogFinding('axe', 'axe', { page: 'p', theme: 'main', rule: 'r', target: 't', issue: 'known', suggestedIssue: 'other' }).issue, 'known',
+    'a matched finding\'s own issue wins over a suggestion');
+  assert.deepEqual(catalogFinding('reader', 'nvda-chromium', { scenario: 'grid-core', step: 'close-editor', kind: 'token-missing' }), {
+    source: 'reader', check: 'nvda-chromium', kind: 'token-missing', rule: null, cause: null, criteria: [],
+    page: 'grid-core', theme: null, where: 'close-editor', issue: null,
+  });
+});
+
+test('trackedBy says whether a finding\'s cluster has a tracker, and tracks nothing without a catalog', () => {
+  const catalog = compileIssuesCatalog(catalogOf(
+    ['one', [{ source: 'checks', kinds: ['focus-not-returned'] }], { tracker: 'TASK-1' }],
+    ['two', [{ source: 'checks', kinds: ['keyboard-trap'] }], { tracker: ['TASK-2', 'TASK-3'] }],
+    ['three', [{ source: 'checks', kinds: ['tab-keeps-focus'] }]],
+  ));
+  const tracked = trackedBy(catalog);
+  const item = kind => ({ kind, criteria: ['2.4.3'], page: 'grid', theme: 'main', step: 'Escape' });
+
+  assert.equal(tracked('checks', 'keyboard-walker', item('focus-not-returned')), true);
+  assert.equal(tracked('checks', 'keyboard-walker', item('keyboard-trap')), true, 'a list of trackers is tracked');
+  assert.equal(tracked('checks', 'keyboard-walker', item('tab-keeps-focus')), false, 'a cluster without a tracker is not');
+  assert.equal(tracked('checks', 'keyboard-walker', item('focus-lost')), false, 'needs-triage is not');
+  assert.equal(trackedBy(null)('checks', 'keyboard-walker', item('focus-not-returned')), false);
 });
 
 test('clusterOf names the cluster and its tracker, sends an unmatched finding to needs-triage, and reports an ambiguous one', () => {
