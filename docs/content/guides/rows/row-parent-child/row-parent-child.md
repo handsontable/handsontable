@@ -410,6 +410,25 @@ hot.batchExecution(() => {
 }, true);
 ```
 
+## Filtering
+
+You can use the [`Filters`](@/api/filters.md) plugin together with the `NestedRows` plugin. Enable both the [`nestedRows`](@/api/options.md#nestedrows) and [`filters`](@/api/options.md#filters) options, and add the [`dropdownMenu`](@/api/options.md#dropdownmenu) option so users can open the filter menu.
+
+Filtering keeps the tree intact:
+
+- A row that matches the filter is shown together with all its parent rows.
+- A parent row that matches the filter is shown together with all its child rows, at every level, whether the children match or not.
+- A parent row that matches only because its filtered cells are empty (for example, with **(Blank cells)** selected) keeps its place in the tree, but not its other child rows.
+- Kept parent and child rows look like any other row. Nothing marks them as kept.
+
+The **Filter by value** list shows the values of every row that the other columns' filters keep: parents and children at every level, including rows inside collapsed parents.
+
+Because a filter keeps parents and children that don't match, the list can show a value that belongs only to a kept row. Clearing that value's checkbox may not hide the row, because the row stays as the parent of a match or as part of a matching parent's subtree.
+
+Collapsing and expanding rows work while a filter is on. When you collapse all rows, the kept top-level parents stay visible.
+
+For how screen readers count rows in a filtered tree, see [Screen readers](#screen-readers).
+
 ## Notes
 
 ### Known limitations
@@ -417,7 +436,6 @@ hot.batchExecution(() => {
 When you use the parent-child row structure, the following Handsontable features are not supported:
 
 - [Data source as an array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays)
-- [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
 - [Manual row moving via `moveRows()`](@/api/manualRowMove.md#moverows) - use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead
 
@@ -467,7 +485,7 @@ The row header of a parent row gets `aria-expanded`, set to `true` or `false`. R
 
 The attributes update when you collapse or expand a row and when you load new data. They are removed when you disable the plugin or switch off `rowHeaders`. Not every screen reader reads them: VoiceOver on macOS announces the expanded state but not the level or the position.
 
-The position and the number of siblings come from your data. Rows that the [`HiddenRows`](@/api/hiddenRows.md) or [`TrimRows`](@/api/trimRows.md) plugin removes from view are still counted.
+The position and the number of siblings come from your data. Rows that the [`HiddenRows`](@/api/hiddenRows.md) plugin hides still count. Rows that a filter or the [`TrimRows`](@/api/trimRows.md) plugin removes don't, so the numbers describe the rows you can reach.
 
 When you collapse or expand a row with the keyboard or with the row header button, Handsontable announces the change through a polite live region: for example, "Expanded row 1, expanded rows shown: 5" or "Collapsed row 1". The row is named after the text its row header shows, the same label sighted users see next to the row, or after its row number when the header is empty. Changes made through the API methods are not announced, so your application can describe them in its own words. With `ariaTags` set to `false`, nothing is announced.
 

@@ -284,6 +284,61 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * Filter the first column down to the rows that carry one of the names, through the Filters plugin
+   * (switched on first, as the fixture grid does not enable it). Nested rows keep the matching rows,
+   * their ancestors, and the subtree of a matching parent.
+   *
+   * @param names The values the first column is filtered by.
+   */
+  async filterByNames(names: string[]): Promise<void> {
+    await this.page.evaluate((values) => {
+      window.hot.updateSettings({ filters: true });
+
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [values]);
+      filters.filter();
+    }, names);
+  }
+
+  /**
+   * Replace the filter on the `name` column with another set of names in one filter pass, so the
+   * trimming goes from one filtered state straight to another without showing every row between.
+   *
+   * @param names The names to keep.
+   */
+  async replaceFilterByNames(names: string[]): Promise<void> {
+    await this.page.evaluate((values) => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.addCondition(0, 'by_value', [values]);
+      filters.filter();
+    }, names);
+  }
+
+  /**
+   * Remove the filter again, through the Filters plugin.
+   */
+  async clearFilter(): Promise<void> {
+    await this.page.evaluate(() => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.filter();
+    });
+  }
+
+  /**
+   * Trim rows through the `TrimRows` plugin, by physical index.
+   *
+   * @param rows Physical row indexes to trim.
+   */
+  async trimRows(rows: number[]): Promise<void> {
+    await this.page.evaluate(indexes => window.hot.updateSettings({ trimRows: indexes }), rows);
+  }
+
+  /**
    * Append a child to a parent row through the plugin's data manager, as the context menu's
    * "Insert child row" does.
    *

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed filtering with the `nestedRows` option: the \"Filter by value\" list now shows every value in the tree, including rows inside collapsed parents, and a filtered grid keeps the parent rows of matching rows and the child rows of matching parents. Screen readers now count only the rows that a filter or the `TrimRows` plugin leaves. Added the `modifyFiltersMatchedRows` hook, which lets you change the rows a filter keeps.",
+  "type": "fixed",
+  "issueOrPR": 14143,
+  "breaking": false,
+  "framework": "none"
+}
