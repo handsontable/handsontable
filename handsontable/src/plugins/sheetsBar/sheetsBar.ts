@@ -83,6 +83,7 @@ import type {
   DataProviderRequestKind,
 } from '../dataProvider/dataProvider';
 import type { FormulasEngineSheetOrder } from '../formulas/formulas';
+import type { HyperFormulaEngine } from '../formulas/engine/types';
 import { listEngineElements } from '../formulas/indexSyncer/engineElements';
 import { LICENSE } from './feature.generated';
 
@@ -1288,7 +1289,7 @@ export class SheetsBar extends BasePlugin {
           ? topLevelData
           : null;
         this.#topLevelDataOwnerId = this.#declaredEntries.size === 0
-          ? (this.#model.getSheets()[0]?.id ?? null)
+          ? (this.#model.getActiveSheet()?.id ?? null)
           : null;
       } catch (error) {
         this.hot._removeSettingsFilter(this.#filterGridSettings);
@@ -3387,10 +3388,10 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    const engineEntries = this.#planEngineSheets();
+    const enginePlan = this.#planEngineSheets();
 
-    if (engineEntries !== null) {
-      this.#buildSheetsWorkbook(engineEntries, false, 0);
+    if (enginePlan !== null) {
+      this.#buildSheetsWorkbook(enginePlan.entries, false, enginePlan.openingIndex);
 
       return;
     }
@@ -3407,14 +3408,15 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Returns the tabs of a workbook built from the grid-level `formulas.engine` (`planEngineWorkbook()`), or
-   * `null` when that is not an engine instance holding a sheet. Read once, when the workbook is built, so
-   * engine sheets added, removed, or renamed outside the grid later are not followed. A `sheetName` the
-   * engine lacks, with no grid `data`, is reported, and no engine sheet is made for it.
+   * Returns the tabs of a workbook built from the grid-level `formulas.engine` (`planEngineWorkbook()`) and
+   * the position of the opening one, or `null` when that is not an engine instance holding a sheet this grid
+   * may list. Read once, when the workbook is built, so engine sheets added, removed, or renamed outside the
+   * grid later are not followed. A `sheetName` the engine lacks, with no grid `data`, is reported, and no
+   * engine sheet is made for it. Engine sheets other grids are bound to are left out.
    *
-   * @returns {Array|null}
+   * @returns {object|null}
    */
-  #planEngineSheets(): SheetsBarSheetConfig[] | null {
+  #planEngineSheets(): { entries: SheetsBarSheetConfig[], openingIndex: number } | null {
     const { formulas, data } = this.hot.getSettings();
 
     if (!isPlainObject(formulas) || !isEngineInstance((formulas as SheetFormulas).engine)) {
@@ -3427,23 +3429,54 @@ export class SheetsBar extends BasePlugin {
       return null;
     }
 
+    const formulasPlugin = this.hot.getPlugin('formulas');
     const plan = planEngineWorkbook({
       engine,
-      formulas: formulas as Record<string, unknown>,
+      formulas: this.#withBoundSheetName(formulas as Record<string, unknown>),
       data,
       activeSheet: this.getSetting('activeSheet'),
       defaultName: (this.#model as SheetModel).peekDefaultName(),
+      excludedNames: formulasPlugin?.getSheetNamesBoundElsewhere(engine as unknown as HyperFormulaEngine) ?? [],
     });
+
+    if (plan.entries.length === 0) {
+      return null;
+    }
 
     if (plan.missingSheetName !== null) {
       warn(`The formula engine has no sheet named "${plan.missingSheetName}", so the sheets bar opens its ` +
         'first sheet instead.');
     }
 
-    return plan.entries.map(entry => ({
-      ...entry,
-      data: entry.data ?? this.#blankSheetData(entry.settings),
-    }));
+    return {
+      entries: plan.entries.map(entry => ({
+        ...entry,
+        data: entry.data ?? this.#blankSheetData(entry.settings),
+      })),
+      openingIndex: plan.openingIndex,
+    };
+  }
+
+  /**
+   * Returns the grid-level `formulas` object a workbook is planned from. On a live grid (the bar enabled
+   * after init, or enabled again) without a grid-level `sheetName`, the grid's rows already sit in the engine
+   * sheet the Formulas plugin is bound to, so that sheet is named, and it becomes the data tab instead of a
+   * new engine sheet.
+   *
+   * @param {object} formulas The grid-level `formulas` setting.
+   * @returns {object}
+   */
+  #withBoundSheetName(formulas: Record<string, unknown>): Record<string, unknown> {
+    if (!this.hot.view || (typeof formulas.sheetName === 'string' && formulas.sheetName !== '')) {
+      return formulas;
+    }
+
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const boundName = formulasPlugin?.enabled && formulasPlugin.engine === formulas.engine
+      ? formulasPlugin.sheetName
+      : null;
+
+    return typeof boundName === 'string' ? { ...formulas, sheetName: boundName } : formulas;
   }
 
   /**

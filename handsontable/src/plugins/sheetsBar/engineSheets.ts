@@ -19,12 +19,13 @@ export interface EngineSheetEntry {
 }
 
 /**
- * What the build makes of an engine: the tabs in tab order (the opening tab first), and the
- * `sheetName` the grid-level `formulas` asks for when the engine has no such sheet and no `data`
- * was given (`null` otherwise).
+ * What the build makes of an engine: the tabs in the engine's order, the position of the opening tab, and
+ * the `sheetName` the grid-level `formulas` asks for when the engine has no such sheet and no `data` was
+ * given (`null` otherwise).
  */
 export interface EngineWorkbookPlan {
   entries: EngineSheetEntry[];
+  openingIndex: number;
   missingSheetName: string | null;
 }
 
@@ -37,6 +38,7 @@ export interface EngineWorkbookInput {
   data: unknown;
   activeSheet: unknown;
   defaultName: string;
+  excludedNames?: string[];
 }
 
 /**
@@ -100,66 +102,83 @@ function readSheetData(engine: EngineSheetsSource, name: string): unknown[] | un
 }
 
 /**
- * Moves the entry at `index` to the front, keeping the order of the others.
+ * Returns the sheet name the grid-level `formulas` object names, or `null` without one.
  *
- * @param {Array} entries The entries.
- * @param {number} index The index of the entry to move.
- * @returns {Array}
+ * @param {object} formulas The grid-level `formulas` setting.
+ * @returns {string|null}
  */
-function openingFirst<T>(entries: T[], index: number): T[] {
-  return [entries[index], ...entries.slice(0, index), ...entries.slice(index + 1)];
+function requestedSheetName(formulas: Record<string, unknown>): string | null {
+  return typeof formulas.sheetName === 'string' && formulas.sheetName !== '' ? formulas.sheetName : null;
+}
+
+/**
+ * Binds the grid's `data` to a tab and opens it: the listed engine sheet at `namedIndex` (its content is
+ * replaced on load, and it keeps its place), or else a new tab added last, where the engine adds its sheet.
+ *
+ * @param {object} input The plan inputs.
+ * @param {Array} entries The engine sheet tabs.
+ * @param {number} namedIndex The position of the `sheetName` sheet in `entries`, or -1.
+ * @returns {object}
+ */
+function planDataTab(input: EngineWorkbookInput, entries: EngineSheetEntry[], namedIndex: number): EngineWorkbookPlan {
+  const { engine, formulas, data, defaultName } = input;
+
+  if (namedIndex !== -1) {
+    const { name } = entries[namedIndex];
+
+    entries[namedIndex] = { name, data: data as unknown[], settings: boundSettings(formulas, name) };
+
+    return { entries, openingIndex: namedIndex, missingSheetName: null };
+  }
+
+  const engineNames = engine.getSheetNames();
+  const name = requestedSheetName(formulas)
+    ?? freeNumberedSheetName(defaultName, candidate => engineNames.some(taken => isSameSheetName(taken, candidate)));
+
+  entries.push({ name, data: data as unknown[], settings: boundSettings(formulas, name) });
+
+  return { entries, openingIndex: entries.length - 1, missingSheetName: null };
 }
 
 /**
  * Plans the tabs of a `sheetsBar: true` workbook whose grid-level `formulas.engine` is a HyperFormula
- * instance holding sheets: one tab per engine sheet, in the engine's order, named and bound after it.
+ * instance holding sheets: one tab per engine sheet, in the engine's order, named and bound after it. The
+ * `excludedNames` sheets (bound to other grids) are left out. Tabs are never reordered.
  *
  * With the grid's `data` an array, it becomes one more tab (the data tab), bound to `formulas.sheetName`
  * (an existing engine sheet is then not listed again, its content is replaced by the data on load) or,
- * without one, to a new engine sheet named after the tab (`defaultName`, made free). Without `data`, the
- * opening tab is the `sheetName` sheet when the engine has it, else the `activeSheet` index in engine order,
- * else the first one. The opening tab is always the first tab.
+ * without one, to a new engine sheet named after the tab (`defaultName`, made free), added last; the data tab
+ * opens. Without `data`, the opening tab is the `sheetName` sheet when the engine has it, else the
+ * `activeSheet` position, else the first one.
  *
- * @param {object} input The engine, the grid-level `formulas` object, `data`, `activeSheet`, and the
- * default tab name.
+ * @param {object} input The engine, the grid-level `formulas` object, `data`, `activeSheet`, the default tab
+ * name, and the engine sheet names to leave out.
  * @returns {object}
  */
 export function planEngineWorkbook(input: EngineWorkbookInput): EngineWorkbookPlan {
-  const { engine, formulas, data, activeSheet, defaultName } = input;
-  const names = engine.getSheetNames();
+  const { engine, formulas, data, activeSheet, excludedNames = [] } = input;
+  const names = engine.getSheetNames()
+    .filter(name => !excludedNames.some(excluded => isSameSheetName(excluded, name)));
   const entries: EngineSheetEntry[] = names.map(name => ({
     name,
     data: readSheetData(engine, name),
     settings: boundSettings(formulas, name),
   }));
-  const sheetName = typeof formulas.sheetName === 'string' && formulas.sheetName !== ''
-    ? formulas.sheetName
-    : null;
+  const sheetName = requestedSheetName(formulas);
   const namedIndex = sheetName === null ? -1 : names.findIndex(name => isSameSheetName(name, sheetName));
 
   if (Array.isArray(data)) {
-    let dataTabName = sheetName
-      ?? freeNumberedSheetName(defaultName, candidate => names.some(name => isSameSheetName(name, candidate)));
-
-    if (namedIndex !== -1) {
-      dataTabName = names[namedIndex];
-      entries.splice(namedIndex, 1);
-    }
-
-    return {
-      entries: [{ name: dataTabName, data, settings: boundSettings(formulas, dataTabName) }, ...entries],
-      missingSheetName: null,
-    };
+    return planDataTab(input, entries, namedIndex);
   }
 
   if (sheetName !== null) {
     return namedIndex === -1
-      ? { entries, missingSheetName: sheetName }
-      : { entries: openingFirst(entries, namedIndex), missingSheetName: null };
+      ? { entries, openingIndex: 0, missingSheetName: sheetName }
+      : { entries, openingIndex: namedIndex, missingSheetName: null };
   }
 
-  const activeIndex = Number.isInteger(activeSheet) && (activeSheet as number) >= 0 &&
+  const openingIndex = Number.isInteger(activeSheet) && (activeSheet as number) >= 0 &&
     (activeSheet as number) < entries.length ? activeSheet as number : 0;
 
-  return { entries: openingFirst(entries, activeIndex), missingSheetName: null };
+  return { entries, openingIndex, missingSheetName: null };
 }

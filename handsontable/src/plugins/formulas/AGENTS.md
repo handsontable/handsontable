@@ -1108,6 +1108,13 @@ group and flips the winner. Only `addHook('beforeAutofill', cb, 1)` is independe
 `tests/e2e/formulas-before-autofill-precedence.spec.ts`. Do not change the plugin's `orderIndex` or its
 registration point without treating it as a behavior change.
 
+## Sheets other grids are bound to
+
+`getSheetNamesBoundElsewhere(engine)` (`@private`) names every sheet of `engine` that a Handsontable instance
+other than this one is bound to, read from the engine registry (`getRegisteredHotInstances()`). The sheets bar
+leaves those sheets out when it builds tabs from a shared engine, so it never lists, renames over, or removes
+another grid's sheet. It takes the engine as an argument because the bar asks before it binds a sheet.
+
 ## Engine-detach listeners
 
 `addEngineDetachListener()` (`@private`) lets another plugin release what it subscribed on the engine
