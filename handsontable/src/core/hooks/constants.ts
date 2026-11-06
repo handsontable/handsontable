@@ -1455,9 +1455,7 @@ export const REGISTERED_HOOKS = [
    * This hook fires for every `setDataAtCell()` call – not only when you call it directly, but also
    * for regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a checkbox
    * click, and undo/redo, since those are applied internally via `setDataAtCell()` too. It also fires
-   * with an empty `changes` array when a `beforeChange` handler cancels the change, and when every
-   * change is skipped because it addresses a column past the last one of an object data source (see
-   * [`setDataAtCell()`](@/api/core.md#setdataatcell)). Changes made
+   * when a `beforeChange` handler cancels the change, with an empty `changes` array. Changes made
    * through `setDataAtRowProp()` fire [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
    * instead – never both for the same change.
    *

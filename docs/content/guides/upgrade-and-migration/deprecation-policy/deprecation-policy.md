@@ -45,14 +45,6 @@ For significant deprecations (especially those affecting many users), we will pr
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
 
-## Removed in version 20.0
-
-### Behaviors
-
-| Removed | Deprecated in | Replacement | Migration guide |
-| ------- | ------------- | ----------- | --------------- |
-| Writing past the last column of an object data source, which added a property named after the column index | 19.0 | `setDataAtRowProp()` | [Migrate from 19.0 to 20.0 -> Writing past the last column](@/guides/upgrade-and-migration/migrating-from-19.0-to-20.0/migrating-from-19.0-to-20.0.md#writing-past-the-last-column-of-an-object-data-source-is-ignored) |
-
 ## Removed in version 18.0
 
 ### Dependencies
@@ -86,6 +78,12 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 ## List of current deprecations
 
 The following APIs are deprecated. They keep working and print a one-time console warning. The Removal column names the version that drops each one.
+
+### Behaviors
+
+| Deprecated | Deprecated in | Removal | Replacement | Migration guide |
+| ---------- | ------------- | ------- | ----------- | --------------- |
+| Writing past the last column of an object data source, which adds a property named after the column index | 19.0 | 20.0 | `setDataAtRowProp()` | [Migrate from 18.1 to 19.0 -> Writing past the last column](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#writing-past-the-last-column-of-an-object-data-source-is-deprecated) |
 
 ### Methods
 
