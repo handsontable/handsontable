@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `updateData()` and `updateSettings({ data })` to keep the undo and redo history when the new data is what the grid shows (the same array, a copy of it, or rows with the same values), so a wrapper re-render no longer clears it. Other data still clears the history.",
+  "type": "changed",
+  "issueOrPR": 14201,
+  "breaking": false,
+  "framework": "none"
+}
