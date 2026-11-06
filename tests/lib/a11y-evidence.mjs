@@ -22,6 +22,7 @@
  * `tests/AGENTS.md`, "A11y: the checks beyond axe" and "A11y: the verdict of a check run". No I/O in here.
  */
 import { escapeMarkdownText as escape, isSafeLink } from './a11y-baseline.mjs';
+import { namedSubset } from './a11y-subset.mjs';
 import { annotationLevel, capAnnotations, renderVerdict, verdictOf, verdictTitle } from './a11y-verdict.mjs';
 
 export const EVIDENCE_SCHEMA = 1;
@@ -208,7 +209,8 @@ export const EVIDENCE_CHECKS = Object.freeze({
 });
 /**
  * Which checks a run covers: `pull-request` (the short suite: the checks with `pullRequest`) or
- * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check.
+ * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check, and
+ * a run with `A11Y_CHECKS` covers the checks it names instead (`checksForRun()`).
  */
 export const CHECK_SUITES = ['pull-request', 'nightly'];
 
@@ -225,6 +227,23 @@ export function checksForSuite(suite, checks = EVIDENCE_CHECKS) {
   }
 
   return Object.entries(checks).filter(([, check]) => suite !== 'pull-request' || check.pullRequest === true).map(([id]) => id);
+}
+
+/**
+ * The checks a run covers: the ones `A11Y_CHECKS` names (a subset run, the A11y nightly's `checks`
+ * input: comma-separated, no spaces, each entry a check id exactly, `namedSubset()`), otherwise the
+ * suite `HOT_A11Y_CHECKS_SUITE` picks. The config builds its projects from this, so an entry the
+ * registry does not know is refused before a test runs; the report script expects a document of each,
+ * and the run verdict a check run of each, read through the same function.
+ *
+ * @param {Record<string, string|undefined>} env The environment (`A11Y_CHECKS`, `HOT_A11Y_CHECKS_SUITE`).
+ * @param {Record<string, {pullRequest?: boolean}>} [checks] The registry; defaults to `EVIDENCE_CHECKS`.
+ * @returns {string[]} The check ids, in registry order.
+ */
+export function checksForRun(env, checks = EVIDENCE_CHECKS) {
+  const suite = checksForSuite(env.HOT_A11Y_CHECKS_SUITE, checks);
+
+  return namedSubset(env.A11Y_CHECKS, Object.keys(checks), { label: 'A11Y_CHECKS', noun: 'check' }) ?? suite;
 }
 
 /**
