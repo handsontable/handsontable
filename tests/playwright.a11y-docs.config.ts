@@ -17,8 +17,9 @@ export default defineConfig({
   testMatch: 'docs-axe.spec.ts',
   outputDir: 'test-results/a11y-docs',
   // A docs page loads its examples (Angular and Vue take seconds to bootstrap) and the scan reads the
-  // whole document, a long page's included.
-  timeout: 120_000,
+  // whole document, a long page's included: the Core API reference takes about a minute in CI before
+  // its screenshot, so the budget leaves it room.
+  timeout: 180_000,
   expect: { timeout: 15_000 },
   fullyParallel: true,
   workers: process.env.CI ? 4 : undefined,

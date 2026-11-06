@@ -68,6 +68,8 @@ const CODE_BLOCKS_TIMEOUT = 5_000;
 const ANIMATIONS_TIMEOUT = 10_000;
 // How long the scan waits for the DOM to hold still: a grid an example builds after its data arrives.
 const STILL_TIMEOUT = 10_000;
+// How long a screenshot may take before the scan is kept without one.
+const SCREENSHOT_TIMEOUT = 20_000;
 // The embeds whose document is another service's (a video, a design file): axe reads into a frame, and what it
 // finds there changes with that service, so the nodes inside such a frame are dropped and the frame itself stays
 // (its title is the docs' own markup). axe's own `exclude` does not reach into a cross-origin frame here.
@@ -161,12 +163,22 @@ async function scan(page: Page, testInfo: TestInfo, entry: DocsPage, theme: stri
     entries: BASELINE_ENTRIES.filter(item => item.page === entry.id && item.theme === theme),
     pictured: PICTURED.get(`${entry.id}|${theme}`),
   });
-  const screenshot = SCREENSHOTS && marks.length > 0 ? `${entry.id}--${theme}.jpg` : null;
+  let screenshot = SCREENSHOTS && marks.length > 0 ? `${entry.id}--${theme}.jpg` : null;
   let clip: NodeBox | null = null;
 
+  // The screenshot only helps a reader find the marks, so it has a budget of its own: a full-page capture
+  // of the longest page (the Core API reference, a minute to load and scan in CI) once ran the test out
+  // of time, and the scan was lost with it. Past the budget the scan stands without a picture.
   if (screenshot) {
     clip = await outlineMarks(page, marks);
-    await page.screenshot({ path: path.join(scansDir, screenshot), type: 'jpeg', quality: 60, fullPage: true, clip });
+    try {
+      await page.screenshot({ path: path.join(scansDir, screenshot), type: 'jpeg', quality: 60, fullPage: true, clip,
+        timeout: SCREENSHOT_TIMEOUT });
+    } catch (error) {
+      testInfo.annotations.push({ type: 'screenshot-skipped', description: String(error).slice(0, 300) });
+      screenshot = null;
+      clip = null;
+    }
   }
 
   // A page error is the docs site's own bug, not the scan's: it is recorded with the scan and annotated,
