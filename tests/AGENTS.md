@@ -2359,13 +2359,14 @@ screen readers (`docs/AGENTS.md` 2.20).
 - **A project's scenarios split into groups that each fit the run step.** Guidepup runs one scenario
   at a time per machine, so a project's run grows with every scenario: a step costs about a second and a
   half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
-  scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
-  keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the menus
-  and the filters inside them, `editors` for the cell editors and the checkbox cell, `selection` for row
-  selection and the check all header, `status` for the status messages and the bars around the grid:
-  pagination, the sheets bar, a dialog, a notification, the loading and empty data overlays, and a value
-  that resolves later), each group is a matrix entry of both jobs in
-  `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
+  scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what
+  a keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the
+  menus and the filters inside them, `editors` for the cell editors and the checkbox cell, `selection`
+  for row selection and the check all header, `structure` for nested and collapsible headers, merged
+  cells and the freeze bars, `status` for the status messages and the bars around the grid: pagination,
+  the sheets bar, a dialog, a notification, the loading and empty data overlays, and a value that
+  resolves later), each group is a matrix entry of both jobs in `.github/workflows/screenreader.yml`
+  with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
   runs every group. When a group's budgets plus one retry of its largest no longer fit the 40-minute run

@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "id": "merge-cells",
+  "group": "structure",
+  "surface": "Merged cells: the arrows into, across and out of a merged block, its value read once, and the cells around it.",
+  "page": "merge-cells",
+  "criteria": ["1.3.1", "2.1.1"],
+  "setup": [{"selectCell": [0, 1]}],
+  "steps": [
+    {
+      "id": "arrow-down-into-merge",
+      "action": {"press": "ArrowDown"},
+      "expect": [["1 1"]],
+      "note": "ArrowDown from `0-1` enters the merged block that starts at row 1, column 1 and spans two rows and two columns; its value is `1-1`. Finding (known): VoiceOver says nothing on the first arrow key of the page, with both browsers."
+    },
+    {
+      "id": "arrow-down-out-below",
+      "action": {"press": "ArrowDown"},
+      "expect": [["3 1"]],
+      "note": "ArrowDown leaves the block from its bottom edge, to `3-1`: the covered row 2 is skipped."
+    },
+    {
+      "id": "arrow-up-back-in",
+      "action": {"press": "ArrowUp"},
+      "expect": [["1 1"], ["through row 3 column 3"]],
+      "note": "ArrowUp enters the block again from below. The second group is the block's span. Finding: only NVDA with Chromium reads it (`through row 3 column 3`); NVDA with Firefox and VoiceOver read the block as one plain cell, though the cell carries native `rowspan` and `colspan`: the readers' behavior."
+    },
+    {
+      "id": "arrow-right-out-right",
+      "action": {"press": "ArrowRight"},
+      "expect": [["1 3"]],
+      "note": "ArrowRight leaves the block from its right edge, to `1-3`: the covered column 2 is skipped."
+    },
+    {
+      "id": "arrow-left-back-in",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["1 1"]]
+    },
+    {
+      "id": "arrow-left-out-left",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["1 0"]],
+      "note": "ArrowLeft leaves the block from its left edge, to `1-0`."
+    }
+  ]
+}
