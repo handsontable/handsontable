@@ -2266,20 +2266,23 @@ screen readers (`docs/AGENTS.md` 2.20).
   command captured, so the toggle round trip is what keeps every step in the right mode whatever NVDA
   did. Read the mode from the raw phrases, never the normalized ones: the normalizer strips the mode
   phrases as chatter. What a switch says is the step's `preparing`, never its announcement. A switch that
-  names no mode leaves the mode unknown, and the reader toggles again, up to four times: assuming the mode
-  it asked for once sent a read's Down Arrow to the page in focus mode, and the traversal started on a
-  cell. Only when no switch names a mode does `(no mode announced after the toggle)` go into `preparing`
-  and the run go on. The focus
+  names no mode still flipped it, so the reader counts from the last mode NVDA named
+  (`ensureNvdaMode()` in `lib/screenreader-nvda.mjs`): it keeps switching for a named mode while two
+  switches are left, then accepts the mode it infers and says so in `preparing`, and switches that end
+  in the other mode stop the run as tooling. Assuming the mode it asked for once sent a read's Down Arrow
+  to the page in focus mode, and the traversal started on a cell. Only when NVDA has named no mode at all
+  does `(no mode announced after the toggle)` go into `preparing` and the run go on. The focus
   highlighter is off in the same settings. After the setup the log is cleared, and every page action is
   `screenReader.capture(() => …, { capture: true })`, which waits a second of silence after the last
   phrase, as a reading command's own capture does. A step whose capture is empty is listened to once more for another
   silence window, so a phrase NVDA speaks late (Shift+F10 on Firefox) usually lands on its own step.
   Guidepup discards speech that arrives while it stops the previous utterance, so the second listen
   reduces late phrases in the next step, it does not remove them. A step therefore costs a second and
-  more, and a scenario is minutes: the config's test timeout is five minutes with two retries,
-  Guidepup's own mitigations. The run step's `timeout-minutes` is 25, every step that downloads (the
-  setup CLI, the browser, the screen reader) has its own, and each job's timeout sits above the sum of
-  its steps' (45 for NVDA, 55 for VoiceOver): a step timeout is a step failure, so the transcripts, the
+  more, and a scenario is minutes: its test timeout is the config's five minutes or its budget, whichever
+  is longer (below), with two retries, Guidepup's own mitigations. The run step's `timeout-minutes` is
+  40, which a group's budgets plus one retry of its largest must fit (the workflow test sums them per
+  group), every step that downloads (the setup CLI, the browser, the screen reader) has its own, and each
+  job's timeout sits above the sum of its steps' (60 for NVDA, 70 for VoiceOver): a step timeout is a step failure, so the transcripts, the
   summary and the check run still come, where a job timeout cancels them. The workflow test pins that
   rule for both jobs.
 - **The VoiceOver reader enters the grid before the focus does.** `enter()` calls Guidepup's
@@ -2334,7 +2337,7 @@ screen readers (`docs/AGENTS.md` 2.20).
   osascript and the recorder running. A setup still red after all three is the runner: re-run that job
   from its page. Slack never hears of it (the job carries `continue-on-error`); Slack hears only of a
   nightly whose build never reached the lanes. The workflow test pins the three attempts.
-- **A project's scenarios split into groups once its run passes 15 minutes.** Guidepup runs one scenario
+- **A project's scenarios split into groups that each fit the run step.** Guidepup runs one scenario
   at a time per machine, so a project's run grows with every scenario: a step costs about a second and a
   half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
   scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
@@ -2343,9 +2346,11 @@ screen readers (`docs/AGENTS.md` 2.20).
   a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
-  runs every group. When a group's job passes 15 minutes on any project, split it: a new group joins the
+  runs every group. When a group's budgets plus one retry of its largest no longer fit the 40-minute run
+  step (the workflow test sums them), split it: a new group joins the
   list and both `group:` matrix lines together (the workflow test reads the list), and the scenarios move
-  in the same change. A scenario's test timeout is the config's five minutes or 60 s plus 12 s per step,
+  in the same change. A scenario's budget is 60 s plus 12 s per step (`scenarioBudgetMs()` in
+  `lib/screenreader-scenario.mjs`), and its test timeout the config's five minutes or that budget,
   whichever is longer (`scenarioTimeout()` in the spec): a busy macOS runner made every VoiceOver step
   1.7 to 2 times as slow, and a fixed budget then times out a long traversal that is healthy on a quiet
   one. Size a traversal's reads to what the readers need all the same, because each read past the end

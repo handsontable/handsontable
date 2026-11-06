@@ -79,12 +79,12 @@ export const LANE_PRIMITIVES = Object.freeze({
 export const STARTS = ['grid', 'page'];
 /**
  * The scenario groups a lane job runs one of. Guidepup runs one scenario at a time per machine, so a
- * project's scenarios run in series; once a project's run passes 15 minutes its scenarios split into
- * groups, each a matrix entry of `.github/workflows/screenreader.yml` with its own job, check run and
- * artifacts (`tests/AGENTS.md`, "Screen readers"). `keyboard`: what a keyboard user does in the grid
- * itself. `reading`: the reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the
- * filters inside them. A new group joins this list and the workflow's matrix together; the workflow test
- * keeps the two equal.
+ * project's scenarios run in series, and they split into groups that each fit the 40-minute run step
+ * (`scenarioBudgetMs()` below, summed per group by the workflow test), each a matrix entry of
+ * `.github/workflows/screenreader.yml` with its own job, check run and artifacts (`tests/AGENTS.md`,
+ * "Screen readers"). `keyboard`: what a keyboard user does in the grid itself. `reading`: the
+ * reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the filters inside them. A
+ * new group joins this list and the workflow's matrix together; the workflow test keeps the two equal.
  */
 export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus'];
 /**
