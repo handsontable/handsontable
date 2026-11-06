@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Message } from './Message';
 import { BACK_TO_BOT_NOTICE_MS, STARTER_SUGGESTIONS, SUPPORT_UI, WELCOME } from './constants';
 import { IconClose, IconRetry, IconSend, IconStop, IllustrationWelcome } from './icons';
+import { outgoingMessage, retryableAssistantId } from './agentReplies';
 import type { ChatMessage } from './useAssistant';
 
 interface Props {
@@ -80,7 +81,8 @@ export function Thread({
 
   const submit = () => {
     const text = draft.trim();
-    if (!text || streaming) return;
+    // Ask the same rule the hook uses, so a draft that would send nothing (a bare `!reply`) stays put.
+    if (!outgoingMessage(text, { toSupport, canWriteToSupport }) || streaming) return;
     if (toSupport) {
       onSendToSupport(text);
       setToSupport(false);
@@ -98,6 +100,7 @@ export function Thread({
   };
 
   const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id;
+  const retryableId = retryableAssistantId(messages);
   const empty = messages.length === 0;
 
   return (
@@ -134,6 +137,7 @@ export function Thread({
                 key={m.id}
                 message={m}
                 isLastAssistant={m.id === lastAssistantId}
+                canRetry={m.id === retryableId}
                 streaming={streaming}
                 canReplyToSupport={canWriteToSupport && !toSupport}
                 onReplyToSupport={startSupportReply}

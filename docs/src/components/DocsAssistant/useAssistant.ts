@@ -7,8 +7,8 @@ import {
   messagesForApi,
   newestReplyId,
   nextPollState,
+  outgoingMessage,
   parsePollState,
-  stripSupportPrefix,
   toSupportApiText,
 } from './agentReplies';
 import { AGENT_REPLIES_ENDPOINT, CHAT_ENDPOINT, FEEDBACK_ENDPOINT, STORAGE_KEYS } from './constants';
@@ -26,6 +26,12 @@ export interface ChatMessage {
    * bot does not answer, so it has no assistant message after it and never goes back to the model.
    */
   toSupport?: boolean;
+  /**
+   * Support took a message with `toSupport` (the stream ended with `message_end`). The "sent" note
+   * waits for it, so a failed or stopped send never claims Support has the message. It stays apart
+   * from `toSupport`, which retry and the model history still need.
+   */
+  supportSent?: boolean;
 }
 
 interface ThreadState {
@@ -39,6 +45,7 @@ type Action =
   | { type: 'ADD_AGENT'; replies: AgentReply[]; now: number }
   | { type: 'BEGIN_ASSISTANT'; message: ChatMessage }
   | { type: 'BEGIN_SUPPORT_SEND' }
+  | { type: 'SUPPORT_SENT'; id: string }
   | { type: 'APPEND'; id: string; delta: string }
   | { type: 'END' }
   | { type: 'ERROR'; error: string }
@@ -70,6 +77,11 @@ export function reducer(state: ThreadState, action: Action): ThreadState {
       // No assistant placeholder: nothing answers a message to Support, and an empty assistant
       // message would count as a bot answer when the feedback buttons number them.
       return { ...state, streaming: true, error: null };
+    case 'SUPPORT_SENT':
+      return {
+        ...state,
+        messages: state.messages.map((m) => (m.id === action.id ? { ...m, supportSent: true } : m)),
+      };
     case 'APPEND':
       return {
         ...state,
@@ -276,7 +288,12 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
   }, []);
 
   const sendInternal = useCallback(
-    async (userMessageText: string, historyForApi: ChatMessage[], toSupport = false) => {
+    async (
+      userMessageText: string,
+      historyForApi: ChatMessage[],
+      toSupport = false,
+      userMessageId?: string
+    ) => {
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -353,6 +370,7 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
         const headerToken = res.headers.get('X-Thread-Token');
         if (headerToken) adoptAgentToken(headerToken);
 
+        let ended = false;
         for await (const event of readSSE(res.body, controller.signal)) {
           if (event.type === 'message_start') {
             adoptThreadId(event.thread_id);
@@ -361,9 +379,12 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
             const delta = event.delta?.content ?? '';
             if (delta && !toSupport) dispatch({ type: 'APPEND', id: assistantId, delta });
           } else if (event.type === 'message_end') {
+            ended = true;
             break;
           }
         }
+        // Only a finished turn tells the reader Support has the message. A stopped one may or may not.
+        if (toSupport && ended && userMessageId) dispatch({ type: 'SUPPORT_SENT', id: userMessageId });
         dispatch({ type: 'END' });
       } catch (err) {
         if ((err as Error).name === 'AbortError') {
@@ -402,35 +423,29 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
       const history = state.messages;
       lastActivityRef.current = Date.now();
       dispatch({ type: 'ADD_USER', message: userMessage });
-      await sendInternal(content, history, toSupport);
+      await sendInternal(content, history, toSupport, userMessage.id);
     },
     [sendInternal, state.messages]
   );
 
+  // `outgoingMessage` holds the rules for a typed `!reply` and for the chip. A reader who types the
+  // marker by hand writes to Support, like the button does. Without that the backend would skip the
+  // bot while the panel waited for a bot answer that never comes. The composer asks the same function,
+  // so it keeps the draft when nothing would be sent.
   const send = useCallback(
     async (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed || state.streaming) return;
-      // A reader who types `!reply` by hand writes to Support, like the button does. Without this the
-      // backend would skip the bot while the panel waited for a bot answer that never comes. With no
-      // live conversation the marker is not special, and the text goes as a normal question.
-      const typed = canWriteToSupport ? stripSupportPrefix(trimmed) : null;
-      if (typed === null) {
-        await deliver(trimmed, false);
-      } else if (typed) {
-        await deliver(typed, true);
-      }
+      const out = outgoingMessage(text, { toSupport: false, canWriteToSupport });
+      if (!out || state.streaming) return;
+      await deliver(out.body, out.toSupport);
     },
     [canWriteToSupport, deliver, state.streaming]
   );
 
   const sendToSupport = useCallback(
     async (text: string) => {
-      const trimmed = text.trim();
-      // A marker typed on top of the button is dropped, so the backend never sees it twice.
-      const body = stripSupportPrefix(trimmed) ?? trimmed;
-      if (!body || state.streaming || !canWriteToSupport) return;
-      await deliver(body, true);
+      const out = outgoingMessage(text, { toSupport: true, canWriteToSupport });
+      if (!out || state.streaming) return;
+      await deliver(out.body, true);
     },
     [canWriteToSupport, deliver, state.streaming]
   );
@@ -444,7 +459,7 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
     dispatch({ type: 'RETRY_POP' });
     const history = state.messages.slice(0, lastUserIndex);
     // A failed message to Support is sent to Support again, never to the bot.
-    await sendInternal(lastUser.content, history, Boolean(lastUser.toSupport));
+    await sendInternal(lastUser.content, history, Boolean(lastUser.toSupport), lastUser.id);
   }, [sendInternal, state.messages, state.streaming]);
 
   const clear = useCallback(() => {

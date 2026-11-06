@@ -15,6 +15,10 @@ import {
 interface Props {
   message: ChatMessage;
   isLastAssistant: boolean;
+  /**
+   * Show Retry under this answer. Off once the reader wrote again after it: Retry would redo that message.
+   */
+  canRetry: boolean;
   streaming: boolean;
   /** Show "Reply to Support" under a Support message. Off while the reader already writes to Support. */
   canReplyToSupport: boolean;
@@ -26,6 +30,7 @@ interface Props {
 export function Message({
   message,
   isLastAssistant,
+  canRetry,
   streaming,
   canReplyToSupport,
   onReplyToSupport,
@@ -48,7 +53,7 @@ export function Message({
     return (
       <div className="da-msg da-msg-user">
         <div className="da-bubble">{message.content}</div>
-        {message.toSupport && <div className="da-support-note">{SUPPORT_UI.sentNote}</div>}
+        {message.supportSent && <div className="da-support-note">{SUPPORT_UI.sentNote}</div>}
       </div>
     );
   }
@@ -110,7 +115,7 @@ export function Message({
           >
             <IconThumbDown />
           </button>
-          {isLastAssistant && (
+          {canRetry && (
             <button type="button" className="da-action" aria-label="Retry" onClick={onRetry}>
               <IconRetry />
             </button>

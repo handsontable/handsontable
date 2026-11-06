@@ -39,6 +39,43 @@ export function stripSupportPrefix(text: string): string | null {
   return match ? text.slice(match[0].length).trim() : null;
 }
 
+/**
+ * What a message from the composer sends, or `null` when it sends nothing. The form and the hook both
+ * ask this, so a bare `!reply` cannot clear the composer while the hook sends nothing.
+ *
+ * `toSupport` is the composer's "To Support" chip. A typed marker writes to Support only while the
+ * conversation has a live Support thread (`canWriteToSupport`); without one it is ordinary text.
+ */
+export function outgoingMessage(
+  text: string,
+  { toSupport, canWriteToSupport }: { toSupport: boolean; canWriteToSupport: boolean }
+): { toSupport: boolean; body: string } | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  if (toSupport) {
+    // A marker typed on top of the chip is dropped, so the backend never sees it twice.
+    const body = stripSupportPrefix(trimmed) ?? trimmed;
+    return canWriteToSupport && body ? { toSupport: true, body } : null;
+  }
+  const typed = canWriteToSupport ? stripSupportPrefix(trimmed) : null;
+  if (typed === null) return { toSupport: false, body: trimmed };
+  return typed ? { toSupport: true, body: typed } : null;
+}
+
+/**
+ * The id of the bot answer that can be retried: the last one, unless the reader wrote again after it.
+ * Retry redoes the reader's last message, so after a message to Support it would send that message to
+ * Support a second time instead of regenerating the answer. A Support reply does not count as a
+ * message of the reader.
+ */
+export function retryableAssistantId(messages: AgentMessageBase[]): string | undefined {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    if (messages[i].role === 'user') return undefined;
+    if (messages[i].role === 'assistant') return messages[i].id;
+  }
+  return undefined;
+}
+
 /** What the panel needs to poll one conversation: the thread, its token, and the last reply shown. */
 export interface AgentPollState {
   threadId: string;
