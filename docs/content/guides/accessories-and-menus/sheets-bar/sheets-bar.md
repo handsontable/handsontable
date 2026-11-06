@@ -347,9 +347,9 @@ For the `dataProvider` setup itself, see [Server-side data](@/guides/getting-sta
 
 ## Use formulas across sheets
 
-To reference other sheets in a formula, give each sheet the same [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods) engine instance and its own `sheetName`, in its `formulas` setting.
+To reference other sheets in a formula, pass a [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods) instance that holds your sheets in the `formulas` setting, and set `sheetsBar: true`. The bar shows one tab per engine sheet. If you also set `data`, it becomes one more tab. Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead. Removing a tab removes its engine sheet.
 
-The example below also turns on the [formula builder](@/guides/formulas/formula-builder/formula-builder.md), which adds a formula bar and an inline editor with colored references and autocomplete. Set `editor: 'formula'` and `formulaBuilder` at the grid level, outside `sheets`, so every sheet uses them. Select a cell in the **VAT** column of the **Budget** sheet to see its `Rates!B1` reference in the formula bar.
+The example below also turns on the [formula builder](@/guides/formulas/formula-builder/formula-builder.md), which adds a formula bar and an inline editor with colored references and autocomplete. Set `editor: 'formula'` and `formulaBuilder` at the grid level, so every sheet uses them. Select a cell in the **VAT** column of the **Budget** sheet to see its `Rates!B1` reference in the formula bar.
 
 ::: only-for react
 
@@ -402,11 +402,11 @@ You can type a reference to another sheet, such as `Rates!B1`, in the formula ba
 
 :::
 
-Pass a built engine (`HyperFormula.buildEmpty()`), not the `HyperFormula` class. With the class, each sheet gets its own engine and can't read the other sheets' data.
+Pass a built engine, such as one from `HyperFormula.buildFromSheets()`, not the `HyperFormula` class. With the class, each sheet gets its own engine and can't read the other sheets' data.
 
 A sheet added with the **Add sheet** button, or with `addSheet()` without `settings`, joins the shared engine, so other sheets can reference it right away.
 
-Use each sheet's tab name as its `sheetName`. A tab rename then renames the engine sheet and rewrites the references to it, also in your `data` arrays. Inserting, removing, or moving rows or columns rewrites formula text in your `data` arrays too.
+If you declare `sheets`, give each sheet the same engine and use its tab name as its `sheetName`. A tab rename then renames the engine sheet and rewrites the references to it, also in your `data` arrays. Inserting, removing, or moving rows or columns rewrites formula text in your `data` arrays too.
 
 ## Import and export
 
@@ -431,6 +431,10 @@ With `exportFormulas: true`, a formula that references another sheet keeps that 
 - When the plugin loads new rows for a sheet that isn't shown (for example, a server response), your entry's `data` keeps the old array.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - With formulas, a sheet that is sorted or has moved rows or columns doesn't see changes you make in place to its `data` while it's hidden. Pass a new `sheets` value instead, which rebuilds the workbook.
+- Tabs created from a HyperFormula instance are read once, when the bar is enabled. Sheets you add, remove, or rename in the engine yourself after that don't change the tabs, and a different engine passed later through [`updateSettings()`](@/api/core.md#updatesettings) doesn't rebuild them.
+- If you create the grid with a HyperFormula instance and no `data`, and turn the sheets bar on later, the bar also shows the empty sheet the grid added to the engine when you created it. Set `sheetsBar` when you create the grid to avoid it.
+- Once the bar builds its tabs from a HyperFormula instance, a later grid-level `formulas` change, such as `formulas: false`, has no effect.
+- A value you write into the engine directly, for a sheet that isn't shown, is replaced when you switch to its tab. Change cells through the grid instead.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. Read the current name from `hot.getPlugin('formulas').sheetName`.
 - With formulas, a rename that rewrites references inside a frozen `data` array (for example, from Immer) writes them into a copy, not into your array, so update your store yourself. On the active sheet, this also clears the undo history.
 - A sheet comes back with the invalid marks it had when you left it. A cell that becomes invalid while its sheet is hidden isn't marked until it's validated again, for example by an edit or [`validateCells()`](@/api/core.md#validatecells).

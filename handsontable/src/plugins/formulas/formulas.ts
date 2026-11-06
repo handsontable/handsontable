@@ -2227,6 +2227,29 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Returns the names of the sheets of `engine` that Handsontable instances other than this one are bound to.
+   *
+   * The engine is an argument because a caller can ask before this instance is bound to it.
+   *
+   * @private
+   * @param {object} engine The engine.
+   * @returns {string[]}
+   */
+  getSheetNamesBoundElsewhere(engine: HyperFormulaEngine): string[] {
+    const names: string[] = [];
+
+    getRegisteredHotInstances(engine).forEach((hot, sheetId) => {
+      const name = hot !== this.hot && typeof sheetId === 'number' ? engine.getSheetName(sheetId) : undefined;
+
+      if (typeof name === 'string') {
+        names.push(name);
+      }
+    });
+
+    return names;
+  }
+
+  /**
    * Runs `fn` as a write to this grid's own sheet. Like `runEngineWrite()`, but this grid is left out
    * of the paint: the Core paints it after the operation that made the write.
    *
