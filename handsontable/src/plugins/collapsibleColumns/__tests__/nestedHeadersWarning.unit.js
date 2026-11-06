@@ -80,6 +80,47 @@ describe('CollapsibleColumns missing-nestedHeaders warning', () => {
     expect(hot.getPlugin('nestedHeaders').getStateManager().getHeaderSettings(0, 0)?.collapsible).toBe(true);
   });
 
+  it('does not warn when the opening sheet has no nested headers and a later sheet declares them', () => {
+    hot = new Handsontable(container, {
+      colHeaders: true,
+      collapsibleColumns: true,
+      sheetsBar: {
+        sheets: [
+          { name: 'Plain', data: Handsontable.helper.createSpreadsheetData(2, 3) },
+          {
+            name: 'Grouped',
+            data: Handsontable.helper.createSpreadsheetData(2, 3),
+            settings: { nestedHeaders: NESTED_HEADERS },
+          },
+        ],
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    expect(warnings()).toHaveLength(0);
+
+    hot.getPlugin('sheetsBar').setActiveSheet('Grouped');
+
+    expect(warnings()).toHaveLength(0);
+    expect(hot.getPlugin('nestedHeaders').getStateManager().getHeaderSettings(0, 0)?.collapsible).toBe(true);
+  });
+
+  it('warns once when no sheet of a workbook declares nested headers', () => {
+    hot = new Handsontable(container, {
+      colHeaders: true,
+      collapsibleColumns: true,
+      sheetsBar: {
+        sheets: [
+          { name: 'One', data: Handsontable.helper.createSpreadsheetData(2, 3) },
+          { name: 'Two', data: Handsontable.helper.createSpreadsheetData(2, 3) },
+        ],
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    expect(warnings()).toHaveLength(1);
+  });
+
   it('checks again when the plugin is enabled through updateSettings()', () => {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(2, 3),

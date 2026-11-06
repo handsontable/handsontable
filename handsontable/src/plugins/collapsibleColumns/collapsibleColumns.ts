@@ -12,6 +12,7 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { throwWithCause } from '../../helpers/errors';
+import { isPlainObject } from '../../helpers/object';
 import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { syncIcon } from '../../themes/engine/icons';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
@@ -357,13 +358,29 @@ export class CollapsibleColumns extends BasePlugin {
     if (this.#nestedHeadersCheckOwed) {
       this.#nestedHeadersCheckOwed = false;
 
-      if (!this.hot.getSettings().nestedHeaders) {
+      if (!this.hot.getSettings().nestedHeaders && !this.#sheetsDeclareNestedHeaders()) {
         warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
       }
     }
 
     this.#flagsOwed = false;
     this.#applyCollapsibleFlags();
+  }
+
+  /**
+   * Tells whether any entry of the `sheetsBar.sheets` setting declares `nestedHeaders` of its own. The
+   * ready step runs with the opening sheet's settings in force, so a workbook whose first sheet has no
+   * nested headers while a later one does would otherwise warn at init. The entries are read from the
+   * grid settings, not from the SheetsBar plugin, so this plugin stays decoupled from it; a sheet added
+   * later through the SheetsBar API is not seen, and an update does not re-check.
+   *
+   * @returns {boolean}
+   */
+  #sheetsDeclareNestedHeaders(): boolean {
+    const { sheetsBar } = this.hot.getSettings();
+    const sheets = isPlainObject(sheetsBar) ? sheetsBar.sheets : undefined;
+
+    return Array.isArray(sheets) && sheets.some(sheet => Boolean(sheet?.settings?.nestedHeaders));
   }
 
   /**
