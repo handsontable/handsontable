@@ -285,7 +285,7 @@ To change which columns a grid shows, update the existing grid instead of creati
 - Hide the columns you don't need, with the [`HiddenColumns`](@/guides/columns/column-hiding/column-hiding.md) plugin.
 - Pass a new [`columns`](@/api/options.md#columns) array.
 
-Both cost about the same. How much faster they are than recreating the grid depends mostly on the column widths. In a test with fixed column widths, updating in place was about 1.5 to 3 times faster than recreating the grid in JavaScript, and about 1.2 to 1.9 times faster in React. Both ranges held with the default options, with `renderAllColumns`, and with `renderAllColumns` plus a [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset) of 100. With automatic column widths, `renderAllColumns`, and that offset, updating in place was about 1.3 to 2 times faster in JavaScript and about 1.1 times faster in React. In React, updating in place also keeps the cell components of component renderers mounted, while recreating the grid mounts every one of them again.
+Both cost about the same. Updating in place skips the cost of creating the grid, so it is usually faster than recreating it. The gain shrinks as the grid renders more cells. With [`renderAllColumns`](@/api/options.md#renderallcolumns) and a large [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset), the gain in JavaScript can be small, and in React a new `columns` array can even be slower than recreating the grid. Measure it with your own settings. In React, updating in place also keeps the cell components of component renderers mounted, while recreating the grid mounts every one of them again.
 
 The two differ in what they keep:
 
