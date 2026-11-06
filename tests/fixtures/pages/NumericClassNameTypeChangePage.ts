@@ -195,6 +195,20 @@ export class NumericClassNameTypeChangePage {
   }
 
   /**
+   * Redoes the last undone step through the UndoRedo plugin and waits for the draw that follows.
+   */
+  async redo(gridId: string): Promise<void> {
+    await this.afterDraw(gridId, () => this.page.evaluate(
+      (id) => {
+        (window as unknown as {
+          hots: Record<string, { getPlugin: (name: string) => { redo: () => void } }>;
+        }).hots[id].getPlugin('undoRedo').redo();
+      },
+      gridId
+    ));
+  }
+
+  /**
    * Removes one row through `alter('remove_row')` and waits for the draw that follows.
    */
   async removeRow(gridId: string, row: number): Promise<void> {

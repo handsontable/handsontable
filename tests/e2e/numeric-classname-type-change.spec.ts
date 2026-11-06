@@ -228,6 +228,25 @@ test.describe('numericRenderer tokens after a type change', { tag: THEMES_TAG },
       await expect(cell).toHaveCSS('text-align', NOT_RIGHT_ALIGNED);
     });
 
+    test('undo and redo of an Alignment > Middle pick do not make the drawn right alignment the user\'s', async() => {
+      await grid.alignCellThroughMenu(Page.ALIGNMENT, 0, 0, 'Middle');
+      await expect(grid.cell(Page.ALIGNMENT, 0, 0)).toHaveClass(/\bhtMiddle\b/);
+
+      await grid.undo(Page.ALIGNMENT);
+      await expect(grid.cell(Page.ALIGNMENT, 0, 0)).not.toHaveClass(/\bhtMiddle\b/);
+
+      await grid.redo(Page.ALIGNMENT);
+      await expect(grid.cell(Page.ALIGNMENT, 0, 0)).toHaveClass(/\bhtMiddle\b/);
+
+      await grid.switchFirstColumnToText(Page.ALIGNMENT);
+
+      const cell = grid.cell(Page.ALIGNMENT, 0, 0);
+
+      await expect(cell).toHaveClass(/\bhtMiddle\b/);
+      await expect(cell).not.toHaveClass(NUMERIC_TOKENS);
+      await expect(cell).not.toHaveClass(NUMERIC_MARKER);
+    });
+
     test('a rendered className the user writes back with one more class is theirs', async() => {
       await grid.setClassName(Page.SET_CELL_META, 0, 0, 'myMarker');
       await expectNumericWithMarker(Page.SET_CELL_META, 0, 0);
