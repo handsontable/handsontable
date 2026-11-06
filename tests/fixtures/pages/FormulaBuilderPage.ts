@@ -402,6 +402,22 @@ export class FormulaBuilderPage {
   }
 
   /**
+   * The color the grid paints the selected cell's border with: the background of a drawn edge of
+   * the master's `current` border. `null` while no edge is drawn.
+   *
+   * @returns {Promise<string | null>}
+   */
+  async selectionBorderColor(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const master = (window as unknown as FixtureWindow).hot.rootElement.querySelector('.ht_master');
+      const edge = [...(master?.querySelectorAll<HTMLElement>('.wtBorder.current') ?? [])]
+        .find(border => border.offsetWidth > 0 && border.offsetHeight > 0);
+
+      return edge ? getComputedStyle(edge).backgroundColor : null;
+    });
+  }
+
+  /**
    * The last selection range, as `getSelectedLast()` returns it.
    *
    * @returns {Promise<SelectionTuple | null>}

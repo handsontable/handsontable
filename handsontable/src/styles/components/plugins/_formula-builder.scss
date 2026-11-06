@@ -43,10 +43,10 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
     --hfe-font-family: #{mixins.$font-family-stack};
     --hfe-font-size: var(--ht-font-size);
     --hfe-line-height: var(--ht-line-height);
-    // The text accent, not the theme accent: a focus indicator needs 3:1 against the bar, and horizon's
-    // accent measures 2.45:1 on white (the text accent 5.33:1). The ring of the address box and of the
-    // bar-hosted editor both read it.
-    --hfe-formula-bar-input-focus-ring: #{$accent-text-color};
+    // The ring of the address box and of the bar-hosted editor is drawn in the color of the grid's
+    // selection border, so a focused bar reads like a selected cell. Its contrast is the theme's:
+    // horizon's selection border measures 2.45:1 on white, on the grid and on the bar alike.
+    --hfe-formula-bar-input-focus-ring: var(--ht-cell-selection-border-color);
     --hfe-gap: var(--ht-gap-size);
     --hfe-color-background: var(--ht-cell-editor-background-color);
     --hfe-color-foreground: var(--ht-cell-editor-foreground-color);
