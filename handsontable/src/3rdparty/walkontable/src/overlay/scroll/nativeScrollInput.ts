@@ -127,6 +127,7 @@ export function createNativeScrollInputDeps(
     scrollVertically: (delta: number) => overlays.scrollVertically(delta),
     scrollHorizontally: (delta: number) => overlays.scrollHorizontally(delta),
     registerStickyScrollListeners: () => stickyScroll.registerListeners(),
+    resetStickyScroll: () => stickyScroll.resetForScrollableElementChange(),
     resetResizeCount: () => resizeMonitor.resetResizeCount(),
     observeResize: () => resizeMonitor.observe(),
   };
@@ -143,9 +144,9 @@ export type NativeScrollInputDeps = ReturnType<typeof createNativeScrollInputDep
  * event over a clone is turned into a scroll of the master scrollable element, and arrow-key presses
  * flip a flag so a keyboard-driven render only syncs master -> overlay.
  *
- * Extracted from the Overlays coordinator so the native-input lifecycle is self-contained; the
- * coordinator keeps a thin public `registerListeners` delegate because ScrollSync re-registers the
- * listeners when the scrollable element changes.
+ * Extracted from the Overlays coordinator so the native-input lifecycle is self-contained. The
+ * listeners on the document and the window are registered once; ScrollSync re-binds only the ones
+ * on the scrollable elements, through `registerScrollableElementListeners()`, when those change.
  *
  * @class NativeScrollInput
  */
@@ -163,6 +164,13 @@ export class NativeScrollInput {
    * @type {boolean}
    */
   #keyPressed = false;
+
+  /**
+   * The removers of the listeners bound to the scrollable elements, called on the next rebind.
+   *
+   * @type {Array<Function>}
+   */
+  #scrollableElementListenerRemovers: Array<() => void> = [];
 
   /**
    * The browser's line height, used to convert line-based wheel deltas into pixels.
@@ -183,11 +191,69 @@ export class NativeScrollInput {
    * Register all necessary event listeners.
    */
   registerListeners() {
-    const { rootDocument, rootWindow, wtTable, wtSettings, eventManager } = this.#deps;
-    const topOverlay = this.#deps.getTopOverlay();
-    const inlineStartOverlay = this.#deps.getInlineStartOverlay();
-    const { mainTableScrollableElement: topOverlayScrollableElement } = topOverlay;
-    const { mainTableScrollableElement: inlineStartOverlayScrollableElement } = inlineStartOverlay;
+    this.#registerPageListeners();
+    this.registerScrollableElementListeners();
+  }
+
+  /**
+   * Re-binds the listeners that depend on the scrollable elements, and only those. The listeners on
+   * the document and the window stay bound from construction: a rebind runs inside whatever called
+   * `updateSettings()`, and a listener added there belongs to that caller's context (an Angular zone
+   * would run change detection on every pointer move and click on the page).
+   */
+  registerScrollableElementListeners() {
+    this.#scrollableElementListenerRemovers.forEach(remove => remove());
+    this.#scrollableElementListenerRemovers = [];
+    this.#deps.resetStickyScroll();
+
+    const { rootWindow, wtTable, wtSettings } = this.#deps;
+    const topOverlayScrollableElement = this.#deps.getTopOverlay().mainTableScrollableElement;
+    const inlineStartOverlayScrollableElement = this.#deps.getInlineStartOverlay().mainTableScrollableElement;
+    const onTableScroll = (event: Event) => this.#onTableScroll(event);
+
+    this.#addScrollableElementListener(topOverlayScrollableElement, 'scroll', onTableScroll, { passive: true });
+
+    if (topOverlayScrollableElement !== inlineStartOverlayScrollableElement) {
+      this.#addScrollableElementListener(inlineStartOverlayScrollableElement, 'scroll', onTableScroll, {
+        passive: true,
+      });
+    }
+
+    const isScrollOnWindow = this.#deps.getScrollableElement() === rootWindow;
+    const preventWheel = wtSettings.getSetting<boolean>('preventWheel');
+    const wheelEventOptions = { passive: isScrollOnWindow };
+    const onCloneWheel = (event: Event) => this.#onCloneWheel(event as WheelEvent, preventWheel);
+
+    this.#addScrollableElementListener(wtTable.wtRootElement, 'wheel', onCloneWheel, wheelEventOptions);
+
+    this.#deps.getCloneableOverlays().forEach((overlay) => {
+      if (overlay.clone) {
+        this.#addScrollableElementListener(overlay.clone.wtTable.holder, 'wheel', onCloneWheel, wheelEventOptions);
+      }
+    });
+
+    this.#deps.getScrollMirroredOverlays().forEach((overlay) => {
+      if (overlay.clone) {
+        this.#addScrollableElementListener(
+          overlay.clone.wtTable.holder,
+          'scroll',
+          (event: Event) => this.#onCloneScroll(event),
+          { passive: true }
+        );
+      }
+    });
+
+    if (!isScrollOnWindow) {
+      this.#deps.observeResize();
+    }
+  }
+
+  /**
+   * Registers the listeners bound to the document and the window. They do not depend on the
+   * scrollable elements, so they are registered once.
+   */
+  #registerPageListeners() {
+    const { rootDocument, rootWindow, wtSettings, eventManager } = this.#deps;
 
     eventManager.addEventListener(rootDocument.documentElement, 'keydown',
       (event: KeyboardEvent) => this.#onKeyDown(event));
@@ -195,58 +261,6 @@ export class NativeScrollInput {
     eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.#onKeyUp());
 
     this.#deps.registerStickyScrollListeners();
-    eventManager.addEventListener(
-      topOverlayScrollableElement,
-      'scroll',
-      (event: Event) => this.#onTableScroll(event),
-      { passive: true }
-    );
-
-    if (topOverlayScrollableElement !== inlineStartOverlayScrollableElement) {
-      eventManager.addEventListener(
-        inlineStartOverlayScrollableElement,
-        'scroll',
-        (event: Event) => this.#onTableScroll(event),
-        { passive: true }
-      );
-    }
-
-    const isScrollOnWindow = this.#deps.getScrollableElement() === rootWindow;
-    const preventWheel = wtSettings.getSetting<boolean>('preventWheel');
-    const wheelEventOptions = { passive: isScrollOnWindow };
-
-    eventManager.addEventListener(
-      wtTable.wtRootElement,
-      'wheel',
-      (event: WheelEvent) => this.#onCloneWheel(event, preventWheel),
-      wheelEventOptions
-    );
-
-    this.#deps.getCloneableOverlays().forEach((overlay) => {
-      if (!overlay.clone) {
-        return;
-      }
-
-      eventManager.addEventListener(
-        overlay.clone.wtTable.holder,
-        'wheel',
-        (event: WheelEvent) => this.#onCloneWheel(event, preventWheel),
-        wheelEventOptions
-      );
-    });
-
-    this.#deps.getScrollMirroredOverlays().forEach((overlay) => {
-      if (!overlay.clone) {
-        return;
-      }
-
-      eventManager.addEventListener(
-        overlay.clone.wtTable.holder,
-        'scroll',
-        (event: Event) => this.#onCloneScroll(event),
-        { passive: true }
-      );
-    });
 
     let resizeTimeout: ReturnType<typeof setTimeout>;
 
@@ -261,10 +275,25 @@ export class NativeScrollInput {
         }, 200);
       });
     });
+  }
 
-    if (!isScrollOnWindow) {
-      this.#deps.observeResize();
-    }
+  /**
+   * Adds a listener that the next `registerScrollableElementListeners()` call removes.
+   *
+   * @param {Element|Window} element The event target.
+   * @param {string} eventName The event name.
+   * @param {Function} callback The listener.
+   * @param {AddEventListenerOptions} options The listener options.
+   */
+  #addScrollableElementListener(
+    element: HTMLElement | Window,
+    eventName: string,
+    callback: (event: Event) => void,
+    options: AddEventListenerOptions
+  ) {
+    this.#scrollableElementListenerRemovers.push(
+      this.#deps.eventManager.addEventListener(element, eventName, callback, options)
+    );
   }
 
   /**

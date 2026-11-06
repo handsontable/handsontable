@@ -1462,7 +1462,7 @@ that necessary: `getTrimmingContainer` counts `overflow: hidden` and `getScrolla
 so the two can disagree for good. (An iframe driven from the parent realm used to be the second one:
 `MasterTable#alignOverlaysWithTrimmingContainer` judged the owner with a realm-bound `instanceof` and
 left the holder `overflow: visible`. That is fixed — see the realm rule in the per-axis section
-above.) Retrying such a table forever rebinds every listener on every draw, which also drops
+above.) Retrying such a table forever rebinds the scrollable-element listeners on every draw, which also drops
 whichever scroll event is in flight. Re-arming the flag (through the
 public `updateMainScrollableElements`, which `updateSettings` calls whenever `height` moves to or from
 `''`, and which the owner resync above calls when an axis owner moved) forgets the answer the
@@ -2261,3 +2261,33 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   `tests/e2e/walkontable/inline-end-overlay-review.spec.ts`, `tests/e2e/fixed-columns-end.spec.ts`).
   A unit test of an overlay or table module imports the `walkontable/overlay` barrel first: the table
   modules and the overlays import each other and only that entry resolves the cycle.
+
+## A scroll-owner change re-binds only the scroller's listeners
+
+`ScrollSync#updateMainScrollableElements()` runs inside `updateSettings()` whenever a call moves the
+scroll owner of an axis (`height` to or from auto, turning Pagination or the sheets bar on) and from
+`resyncScrollableElementsWithOwners()` during a draw. It used to clear every listener of the overlays'
+event manager and register them all again. The ones on the window and the document (`pointermove`,
+`pointerleave`, the capture-phase window `scroll`, `keydown`, `keyup`, `visibilitychange`, `resize`,
+and the sticky scroll's `mousedown`/`mouseup`) were then added from inside the caller's call stack,
+and a listener belongs to whatever context added it: in an Angular app that called `updateSettings()`
+from a component handler, every pointer move and click anywhere on the page ran change detection.
+
+So the listeners are split by what they are bound to. `Overlays#registerListeners()` runs once, from
+the constructor, and binds both sets. `NativeScrollInput#registerScrollableElementListeners()` (through
+`Overlays#registerScrollableElementListeners()`) is what a scroll-owner change calls: it removes the
+listeners it added last time through the removers `EventManager#addEventListener` returns, resets the
+sticky-scroll state (`StickyScrollStrategy#resetForScrollableElementChange()`), and binds again the
+`scroll` listeners on the axis owners, the `wheel` listeners on the root and the clone holders (their
+`passive` flag depends on the owner), the clone holders' `scroll` listeners, and the resize observer.
+Two rules:
+
+- **Never call `eventManager.clearEvents()` to rebind.** It drops the page-wide listeners too, and
+  re-adding them puts them back in the caller's context.
+- **A new listener goes in the set that matches its target.** One bound to the window, the document,
+  or an element that lives for the instance's life (the holder) goes in the constructor-time set; one
+  bound to an axis owner, or whose options depend on it, goes in `registerScrollableElementListeners()`
+  through `#addScrollableElementListener()`, or a rebind adds a second copy of it.
+
+When the window owns an axis, its `scroll` listener is still re-added on a rebind; that one fires only
+when the page scrolls, which is the grid's own scroll there.
