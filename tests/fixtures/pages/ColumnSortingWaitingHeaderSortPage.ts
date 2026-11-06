@@ -24,6 +24,8 @@ interface FixtureWindow {
     updateSettings(settings: Record<string, unknown>): void;
     loadData(data: Row[]): void;
     updateData(data: Row[]): void;
+    getSourceData(): Row[];
+    destroy(): void;
   };
   htSortPlugin: SortPlugin;
   heldValidations: Array<(valid: boolean) => void>;
@@ -86,6 +88,16 @@ export class ColumnSortingWaitingHeaderSortPage {
   }
 
   /**
+   * Clicks a column header label once more while the first sort waits, with Ctrl (Cmd on macOS) held when
+   * `ctrl` is set. The editor stays open until the validator answers, so this press waits too and starts no
+   * validation of its own.
+   */
+  async clickSortHeaderAgain(col: number, ctrl = false): Promise<void> {
+    await this.sortLabel(col).click({ modifiers: ctrl ? ['ControlOrMeta'] : [] });
+    expect(await this.heldValidationCount()).toBe(1);
+  }
+
+  /**
    * How many validator calls are held without an answer.
    */
   async heldValidationCount(): Promise<number> {
@@ -97,19 +109,63 @@ export class ColumnSortingWaitingHeaderSortPage {
    * and one more task has passed, so anything the answer queued has run.
    */
   async answerValidator(): Promise<void> {
+    await this.answerHeldValidations();
+    await expect.poll(() => this.page.evaluate(
+      () => (window as unknown as FixtureWindow).postAfterValidateCount)).toBe(1);
+    await this.nextTask();
+  }
+
+  /**
+   * Answers every held validator call as valid and waits one task, without waiting for `postAfterValidate`. A
+   * destroyed grid runs no hooks, so this is the answer to use after `destroy()`.
+   */
+  async answerValidatorAfterDestroy(): Promise<void> {
+    await this.answerHeldValidations();
+    await this.nextTask();
+  }
+
+  /**
+   * Calls every held validator callback with `true`.
+   */
+  async answerHeldValidations(): Promise<void> {
     await this.page.evaluate(() => {
       const fixture = window as unknown as FixtureWindow;
 
       fixture.heldValidations.splice(0).forEach(callback => callback(true));
     });
-    await expect.poll(() => this.page.evaluate(
-      () => (window as unknown as FixtureWindow).postAfterValidateCount)).toBe(1);
+  }
+
+  /**
+   * Resolves after one more task, so anything the page queued before it has run.
+   */
+  async nextTask(): Promise<void> {
     await this.page.evaluate(() => new Promise<void>((resolve) => {
       const channel = new MessageChannel();
 
       channel.port1.onmessage = () => resolve();
       channel.port2.postMessage(null);
     }));
+  }
+
+  /**
+   * Destroys the grid.
+   */
+  async destroyGrid(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as FixtureWindow).hot.destroy();
+    });
+  }
+
+  /**
+   * Calls `updateData()` with the records the grid holds now, as a wrapper does when it re-renders with the
+   * same data.
+   */
+  async updateDataWithSameRecords(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.updateData(hot.getSourceData());
+    });
   }
 
   /**
@@ -140,15 +196,6 @@ export class ColumnSortingWaitingHeaderSortPage {
   async loadData(rows: Row[]): Promise<void> {
     await this.page.evaluate((data) => {
       (window as unknown as FixtureWindow).hot.loadData(data);
-    }, rows);
-  }
-
-  /**
-   * Replaces the data with `updateData()`.
-   */
-  async updateData(rows: Row[]): Promise<void> {
-    await this.page.evaluate((data) => {
-      (window as unknown as FixtureWindow).hot.updateData(data);
     }, rows);
   }
 

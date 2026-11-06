@@ -110,13 +110,18 @@ Everything about that machinery is load-bearing:
   in a microtask, so it is already over by mouse-up — and reading `awaitsValidation` on release is wrong
   too, because by then the new selection has opened an editor on the highlighted cell. The wait happens in
   `#resolvePendingSort`, not in `applyHeaderClickSort`, so subclasses overriding that seam still get it.
-- **The waiting sort is plugin state, and every reset drops it.** Release takes the press out of
-  `#pendingHeaderSort`, so the sort that waits for the validator sits in `#awaitingHeaderSort`, and the wait runs
-  it only while that field still holds the same press. `disablePlugin()`, `destroy()`, `afterLoadData` and an
-  `'init'` column order reset clear it (`#dropHeaderSorts()`). Without that a sort waiting through
+- **The waiting sorts are plugin state, and every reset drops them.** Release takes the press out of
+  `#pendingHeaderSort`, so a sort that waits for the validator sits in the `#awaitingHeaderSorts` set, and its wait
+  runs it only while the set still holds it. It is a set, not one field: the editor stays open until the answer, so
+  a second header press during the wait waits too, and one field let the second release overwrite the first (two
+  clicks on a header ended `asc` instead of `desc`, and MultiColumnSorting kept only the last Ctrl+click). The waits
+  resolve on the same `postAfterValidate`, in press order. `disablePlugin()`, `destroy()`, `afterLoadData` and an
+  `'init'` column order reset clear the set (`#dropHeaderSorts()`). Without that a sort waiting through
   `updateSettings({ columnSorting: false })` threw `Cannot read properties of null (reading 'getSortStates')`, and
-  one waiting through `loadData()` sorted the loaded rows. `updateData()` keeps it on purpose: the wrappers call it
-  with the same records while an edit waits, and dropping there would lose the click. The wait still resolves on
+  one waiting through `loadData()` sorted the loaded rows. `updateData()` keeps the sorts on purpose: the wrappers
+  call it with the same records while an edit waits, and dropping there would lose the click. The plugin cannot
+  tell the same records from other ones, so an `updateData()` with other records keeps them too and they sort
+  those records, the same way core still writes the waiting edit into them. The wait still resolves on
   the next `postAfterValidate` of any cell, so an unrelated validation that answers first sorts the rows before
   the edit lands, and the edit is written by visual row onto another record. That is a core defect, and once
   core keeps a waiting change on its record this wait can go.

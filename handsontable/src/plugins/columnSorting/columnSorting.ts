@@ -234,10 +234,11 @@ export class ColumnSorting extends BasePlugin {
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
   /**
-   * Sort of a released header press that waits for a mid-edit cell to finish validating. The wait runs it only
-   * while it is still this one, so turning the plugin off, a data load, and a column order reset drop it.
+   * Sorts of released header presses that wait for a mid-edit cell to finish validating, in press order. A wait
+   * runs its press only while the set still holds it, so turning the plugin off, a data load, and a column order
+   * reset drop them all, and a second press made during the wait keeps the first.
    */
-  #awaitingHeaderSort: HeaderSortPress | null = null;
+  #awaitingHeaderSorts = new Set<HeaderSortPress>();
   /**
    * `true` from an `enablePlugin()` until the settings sort of that enable runs in the ready step.
    * `onDataReady()` sorts itself, so it clears it too.
@@ -1372,8 +1373,8 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Callback for the `afterLoadData` hook. Drops a header sort waiting for a validator, because the press was
-   * made on the rows the load replaced. Sorts the rows an `init` listener loads: that load replaces the rows
+   * Callback for the `afterLoadData` hook. Drops the header sorts waiting for a validator, because the presses
+   * were made on the rows the load replaced. Sorts the rows an `init` listener loads: that load replaces the rows
    * the ready step sorted, and it skips the load's own ready step pass. Only that load has a truthy
    * `initialLoad` while the view exists; the load made before the view and every load after init pass by.
    *
@@ -1381,7 +1382,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {boolean|Array} initialLoad Whether the load is made during init.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: unknown) => {
-    this.#awaitingHeaderSort = null;
+    this.#awaitingHeaderSorts.clear();
 
     if (initialLoad && this.hot.view) {
       this.#loadOrSortBySettings();
@@ -1546,24 +1547,23 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.#awaitingHeaderSort = pending;
+    this.#awaitingHeaderSorts.add(pending);
 
     void pending.validation.then(() => {
-      if (this.#awaitingHeaderSort !== pending) {
+      if (!this.#awaitingHeaderSorts.delete(pending)) {
         return;
       }
 
-      this.#awaitingHeaderSort = null;
       this.applyHeaderClickSort(pending);
     });
   };
 
   /**
-   * Drops the queued press and the sort that waits for a validator.
+   * Drops the queued press and every sort that waits for a validator.
    */
   #dropHeaderSorts(): void {
     this.#pendingHeaderSort = null;
-    this.#awaitingHeaderSort = null;
+    this.#awaitingHeaderSorts.clear();
   }
 
   /**

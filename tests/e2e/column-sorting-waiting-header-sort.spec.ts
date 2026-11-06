@@ -6,7 +6,7 @@ import { ColumnSortingWaitingHeaderSortPage, type Row } from '../fixtures/pages/
  * waits for the validator to answer, so the rows do not move under the edit. These cases make that click
  * with the real mouse and keyboard, change the grid while the sort waits, and only then answer the
  * validator. Turning the plugin off, loading new data and starting the column order over drop the waiting
- * sort; `updateData()` keeps it.
+ * sort; `updateData()` with the same records keeps it, and so does a second header press made during the wait.
  *
  * The fixture's validator holds its callback until the spec answers it, so the wait has no timer. The
  * first case is the positive control: without it, a gesture that never queued a sort would pass every
@@ -85,14 +85,46 @@ test.describe('a header sort waiting for an async validator', () => {
     expect(await grid.columnValues(1)).toEqual(sourceOrder);
   });
 
-  test('keeps the sort through `updateData()`, which the wrappers call while an edit waits', async() => {
+  test('keeps the sort through `updateData()` with the same records, as a wrapper re-render sends', async() => {
     await grid.goto();
     await grid.editThenClickSortHeader(1, 'zzz');
 
-    await grid.updateData(newRows);
+    await grid.updateDataWithSameRecords();
     await grid.answerValidator();
 
     await expect.poll(() => grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(await grid.labels()).toEqual(['p0', 'p3', 'p2', 'p5', 'zzz', 'p4']);
+  });
+
+  test('keeps both presses when the header is clicked twice while the sort waits', async() => {
+    await grid.goto();
+    await grid.editThenClickSortHeader(1, 'zzz');
+    await grid.clickSortHeaderAgain(1);
+
+    await grid.answerValidator();
+
+    await expect.poll(() => grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+  });
+
+  test('keeps both columns when MultiColumnSorting gets a Ctrl+click while the sort waits', async() => {
+    await grid.goto('multiColumnSorting');
+    await grid.editThenClickSortHeader(1, 'zzz');
+    await grid.clickSortHeaderAgain(0, true);
+
+    await grid.answerValidator();
+
+    await expect.poll(() => grid.sortConfig()).toEqual([
+      { column: 1, sortOrder: 'asc' },
+      { column: 0, sortOrder: 'asc' },
+    ]);
+  });
+
+  test('throws nothing when the grid is destroyed while the sort waits', async() => {
+    await grid.goto();
+    await grid.editThenClickSortHeader(1, 'zzz');
+
+    await grid.destroyGrid();
+    await grid.answerValidatorAfterDestroy();
   });
 
   test('drops the sort when `updateSettings()` turns MultiColumnSorting off', async() => {
