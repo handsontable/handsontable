@@ -704,6 +704,14 @@ class Overlays {
   }
 
   /**
+   * Re-binds the listeners that depend on the scrollable elements, leaving the ones on the document
+   * and the window bound.
+   */
+  registerScrollableElementListeners() {
+    this.#nativeScrollInput.registerScrollableElementListeners();
+  }
+
+  /**
    * Register all necessary event listeners.
    */
   registerListeners() {
