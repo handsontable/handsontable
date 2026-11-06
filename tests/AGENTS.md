@@ -2187,12 +2187,15 @@ screen readers (`docs/AGENTS.md` 2.20).
   `EVIDENCE_CHECKS`, which the a11y checks config turns into projects): one target per scenario (its page,
   its theme, the scenario as the variant), the criteria it evaluated, a finding per step missing a token
   group (`announcement-missing-fact`) and per traversal item read twice, never or out of order, plus the
-  run's project and lane and a record per step (`records`: scenario, step, lane, project, page, theme,
-  criteria, action, and the verdict `pass`, `missing-fact`, `recorded` for a step that asserts nothing,
-  `unsupported` or `not-run`), with each scenario's records in a detail file beside it. The findings are
-  `advisory` while the lane is report-only: a missing group is the grid's defect or the reader's own
-  behavior, and the step's note says which. A run that stopped is a problem of its target, which then
-  evaluates no criterion; an unsupported step is neither, because the lane ran every step it can drive.
+  run's project, lane and group (`null` for a run of every scenario) and a record per step (`records`:
+  scenario, step, lane, project, page, theme, criteria, action, and the verdict `pass`, `missing-fact`,
+  `recorded` for a step that asserts nothing, `unsupported` or `not-run`), with each scenario's records in a
+  detail file beside it. The findings are `advisory` while the lane is report-only: a missing group is the
+  grid's defect or the reader's own behavior, and the step's note says which. A run that stopped is a
+  problem of its target, which then evaluates no criterion; an unsupported step is neither, because the
+  lane ran every step it can drive, and it stays `unsupported` in a scenario that left no transcript. A
+  transcript a retry wrote (`attempt` above 0) flags its target `flaky`, as a check's test that measured
+  only on a retry is.
 - **Two assertion tiers.** The **required tokens** are each step's `expect`: synonym groups
   (`[["34"], ["age"], ["row 2"], ["column 3"]]`), each group satisfied by any one synonym found as a
   whole phrase in the normalized announcement, all groups required. A synonym of digits alone (`"34"`)

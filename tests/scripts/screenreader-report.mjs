@@ -84,6 +84,7 @@ const project = env.SCREENREADER_PROJECT || transcripts[0]?.project || 'unknown'
 const evidence = buildScreenreaderEvidence({
   project,
   lane: laneOfProject(project),
+  group,
   transcripts,
   scenarios,
   run: {
