@@ -2269,13 +2269,16 @@ screen readers (`docs/AGENTS.md` 2.20).
   names no mode leaves the mode unknown, and the reader toggles again, up to four times: assuming the mode
   it asked for once sent a read's Down Arrow to the page in focus mode, and the traversal started on a
   cell. Only when no switch names a mode does `(no mode announced after the toggle)` go into `preparing`
-  and the run go on. A transcript with that line on its first step and nothing spoken after it is no
-  reading: NVDA was not on the page (once the Windows Start menu held the focus, its words in `entering`;
-  and the date editor's fixture page leaves NVDA silent in most runs, while a copy of it was read in
-  full). Never record a golden from such a transcript when the page reads in another run; take that
-  project's golden from a run where it did, and where a page is silent in every run, keep the silent
-  golden and say so in the scenario's notes, so a fix shows as a golden difference. The focus
-  highlighter is off in the same settings. After the setup the log is cleared, and every page action is
+  and the run go on, and only once NVDA has named a mode in the run. Switches that name no mode before
+  NVDA ever named one mean NVDA is outside the page's document (the browser's toolbar, or the Windows
+  Start menu, its words then in `entering`), where nothing is spoken, so the reader throws and the retry
+  starts over with a fresh browser and NVDA; a silent transcript is never a reading, so never record a
+  golden from one. Guidepup's entry clicks the middle of `<body>` and then presses a real Tab: a click
+  that selects a cell of the last column sends that Tab out of the grid and, with nothing focusable after
+  it, out of the page. So the reader keeps the cells transparent to the pointer while Guidepup enters
+  (`ENTRY_POINTER_GUARD`), and the click lands on the table or the grid's holder whatever the page's
+  width. Never drop the guard, and keep any new NVDA entry from clicking a cell. The focus highlighter is
+  off in the same settings. After the setup the log is cleared, and every page action is
   `screenReader.capture(() => …, { capture: true })`, which waits a second of silence after the last
   phrase, as a reading command's own capture does. A step whose capture is empty is listened to once more for another
   silence window, so a phrase NVDA speaks late (Shift+F10 on Firefox) usually lands on its own step.

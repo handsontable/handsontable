@@ -171,6 +171,18 @@ const VOICEOVER_SETTINGS = {
   SCRConfigurationCursorTrackingMToVO: false,
 };
 /**
+ * The stylesheet the NVDA reader holds on the page while Guidepup enters it. Guidepup's
+ * `navigateToWebContent()` clicks the middle of `<body>` and then presses a real Tab. When that point is
+ * a cell, the click selects it, and from a cell of the last column the Tab leaves the grid; with nothing
+ * focusable after the grid it leaves the page for the browser's toolbar. NVDA then has no document: its
+ * mode switches name no mode, and the page actions, which Playwright sends to the page whatever has the
+ * system focus, are never spoken. The date editor's fixture is six columns wide, so the middle of its
+ * body is a cell of its last column, and NVDA heard nothing on that page in almost every run, on both
+ * browsers. With the cells transparent to the pointer the click lands on what is under them, the table
+ * or the grid's holder, as it does on the pages whose middle is no cell, and selects nothing.
+ */
+const ENTRY_POINTER_GUARD = 'td, th, td *, th * { pointer-events: none !important; }';
+/**
  * How many times the VoiceOver reader reads the last phrase after it spoke the step boundary, before
  * it speaks the boundary again, and how many times it speaks it before the run stops as tooling. Each
  * read is one `osascript` round trip (tens of milliseconds), which is the polling interval: no timer.
@@ -352,11 +364,12 @@ async function awaitAfter(page: Page, step: ScenarioStep): Promise<void> {
  * reader (NVDA on Windows, VoiceOver on macOS), and the reader follows its name.
  *
  * @param screenReader Guidepup's screen reader.
+ * @param page The page.
  * @returns The reader.
  */
-function guidepupReader(screenReader: ScreenReaderPlaywright): Reader {
+function guidepupReader(screenReader: ScreenReaderPlaywright, page: Page): Reader {
   if (screenReader.name === 'NVDA') {
-    return nvdaReader(screenReader);
+    return nvdaReader(screenReader, page);
   }
   if (screenReader.name === 'VoiceOver') {
     return voiceOverReader(screenReader);
@@ -528,7 +541,10 @@ function voiceOverReader(screenReader: ScreenReaderPlaywright): Reader {
  *
  * - **Into the page**: Guidepup's `navigateToWebContent()` focuses the browser window and puts NVDA at
  *   the top of the document, in browse mode. NVDA has no interaction level, so `start` changes nothing
- *   here: the setup's selection moves the focus into the grid, and NVDA follows it.
+ *   here: the setup's selection moves the focus into the grid, and NVDA follows it. On the way Guidepup
+ *   clicks the middle of the page and presses Tab, so the reader keeps the cells out of the pointer's
+ *   reach meanwhile (`ENTRY_POINTER_GUARD`): a click that selected a cell of the last column sent that
+ *   Tab out of the page.
  * - **Its mode follows the primitive.** A page action (`press`, `type`, `selectCell`) runs in focus mode,
  *   where a grid user works; a reading command (`read`, `activate`) runs in browse mode, where NVDA's Down
  *   and Up Arrow read the next and previous item and Enter activates the item under the cursor. Before a
@@ -541,18 +557,25 @@ function voiceOverReader(screenReader: ScreenReaderPlaywright): Reader {
  *   that names no mode still flipped it, so the mode follows from the last one NVDA named and the count
  *   of silent switches after it (`ensureNvdaMode()` of `lib/screenreader-nvda.mjs`): the reader keeps
  *   switching for a named mode while two switches are left, a mode it can only infer goes into the
- *   step's `preparing`, and switches that end in the other mode stop the run as tooling. Only when NVDA
- *   never named a mode does `(no mode announced after the toggle)` go into `preparing` and the run go on
- *   in the mode it asked for. What a switch says is the step's `preparing`, never its announcement.
+ *   step's `preparing`, and switches that end in the other mode stop the run as tooling. When NVDA has
+ *   named no mode in the run, neither on the way in nor by a switch, it is not in the page's document
+ *   (its focus on the browser's toolbar, or the Windows Start menu once), where a switch says nothing
+ *   and no step would be spoken, so the run stops as tooling and the retry starts over with a fresh
+ *   browser and NVDA. What a switch says is the step's `preparing`, never its announcement.
  * - **Each step**: `screenReader.capture(() => …, { capture: true })` for a page action, and NVDA's own
  *   command with its capture for a reading one; both wait a second of silence after the last phrase. A
  *   step whose capture is empty is listened to once more (below).
  *
  * @param screenReader Guidepup's screen reader, NVDA.
+ * @param page The page.
  * @returns The reader.
  */
-function nvdaReader(screenReader: ScreenReaderPlaywright): Reader {
+function nvdaReader(screenReader: ScreenReaderPlaywright, page: Page): Reader {
+  // The mode NVDA is in, named or inferred from a named one: `null` until NVDA names one in this run,
+  // and while it is, a switch that names none means NVDA is not in the page's document (above). What it
+  // said on the way in goes into that error.
   let mode: 'focus' | 'browse' | null = null;
+  let entered: string[] = [];
   const heard = (phrases: string[]) => {
     mode = lastNvdaMode(phrases) ?? mode;
   };
@@ -565,8 +588,8 @@ function nvdaReader(screenReader: ScreenReaderPlaywright): Reader {
     // A toggle that names no mode still flipped it: assuming the wanted mode after one once sent a read's
     // Down Arrow to the page in focus mode, and the traversal started on a cell (Firefox, the NVDA lane's
     // proof run). The mode follows from the count of toggles since NVDA last named one, and toggles that
-    // end in the other mode throw, a tooling failure, rather than run the step in the wrong mode.
-    const result = await ensureNvdaMode({ mode, wanted, toggle });
+    // end in the other mode, or in none, throw, a tooling failure, rather than run the step blind.
+    const result = await ensureNvdaMode({ mode, wanted, toggle, entered });
 
     mode = result.mode;
 
@@ -603,12 +626,20 @@ function nvdaReader(screenReader: ScreenReaderPlaywright): Reader {
   return {
     name: `${screenReader.name} ${screenReader.version}`,
     async enter() {
-      await screenReader.navigateToWebContent();
+      const guard = await page.addStyleTag({ content: ENTRY_POINTER_GUARD });
+
+      try {
+        await screenReader.navigateToWebContent();
+      } finally {
+        await guard.evaluate(node => (node as Element).remove());
+        await guard.dispose();
+      }
     },
     async ready() {
       const entering = [...(await screenReader.spokenPhraseLog())];
 
       heard(entering);
+      entered = entering;
       await screenReader.clearSpokenPhraseLog();
 
       return entering;
@@ -996,7 +1027,7 @@ for (const { fileName, scenario, problems } of scenarios) {
   } else {
     screenReaderTest(scenario.id, async({ page, screenReader }, testInfo) => {
       testInfo.setTimeout(scenarioTimeout(testInfo.timeout, scenario));
-      await runScenario(page, guidepupReader(screenReader), scenario, testInfo);
+      await runScenario(page, guidepupReader(screenReader, page), scenario, testInfo);
     });
   }
 }

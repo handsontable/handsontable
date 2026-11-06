@@ -18,12 +18,6 @@
 export const MODE_TOGGLES = 4;
 
 /**
- * The step's `preparing` entry when no toggle named a mode and NVDA named none before: the run goes on in
- * the mode it asked for, and the transcript says that mode was not confirmed.
- */
-export const NO_MODE_ANNOUNCED = '(no mode announced after the toggle)';
-
-/**
  * The last mode NVDA named in some phrases: the last mode phrase wins, inside one phrase too (`focus mode.
  * browse mode` is browse mode).
  *
@@ -57,20 +51,24 @@ export function inferredModeNote(mode) {
  * two to come back). When the toggles end:
  *
  * - in the wanted mode, named or inferred: the run goes on; an inferred mode adds a note to `said`;
- * - in a mode never named, before or by a toggle: the run goes on in the wanted mode, and `said` ends
- *   with `NO_MODE_ANNOUNCED`;
  * - in the other mode, named or inferred: it throws, a tooling failure, because a read in focus mode sends
- *   its Down Arrow to the page and a press in browse mode moves NVDA's cursor instead of the grid's.
+ *   its Down Arrow to the page and a press in browse mode moves NVDA's cursor instead of the grid's;
+ * - in no mode at all, because NVDA named none in the run, neither before nor by a toggle: it throws too.
+ *   NVDA is then outside the page's document (the browser's toolbar after Guidepup's entry Tab left the
+ *   page, or the Windows Start menu once), where a toggle says nothing and no step would be spoken, so
+ *   the run's retry starts over with a fresh browser and NVDA.
  *
  * @param {object} input The input.
- * @param {'focus'|'browse'|null} input.mode The mode NVDA last named, or `null`.
+ * @param {'focus'|'browse'|null} input.mode The mode NVDA is in, named or inferred from a named one, or
+ * `null` while NVDA has named none in the run.
  * @param {'focus'|'browse'} input.wanted The mode the primitive needs.
  * @param {() => Promise<string>} input.toggle Presses the toggle and returns what NVDA said.
  * @param {number} [input.attempts] The most toggles, `MODE_TOGGLES` by default.
+ * @param {string[]} [input.entered] What NVDA said on the way into the page, for the error.
  * @returns {Promise<{mode: 'focus'|'browse', said: string[]}>} The mode the run goes on in, and what the
  * toggles said (the step's `preparing`).
  */
-export async function ensureNvdaMode({ mode, wanted, toggle, attempts = MODE_TOGGLES }) {
+export async function ensureNvdaMode({ mode, wanted, toggle, attempts = MODE_TOGGLES, entered = [] }) {
   const said = [];
   let current = mode;
   let named = true;
@@ -94,9 +92,7 @@ export async function ensureNvdaMode({ mode, wanted, toggle, attempts = MODE_TOG
   }
 
   if (current === null) {
-    said.push(NO_MODE_ANNOUNCED);
-
-    return { mode: wanted, said };
+    throw new Error(`NVDA named no mode after ${said.length} toggle${said.length === 1 ? '' : 's'}, and none before them: it is not in the page's document (on the way in it said ${JSON.stringify(entered.join(' '))}), so no step would be spoken. The lane's entry failed, not the grid; the retry starts over.`);
   }
   if (current !== wanted) {
     throw new Error(`NVDA is in ${current} mode after ${attempts} toggle${attempts === 1 ? '' : 's'}, and the step needs ${wanted} mode (the toggles said: ${said.map(phrase => JSON.stringify(phrase)).join(', ')})`);

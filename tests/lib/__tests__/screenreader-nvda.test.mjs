@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MODE_TOGGLES, NO_MODE_ANNOUNCED, ensureNvdaMode, inferredModeNote, lastNvdaMode } from '../screenreader-nvda.mjs';
+import { MODE_TOGGLES, ensureNvdaMode, inferredModeNote, lastNvdaMode } from '../screenreader-nvda.mjs';
 
 /**
  * A toggle that says the phrases in order, one per press, and counts the presses.
@@ -87,10 +87,17 @@ test('the toggles ending in the other mode is a tooling failure, named or inferr
     /NVDA is in focus mode after 1 toggle, and the step needs browse mode/);
 });
 
-test('with no mode ever named, the run goes on in the wanted mode and says the mode was not confirmed', async() => {
+test('with no mode ever named in the run, NVDA is outside the page\'s document: a tooling failure', async() => {
+  // Guidepup's entry Tab left the page (a cell of the last column was clicked), so every toggle is silent.
   const silent = toggles([]);
 
-  assert.deepEqual(await ensureNvdaMode({ mode: null, wanted: 'focus', toggle: silent.toggle }),
-    { mode: 'focus', said: ['', '', '', '', NO_MODE_ANNOUNCED] });
+  await assert.rejects(ensureNvdaMode({ mode: null, wanted: 'focus', toggle: silent.toggle, entered: ['Address and search bar'] }),
+    /NVDA named no mode after 4 toggles, and none before them: it is not in the page's document \(on the way in it said "Address and search bar"\)/);
   assert.equal(silent.presses(), MODE_TOGGLES);
+
+  // A mode NVDA named on the way in is enough: the silent toggles then count from it.
+  const known = toggles(['', '', '', '']);
+
+  assert.deepEqual(await ensureNvdaMode({ mode: 'browse', wanted: 'focus', toggle: known.toggle }),
+    { mode: 'focus', said: ['', '', '', inferredModeNote('focus')] });
 });
