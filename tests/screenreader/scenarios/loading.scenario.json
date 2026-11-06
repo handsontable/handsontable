@@ -5,7 +5,7 @@
   "surface": "The loading overlay the application shows over the grid: its message when it appears, the focus it holds, and the focus it gives back when the load ends.",
   "page": "loading",
   "start": "page",
-  "criteria": ["2.4.3", "4.1.2", "4.1.3"],
+  "criteria": ["2.4.3", "4.1.2"],
   "setup": [{"call": ["htHideLoading"]}, {"selectCell": [1, 0]}],
   "steps": [
     {
