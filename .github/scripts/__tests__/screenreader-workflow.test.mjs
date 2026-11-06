@@ -88,6 +88,8 @@ test('the NVDA job: Windows, one browser per job, report-only, running the scree
     `${LANE}: the recorded goldens upload on an update-goldens run only, red or green. ${DOC}`);
   assert.match(goldens, /^ {10}name: screenreader-goldens-nvda-\$\{\{ matrix\.browser \}\}-\$\{\{ matrix\.group \}\}$/m,
     `${LANE}: one goldens artifact per browser and group, the names tests/AGENTS.md tells you to download. ${DOC}`);
+  assert.match(goldens, /^ {10}path: tests\/test-results\/screenreader\/goldens$/m,
+    `${LANE}: the goldens the job recorded, never the whole tree, whose other groups' files are the checkout's copies and would replace their new recordings when the artifacts are extracted together. ${DOC}`);
 
   const transcripts = step('Upload the transcripts');
 
@@ -177,6 +179,8 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
     `${LANE}: the recorded goldens upload on an update-goldens run only, red or green. ${DOC}`);
   assert.match(goldens, /^ {10}name: screenreader-goldens-vo-\$\{\{ matrix\.browser \}\}-\$\{\{ matrix\.group \}\}$/m,
     `${LANE}: one goldens artifact per browser and group, the names tests/AGENTS.md tells you to download. ${DOC}`);
+  assert.match(goldens, /^ {10}path: tests\/test-results\/screenreader\/goldens$/m,
+    `${LANE}: the goldens the job recorded, never the whole tree, whose other groups' files are the checkout's copies and would replace their new recordings when the artifacts are extracted together. ${DOC}`);
   assert.match(step('Write the job summary'), /^ {8}run: node tests\/scripts\/screenreader-report\.mjs$/m);
   assert.match(step('Write the job summary'), /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m);
 

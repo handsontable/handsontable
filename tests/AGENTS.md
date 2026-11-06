@@ -2211,7 +2211,9 @@ screen readers (`docs/AGENTS.md` 2.20).
   (`gh workflow run screenreader-nightly.yml --ref <branch> -f update-goldens=true`): the run records
   every project's goldens on its runner (`HOT_SR_UPDATE_GOLDENS=1`, or Playwright's
   `--update-snapshots` through `npm run test:screenreader:update-goldens`) and uploads them as
-  `screenreader-goldens-<project>-<group>`; download, commit under `screenreader/goldens/<project>/`, done.
+  `screenreader-goldens-<project>-<group>`, each holding only the goldens its job recorded (the spec writes a
+  copy to `test-results/screenreader/goldens/`), so every artifact extracts into one tree with nothing
+  overwritten; download, commit under `screenreader/goldens/<project>/`, done.
   The dispatch runs every job, so it records the NVDA goldens too: commit only the projects the change
   is about. A run with `update-goldens` compares nothing and reports `recorded`. A golden pins the wording
   as recorded, a finding included: a step NVDA stays silent on is an empty string in it, and a wrong

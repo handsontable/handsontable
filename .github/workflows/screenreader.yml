@@ -143,12 +143,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
           overwrite: true
+      # The goldens this job recorded, never the whole tree: a job runs one group, and the tree's other
+      # files are the checkout's copies, which would replace another group's new recordings when the
+      # artifacts are extracted together.
       - name: Upload the recorded goldens
         if: ${{ !cancelled() && inputs.update-goldens }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: screenreader-goldens-nvda-${{ matrix.browser }}-${{ matrix.group }}
-          path: tests/screenreader/goldens
+          path: tests/test-results/screenreader/goldens
           if-no-files-found: warn
           retention-days: 14
           overwrite: true
@@ -290,12 +293,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           overwrite: true
+      # The goldens this job recorded, never the whole tree: a job runs one group, and the tree's other
+      # files are the checkout's copies, which would replace another group's new recordings when the
+      # artifacts are extracted together.
       - name: Upload the recorded goldens
         if: ${{ !cancelled() && inputs.update-goldens }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: screenreader-goldens-vo-${{ matrix.browser }}-${{ matrix.group }}
-          path: tests/screenreader/goldens
+          path: tests/test-results/screenreader/goldens
           if-no-files-found: warn
           retention-days: 14
           overwrite: true

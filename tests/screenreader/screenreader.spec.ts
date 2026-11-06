@@ -131,6 +131,12 @@ type RootWrapper = HTMLElement & { __hotInstance?: HotInstance };
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCENARIOS_DIR = path.join(TESTS_ROOT, 'screenreader/scenarios');
 const GOLDENS_DIR = path.join(TESTS_ROOT, 'screenreader/goldens');
+/**
+ * Where a recording run also writes the goldens it recorded, and nothing else: a job runs one scenario
+ * group, so the goldens it uploads are that group's alone, and every group's artifact extracts into one
+ * tree without one group's checkout copies replacing another's new recordings.
+ */
+const RECORDED_GOLDENS_DIR = path.join(TESTS_ROOT, 'test-results/screenreader/goldens');
 const TRANSCRIPTS_DIR = path.join(TESTS_ROOT, 'test-results/screenreader/transcripts');
 const FIXTURES = readdirSync(path.join(TESTS_ROOT, 'fixtures/demo')).filter(name => name.endsWith('.html'));
 const DOM_ECHO = process.env.HOT_SR_LANE === 'dom-echo';
@@ -793,8 +799,13 @@ async function writeTranscript(page: Page, reader: Reader, scenario: Scenario, t
   };
 
   if (!run.incomplete && updatesGoldens(testInfo)) {
+    const recorded = `${JSON.stringify(goldenFromTranscript(transcript), null, 2)}\n`;
+    const recordedFile = path.join(RECORDED_GOLDENS_DIR, project, `${scenario.id}.json`);
+
     mkdirSync(path.dirname(goldenFile), { recursive: true });
-    writeFileSync(goldenFile, `${JSON.stringify(goldenFromTranscript(transcript), null, 2)}\n`);
+    writeFileSync(goldenFile, recorded);
+    mkdirSync(path.dirname(recordedFile), { recursive: true });
+    writeFileSync(recordedFile, recorded);
     transcript.golden = { status: 'recorded', differences: [] };
   } else if (!run.incomplete) {
     const golden: Golden | null = existsSync(goldenFile) ? JSON.parse(readFileSync(goldenFile, 'utf8')) : null;
