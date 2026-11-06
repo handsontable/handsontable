@@ -1900,6 +1900,67 @@ removes a focus ring or a name), shown in the check run of a nightly dispatch fr
 check run shows on the pull request, whose own pipeline runs the axe scan alone), then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
+## A11y: the docs site scan
+
+The product scan reads fixture pages; the conformance report's documentation rows are about the docs site
+readers use. `a11y/docs/docs-axe.spec.ts` runs axe-core over the pages of `a11y/docs/pages.mjs` on a
+deployed docs site, in the site's light and dark color schemes, with the product scan's rule set
+(`WCAG_TAGS` in `a11y/axe-scan.ts`, shared by both specs), and `reporters/a11y.ts` with `suite: 'docs'`
+compares the run with `a11y/docs/docs-baseline.json`. The comparator, the fingerprint, the reports and the
+findings document are the product scan's (`lib/a11y-suites.mjs` says what differs: the pages, the themes,
+the files, the links), so the baseline, the remedies and the rules of "The baseline: known issues and their
+findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI:
+`.github/workflows/docs-a11y.yml`.
+
+- **It reads a deploy, never a build.** `DOCS_A11Y_BASE_URL` names the deploy, `/docs` included: the
+  staging deploy of develop by default, a pull request's preview, or `http://localhost:4321/docs` for a
+  local `npm --prefix docs run preview`. `docsBaseUrl()` refuses anything but https (or a local http
+  preview), credentials, a query or a fragment, because a dispatch input lands there. The baseline is taken
+  from the staging deploy, so a run against another deploy reads what that deploy changed as new or fixed.
+  `a11y-findings.json` names the deploy (`baseUrl`), and the findings ledger records a scan of the staging
+  deploy only: a develop dispatch against a preview would otherwise open and resolve the staging rows.
+- **Every page the visual list enumerates, one framework each, and the chrome in its states.** The guide
+  pages come from `docs/tests/paths.js`, the list the docs visual suite photographs, so a page added there
+  is scanned with no second list. The chrome and the prose are the same in every framework, so a page is
+  scanned in JavaScript where it has one; the accessibility guide and the conformance report are scanned in
+  all four, because the README and the website link each. Beside them: the API reference and recipe
+  templates, the not-found page (answering 404), and the header in the states a reader opens from the
+  keyboard (the version and support menus, the docs assistant, the phone navigation at 390 px). The search
+  dialog exists in production builds only: on any other deploy that page attaches no scan and is listed as
+  not scanned, so its entries read as unverified, never as fixed.
+- **The whole document, as a reader gets it.** No include: the header, the sidebar, the table of contents,
+  the prose, the code blocks and every example with the grid inside it. A test waits for the examples to
+  finish loading (no `.hot-example-preview--loading`), the fonts and two frames, and checks the color scheme
+  took (`data-theme`). After the state, `settle()` waits for every finite animation to end (bounded, and
+  an animation still running names itself in the failure), for the code blocks' script to make every
+  overflowing block focusable, and for the DOM to hold still for 30 frames in a row, counted inside one
+  `evaluate` (`waitForFunction()` does not await a promise its predicate returns). A state waits for the
+  sign that it opened, never for an element that is there all along: the docs assistant's panel is in the
+  DOM before it opens, so the state waits for the focus in its text field. Third-party widgets that draw late, from a live service, or by region are blocked
+  (`BLOCKED_HOSTS`: the changelog bell, the consent banner, the GitHub stars count, the error reporter), so
+  two runs of one deploy agree; the scan says nothing about them.
+- **Report-only, and a red job is tooling.** A finding never fails a test. A page that answers with the
+  wrong status, sits behind the deploy's password wall, never finishes loading its examples or does not
+  take the color scheme fails its test; a page error is recorded with the scan and annotated, because it is
+  the site's bug, not the scan's.
+- **On demand.** A full run is 350 scans and takes five minutes or more, longer than a docs pull request
+  should wait, so `docs-a11y.yml` runs on a dispatch (`gh workflow run docs-a11y.yml --ref develop`, or
+  `-f base-url=<deploy>`), from a workflow that calls it (`workflow_call`), and on a pull request that
+  changes the scan itself (its workflow, `a11y/docs/`, its config). It never runs on a schedule or on a
+  change to the docs. A dispatch on develop is a night of the findings ledger's `docs` source; a dispatch
+  from a branch and a pull request's run are proof runs. A page that answers with a 5xx was caught in a
+  staging deploy: run again once it is done. The findings land in `docs-a11y-axe-results` (`a11y-findings.json` at its root), and the HTML
+  report is `docs-a11y-report.html`, uploaded unzipped: an unzipped artifact is named after its file, and a
+  run that calls both scans uploads both reports.
+- **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
+  stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
+  hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
+  a `tracker` waits until someone files the task. Findings on the docs site are recorded here and fixed in
+  `docs/`, never in the change that adds or refreshes the scan.
+- **No keyboard walker yet.** The checks beyond axe (`a11y/checks/`) open fixture targets through the
+  harness and bracket a grid's root with sentinels; the docs chrome has neither, so the docs site's
+  keyboard paths are a gap of this scan, not a pass.
+
 ## A11y: the verdict of a check run
 
 Every accessibility check run follows one rule, `lib/a11y-verdict.mjs`: the axe scan's `A11y / axe report`,
@@ -1975,9 +2036,9 @@ use of them in its own test, and both `verdict` jobs in the workflow tests.
 
 A raw night leaves thousands of records (the discovery run alone about 3,900), most of them the same few
 defects on many pages, and a check's artifact says nothing about the night before. The findings ledger
-accumulates them: `test-health.yml` chains on `A11y nightly` and `Screen reader nightly`, and the
-collector reads every check document, the axe findings and every transcript of those two nightlies on
-develop, run by schedule or dispatch, into `test-health/a11y.json` on `gh-pages`, one row per finding across
+accumulates them: `test-health.yml` chains on `A11y nightly`, `Screen reader nightly` and `Docs a11y`, and
+the collector reads every check document, the axe findings, every transcript and the docs site scan's
+findings of those runs on develop, by schedule or dispatch, into `test-health/a11y.json` on `gh-pages`, one row per finding across
 nights, which the "Accessibility" section of <https://handsontable.github.io/handsontable/test-health/>
 draws. The pure half is `.github/scripts/lib/a11y-ledger.mjs`; the catalog that sorts the rows is
 `a11y/issues.json`, read through `lib/a11y-issues.mjs`. The CI mechanics (the trigger, the download filter,
@@ -1986,8 +2047,9 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
 - **Only the nightlies' evidence is a night.** A pull request's run uploads the same artifacts, made by the
   pull request's own code, and a fork's pull request from the fork's `develop` reports `develop` as its
   branch; recording it would resolve every row its code no longer shows. `isA11yRun()` takes a run of
-  `A11y nightly` or `Screen reader nightly`, on develop, started by its schedule or a dispatch, and nothing
-  else.
+  `A11y nightly`, `Screen reader nightly` or `Docs a11y`, on develop, started by its schedule or a dispatch,
+  and nothing else. A run's sources are its workflow's (`SOURCES_OF_WORKFLOW`): a list, so a workflow that
+  calls several of the scans names every source its run uploads, and a night of another source is refused.
 
 - **A finding keeps its identity across nights, or the ledger shows nothing but churn.** A row is keyed by
   its source, check and kind, the axe rule and cause it names, its page, theme, state and variant, and the
