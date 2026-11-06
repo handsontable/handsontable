@@ -107,7 +107,7 @@ For all the ways to size a grid, see [Grid size](@/guides/getting-started/grid-s
 
 A grid that builds its theme with the Theme API adds its own `<style>` element with that theme, about 45 KB. A grid does that when you pass a theme object in [`theme`](@/api/options.md#theme), or when it has no theme set at all: no `theme`, no [`themeName`](@/api/options.md#themename), and no `ht-theme-*` class on its container. With 100 grids, that is about 4.5 MB of CSS. The core styles are different: Handsontable adds them once for the page, however many grids it has.
 
-On a page with many grids, load the theme's CSS files once and give each grid the theme's name, for example `themeName: 'ht-theme-main'`. Each grid then adds no styles of its own. In a test with 20 grids, this cut the setup time from about 5.6 ms to about 2 ms per grid. If your page loads the core CSS file too, also set [`injectCoreCss: false`](@/api/options.md#injectcorecss). To change colors and sizes, use the `--ht-*` CSS variables.
+On a page with many grids, load the theme's CSS files once and give each grid the theme's name, for example `themeName: 'ht-theme-main'`. Each grid then adds no styles of its own. If your page loads the core CSS file too, also set [`injectCoreCss: false`](@/api/options.md#injectcorecss). To change colors and sizes, use the `--ht-*` CSS variables.
 
 For how to load the CSS files, see [Themes: Using CSS files](@/guides/styling/themes/themes.md#option-2-using-css-files).
 
@@ -285,7 +285,7 @@ To change which columns a grid shows, update the existing grid instead of creati
 - Hide the columns you don't need, with the [`HiddenColumns`](@/guides/columns/column-hiding/column-hiding.md) plugin.
 - Pass a new [`columns`](@/api/options.md#columns) array.
 
-Both cost about the same. How much faster they are than recreating the grid depends on the rendering options and the column widths. In a test with fixed column widths and the default rendering options, they were 2 to 3 times faster in JavaScript and about 1.5 times faster in React. With `renderAllColumns` or a large rendering offset, the gap almost disappeared. In React, updating in place also keeps the cell components of component renderers mounted, while recreating the grid mounts every one of them again.
+Both cost about the same. How much faster they are than recreating the grid depends mostly on the column widths. In a test with fixed column widths, updating in place was 1.8 to 2.7 times faster than recreating the grid in JavaScript, and 1.3 to 1.6 times faster in React. Both ranges held with the default options, with `renderAllColumns`, and with `renderAllColumns` plus a [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset) of 100. With automatic column widths, `renderAllColumns`, and that offset, updating in place was 1.7 to 1.9 times faster in JavaScript and about 1.1 times faster in React. In React, updating in place also keeps the cell components of component renderers mounted, while recreating the grid mounts every one of them again.
 
 The two differ in what they keep:
 
