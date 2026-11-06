@@ -66,8 +66,8 @@
     {
       "id": "server-answers",
       "action": {"call": ["htReleaseFetch", "CUS"]},
-      "expect": [["cus 01"]],
-      "note": "The server answers with the Customers rows. The overlay leaves, and the focus moves from the Customers tab to the first cell, `CUS-01`, with no key pressed. Finding: the focus leaves the tab the user was on when the rows land."
+      "expect": [],
+      "note": "The server answers with the Customers rows, and the overlay leaves. Nothing is required: the focus should stay on the Customers tab, where a reader may rightly say nothing, and a group can only require speech; this lane has no check on where the focus is, so the step records the finding without measuring it. Finding (the grid's): the focus moves from the Customers tab to the first cell, `CUS-01`, with no key pressed, and every reader reads that cell (the committed goldens)."
     }
   ]
 }
