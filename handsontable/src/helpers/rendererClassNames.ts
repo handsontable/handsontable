@@ -7,12 +7,6 @@ import { normalizeClassNames } from './dom/element';
 const rendererClassNames = new WeakMap<object, string[]>();
 
 /**
- * The horizontal alignment classes. A renderer adds one of them when the cell has none, and the user
- * picks one from the Alignment menu or writes it, so which of the two owns it depends on the write.
- */
-const ALIGNMENT_CLASS_NAMES = ['htLeft', 'htCenter', 'htRight', 'htJustify'];
-
-/**
  * Records class names a renderer appended to the `className` stored on a cell meta object. They
  * are told apart from the classes the user wrote, so the replay of the user's meta after a cache
  * reset can leave them out. A name that is already on the record is not added again, because a
@@ -44,26 +38,15 @@ export function recordRendererClassNames(meta: object, classNames: string[]): vo
 }
 
 /**
- * Forgets every class name recorded for a cell meta object. Called when the user removes
- * `className`, so nothing is left to strip.
- *
- * @param {object} meta The cell meta object.
- */
-export function forgetRendererClassNames(meta: object): void {
-  rendererClassNames.delete(meta);
-}
-
-/**
- * Takes the alignment classes of a `className` the user writes out of the record. The user reads
- * the rendered `className` back and writes it with a new alignment (the Alignment menu does), or
- * types `htRight` themselves, and that alignment is a choice that has to outlive a type change.
- * Any other recorded class name stays on the record, so a marker the renderer added (`htNumeric`)
- * is still dropped when the written value carries it along.
+ * Takes every class name of a `className` the user writes out of the record. A class name the user
+ * writes is theirs, whether they typed it or read the rendered value back and wrote it again, so
+ * it has to outlive a type change. A recorded class name the written value leaves out stays on the
+ * record, and the replay still drops it.
  *
  * @param {object} meta The cell meta object.
  * @param {*} value The `className` value the user writes.
  */
-export function adoptWrittenAlignmentClassNames(meta: object, value: unknown): void {
+export function adoptWrittenClassNames(meta: object, value: unknown): void {
   const recorded = rendererClassNames.get(meta);
 
   if (recorded === undefined) {
@@ -71,8 +54,7 @@ export function adoptWrittenAlignmentClassNames(meta: object, value: unknown): v
   }
 
   const written = typeof value === 'string' || Array.isArray(value) ? normalizeClassNames(value) : [];
-  const remaining = recorded.filter(className => !(ALIGNMENT_CLASS_NAMES.includes(className) &&
-    written.includes(className)));
+  const remaining = recorded.filter(className => !written.includes(className));
 
   if (remaining.length === 0) {
     rendererClassNames.delete(meta);

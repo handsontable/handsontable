@@ -56,6 +56,7 @@
   <div id="move-plain" class="grid" data-testid="move-plain"></div>
   <div id="move-with-class" class="grid" data-testid="move-with-class"></div>
   <div id="undo-row-removal" class="grid" data-testid="undo-row-removal"></div>
+  <div id="move-onto-rendered" class="grid" data-testid="move-onto-rendered"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -132,6 +133,12 @@
       'move-with-class': build('move-with-class', { columns: numericColumns(), moveCells: true }),
       // The undo journal: a row holding a user `className` is removed, then restored by an undo.
       'undo-row-removal': build('undo-row-removal', { columns: numericColumns(), undo: true }),
+      // `moveCells`: column 0 is text, so a cell there has no `className` of its own. Column 1 is
+      // numeric, so its cells carry the class names the renderer stored.
+      'move-onto-rendered': build('move-onto-rendered', {
+        columns: [{ type: 'text' }, { type: 'numeric' }],
+        moveCells: true,
+      }),
     };
   </script>
 </body>

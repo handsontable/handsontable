@@ -40,6 +40,9 @@ export interface MovableMetaEntry {
  * @param {number} fromCol The visual start column of the region.
  * @param {number} toRow The visual bottom row of the region.
  * @param {number} toCol The visual end column of the region.
+ * @param {boolean} [forClearing=false] When `true`, the entries tell which cells carry an own movable key,
+ * whatever its value holds. The caller removes those keys and never writes the values. A destination
+ * cell whose `className` holds only the class names a renderer appended is still cleared that way.
  * @returns {MovableMetaEntry[]}
  */
 export function collectMovableMeta(
@@ -48,6 +51,7 @@ export function collectMovableMeta(
   fromCol: number,
   toRow: number,
   toCol: number,
+  forClearing = false,
 ): MovableMetaEntry[] {
   const entries: MovableMetaEntry[] = [];
 
@@ -62,7 +66,9 @@ export function collectMovableMeta(
         if (hasOwnProperty(cellMeta, key)) {
           // A moved `className` leaves the class names a renderer appended behind: the destination
           // is drawn by its own renderer, and a copy would hand them over as the user's own.
-          const value = key === 'className' ? stripRendererClassNames(cellMeta, cellMeta[key]) : cellMeta[key];
+          const value = key === 'className' && !forClearing ?
+            stripRendererClassNames(cellMeta, cellMeta[key]) :
+            cellMeta[key];
 
           // A value that held only renderer class names has nothing of the user's to move. An empty
           // value the user set is still moved.

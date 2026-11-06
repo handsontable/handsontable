@@ -7,8 +7,7 @@ import type ColumnMeta from './columnMeta';
 import type { CellProperties } from '../../../settings';
 import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
 import {
-  adoptWrittenAlignmentClassNames,
-  forgetRendererClassNames,
+  adoptWrittenClassNames,
   stripRendererClassNames,
 } from '../../../helpers/rendererClassNames';
 
@@ -500,11 +499,10 @@ export default class CellMeta {
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
 
-    // An alignment the new `className` carries is the user's own choice, the Alignment menu's
-    // included: it reads the rendered value back and writes it with another alignment. Without
-    // this the replay after a cache reset would strip it as a class a renderer added.
+    // Every class name the new `className` carries is the user's own. Without this the replay after a
+    // cache reset would strip it as a class a renderer added.
     if (key === 'className') {
-      adoptWrittenAlignmentClassNames(cellMeta, value);
+      adoptWrittenClassNames(cellMeta, value);
     }
 
     // Every `setMeta` write - imperative or declarative (`cell` option) - is non-reconstructable by
@@ -577,10 +575,6 @@ export default class CellMeta {
     (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
     markCellMetaChanged(cellMeta);
-
-    if (key === 'className') {
-      forgetRendererClassNames(cellMeta);
-    }
 
     // Removing `editor` removes an `editor: true` request too (see `setMeta`). The editor the `type`
     // supplied because of it was deleted above, so the next read expands the type as if it was never

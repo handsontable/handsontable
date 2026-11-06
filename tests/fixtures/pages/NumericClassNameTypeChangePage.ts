@@ -11,35 +11,64 @@ type CellMetaClassName = string | string[];
  * changed a column `type` or the grid-level `type` replayed it, renderer tokens included.
  *
  * The page object builds nothing itself: the fixture creates every grid, and the methods here move a
- * grid from its numeric state to the state a case needs (`setClassName()`, then `switchColumnsToText()`
+ * grid from its numeric state to the state a case needs (`setClassName()`, then `switchFirstColumnToText()`
  * or `switchGridTypeToText()`).
  */
 export class NumericClassNameTypeChangePage {
-  /** `className` set through `setCellMeta()`, then column 0 switches to text. */
+  /**
+   * `className` set through `setCellMeta()`, then column 0 switches to text.
+   */
   static readonly SET_CELL_META = 'set-cell-meta';
-  /** `className` set through the `cell` option, then column 0 switches to text. */
+  /**
+   * `className` set through the `cell` option, then column 0 switches to text.
+   */
   static readonly CELL_OPTION = 'cell-option';
-  /** Grid-level `type: 'numeric'`, then `type: 'text'`. */
+  /**
+   * Grid-level `type: 'numeric'`, then `type: 'text'`.
+   */
   static readonly GRID_LEVEL = 'grid-level';
-  /** Control: the numeric type is restated. */
+  /**
+   * Control: the numeric type is restated.
+   */
   static readonly RESTATE = 'restate';
-  /** Control: explicit alignment through the Alignment context menu. */
+  /**
+   * Control: explicit alignment through the Alignment context menu.
+   */
   static readonly ALIGNMENT = 'alignment';
-  /** Control: a user array `className`. */
+  /**
+   * Control: a user array `className`.
+   */
   static readonly ARRAY = 'array';
-  /** Baseline: no `className` of the cell's own. */
+  /**
+   * Baseline: no `className` of the cell's own.
+   */
   static readonly BASELINE = 'baseline';
 
-  /** Undo of a `className` write that followed an earlier one. */
+  /**
+   * Undo of a `className` write that followed an earlier one.
+   */
   static readonly UNDO_LATER_WRITE = 'undo-later-write';
-  /** `moveCells` of a numeric cell with no `className` of its own. */
+  /**
+   * `moveCells` of a numeric cell with no `className` of its own.
+   */
   static readonly MOVE_PLAIN = 'move-plain';
-  /** `moveCells` of a numeric cell with a user `className`. */
+  /**
+   * `moveCells` of a numeric cell with a user `className`.
+   */
   static readonly MOVE_WITH_CLASS = 'move-with-class';
-  /** Undo of a row removal; the removed cell had a user `className`. */
+  /**
+   * Undo of a row removal; the removed cell had a user `className`.
+   */
   static readonly UNDO_ROW_REMOVAL = 'undo-row-removal';
 
-  /** Every grid the fixture builds. Built from the ids above, so a renamed id cannot drift out. */
+  /**
+   * `moveCells` of a text cell onto a cell that drew numeric and then became text.
+   */
+  static readonly MOVE_ONTO_RENDERED = 'move-onto-rendered';
+
+  /**
+   * Every grid the fixture builds. Built from the ids above, so a renamed id cannot drift out.
+   */
   static readonly ALL_GRIDS = [
     NumericClassNameTypeChangePage.SET_CELL_META,
     NumericClassNameTypeChangePage.CELL_OPTION,
@@ -52,6 +81,7 @@ export class NumericClassNameTypeChangePage {
     NumericClassNameTypeChangePage.MOVE_PLAIN,
     NumericClassNameTypeChangePage.MOVE_WITH_CLASS,
     NumericClassNameTypeChangePage.UNDO_ROW_REMOVAL,
+    NumericClassNameTypeChangePage.MOVE_ONTO_RENDERED,
   ];
 
   readonly page: Page;
@@ -64,7 +94,9 @@ export class NumericClassNameTypeChangePage {
     this.bundle = bundle;
   }
 
-  /** Navigate and wait for every grid to have rendered, a real DOM condition, never a sleep. */
+  /**
+   * Navigate and wait for every grid to have rendered, a real DOM condition, never a sleep.
+   */
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/numeric-classname-type-change.html?theme=${this.theme}&bundle=${this.bundle}`
@@ -89,22 +121,30 @@ export class NumericClassNameTypeChangePage {
     }
   }
 
-  /** One of the grid containers. */
+  /**
+   * One of the grid containers.
+   */
   grid(gridId: string): Locator {
     return this.page.getByTestId(gridId);
   }
 
-  /** The message of the error the grid's constructor threw, or `null` when it built cleanly. */
+  /**
+   * The message of the error the grid's constructor threw, or `null` when it built cleanly.
+   */
   async initError(gridId: string): Promise<string | null> {
     return this.grid(gridId).getAttribute('data-init-error');
   }
 
-  /** One data cell of one grid. Plain cells live only in `.ht_master`, so this hooks cleanly. */
+  /**
+   * One data cell of one grid. Plain cells live only in `.ht_master`, so this hooks cleanly.
+   */
   cell(gridId: string, row: number, column: number): Locator {
     return this.grid(gridId).locator('.ht_master').getByTestId(`cell-${row}-${column}`);
   }
 
-  /** Sets a cell's `className` through `setCellMeta()` and waits for the draw that follows. */
+  /**
+   * Sets a cell's `className` through `setCellMeta()` and waits for the draw that follows.
+   */
   async setClassName(gridId: string, row: number, column: number, className: CellMetaClassName): Promise<void> {
     await this.afterDraw(gridId, () => this.page.evaluate(
       ([id, r, c, value]) => {
@@ -119,22 +159,30 @@ export class NumericClassNameTypeChangePage {
     ));
   }
 
-  /** `updateSettings({ columns: [text, numeric] })`: column 0 stops being numeric, column 1 does not. */
+  /**
+   * `updateSettings({ columns: [text, numeric] })`: column 0 stops being numeric, column 1 does not.
+   */
   async switchFirstColumnToText(gridId: string): Promise<void> {
     await this.updateSettings(gridId, { columns: [{ type: 'text' }, { type: 'numeric' }] });
   }
 
-  /** `updateSettings({ columns: [numeric, numeric] })`: restates the type every column already has. */
+  /**
+   * `updateSettings({ columns: [numeric, numeric] })`: restates the type every column already has.
+   */
   async restateNumericColumns(gridId: string): Promise<void> {
     await this.updateSettings(gridId, { columns: [{ type: 'numeric' }, { type: 'numeric' }] });
   }
 
-  /** `updateSettings({ type: 'text' })`: the grid-level type changes. */
+  /**
+   * `updateSettings({ type: 'text' })`: the grid-level type changes.
+   */
   async switchGridTypeToText(gridId: string): Promise<void> {
     await this.updateSettings(gridId, { type: 'text' });
   }
 
-  /** Undoes the last step through the UndoRedo plugin and waits for the draw that follows. */
+  /**
+   * Undoes the last step through the UndoRedo plugin and waits for the draw that follows.
+   */
   async undo(gridId: string): Promise<void> {
     await this.afterDraw(gridId, () => this.page.evaluate(
       (id) => {
@@ -146,7 +194,9 @@ export class NumericClassNameTypeChangePage {
     ));
   }
 
-  /** Removes one row through `alter('remove_row')` and waits for the draw that follows. */
+  /**
+   * Removes one row through `alter('remove_row')` and waits for the draw that follows.
+   */
   async removeRow(gridId: string, row: number): Promise<void> {
     await this.afterDraw(gridId, () => this.page.evaluate(
       ([id, r]) => {
@@ -192,7 +242,9 @@ export class NumericClassNameTypeChangePage {
     return moved;
   }
 
-  /** The `className` the cell meta stores, as the grid reports it through `getCellMeta()`. */
+  /**
+   * The `className` the cell meta stores, as the grid reports it through `getCellMeta()`.
+   */
   async storedClassName(gridId: string, row: number, column: number): Promise<CellMetaClassName | undefined> {
     return this.page.evaluate(
       ([id, r, c]) => (window as unknown as {
@@ -203,10 +255,10 @@ export class NumericClassNameTypeChangePage {
   }
 
   /**
-   * Sets a cell's alignment to Right through the real Alignment context menu: right-click the cell,
-   * hover "Alignment", click "Right" in the submenu.
+   * Sets a cell's alignment through the real Alignment context menu: right-click the cell, hover
+   * "Alignment", click the entry in the submenu.
    */
-  async alignCellRightThroughMenu(gridId: string, row: number, column: number): Promise<void> {
+  async alignCellThroughMenu(gridId: string, row: number, column: number, entry: string): Promise<void> {
     await this.afterDraw(gridId, async() => {
       await this.cell(gridId, row, column).click({ button: 'right' });
 
@@ -218,11 +270,54 @@ export class NumericClassNameTypeChangePage {
       const submenu = this.page.locator('.htContextMenuSub_Alignment');
 
       await expect(submenu).toBeVisible();
-      await submenu.getByText('Right', { exact: true }).click();
+      await submenu.getByText(entry, { exact: true }).click();
     });
   }
 
-  /** Runs one `updateSettings()` call and waits for the draw that follows. */
+  /**
+   * Writes the rendered `className` back with one more class, the way a script that reads
+   * `getCellMeta().className` and extends it does.
+   */
+  async writeRenderedClassNameBack(gridId: string, row: number, column: number, extra: string): Promise<void> {
+    await this.afterDraw(gridId, () => this.page.evaluate(
+      ([id, r, c, added]) => {
+        const hot = (window as unknown as {
+          hots: Record<string, {
+            getCellMeta: (row: number, col: number) => { className?: string };
+            setCellMeta: (...args: unknown[]) => void;
+            render: () => void;
+          }>;
+        }).hots[id as string];
+        const rendered = hot.getCellMeta(r as number, c as number).className ?? '';
+
+        hot.setCellMeta(r as number, c as number, 'className', `${rendered} ${added as string}`);
+        hot.render();
+      },
+      [gridId, row, column, extra] as const
+    ));
+  }
+
+  /**
+   * Changes the type of one cell through `setCellMeta()`. The cell keeps the `className` its
+   * renderer stored.
+   */
+  async setCellType(gridId: string, row: number, column: number, type: string): Promise<void> {
+    await this.afterDraw(gridId, () => this.page.evaluate(
+      ([id, r, c, value]) => {
+        const hot = (window as unknown as {
+          hots: Record<string, { setCellMeta: (...args: unknown[]) => void; render: () => void }>;
+        }).hots[id as string];
+
+        hot.setCellMeta(r as number, c as number, 'type', value);
+        hot.render();
+      },
+      [gridId, row, column, type] as const
+    ));
+  }
+
+  /**
+   * Runs one `updateSettings()` call and waits for the draw that follows.
+   */
   private async updateSettings(gridId: string, settings: Record<string, unknown>): Promise<void> {
     await this.afterDraw(gridId, () => this.page.evaluate(
       ([id, value]) => {

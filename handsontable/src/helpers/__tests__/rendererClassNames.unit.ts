@@ -1,7 +1,6 @@
 import {
   recordRendererClassNames,
-  forgetRendererClassNames,
-  adoptWrittenAlignmentClassNames,
+  adoptWrittenClassNames,
   stripRendererClassNames,
 } from '../rendererClassNames';
 
@@ -72,55 +71,23 @@ describe('rendererClassNames', () => {
 
       expect(stripRendererClassNames(meta, 'htRight htNumeric')).toBe('');
     });
-
-    it('should not record a class name twice when the renderer appends it on every render', () => {
-      const meta = {};
-
-      for (let i = 0; i < 3; i++) {
-        recordRendererClassNames(meta, ['htRight', 'htNumeric']);
-      }
-
-      // One `forget` of an adopted alignment would leave a duplicate behind if the record grew.
-      adoptWrittenAlignmentClassNames(meta, 'htRight');
-
-      expect(stripRendererClassNames(meta, 'htRight htNumeric')).toBe('htRight');
-    });
-
-    it('should record nothing for an empty token list', () => {
-      const meta = {};
-
-      recordRendererClassNames(meta, []);
-
-      expect(stripRendererClassNames(meta, 'htRight')).toBe('htRight');
-    });
   });
 
-  describe('forgetRendererClassNames()', () => {
-    it('should make the recorded class names plain user classes again', () => {
+  describe('adoptWrittenClassNames()', () => {
+    it('should keep every class name the user writes, the renderer marker included', () => {
       const meta = {};
 
       recordRendererClassNames(meta, ['htRight', 'htNumeric']);
-      forgetRendererClassNames(meta);
+      adoptWrittenClassNames(meta, 'htNumeric myMarker');
 
-      expect(stripRendererClassNames(meta, 'myMarker htRight htNumeric')).toBe('myMarker htRight htNumeric');
-    });
-  });
-
-  describe('adoptWrittenAlignmentClassNames()', () => {
-    it('should keep an alignment the user writes, and still drop the marker the renderer added', () => {
-      const meta = {};
-
-      recordRendererClassNames(meta, ['htRight', 'htNumeric']);
-      adoptWrittenAlignmentClassNames(meta, 'myMarker htNumeric htRight');
-
-      expect(stripRendererClassNames(meta, 'myMarker htNumeric htRight')).toBe('myMarker htRight');
+      expect(stripRendererClassNames(meta, 'htNumeric myMarker htRight')).toBe('htNumeric myMarker');
     });
 
-    it('should keep recording an alignment the written value does not carry', () => {
+    it('should keep recording a class name the written value does not carry', () => {
       const meta = {};
 
       recordRendererClassNames(meta, ['htRight', 'htNumeric']);
-      adoptWrittenAlignmentClassNames(meta, 'myMarker');
+      adoptWrittenClassNames(meta, 'myMarker');
 
       expect(stripRendererClassNames(meta, 'myMarker htRight htNumeric')).toBe('myMarker');
     });
@@ -129,7 +96,7 @@ describe('rendererClassNames', () => {
       const meta = {};
 
       recordRendererClassNames(meta, ['htRight', 'htNumeric']);
-      adoptWrittenAlignmentClassNames(meta, ['htRight']);
+      adoptWrittenClassNames(meta, ['htRight']);
 
       expect(stripRendererClassNames(meta, 'htRight htNumeric')).toBe('htRight');
     });
@@ -138,14 +105,14 @@ describe('rendererClassNames', () => {
       const meta = {};
 
       recordRendererClassNames(meta, ['htRight']);
-      adoptWrittenAlignmentClassNames(meta, undefined);
-      adoptWrittenAlignmentClassNames(meta, 5);
+      adoptWrittenClassNames(meta, undefined);
+      adoptWrittenClassNames(meta, 5);
 
       expect(stripRendererClassNames(meta, 'htRight')).toBe('');
     });
 
     it('should do nothing for a meta object with no record', () => {
-      expect(() => adoptWrittenAlignmentClassNames({}, 'htRight')).not.toThrow();
+      expect(() => adoptWrittenClassNames({}, 'htRight')).not.toThrow();
     });
   });
 });

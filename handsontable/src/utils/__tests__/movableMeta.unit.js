@@ -75,6 +75,16 @@ describe('collectMovableMeta and the class names a renderer appended', () => {
     expect(collectMovableMeta(createHot(cellMeta), 0, 0, 0, 0)).toEqual([]);
   });
 
+  it('should report a className that holds only renderer class names when the scan is for clearing', () => {
+    const cellMeta = { className: 'htRight htNumeric' };
+
+    recordRendererClassNames(cellMeta, ['htRight', 'htNumeric']);
+
+    expect(collectMovableMeta(createHot(cellMeta), 0, 0, 0, 0, true)).toEqual([
+      { row: 0, col: 0, meta: { className: 'htRight htNumeric' } },
+    ]);
+  });
+
   it('should still move an empty className the user set', () => {
     expect(collectMovableMeta(createHot({ className: '' }), 0, 0, 0, 0)).toEqual([
       { row: 0, col: 0, meta: { className: '' } },

@@ -1,12 +1,15 @@
+import Core from 'handsontable/core';
 import MetaManager from '../';
 import { registerAllCellTypes } from '../../../cellTypes';
-import { recordRendererClassNames } from '../../../helpers/rendererClassNames';
+import { numericRenderer } from '../../../renderers/numericRenderer';
 
 registerAllCellTypes();
 
+const instance = new Core(document.createElement('div'), {});
+
 /**
- * Plays the part of the numeric renderer: appends its tokens to the stored `className` the way
- * the renderer does, straight onto the meta object, and records what it added.
+ * Draws a cell with the real numeric renderer, which appends its class names to the stored
+ * `className` and records them.
  *
  * @param {MetaManager} metaManager The meta manager.
  * @param {number} row The physical row.
@@ -14,11 +17,8 @@ registerAllCellTypes();
  */
 function renderNumeric(metaManager: MetaManager, row: number, column: number) {
   const meta = metaManager.getCellMeta(row, column, { visualRow: row, visualColumn: column });
-  const tokens = String(meta.className ?? '').split(' ').filter(Boolean);
 
-  tokens.push('htRight', 'htNumeric');
-  meta.className = tokens.join(' ');
-  recordRendererClassNames(meta, ['htRight', 'htNumeric']);
+  numericRenderer(instance, document.createElement('td'), row, column, column, 1, meta);
 }
 
 describe('MetaManager and the class names a renderer adds', () => {
@@ -48,31 +48,43 @@ describe('MetaManager and the class names a renderer adds', () => {
     ]);
   });
 
-  it('should keep an alignment the user writes back, and drop the marker the renderer added', () => {
+  it('should keep an alignment the user writes, and drop the class names the renderer added', () => {
     const metaManager = new MetaManager();
 
     metaManager.setCellMeta(0, 0, 'className', 'myMarker');
     renderNumeric(metaManager, 0, 0);
-    // The Alignment menu reads the rendered className and writes it back with the new alignment.
-    metaManager.setCellMeta(0, 0, 'className', 'myMarker htNumeric htRight');
+    // The Alignment menu builds the write from the className the user holds.
+    metaManager.setCellMeta(0, 0, 'className', 'myMarker htRight');
 
     expect(metaManager.getUserDefinedCellMetas()).toEqual([
       { physicalRow: 0, physicalColumn: 0, key: 'className', value: 'myMarker htRight' },
     ]);
   });
 
-  it('should forget the tokens when the user removes className', () => {
+  it('should keep a renderer class name the user writes after the cell was drawn', () => {
     const metaManager = new MetaManager();
 
     metaManager.setCellMeta(0, 0, 'className', 'myMarker');
     renderNumeric(metaManager, 0, 0);
-    metaManager.removeCellMeta(0, 0, 'className');
-    // Written after the removal, `htNumeric` is the user's own. Only a forgotten record keeps it,
-    // because the write carries no alignment class that would drop it from the record.
-    metaManager.setCellMeta(0, 0, 'className', 'htNumeric other');
+    metaManager.setCellMeta(0, 0, 'className', 'htNumeric mine');
 
     expect(metaManager.getUserDefinedCellMetas()).toEqual([
-      { physicalRow: 0, physicalColumn: 0, key: 'className', value: 'htNumeric other' },
+      { physicalRow: 0, physicalColumn: 0, key: 'className', value: 'htNumeric mine' },
+    ]);
+  });
+
+  it('should treat the rendered className the user writes back as their own', () => {
+    const metaManager = new MetaManager();
+
+    metaManager.setCellMeta(0, 0, 'className', 'myMarker');
+    renderNumeric(metaManager, 0, 0);
+
+    const rendered = metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).className;
+
+    metaManager.setCellMeta(0, 0, 'className', `${rendered} foo`);
+
+    expect(metaManager.getUserDefinedCellMetas()).toEqual([
+      { physicalRow: 0, physicalColumn: 0, key: 'className', value: 'myMarker htRight htNumeric foo' },
     ]);
   });
 
