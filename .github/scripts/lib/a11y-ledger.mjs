@@ -4,7 +4,7 @@
  * Every weeknight the `A11y nightly` leaves one evidence document per check beyond axe
  * (`a11y-checks-evidence`, `tests/lib/a11y-evidence.mjs`) and the axe scan's findings
  * (`a11y-axe-results`, `tests/lib/a11y-findings.mjs`), and the `Screen reader nightly` leaves one
- * transcript per scenario and project (`screenreader-transcripts-<project>`,
+ * transcript per scenario and project (`screenreader-transcripts-<project>-<group>`,
  * `tests/lib/screenreader-transcript.mjs`). A raw night holds thousands of records, most of them the
  * same few defects on many pages, and nothing used to accumulate across nights or deduplicate across
  * checks. This module turns a night's artifacts into findings keyed so that a finding keeps its
@@ -47,11 +47,14 @@ import {
   AXE_SCAN_KIND,
   READER_GOLDEN_DIFFERS,
   READER_TOKEN_MISSING,
+  READER_TRAVERSAL_OFF,
+  READER_TRAVERSAL_WHERE,
   TRIAGE_ID,
   clusterOf,
   findingShape,
   maskSelector,
 } from '../../../tests/lib/a11y-issues.mjs';
+import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { DEFAULT_TOKEN_SEVERITY, TOKEN_SEVERITIES } from '../../../tests/lib/screenreader-transcript.mjs';
 
 export const A11Y_VERSION = 1;
@@ -94,6 +97,22 @@ export const A11Y_AXE_ARTIFACT = 'a11y-axe-results';
 export const A11Y_AXE_FILE = 'a11y-findings.json';
 export const A11Y_AXE_SCHEMA = 1;
 export const READER_ARTIFACT_PREFIX = 'screenreader-transcripts-';
+/**
+ * The project a reader artifact holds. The lane runs one job per project and scenario group
+ * (`SCENARIO_GROUPS`), each uploading `screenreader-transcripts-<project>-<group>`, so the group is cut off
+ * the name; a name without a group (`screenreader-transcripts-<project>`, the lane before the split) is
+ * read as it is. Reading the whole rest as the project named no transcript's project, and every one was
+ * skipped.
+ *
+ * @param {string} artifact The artifact name.
+ * @returns {string} The project.
+ */
+export function readerArtifactProject(artifact) {
+  const name = artifact.slice(READER_ARTIFACT_PREFIX.length);
+  const group = SCENARIO_GROUPS.find(item => name.endsWith(`-${item}`));
+
+  return group === undefined ? name : name.slice(0, -(group.length + 1));
+}
 /**
  * Where the transcripts sit inside a reader artifact: `tests/screenreader/screenreader.spec.ts` writes
  * `test-results/screenreader/transcripts/<project>--<scenario>.json`, and the upload strips the common
@@ -142,7 +161,8 @@ const NIGHT_SOURCES = ['a11y', 'reader'];
  * @property {'checks'|'axe'|'reader'} source Where it came from.
  * @property {string} check The check id, `axe` for the gating scan, or the reader project (`nvda-chromium`).
  * @property {string} kind The finding kind; `axe-violation` for every finding of the scan; `token-missing` or
- * `golden-differs` for a reader step.
+ * `golden-differs` for a reader step, `traversal-off` for a reader scenario's reading traversal (at `where`
+ * `traversal`).
  * @property {string|null} rule The axe rule, when the finding names one.
  * @property {string|null} cause The discovery run's needs-review cause, when the finding names one.
  * @property {string} page The page id, or the reader scenario.
@@ -329,6 +349,38 @@ function checkFinding(check, item) {
     url: fixturePath(item.url),
     issue: null,
   };
+}
+
+/**
+ * Why a reader scenario's reading traversal failed, as its check run says it (`lib/screenreader-report.mjs`):
+ * the items read twice, never or out of order. A traversal that passed, or a transcript without one, has no
+ * reason; one that is not a verdict object is malformed.
+ *
+ * @param {unknown} traversal The transcript's `traversal`.
+ * @returns {{reason: string|null, malformed: boolean}} The reason.
+ */
+function traversalReason(traversal) {
+  if (traversal === undefined || traversal === null) {
+    return { reason: null, malformed: false };
+  }
+  if (!isObject(traversal) || typeof traversal.passed !== 'boolean' || !Array.isArray(traversal.items)) {
+    return { reason: null, malformed: true };
+  }
+  if (traversal.passed) {
+    return { reason: null, malformed: false };
+  }
+
+  const items = traversal.items.filter(entry => isObject(entry) && typeof entry.item === 'string' && Number.isInteger(entry.count));
+  const twice = items.filter(entry => entry.count > 1).map(entry => `${cut(entry.item, 30)} x${entry.count}`);
+  const never = items.filter(entry => entry.count === 0).map(entry => cut(entry.item, 30));
+  const outOfOrder = (Array.isArray(traversal.outOfOrder) ? traversal.outOfOrder : []).filter(item => typeof item === 'string').map(item => cut(item, 30));
+  const parts = [
+    twice.length > 0 ? `read more than once: ${twice.join(', ')}` : '',
+    never.length > 0 ? `never read: ${never.join(', ')}` : '',
+    outOfOrder.length > 0 ? `out of order: ${outOfOrder.join(', ')}` : '',
+  ].filter(Boolean);
+
+  return { reason: `the reading traversal is off: ${parts.join('; ') || 'no item read as listed'}`, malformed: false };
 }
 
 /**
@@ -555,7 +607,7 @@ function readAxe(file, label, night, notes) {
  * @param {string[]} notes Where a note goes.
  */
 function readTranscript(file, label, night, notes) {
-  const project = file.artifact.slice(READER_ARTIFACT_PREFIX.length);
+  const project = readerArtifactProject(file.artifact);
 
   if (!PROJECT.test(project) || project.length > 40) {
     notes.push(`${file.artifact}: not a project name, skipped`);
@@ -635,6 +687,14 @@ function readTranscript(file, label, night, notes) {
   }
   if (malformed > 0) {
     notes.push(`${label}: ${malformed} malformed step(s) dropped; the transcript resolves nothing tonight`);
+  }
+
+  const traversal = traversalReason(doc.traversal);
+
+  if (traversal.malformed) {
+    notes.push(`${label}: the reading traversal is not a verdict, skipped`);
+  } else if (traversal.reason !== null) {
+    night.findings.push(reader(READER_TRAVERSAL_OFF, READER_TRAVERSAL_WHERE, DEFAULT_TOKEN_SEVERITY, traversal.reason));
   }
 
   const golden = isObject(doc.golden) && typeof doc.golden.status === 'string' ? cut(doc.golden.status, 20) : 'missing';
@@ -740,7 +800,7 @@ function emptyNight(source) {
 /**
  * The nights a run's accessibility artifacts hold: the a11y night (the check documents at the evidence
  * artifact's root and the findings at the axe artifact's root) and the reader night (the transcripts of
- * every `screenreader-transcripts-<project>` artifact). Everything else in those artifacts (the per-test
+ * every `screenreader-transcripts-<project>-<group>` artifact). Everything else in those artifacts (the per-test
  * folders, the detail files, the comparison, the scans, the logs) is ignored. A file that does not parse,
  * does not validate or is over the cap is skipped with a note, and the rest of the night is read.
  *

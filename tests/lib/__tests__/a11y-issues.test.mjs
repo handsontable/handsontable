@@ -195,7 +195,7 @@ test('validateIssuesCatalog refuses a field no finding of the rule\'s source car
   )), []);
   assert.equal(AXE_SCAN_CHECK, 'axe');
   assert.equal(AXE_SCAN_KIND, 'axe-violation');
-  assert.deepEqual(READER_KINDS, ['token-missing', 'golden-differs']);
+  assert.deepEqual(READER_KINDS, ['token-missing', 'golden-differs', 'traversal-off']);
 });
 
 test('matchClusters ANDs the fields of a rule, ORs the values in a field and the rules of a cluster', () => {

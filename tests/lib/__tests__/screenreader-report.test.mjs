@@ -199,3 +199,59 @@ test('the summary stays under the Checks API limit', () => {
   assert.ok(report.summary.length <= 65200);
   assert.match(report.summary, /… cut at 65000 characters/);
 });
+
+test('a step the lane does not drive is a declared gap: listed per scenario and per primitive, never a reason for neutral', () => {
+  const report = build([transcript({ unsupported: [{ id: 'enter-grid', action: { read: 'in' }, reason: 'NVDA has no interaction level.' }] })]);
+
+  assert.equal(report.conclusion, 'success', 'the lane ran every step it can drive, and every one matched');
+  assert.match(report.headline, /, 1 step not driven on this lane$/);
+  assert.match(report.summary, /### Not driven on this lane\n\n[^\n]+\n\n\| Primitive \| Steps \| Why \|\n\|---\|---:\|---\|\n\| read in \| 1 \| NVDA has no interaction level\. \|/);
+  assert.match(report.summary, /\| enter-grid \| read in \| \*\(not driven on this lane: NVDA has no interaction level\.\)\* \| – \| – \| – \|/);
+  assert.doesNotMatch(build([transcript()]).summary, /Not driven on this lane/, 'a lane that drove every step lists nothing');
+});
+
+test('a scenario\'s table lists the captured and the unsupported steps in the scenario\'s order', () => {
+  const source = '{\n  "steps": [\n    {\n      "id": "arrow-right"\n    },\n    {\n      "id": "enter-grid"\n    },\n    {\n      "id": "open-editor"\n    }\n  ]\n}\n';
+  const report = build([transcript({ unsupported: [{ id: 'enter-grid', action: { read: 'in' }, reason: 'NVDA has no interaction level.' }] })],
+    { lines: new Map([['grid-core', stepLines(source)]]) });
+  const order = [...report.summary.matchAll(/^\| (arrow-right|enter-grid|open-editor) \|/gm)].map(([, id]) => id);
+
+  assert.deepEqual(order, ['arrow-right', 'enter-grid', 'open-editor'], 'the unsupported step sits where the scenario has it, not after every captured row');
+  assert.deepEqual([...build([transcript({ unsupported: [{ id: 'enter-grid', action: { read: 'in' }, reason: 'NVDA has no interaction level.' }] })], { lines: new Map() })
+    .summary.matchAll(/^\| (arrow-right|enter-grid|open-editor) \|/gm)].map(([, id]) => id), ['arrow-right', 'open-editor', 'enter-grid'],
+  'without the scenario\'s lines the rows keep the captured order, the unsupported ones after');
+});
+
+test('a reading traversal that read an item twice is a serious finding, a warning when tracked, and the summary names the item', () => {
+  const traversal = { passed: false, steps: ['arrow-right', 'open-editor'], items: [{ item: 'A1', count: 2, firstStep: 'arrow-right' }, { item: 'B1', count: 0, firstStep: null }], outOfOrder: [] };
+  const report = build([transcript({ traversal })]);
+  const asked = [];
+  const tracked = build([transcript({ traversal })], { tracked: (source, check, item) => asked.push([source, check, item]) > 0 });
+
+  assert.equal(report.conclusion, 'failure', 'an item read twice or never is serious, as a missing fact is');
+  assert.equal(tracked.conclusion, 'neutral', 'a traversal whose cluster has a tracker is a warning at most on a change run');
+  assert.deepEqual(asked, [['reader', 'nvda-chromium', { scenario: 'grid-core', step: 'traversal', kind: 'traversal-off' }]]);
+  assert.equal(build([transcript({ traversal })], { scope: 'audit', tracked: () => true }).conclusion, 'failure', 'an audit counts every finding');
+  assert.match(report.headline, /^1 reading traversal off \(report mode\)$/);
+  assert.match(report.summary, /Reading traversal \(arrow-right to open-editor\): ✖ read more than once: A1 ×2; never read: B1\./);
+  assert.match(build([transcript({ traversal: { ...traversal, passed: true, items: [{ item: 'A1', count: 1, firstStep: 'arrow-right' }] } })]).summary,
+    /Reading traversal \(arrow-right to open-editor\): ✔ each of the 1 items read once, in order\./);
+});
+
+test('a job that ran one scenario group names its check run after the group too', () => {
+  assert.equal(checkRunName('nvda-chromium'), 'Screen reader / nvda-chromium report');
+  assert.equal(checkRunName('vo-webkit', 'reading'), 'Screen reader / vo-webkit reading report');
+  assert.equal(build([transcript()], { group: 'keyboard' }).name, 'Screen reader / nvda-chromium keyboard report');
+});
+
+test('a variant\'s annotations go on its base\'s file and lines', () => {
+  const variant = transcript({ scenario: 'grid-core-horizon', steps: [step('arrow-right', 'age', [['34']])] });
+  const report = buildReport({
+    transcripts: [variant],
+    expectedScenarios: ['grid-core-horizon'],
+    lines: new Map([['grid-core-horizon', stepLines(SOURCE)]]),
+    files: new Map([['grid-core-horizon', 'grid-core.scenario.json']]),
+  });
+
+  assert.deepEqual(report.annotations.map(item => [item.path, item.start_line]), [['tests/screenreader/scenarios/grid-core.scenario.json', 4]]);
+});

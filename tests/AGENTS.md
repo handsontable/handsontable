@@ -2075,7 +2075,7 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   records of the same rule land together.
 - **The sample is a real night, deduplicated.** To refresh it after a check changes what it records, run the
   collector over the night's artifacts (`gh run download <run id> -n a11y-checks-evidence -n a11y-axe-results`,
-  and the `screenreader-transcripts-<project>` artifacts of a reader nightly), read them with
+  and the `screenreader-transcripts-<project>-<group>` artifacts of a reader nightly), read them with
   `readA11yArtifacts()` and keep one row per `findingShape()` (`source|check|kind|rule|cause|page|where`),
   the fields the matcher reads plus `theme`, `criteria`, `issue` and `severity`; say in `about` which runs it
   came from.
@@ -2095,9 +2095,10 @@ optional recording helper depends on a GPL-licensed ffmpeg build, which the depe
 of the lockfile) over the scenarios of `screenreader/scenarios/`, one Playwright project per screen
 reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-firefox`, `vo-webkit`,
 `vo-chromium`). It writes a transcript per scenario, and `scripts/screenreader-report.mjs` turns the
-transcripts into the job summary and the `Screen reader / <project> report` check run. CI runs it on its
-own nightly (`.github/workflows/screenreader-nightly.yml` calling `screenreader.yml`: NVDA on
-`windows-2025` and VoiceOver on `macos-26`, one job per screen reader and browser), never in the
+transcripts into the job summary, the evidence document and the `Screen reader / <project> <group> report`
+check run. CI runs it on its own nightly (`.github/workflows/screenreader-nightly.yml` calling
+`screenreader.yml`: NVDA on `windows-2025` and VoiceOver on `macos-26`, one job per screen reader,
+browser and scenario group), never in the
 pull-request Tests pipeline. It is the evidence a future version of the Accessibility
 Conformance Report can cite for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
 4.1.2, 4.1.3): the axe scan reads the accessibility tree, this lane reads what a screen reader makes of
@@ -2117,21 +2118,85 @@ screen readers (`docs/AGENTS.md` 2.20).
   and this section together, after the nightly has shown the token groups report what changed and
   nothing else.
 - **A scenario is data, not code**: `screenreader/scenarios/<surface>.scenario.json`, one file per
-  surface, with `fixture` (under `fixtures/demo/`), an optional `query`, a `setup` (the API selection
-  that puts the focus in the grid, so the first key reaches it) and ordered `steps`. A step has an
-  `id`, one `action` (`press` a Playwright key or chord, `type` text, `selectCell` `[row, col]`), its
-  `expect` token groups, an optional `severity` per group (keyed by the group's first synonym; a group
-  without one is serious, "A11y: the verdict of a check run"), an optional `after` (`{ "visible": "<selector>" }` or `{ "hidden": … }`,
-  awaited inside the capture so the state's announcement is in it, and a red test when it never comes)
-  and a `note`. The schema is `lib/screenreader-scenario.mjs`, and
+  surface. The header: `id`, `surface`, `criteria` (the WCAG 2.2 criteria the scenario evidences, which
+  the evidence records carry so the report generator can cite a step), exactly one of `page` (a page of
+  `a11y/pages.mjs`, whose fixture, query and root container it opens: reuse the catalog) or `fixture` (a
+  file under `fixtures/demo/`, for a grid the catalog does not hold, as `grid-core`'s, with the catalog pages
+  it stands for as `catalogPages`, the pages `screenreader/coverage.mjs` lists it under), a `state` when the
+  page has one in the catalog (the runner opens the page at rest and never sets up its state or its
+  `device`, so a scenario on a page in the `editor` or a menu state reaches it with its own steps and names
+  it, and a page with a `device` is refused), an optional `query` (appended after the page's; a `theme=` or
+  `bundle=` in it takes the project's place, and any other key the page's query sets is refused, because
+  a fixture reads the first value of a repeated parameter), `start` (`grid`, the default: the reader enters
+  the page's first item, the grid; `page`: the reader stays at the top of the page and the steps reach the
+  grid as a user arriving does), a `setup` and ordered `steps`. The setup sets the scene before the reader
+  settles: `selectCell`, `press` and `type`, plus `updateSettings` (an object, to give a catalog page the
+  shape a scenario needs: frozen panes, a navigation mode, `maxRows` to keep a traversal short),
+  `sentinels` (`true`: a button named `Before the grid` before the root container and one named `After
+  the grid` after it, so a Tab out of the grid lands on the page instead of leaving the document, as the
+  keyboard walker brackets a grid) and `focus` (a selector). A step has an `id`, exactly one primitive as
+  its `action`, its `expect` token groups, an optional `severity` per group (keyed by the group's first synonym; a group
+  without one is serious, "A11y: the verdict of a check run"), an optional `after` (`{ "visible": "<selector>" }` or
+  `{ "hidden": … }`, awaited inside the capture so the state's announcement is in it, and a red test when
+  it never comes), an optional `unsupported` and a `note`. A **variant** (`variantOf`) is its base's steps
+  on another theme, query or setup: it sets only `id`, `surface`, `query`, `setup`, `criteria` and `group`
+  (besides `schema` and `variantOf`), so the steps stay one copy (`grid-core-horizon` is `grid-core` on
+  `theme=horizon`). A variant of a base that does not validate is told so. The schema is `lib/screenreader-scenario.mjs`, and
   `lib/__tests__/screenreader-scenarios.test.mjs` (root `test:tooling`) validates every committed file,
   so a mistake fails on the pull request and not inside a Windows or macOS job. That includes every
   `press` value, checked against Playwright's key names (`PRESS_PATTERN`: an optional chord of `Shift`,
   `Control`, `Alt`, `Meta` or `ControlOrMeta` joined by `+`, then a named key such as `ArrowRight`,
-  `F10` or `KeyA`, or one printable character), so a misspelled `ArrowRigth` is refused there. Keys go
-  to the page with `page.keyboard.press()`, so the screen reader sees the page react and never the
-  keystroke; the scenario reads the same on every lane, because what differs per screen reader is the
-  wording, which the goldens hold per project.
+  `F10` or `KeyA`, or one printable character), so a misspelled `ArrowRigth` is refused there.
+- **Five primitives, and what differs per lane is only how a reader drives its own.** The page drives
+  `press` (a key or chord), `type` (text into the focused element, an open editor) and `selectCell`
+  (`[row, col]`, the API selection a host makes) identically on every lane: `page.keyboard.press()`, so
+  the screen reader sees the page react and never the keystroke. The reader drives `read` (`next`,
+  `previous`, `in`, `out`: the reading mode a user moves through a page with) and `activate` (the
+  reader's activate gesture), each its way, and `LANE_PRIMITIVES` says which it can: NVDA reads with its
+  browse-mode Down and Up Arrow and activates with Enter in browse mode; VoiceOver reads with VO-Right and
+  VO-Left, enters and leaves an item with VO-Shift-Down and VO-Shift-Up (interacting), and activates with
+  VO-Space. A reader command runs through Guidepup with its own capture and its phrase is read from the
+  log, never inside `screenReader.capture()`, whose action holds Guidepup's queue (a nested command waits
+  for itself forever). The iOS and TalkBack readers will drive the same field (`moveForward`, next item,
+  double tap) when their lanes exist; the scenarios do not change for them.
+- **A primitive a lane cannot drive is declared, never skipped silently.** NVDA has no interaction level:
+  browse mode reads into a table without entering it, so `read in` and `read out` mean nothing to it. A
+  step whose primitive a lane cannot drive carries `unsupported: { "<lane>": "<reason>" }` (`nvda`,
+  `voiceover`), and the validator refuses the step without it. The runner skips the step on that lane and
+  lists it in the transcript's `unsupported`, the report shows it in its scenario's table and in a "Not
+  driven on this lane" table by primitive, the step's evidence record says `unsupported` with the reason,
+  and that lane's golden holds the steps it ran. A lane may also declare a primitive it drives in general
+  unsupported for a reason of its own (a key it takes from the page), with the reason saying so. What a
+  lane does not drive is debt the matrix states: `laneUnsupported()` lists it, and the data file's matrix
+  carries it (below).
+- **A reading traversal is judged as a whole.** A scenario with a `traversal` (`from` and `to`, step ids,
+  and `items`) asks that each item be announced exactly once across those steps, in the listed order
+  (`matchTraversal()` in `lib/screenreader-transcript.mjs`, matched as a token is, a digits-only item
+  never inside a position phrase). `from` and `to` are steps every lane runs: a lane skips an
+  `unsupported` step, and the window would widen to the start or the end of the run. An item read twice is what the check exists for: a frozen pane's
+  overlay clone read as a second copy of its cells. An item never read is content the reading mode
+  skipped, one read before an item listed ahead of it is out of order. List the cell values, which are
+  unique, not the headers, which a reader repeats as context on every cell. Give the read steps room to
+  reach past the grid, or a copy the clones add after the master table never shows. The verdict is judged
+  on a complete run only, is in the transcript and the report, and a traversal that is off is a serious
+  finding (`traversal-off`, at `where` `traversal` in the findings ledger), a warning at most on a change
+  run while its cluster has a tracker.
+- **Every step is an evidence record.** `scripts/screenreader-report.mjs` writes
+  `test-results/screenreader/evidence/screen-reader.json` (`lib/screenreader-evidence.mjs`), the
+  transcripts artifact uploads it, and it is in the shared shape of the accessibility checks
+  (`mergeEvidence()`, validated by `validateEvidence()` with the lane's own registry, never a check of
+  `EVIDENCE_CHECKS`, which the a11y checks config turns into projects): one target per scenario (its page,
+  its theme, the scenario as the variant), the criteria it evaluated, a finding per step missing a token
+  group (`announcement-missing-fact`) and per traversal item read twice, never or out of order, plus the
+  run's project, lane and group (`null` for a run of every scenario) and a record per step (`records`:
+  scenario, step, lane, project, page, theme, criteria, action, and the verdict `pass`, `missing-fact`,
+  `recorded` for a step that asserts nothing, `unsupported` or `not-run`), with each scenario's records in a
+  detail file beside it. The findings are `advisory` while the lane is report-only: a missing group is the
+  grid's defect or the reader's own behavior, and the step's note says which. A run that stopped is a
+  problem of its target, which then evaluates no criterion; an unsupported step is neither, because the
+  lane ran every step it can drive, and it stays `unsupported` in a scenario that left no transcript. A
+  transcript a retry wrote (`attempt` above 0) flags its target `flaky`, as a check's test that measured
+  only on a retry is.
 - **Two assertion tiers.** The **required tokens** are each step's `expect`: synonym groups
   (`[["34"], ["age"], ["row 2"], ["column 3"]]`), each group satisfied by any one synonym found as a
   whole phrase in the normalized announcement, all groups required. A synonym of digits alone (`"34"`)
@@ -2156,7 +2221,9 @@ screen readers (`docs/AGENTS.md` 2.20).
   (`gh workflow run screenreader-nightly.yml --ref <branch> -f update-goldens=true`): the run records
   every project's goldens on its runner (`HOT_SR_UPDATE_GOLDENS=1`, or Playwright's
   `--update-snapshots` through `npm run test:screenreader:update-goldens`) and uploads them as
-  `screenreader-goldens-<project>`; download, commit under `screenreader/goldens/<project>/`, done.
+  `screenreader-goldens-<project>-<group>`, each holding only the goldens its job recorded (the spec writes a
+  copy to `test-results/screenreader/goldens/`), so every artifact extracts into one tree with nothing
+  overwritten; download, commit under `screenreader/goldens/<project>/`, done.
   The dispatch runs every job, so it records the NVDA goldens too: commit only the projects the change
   is about. A run with `update-goldens` compares nothing and reports `recorded`. A golden pins the wording
   as recorded, a finding included: a step NVDA stays silent on is an empty string in it, and a wrong
@@ -2182,20 +2249,28 @@ screen readers (`docs/AGENTS.md` 2.20).
   nothing from it), and the test stays red; the report reads it as a tooling problem ("scenario <id>
   stopped at step <step>") and still shows the captured steps. Each attempt deletes the scenario's
   transcript before it starts, so a retry never leaves the previous attempt's file behind. CI uploads
-  the directory as `screenreader-transcripts-<project>` and the Playwright report as
-  `screenreader-playwright-report-<project>`, both outside the `playwright-report-*` glob the
+  the directory as `screenreader-transcripts-<project>-<group>` and the Playwright report as
+  `screenreader-playwright-report-<project>-<group>`, both outside the `playwright-report-*` glob the
   flake ledger reads, and the config has no JSON reporter, so nothing here becomes a flake record.
-- **The NVDA reader enters the grid the way a user does, then pins the mode.** The NVDA reader calls
-  `navigateToWebContent()` (the browser window focused, the reader at the top of the document), the
-  setup selects a cell through the API, and `ready()` reads the mode NVDA last announced (a mode switch
-  is spoken, not played, through the `virtualBuffers.passThroughAudioIndication` setting the start
-  options turn off) and toggles once or twice until it is focus mode: NVDA switches to focus mode on
-  its own when the focus lands on a gridcell, and the toggle round trip is what keeps every transcript
-  in that mode whatever NVDA did. The last mode phrase wins, inside one phrase too; a toggle that names
-  no mode leaves `(no mode announced after the toggle)` at the end of the transcript's `entering`, and
-  the run goes on. The focus highlighter is off in the same settings. Then the log is
-  cleared, and every step is `screenReader.capture(() => …, { capture: true })`, which waits a second
-  of silence after the last phrase. A step whose capture is empty is listened to once more for another
+- **The NVDA reader enters the page the way a user does, and its mode follows the primitive.** The NVDA
+  reader calls `navigateToWebContent()` (the browser window focused, the reader at the top of the
+  document, in browse mode); NVDA has no interaction level, so `start` changes nothing for it. A page
+  action (`press`, `type`, `selectCell`) runs in focus mode, where a grid user works, and a reading
+  command (`read`, `activate`) in browse mode. Before each primitive the reader reads the mode NVDA last
+  named (a mode switch is spoken, not played, through the `virtualBuffers.passThroughAudioIndication`
+  setting the start options turn off) from every phrase it heard, the last mode phrase winning, inside
+  one phrase too, and toggles (NVDA+Space) once or twice until it is the mode the primitive needs: NVDA
+  switches to focus mode on its own when the focus lands on a gridcell, and Guidepup logs only what a
+  command captured, so the toggle round trip is what keeps every step in the right mode whatever NVDA
+  did. Read the mode from the raw phrases, never the normalized ones: the normalizer strips the mode
+  phrases as chatter. What a switch says is the step's `preparing`, never its announcement. A switch that
+  names no mode leaves the mode unknown, and the reader toggles again, up to four times: assuming the mode
+  it asked for once sent a read's Down Arrow to the page in focus mode, and the traversal started on a
+  cell. Only when no switch names a mode does `(no mode announced after the toggle)` go into `preparing`
+  and the run go on. The focus
+  highlighter is off in the same settings. After the setup the log is cleared, and every page action is
+  `screenReader.capture(() => …, { capture: true })`, which waits a second of silence after the last
+  phrase, as a reading command's own capture does. A step whose capture is empty is listened to once more for another
   silence window, so a phrase NVDA speaks late (Shift+F10 on Firefox) usually lands on its own step.
   Guidepup discards speech that arrives while it stops the previous utterance, so the second listen
   reduces late phrases in the next step, it does not remove them. A step therefore costs a second and
@@ -2207,8 +2282,10 @@ screen readers (`docs/AGENTS.md` 2.20).
   rule for both jobs.
 - **The VoiceOver reader enters the grid before the focus does.** `enter()` calls Guidepup's
   `navigateToWebContent()` (the browser activated by its bundle id, "web content" picked in VoiceOver's
-  item chooser and interacted with, the cursor on the page's first item, the grid) and then
-  `interact()` (VO-Shift-Down) on the grid, the way a VoiceOver user enters a table. The setup then puts
+  item chooser and interacted with, the cursor on the page's first item) and then, for a scenario that
+  starts on the grid, `interact()` (VO-Shift-Down) on that first item, the grid, the way a VoiceOver user
+  enters a table. A scenario with `start: page` interacts with nothing: its first item may be the page's
+  toolbar, and its steps reach the grid as the user does (`read next`, then `read in`). The setup then puts
   the focus on a cell, and VoiceOver's cursor follows the keyboard focus from there on; keys still go
   to the page through Playwright, so VoiceOver hears the page react, never the keystroke. The order is
   the rule: an `interact()` after the setup, with the focus already on a cell, took VoiceOver into the
@@ -2237,7 +2314,7 @@ screen readers (`docs/AGENTS.md` 2.20).
 - **The VoiceOver job is macOS: `macos-26`, `setup --ci --macos-record`, two jobs at most.**
   `npx -y @guidepup/setup@0.29.3 setup --ci --macos-record` writes the automation permissions into the
   TCC database, enables VoiceOver's AppleScript control and turns on Do Not Disturb, and screen-records
-  itself into `tests/recordings/`, uploaded as `screenreader-recordings-vo-<browser>` red or green;
+  itself into `tests/recordings/`, uploaded as `screenreader-recordings-vo-<browser>-<group>` red or green;
   `install voiceover` fetches Guidepup's VoiceOver preferences bundle for the runner's macOS. `vo-webkit`
   is Playwright's own WebKit build (Playwright.app) with the Desktop Safari descriptor, not Safari.app;
   `vo-chromium` is Chrome for Testing. The job carries `max-parallel: 2`, because the organization runs
@@ -2255,6 +2332,21 @@ screen readers (`docs/AGENTS.md` 2.20).
   osascript and the recorder running. A setup still red after all three is the runner: re-run that job
   from its page. Slack never hears of it (the job carries `continue-on-error`); Slack hears only of a
   nightly whose build never reached the lanes. The workflow test pins the three attempts.
+- **A project's scenarios split into groups once its run passes 15 minutes.** Guidepup runs one scenario
+  at a time per machine, so a project's run grows with every scenario: a step costs about a second and a
+  half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
+  scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
+  keyboard user does in the grid and its surfaces, `reading` for the reading-mode traversals), each group is
+  a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
+  artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
+  check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
+  runs every group. When a group's job passes 15 minutes on any project, split it: a new group joins the
+  list and both `group:` matrix lines together (the workflow test reads the list), and the scenarios move
+  in the same change. A scenario's test timeout is the config's five minutes or 60 s plus 12 s per step,
+  whichever is longer (`scenarioTimeout()` in the spec): a busy macOS runner made every VoiceOver step
+  1.7 to 2 times as slow, and a fixed budget then times out a long traversal that is healthy on a quiet
+  one. Size a traversal's reads to what the readers need all the same, because each read past the end
+  costs a step on every lane. Bound a slow step with a step timeout, never a job timeout (below).
 - **A screen reader is one per machine, so the lane is serial and headed.** `withGuidepup()` pins one
   worker, no parallelism and `headless: false` on every project; the matrix gives each browser its own
   job. The spec adds no serial mode on top: it would skip every scenario after a red one and re-run the
@@ -2266,9 +2358,12 @@ screen readers (`docs/AGENTS.md` 2.20).
 - **`HOT_SR_LANE=dom-echo` proves the runner without a screen reader.** On any platform,
   `HOT_SR_LANE=dom-echo npm run test:screenreader` runs every scenario in headless Chromium against a
   reader that echoes the focused element's accessible name, role (in the words a screen reader speaks:
-  `column header`, `menu item`, `edit`), grid position and states two frames after the action. The
-  echo checks the fixture, the keys, the `after` states and the report plumbing, locally, before the
-  Windows and macOS jobs do. Its wording rows are not evidence: it always announces the focused element, so a
+  `column header`, `menu item`, `edit`), grid position and states two frames after the action. Its
+  `read` moves a virtual cursor over the page's cells, headers and controls in document order (what is
+  hidden or `aria-hidden` left out), and its `activate` clicks the item under that cursor: it walks the
+  DOM, never a virtual buffer, so a copy the overlay clones add shows there too, and whether a reader
+  reads it is the lane's to say. The echo checks the fixture, the keys, the `after` states, the reading
+  steps and the report plumbing, locally, before the Windows and macOS jobs do. Its wording rows are not evidence: it always announces the focused element, so a
   step a screen reader stays silent on (`close-editor`) announces on the echo, and a token row there
   says nothing about NVDA. Its transcripts carry `dom-echo-chromium`, it never runs in CI, and its
   goldens are never committed.
@@ -2288,13 +2383,36 @@ screen readers (`docs/AGENTS.md` 2.20).
   header Chromium derives from the tree is the grid's: the overlay clones hold the header row and the
   row headers in rows of their own in Chromium's accessibility tree. Read that tree with CDP's
   `Accessibility.getFullAXTree` on the fixture, which needs no screen reader.
-- **Adding a scenario**: a fixture under `fixtures/demo/` that keeps the fixture contract (the
-  `?theme=`/`?bundle=` block, `window.hot`, a constructor throw captured as `htBuildError`), small
-  enough that every step's target is rendered; the file `screenreader/scenarios/<surface>.scenario.json`
-  with the setup and the steps; `HOT_SR_LANE=dom-echo npm run test:screenreader` to see the shape of
-  the announcements; a nightly dispatch from the branch for the real ones; the goldens from an
-  `update-goldens` dispatch, read before they are committed. Keep every step's `"id"` on its own line:
-  the check run annotates that line.
+- **Adding a scenario**: open a page of the catalog (`page`), shaped by the setup (`updateSettings`,
+  `sentinels`), and add a fixture under `fixtures/demo/` only for a grid the catalog cannot become; a
+  fixture keeps the fixture contract (the `?theme=`/`?bundle=` block, `window.hot` or the core's
+  `__hotInstance`, a constructor throw captured as `htBuildError`) and is small enough that every step's
+  target is rendered. Write the file `screenreader/scenarios/<surface>.scenario.json` with its `criteria`,
+  the setup and 5 to 15 steps, from the fixture and the catalog's opener for its state (Shift+F10,
+  Shift+Alt+ArrowDown, Enter, Ctrl+Alt+M); declare `unsupported` where a lane cannot drive a primitive.
+  List it under its page in `screenreader/coverage.mjs`, and lower `SR_GAP_LIMIT` for the gap it closes;
+  set the `scenarios` count of both automated entries in `docs/content/data/accessibility.json` (and
+  their `unsupported` when it changes), which the coverage test reads. Run
+  `HOT_SR_LANE=dom-echo npm run test:screenreader` to see the shape of the steps, then record before you
+  assert: a dispatch with `update-goldens` from the branch records every project, and the token groups
+  come from the facts that recording shows, one fact per group, never from a guess; a fact a reader
+  should say and does not is a group that stays, with `Finding: …` in the note. Commit the goldens of
+  the scenarios the change is about, read before they are committed. Keep every step's `"id"` on its own
+  line: the check run annotates that line.
+- **Coverage: every surface is accounted for.** `screenreader/coverage.mjs` has one entry per page of
+  `a11y/pages.mjs` (`SR_PAGE_COVERAGE`) and per plugin and editor of `a11y/coverage.mjs`
+  (`SR_FEATURE_COVERAGE`), and `lib/__tests__/screenreader-coverage.test.mjs` (root `test:tooling`) fails
+  on a page, a plugin or an editor without one, on an entry with none, and on a scenario no page lists.
+  An entry is `scenarios` (the scenarios that read it), `none` (it draws nothing a reader meets, and why:
+  sizing, events, a pointer-only guide, a color scheme that changes no element of the tree) or `gap` (a
+  reader meets it and no scenario reads it yet, and what is missing). A page lists only a scenario that
+  opens that page or one on a fixture of its own: a scenario on a catalog page reads that page and no
+  other. A gap is debt, so `SR_GAP_LIMIT` is exactly the number of gaps: a new page, plugin or editor
+  fails the test until someone decides, and the change that closes a gap lowers the limit. The same test
+  keeps the matrix honest: each automated entry of `docs/content/data/accessibility.json` carries
+  `scenarios` (the number of committed scenarios, which every lane runs) and `unsupported` (the
+  primitives its lane does not drive, `laneUnsupported()`), so the report states what each reader ran
+  (`docs/AGENTS.md` 2.20).
 - **Locally**: the UMD build with the minified stylesheets, then `npm run test:screenreader`. The lane
   follows the platform, and `HOT_SR_LANE` (`nvda`, `voiceover`, `dom-echo`) picks one explicitly. On
   Windows, `npx -y @guidepup/setup@0.29.3 install nvda` in `tests/` once (the portable NVDA build the

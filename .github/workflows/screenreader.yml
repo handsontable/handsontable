@@ -8,20 +8,23 @@ name: Screen reader
 # Conformance Report comes from here.
 #
 # Report-only, by design, and nothing here gates a pull request: the job has `continue-on-error`, the
-# test never fails on a token group in report mode, and the verdict is the `Screen reader / <project>
-# report` check run plus the job summary, by the severity rule (tests/AGENTS.md, "A11y: the verdict of a
-# check run"): red on a step missing a serious or critical token group (serious unless the scenario
-# declares the group's severity), neutral with a warning on a moderate or minor one, green otherwise; a
-# golden difference is advisory. The only reds inside the job are tooling: a fixture that does not load,
-# a screen reader that does not start, a scenario that never reached its `after` state; the check run
-# is red for them too, titled as a tooling failure.
+# test never fails on a token group in report mode, and the verdict is the
+# `Screen reader / <project> <group> report` check run plus the job summary, by the severity rule
+# (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a step missing a serious or critical
+# token group (serious unless the scenario declares the group's severity), neutral with a warning on a
+# moderate or minor one, green otherwise; a golden difference is advisory. The only reds inside the job
+# are tooling: a fixture that does not load, a screen reader that does not start, a scenario that never
+# reached its `after` state; the check run is red for them too, titled as a tooling failure.
 #
-# One job per screen reader and browser (a job per screen reader, a matrix per browser), because
-# Guidepup runs one screen reader per machine and the browsers are headed: NVDA on `windows-2025`, the
+# One job per screen reader, browser and scenario group (a job per screen reader, a matrix per browser
+# and group), because Guidepup runs one screen reader per machine and the browsers are headed, so a
+# project's scenarios run one at a time; once a project's run passed 15 minutes its scenarios split into
+# groups (the `group` field of each scenario, SCENARIO_GROUPS in tests/lib/screenreader-scenario.mjs),
+# each its own job, check run and artifacts. NVDA on `windows-2025`, the
 # runner Guidepup's own suite is green on (2 to 2.5 minutes per job there), and VoiceOver on `macos-26`.
 # The mitigations that suite uses are here too: Playwright `retries: 2` and a five-minute test timeout
 # (the config), a fresh screen reader per test with a stop in a `finally` (Guidepup's fixture), and
-# Guidepup 0.36.1+ for the NVDA quit fix. The run step's `timeout-minutes: 25` bounds a hung screen
+# Guidepup 0.36.1+ for the NVDA quit fix. The run step's `timeout-minutes: 40` bounds a hung screen
 # reader, and every step that downloads (the setup CLI, the browser, the screen reader) carries its own
 # timeout too: a step timeout is a step failure, so the `!cancelled()` summary, uploads and check run
 # still come, where a job timeout cancels them. Each job's timeout is a backstop above the sum of its
@@ -43,16 +46,17 @@ on:
 
 jobs:
   nvda:
-    name: NVDA (${{ matrix.browser }})
+    name: NVDA (${{ matrix.browser }}, ${{ matrix.group }})
     runs-on: windows-2025
-    # The backstop above the step timeouts below (5 + 5 + 5 + 25 minutes).
-    timeout-minutes: 45
+    # The backstop above the step timeouts below (5 + 5 + 5 + 40 minutes).
+    timeout-minutes: 60
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
     continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
         browser: [ chromium, firefox ]
+        group: [ keyboard, reading ]
     # Job-level, like a11y.yml: `checks: write` posts the report check run. Kept off the workflow level
     # so nothing else in the run inherits it.
     permissions:
@@ -66,6 +70,7 @@ jobs:
       # `github.sha` names, or the check never shows on the pull request.
       SCREENREADER_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       SCREENREADER_PROJECT: nvda-${{ matrix.browser }}
+      SCREENREADER_GROUP: ${{ matrix.group }}
     steps:
       # Nothing in this job pushes, so the token stays out of .git/config: the `npx -y` steps below
       # resolve the setup CLI's dependencies fresh on every run, and the token carries `checks: write`.
@@ -102,14 +107,17 @@ jobs:
       - name: Install NVDA
         timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 install nvda
-      # 25 minutes: a step timeout is a step failure, so the summary, the uploads and the check run
-      # below still run, where a job timeout cancels them and leaves no evidence. The worst case is 2
-      # scenarios x 3 attempts x the config's 300 s test timeout, 30 minutes.
+      # 40 minutes: every group's scenario budgets on a slow runner plus one retry of its largest
+      # (scenarioBudgetMs() of tests/lib/screenreader-scenario.mjs; the workflow test checks each group).
+      # A step timeout is a step failure, so the summary, the uploads and the check run below still run,
+      # where a job timeout cancels them and leaves no evidence. Scenarios that keep timing out (3 attempts
+      # x each scenario's test budget) end here, not at the backstop.
       - name: Run the scenarios
         id: scenarios
-        timeout-minutes: 25
+        timeout-minutes: 40
         env:
           HOT_SR_UPDATE_GOLDENS: ${{ inputs.update-goldens && '1' || '' }}
+          HOT_SR_GROUP: ${{ matrix.group }}
         run: cd tests && npx playwright test --config playwright.screenreader.config.ts --project=nvda-${{ matrix.browser }}
       # Every run, red or green: the transcripts (one JSON and one log per scenario), the summary the
       # report step writes below, and the Playwright report with the traces of a red scenario.
@@ -120,7 +128,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: screenreader-transcripts-nvda-${{ matrix.browser }}
+          name: screenreader-transcripts-nvda-${{ matrix.browser }}-${{ matrix.group }}
           path: tests/test-results/screenreader
           if-no-files-found: warn
           retention-days: 14
@@ -130,17 +138,20 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: screenreader-playwright-report-nvda-${{ matrix.browser }}
+          name: screenreader-playwright-report-nvda-${{ matrix.browser }}-${{ matrix.group }}
           path: tests/playwright-report/screenreader
           if-no-files-found: ignore
           retention-days: 14
           overwrite: true
+      # The goldens this job recorded, never the whole tree: a job runs one group, and the tree's other
+      # files are the checkout's copies, which would replace another group's new recordings when the
+      # artifacts are extracted together.
       - name: Upload the recorded goldens
         if: ${{ !cancelled() && inputs.update-goldens }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: screenreader-goldens-nvda-${{ matrix.browser }}
-          path: tests/screenreader/goldens
+          name: screenreader-goldens-nvda-${{ matrix.browser }}-${{ matrix.group }}
+          path: tests/test-results/screenreader/goldens
           if-no-files-found: warn
           retention-days: 14
           overwrite: true
@@ -156,19 +167,21 @@ jobs:
         run: node tests/scripts/screenreader-report.mjs --check-run
 
   voiceover:
-    name: VoiceOver (${{ matrix.browser }})
+    name: VoiceOver (${{ matrix.browser }}, ${{ matrix.group }})
     runs-on: macos-26
-    # The backstop above the step timeouts below (12 + 5 + 5 + 25 minutes). A hung step fails on its own
+    # The backstop above the step timeouts below (12 + 5 + 5 + 40 minutes). A hung step fails on its own
     # timeout first, so the evidence still uploads; this only stops a runner that hangs outside them.
-    timeout-minutes: 55
+    timeout-minutes: 70
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
     continue-on-error: true
     strategy:
       fail-fast: false
-      # The organization runs at most five macOS jobs at once: this lane takes two of them.
+      # The organization runs at most five macOS jobs at once: this lane takes two of them, and its four
+      # jobs run two at a time.
       max-parallel: 2
       matrix:
         browser: [ webkit, chromium ]
+        group: [ keyboard, reading ]
     # Job-level, like the NVDA job: `checks: write` posts the report check run.
     permissions:
       contents: read
@@ -179,6 +192,7 @@ jobs:
     env:
       SCREENREADER_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       SCREENREADER_PROJECT: vo-${{ matrix.browser }}
+      SCREENREADER_GROUP: ${{ matrix.group }}
     steps:
       # Nothing in this job pushes, so the token stays out of .git/config: the `npx -y` steps below
       # resolve the setup CLI's dependencies fresh on every run, and the token carries `checks: write`.
@@ -237,13 +251,15 @@ jobs:
       - name: Install VoiceOver
         timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 install voiceover
-      # 25 minutes, like the NVDA job's: a step timeout is a step failure, so the summary, the uploads
-      # and the check run below still run, where a job timeout cancels them and leaves no evidence.
+      # 40 minutes, like the NVDA job's: every group's budgets plus one retry. A step timeout is a step
+      # failure, so the summary, the uploads and the check run below still run, where a job timeout
+      # cancels them and leaves no evidence.
       - name: Run the scenarios
         id: scenarios
-        timeout-minutes: 25
+        timeout-minutes: 40
         env:
           HOT_SR_UPDATE_GOLDENS: ${{ inputs.update-goldens && '1' || '' }}
+          HOT_SR_GROUP: ${{ matrix.group }}
         run: cd tests && npx playwright test --config playwright.screenreader.config.ts --project=vo-${{ matrix.browser }}
       - name: Write the job summary
         if: ${{ !cancelled() }}
@@ -252,7 +268,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: screenreader-transcripts-vo-${{ matrix.browser }}
+          name: screenreader-transcripts-vo-${{ matrix.browser }}-${{ matrix.group }}
           path: tests/test-results/screenreader
           if-no-files-found: warn
           retention-days: 14
@@ -262,7 +278,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: screenreader-playwright-report-vo-${{ matrix.browser }}
+          name: screenreader-playwright-report-vo-${{ matrix.browser }}-${{ matrix.group }}
           path: tests/playwright-report/screenreader
           if-no-files-found: ignore
           retention-days: 14
@@ -272,17 +288,20 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: screenreader-recordings-vo-${{ matrix.browser }}
+          name: screenreader-recordings-vo-${{ matrix.browser }}-${{ matrix.group }}
           path: tests/recordings
           if-no-files-found: warn
           retention-days: 14
           overwrite: true
+      # The goldens this job recorded, never the whole tree: a job runs one group, and the tree's other
+      # files are the checkout's copies, which would replace another group's new recordings when the
+      # artifacts are extracted together.
       - name: Upload the recorded goldens
         if: ${{ !cancelled() && inputs.update-goldens }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: screenreader-goldens-vo-${{ matrix.browser }}
-          path: tests/screenreader/goldens
+          name: screenreader-goldens-vo-${{ matrix.browser }}-${{ matrix.group }}
+          path: tests/test-results/screenreader/goldens
           if-no-files-found: warn
           retention-days: 14
           overwrite: true

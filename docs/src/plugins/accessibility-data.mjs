@@ -158,6 +158,24 @@ export function validateAccessibilityData(data) {
           errors.push(`matrix[${i}].browsers names browsers for an entry that was not tested`);
         }
       }
+
+      // Optional, on an automated run's entry only, and always together: how many screen reader
+      // scenarios the run reads (`scenarios`) and the reader primitives it cannot drive (`unsupported`,
+      // empty when it drives them all), so the report states what the run actually covered. The tooling
+      // test of the scenarios (tests/lib/__tests__/screenreader-coverage.test.mjs) keeps both equal to the
+      // committed scenario set.
+      if (entry.scenarios !== undefined || entry.unsupported !== undefined) {
+        if (!Array.isArray(entry.howTested) || !entry.howTested.includes('automated-nightly')) {
+          errors.push(`matrix[${i}].scenarios and unsupported describe an automated run, and this entry has none`);
+        }
+        if (!Number.isInteger(entry.scenarios) || entry.scenarios < 1) {
+          errors.push(`matrix[${i}].scenarios must be a positive integer, with unsupported beside it`);
+        }
+        if (!Array.isArray(entry.unsupported)
+          || entry.unsupported.some(primitive => typeof primitive !== 'string' || primitive === '')) {
+          errors.push(`matrix[${i}].unsupported must be an array of primitive names (empty when none), with scenarios beside it`);
+        }
+      }
     });
   }
 

@@ -4,12 +4,12 @@ name: Screen reader nightly
 # on macOS over the scenarios of tests/screenreader/scenarios/; tests/AGENTS.md, "Screen readers: the
 # NVDA and VoiceOver lanes").
 # Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
-# verdict is each job's `Screen reader / <project> report` check run and summary, by the severity rule
-# (tests/AGENTS.md, "A11y: the verdict of a check run"): a step missing a token group is serious unless its
-# scenario declares a lower severity for the group, and a golden difference is advisory. Every lane runs
-# to the end; then the `verdict` job fails the run when any lane's check run is red. The transcripts
-# this run leaves are the evidence a future version of the Accessibility Conformance Report can cite
-# for what a screen reader announces. It runs on its own schedule rather than inside the pull-request
+# verdict is each job's `Screen reader / <project> <group> report` check run and summary, by the
+# severity rule (tests/AGENTS.md, "A11y: the verdict of a check run"): a step missing a token group is
+# serious unless its scenario declares a lower severity for the group, and a golden difference is
+# advisory. Every lane runs to the end; then the `verdict` job fails the run when any lane's check run is
+# red. The transcripts this run leaves are the evidence a future version of the Accessibility
+# Conformance Report can cite for what a screen reader announces. It runs on its own schedule rather than inside the pull-request
 # pipeline because a real screen reader on a headed Windows or macOS runner is minutes per browser,
 # and the answer changes with the core, the browser and the screen reader, not with one pull request.
 #
@@ -72,11 +72,12 @@ jobs:
       update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || false }}
     # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
 
-  # The run's verdict: the worst of the four lanes' check runs (tests/scripts/a11y-run-verdict.mjs), red
-  # when any is red or a lane posted none. It runs after every lane has finished (`!cancelled()`, so a
-  # red job before it never skips it), reads the check runs by the run id their poster stamps as
-  # `external_id`, and fails this job, which fails the run. It stops nothing: by the time it runs, every
-  # lane has run and reported. The four names follow screenreader.yml's matrices.
+  # The run's verdict: the worst of the lanes' check runs (tests/scripts/a11y-run-verdict.mjs), one per
+  # project and scenario group, red when any is red or a job posted none. It runs after every lane has
+  # finished (`!cancelled()`, so a red job before it never skips it), reads the check runs by the run id
+  # their poster stamps as `external_id`, and fails this job, which fails the run. It stops nothing: by the
+  # time it runs, every lane has run and reported. The names follow screenreader.yml's matrices: every
+  # browser of each lane times every group of SCENARIO_GROUPS, which the workflow test checks.
   verdict:
     name: Verdict
     needs: [ screenreader ]
@@ -103,8 +104,10 @@ jobs:
           HEAD_SHA: ${{ github.sha }}
         run: >-
           node tests/scripts/a11y-run-verdict.mjs --prefix "Screen reader / "
-          --expect "Screen reader / nvda-chromium report" --expect "Screen reader / nvda-firefox report"
-          --expect "Screen reader / vo-webkit report" --expect "Screen reader / vo-chromium report"
+          --expect "Screen reader / nvda-chromium keyboard report" --expect "Screen reader / nvda-chromium reading report"
+          --expect "Screen reader / nvda-firefox keyboard report" --expect "Screen reader / nvda-firefox reading report"
+          --expect "Screen reader / vo-webkit keyboard report" --expect "Screen reader / vo-webkit reading report"
+          --expect "Screen reader / vo-chromium keyboard report" --expect "Screen reader / vo-chromium reading report"
 
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
   # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on
@@ -112,7 +115,7 @@ jobs:
   # `continue-on-error`, so they report success to this caller whatever happened inside them, and
   # `failure()` here fires only when the UMD build failed or the called workflow could not start. A red
   # lane job never reaches Slack, and neither does the `verdict` job's red: their verdict is the
-  # `Screen reader / <project> report` check runs.
+  # `Screen reader / <project> <group> report` check runs.
   notify:
     name: Notify Slack
     needs: [ screenreader ]
