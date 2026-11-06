@@ -481,7 +481,7 @@ test('a docs scan of another deploy than develop staging is never a night', () =
 
   assert.equal(read.nights[0].axe, null);
   assert.equal(read.nights[0].findings.length, 0);
-  assert.match(read.notes[0], new RegExp(`a scan of "${preview.replace(/[.]/g, '\\.')}", not the develop staging deploy`));
+  assert.ok(read.notes[0].includes(`a scan of "${preview}", not the develop staging deploy`), read.notes[0]);
 
   const merged = mergeA11yLedger(null, read.nights[0], runContextFromRun(DOCS_RUN), CATALOG, { now: NOW });
 
