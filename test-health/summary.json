@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T10:00:28.431Z",
+  "generatedAt": "2026-11-06T10:30:14.716Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,7 +9,7 @@
   "retentionDays": 90,
   "totals": {
     "tests": 433,
-    "needsTicket": 26,
+    "needsTicket": 25,
     "quarantined": 0,
     "entries": 2249
   },
@@ -206,13 +206,13 @@
       "line": null,
       "title": "js-only/sheetsBar/tabs-2",
       "count7": 2,
-      "count30": 12,
+      "count30": 10,
       "countAll": 22,
-      "runs30": 5,
+      "runs30": 4,
       "flakyRuns30": 0,
-      "branches30": 3,
+      "branches30": 2,
       "nightlyRuns30": 0,
-      "openBranches30": 3,
+      "openBranches30": 2,
       "legs": [
         "js/chromium",
         "js/chromium-theme-horizon",
@@ -454,43 +454,6 @@
         "leg": "js/chromium-theme-horizon-dark",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 2a4da9ce4e7f",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-1",
-      "count7": 0,
-      "count30": 10,
-      "countAll": 20,
-      "runs30": 4,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-20T11:10:08Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39397571600",
-        "branch": "feature/PRO-1340_Animate-sheet-switching",
-        "leg": "js/chromium-theme-main",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 082cba487624",
         "source": "ci"
       },
       "needsTicket": true
@@ -951,6 +914,43 @@
         "source": "ci"
       },
       "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-1",
+      "count7": 0,
+      "count30": 8,
+      "countAll": 20,
+      "runs30": 3,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-20T11:10:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39397571600",
+        "branch": "feature/PRO-1340_Animate-sheet-switching",
+        "leg": "js/chromium-theme-main",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 082cba487624",
+        "source": "ci"
+      },
+      "needsTicket": false
     },
     {
       "key": "playwright|e2e/icon-elements.spec.ts|Icon elements › sheets bar › the retired glyph pseudo-elements no longer paint on the buttons or the chevron",
@@ -2587,13 +2587,13 @@
       "line": null,
       "title": "manualRowResize should autosize selected rows after double click on handler and move mouse to the next row",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 6,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "UMD (theme: horizon)",
         "UMD (theme: main)",
