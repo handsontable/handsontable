@@ -3063,7 +3063,7 @@ export default function Core(
     initReadyStepsRunning = true;
 
     try {
-      holdRenderWhile(runOwedReadySteps);
+      holdRenderWhile(runOwedReadySteps, true);
     } finally {
       initReadyStepsRunning = false;
     }
@@ -7222,8 +7222,12 @@ export default function Core(
    *
    * @private
    * @param {Function} callback The work to run while rendering is held.
+   * @param {boolean} keepsEntryHold `true` to never restore the counter below the value it had on entry, so a
+   * step that resumes once too often cannot release a suspension made before the call (the plugins' ready
+   * steps at init). `false` to floor it at zero, so a listener that resumes the caller's own suspension takes
+   * it away, as it would outside this call, and the render that follows is free to paint.
    */
-  function holdRenderWhile(callback: () => void): void {
+  function holdRenderWhile(callback: () => void, keepsEntryHold: boolean): void {
     const renderState = instance as HotInstance & CoreInternals;
     const suspendedBefore = renderState.renderSuspendedCounter;
 
@@ -7232,11 +7236,12 @@ export default function Core(
     try {
       callback();
     } finally {
-      // Never below zero: a listener that resumed rendering once more than it suspended would leave the counter
-      // negative, and the next `suspendRender()` would not hold. Not floored at the value saved on entry, because
-      // a listener that resumes a suspension the caller made takes it away, as it would outside this call, and
-      // the render that follows must then be free to paint.
-      renderState.renderSuspendedCounter = Math.max(renderState.renderSuspendedCounter - 1, 0);
+      // Never below the floor: the counter must not go negative, because the next `suspendRender()` would not
+      // hold. A suspension a step or listener made on its own is kept for its own `resumeRender()`.
+      renderState.renderSuspendedCounter = Math.max(
+        renderState.renderSuspendedCounter - 1,
+        keepsEntryHold ? suspendedBefore : 0
+      );
     }
   }
 
@@ -7244,6 +7249,8 @@ export default function Core(
    * Paints the new rows when a settings call that carries `data` throws after its data phase. The data load no
    * longer paints on its own, so a listener that throws before `fitGridToSettings()` would leave the old rows on
    * screen over the new data. A failure of the paint itself is not reported: the error that ended the call is.
+   * Only a `data` payload painted in the middle of a call before, so a `columns`, `dataSchema` or `dataProvider`
+   * payload needs no repaint here.
    *
    * @private
    * @param {object} settings The settings of the call that threw.
@@ -7264,19 +7271,26 @@ export default function Core(
   /**
    * Runs the data phase of a settings call without painting. The data load renders on its own, and
    * `fitGridToSettings()` renders after the meta phase, so a call that carries `data` would paint the grid
-   * twice. The grid being built renders at the end of its init pass, so it is left alone.
+   * twice. The grid being built renders at the end of its init pass, so it is left alone, and so is a payload
+   * that cannot change the data (`data`, `columns`, `dataSchema`, `dataProvider`): it paints nothing in the
+   * middle of the call, and clearing the cell meta memo for it would make every meta read inside a `batch()`
+   * or `suspendRender()` run the `cells` function and the meta hooks again.
    *
    * @private
+   * @param {object} settings The settings of the call.
    * @param {Function} dataPhase The data phase.
    */
-  function runDataPhaseWithoutRender(dataPhase: () => void): void {
-    if (firstRun) {
+  function runDataPhaseWithoutRender(settings: SettingsUpdate, dataPhase: () => void): void {
+    const canChangeData = ['data', 'columns', 'dataSchema', 'dataProvider']
+      .some(key => hasOwnProperty(settings, key));
+
+    if (firstRun || !canChangeData) {
       dataPhase();
 
       return;
     }
 
-    holdRenderWhile(dataPhase);
+    holdRenderWhile(dataPhase, false);
 
     // The held render also skipped the start of a full render, which makes each stored cell meta run its
     // dynamic extension again. Without it a `cells()` function or an `afterGetCellMeta` listener that reads
@@ -7372,6 +7386,7 @@ export default function Core(
 
     if (!defersDataWork) {
       runDataPhaseWithoutRender(
+        settings,
         () => applyDataPhase(settings, init, previousColumnLayout, previousDataSource, dataUpdateFunction)
       );
     }
