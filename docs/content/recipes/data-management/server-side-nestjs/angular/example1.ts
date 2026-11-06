@@ -103,7 +103,7 @@ export class AppComponent {
         if (!res.ok) throw new Error(`Update failed: ${res.status}`);
       },
 
-      // Fires after the user confirms deletion.
+      // Fires after the user removes rows.
       onRowsRemove: async (rowIds: unknown[]) => {
         const res = await fetch('/tickets', {
           method: 'DELETE',

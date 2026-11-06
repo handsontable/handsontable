@@ -20,8 +20,8 @@
  * neither: it is listed in the records and the target keeps its criteria, because the lane ran every
  * step it can drive. No I/O in here.
  */
-import { compareCriteria, mergeEvidence, validateEvidence } from './a11y-evidence.mjs';
-import { scenarioPageId, scenarioUrl } from './screenreader-scenario.mjs';
+import { compareCriteria, mergeEvidence, targetFileName, validateEvidence } from './a11y-evidence.mjs';
+import { scenarioPageId, scenarioUrl, unsupportedReason } from './screenreader-scenario.mjs';
 import { describeAction } from './screenreader-transcript.mjs';
 
 export const SCREENREADER_CHECK = 'screen-reader';
@@ -178,6 +178,7 @@ function traversalFindings(transcript, scenario) {
  * @param {object} input What the job left.
  * @param {string} input.project The project.
  * @param {string} input.lane The lane.
+ * @param {string} [input.group] The scenario group the job ran, when it ran one (`SCREENREADER_GROUP`).
  * @param {object[]} input.transcripts The transcripts.
  * @param {object[]} input.scenarios The resolved scenarios of the set.
  * @param {object} [input.run] The run's metadata (`mergeEvidence()`'s).
@@ -186,35 +187,54 @@ function traversalFindings(transcript, scenario) {
  * detail files to write beside it (`<check>/<page>--<theme>--<variant>.json`), and what `validateEvidence()`
  * found wrong with it.
  */
-export function buildScreenreaderEvidence({ project, lane, transcripts, scenarios, run = {}, problems = [] }) {
+export function buildScreenreaderEvidence({ project, lane, group, transcripts, scenarios, run = {}, problems = [] }) {
   const byId = new Map(scenarios.map(scenario => [scenario.id, scenario]));
   const checks = screenreaderChecks(scenarios);
-  const parts = transcripts.filter(transcript => byId.has(transcript.scenario)).map(transcript => evidencePart(transcript, byId.get(transcript.scenario)));
+  const measured = transcripts.filter(transcript => byId.has(transcript.scenario));
+  const parts = measured.map(transcript => evidencePart(transcript, byId.get(transcript.scenario)));
   const written = new Set(transcripts.map(transcript => transcript.scenario));
-  const failures = scenarios.filter(scenario => !written.has(scenario.id)).map(scenario => ({
-    title: `${project} ${scenario.id}`,
-    target: { page: scenarioPageId(scenario), theme: scenarioTheme(scenario), state: null, variant: scenario.id, url: scenarioUrl(scenario) },
-    error: 'the run left no transcript for this scenario',
-  }));
+  const failures = [
+    ...scenarios.filter(scenario => !written.has(scenario.id)).map(scenario => ({
+      title: `${project} ${scenario.id}`,
+      target: { page: scenarioPageId(scenario), theme: scenarioTheme(scenario), state: null, variant: scenario.id, url: scenarioUrl(scenario) },
+      error: 'the run left no transcript for this scenario',
+    })),
+    // A transcript an attempt after the first wrote passed only on a retry: the document flags its target, as
+    // it does a check's test that measured only on a retry, so a ledger reader never takes it for a clean pass.
+    ...measured.flatMap((transcript, index) => (Number(transcript.attempt) > 0 ? [{
+      title: `${project} ${transcript.scenario}`,
+      target: parts[index].target,
+      error: `the transcript is from attempt ${Number(transcript.attempt) + 1}: an earlier attempt failed`,
+      flaky: true,
+    }] : [])),
+  ];
   const unknown = transcripts.filter(transcript => !byId.has(transcript.scenario))
     .map(transcript => `transcript ${transcript.scenario} names no scenario of the set`);
   const doc = mergeEvidence({ check: SCREENREADER_CHECK, parts, failures, run, problems: [...problems, ...unknown], checks });
 
   doc.run.project = project;
   doc.run.lane = lane;
+  // A job runs one group, so its document lists that group's scenarios only; the group says so.
+  doc.run.group = group ?? null;
   doc.records = scenarios.flatMap((scenario) => {
     const transcript = transcripts.find(item => item.scenario === scenario.id);
 
     return transcript
       ? stepRecords(transcript, scenario)
-      : scenario.steps.map(step => ({
-        scenario: scenario.id, lane, project, page: scenarioPageId(scenario), theme: scenarioTheme(scenario),
-        criteria: [...scenario.criteria].sort(compareCriteria), step: step.id, action: describeAction(step.action), verdict: 'not-run', reason: 'no transcript',
-      }));
+      : scenario.steps.map((step) => {
+        // A step the lane does not drive is a declared gap whether the run finished or not.
+        const skipped = unsupportedReason(step, lane);
+
+        return {
+          scenario: scenario.id, lane, project, page: scenarioPageId(scenario), theme: scenarioTheme(scenario),
+          criteria: [...scenario.criteria].sort(compareCriteria), step: step.id, action: describeAction(step.action),
+          ...(skipped === null ? { verdict: 'not-run', reason: 'no transcript' } : { verdict: 'unsupported', reason: skipped }),
+        };
+      });
   });
 
   const details = parts.map(part => ({
-    file: `${SCREENREADER_CHECK}/${[part.target.page, part.target.theme, part.target.variant].join('--')}.json`,
+    file: `${SCREENREADER_CHECK}/${targetFileName(part.target)}`,
     detail: part.detail,
   }));
 

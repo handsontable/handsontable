@@ -591,11 +591,16 @@ export class UndoRedo extends BasePlugin {
 
     // As for a redo, the stack changes only once every `beforeUndo` listener accepts the step: a
     // vetoed undo stays available.
-    if (this.hot.runHooks('beforeUndo', step) === false) {
+    // A listener of any hook below can destroy the grid, which clears `this.hot` and the stacks.
+    if (this.hot.runHooks('beforeUndo', step) === false || !this.hot) {
       return;
     }
 
     this.#takeStep(this.doneActions, 'beforeUndoStackChange', 'afterUndoStackChange');
+
+    if (!this.hot) {
+      return;
+    }
 
     const undoneActionsCopy = this.undoneActions.slice();
 
@@ -605,15 +610,23 @@ export class UndoRedo extends BasePlugin {
     // step goes back where it came from.
     const wasUndone = this.#restore(record, 'undo');
 
+    if (!this.hot) {
+      return;
+    }
+
     if (wasUndone) {
       this.undoneActions.push(step);
     } else {
       this.#putBackStep(this.doneActions, step, 'beforeUndoStackChange', 'afterUndoStackChange');
     }
 
+    if (!this.hot) {
+      return;
+    }
+
     this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
 
-    if (wasUndone) {
+    if (wasUndone && this.hot) {
       this.hot.runHooks('afterUndo', step);
     }
   }
@@ -648,17 +661,26 @@ export class UndoRedo extends BasePlugin {
 
     // The stack changes only once every `beforeRedo` listener accepts the step: a vetoed redo stays
     // available, to be retried once the condition that vetoed it no longer applies.
-    if (this.hot.runHooks('beforeRedo', step) === false) {
+    // A listener of any hook below can destroy the grid, which clears `this.hot` and the stacks.
+    if (this.hot.runHooks('beforeRedo', step) === false || !this.hot) {
       return;
     }
 
     this.#takeStep(this.undoneActions, 'beforeRedoStackChange', 'afterRedoStackChange');
+
+    if (!this.hot) {
+      return;
+    }
 
     const doneActionsCopy = this.doneActions.slice();
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
 
     const wasRedone = this.#restore(record, 'redo');
+
+    if (!this.hot) {
+      return;
+    }
 
     if (wasRedone) {
       this.doneActions.push(step);
@@ -667,9 +689,13 @@ export class UndoRedo extends BasePlugin {
       this.#putBackStep(this.undoneActions, step, 'beforeRedoStackChange', 'afterRedoStackChange');
     }
 
+    if (!this.hot) {
+      return;
+    }
+
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
-    if (wasRedone) {
+    if (wasRedone && this.hot) {
       this.hot.runHooks('afterRedo', step);
     }
   }
@@ -720,6 +746,12 @@ export class UndoRedo extends BasePlugin {
     const stackCopy = stack.slice();
 
     this.hot.runHooks(beforeHook, stackCopy);
+
+    // A listener of the hook can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     stack.pop();
     this.hot.runHooks(afterHook, stackCopy, stack.slice());
   }
@@ -742,6 +774,12 @@ export class UndoRedo extends BasePlugin {
     const stackCopy = stack.slice();
 
     this.hot.runHooks(beforeHook, stackCopy);
+
+    // A listener of the hook can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     stack.push(step);
     this.hot.runHooks(afterHook, stackCopy, stack.slice());
   }
@@ -757,7 +795,8 @@ export class UndoRedo extends BasePlugin {
   #pushStep(step: unknown, source: string | undefined): boolean {
     const doneActionsCopy = this.doneActions.slice();
 
-    if (this.hot.runHooks('beforeUndoStackChange', doneActionsCopy, source) === false) {
+    // A listener of any hook below can destroy the grid, which clears `this.hot` and the stacks.
+    if (this.hot.runHooks('beforeUndoStackChange', doneActionsCopy, source) === false || !this.hot) {
       return false;
     }
 
@@ -766,7 +805,16 @@ export class UndoRedo extends BasePlugin {
     this.doneActions.push(step);
     this.#trimUndoStack();
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
+
+    if (!this.hot) {
+      return false;
+    }
+
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
+
+    if (!this.hot) {
+      return false;
+    }
 
     this.undoneActions.length = 0;
 
@@ -819,7 +867,17 @@ export class UndoRedo extends BasePlugin {
    */
   #dropSteps(undoCount: number, redoCount: number) {
     this.#dropFromStack(this.doneActions, undoCount, 'beforeUndoStackChange', 'afterUndoStackChange');
+
+    // A stack-change listener can destroy the grid, which clears `this.hot` and the stacks.
+    if (!this.hot) {
+      return;
+    }
+
     this.#dropFromStack(this.undoneActions, redoCount, 'beforeRedoStackChange', 'afterRedoStackChange');
+
+    if (!this.hot) {
+      return;
+    }
 
     if (this.doneActions.length === 0 && this.undoneActions.length === 0) {
       this.#columnProps = null;
@@ -847,6 +905,11 @@ export class UndoRedo extends BasePlugin {
     const stackCopy = stack.slice();
 
     this.hot.runHooks(beforeHook, stackCopy);
+
+    if (!this.hot) {
+      return;
+    }
+
     stack.splice(0, count);
     this.hot.runHooks(afterHook, stackCopy, stack.slice());
   }
@@ -1009,6 +1072,11 @@ export class UndoRedo extends BasePlugin {
         return false;
       }
 
+      // The render the restore ends with runs listeners, and one of them can destroy the grid.
+      if (!this.hot) {
+        return false;
+      }
+
       restoredCells = collectRestoredCells(this.hot, record, direction);
 
       const changes = toCellChanges(this.hot, restoredCells);
@@ -1023,6 +1091,11 @@ export class UndoRedo extends BasePlugin {
       return true;
     });
 
+    // Same for the `afterChange` listeners above: the grid is gone, so there is no state to capture.
+    if (!this.hot) {
+      return false;
+    }
+
     this.#lastState = tracker.capture();
 
     if (!wasRestored) {
@@ -1035,6 +1108,12 @@ export class UndoRedo extends BasePlugin {
     // listener writes when the selection is put back.
     this.hot._getOperationScope().suppress(() => {
       this.#revalidateChangedCells(restoredCells, record.journal.some(isStructural));
+
+      // The render of the re-validation runs listeners too.
+      if (!this.hot) {
+        return;
+      }
+
       this.#restoreSelection(record.selection[direction], direction);
     });
 
@@ -1065,6 +1144,11 @@ export class UndoRedo extends BasePlugin {
     }
 
     this.hot.deselectCell();
+
+    // An `afterDeselect` listener can destroy the grid.
+    if (!this.hot) {
+      return;
+    }
 
     if (target.kind === 'rows') {
       this.hot.selectRows(target.from, target.to);
@@ -1115,12 +1199,20 @@ export class UndoRedo extends BasePlugin {
 
     // The value an edit of the cell would validate: for a key/value or multiselect cell that is the stored
     // value, and its `valueGetter` output fails its own validator.
-    validated.forEach(([row, column]) => {
+    for (let index = 0; index < validated.length; index++) {
+      // A `beforeValidate` listener runs inside `validateCell()` and can destroy the grid, which clears
+      // `this.hot` for the cells that follow.
+      if (!this.hot) {
+        return;
+      }
+
+      const [row, column] = validated[index];
+
       this.hot.validateCell(
         (this.hot as HotInstanceInternal)._getValueToValidate(row, column), this.hot.getCellMeta(row, column),
         onValidated, 'UndoRedo.revalidate',
       );
-    });
+    }
   }
 
   /**
@@ -1136,18 +1228,27 @@ export class UndoRedo extends BasePlugin {
 
     const actionClone = deepClone(pendingAction);
 
-    // As for a recorded step, a vetoed undo leaves the stack alone.
-    if (this.hot.runHooks('beforeUndo', actionClone) === false) {
+    // As for a recorded step, a vetoed undo leaves the stack alone. A listener of any hook below can
+    // destroy the grid, which clears `this.hot` and both stacks.
+    if (this.hot.runHooks('beforeUndo', actionClone) === false || !this.hot) {
       return;
     }
 
     this.#takeStep(this.doneActions, 'beforeUndoStackChange', 'afterUndoStackChange');
+
+    if (!this.hot) {
+      return;
+    }
 
     this.#ignoreNewActions = true;
 
     const undoneActionsCopy = this.undoneActions.slice();
 
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
+
+    if (!this.hot) {
+      return;
+    }
 
     let wasUndone = true;
 
@@ -1168,12 +1269,16 @@ export class UndoRedo extends BasePlugin {
       this.#ignoreNewActions = false;
       throw error;
     } finally {
-      this.#lastState = this.#tracker?.capture() ?? null;
+      this.#lastState = this.hot ? this.#tracker?.capture() ?? null : null;
+    }
+
+    if (!this.hot) {
+      return;
     }
 
     this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
 
-    if (wasUndone) {
+    if (wasUndone && this.hot) {
       this.hot.runHooks('afterUndo', actionClone);
     }
   }
@@ -1190,18 +1295,27 @@ export class UndoRedo extends BasePlugin {
 
     const actionClone = deepClone(pendingAction);
 
-    // As for a recorded step, a vetoed redo leaves the stack alone.
-    if (this.hot.runHooks('beforeRedo', actionClone) === false) {
+    // As for a recorded step, a vetoed redo leaves the stack alone. A listener of any hook below can
+    // destroy the grid, which clears `this.hot` and both stacks.
+    if (this.hot.runHooks('beforeRedo', actionClone) === false || !this.hot) {
       return;
     }
 
     this.#takeStep(this.undoneActions, 'beforeRedoStackChange', 'afterRedoStackChange');
+
+    if (!this.hot) {
+      return;
+    }
 
     this.#ignoreNewActions = true;
 
     const doneActionsCopy = this.doneActions.slice();
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
+
+    if (!this.hot) {
+      return;
+    }
 
     let wasRedone = true;
 
@@ -1221,13 +1335,17 @@ export class UndoRedo extends BasePlugin {
       this.#ignoreNewActions = false;
       throw error;
     } finally {
-      this.#lastState = this.#tracker?.capture() ?? null;
+      this.#lastState = this.hot ? this.#tracker?.capture() ?? null : null;
+    }
+
+    if (!this.hot) {
+      return;
     }
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
     // As for an undo, an action that reports it could not redo is not announced as redone.
-    if (wasRedone) {
+    if (wasRedone && this.hot) {
       this.hot.runHooks('afterRedo', actionClone);
     }
   }
@@ -1373,7 +1491,7 @@ export class UndoRedo extends BasePlugin {
       selection,
     });
 
-    if (!this.#pushStep(step, transaction.source)) {
+    if (!this.#pushStep(step, transaction.source) || !this.hot) {
       return;
     }
 

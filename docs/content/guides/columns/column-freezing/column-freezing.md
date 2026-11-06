@@ -269,7 +269,7 @@ In the following example, the first row (Target) and the last row (Total) stay a
 ### How fixedColumnsEnd interacts with other settings
 
 - **Overlap.** If `fixedColumnsStart` and `fixedColumnsEnd` together exceed the number of columns, `fixedColumnsStart` takes priority. Handsontable DataGrid reduces the end columns to the columns that remain. The `fixedColumnsEnd` value you set doesn't change.
-- **Hidden and trimmed columns.** A hidden column keeps its slot in the end band. The band is always the last `fixedColumnsEnd` columns, so hiding a column inside it shrinks the frozen area by that column, and no other column moves in. A trimmed column gives up its slot. When you trim a column inside the band, the column before the band moves in and the frozen area keeps its size.
+- **Hidden and trimmed columns.** A hidden column keeps its slot in the end band. See [Hidden columns](#hidden-columns). A trimmed column gives up its slot. When you trim a column inside the band, the column before the band moves in and the frozen area keeps its size.
 - **Size limit.** The [frozen area size limit](#frozen-area-size-limit) applies to the start and end columns together. Keep the combined width of all frozen columns smaller than the width of the grid.
 - **Changing the value.** You can change `fixedColumnsEnd` at any time with [`updateSettings()`](@/api/core.md#updatesettings). When you remove columns that belong to the end band, Handsontable lowers the value by the number of removed frozen columns.
 
@@ -282,6 +282,15 @@ In the following example, the first row (Target) and the last row (Total) stay a
 - [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) freezes and unfreezes columns on the start side only. It doesn't change `fixedColumnsEnd`.
 - XLSX export and import don't carry frozen end columns. See [What is written](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#what-is-written).
 - You can't move a column across the boundary between the scrollable columns and the frozen end columns with [`manualColumnMove`](@/api/options.md#manualcolumnmove).
+
+## Hidden columns
+
+A column hidden with the [`HiddenColumns`](@/api/hiddenColumns.md) plugin keeps its slot in the frozen area. This applies to both [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) and [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend). Hiding a column inside the frozen area shrinks the frozen area by that column, and no other column moves in.
+
+- **Start columns.** The frozen area is always the first `fixedColumnsStart` columns, hidden ones included. With `fixedColumnsStart: 3` and column 1 hidden, the grid freezes 2 visible columns: columns 0 and 2.
+- **End columns.** The frozen area is always the last `fixedColumnsEnd` columns, hidden ones included.
+
+To keep a set number of visible columns frozen, raise the option by the number of hidden columns inside the frozen area. Hidden rows work the same way. See [Row freezing: Hidden rows](@/guides/rows/row-freezing/row-freezing.md#hidden-rows).
 
 ## User-triggered freeze
 

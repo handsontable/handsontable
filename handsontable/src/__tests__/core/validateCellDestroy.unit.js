@@ -186,8 +186,6 @@ describe('Core validation when the grid is destroyed from a validation callback'
         expect(uncaughtErrors).toEqual([]);
       });
 
-      // With a cell selected, `applyChanges()` still refreshes the destroyed grid's editor after
-      // `afterChange`. That is the edit path's own defect, outside the validation answer covered here.
       [
         ['existing rows', [[0, 0, 'x'], [1, 1, 'y']]],
         ['a row the write creates', [[0, 0, 'x'], [2, 1, 'new']]],

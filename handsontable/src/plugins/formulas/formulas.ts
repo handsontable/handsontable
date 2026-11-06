@@ -182,13 +182,16 @@ export interface FormulasHyperlinkSettings {
 
 /**
  * The order an engine holds one of its sheets in, as `exportEngineOrder()` reports it while the sheet
- * is bound, for `runWithEngineOrderHeld()` to take over when the sheet is bound again.
+ * is bound, for `runWithEngineOrderHeld()` to take over when the sheet is bound again. `content` is the
+ * engine sheet's content in that order, for a sheet the next binding does not find in the engine (an
+ * engine built from the `HyperFormula` class is destroyed when the plugin is disabled).
  */
 export interface FormulasEngineSheetOrder {
   readonly engine: HyperFormulaEngine;
   readonly sheetId: number;
   readonly rowOrder: EngineOrder;
   readonly columnOrder: EngineOrder;
+  readonly content?: unknown[][];
 }
 
 /**
@@ -1118,7 +1121,11 @@ export class Formulas extends BasePlugin {
     let sheetPaintErrors: unknown[] = [];
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
-    if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
+    if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName) && this.isDataLoadPending()) {
+      this.sheetName = null;
+      this.sheetId = null;
+
+    } else if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
       this.#escapeSourceDataArray(sourceDataArray);
@@ -1834,12 +1841,14 @@ export class Formulas extends BasePlugin {
    * axis (a sort or a move reached the engine), or `null`. A caller that loads the sheet's data again
    * later and puts the same row and column order back on the grid passes it to
    * {@link Formulas#runWithEngineOrderHeld}, which then takes the engine sheet over instead of writing
-   * the data into it.
+   * the data into it. With `withContent`, the order also carries the engine sheet's content, which a
+   * later binding to another engine sheet writes before it takes the order over.
    *
    * @private
+   * @param {boolean} [withContent] Whether to include the engine sheet's content.
    * @returns {object|null}
    */
-  exportEngineOrder(): FormulasEngineSheetOrder | null {
+  exportEngineOrder(withContent = false): FormulasEngineSheetOrder | null {
     if (!this.enabled || !this.engine || this.sheetId === null || !this.#hasOwnSheet()
       || (this.rowAxisSyncer!.isEngineOrderPhysical() && this.columnAxisSyncer!.isEngineOrderPhysical())) {
       return null;
@@ -1850,6 +1859,7 @@ export class Formulas extends BasePlugin {
       sheetId: this.sheetId,
       rowOrder: this.rowAxisSyncer!.getEngineOrder(),
       columnOrder: this.columnAxisSyncer!.getEngineOrder(),
+      ...(withContent ? { content: this.#readableSheet(this.engine.getSheetSerialized(this.sheetId)) } : {}),
     };
   }
 
@@ -1866,6 +1876,9 @@ export class Formulas extends BasePlugin {
    * reported when the sheet was left), a load that binds that sheet takes the engine sheet over instead:
    * it writes nothing, and the order the engine holds becomes the stored one, which the grid's order
    * ends on. Only the first such load takes it over: a later load in the same operation brings other data.
+   * When `adopt` carries the engine sheet's content, the first load takes it over whatever engine sheet it
+   * binds: it writes that content instead of the loaded data, so a sheet whose engine was destroyed or
+   * whose engine sheet was replaced comes back with the formulas the user left.
    *
    * A move made in the operation is held like a sort. Rows or columns inserted or removed in it are not
    * supported: the engine changes positionally through the held order, which the stored order then no
@@ -4050,7 +4063,7 @@ export class Formulas extends BasePlugin {
       }
 
       if (!this.#hotWasInitializedWithEmptyData && this.#pendingAdoption?.adopted === false
-        && this.#pendingAdoption.order.engine === this.engine && this.#pendingAdoption.order.sheetId === this.sheetId) {
+        && (this.#isBoundTo(this.#pendingAdoption.order) || this.#pendingAdoption.order.content !== undefined)) {
         this.#adoptEngineSheet(this.#pendingAdoption.order);
         this.#pendingAdoption.adopted = true;
 
@@ -4083,16 +4096,32 @@ export class Formulas extends BasePlugin {
    * Binds the sheet a load brought back without writing the loaded data into it: the engine already holds
    * the sheet as the grid left it, in the order `order` describes, and its formula text there is what the
    * user saw (see {@link Formulas#runWithEngineOrderHeld}). The order is taken over without being sent,
-   * and the grid's order ends on it.
+   * and the grid's order ends on it. An order that carries the engine sheet's content writes it first: the
+   * engine sheet bound now is a new one, or one another sheet's data was loaded into meanwhile.
    *
    * @param {object} order The engine order the sheet was left in.
    */
   #adoptEngineSheet(order: FormulasEngineSheetOrder) {
     this.#sheetResyncPending = false;
+
+    if (order.content !== undefined) {
+      this.engine!.setSheetContent(this.sheetId, order.content);
+    }
+
     this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
     this.rowAxisSyncer!.adoptEngineOrder(order.rowOrder);
     this.columnAxisSyncer!.adoptEngineOrder(order.columnOrder);
     this.#recordSyncedLayout();
+  }
+
+  /**
+   * Whether the plugin is bound to the engine sheet `order` describes.
+   *
+   * @param {object} order The engine order.
+   * @returns {boolean}
+   */
+  #isBoundTo(order: FormulasEngineSheetOrder): boolean {
+    return order.engine === this.engine && order.sheetId === this.sheetId;
   }
 
   /**

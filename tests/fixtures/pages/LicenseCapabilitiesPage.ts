@@ -1,8 +1,9 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
 
-type LicenseKeyName = 'flagged-base' | 'flagged-column-menu' | 'flagged-filters' | 'flagged-no-ui' | 'unflagged';
-type PluginsName = 'filters' | 'column-menu';
+type LicenseKeyName = 'flagged-base' | 'flagged-column-menu' | 'flagged-filters' | 'flagged-no-ui' |
+  'flagged-minimal' | 'unflagged';
+type PluginsName = 'filters' | 'column-menu' | 'header-checkbox';
 
 /**
  * Page Object for the license capabilities fixture: a grid built with a license key that lists the
@@ -67,6 +68,18 @@ export class LicenseCapabilitiesPage {
    */
   licenseErrors(): string[] {
     return this.consoleErrors.filter(text => text.includes('does not include these features'));
+  }
+
+  /**
+   * The grid's outer height (the root plus its top and bottom slots) and whether the license bar was in the
+   * page, read by the fixture in the same task as the constructor.
+   *
+   * @returns {Promise<{ barMounted: boolean, outerHeight: number }>}
+   */
+  async sizeAtConstruction(): Promise<{ barMounted: boolean; outerHeight: number }> {
+    return this.page.evaluate(() => (window as unknown as {
+      sizeAtConstruction: { barMounted: boolean; outerHeight: number };
+    }).sizeAtConstruction);
   }
 
   /**
