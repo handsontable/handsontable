@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T12:44:31.423Z",
+  "generatedAt": "2026-11-06T12:52:15.600Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 433,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2250
+    "entries": 2251
   },
   "rows": [
     {
@@ -673,6 +673,39 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "tier": "playwright",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 701,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 3,
+      "flakyRuns30": 3,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-06T12:51:22Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42216493226",
+        "branch": "feature/DEV-3759_Single-render-on-updateSettings-with-data",
+        "leg": "e2e-firefox",
+        "status": "flaky",
+        "error": "Error: expect(locator).toHaveValue(expected) failed",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
       "tier": "jasmine",
       "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
@@ -808,39 +841,6 @@
         "leg": "cross-browser/webkit",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 ce84cbd1ce93",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "tier": "playwright",
-      "file": "e2e/formula-builder-picking.spec.ts",
-      "line": 701,
-      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "count7": 3,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-firefox"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-06T12:12:52Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42213784073",
-        "branch": "feature/DEV-3606_Screen-reader-scenarios-structure",
-        "leg": "e2e-firefox",
-        "status": "flaky",
-        "error": "Error: expect(locator).toHaveValue(expected) failed",
         "source": "ci"
       },
       "needsTicket": true
