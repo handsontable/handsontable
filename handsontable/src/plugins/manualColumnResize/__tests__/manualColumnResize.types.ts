@@ -10,9 +10,7 @@ new Handsontable(document.createElement('div'), {
 
 const manualColumnResize = hot.getPlugin('manualColumnResize');
 
-manualColumnResize.saveManualColumnWidths();
 manualColumnResize.clearManualSize(0);
 manualColumnResize.clearManualSizes();
 
 const width: number = manualColumnResize.setManualSize(0, 5);
-const widths: Array<number | null> = manualColumnResize.loadManualColumnWidths();

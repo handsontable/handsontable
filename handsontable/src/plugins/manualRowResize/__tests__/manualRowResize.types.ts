@@ -10,10 +10,8 @@ new Handsontable(document.createElement('div'), {
 
 const manualRowResize = hot.getPlugin('manualRowResize');
 
-manualRowResize.saveManualRowHeights();
 manualRowResize.getLastDesiredRowHeight();
 manualRowResize.clearManualSize(0);
 manualRowResize.clearManualSizes();
 
 const height: number = manualRowResize.setManualSize(0, 5);
-const heights: Array<number | null> = manualRowResize.loadManualRowHeights();
