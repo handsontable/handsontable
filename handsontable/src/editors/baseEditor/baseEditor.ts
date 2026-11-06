@@ -539,6 +539,13 @@ export class BaseEditor {
 
       if (!this.hot.getCellValidator(this.cellProperties)) {
         this.saveValue([[value]], ctrlDown);
+
+        // A listener of the save (`beforeChange`, `afterChange`, ...) destroyed the grid, and the
+        // editor's DOM went with it.
+        if (this.hot.isDestroyed) {
+          return;
+        }
+
         this.state = EDITOR_STATE.FINISHED;
         this.discardEditor(true);
 

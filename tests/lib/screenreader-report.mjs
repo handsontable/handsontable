@@ -4,17 +4,23 @@
  * into `test-results/screenreader/transcripts/`).
  *
  * The job itself is green whatever the announcements were (`continue-on-error`, and the test never
- * fails on a token group in report mode), so this check run is the visible verdict: `neutral` when a
- * token group is missing, a reading traversal read an item twice, never or out of order, a golden
- * differs or none is recorded yet, `success` when every step carries its tokens and matches its golden,
- * `failure` for a tooling failure (no transcript for a scenario, none at all, a scenario that stopped at
- * a step) or, in gate mode, a missing token group. A step the lane does not drive (`unsupported`) is a
- * declared gap: listed per scenario and per primitive, never a reason for `neutral`. Its annotations sit
- * on the step's line in the scenario file (the base's file for a variant). Pure:
+ * fails on a token group in report mode), so this check run is the visible verdict, by the severity rule
+ * every accessibility check run follows (`lib/a11y-verdict.mjs`). A step missing a token group is a finding
+ * at the severity of the worst group it missed: serious unless the step declares another (`severity` in the
+ * scenario, keyed by the group's first synonym). A reading traversal that read an item twice, never or out
+ * of order is a serious finding. Red on a critical or serious finding, neutral with a warning on a moderate
+ * or minor one, green on none; on a change run a finding whose cluster in `tests/a11y/issues.json` has a
+ * tracker is a warning at most. A golden that differs or is not recorded yet is advisory and never raises
+ * the verdict. A tooling failure (no transcript for a scenario, none at all, a scenario that stopped at a
+ * step) is red and titled as one; in gate mode any missing token group is red. A step the lane does not
+ * drive (`unsupported`) is a declared gap: listed per scenario and per primitive, never a finding. Its
+ * annotations sit on the step's line in the scenario file (the base's file for a variant). Pure:
  * `scripts/screenreader-report.mjs` reads the files and posts.
  */
 import { escapeMarkdownText, isSafeLink } from './a11y-baseline.mjs';
-import { SCREENREADER_MODE, describeAction, transcriptCounts } from './screenreader-transcript.mjs';
+import { READER_TOKEN_MISSING, READER_TRAVERSAL_OFF, READER_TRAVERSAL_WHERE } from './a11y-issues.mjs';
+import { annotationLevel, capAnnotations, renderVerdict, verdictOf, verdictTitle } from './a11y-verdict.mjs';
+import { DEFAULT_TOKEN_SEVERITY, SCREENREADER_MODE, TOKEN_SEVERITIES, describeAction, transcriptCounts } from './screenreader-transcript.mjs';
 
 export const CHECK_RUN_PREFIX = 'Screen reader / ';
 export const SCENARIOS_DIR = 'tests/screenreader/scenarios';
@@ -69,10 +75,14 @@ export function stepLines(source) {
  * @param {Map<string, Map<string, number>>} [input.lines] Step lines per scenario id, for the annotations.
  * @param {Map<string, string>} [input.files] The file a scenario's steps are in, by scenario id, when it is
  * not the scenario's own (a variant's steps are its base's).
+ * @param {'audit'|'change'} [input.scope] What the run counts (`countingScope()` of `lib/a11y-verdict.mjs`).
+ * @param {(source: string, check: string, item: object) => boolean} [input.tracked] Whether a finding's cluster has
+ * a tracker (`trackedBy()` of `lib/a11y-issues.mjs`), asked with `{scenario, step, kind}`; read on a change run only.
  * @returns {{name: string, conclusion: string, title: string, headline: string, summary: string, annotations: object[], counts: object}} The report.
  */
 export function buildReport({
   transcripts, expectedScenarios = [], project, group, mode = SCREENREADER_MODE, problems = [], reportUrl, runUrl, lines = new Map(), files = new Map(),
+  scope = 'change', tracked = () => false,
 }) {
   const sorted = [...transcripts].sort((a, b) => a.scenario.localeCompare(b.scenario));
   const name = checkRunName(project ?? sorted[0]?.project ?? 'unknown', group);
@@ -86,25 +96,33 @@ export function buildReport({
     ...(sorted.length === 0 && missing.length === 0 ? ['the run left no transcript'] : []),
   ];
   const counts = countAll(sorted);
-  let conclusion = 'success';
-
-  if (tooling.length > 0 || (mode === 'gate' && counts.tokenFailures > 0)) {
-    conclusion = 'failure';
-  } else if (counts.tokenFailures > 0 || counts.traversalFailures > 0 || counts.goldenDifferences > 0 || counts.goldenMissing > 0) {
-    conclusion = 'neutral';
-  }
-
+  const failed = failedSteps(sorted, scope, tracked);
+  const traversals = failedTraversals(sorted, scope, tracked);
+  const verdict = verdictOf({
+    findings: [
+      ...[...failed, ...traversals].map(({ severity, warningOnly }) => ({ severity, warningOnly })),
+      // A golden that differs or is not recorded is a wording to review, never a missing fact.
+      ...Array.from({ length: counts.goldenDifferences + counts.goldenMissing }, () => ({ severity: 'advisory' })),
+    ],
+    tooling,
+  });
+  const gating = mode === 'gate' && tooling.length === 0 && counts.tokenFailures > 0;
+  const conclusion = gating ? 'failure' : verdict.conclusion;
   const headline = tooling.length > 0 ? `Tooling failure: ${tooling[0]}` : headlineOf(counts, mode);
-  const icon = { success: '✔', neutral: '⚠', failure: '✖' }[conclusion];
+  const { annotations, omitted } = capAnnotations(annotationsOf(failed, lines, files, mode));
   const lead = [
+    gating
+      ? '**Verdict: red, gate mode.** A missing token group fails this check and the test, whatever its severity.'
+      : renderVerdict(verdict, { scope, counting: 'every step missing a token group counts', listTooling: false }),
     mode === 'gate'
       ? '**Gate mode:** a missing token group fails this check and the test; a golden difference stays advisory.'
-      : '**Report mode:** this check is neutral when a token group is missing or a golden differs, and never blocks anything; the job is green either way.',
+      : '**Report mode:** the test and the job never fail on an announcement; this check run\'s verdict says what the lane found.',
     runUrl && isSafeLink(runUrl) ? `[The workflow run](${runUrl})` : '',
+    omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more steps are in the tables below.` : '',
     reportUrl && isSafeLink(reportUrl) ? `📊 [Open the Playwright report](${reportUrl})` : '',
     ...tooling.map(problem => `> Tooling problem: ${escapeMarkdownText(problem)}`),
   ].filter(Boolean).join('\n\n');
-  let summary = `${lead}\n\n${renderUnsupported(sorted)}${renderScenarios(sorted)}${renderGoldenDifferences(sorted)}${renderTiming(sorted)}`;
+  let summary = `${lead}\n\n${renderUnsupported(sorted)}${renderScenarios(sorted, lines)}${renderGoldenDifferences(sorted)}${renderTiming(sorted)}`;
 
   if (summary.length > SUMMARY_LIMIT) {
     summary = `${summary.slice(0, SUMMARY_LIMIT)}\n\n… cut at ${SUMMARY_LIMIT} characters; the transcripts hold the rest.`;
@@ -113,12 +131,50 @@ export function buildReport({
   return {
     name,
     conclusion,
-    title: `${icon} ${headline}`.slice(0, 250),
+    title: gating ? `✖ Gate: ${headline}`.slice(0, 250) : verdictTitle(verdict, headline),
     headline,
     summary,
-    annotations: annotations(sorted, lines, files, mode),
+    annotations,
     counts: { ...counts, missing: missing.length, tooling: tooling.length },
   };
+}
+
+/**
+ * Every step missing a token group, at the severity of the worst group it missed: the one its scenario
+ * declares for the group, or serious. A transcript written before groups carried a severity reads as serious.
+ * On a change run a step whose cluster has a tracker is a warning at most.
+ *
+ * @param {object[]} transcripts The transcripts.
+ * @param {'audit'|'change'} scope The scope.
+ * @param {Function} tracked The tracker predicate.
+ * @returns {Array<{transcript: object, step: object, severity: string, warningOnly: boolean}>} The failed steps.
+ */
+function failedSteps(transcripts, scope, tracked) {
+  return transcripts.flatMap(transcript => transcript.steps.filter(step => !step.tokens.passed).map((step) => {
+    const severity = step.tokens.groups.filter(group => group.matched === null)
+      .map(group => (TOKEN_SEVERITIES.includes(group.severity) ? group.severity : DEFAULT_TOKEN_SEVERITY))
+      .reduce((worst, next) => (TOKEN_SEVERITIES.indexOf(next) < TOKEN_SEVERITIES.indexOf(worst) ? next : worst), TOKEN_SEVERITIES.at(-1));
+    const item = { scenario: transcript.scenario, step: step.id, kind: READER_TOKEN_MISSING };
+
+    return { transcript, step, severity, warningOnly: scope === 'change' && Boolean(tracked('reader', transcript.project, item)) };
+  }));
+}
+
+/**
+ * Every reading traversal that read an item twice, never or out of order: a serious finding, as a step
+ * missing a fact is by default. On a change run one whose cluster has a tracker is a warning at most.
+ *
+ * @param {object[]} transcripts The transcripts.
+ * @param {'audit'|'change'} scope The scope.
+ * @param {Function} tracked The tracker predicate.
+ * @returns {Array<{transcript: object, severity: string, warningOnly: boolean}>} The failed traversals.
+ */
+function failedTraversals(transcripts, scope, tracked) {
+  return transcripts.filter(transcript => transcript.traversal && !transcript.traversal.passed).map((transcript) => {
+    const item = { scenario: transcript.scenario, step: READER_TRAVERSAL_WHERE, kind: READER_TRAVERSAL_OFF };
+
+    return { transcript, severity: DEFAULT_TOKEN_SEVERITY, warningOnly: scope === 'change' && Boolean(tracked('reader', transcript.project, item)) };
+  });
 }
 
 /**
@@ -190,12 +246,14 @@ function headlineOf(counts, mode) {
 }
 
 /**
- * One section per scenario: its environment, then a table with a row per step.
+ * One section per scenario: its environment, then a table with a row per step, the captured and the
+ * unsupported ones in the scenario's order.
  *
  * @param {object[]} transcripts The transcripts.
+ * @param {Map<string, Map<string, number>>} [lines] The step lines per scenario, which give that order.
  * @returns {string} Markdown.
  */
-function renderScenarios(transcripts) {
+function renderScenarios(transcripts, lines) {
   return transcripts.map((transcript) => {
     const counts = transcriptCounts(transcript);
     const golden = {
@@ -226,8 +284,15 @@ function renderScenarios(transcripts) {
       return `| ${escapeMarkdownText(step.id)} | ${escapeMarkdownText(describeAction(step.action))} | ${escapeMarkdownText(step.spoken) || '*(nothing)*'} | ${tokens} | ${goldenCell} | ${step.durationMs} |`;
     });
     const skipped = (transcript.unsupported ?? []).map(step => `| ${escapeMarkdownText(step.id)} | ${escapeMarkdownText(describeAction(step.action))} | *(not driven on this lane: ${escapeMarkdownText(step.reason)})* | – | – | – |`);
+    // In the scenario's order, so the table lines up with the scenario file and the golden: a step's line in
+    // its file orders it, and a step without one keeps its place after the others (a stable sort).
+    const stepLine = lines?.get(transcript.scenario);
+    const at = id => stepLine?.get(id) ?? Number.MAX_SAFE_INTEGER;
+    const ordered = [...transcript.steps.map((step, index) => ({ id: step.id, row: rows[index] })),
+      ...(transcript.unsupported ?? []).map((step, index) => ({ id: step.id, row: skipped[index] }))]
+      .sort((a, b) => at(a.id) - at(b.id));
 
-    return `${head}${renderTraversal(transcript)}\n\n| Step | Action | Announcement | Token groups | Golden | ms |\n|---|---|---|---|---|---:|\n${[...rows, ...skipped].join('\n')}\n\n`;
+    return `${head}${renderTraversal(transcript)}\n\n| Step | Action | Announcement | Token groups | Golden | ms |\n|---|---|---|---|---|---:|\n${ordered.map(entry => entry.row).join('\n')}\n\n`;
   }).join('');
 }
 
@@ -331,32 +396,29 @@ function renderTiming(transcripts) {
 
 /**
  * One annotation per step missing a token group, on the step's line in its scenario file (the base's file
- * for a variant, whose steps live there).
+ * for a variant, whose steps live there), at the level its severity gives it (every one a failure in gate
+ * mode).
  *
- * @param {object[]} transcripts The transcripts.
+ * @param {object[]} failed The failed steps (`failedSteps()`).
  * @param {Map<string, Map<string, number>>} lines The step lines per scenario.
  * @param {Map<string, string>} files The file a scenario's steps are in, when not its own.
  * @param {string} mode The mode.
  * @returns {object[]} The annotations.
  */
-function annotations(transcripts, lines, files, mode) {
-  const level = mode === 'gate' ? 'failure' : 'warning';
+function annotationsOf(failed, lines, files, mode) {
+  return failed.map(({ transcript, step, severity, warningOnly }) => {
+    const line = lines.get(transcript.scenario)?.get(step.id) ?? 1;
+    const missing = step.tokens.groups.filter(group => group.matched === null).map(group => `[${group.synonyms.join(' | ')}]`).join(', ');
 
-  return transcripts.flatMap(transcript => transcript.steps
-    .filter(step => !step.tokens.passed)
-    .map((step) => {
-      const line = lines.get(transcript.scenario)?.get(step.id) ?? 1;
-      const missing = step.tokens.groups.filter(group => group.matched === null).map(group => `[${group.synonyms.join(' | ')}]`).join(', ');
-
-      return {
-        path: `${SCENARIOS_DIR}/${files.get(transcript.scenario) ?? `${transcript.scenario}.scenario.json`}`,
-        start_line: line,
-        end_line: line,
-        annotation_level: level,
-        title: `Announcement missing a token group: ${transcript.scenario} / ${step.id}`,
-        message: `${transcript.project} spoke ${JSON.stringify(step.spoken)} for ${describeAction(step.action)}; missing ${missing}.`,
-      };
-    }));
+    return {
+      path: `${SCENARIOS_DIR}/${files.get(transcript.scenario) ?? `${transcript.scenario}.scenario.json`}`,
+      start_line: line,
+      end_line: line,
+      annotation_level: mode === 'gate' ? 'failure' : annotationLevel({ severity, warningOnly }),
+      title: `Announcement missing a token group (${severity}): ${transcript.scenario} / ${step.id}`,
+      message: `${transcript.project} spoke ${JSON.stringify(step.spoken)} for ${describeAction(step.action)}; missing ${missing}.`,
+    };
+  });
 }
 
 /**

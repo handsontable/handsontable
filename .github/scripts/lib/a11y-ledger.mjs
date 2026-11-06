@@ -47,12 +47,15 @@ import {
   AXE_SCAN_KIND,
   READER_GOLDEN_DIFFERS,
   READER_TOKEN_MISSING,
+  READER_TRAVERSAL_OFF,
+  READER_TRAVERSAL_WHERE,
   TRIAGE_ID,
   clusterOf,
   findingShape,
   maskSelector,
 } from '../../../tests/lib/a11y-issues.mjs';
 import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
+import { DEFAULT_TOKEN_SEVERITY, TOKEN_SEVERITIES } from '../../../tests/lib/screenreader-transcript.mjs';
 
 export const A11Y_VERSION = 1;
 /**
@@ -158,7 +161,8 @@ const NIGHT_SOURCES = ['a11y', 'reader'];
  * @property {'checks'|'axe'|'reader'} source Where it came from.
  * @property {string} check The check id, `axe` for the gating scan, or the reader project (`nvda-chromium`).
  * @property {string} kind The finding kind; `axe-violation` for every finding of the scan; `token-missing` or
- * `golden-differs` for a reader step.
+ * `golden-differs` for a reader step, `traversal-off` for a reader scenario's reading traversal (at `where`
+ * `traversal`).
  * @property {string|null} rule The axe rule, when the finding names one.
  * @property {string|null} cause The discovery run's needs-review cause, when the finding names one.
  * @property {string} page The page id, or the reader scenario.
@@ -345,6 +349,53 @@ function checkFinding(check, item) {
     url: fixturePath(item.url),
     issue: null,
   };
+}
+
+/**
+ * Why a reader scenario's reading traversal failed, as its check run says it (`lib/screenreader-report.mjs`):
+ * the items read twice, never or out of order. A traversal that passed, or a transcript without one, has no
+ * reason; one that is not a verdict object is malformed.
+ *
+ * @param {unknown} traversal The transcript's `traversal`.
+ * @returns {{reason: string|null, malformed: boolean}} The reason.
+ */
+function traversalReason(traversal) {
+  if (traversal === undefined || traversal === null) {
+    return { reason: null, malformed: false };
+  }
+  if (!isObject(traversal) || typeof traversal.passed !== 'boolean' || !Array.isArray(traversal.items)) {
+    return { reason: null, malformed: true };
+  }
+  if (traversal.passed) {
+    return { reason: null, malformed: false };
+  }
+
+  const items = traversal.items.filter(entry => isObject(entry) && typeof entry.item === 'string' && Number.isInteger(entry.count));
+  const twice = items.filter(entry => entry.count > 1).map(entry => `${cut(entry.item, 30)} x${entry.count}`);
+  const never = items.filter(entry => entry.count === 0).map(entry => cut(entry.item, 30));
+  const outOfOrder = (Array.isArray(traversal.outOfOrder) ? traversal.outOfOrder : []).filter(item => typeof item === 'string').map(item => cut(item, 30));
+  const parts = [
+    twice.length > 0 ? `read more than once: ${twice.join(', ')}` : '',
+    never.length > 0 ? `never read: ${never.join(', ')}` : '',
+    outOfOrder.length > 0 ? `out of order: ${outOfOrder.join(', ')}` : '',
+  ].filter(Boolean);
+
+  return { reason: `the reading traversal is off: ${parts.join('; ') || 'no item read as listed'}`, malformed: false };
+}
+
+/**
+ * The severity of a reader step that missed a token group: the worst its missed groups carry, as its check run
+ * counts it (`lib/screenreader-report.mjs`). A group without one (a transcript written before groups carried a
+ * severity) is serious, the default a scenario step declares nothing against.
+ *
+ * @param {unknown[]} groups The step's token groups.
+ * @returns {string} The severity.
+ */
+function stepSeverity(groups) {
+  const missed = groups.filter(group => isObject(group) && group.matched === null)
+    .map(group => (TOKEN_SEVERITIES.includes(group.severity) ? group.severity : DEFAULT_TOKEN_SEVERITY));
+
+  return missed.reduce((worst, next) => (TOKEN_SEVERITIES.indexOf(next) < TOKEN_SEVERITIES.indexOf(worst) ? next : worst), missed[0] ?? DEFAULT_TOKEN_SEVERITY);
 }
 
 /**
@@ -631,11 +682,19 @@ function readTranscript(file, label, night, notes) {
         .map(group => group.synonyms.map(synonym => cut(synonym, 60)).join(' | '));
 
       failed.push(step.id);
-      night.findings.push(reader(READER_TOKEN_MISSING, step.id, 'serious', `the announcement lacks: ${missing.join(', ')}`));
+      night.findings.push(reader(READER_TOKEN_MISSING, step.id, stepSeverity(step.tokens.groups), `the announcement lacks: ${missing.join(', ')}`));
     }
   }
   if (malformed > 0) {
     notes.push(`${label}: ${malformed} malformed step(s) dropped; the transcript resolves nothing tonight`);
+  }
+
+  const traversal = traversalReason(doc.traversal);
+
+  if (traversal.malformed) {
+    notes.push(`${label}: the reading traversal is not a verdict, skipped`);
+  } else if (traversal.reason !== null) {
+    night.findings.push(reader(READER_TRAVERSAL_OFF, READER_TRAVERSAL_WHERE, DEFAULT_TOKEN_SEVERITY, traversal.reason));
   }
 
   const golden = isObject(doc.golden) && typeof doc.golden.status === 'string' ? cut(doc.golden.status, 20) : 'missing';

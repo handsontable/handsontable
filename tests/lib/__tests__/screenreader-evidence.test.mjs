@@ -110,8 +110,26 @@ test('the document validates in the shared shape, with the project, the lane and
   ], 'a scenario of the set without a transcript is a target not measured');
   assert.equal(doc.summary.byCriterion['4.1.2'].evaluated, 1);
   assert.equal(doc.summary.byCriterion['4.1.3'].evaluated, 0, 'the scenario that left no transcript evaluated nothing');
-  assert.deepEqual(doc.records.filter(record => record.scenario === 'nested-rows').map(record => record.verdict), ['not-run', 'not-run', 'not-run', 'not-run']);
+  assert.deepEqual(doc.records.filter(record => record.scenario === 'nested-rows').map(record => [record.verdict, record.reason]), [
+    ['not-run', 'no transcript'], ['unsupported', 'NVDA has no interaction level.'], ['not-run', 'no transcript'], ['not-run', 'no transcript'],
+  ], 'a step the lane does not drive is a declared gap whether the run finished or not');
   assert.deepEqual(details.map(item => item.file), ['screen-reader/screenreader-grid--main--grid-core.json']);
+  assert.equal(doc.run.group, null, 'a run of every scenario names no group');
+  const grouped = buildScreenreaderEvidence({ project: 'nvda-chromium', lane: 'nvda', group: 'keyboard', transcripts: [transcript()], scenarios });
+
+  assert.equal(grouped.doc.run.group, 'keyboard', 'a job of one group says which, so its scenario list does not read as the whole project');
+  assert.deepEqual(grouped.problems, []);
+});
+
+test('a scenario that passed only on a retry is flagged in the document, never read as a clean pass', () => {
+  const scenarios = [scenario()];
+  const first = buildScreenreaderEvidence({ project: 'nvda-chromium', lane: 'nvda', transcripts: [transcript()], scenarios }).doc;
+  const retried = buildScreenreaderEvidence({ project: 'nvda-chromium', lane: 'nvda', transcripts: [transcript({ attempt: 2 })], scenarios });
+
+  assert.deepEqual(retried.problems, []);
+  assert.deepEqual(first.targets.map(target => target.flaky), [false]);
+  assert.deepEqual(retried.doc.targets.map(target => [target.variant, target.status, target.flaky]), [['grid-core', 'measured', true]]);
+  assert.match(retried.doc.problems.join('\n'), /nvda-chromium grid-core measured only on a retry .*: the transcript is from attempt 3: an earlier attempt failed/);
 });
 
 test('a run that stopped is a problem of its target, which then evaluates no criterion', () => {

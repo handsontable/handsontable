@@ -18,6 +18,10 @@ export interface ScenarioStep {
   id: string;
   action: ScenarioAction;
   expect: string[][];
+  /**
+   * The severity of a token group, keyed by its first synonym; a group without one is serious.
+   */
+  severity?: Record<string, 'critical' | 'serious' | 'moderate' | 'minor'>;
   after?: { visible: string } | { hidden: string };
   note?: string;
   unsupported?: Record<string, string>;
@@ -35,7 +39,9 @@ export interface Scenario {
   surface: string;
   group: 'keyboard' | 'reading' | 'menus';
   page?: string;
+  state?: string;
   fixture?: string;
+  catalogPages?: string[];
   query?: string;
   start?: 'grid' | 'page';
   criteria: string[];
@@ -55,6 +61,9 @@ export const SCREENREADER_LANES: readonly string[];
 export const LANE_PRIMITIVES: Readonly<Record<string, { read: ReadDirection[]; activate: boolean }>>;
 export const STARTS: readonly string[];
 export const SCENARIO_GROUPS: readonly string[];
+export const STEP_BUDGET_MS: number;
+export const ENTRY_BUDGET_MS: number;
+export function scenarioBudgetMs(scenario: { steps: unknown[] }): number;
 export const PRESS_MODIFIERS: readonly string[];
 export const PRESS_KEYS: readonly string[];
 export const PRESS_PATTERN: RegExp;

@@ -6,7 +6,7 @@ import { isFunction } from '../helpers/function';
 import DataMap from './dataMap';
 import { deepClone } from '../helpers/object';
 import { setAttribute } from '../helpers/dom/element';
-import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
+import { A11Y_ROWCOUNT } from '../helpers/a11y';
 import { runSourceDataValidators } from './sourceDataValidator';
 import { throwWithCause } from '../helpers/errors';
 import { isDefined } from '../helpers/mixed';
@@ -255,8 +255,6 @@ function replaceData(
   if (hotInstance.getSettings().ariaTags) {
     setAttribute(hotInstance.rootElement, [
       A11Y_ROWCOUNT(-1),
-      // If run after initialization, add the number of row headers.
-      A11Y_COLCOUNT(hotInstance.countCols() + (hotInstance.view ? hotInstance.countRowHeaders() : 0)),
     ]);
   }
 }

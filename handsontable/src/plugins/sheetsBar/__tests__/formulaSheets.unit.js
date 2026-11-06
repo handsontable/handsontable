@@ -605,6 +605,262 @@ describe('SheetsBar formula sheets', () => {
     });
   });
 
+  describe('declared sheets whose engine sheet names collide', () => {
+    const clashWarnings = warnSpy => warnSpy.mock.calls
+      .map(([message]) => message)
+      .filter(message => typeof message === 'string' && message.includes('use the same formula engine sheet name'));
+    const showSheet = (name) => {
+      sheetsBar().setActiveSheet(idOf(name));
+
+      return hot.getDataAtCell(0, 0);
+    };
+
+    it('registers a later sheet whose name differs only in case under a free engine name', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = build([
+        boundSheet(engine, 'Data', [['big']]),
+        boundSheet(engine, 'Summary', [['=Data!A1']]),
+        boundSheet(engine, 'data', [['small']]),
+      ]);
+
+      expect(sheetsBar().getSheets().map(sheet => sheet.name)).toEqual(['Data', 'Summary', 'data (2)']);
+      expect(showSheet('data (2)')).toBe('small');
+      expect(showSheet('Summary')).toBe('big');
+      expect(engine.getSheetNames()).toEqual(['Data', 'Summary', 'data (2)']);
+      expect(clashWarnings(warnSpy)).toEqual([
+        'The sheets "Data" and "data (2)" use the same formula engine sheet name (the engine ignores letter ' +
+          'case). "data" was registered as "data (2)". Formulas that reference "data" read the sheet "Data".',
+      ]);
+    });
+
+    it('registers a later sheet with the same engine name under a free engine name', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = build([
+        boundSheet(engine, 'Data', [['big']]),
+        boundSheet(engine, 'Summary', [['=Data!A1']]),
+        { name: 'Copy', data: [['small']], settings: { formulas: { engine, sheetName: 'Data' } } },
+      ]);
+
+      expect(showSheet('Copy')).toBe('small');
+      expect(showSheet('Summary')).toBe('big');
+      expect(engine.getSheetNames()).toEqual(['Data', 'Summary', 'Data (2)']);
+      expect(clashWarnings(warnSpy)).toEqual([
+        'The sheets "Data" and "Copy" use the same formula engine sheet name. "Data" was registered as ' +
+          '"Data (2)". Formulas that reference "Data" read the sheet "Data".',
+      ]);
+    });
+
+    it('registers a sheet bound without a sheetName under its own tab name', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = build([
+        boundSheet(engine, 'Data', [['big']]),
+        boundSheet(engine, 'Summary', [['=Data!A1']]),
+        { name: 'data', data: [['small']], settings: { formulas: { engine } } },
+      ]);
+
+      expect(showSheet('data (2)')).toBe('small');
+      expect(showSheet('Summary')).toBe('big');
+      expect(engine.getSheetNames()).toEqual(['Data', 'Summary', 'data (2)']);
+      expect(clashWarnings(warnSpy)).toEqual([]);
+    });
+
+    it('numbers a sheet bound without a sheetName whose tab name an earlier sheet took in the engine', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = build([
+        { name: 'Report', data: [['big']], settings: { formulas: { engine, sheetName: 'Data' } } },
+        boundSheet(engine, 'Summary', [['=Data!A1']]),
+        { name: 'Data', data: [['small']], settings: { formulas: { engine } } },
+      ]);
+
+      expect(showSheet('Data')).toBe('small');
+      expect(showSheet('Summary')).toBe('big');
+      expect(engine.getSheetNames()).toEqual(['Data', 'Summary', 'Data (2)']);
+      expect(clashWarnings(warnSpy)).toHaveLength(1);
+    });
+
+    it('registers a later sheet under a free engine name when an earlier one bound its name through the tab name', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = build([
+        boundSheet(engine, 'Q1\nQ2', [['first']]),
+        { name: 'Second', data: [['second']], settings: { formulas: { engine, sheetName: 'q1 q2' } } },
+      ]);
+
+      expect(engine.getSheetNames()).toEqual(['Q1 Q2', 'q1 q2 (2)']);
+      expect(showSheet('Second')).toBe('second');
+      expect(showSheet('Q1 Q2')).toBe('first');
+      expect(clashWarnings(warnSpy)).toEqual([
+        'The sheets "Q1 Q2" and "Second" use the same formula engine sheet name (the engine ignores letter ' +
+          'case). "q1 q2" was registered as "q1 q2 (2)". Formulas that reference "q1 q2" read the sheet "Q1 Q2".',
+      ]);
+    });
+
+    it('binds a sheet to an engine sheet the host built before, without a warning', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      engine.addSheet('Data');
+      engine.setSheetContent(engine.getSheetId('Data'), [['prebuilt']]);
+      hot = build([
+        boundSheet(engine, 'Summary', [['=Data!A1']]),
+        { name: 'Numbers', data: [['declared']], settings: { formulas: { engine, sheetName: 'data' } } },
+      ]);
+
+      expect(engine.getSheetNames()).toEqual(['Data', 'Summary']);
+      expect(hot.getDataAtCell(0, 0)).toBe('declared');
+      expect(clashWarnings(warnSpy)).toEqual([]);
+    });
+
+    it('binds every sheet to its own engine sheet again on a rebuild that declares the same names', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const sheets = (big, small) => [
+        boundSheet(engine, 'Data', [[big]]),
+        boundSheet(engine, 'Summary', [['=Data!A1']]),
+        boundSheet(engine, 'data', [[small]]),
+      ];
+
+      hot = build(sheets('big', 'small'));
+      hot.updateSettings({ sheetsBar: { sheets: sheets('bigger', 'smaller') } });
+      hot.updateSettings({ sheetsBar: { sheets: sheets('biggest', 'smallest') } });
+
+      expect(engine.getSheetNames()).toEqual(['Data', 'Summary', 'data (2)']);
+      expect(showSheet('data (2)')).toBe('smallest');
+      expect(showSheet('Summary')).toBe('biggest');
+      expect(clashWarnings(warnSpy)).toHaveLength(3);
+    });
+
+    it('never numbers a sheet onto an engine name a later sheet of the build declares', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = build([
+        boundSheet(engine, 'Data', [['first']]),
+        { name: 'd2', data: [['second']], settings: { formulas: { engine, sheetName: 'data' } } },
+        boundSheet(engine, 'Data (2)', [['third']]),
+        boundSheet(engine, 'Summary', [['=\'Data (2)\'!A1']]),
+      ]);
+
+      expect(engine.getSheetNames()).toEqual(['Data', 'data (3)', 'Data (2)', 'Summary']);
+      expect(showSheet('Data (2)')).toBe('third');
+      expect(showSheet('d2')).toBe('second');
+      expect(showSheet('Summary')).toBe('third');
+      expect(clashWarnings(warnSpy)).toEqual([
+        'The sheets "Data" and "d2" use the same formula engine sheet name (the engine ignores letter ' +
+          'case). "data" was registered as "data (3)". Formulas that reference "data" read the sheet "Data".',
+      ]);
+    });
+
+    it('numbers a later sheet that asks for the name the engine bound an earlier sheet under', () => {
+      const engine = buildEngine();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const addSheet = engine.addSheet.bind(engine);
+
+      engine.addSheet = name => addSheet(name === 'Raw' ? 'Clean' : name);
+      hot = build([
+        boundSheet(engine, 'Raw', [['raw']]),
+        boundSheet(engine, 'Clean', [['clean']]),
+      ]);
+
+      expect(engine.getSheetNames()).toEqual(['Clean', 'Clean (2)']);
+      expect(engine.getCellValue({ sheet: engine.getSheetId('Clean'), row: 0, col: 0 })).toBe('raw');
+      expect(showSheet('Clean')).toBe('clean');
+      expect(showSheet('Raw')).toBe('raw');
+      expect(clashWarnings(warnSpy)).toHaveLength(1);
+    });
+  });
+
+  describe('sheets bound to a shared engine without a sheetName', () => {
+    const pricesSheet = engine => boundSheet(engine, 'Prices', [[100]]);
+    const showSheet = (name) => {
+      sheetsBar().setActiveSheet(idOf(name));
+    };
+    const pricesValues = engine => engine.getSheetValues(engine.getSheetId('Prices'));
+
+    it('keeps a declared sheet on its own engine sheet through a round trip', () => {
+      const engine = buildEngine();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          activeSheet: 1,
+          sheets: [
+            pricesSheet(engine),
+            { name: 'Calc', data: [[1, '=Prices!A1+A1']], settings: { formulas: { engine } } },
+          ],
+        },
+        licenseKey: LICENSE_KEY,
+      });
+      showSheet('Prices');
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc');
+      expect(pricesValues(engine)).toEqual([[100]]);
+    });
+
+    it('gives a sheet added at runtime an engine sheet of its own', () => {
+      const engine = buildEngine();
+
+      hot = build([pricesSheet(engine)]);
+      sheetsBar().addSheet('Calc', [[1, '=Prices!A1+A1']], { formulas: { engine } });
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc');
+      expect(pricesValues(engine)).toEqual([[100]]);
+
+      showSheet('Prices');
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc');
+      expect(pricesValues(engine)).toEqual([[100]]);
+    });
+
+    it('gives a sheet added at runtime a free engine name when the host built one under its tab name', () => {
+      const engine = buildEngine();
+
+      engine.addSheet('Calc');
+      engine.setSheetContent(engine.getSheetId('Calc'), [['host']]);
+      hot = build([pricesSheet(engine)]);
+      sheetsBar().addSheet('Calc', [[1, '=Prices!A1+A1']], { formulas: { engine } });
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc (2)');
+      expect(engine.getSheetValues(engine.getSheetId('Calc'))).toEqual([['host']]);
+      expect(pricesValues(engine)).toEqual([[100]]);
+    });
+
+    it('gives a duplicate of a sheet added at runtime an engine sheet of its own', () => {
+      const engine = buildEngine();
+
+      hot = build([pricesSheet(engine)]);
+      sheetsBar().addSheet('Calc', [[1, '=Prices!A1+A1']], { formulas: { engine } });
+      sheetsBar().duplicateSheet(idOf('Calc'));
+      showSheet('Calc (2)');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc (2)');
+      expect(pricesValues(engine)).toEqual([[100]]);
+
+      showSheet('Calc');
+
+      expect(hot.getData()).toEqual([[1, 101]]);
+      expect(hot.getPlugin('formulas').sheetName).toBe('Calc');
+      expect(pricesValues(engine)).toEqual([[100]]);
+    });
+  });
+
   describe('other sheets after a structural change', () => {
     it('brings back a reference an undone row removal turned into #REF!', () => {
       const engine = buildEngine();
@@ -925,6 +1181,46 @@ describe('SheetsBar formula sheets', () => {
 
       other.destroy();
       otherContainer.remove();
+    });
+
+    it.each([
+      ['the removed sheet', []],
+      ['a sheet without formulas', ['Plain']],
+      ['the sheet that reads it', ['Sum']],
+    ])('shows #REF! where formulas read a removed sheet when %s is active at the removal', (_, opened) => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Data', [[10], [20], [30]]),
+        { name: 'Plain', data: [['p1'], ['p2'], ['p3']] },
+        boundSheet(engine, 'Sum', [['=SUM(Data!A1:A3)'], ['=Data!A1'], ['=Data!A2*2']]),
+      ]);
+      opened.forEach(name => sheetsBar().setActiveSheet(idOf(name)));
+      sheetsBar().removeSheet(idOf('Data'));
+      sheetsBar().setActiveSheet(idOf('Sum'));
+
+      expect(hot.getDataAtCol(0)).toEqual(['#REF!', '#REF!', '#REF!']);
+      expect(engine.getSheetNames()).toEqual(['Sum']);
+    });
+
+    it('does not add a removed sheet back when the next formulas sheet names no engine sheet', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Data', [[10], [20], [30]]),
+        { name: 'Plain', data: [['p1'], ['p2'], ['p3']] },
+        boundSheet(engine, 'Sum', [['=SUM(Data!A1:A3)'], ['=Data!A1'], ['=Data!A2*2']]),
+        { name: 'Free', data: [['f1'], ['f2'], ['f3']], settings: { formulas: { engine } } },
+      ]);
+      sheetsBar().setActiveSheet(idOf('Plain'));
+      sheetsBar().removeSheet(idOf('Data'));
+      sheetsBar().setActiveSheet(idOf('Free'));
+
+      expect(engine.doesSheetExist('Data')).toBe(false);
+
+      sheetsBar().setActiveSheet(idOf('Sum'));
+
+      expect(hot.getDataAtCol(0)).toEqual(['#REF!', '#REF!', '#REF!']);
     });
   });
 

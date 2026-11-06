@@ -2882,8 +2882,8 @@ export const REGISTERED_HOOKS = [
    *
    * Use it to clean the clipboard content that arrives from another application, for example the
    * `text/html` that a spreadsheet puts on the clipboard. After the hook, the plugin goes on as usual:
-   * it sanitizes and parses the content, and runs [`beforePaste`](#beforepaste), writes the values,
-   * and runs [`afterPaste`](#afterpaste).
+   * it sanitizes and parses the content, runs [`beforePaste`](#beforepaste), hands the values to the
+   * grid, and runs [`afterPaste`](#afterpaste).
    *
    * The hook doesn't fire when the plugin is disabled, when the grid isn't listening (on a page with
    * more than one grid, only the active grid's callbacks run), when nothing is selected, when a cell
@@ -3072,8 +3072,28 @@ export const REGISTERED_HOOKS = [
   'beforePaste',
 
   /**
-   * Fired by {@link CopyPaste} plugin after values are pasted into table. This hook is fired when
+   * Fired by {@link CopyPaste} plugin after the plugin hands the pasted values to the grid. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
+   *
+   * `afterPaste` doesn't wait for the values to be written. The order depends on whether any pasted
+   * cell has a [validator](@/guides/cell-functions/cell-validator/cell-validator.md):
+   *
+   * - With a validator, `afterPaste` runs before Handsontable writes any pasted value, including the
+   *   cells without a validator. The validator runs after `afterPaste`, so a cell still holds its
+   *   previous value and `valid` flag. If the paste adds rows, `afterPaste` also runs before those
+   *   rows exist. The order is then `afterPaste`, [`afterCreateRow`](#aftercreaterow), and
+   *   [`afterChange`](#afterchange).
+   * - Without a validator, [`afterChange`](#afterchange) runs first and `afterPaste` follows. A paste
+   *   that adds rows runs [`afterCreateRow`](#aftercreaterow) before `afterChange`.
+   *
+   * A cell has a validator when you set one, when its cell type provides one (for example `numeric`,
+   * `date`, `dropdown`, or `autocomplete`), or when you set a [`maxLength`](@/api/options.md#maxlength)
+   * that is a finite number of 0 or more.
+   *
+   * To change or cancel the pasted values, use [`beforePaste`](#beforepaste). To react once the cells hold
+   * the new values, use [`afterChange`](#afterchange) and check for the `'CopyPaste.paste'` source.
+   * When [`copyPaste`](@/api/options.md#copypaste) sets `pasteMode` to `'shift_down'` or `'shift_right'`,
+   * the source is `'populateFromArray'`.
    *
    * @event Hooks#afterPaste
    * @param {Array[]} data An array of arrays with the pasted data.

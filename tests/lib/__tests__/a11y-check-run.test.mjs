@@ -50,28 +50,81 @@ test('the line indexes read the committed files: every page and every baseline e
   assert.equal(lines.size, baseline.entries.length, 'one entry per line, every one found');
 });
 
-test('a clean run is a success, titled with the known count', () => {
+const RULE = '(critical/serious = red, moderate/minor = warning)';
+
+test('a change run with nothing new is a success, titled with the known count: the baseline is known debt', () => {
   const payload = build(comparison(matchedAll));
 
   assert.equal(payload.name, CHECK_RUN_NAME);
   assert.equal(payload.conclusion, 'success');
-  assert.equal(payload.title, '✔ No new accessibility findings: 2 known, in 2 known issues');
+  assert.equal(payload.title, `✔ Green: 0 critical, 0 serious, 0 moderate, 0 minor ${RULE} · No new accessibility findings: 2 known, in 2 known issues`);
   assert.deepEqual(payload.annotations, []);
-  assert.match(payload.summary, /\*\*Warn mode:\*\* this check is neutral when a finding needs action and never blocks a merge/);
+  assert.match(payload.summary, /^\*\*Verdict: green\.\*\*/);
+  assert.match(payload.summary, /\*\*Change run\*\* \(a pull request or a push\): only a finding that is new or grown against the baseline counts;/);
+  assert.match(payload.summary, /\*\*Warn mode:\*\* the job never fails on a finding; this check run's verdict says what the scan found, and it never blocks a merge\./);
   assert.match(payload.summary, /📊 \[Open the HTML report\]\(https:\/\/github\.com\/o\/r\/actions\/runs\/1\/artifacts\/2\)/);
   assert.match(payload.summary, /\[The workflow run\]\(https:\/\/github\.com\/o\/r\/actions\/runs\/1\)/);
 });
 
-test('warn mode is neutral when a finding needs action, with an annotation on the line to change', () => {
+test('a new critical finding on a change run is red, annotated on the line to change; an improved count is advisory', () => {
   const payload = build(comparison([finding(), finding({ rule: 'label', target: 'textarea' }), finding({ page: 'context-menu', rule: 'aria-required-parent', target: 'td[role="menuitem"]' })]));
 
-  assert.equal(payload.conclusion, 'neutral', 'a warning, not a failure: the merge is never blocked in warn mode');
-  assert.equal(payload.title, '⚠ 1 new, 1 improved (warn mode)');
+  assert.equal(payload.conclusion, 'failure');
+  assert.equal(payload.title, `✖ Red: 1 critical, 0 serious, 0 moderate, 0 minor ${RULE} · 1 advisory · 1 new, 1 improved (warn mode)`);
   assert.deepEqual(payload.annotations.map(item => [item.path, item.start_line, item.annotation_level, item.title]), [
-    ['tests/a11y/pages.mjs', 3, 'warning', 'New accessibility finding: label'],
-    ['tests/a11y/axe-baseline.json', 6, 'warning', 'Improved: lower the recorded node count'],
+    ['tests/a11y/pages.mjs', 3, 'failure', 'New accessibility finding (critical): label'],
+    ['tests/a11y/axe-baseline.json', 6, 'notice', 'Improved: lower the recorded node count'],
   ]);
   assert.match(payload.annotations[0].message, /^grid on main: label on textarea\. fix it, or add it to/);
+});
+
+test('a new minor or moderate finding on a change run is neutral, with a warning annotation', () => {
+  const minor = build(comparison([...matchedAll, finding({ rule: 'label', target: 'textarea', impact: 'minor' })]));
+
+  assert.equal(minor.conclusion, 'neutral');
+  assert.equal(minor.title, `⚠ Warning: 0 critical, 0 serious, 0 moderate, 1 minor ${RULE} · 1 new (warn mode)`);
+  assert.deepEqual(minor.annotations.map(item => [item.annotation_level, item.title]), [['warning', 'New accessibility finding (minor): label']]);
+
+  // axe gives one impact per rule, so every node of a grown key carries the same one.
+  const grown = build(comparison([finding({ impact: 'moderate' }), finding({ impact: 'moderate' }), ...matchedAll.slice(1)]));
+
+  assert.equal(grown.conclusion, 'neutral', 'a grown finding counts at its impact too');
+  assert.deepEqual(grown.annotations.map(item => [item.annotation_level, item.title]), [['warning', 'Grown accessibility finding (moderate): aria-required-children']]);
+});
+
+test('on a change run a new finding whose cluster has a tracker is a warning, never red', () => {
+  const seen = [];
+  const tracked = (source, check, item) => {
+    seen.push([source, check, item.rule]);
+
+    return item.rule === 'label';
+  };
+  const payload = build(comparison([...matchedAll, finding({ rule: 'label', target: 'textarea' })]), { tracked });
+
+  assert.deepEqual(seen, [['axe', 'axe', 'label']], 'only what counts is looked up, as the ledger reads the scan: source axe, check axe');
+  assert.equal(payload.conclusion, 'neutral');
+  assert.equal(payload.annotations[0].annotation_level, 'warning');
+  assert.match(payload.title, /· 1 warning only ·/);
+});
+
+test('an audit run counts every open finding: the known ones too, annotated on their baseline entry', () => {
+  const tracked = () => true;
+  const payload = build(comparison(matchedAll), { scope: 'audit', tracked });
+
+  assert.equal(payload.conclusion, 'failure', 'an audit says the truth: known debt, tracked or not, is red when it is critical or serious');
+  assert.equal(payload.title, `✖ Red: 2 critical, 0 serious, 0 moderate, 0 minor ${RULE} · No new accessibility findings: 2 known, in 2 known issues`);
+  assert.deepEqual(payload.annotations.map(item => [item.path, item.start_line, item.annotation_level, item.title]), [
+    ['tests/a11y/axe-baseline.json', 5, 'failure', 'Known accessibility finding (critical): aria-required-children'],
+    ['tests/a11y/axe-baseline.json', 6, 'failure', 'Known accessibility finding (critical): aria-required-parent'],
+  ]);
+  assert.match(payload.summary, /\*\*Audit run\*\* \(a schedule or a dispatch\): every open finding counts, tracked or not\./);
+});
+
+test('a violation axe gave no impact counts as serious', () => {
+  const payload = build(comparison([...matchedAll, finding({ rule: 'label', target: 'textarea', impact: null })]));
+
+  assert.equal(payload.conclusion, 'failure');
+  assert.match(payload.title, /^✖ Red: 0 critical, 1 serious,/);
 });
 
 test('block mode fails the check when a finding needs action', () => {
