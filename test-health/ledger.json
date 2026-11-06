@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-06T08:24:35.137Z",
+  "updatedAt": "2026-11-06T12:13:37.844Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-firefox",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 701,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(locator).toHaveValue(expected) failed",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "42213784073",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42213784073",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3606_Screen-reader-scenarios-structure",
+      "headSha": "103d97a3dd89bcc7dd6c9c776e6f840a9c0a5156",
+      "event": "pull_request",
+      "seenAt": "2026-11-06T12:12:52Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD (theme: main)",

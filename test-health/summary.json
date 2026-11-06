@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T12:06:36.301Z",
+  "generatedAt": "2026-11-06T12:13:37.844Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 433,
-    "needsTicket": 24,
+    "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2249
+    "entries": 2250
   },
   "rows": [
     {
@@ -813,6 +813,39 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "tier": "playwright",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 701,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-06T12:12:52Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42213784073",
+        "branch": "feature/DEV-3606_Screen-reader-scenarios-structure",
+        "leg": "e2e-firefox",
+        "status": "flaky",
+        "error": "Error: expect(locator).toHaveValue(expected) failed",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "visual|visual-tests/tests/js-only/notification/rtl/notification-top-end.spec.ts|js-only/notification/rtl/notification-top-end-1",
       "tier": "visual",
       "file": "visual-tests/tests/js-only/notification/rtl/notification-top-end.spec.ts",
@@ -1584,39 +1617,6 @@
         "leg": "UMD (theme: horizon)",
         "status": "failed",
         "error": "Expected 'rgb(231, 231, 233) 0px 0px 0px 1px inset' not to be 'rgb(231, 231, 233) 0px 0px 0px 1px inset'.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "tier": "playwright",
-      "file": "e2e/formula-builder-picking.spec.ts",
-      "line": 701,
-      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-firefox"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-05T06:07:05Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/41861644554/attempts/3",
-        "branch": "feature/DEV-3726_React-grid-level-type",
-        "leg": "e2e-firefox",
-        "status": "flaky",
-        "error": "Error: expect(locator).toHaveValue(expected) failed",
         "source": "ci"
       },
       "needsTicket": false
