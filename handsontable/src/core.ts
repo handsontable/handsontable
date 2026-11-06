@@ -63,7 +63,7 @@ import {
 } from './core/minimumSizes';
 import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
-import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
+import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -124,6 +124,24 @@ import { createWriteLedger, getCellWriteKey, isValidatorCorrection } from './cor
 import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
+
+/**
+ * The part of a sorting plugin that core reads and calls.
+ */
+interface SortingPluginLike {
+  isSorted(): boolean;
+  clearSort(): void;
+}
+
+/**
+ * The part of the Filters plugin that core reads and calls.
+ */
+interface FiltersPluginLike {
+  enabled: boolean;
+  exportConditions(): unknown[];
+  clearConditions(): void;
+  filter(): void;
+}
 
 let activeGuid: string | null = null;
 
@@ -486,6 +504,20 @@ export default function Core(
    * the renders they ask for held.
    */
   let initReadyStepsRunning = false;
+  /**
+   * The column layout a data replacement made by `updateSettings()` must compare with the one it builds: the layout
+   * read before the payload merged, and whether columns added after the existing ones leave it as it was. `null`
+   * outside such a replacement.
+   */
+  let pendingColumnLayoutCheck: { previousLayout: ColumnLayout, columnsPath: boolean } | null = null;
+
+  /**
+   * Set while an `updateData()` call starts the column state over beside a sort or a filter, so they are cleared once
+   * the call has finished. Both name columns and change the rows, so the rows would keep a result the column state no
+   * longer describes.
+   */
+  let rowStateToClearAfterDataUpdate: { sorting: SortingPluginLike | null, filters: FiltersPluginLike | null } | null =
+    null;
   /**
    * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
    */
@@ -5488,6 +5520,7 @@ export default function Core(
    * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Keeps rows' states (e.g. row order)
    * - Keeps columns' states (e.g. column order)
+   *   (`updateSettings({ data, columns })` is the exception: it resets them when the columns changed, see {@link Core#updateSettings})
    * - Keeps the sorted row order and the trimmed rows. It does not sort or filter the new values again. To apply them, call `sort(getSortConfig())` of the `ColumnSorting` or `MultiColumnSorting` plugin, or `filter()` of the `Filters` plugin.
    * - Clears the undo and redo history of the `UndoRedo` plugin.
    *
@@ -5549,8 +5582,25 @@ export default function Core(
         // creation hooks and `selection.refresh()` the selection hooks, so a hook that throws
         // would otherwise leave the scope open for the rest of the task (DEV-2831).
         try {
-          instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
-          instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+          const layoutCheck = pendingColumnLayoutCheck;
+
+          if (layoutCheck && hasColumnLayoutChanged(layoutCheck.previousLayout, layoutCheck.columnsPath)) {
+            // The index state would now apply to the columns of a new schema or `columns` option. Starting it over
+            // here replaces `fitToLength()`, so each mapper updates its cache once.
+            if (layoutCheck.columnsPath) {
+              // A `columns` change speaks of columns, so the rows keep their order, hiding and trimming, and
+              // their generated ids. A sort lives in both axes: it names columns and orders rows, so it is cleared
+              // after this call, once the grid is consistent again.
+              rowStateToClearAfterDataUpdate = readRowStateOfColumns();
+              instance.columnIndexMapper.initToLength(instance.getInitialColumnCount());
+              instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+            } else {
+              instance.initIndexMappers();
+            }
+          } else {
+            instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
+            instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+          }
 
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
@@ -5897,7 +5947,7 @@ export default function Core(
    * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
    *
    * Passing `columns` inside the `settings` object resets the states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states.
+   * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states, with one exception: when the same call changes the column layout through `columns`, the column states (width, hiding, order, sort) start over. Adding columns to the end, or removing them from the end, keeps the states of the other columns. Rows keep theirs.
    *
    * After initialization, passing `data` calls [`updateData()`](@/api/core.md#updatedata) internally.
    * The resulting [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and
@@ -6306,30 +6356,99 @@ export default function Core(
   };
 
   /**
-   * Reads what decides the columns of a grid without a `columns` option: the number of columns the schema or the
-   * data resolves to, and the property each one reads.
+   * Reads what decides the columns of a grid: the number of columns the `columns` option, the schema, or the data
+   * resolves to, and the property each one reads.
    *
    * @private
+   * @param {boolean} [cappedByMapper] `true` to read the layout the index mappers were built for: the count never
+   * exceeds their length. A wrapper may append to the array it passed as `columns` before it calls
+   * `updateSettings()`, so the grid already counts the new column while its mappers and property cache do not. The
+   * mappers can only be longer than the layout (the `min*` options append columns), never shorter, so the cap
+   * leaves every other read as it was.
+   * @param {boolean} [fillIndexHoles] `true` to name a column without `data` by its own index when the rows are
+   * arrays, as the `columns` path compares layouts.
    * @returns {ColumnLayout}
    */
-  function readColumnLayout(): ColumnLayout {
+  function readColumnLayout(cappedByMapper = false, fillIndexHoles = false): ColumnLayout {
+    const initialCount = instance.getInitialColumnCount();
+    const count = cappedByMapper ?
+      Math.min(initialCount, instance.columnIndexMapper.getNumberOfIndexes()) :
+      initialCount;
+    const props = datamap.colToPropCache.slice();
+
+    if (fillIndexHoles && instance.dataType === 'array') {
+      // On rows that are arrays, a column without `data` reads the source column at its own index, so it names the
+      // same property as `data: <index>` does.
+      for (let index = 0; index < count; index += 1) {
+        if (props[index] === undefined) {
+          props[index] = index;
+        }
+      }
+    }
+
+    return { count, props };
+  }
+
+  /**
+   * Reads the sort and the filter conditions the grid holds, as they stand before the column state starts over.
+   *
+   * @private
+   * @returns {object} The sorting plugin that holds a sort and the Filters plugin that holds conditions, `null` for
+   * each one that does not.
+   */
+  function readRowStateOfColumns() {
+    const sortingPlugins = [instance.getPlugin('columnSorting'), instance.getPlugin('multiColumnSorting')];
+    const filters = instance.getPlugin('filters') as FiltersPluginLike | undefined;
+
     return {
-      count: instance.getInitialColumnCount(),
-      props: datamap.colToPropCache.slice(),
+      sorting: (sortingPlugins as (SortingPluginLike | undefined)[])
+        .find(plugin => plugin?.isSorted() === true) ?? null,
+      filters: filters?.enabled === true && filters.exportConditions().length > 0 ? filters : null,
     };
   }
 
   /**
+   * Clears the sort and the filter conditions that the column state restart of the last data update left behind. The
+   * column states are gone by now, so a sort returns the rows to their unsorted order and the cleared filter shows the
+   * rows it trimmed, and the indicators match the rows.
+   *
+   * @private
+   */
+  function clearRowStateAfterDataUpdate(): void {
+    const rowState = rowStateToClearAfterDataUpdate;
+
+    rowStateToClearAfterDataUpdate = null;
+    rowState?.sorting?.clearSort();
+
+    if (rowState?.filters) {
+      rowState.filters.clearConditions();
+      rowState.filters.filter();
+    }
+  }
+
+  /**
    * Checks whether a settings update changed the columns the grid resolves, comparing them with the layout read
-   * before the update. A grid with a `columns` option has its columns decided by that option, not by the schema.
+   * before the update.
    *
    * @private
    * @param {ColumnLayout|null} previousLayout The layout read before the update, `null` when the update could not
    * change it.
+   * @param {boolean} [tolerateAppend] `true` for the `columns` path: columns added after the existing ones, or
+   * dropped from the end, leave the layout as it was, because the `columns` option names every column and the
+   * ones that remain keep their place.
    * @returns {boolean}
    */
-  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null): boolean {
-    return previousLayout !== null && !tableMeta.columns && !isSameColumnLayout(previousLayout, readColumnLayout());
+  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null, tolerateAppend = false): boolean {
+    if (previousLayout === null) {
+      return false;
+    }
+
+    const layout = readColumnLayout(false, tolerateAppend);
+    const isUnchanged = tolerateAppend ?
+      isColumnLayoutKept(previousLayout, layout) :
+      isSameColumnLayout(previousLayout, layout);
+
+    return !isUnchanged;
   }
 
   /**
@@ -6845,12 +6964,21 @@ export default function Core(
       dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
 
     } else if (settings.data !== undefined) {
-      dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
+      // `updateData()` keeps the index state, which would now apply to the properties of a new schema or to the
+      // columns of a new `columns` option. A wrapper sends `data` with every call, so `columns` reaches this branch
+      // beside it. The replacement compares the layouts and starts the state over when they differ. Columns added
+      // after the existing ones keep their place, and with them the state.
+      pendingColumnLayoutCheck = previousColumnLayout === null ?
+        null :
+        { previousLayout: previousColumnLayout, columnsPath: settings.columns !== undefined };
 
-      // `updateData()` keeps the index state, which would now apply to the properties of a new schema.
-      if (hasColumnLayoutChanged(previousColumnLayout)) {
-        instance.initIndexMappers();
+      try {
+        dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
+      } finally {
+        pendingColumnLayoutCheck = null;
       }
+
+      clearRowStateAfterDataUpdate();
 
     } else if (settings.columns !== undefined) {
       datamap.createMap();
@@ -6957,6 +7085,20 @@ export default function Core(
   }
 
   /**
+   * Checks whether a payload sends `columns` beside `data`, as a wrapper does with every change of its columns.
+   * The function form is left out: counting its columns calls the user's function once per source column, and a
+   * wrapper that writes it inline would pay that twice on every render.
+   *
+   * @private
+   * @param {object} settings A settings object (see {@link Options}).
+   * @returns {boolean}
+   */
+  function isColumnsPayloadWithData(settings: SettingsUpdate): boolean {
+    return settings.data !== undefined && settings.columns !== undefined &&
+      !isFunction(settings.columns) && !isFunction(tableMeta.columns);
+  }
+
+  /**
    * Reads the state an `updateSettings()` call must compare against, before the payload merges into the table meta.
    *
    * @private
@@ -6974,12 +7116,16 @@ export default function Core(
         minCols: tableMeta.minCols,
         minSpareCols: tableMeta.minSpareCols,
       },
-      // A call that carries `dataSchema` may change the columns the grid resolves, and the data phase can only tell
-      // by comparing them with the ones the grid has now. Without `columns`, the schema decides both the number of
-      // columns and the property each one reads. The key counts even when its value is `undefined`, which falls back
-      // to the schema read off the data.
-      previousColumnLayout: !firstRun && !tableMeta.columns &&
-        hasOwnProperty(settings, 'dataSchema') ? readColumnLayout() : null,
+      // A call that carries `dataSchema`, or `columns` beside `data`, may change the columns the grid resolves, and
+      // the data phase can only tell by comparing them with the ones the grid has now. Without `columns`, the schema
+      // decides both the number of columns and the property each one reads. The key counts even when its value is
+      // `undefined`, which falls back to the schema read off the data. A call with `columns` and no `data` starts
+      // the index state over on its own branch, so it needs no baseline. A `columns` function is never compared (see
+      // `isColumnsPayloadWithData()`), also beside a `dataSchema` on a grid that had no `columns`.
+      previousColumnLayout: !firstRun && (
+        (!tableMeta.columns && hasOwnProperty(settings, 'dataSchema') && !isFunction(settings.columns)) ||
+        isColumnsPayloadWithData(settings)
+      ) ? readColumnLayout(true, isColumnsPayloadWithData(settings)) : null,
       // The stored `height` and `width` before this call. An unreadable value is ignored by
       // `applyRootSize()`, and the stored setting must stay on the size the grid uses. On init the
       // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.

@@ -3,6 +3,7 @@ import type { CellProperties } from '../../settings';
 import { textRenderer } from '../textRenderer';
 import { isNumeric } from '../../helpers/number';
 import { normalizeClassNames } from '../../helpers/dom/element';
+import { recordRendererClassNames } from '../../helpers/rendererClassNames';
 import { warn } from '../../helpers/console';
 import { intlFormatter } from './utils';
 
@@ -64,24 +65,27 @@ export function numericRenderer(
   // array on both branches, so the pushes below cannot reach a grid-level or column-level array -
   // that is one instance shared by every cell through the cell meta prototype chain.
   const classArr = normalizeClassNames(cellProperties.className);
-  let classArrChanged = false;
+  const addedClassNames: string[] = [];
 
   if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
     classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
     classArr.push('htRight');
-    classArrChanged = true;
+    addedClassNames.push('htRight');
   }
 
   if (classArr.indexOf('htNumeric') < 0) {
     classArr.push('htNumeric');
-    classArrChanged = true;
+    addedClassNames.push('htNumeric');
   }
 
   // Gate the write on actually having changed something — rewriting the array into a string on
   // every render would replay a user-defined array `className` as a baked-in string the next time
   // `updateSettings` reads it back (see `handsontable/AGENTS.md`, cell `className` rules).
-  if (classArrChanged) {
+  if (addedClassNames.length > 0) {
     cellProperties.className = classArr.join(' ');
+    // Keep a record of what the renderer added, so a replay of the user's `className` after a
+    // cache reset drops it and a cell that stops being numeric does not keep it.
+    recordRendererClassNames(cellProperties, addedClassNames);
   }
 
   TD.dir = 'ltr';
