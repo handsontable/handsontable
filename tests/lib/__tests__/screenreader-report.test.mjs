@@ -210,6 +210,18 @@ test('a step the lane does not drive is a declared gap: listed per scenario and 
   assert.doesNotMatch(build([transcript()]).summary, /Not driven on this lane/, 'a lane that drove every step lists nothing');
 });
 
+test('a scenario\'s table lists the captured and the unsupported steps in the scenario\'s order', () => {
+  const source = '{\n  "steps": [\n    {\n      "id": "arrow-right"\n    },\n    {\n      "id": "enter-grid"\n    },\n    {\n      "id": "open-editor"\n    }\n  ]\n}\n';
+  const report = build([transcript({ unsupported: [{ id: 'enter-grid', action: { read: 'in' }, reason: 'NVDA has no interaction level.' }] })],
+    { lines: new Map([['grid-core', stepLines(source)]]) });
+  const order = [...report.summary.matchAll(/^\| (arrow-right|enter-grid|open-editor) \|/gm)].map(([, id]) => id);
+
+  assert.deepEqual(order, ['arrow-right', 'enter-grid', 'open-editor'], 'the unsupported step sits where the scenario has it, not after every captured row');
+  assert.deepEqual([...build([transcript({ unsupported: [{ id: 'enter-grid', action: { read: 'in' }, reason: 'NVDA has no interaction level.' }] })], { lines: new Map() })
+    .summary.matchAll(/^\| (arrow-right|enter-grid|open-editor) \|/gm)].map(([, id]) => id), ['arrow-right', 'open-editor', 'enter-grid'],
+  'without the scenario\'s lines the rows keep the captured order, the unsupported ones after');
+});
+
 test('a reading traversal that read an item twice is a serious finding, a warning when tracked, and the summary names the item', () => {
   const traversal = { passed: false, steps: ['arrow-right', 'open-editor'], items: [{ item: 'A1', count: 2, firstStep: 'arrow-right' }, { item: 'B1', count: 0, firstStep: null }], outOfOrder: [] };
   const report = build([transcript({ traversal })]);

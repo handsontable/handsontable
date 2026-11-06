@@ -122,7 +122,7 @@ export function buildReport({
     reportUrl && isSafeLink(reportUrl) ? `📊 [Open the Playwright report](${reportUrl})` : '',
     ...tooling.map(problem => `> Tooling problem: ${escapeMarkdownText(problem)}`),
   ].filter(Boolean).join('\n\n');
-  let summary = `${lead}\n\n${renderUnsupported(sorted)}${renderScenarios(sorted)}${renderGoldenDifferences(sorted)}${renderTiming(sorted)}`;
+  let summary = `${lead}\n\n${renderUnsupported(sorted)}${renderScenarios(sorted, lines)}${renderGoldenDifferences(sorted)}${renderTiming(sorted)}`;
 
   if (summary.length > SUMMARY_LIMIT) {
     summary = `${summary.slice(0, SUMMARY_LIMIT)}\n\n… cut at ${SUMMARY_LIMIT} characters; the transcripts hold the rest.`;
@@ -246,12 +246,14 @@ function headlineOf(counts, mode) {
 }
 
 /**
- * One section per scenario: its environment, then a table with a row per step.
+ * One section per scenario: its environment, then a table with a row per step, the captured and the
+ * unsupported ones in the scenario's order.
  *
  * @param {object[]} transcripts The transcripts.
+ * @param {Map<string, Map<string, number>>} [lines] The step lines per scenario, which give that order.
  * @returns {string} Markdown.
  */
-function renderScenarios(transcripts) {
+function renderScenarios(transcripts, lines) {
   return transcripts.map((transcript) => {
     const counts = transcriptCounts(transcript);
     const golden = {
@@ -282,8 +284,15 @@ function renderScenarios(transcripts) {
       return `| ${escapeMarkdownText(step.id)} | ${escapeMarkdownText(describeAction(step.action))} | ${escapeMarkdownText(step.spoken) || '*(nothing)*'} | ${tokens} | ${goldenCell} | ${step.durationMs} |`;
     });
     const skipped = (transcript.unsupported ?? []).map(step => `| ${escapeMarkdownText(step.id)} | ${escapeMarkdownText(describeAction(step.action))} | *(not driven on this lane: ${escapeMarkdownText(step.reason)})* | – | – | – |`);
+    // In the scenario's order, so the table lines up with the scenario file and the golden: a step's line in
+    // its file orders it, and a step without one keeps its place after the others (a stable sort).
+    const stepLine = lines?.get(transcript.scenario);
+    const at = id => stepLine?.get(id) ?? Number.MAX_SAFE_INTEGER;
+    const ordered = [...transcript.steps.map((step, index) => ({ id: step.id, row: rows[index] })),
+      ...(transcript.unsupported ?? []).map((step, index) => ({ id: step.id, row: skipped[index] }))]
+      .sort((a, b) => at(a.id) - at(b.id));
 
-    return `${head}${renderTraversal(transcript)}\n\n| Step | Action | Announcement | Token groups | Golden | ms |\n|---|---|---|---|---|---:|\n${[...rows, ...skipped].join('\n')}\n\n`;
+    return `${head}${renderTraversal(transcript)}\n\n| Step | Action | Announcement | Token groups | Golden | ms |\n|---|---|---|---|---|---:|\n${ordered.map(entry => entry.row).join('\n')}\n\n`;
   }).join('');
 }
 
