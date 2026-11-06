@@ -36,6 +36,7 @@ import {
   type TranscriptStep,
   type TranscriptUnsupportedStep,
 } from '../lib/screenreader-transcript.mjs';
+import { ensureNvdaMode, lastNvdaMode } from '../lib/screenreader-nvda.mjs';
 import {
   OUTPUT_STEP_BOUNDARY,
   READ_LAST_PHRASE,
@@ -154,17 +155,6 @@ const VOICEOVER_SETTINGS = {
   SCRShouldOutputVOInstructions: false,
   SCRConfigurationCursorTrackingMToVO: false,
 };
-/**
- * What the NVDA reader records in a step's `preparing` when a mode switch named no mode: the run goes on,
- * and the transcript says the mode was never confirmed.
- */
-const NO_MODE_ANNOUNCED = '(no mode announced after the toggle)';
-/**
- * How many times the NVDA reader toggles between focus and browse mode before a primitive: two when NVDA
- * names the mode it lands in (a toggle that landed in the other mode is toggled back), and up to four when
- * a toggle names none.
- */
-const MODE_TOGGLES = 4;
 /**
  * How many times the VoiceOver reader reads the last phrase after it spoke the step boundary, before
  * it speaks the boundary again, and how many times it speaks it before the run stops as tooling. Each
@@ -514,22 +504,6 @@ function voiceOverReader(screenReader: ScreenReaderPlaywright): Reader {
 }
 
 /**
- * The last mode NVDA named in some phrases: the last mode phrase wins, inside one phrase too (`focus mode.
- * browse mode` is browse mode).
- *
- * @param phrases The phrases, as NVDA spoke them (never normalized: the normalizer strips the mode
- * phrases as chatter).
- * @returns The mode, or `null` when none names one.
- */
-function lastNvdaMode(phrases: string[]): 'focus' | 'browse' | null {
-  return phrases.reduce<'focus' | 'browse' | null>((mode, phrase) => {
-    const found = [...String(phrase).toLowerCase().matchAll(/\b(focus|browse) mode\b/g)];
-
-    return found.length > 0 ? found[found.length - 1][1] as 'focus' | 'browse' : mode;
-  }, null);
-}
-
-/**
  * The NVDA reader.
  *
  * - **Into the page**: Guidepup's `navigateToWebContent()` focuses the browser window and puts NVDA at
@@ -544,8 +518,11 @@ function lastNvdaMode(phrases: string[]): 'focus' | 'browse' | null {
  *   switches on its own when the focus lands on a gridcell (its treatment of ARIA grids), and Guidepup
  *   logs only what a command captured. The mode is read from every phrase the reader heard, the last mode
  *   phrase winning, never from the normalized text, which strips the mode phrases as chatter. A switch
- *   that names no mode leaves the mode unknown and is toggled again (`MODE_TOGGLES`); only when no switch
- *   names one does `(no mode announced after the toggle)` go into the step's `preparing` and the run go on
+ *   that names no mode still flipped it, so the mode follows from the last one NVDA named and the count
+ *   of silent switches after it (`ensureNvdaMode()` of `lib/screenreader-nvda.mjs`): the reader keeps
+ *   switching for a named mode while two switches are left, a mode it can only infer goes into the
+ *   step's `preparing`, and switches that end in the other mode stop the run as tooling. Only when NVDA
+ *   never named a mode does `(no mode announced after the toggle)` go into `preparing` and the run go on
  *   in the mode it asked for. What a switch says is the step's `preparing`, never its announcement.
  * - **Each step**: `screenReader.capture(() => …, { capture: true })` for a page action, and NVDA's own
  *   command with its capture for a reading one; both wait a second of silence after the last phrase. A
@@ -565,28 +542,15 @@ function nvdaReader(screenReader: ScreenReaderPlaywright): Reader {
     return screenReader.lastSpokenPhrase();
   };
   const ensure = async(wanted: 'focus' | 'browse'): Promise<string[]> => {
-    const said: string[] = [];
+    // A toggle that names no mode still flipped it: assuming the wanted mode after one once sent a read's
+    // Down Arrow to the page in focus mode, and the traversal started on a cell (Firefox, the NVDA lane's
+    // proof run). The mode follows from the count of toggles since NVDA last named one, and toggles that
+    // end in the other mode throw, a tooling failure, rather than run the step in the wrong mode.
+    const result = await ensureNvdaMode({ mode, wanted, toggle });
 
-    if (mode === wanted) {
-      return said;
-    }
+    mode = result.mode;
 
-    // A toggle that names no mode leaves the mode unknown, so the reader toggles again until NVDA names
-    // one: assuming the wanted mode once sent a read's Down Arrow to the page in focus mode, and the
-    // traversal started on a cell (Firefox, the NVDA lane's proof run). Only when no toggle names a mode
-    // does the run go on in the mode it asked for, and the step's `preparing` says so.
-    for (let attempt = 0; attempt < MODE_TOGGLES && mode !== wanted; attempt += 1) {
-      const toggled = await toggle();
-
-      said.push(toggled);
-      mode = lastNvdaMode([toggled]);
-    }
-    if (mode === null) {
-      said.push(NO_MODE_ANNOUNCED);
-      mode = wanted;
-    }
-
-    return said;
+    return result.said;
   };
   // Nothing within a second of silence: listen once more for another silence window. NVDA can speak
   // more than a second after the action completed (Shift+F10 on Firefox announced the menu that late,
