@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "chromium 151.0.7922.34",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T10:53:31.965Z"
+    "at": "2026-11-06T11:45:19.030Z"
   },
   "steps": {
     "read-1": "row 2 alpha column 3 b 1",
