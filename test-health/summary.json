@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T08:56:13.352Z",
+  "generatedAt": "2026-11-06T10:00:28.431Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -50,43 +50,6 @@
         "leg": "angular-wrapper/chromium",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 08634afd334d",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-2",
-      "count7": 2,
-      "count30": 17,
-      "countAll": 22,
-      "runs30": 6,
-      "flakyRuns30": 0,
-      "branches30": 4,
-      "nightlyRuns30": 0,
-      "openBranches30": 4,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-05T09:34:09Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/41930529023",
-        "branch": "feature/DEV-3653_Sheets-bar-retest-fixes",
-        "leg": "js/chromium-theme-main-dark",
-        "status": "failed",
-        "error": "differs from base/develop (pr tier); render sha256 601bcab03d12",
         "source": "ci"
       },
       "needsTicket": true
@@ -203,43 +166,6 @@
       "needsTicket": true
     },
     {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-1",
-      "count7": 0,
-      "count30": 15,
-      "countAll": 20,
-      "runs30": 5,
-      "flakyRuns30": 0,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-20T11:10:08Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39397571600",
-        "branch": "feature/PRO-1340_Animate-sheet-switching",
-        "leg": "js/chromium-theme-main",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 082cba487624",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
       "tier": "playwright",
       "file": "e2e/selection-viewport-scroll.spec.ts",
@@ -269,6 +195,43 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-2",
+      "count7": 2,
+      "count30": 12,
+      "countAll": 22,
+      "runs30": 5,
+      "flakyRuns30": 0,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-05T09:34:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/41930529023",
+        "branch": "feature/DEV-3653_Sheets-bar-retest-fixes",
+        "leg": "js/chromium-theme-main-dark",
+        "status": "failed",
+        "error": "differs from base/develop (pr tier); render sha256 601bcab03d12",
         "source": "ci"
       },
       "needsTicket": true
@@ -491,6 +454,43 @@
         "leg": "js/chromium-theme-horizon-dark",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 2a4da9ce4e7f",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-1",
+      "count7": 0,
+      "count30": 10,
+      "countAll": 20,
+      "runs30": 4,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-20T11:10:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39397571600",
+        "branch": "feature/PRO-1340_Animate-sheet-switching",
+        "leg": "js/chromium-theme-main",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 082cba487624",
         "source": "ci"
       },
       "needsTicket": true
@@ -1066,84 +1066,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected '' to be '5'.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js|MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js",
-      "line": null,
-      "title": "MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 12,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: horizon)",
-        "UMD (theme: main)",
-        "UMD.min (theme: classic)",
-        "UMD.min (theme: horizon)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (1 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T09:56:34Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37599946682",
-        "branch": "feature/DEV-3305_Keep-grid-scroll-after-selection",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Expected 130 to be 131.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/filters-menu-focus-order.spec.ts|filters menu — keyboard focus order › a value the list shows only in part scrolls fully into view when the focus reaches it",
-      "tier": "playwright",
-      "file": "e2e/filters-menu-focus-order.spec.ts",
-      "line": 279,
-      "title": "filters menu — keyboard focus order › a value the list shows only in part scrolls fully into view when the focus reaches it",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-classic",
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T09:56:34Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37599946682",
-        "branch": "feature/DEV-3305_Keep-grid-scroll-after-selection",
-        "leg": "e2e-classic",
-        "status": "failed",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false
@@ -2693,6 +2615,84 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected 100 to be around 26 (between 25",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js|MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/mergeCells/__tests__/scrolling.spec.js",
+      "line": null,
+      "title": "MergeCells scrolling should scroll viewport vertically to the beginning of the merged cell when it's clicked (virtualized is on)",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 12,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T09:56:34Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37599946682",
+        "branch": "feature/DEV-3305_Keep-grid-scroll-after-selection",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 130 to be 131.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/filters-menu-focus-order.spec.ts|filters menu — keyboard focus order › a value the list shows only in part scrolls fully into view when the focus reaches it",
+      "tier": "playwright",
+      "file": "e2e/filters-menu-focus-order.spec.ts",
+      "line": 279,
+      "title": "filters menu — keyboard focus order › a value the list shows only in part scrolls fully into view when the focus reaches it",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 6,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T09:56:34Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37599946682",
+        "branch": "feature/DEV-3305_Keep-grid-scroll-after-selection",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false
