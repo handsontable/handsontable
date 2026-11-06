@@ -1,4 +1,9 @@
-import { isColumnLayoutAppend, isSameColumnLayout } from '../columnLayout';
+import {
+  isColumnLayoutAppend,
+  isColumnLayoutKept,
+  isColumnLayoutTruncation,
+  isSameColumnLayout,
+} from '../columnLayout';
 
 describe('isSameColumnLayout', () => {
   it('should report the same layout for the same count and properties', () => {
@@ -93,5 +98,44 @@ describe('isColumnLayoutAppend', () => {
   it('should not read an accessor function as the same property as a name', () => {
     expect(isColumnLayoutAppend({ count: 1, props: [() => 'a'] }, { count: 1, props: ['a'] })).toBe(false);
     expect(isColumnLayoutAppend({ count: 1, props: ['a'] }, { count: 1, props: [() => 'a'] })).toBe(false);
+  });
+});
+
+describe('isColumnLayoutTruncation', () => {
+  it('should accept columns dropped from the end', () => {
+    expect(isColumnLayoutTruncation({ count: 3, props: ['a', 'b', 'c'] }, { count: 2, props: ['a', 'b'] })).toBe(true);
+  });
+
+  it('should accept an unchanged layout', () => {
+    expect(isColumnLayoutTruncation({ count: 2, props: ['a', 'b'] }, { count: 2, props: ['a', 'b'] })).toBe(true);
+  });
+
+  it('should reject columns added to the end', () => {
+    expect(isColumnLayoutTruncation({ count: 2, props: ['a', 'b'] }, { count: 3, props: ['a', 'b', 'c'] })).toBe(false);
+  });
+
+  it('should reject a column dropped from the front or the middle', () => {
+    expect(isColumnLayoutTruncation({ count: 3, props: ['a', 'b', 'c'] }, { count: 2, props: ['b', 'c'] })).toBe(false);
+    expect(isColumnLayoutTruncation({ count: 3, props: ['a', 'b', 'c'] }, { count: 2, props: ['a', 'c'] })).toBe(false);
+  });
+
+  it('should reject a remaining column that gained a property where it had a hole', () => {
+    // eslint-disable-next-line no-sparse-arrays
+    expect(isColumnLayoutTruncation({ count: 3, props: ['a', , 'c'] }, { count: 2, props: ['a', 'b'] })).toBe(false);
+  });
+
+  it('should count two accessor functions at one index as the same property', () => {
+    expect(isColumnLayoutTruncation(
+      { count: 2, props: [() => 'a', 'b'] },
+      { count: 1, props: [() => 'a'] }
+    )).toBe(true);
+  });
+});
+
+describe('isColumnLayoutKept', () => {
+  it('should accept an append and a truncation, and reject a change of a shared column', () => {
+    expect(isColumnLayoutKept({ count: 2, props: ['a', 'b'] }, { count: 3, props: ['a', 'b', 'c'] })).toBe(true);
+    expect(isColumnLayoutKept({ count: 3, props: ['a', 'b', 'c'] }, { count: 2, props: ['a', 'b'] })).toBe(true);
+    expect(isColumnLayoutKept({ count: 3, props: ['a', 'b', 'c'] }, { count: 3, props: ['a', 'x', 'c'] })).toBe(false);
   });
 });

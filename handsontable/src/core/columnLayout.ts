@@ -68,3 +68,28 @@ export function isColumnLayoutAppend(before: ColumnLayout, after: ColumnLayout):
   return after.count >= before.count &&
     hasSameProps(before, after, Math.max(before.count, before.props.length), true);
 }
+
+/**
+ * Checks whether the second layout only drops columns from the end of the first. The columns that remain keep their
+ * place, so state kept by physical index still describes them, and the dropped columns take their own state along.
+ * Accessor functions compare as in `isColumnLayoutAppend()`.
+ *
+ * @param {ColumnLayout} before The layout before a settings update.
+ * @param {ColumnLayout} after The layout after it.
+ * @returns {boolean}
+ */
+export function isColumnLayoutTruncation(before: ColumnLayout, after: ColumnLayout): boolean {
+  return after.count <= before.count && hasSameProps(before, after, after.count, true);
+}
+
+/**
+ * Checks whether every column that the first layout and the second share keeps its place: the second layout only
+ * adds columns to the end, drops them from the end, or changes nothing.
+ *
+ * @param {ColumnLayout} before The layout before a settings update.
+ * @param {ColumnLayout} after The layout after it.
+ * @returns {boolean}
+ */
+export function isColumnLayoutKept(before: ColumnLayout, after: ColumnLayout): boolean {
+  return isColumnLayoutAppend(before, after) || isColumnLayoutTruncation(before, after);
+}

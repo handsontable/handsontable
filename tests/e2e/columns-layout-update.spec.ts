@@ -89,4 +89,16 @@ test.describe('Column state after updateSettings() with data and columns', () =>
     expect(await grid.hiddenColumns()).toEqual([1]);
     expect(await grid.sortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
   });
+
+  test('keeps the state of the other columns when the last column is removed', async() => {
+    await grid.resizeColumn(1, MANUAL_WIDTH);
+    await grid.sortColumn(1);
+    await expect.poll(() => grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+
+    await grid.updateColumns(['a', 'b', 'c']);
+
+    await expect(grid.headers()).toHaveText(['A', 'B', 'C']);
+    expect((await grid.columnWidths())[1]).toBe(MANUAL_WIDTH);
+    expect(await grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
 });

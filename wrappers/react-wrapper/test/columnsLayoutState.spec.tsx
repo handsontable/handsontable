@@ -176,6 +176,27 @@ describe('Column state when the columns of the React wrapper change', () => {
       expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
     });
 
+    it('should keep the state of the other columns when the last column is removed', async() => {
+      const hotTableRef = React.createRef<HotTableRef>();
+
+      renderHotTableWithProps(build(ALL_COLUMNS, {}), false, hotTableRef);
+
+      const hot = hotTableRef.current!.hotInstance!;
+
+      setColumnState(hot, 'width', 1);
+      setColumnState(hot, 'hidden', 0);
+      setColumnState(hot, 'sort', 1);
+
+      await act(async() => {
+        renderHotTableWithProps(build(['a', 'b', 'c'], {}), false, hotTableRef);
+      });
+
+      expect(hot.countCols()).toBe(3);
+      expect(hot.getColWidth(1)).toBe(MANUAL_WIDTH);
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([0]);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    });
+
     it('should keep the state when the columns render again unchanged', async() => {
       const hotTableRef = React.createRef<HotTableRef>();
 

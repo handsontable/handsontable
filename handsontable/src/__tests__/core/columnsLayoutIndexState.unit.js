@@ -5,6 +5,8 @@ import {
   HiddenColumns,
   ManualColumnMove,
   ManualColumnResize,
+  ManualRowMove,
+  HiddenRows,
 } from 'handsontable/plugins';
 import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
@@ -12,6 +14,8 @@ registerPlugin(ColumnSorting);
 registerPlugin(HiddenColumns);
 registerPlugin(ManualColumnMove);
 registerPlugin(ManualColumnResize);
+registerPlugin(ManualRowMove);
+registerPlugin(HiddenRows);
 
 const ALL_COLUMNS = ['a', 'b', 'c', 'd'];
 const WITHOUT_FIRST = ['b', 'c', 'd'];
@@ -234,16 +238,7 @@ describe('updateSettings() with data and columns', () => {
       expect(hot.getColWidth(2)).not.toBe(222);
     });
 
-    it('should start the state over when the last column is removed', () => {
-      createGrid();
-      hot.getPlugin('manualColumnResize').setManualSize(1, 222);
-
-      hot.updateSettings({ data: buildData(['a', 'b', 'c']), columns: buildColumns(['a', 'b', 'c']) });
-
-      expect(hot.getColWidth(1)).not.toBe(222);
-    });
-
-    it('should start the state over when a column without a property is replaced by one with a property', () => {
+    it('should start the state over when a column without a property is replaced by one that reads another column', () => {
       // `colToPropCache` is sparse for a column that declares no `data`. A comparison that skips the holes reads the
       // layouts below as equal.
       createGrid({
@@ -254,10 +249,93 @@ describe('updateSettings() with data and columns', () => {
 
       hot.updateSettings({
         data: [['a0', 'b0', 'c0'], ['a1', 'b1', 'c1']],
-        columns: [{ data: 0 }, { data: 1 }, { data: 2 }],
+        columns: [{ data: 0 }, { data: 2 }, { data: 2 }],
       });
 
       expect(hot.getColWidth(1)).not.toBe(222);
+    });
+
+    it('should keep the state when a column of array data gains the `data` index it already read', () => {
+      // On rows that are arrays, a column without `data` reads the source column at its own index.
+      createGrid({
+        data: [['a0', 'b0'], ['a1', 'b1']],
+        columns: [{ data: 0 }, { data: 1 }],
+      });
+      hot.getPlugin('manualColumnResize').setManualSize(1, 222);
+
+      hot.updateSettings({ data: [['a0', 'b0'], ['a1', 'b1']], columns: [{}, {}] });
+
+      expect(hot.getColWidth(1)).toBe(222);
+    });
+  });
+
+  describe('when columns are removed from the end', () => {
+    it('should keep the width, hiding, and sorting of the columns that remain', () => {
+      createGrid();
+      hot.getPlugin('manualColumnResize').setManualSize(1, 222);
+      hot.getPlugin('hiddenColumns').hideColumn(0);
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      hot.updateSettings({ data: buildData(['a', 'b', 'c']), columns: buildColumns(['a', 'b', 'c']) });
+
+      expect(hot.countCols()).toBe(3);
+      expect(hot.getColWidth(1)).toBe(222);
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([0]);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    });
+
+    it('should start the state over when a remaining column also changed its property', () => {
+      createGrid();
+      hot.getPlugin('manualColumnResize').setManualSize(1, 222);
+
+      hot.updateSettings({ data: buildData(['a', 'x', 'c']), columns: buildColumns(['a', 'x', 'c']) });
+
+      expect(hot.getColWidth(1)).not.toBe(222);
+    });
+  });
+
+  describe('rows', () => {
+    it('should keep the moved and the hidden rows when a column is removed', () => {
+      createGrid({ manualRowMove: true, hiddenRows: true });
+      hot.getPlugin('manualRowMove').moveRows([2], 0);
+      hot.getPlugin('hiddenRows').hideRow(1);
+      hot.render();
+
+      const sequence = hot.rowIndexMapper.getIndexesSequence();
+
+      expect(sequence).not.toEqual([0, 1, 2]);
+
+      hot.updateSettings({ data: buildData(WITHOUT_FIRST), columns: buildColumns(WITHOUT_FIRST) });
+
+      expect(hot.rowIndexMapper.getIndexesSequence()).toEqual(sequence);
+      expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([1]);
+    });
+
+    it('should keep the generated row ids when a column is removed', () => {
+      const afterRowIdsRemoved = jest.fn();
+
+      createGrid({ rowId: true, afterRowIdsRemoved });
+      const ids = [0, 1, 2].map(row => hot.getRowId(row));
+
+      // The data gains a row in the same call, as a row count change makes the generated ids start over.
+      hot.updateSettings({
+        data: [...buildData(WITHOUT_FIRST), { b: 'b9', c: 'c9', d: 'd9' }],
+        columns: buildColumns(WITHOUT_FIRST),
+      });
+
+      expect([0, 1, 2].map(row => hot.getRowId(row))).toEqual(ids);
+      expect(afterRowIdsRemoved).not.toHaveBeenCalled();
+    });
+
+    it('should bring the rows back to their unsorted order when the sort is cleared with the columns', () => {
+      createGrid();
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      expect(hot.getDataAtCol(0)).toEqual(['a1', 'a2', 'a3']);
+
+      hot.updateSettings({ data: buildData(WITHOUT_FIRST), columns: buildColumns(WITHOUT_FIRST) });
+
+      expect(hot.getDataAtCol(0)).toEqual(['b3', 'b1', 'b2']);
     });
   });
 
