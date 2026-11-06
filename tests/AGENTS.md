@@ -2270,8 +2270,15 @@ screen readers (`docs/AGENTS.md` 2.20).
   (`ensureNvdaMode()` in `lib/screenreader-nvda.mjs`): it keeps switching for a named mode while two
   switches are left, then accepts the mode it infers and says so in `preparing`, and switches that end
   in the other mode stop the run as tooling. Assuming the mode it asked for once sent a read's Down Arrow
-  to the page in focus mode, and the traversal started on a cell. Only when NVDA has named no mode at all
-  does `(no mode announced after the toggle)` go into `preparing` and the run go on. The focus
+  to the page in focus mode, and the traversal started on a cell. Switches that name no mode while NVDA
+  has named none in the run mean NVDA is outside the page's document (the browser's toolbar, or the
+  Windows Start menu, its words then in `entering`), where nothing is spoken, so the reader throws and
+  the retry starts over with a fresh browser and NVDA; a silent transcript is never a reading, so never
+  record a golden from one. Guidepup's entry clicks the middle of `<body>` and then presses a real Tab: a
+  click that selects a cell of the last column sends that Tab out of the grid and, with nothing focusable
+  after it, out of the page. So the reader keeps the cells transparent to the pointer while Guidepup
+  enters (`ENTRY_POINTER_GUARD`), and the click lands on the table or the grid's holder whatever the
+  page's width. Never drop the guard, and keep any new NVDA entry from clicking a cell. The focus
   highlighter is off in the same settings. After the setup the log is cleared, and every page action is
   `screenReader.capture(() => …, { capture: true })`, which waits a second of silence after the last
   phrase, as a reading command's own capture does. A step whose capture is empty is listened to once more for another
@@ -2342,7 +2349,7 @@ screen readers (`docs/AGENTS.md` 2.20).
   half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
   scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
   keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the menus
-  and the filters inside them), each group is
+  and the filters inside them, `editors` for the cell editors and the checkbox cell), each group is
   a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)

@@ -83,10 +83,11 @@ export const STARTS = ['grid', 'page'];
  * (`scenarioBudgetMs()` below, summed per group by the workflow test), each a matrix entry of
  * `.github/workflows/screenreader.yml` with its own job, check run and artifacts (`tests/AGENTS.md`,
  * "Screen readers"). `keyboard`: what a keyboard user does in the grid itself. `reading`: the
- * reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the filters inside them. A
- * new group joins this list and the workflow's matrix together; the workflow test keeps the two equal.
+ * reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the filters inside them.
+ * `editors`: the cell editors and the checkbox cell. A new group joins this list and the workflow's
+ * matrix together; the workflow test keeps the two equal.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus'];
+export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors'];
 /**
  * What a scenario may take on a slow runner: a step costs four to five seconds on VoiceOver and about
  * thirteen when it is silent, and a run on a busy macOS runner took every step 1.7 to 2 times as long, so a

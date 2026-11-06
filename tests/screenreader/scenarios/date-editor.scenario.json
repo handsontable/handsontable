@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "date-editor",
+  "surface": "The date editor, a native date input over the cell: opening it, typing a date, Enter committing it, and Escape cancelling a second edit.",
+  "group": "editors",
+  "page": "date-editor",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [0, 1]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["date", "month stepper"]],
+      "note": "Enter opens the editor on the Start cell (`6/10/24`) and focuses its native date input, which holds 2024-06-10. Required: the control, in the reader's words; VoiceOver reads a segment of the input as a `month stepper`. The input has no name (the axe baseline's `editor-input-names`). Finding: VoiceOver with Chromium says nothing when the date editor opens, and VoiceOver with WebKit in two recordings of three. NVDA reads the input as a `date edit` and the segment it lands on (`Month, spin button, 06`); with Firefox it adds `multi line`. NVDA says a date as `1 slash 5 slash 24`, the synonyms below."
+    },
+    {
+      "id": "type-date",
+      "action": {"type": "01012020"},
+      "expect": [],
+      "note": "Eight digits fill the segments of the input in Chromium and Firefox: the same digits for month-day-year and day-month-year order (01/01/2020). WebKit's date input does not move to the next segment, so every digit lands in the month and the commit gives 12/10/24: on VoiceOver with WebKit the groups of the next steps that name the typed date fail for the input, not for the reading. Nothing is required here: a reader speaks a segment's new value in its own words (VoiceOver `2020 Year stepper`, NVDA a segment and the year, `01. Year, spin button, 2020`, with Firefox `00. Year, spin button, 2020`)."
+    },
+    {
+      "id": "commit-date",
+      "action": {"press": "Enter"},
+      "expect": [["1/5/24", "1 slash 5 slash 24"], ["row 3"]],
+      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's Start, drawn as `1/5/24`. Required: that cell's value and its row. Finding: the focus stays on the closed date input, so VoiceOver reads a stepper of the hidden input (`1 month stepper`, `2024 Year stepper`) and not the cell, and NVDA its year (`Year, spin button, 2024` with Chromium, `2024` with Firefox)."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["1/1/20", "1 slash 1 slash 20"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `1/1/20` (`12/10/24` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell. VoiceOver with Chromium reads it; with WebKit it read the wrong date in two recordings of three and nothing in the third."
+    },
+    {
+      "id": "reopen-editor",
+      "action": {"press": "Enter"},
+      "expect": [["date", "month stepper"]],
+      "note": "The editor opens again, on the new value; VoiceOver reads the month stepper."
+    },
+    {
+      "id": "cancel-edit",
+      "action": {"press": "Escape"},
+      "expect": [["1/1/20", "1 slash 1 slash 20"]],
+      "note": "Escape closes the editor without a change. Finding: neither VoiceOver nor NVDA (with both browsers) says anything, and the focus stays on the closed input, as the commit leaves it; grid-core records the same silence for the text editor."
+    }
+  ]
+}

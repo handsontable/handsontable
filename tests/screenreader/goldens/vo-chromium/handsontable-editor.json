@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "handsontable-editor",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T14:44:49.020Z"
+  },
+  "steps": {
+    "open-editor": "text entry area al insertion at end of text",
+    "arrow-down-first": "",
+    "arrow-down-second": "",
+    "arrow-down-third": "",
+    "commit-row": "a al column 1 row al al",
+    "back-to-committed": "a alto column 1 row alto al"
+  }
+}

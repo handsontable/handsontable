@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "autocomplete-editor",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T14:02:23.283Z"
+  },
+  "steps": {
+    "open-editor": "combo box expanded has auto complete multi line editable al",
+    "arrow-down-first": "list alpha 1 of 3",
+    "arrow-down-second": "alfa 2 of 3",
+    "arrow-down-third": "alto 3 of 3",
+    "type-narrow": "cell dropdown arrow fixture nightly unknown cell dropdown arrow fixture nightly cell dropdown arrow fixture nightly cell dropdown arrow fixture document table list alfa 2 of 3",
+    "arrow-down-narrowed": "",
+    "commit-choice": "",
+    "back-to-committed": "alfa a row 2 column 2"
+  }
+}
