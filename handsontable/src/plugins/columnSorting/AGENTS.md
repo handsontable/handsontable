@@ -407,13 +407,48 @@ declared there, not in the core-package file).
 it, and with `headerAction: false` no indicator is rendered at all (18.1 painted the arrow only through
 `.columnSorting.sortAction.ascending::before`), so there is nothing to reserve.
 
+## The sort markup is cleared on every header level, for the instance's life
+
+A column header is reused between renders: `TableView#appendColHeader` keeps the `div.relative` and the
+`span.colHeader` and resets only the container's class list, so the sort classes on the label and the
+`ht-sort-indicator` element survive a render unless this plugin removes them. A `nestedHeaders` change moves
+the previous bottom row up, so a header that was sorted becomes a group header. Two paths clear it, both
+through `#clearSortMarkup()`:
+
+- **While the plugin is on**, `#onAfterGetColHeader` clears every header that is not the bottom level
+  instead of returning early. Returning early left `sortAction` on the group label (the CSS keyed on it
+  shrank and shifted the label) when `nestedHeaders` was added to a sorted grid.
+- **While the plugin is off**, `#onAfterGetColHeaderWhileDisabled` runs. It is registered in the
+  constructor with `this.hot.addHook()` (the `require-tracked-hook-in-enable` rule bans that inside
+  `enablePlugin()`) and does nothing until the first enable sets `#mayHaveMarkedHeaders`, so a grid that
+  never sorted pays one boolean check per header. `destroy()` removes it, or a plugin destroyed on a live
+  grid keeps running it against a `hot` that `BasePlugin#destroy()` nulled (pinned by
+  `__tests__/disabledHeaderCleanup.unit.js`). It replaced a hook `disablePlugin()` added and removed
+  after the first `afterViewRender`: that one cleared the bottom level only, and only on one render, so
+  `{ columnSorting: false, nestedHeaders }` in one call, or removing `nestedHeaders` later, kept the classes.
+
+**Do not skip the clear on a header without the `columnSorting` class.** `#syncIcon` is
+`createTrackedIconSync()` per instance: it removes the indicator only from a container this instance
+filled. With ColumnSorting turned off and MultiColumnSorting turned off later, both instances' disabled hooks
+run; ColumnSorting's runs first, strips the classes and cannot see MultiColumnSorting's indicator. A
+"nothing to clear" check on the class then made MultiColumnSorting skip its own indicator, which stayed.
+
+**While another sorting plugin is on (`pluginConflictsState`), the disabled hook clears on one render only.**
+That plugin cannot remove what this one drew: its `#syncIcon` does not know this instance's indicators, and
+ColumnSorting's `getClassesToRemove()` has no `sort-N` badge. So `disablePlugin()` sets `#clearsUnderConflict`,
+and an `afterViewRender` hook added once resets it: one update that switches the two plugins
+(`{ multiColumnSorting: false, columnSorting: true }`, or the other way) clears the old plugin's markup on the
+render that follows. After that render the hook skips again. Clearing on every render under the other plugin
+removes its indicator each time and it draws a new element, so the `<i>` is replaced on every `render()`.
+Pinned by `tests/e2e/header-plugin-markup-all-rows.spec.ts` and `__tests__/disabledHeaderCleanup.unit.js`.
+
 ## The indicator is a real element, and it still needs the ghost-table `*` stand-in
 
 `#onAfterGetColHeader` keys `syncIcon(this.hot, container, 'ht-sort-indicator', iconName)` on the sort
 order, the `indicator` setting, and the `headerAction` setting: ascending → `arrowNarrowUp`, descending →
 `arrowNarrowDown`, anything else (no sort, `indicator: false`, `headerAction: false` — 18.1 parity, the
-column keeps its `aria-sort` but shows no arrow — or the whole plugin disabled via `disablePlugin()`'s
-`clearColHeader`) →
+column keeps its `aria-sort` but shows no arrow — or the whole plugin disabled, through
+`#clearSortMarkup()`, see the section above) →
 `null`, which removes the slot. `syncIcon` guarantees exactly one `<i class="ht-icon
 ht-sort-indicator">` in the container regardless of how many times a render calls this hook.
 
