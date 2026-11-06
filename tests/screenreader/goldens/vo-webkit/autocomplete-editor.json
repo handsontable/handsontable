@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "autocomplete-editor",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T14:15:22.097Z"
+  },
+  "steps": {
+    "open-editor": "al expanded group 9 items",
+    "arrow-down-first": "alpha",
+    "arrow-down-second": "alfa table 3 columns",
+    "arrow-down-third": "alto table 3 columns",
+    "type-narrow": "alf list box pop up expanded combo box table 3 columns",
+    "arrow-down-narrowed": "",
+    "commit-choice": "al collapsed al",
+    "back-to-committed": "a alfa table 3 columns"
+  }
+}

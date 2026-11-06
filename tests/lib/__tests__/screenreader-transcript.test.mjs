@@ -6,6 +6,7 @@ import {
   describeAction,
   goldenFromTranscript,
   matchTokenGroups,
+  matchTraversal,
   normalizeAnnouncement,
   renderTranscriptLog,
   transcriptCounts,
@@ -128,7 +129,7 @@ test('a golden recorded from a transcript compares as a match with it', () => {
 test('transcriptCounts and the log say what passed and what did not', () => {
   const counts = transcriptCounts(transcript());
 
-  assert.deepEqual(counts, { steps: 2, tokenFailures: 1, goldenStatus: 'missing', goldenDifferences: 0, durationMs: 4200 });
+  assert.deepEqual(counts, { steps: 2, tokenFailures: 1, unsupported: 0, traversalFailed: false, goldenStatus: 'missing', goldenDifferences: 0, durationMs: 4200 });
 
   const log = renderTranscriptLog(transcript({ golden: { status: 'differs', differences: [{ id: 'open-editor', expected: 'x', actual: 'edit multi line alice' }] } }));
 
@@ -136,6 +137,47 @@ test('transcriptCounts and the log say what passed and what did not', () => {
   assert.match(log, /\[arrow-right\] press ArrowRight \(2100 ms\)\n {2}spoken: "34 {2}Age {2}row 2 column 3"\n {2}tokens PASS: 34, age \| golden same/);
   assert.match(log, /\[open-editor\] press Enter[^\n]*\n[^\n]*\n {2}tokens FAIL: alice, MISSING \[text area\] \| golden DIFF/);
   assert.equal(describeAction({ selectCell: [0, -1] }), 'selectCell [0, -1]');
+  assert.equal(describeAction({ read: 'next' }), 'read next');
+  assert.equal(describeAction({ activate: true }), 'activate', 'a primitive without a value is its name');
+});
+
+test('the log lists the steps the lane did not drive, what the reader said preparing a step, and the traversal', () => {
+  const log = renderTranscriptLog(transcript({
+    steps: [{ ...transcript().steps[0], preparing: ['browse mode'] }],
+    unsupported: [{ id: 'enter-grid', action: { read: 'in' }, reason: 'NVDA has no interaction level.' }],
+    traversal: { passed: false, steps: ['arrow-right'], items: [{ item: 'A1', count: 2, firstStep: 'arrow-right' }, { item: 'B1', count: 1, firstStep: 'arrow-right' }], outOfOrder: ['B1'] },
+  }));
+
+  assert.match(log, /\[arrow-right\] press ArrowRight \(2100 ms\)\n {2}preparing: \["browse mode"\]\n {2}spoken:/);
+  assert.match(log, /^\[enter-grid\] read in: not run on this lane \(NVDA has no interaction level\.\)$/m);
+  assert.match(log, /^# traversal FAIL over arrow-right: A1×2 B1×1; out of order: B1$/m);
+  assert.equal(transcriptCounts(transcript({ unsupported: [{ id: 'x', action: { read: 'in' }, reason: 'r' }] })).unsupported, 1);
+  assert.equal(transcriptCounts(transcript({ traversal: { passed: false, steps: [], items: [], outOfOrder: [] } })).traversalFailed, true);
+});
+
+test('a traversal reads every item once and in order, and names the twice, the never and the out of order', () => {
+  const step = (id, normalized) => ({ id, normalized });
+  const traversal = { from: 'b', to: 'd', items: ['A1', 'B1', 'C1', '2'] };
+
+  assert.deepEqual(matchTraversal([step('a', 'c1 b1'), step('b', 'table a1'), step('c', 'b1 row 2'), step('d', 'c1 2'), step('e', 'a1')], traversal), {
+    passed: true,
+    steps: ['b', 'c', 'd'],
+    items: [{ item: 'A1', count: 1, firstStep: 'b' }, { item: 'B1', count: 1, firstStep: 'c' }, { item: 'C1', count: 1, firstStep: 'd' }, { item: '2', count: 1, firstStep: 'd' }],
+    outOfOrder: [],
+  }, 'only the steps from `from` to `to` count, and a digits item is never part of `row 2`');
+
+  const off = matchTraversal([step('b', 'a1 c1'), step('c', 'a1 b1'), step('d', 'row 2 column 2')], traversal);
+
+  assert.equal(off.passed, false);
+  assert.deepEqual(off.items.map(entry => [entry.item, entry.count, entry.firstStep]), [['A1', 2, 'b'], ['B1', 1, 'c'], ['C1', 1, 'b'], ['2', 0, null]]);
+  assert.deepEqual(off.outOfOrder, ['C1'], 'C1 was first read before B1, which is listed ahead of it');
+  assert.equal(matchTraversal([step('b', 'a10 b1'), step('d', 'c1 2')], traversal).items[0].count, 0, 'a whole word: A1 is not inside A10');
+  assert.equal(matchTraversal([step('b', 'a1 b1')], { from: 'b', to: 'b', items: ['A1.', 'B1'] }).passed, true, 'items normalize as tokens do');
+
+  const spelled = matchTraversal([step('b', 'a 1 b1'), step('c', 'row 2 a a column 2 a 1')], { from: 'b', to: 'c', items: [['A1', 'A 1'], ['B1', 'B 1']] });
+
+  assert.deepEqual(spelled.items, [{ item: 'A1', count: 2, firstStep: 'b' }, { item: 'B1', count: 1, firstStep: 'b' }],
+    'every synonym of an item counts (NVDA spells A1 as "A 1"), and the first names it');
 });
 
 test('the log of a run that stopped at a step names the step and the error above the steps it captured', () => {

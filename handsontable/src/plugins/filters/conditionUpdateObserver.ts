@@ -38,6 +38,15 @@ class ConditionUpdateObserver {
    */
   columnDataFactory;
   /**
+   * Function which turns the rows that match the conditions into the rows that survive them (the
+   * Filters plugin passes them through `modifyFiltersMatchedRows` and normalizes the answer). It
+   * runs once per list build, on a fresh `DataFilter` result, and gets the condition collection the
+   * rows were matched with, so the blank test reads only the columns those conditions read.
+   *
+   * @type {Function}
+   */
+  matchedRowsModifier;
+  /**
    * Collected changes when grouping is enabled.
    *
    * @type {Array}
@@ -77,17 +86,21 @@ class ConditionUpdateObserver {
   #columnEntriesCache: Map<number, ColumnDataEntry[]> | null = null;
 
   /**
-   * Initializes the observer with the Handsontable instance, a condition collection to watch, and an optional factory for column source data.
+   * Initializes the observer with the Handsontable instance, a condition collection to watch, an optional factory for
+   * column source data, and an optional function that adjusts the rows matching the conditions.
    */
   constructor(
     hot: HotInstance,
     conditionCollection: ConditionCollection,
     columnDataFactory: (physicalColumn: number, physicalRows?: number[]) => ColumnDataMap =
-    () => ColumnDataMap.empty()
+    () => ColumnDataMap.empty(),
+    matchedRowsModifier: (matchedRows: number[], conditionCollection: ConditionCollection) => number[] =
+    matchedRows => matchedRows
   ) {
     this.hot = hot;
     this.conditionCollection = conditionCollection;
     this.columnDataFactory = columnDataFactory;
+    this.matchedRowsModifier = matchedRowsModifier;
 
     this.conditionCollection.addLocalHook('beforeRemove', (column: number) => this.#onConditionBeforeModify(column));
     this.conditionCollection.addLocalHook('afterRemove', (column: number) => this.updateStatesAtColumn(column));
@@ -271,10 +284,12 @@ class ConditionUpdateObserver {
       // Correlate rows through the immutable physical row index `DataFilter.filter()` returns. The
       // coordinate stamps on `meta` are shared with every other meta reader (each read re-stamps
       // them), so they must not be used to match rows between two reads.
-      const visibleRowsAssertion = createArrayAssertion((new DataFilter(
+      // Adjusted the way the trimming pass adjusts them, so the list offers the values of every row
+      // the earlier columns keep - the ancestors of a matching nested row among them (DEV-512).
+      const visibleRowsAssertion = createArrayAssertion(this.matchedRowsModifier((new DataFilter(
         splitConditionCollection,
         (physicalColumn: number, physicalRows?: number[]) => this.#getColumnData(physicalColumn, physicalRows)
-      )).filter());
+      )).filter(), splitConditionCollection));
 
       splitConditionCollection.destroy();
 

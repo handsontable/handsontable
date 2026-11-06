@@ -234,6 +234,12 @@ export class ColumnSorting extends BasePlugin {
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
   /**
+   * Sorts of released header presses that wait for a mid-edit cell to finish validating, in press order. A wait
+   * runs its press only while the set still holds it, so turning the plugin off, a data load, and a column order
+   * reset drop them all, and a second press made during the wait keeps the first.
+   */
+  #awaitingHeaderSorts = new Set<HeaderSortPress>();
+  /**
    * `true` from an `enablePlugin()` until the settings sort of that enable runs in the ready step.
    * `onDataReady()` sorts itself, so it clears it too.
    */
@@ -246,6 +252,21 @@ export class ColumnSorting extends BasePlugin {
    * @type {Function}
    */
   #syncIcon = createTrackedIconSync();
+  /**
+   * Whether the plugin has been on at least once, so a header can still hold its sort markup. Until
+   * then the header hook that clears the markup while the plugin is off has nothing to do.
+   *
+   * @type {boolean}
+   */
+  #mayHaveMarkedHeaders = false;
+  /**
+   * Whether the header hook clears the sort markup even while another sorting plugin is on. It is set
+   * when the plugin turns off and reset after the next view render: the plugin that turns on in the same
+   * update removes only the markup it drew itself, so this plugin clears its own once.
+   *
+   * @type {boolean}
+   */
+  #clearsUnderConflict = false;
   /**
    * Main settings key designed for the plugin.
    *
@@ -270,6 +291,19 @@ export class ColumnSorting extends BasePlugin {
    * @type {null|IndexesSequence}
    */
   #sortedRowOrder: IndexesSequence | null = null;
+
+  /**
+   * Registers the header hook that clears the sort markup while the plugin is off. It outlives every
+   * disable, because a header the plugin marked can be drawn again at any later render, also on another
+   * header level. `destroy()` removes it.
+   *
+   * @param {HotInstance} hotInstance The Handsontable instance.
+   */
+  constructor(hotInstance: HotInstance) {
+    super(hotInstance);
+
+    this.hot.addHook('afterGetColHeader', this.#onAfterGetColHeaderWhileDisabled);
+  }
 
   /**
    * Returns the value each column property an object setting sets takes when the object leaves it out: an
@@ -323,6 +357,8 @@ export class ColumnSorting extends BasePlugin {
 
     pluginConflictsState.set(this.hot, this.pluginKey);
 
+    this.#mayHaveMarkedHeaders = true;
+
     this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
     this.columnMetaCache = this.hot.columnIndexMapper.createAndRegisterIndexMap(
       `${this.pluginKey}.columnMeta`,
@@ -366,32 +402,14 @@ export class ColumnSorting extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
-    const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
-      const headerSpanElement = getHeaderSpanElement(TH);
-
-      if (isFirstLevelColumnHeader(column, TH) === false || headerSpanElement === null) {
-        return;
-      }
-
-      this.updateHeaderClasses(headerSpanElement);
-      this.#syncIndicatorReserve(headerSpanElement);
-
-      const container = headerSpanElement.parentElement;
-
-      if (container) {
-        this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
-      }
-    };
-
     if (pluginConflictsState.get(this.hot) === this.pluginKey) {
       pluginConflictsState.delete(this.hot);
     }
 
-    // Changing header width and removing indicator.
-    this.hot.addHook('afterGetColHeader', clearColHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetColHeader', clearColHeader);
-    });
+    if (this.#mayHaveMarkedHeaders) {
+      this.#clearsUnderConflict = true;
+      this.hot.addHookOnce('afterViewRender', this.#onAfterViewRenderAfterDisable);
+    }
 
     this.hot.batchExecution(() => {
       if (this.indexesSequenceCache !== null) {
@@ -408,7 +426,7 @@ export class ColumnSorting extends BasePlugin {
     this.columnStatesManager?.destroy();
     this.columnMetaCache = null;
     this.columnStatesManager = null;
-    this.#pendingHeaderSort = null;
+    this.#dropHeaderSorts();
 
     this.unregisterShortcuts();
     super.disablePlugin();
@@ -1189,7 +1207,13 @@ export class ColumnSorting extends BasePlugin {
   #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement) => {
     const headerSpanElement = getHeaderSpanElement(TH);
 
-    if (isFirstLevelColumnHeader(column, TH) === false || headerSpanElement === null) {
+    if (column < 0 || headerSpanElement === null) {
+      return;
+    }
+
+    if (isFirstLevelColumnHeader(column, TH) === false) {
+      this.#clearSortMarkup(headerSpanElement);
+
       return;
     }
 
@@ -1232,6 +1256,59 @@ export class ColumnSorting extends BasePlugin {
       setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }
   };
+
+  /**
+   * Callback for the `afterGetColHeader` hook while the plugin is off. Clears the sort markup a
+   * header keeps from the time the plugin was on. A header is reused between renders, and a
+   * `nestedHeaders` change moves the previous bottom level up, so every header level is cleared.
+   * Another sorting plugin that is on owns the same classes, so nothing is cleared then, except on the
+   * first render after this plugin turned off (`#clearsUnderConflict`).
+   *
+   * @param {number} column Visual column index.
+   * @param {HTMLTableCellElement} TH The header element.
+   */
+  #onAfterGetColHeaderWhileDisabled = (column: number, TH: HTMLTableCellElement) => {
+    if (!this.#mayHaveMarkedHeaders || this.enabled || column < 0) {
+      return;
+    }
+
+    if (pluginConflictsState.has(this.hot) && !this.#clearsUnderConflict) {
+      return;
+    }
+
+    const headerSpanElement = getHeaderSpanElement(TH);
+
+    if (headerSpanElement !== null) {
+      this.#clearSortMarkup(headerSpanElement);
+    }
+  };
+
+  /**
+   * Callback for the first `afterViewRender` hook after the plugin turns off. Ends the render in which
+   * the header hook clears the sort markup under another sorting plugin.
+   */
+  #onAfterViewRenderAfterDisable = () => {
+    this.#clearsUnderConflict = false;
+  };
+
+  /**
+   * Removes the sort classes, the indicator reserve, and the sort indicator from a header. The
+   * indicator is removed only from a header this instance drew it in (`#syncIcon` tracks them), so
+   * the clear must not be skipped when another sorting plugin's instance already removed the
+   * classes: the indicator that instance cannot see is this one's.
+   *
+   * @param {HTMLElement} headerSpanElement The header label element.
+   */
+  #clearSortMarkup(headerSpanElement: HTMLElement) {
+    this.updateHeaderClasses(headerSpanElement);
+    this.#syncIndicatorReserve(headerSpanElement);
+
+    const container = headerSpanElement.parentElement;
+
+    if (container) {
+      this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
+    }
+  }
 
   /**
    * Update header classes.
@@ -1367,7 +1444,8 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Callback for the `afterLoadData` hook. Sorts the rows an `init` listener loads: that load replaces the rows
+   * Callback for the `afterLoadData` hook. Drops the header sorts waiting for a validator, because the presses
+   * were made on the rows the load replaced. Sorts the rows an `init` listener loads: that load replaces the rows
    * the ready step sorted, and it skips the load's own ready step pass. Only that load has a truthy
    * `initialLoad` while the view exists; the load made before the view and every load after init pass by.
    *
@@ -1375,6 +1453,8 @@ export class ColumnSorting extends BasePlugin {
    * @param {boolean|Array} initialLoad Whether the load is made during init.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: unknown) => {
+    this.#awaitingHeaderSorts.clear();
+
     if (initialLoad && this.hot.view) {
       this.#loadOrSortBySettings();
     }
@@ -1538,8 +1618,24 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    void pending.validation.then(() => this.applyHeaderClickSort(pending));
+    this.#awaitingHeaderSorts.add(pending);
+
+    void pending.validation.then(() => {
+      if (!this.#awaitingHeaderSorts.delete(pending)) {
+        return;
+      }
+
+      this.applyHeaderClickSort(pending);
+    });
   };
+
+  /**
+   * Drops the queued press and every sort that waits for a validator.
+   */
+  #dropHeaderSorts(): void {
+    this.#pendingHeaderSort = null;
+    this.#awaitingHeaderSorts.clear();
+  }
 
   /**
    * Marks a queued press as spent once ManualColumnMove has moved the column.
@@ -1551,15 +1647,15 @@ export class ColumnSorting extends BasePlugin {
   };
 
   /**
-   * Drops a queued press when the column order starts over (`loadData()`, `updateSettings()` with `columns`,
-   * or new data with another column layout). The press names a column of the order it was made on, so the
-   * release would sort another column.
+   * Drops a queued press and a sort waiting for a validator when the column order starts over (`loadData()`,
+   * `updateSettings()` with `columns`, or new data with another column layout). The press names a column of the
+   * order it was made on, so the release would sort another column.
    *
    * @param {string} source The source of the sequence change.
    */
   #onAfterColumnSequenceChange = (source: string) => {
     if (source === 'init') {
-      this.#pendingHeaderSort = null;
+      this.#dropHeaderSorts();
     }
   };
 
@@ -1578,7 +1674,9 @@ export class ColumnSorting extends BasePlugin {
   destroy(): void {
     // `BasePlugin.destroy` nulls enumerable own properties, which cannot reach a `#private`
     // field, so drop the queued press here.
-    this.#pendingHeaderSort = null;
+    this.#dropHeaderSorts();
+
+    this.hot.removeHook('afterGetColHeader', this.#onAfterGetColHeaderWhileDisabled);
 
     // TODO: Probably not supported yet by ESLint: https://github.com/eslint/eslint/issues/11045
     // eslint-disable-next-line no-unused-expressions

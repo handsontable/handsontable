@@ -217,9 +217,17 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming');
+    // A collapse only folds the children away: the filter still evaluates them, so their values
+    // must stay in the Filters plugin's "Filter by value" list (DEV-512).
+    this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming', false, {
+      keepsRowsInFilterScope: true,
+    });
 
     this.dataManager = new DataManager(this, this.hot);
+    // `beforeCacheUpdate` drops the counts before the public `afterRowSequenceCacheUpdate` hook
+    // runs, and `cacheUpdated` again: a read in between would refill them from the old state.
+    this.hot.rowIndexMapper.addLocalHook('beforeCacheUpdate', this.#onRowIndexCacheUpdated);
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
@@ -232,6 +240,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('modifySourceLength', this.onModifySourceLength.bind(this));
     this.addHook('beforeDataSplice', this.onBeforeDataSplice.bind(this));
     this.addHook('filterData', this.#onFilterData);
+    this.addHook('modifyFiltersMatchedRows', this.#onModifyFiltersMatchedRows);
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
@@ -268,6 +277,8 @@ export class NestedRows extends BasePlugin {
    * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
+    this.hot.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onRowIndexCacheUpdated);
+    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();
@@ -1242,6 +1253,31 @@ export class NestedRows extends BasePlugin {
 
     return false;
   }
+
+  /**
+   * The row index mapper's `beforeCacheUpdate` and `cacheUpdated` local hook callback. Drops the
+   * data manager's reachable-sibling counts around a cache change (a trim, an untrim, a collapse, a
+   * filter), so `aria-posinset`/`aria-setsize` are recounted on the next read.
+   */
+  #onRowIndexCacheUpdated = () => {
+    this.dataManager?.invalidateSetPositions();
+  };
+
+  /**
+   * `modifyFiltersMatchedRows` hook callback. Keeps the tree whole while the Filters plugin filters:
+   * a matching row keeps its ancestors, so it is never shown without its parents (and a collapse
+   * cannot leave the grid empty), and its descendants, so a matching parent shows its whole subtree
+   * (DEV-512). A row that matches only through blank cells keeps its ancestors but not its
+   * subtree, so an empty parent cell cannot bring back the children the filter excluded.
+   *
+   * @param {number[]} matchedRows Physical indexes of the rows that match every condition.
+   * @param {number[]} blankMatchedRows Physical indexes of the matching rows whose every conditioned
+   * column reads empty.
+   * @returns {number[]}
+   */
+  #onModifyFiltersMatchedRows = (matchedRows: number[], blankMatchedRows: number[]) => {
+    return this.dataManager!.getRowsToKeepForMatches(matchedRows, blankMatchedRows);
+  };
 
   /**
    * Provide custom source data filtering. It's handled by core method and replaces the native filtering.

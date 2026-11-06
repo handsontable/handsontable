@@ -196,8 +196,8 @@ test('the checks job is report-only: continue-on-error on the job, a red job on 
   assert.match(upload, /^ {10}name: a11y-checks-evidence$/m,
     `${A11Y}: the evidence artifact stays outside the playwright-report-* glob test-health.yml reads. ${CHECKS_DOC}`);
   assert.match(upload, /^ {10}path: tests\/test-results\/a11y-checks$/m, `${A11Y}: the upload is the checks config's outputDir. ${CHECKS_DOC}`);
-  assert.match(upload, /^ {10}retention-days: \$\{\{ inputs\.nightly && 30 \|\| 7 \}\}$/m,
-    `${A11Y}: the nightly's evidence is what the conformance report cites, so it is kept 30 days; a pull request's 7. ${CHECKS_DOC}`);
+  assert.match(upload, /^ {10}retention-days: \$\{\{ inputs\.nightly && inputs\.check-ids == '' && 30 \|\| 7 \}\}$/m,
+    `${A11Y}: a nightly's run of every check is what the conformance report cites, so it is kept 30 days; the short suite's and a subset's (check-ids, a proof run) cite nothing and keep 7. ${CHECKS_DOC}`);
 
   const summary = step('Write the job summary');
 
@@ -231,7 +231,8 @@ test('the checks config builds on the e2e config, takes its projects from the re
 test('the A11y nightly builds the UMD bundle and calls the module with every check, on a dispatch and never a cron', () => {
   const workflow = stripYamlComments(read(NIGHTLY));
 
-  assert.deepEqual(jobIds(workflow), ['build', 'a11y', 'verdict', 'notify']);
+  assert.deepEqual(jobIds(workflow), ['check-inputs', 'build', 'a11y', 'verdict', 'notify'],
+    `${NIGHTLY}: the input guard, build, the module, the run verdict, the Slack ping. ${CHECKS_DOC}`);
   assert.doesNotMatch(workflow, /^ {2}schedule:$/m,
     `${NIGHTLY}: manual trigger only. The accessibility program runs one audit, fixes, and re-audits; a cron would spend the compute on nights nobody reads. The tiers (axe on a pull request, a semi-lite set on a nightly, the full set on a release candidate and a stable release) come back with the schedule, not before. ${CHECKS_DOC}`);
   assert.doesNotMatch(workflow, /cron/, `${NIGHTLY}: no cron, under any key. ${CHECKS_DOC}`);
@@ -244,7 +245,7 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
   assert.match(a11y, /^ {4}needs: \[ build \]$/m);
   assert.match(a11y, /^ {4}uses: \.\/\.github\/workflows\/a11y\.yml$/m);
   assert.match(a11y, /^ {6}nightly: \$\{\{ inputs\.suite != 'pull-request' \}\}$/m,
-    `${NIGHTLY}: every check on the cron and on a plain dispatch; a dispatch that asks for the short suite (suite: pull-request) runs the checks a developer runs locally. ${CHECKS_DOC}`);
+    `${NIGHTLY}: every check on a plain dispatch; a dispatch that asks for the short suite (suite: pull-request) runs the checks a developer runs locally. ${CHECKS_DOC}`);
   assert.match(workflow, /^ {2}workflow_dispatch:\n {4}inputs:\n {6}suite:\n(?: {8}.*\n)*? {8}options: \[ nightly, pull-request \]$/m,
     `${NIGHTLY}: a dispatch picks the suite, every check by default. ${CHECKS_DOC}`);
   assert.match(workflow, /^ {8}default: nightly$/m,
@@ -255,6 +256,22 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
     `${NIGHTLY}: the checks input is forwarded as the module's check-ids input, which reaches the config as A11Y_CHECKS. ${CHECKS_DOC}`);
   assert.doesNotMatch(a11y, /secrets: inherit/, `${NIGHTLY}: the called workflow reads only GITHUB_TOKEN.`);
   assert.match(job(workflow, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the checks consume the UMD build artifact.`);
+  assert.match(job(workflow, 'build'), /^ {4}needs: \[ check-inputs \]$/m,
+    `${NIGHTLY}: the build waits for the input guard, so a refused dispatch (the short suite or a checks subset on develop, an entry that is no check id) spends no runner. ${CHECKS_DOC}`);
+
+  const guard = job(workflow, 'check-inputs');
+  const guardRun = steps(guard).find(entry => /^- name: Refuse a subset on develop and an entry that names nothing$/m.test(entry)) ?? '';
+
+  assert.match(guard, /^ {4}if: github\.event_name != 'pull_request'$/m, `${NIGHTLY}: the guard skips itself on the validation run, like the jobs after it. ${CHECKS_DOC}`);
+  assert.match(guard, /^ {4}runs-on: ubuntu-26\.04$/m);
+  assert.deepEqual(permissions(guard), ['contents: read'], `${NIGHTLY}: the guard reads the checkout and nothing else. ${CHECKS_DOC}`);
+  assert.match(guard, /^ {10}persist-credentials: false$/m);
+  assert.match(guard, /^ {10}sparse-checkout: \|\n {12}tests\/lib\n {12}tests\/scripts$/m,
+    `${NIGHTLY}: the guard reads the registry from tests/lib and the script from tests/scripts, nothing else. ${CHECKS_DOC}`);
+  assert.match(guardRun, /A11Y_SUITE: \$\{\{ inputs\.suite == 'pull-request' && 'pull-request' \|\| 'nightly' \}\}/);
+  assert.match(guardRun, /A11Y_CHECKS: \$\{\{ inputs\.checks \}\}/);
+  assert.match(guardRun, /^ {8}run: node tests\/scripts\/a11y-dispatch-inputs\.mjs --ref "\$GITHUB_REF" --suite "\$A11Y_SUITE" --checks "\$A11Y_CHECKS"$/m,
+    `${NIGHTLY}: the guard reads the ref, the suite and the checks input the way the verdict does (dispatchSubset()): the short suite and a subset on develop, and an entry that is no check id, are refused before the build. ${CHECKS_DOC}`);
   for (const id of ['build', 'a11y']) {
     assert.match(job(workflow, id), /^ {4}if: github\.event_name != 'pull_request'$/m,
       `${NIGHTLY}: a pull request that touches the file gets a validated run whose jobs skip themselves.`);
@@ -287,7 +304,8 @@ test('the A11y nightly ends on a verdict job that follows its worst check run, a
     `${NIGHTLY}: the verdict expects the checks of the suite the a11y job ran. ${VERDICT_DOC}`);
   assert.match(run, /A11Y_CHECKS: \$\{\{ inputs\.checks \}\}/,
     `${NIGHTLY}: on a subset dispatch the verdict expects the named checks only, the ones the a11y job ran; without this a subset run ends red for the checks it never ran. ${VERDICT_DOC}`);
-  assert.match(run, /run: node tests\/scripts\/a11y-run-verdict\.mjs --prefix "A11y \/ " --a11y-suite "\$A11Y_SUITE" --a11y-checks "\$A11Y_CHECKS"$/m, VERDICT_DOC);
+  assert.match(run, /run: node tests\/scripts\/a11y-run-verdict\.mjs --prefix "A11y \/ " --ref "\$GITHUB_REF" --a11y-suite "\$A11Y_SUITE" --a11y-checks "\$A11Y_CHECKS"$/m,
+    `${NIGHTLY}: the verdict reads the ref and the inputs the way the check-inputs job did (dispatchSubset()), so what the guard refused is one line here, not a row per missing check. ${VERDICT_DOC}`);
 });
 
 

@@ -42,7 +42,9 @@
       "version": "macOS 26",
       "platform": "macOS",
       "browsers": ["WebKit (Playwright)", "Chromium"],
-      "howTested": ["automated-nightly"]
+      "howTested": ["automated-nightly"],
+      "scenarios": 24,
+      "unsupported": []
     },
     {
       "name": "VoiceOver",
@@ -61,7 +63,9 @@
       "version": "2026.2",
       "platform": "Windows Server 2025",
       "browsers": ["Chromium", "Firefox (Playwright)"],
-      "howTested": ["automated-nightly"]
+      "howTested": ["automated-nightly"],
+      "scenarios": 24,
+      "unsupported": ["read in"]
     },
     {
       "name": "JAWS",
@@ -174,6 +178,6 @@
   ],
   "notes": {
     "mobile": "VoiceOver on iOS was part of the last audit. Mobile screen readers are checked by hand once per major release.",
-    "automation": "An automated nightly run drives a real screen reader through the grid's keyboard scenarios and records what it announces. A screen reader joins the list above as an automated nightly run once its run is in place."
+    "automation": "An automated run drives a real screen reader through the grid's keyboard scenarios and records what it announces. A screen reader joins the list above as an automated run once its run is in place."
   }
 }

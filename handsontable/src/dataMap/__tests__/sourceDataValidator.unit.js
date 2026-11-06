@@ -29,7 +29,7 @@ function createMockHot({
       col: physicalColumn,
       visualRow,
       visualCol: visualColumn,
-      sourceDataWarningMessage: 'invalid',
+      sourceDataWarningMessage: 'sourceDataValidator spec: the value was rejected',
     };
 
     if (validator) {

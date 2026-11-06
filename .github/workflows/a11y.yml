@@ -206,7 +206,8 @@ jobs:
         timeout-minutes: ${{ inputs.nightly && 20 || 10 }}
         run: cd tests && npx playwright test --config playwright.a11y-checks.config.ts
       # The evidence: the documents, every target's detail and the Playwright traces of a red test. A
-      # nightly's is what the conformance report cites, so it is kept for 30 days.
+      # nightly's run of every check is what the conformance report cites, so it is kept for 30 days; the
+      # short suite's and a subset's (`check-ids`, a proof run on a branch) cite nothing and keep 7.
       - name: Upload the evidence
         id: evidence
         if: ${{ !cancelled() }}
@@ -215,7 +216,7 @@ jobs:
           name: a11y-checks-evidence
           path: tests/test-results/a11y-checks
           if-no-files-found: warn
-          retention-days: ${{ inputs.nightly && 30 || 7 }}
+          retention-days: ${{ inputs.nightly && inputs.check-ids == '' && 30 || 7 }}
           overwrite: true
       - name: Write the job summary
         if: ${{ !cancelled() }}

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "checkbox-cell",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T15:03:07.027Z"
+  },
+  "steps": {
+    "arrow-up-unchecked": "unchecked done row 2 task column 3",
+    "space-check": "",
+    "space-uncheck": "",
+    "arrow-down-checked": "checked done row 3 task column 3",
+    "arrow-down-read-only": "unchecked done row 4 task column 3",
+    "space-on-read-only": "",
+    "arrow-up-checked": "checked done row 3 task column 3"
+  }
+}

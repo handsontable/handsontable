@@ -10,6 +10,7 @@ import { createStep, type SelectionSnapshot, type StepRecord, type StepSelection
 import { isStructural, restoreStep, type RestoreDirection } from './restore';
 import { collectRestoredCells, toCellChanges, toVisibleCells, type RestoredCell } from './restoredCells';
 import { addressesChangedColumn, type ColumnChangeTest } from './stepColumns';
+import { copyRows, hasSameRows } from './sameRows';
 import { haveSameIndexMaps } from '../../translations/indexMapperSnapshot';
 import { LICENSE } from './feature.generated';
 
@@ -207,6 +208,21 @@ export class UndoRedo extends BasePlugin {
   #lastState: GridStateSnapshot | null = null;
 
   /**
+   * The dataset array the history was recorded on, as the last data load or update installed it.
+   */
+  #datasetArray: unknown[] | null = null;
+
+  /**
+   * A copy of the dataset array the history was recorded on: the rows the last data load or update, or the
+   * last step that added or removed rows, left. A copy, because the application can reorder or replace the
+   * rows of the live array in place, and the live array then no longer tells what the history was made on.
+   * An `updateData()` call that brings the same rows keeps the history; one that brings other rows drops it.
+   * It exists only while there is a history to protect: it is taken when a transaction opens, and dropped with
+   * the history, so a wrapper that passes `data` on every render pays nothing for it.
+   */
+  #datasetRows: unknown[] | null = null;
+
+  /**
    * What the plugin keeps for each recorded step, keyed by the step object the stacks hold.
    */
   #records = new WeakMap<object, StepRecord>();
@@ -308,7 +324,10 @@ export class UndoRedo extends BasePlugin {
     scope.addOpenListener(this.#onTransactionOpen);
     scope.addSettleListener(this.#onTransactionSettle);
 
+    this.#setDatasetArray(this.hot.getSettings().data);
+
     this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
     this.registerShortcuts();
 
@@ -803,6 +822,8 @@ export class UndoRedo extends BasePlugin {
     const undoneActionsCopy = this.undoneActions.slice();
 
     this.doneActions.push(step);
+    // A step of the legacy `done()` opens no transaction, so the rows are copied here.
+    this.#ensureDatasetRows();
     this.#trimUndoStack();
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
@@ -1046,6 +1067,7 @@ export class UndoRedo extends BasePlugin {
     this.#dropSteps(this.doneActions.length, this.undoneActions.length);
     this.#epoch += 1;
     this.#lastState = null;
+    this.#datasetRows = null;
     this.#pending.clear();
     this.#joined.clear();
     this.#owesColumnsCheck = false;
@@ -1362,6 +1384,8 @@ export class UndoRedo extends BasePlugin {
     this.#tracker?.destroy();
     this.#tracker = null;
     this.#lastState = null;
+    this.#datasetRows = null;
+    this.#datasetArray = null;
     this.#pending.clear();
     this.#joined.clear();
     this.#owesColumnsCheck = false;
@@ -1396,11 +1420,60 @@ export class UndoRedo extends BasePlugin {
       this.#lastState = current;
     }
 
+    this.#ensureDatasetRows();
     this.#openEpochs.set(transaction, this.#epoch);
     this.#selectionsBefore.set(transaction, this.hot.getSelected());
     // Added last, so a capture that throws leaves nothing pending.
     this.#pending.add(transaction);
   };
+
+  /**
+   * Follows the rows the grid itself added to or removed from the dataset array (a step, or the filler rows
+   * of `minSpareRows`), so that a later `updateData()` with that array still reads as the same rows. The
+   * copy is taken only when the row count moved, or while a plugin reshapes the source (NestedRows); an
+   * application that changed the array in place without a step is not followed, so its change drops the history.
+   */
+  #followGridRows() {
+    const rows = this.#datasetRows;
+    const live = this.#datasetArray;
+
+    if (rows === null || live === null) {
+      return;
+    }
+
+    if (rows.length !== live.length || (this.#lastState?.sourceStructures.size ?? 0) > 0) {
+      this.#datasetRows = copyRows(live);
+    }
+  }
+
+  /**
+   * Remembers the dataset array a data load or update installed. The copy of its rows is taken when a
+   * transaction opens (`#ensureDatasetRows()`), or kept up when a history survives an update.
+   *
+   * @param {Array|undefined|null} array The dataset array.
+   */
+  #setDatasetArray(array: unknown[] | null | undefined) {
+    this.#datasetArray = Array.isArray(array) ? array : null;
+    this.#datasetRows = null;
+  }
+
+  /**
+   * Copies the rows of the dataset array once a step may be recorded on them.
+   */
+  #ensureDatasetRows() {
+    if (this.#datasetRows === null) {
+      this.#datasetRows = copyRows(this.#datasetArray);
+    }
+  }
+
+  /**
+   * Tells whether a step is recorded or being recorded.
+   *
+   * @returns {boolean}
+   */
+  #holdsHistory(): boolean {
+    return this.doneActions.length > 0 || this.undoneActions.length > 0 || this.#pending.size > 0;
+  }
 
   /**
    * Records a finished step, then runs the `columns` check a settings update made while a transaction
@@ -1410,6 +1483,7 @@ export class UndoRedo extends BasePlugin {
    */
   #onTransactionSettle = (transaction: OperationTransaction) => {
     this.#recordSettled(transaction);
+    this.#followGridRows();
 
     if (this.#owesColumnsCheck && this.#pending.size === 0) {
       this.#owesColumnsCheck = false;
@@ -1519,11 +1593,81 @@ export class UndoRedo extends BasePlugin {
   };
 
   /**
-   * Drops the history after `updateData()`: the recorded steps describe the dataset it replaced.
+   * Remembers the dataset array a data load installed. The history is dropped by `#onAfterChange`.
+   *
+   * @param {Array} sourceData The loaded data.
    */
-  #onAfterUpdateData = () => {
-    this.#resetHistory();
+  #onAfterLoadData = (sourceData: unknown[]) => {
+    this.#setDatasetArray(sourceData);
   };
+
+  /**
+   * Drops the history after `updateData()` brings other rows: the recorded steps describe the dataset
+   * it replaced. A call that brings the same rows, in the same array or in a copy of it, or rows that hold the
+   * values the grid shows (an immutable row update), replaces nothing, so the steps stay valid. A wrapper
+   * passes `data` again on every render, so this is the common case.
+   *
+   * @param {Array} sourceData The data the call installed.
+   */
+  #onAfterUpdateData = (sourceData: unknown[]) => {
+    // The rows a step that has not settled yet added or removed are the grid's own.
+    if (this.#pending.size > 0) {
+      this.#followGridRows();
+    }
+
+    const previousArray = this.#datasetArray;
+    const previousRows = this.#datasetRows;
+
+    this.#setDatasetArray(sourceData);
+
+    if (!this.#keepsHistory(previousArray, previousRows, sourceData)) {
+      this.#resetHistory();
+    }
+
+    // A history that stays goes on with the rows it was kept on.
+    this.#datasetRows = this.#holdsHistory() ? copyRows(sourceData) : null;
+  };
+
+  /**
+   * Tells whether the history describes the data an `updateData()` call installed.
+   *
+   * @param {Array|null} previousArray The dataset array the history was recorded on.
+   * @param {Array|null} previousRows A copy of its rows.
+   * @param {Array} sourceData The data the call installed.
+   * @returns {boolean}
+   */
+  #keepsHistory(previousArray: unknown[] | null, previousRows: unknown[] | null, sourceData: unknown[]): boolean {
+    // Nothing to protect, so nothing is compared and the state is not captured: a wrapper passes `data` on
+    // every render.
+    if (!this.#holdsHistory()) {
+      return true;
+    }
+
+    // A step that is still pending is history too: its edit is already in the rows, and its handler can pass
+    // them again.
+    if (!hasSameRows(previousRows, sourceData, true)) {
+      return false;
+    }
+
+    // A recorded source shape (NestedRows) names the array it was captured on, and a copy is another one.
+    if (previousArray !== sourceData && (this.#lastState?.sourceStructures.size ?? 0) > 0) {
+      return false;
+    }
+
+    // While a transaction is pending its partial changes are its own, as in `#checkSettingsUpdate()`.
+    if (this.#pending.size > 0) {
+      return true;
+    }
+
+    // Rows added or removed in the array in place still change the row count the history was recorded on.
+    // The columns are left to `#checkSettingsUpdate()`, which keeps the steps that address no changed column.
+    const current = this.#tracker?.capture() ?? null;
+    const lastState = this.#lastState;
+
+    return current === null || lastState === null || (
+      current.rows.length === lastState.rows.length && haveSameIndexMaps(current.rows, lastState.rows)
+    );
+  }
 
   /**
    * Destroys the plugin instance.

@@ -11,8 +11,10 @@ module.exports = {
   presets: [
     ['@babel/preset-env', babelPresetConfig()]
   ],
+  // No `transform-inline-environment-variables`: Babel only serves Jest here (the builds use swc
+  // and rspack's DefinePlugin), and Jest reads `process.env` live. Inlining at transform time only
+  // baked a stale `HOT_VERSION` into the cache (DEV-3746).
   plugins: [
-    ['transform-inline-environment-variables'],
     '@babel/plugin-syntax-jsx'
   ],
 };

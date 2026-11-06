@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "id": "row-selection-corner",
+  "group": "selection",
+  "surface": "Row selection in the row headers: a row's checkbox, the select all checkbox in the corner, the announcements, and Ctrl+A selecting the cells.",
+  "page": "grid",
+  "start": "page",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2", "4.1.3"],
+  "setup": [{"updateSettings": {"rowSelection": true, "navigableHeaders": true}}, {"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "arrow-left-row-checkbox",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["select row 1"], ["unchecked", "not checked"]],
+      "note": "ArrowLeft enters the row header, which holds the row's checkbox, `Select row 1`. The scenario starts on the page (`start: page`): the grid page's first item is the toolbar's Add row button, and VoiceOver with Chromium interacted with it and read nothing when the scenario started in the grid, as in virtualization. Finding: no reader says the checkbox's state; NVDA reads the row header's name and number. VoiceOver with WebKit said nothing on this first arrow key in the recording that started on the page."
+    },
+    {
+      "id": "space-select-row",
+      "action": {"press": "Space"},
+      "expect": [["row 1 selected"]],
+      "note": "Space selects the row, and the plugin announces it (`Row 1 selected`)."
+    },
+    {
+      "id": "arrow-up-corner",
+      "action": {"press": "ArrowUp"},
+      "expect": [["select all rows"], ["1 of 5 selected"], ["mixed", "half checked", "partially checked"]],
+      "note": "ArrowUp reaches the corner, which holds the select all checkbox: `Select all rows (1 of 5 selected)`, mixed. Finding: NVDA reads only the corner's own name, `Select whole grid`, and neither the checkbox's name nor its count; VoiceOver with WebKit reads both. No reader says the mixed state."
+    },
+    {
+      "id": "space-select-all",
+      "action": {"press": "Space"},
+      "expect": [["5 of 5 rows selected"]],
+      "note": "Space on a mixed select all selects every row, and the plugin announces the count."
+    },
+    {
+      "id": "space-clear-all",
+      "action": {"press": "Space"},
+      "expect": [["0 of 5 rows selected"]],
+      "note": "Space again clears them."
+    },
+    {
+      "id": "arrow-down-row-header",
+      "action": {"press": "ArrowDown"},
+      "expect": [["select row 1"], ["unchecked", "not checked"]],
+      "note": "Back on row 1's checkbox, cleared. Finding: its state is not read, as on the first step."
+    },
+    {
+      "id": "arrow-right-cell",
+      "action": {"press": "ArrowRight"},
+      "expect": [["a1", "a 1"]],
+      "note": "Back on the first cell."
+    },
+    {
+      "id": "select-all-cells",
+      "action": {"press": "ControlOrMeta+a"},
+      "expect": [["selected"]],
+      "note": "Ctrl+A selects every cell (the grid's own selection, not the row selection), and the focus stays on the cell, so the selected state is required, as extend-range in grid-core requires it for a range. Finding: no reader says that every cell is selected (the committed goldens are empty)."
+    },
+    {
+      "id": "arrow-down-after-select-all",
+      "action": {"press": "ArrowDown"},
+      "expect": [["a2", "a 2"]],
+      "note": "An arrow key after Ctrl+A moves the focus from the first cell."
+    }
+  ]
+}

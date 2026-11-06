@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "autocomplete-editor",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T14:02:16.319Z"
+  },
+  "steps": {
+    "open-editor": "combo box expanded has auto complete multi line editable al",
+    "arrow-down-first": "list section",
+    "arrow-down-second": "section",
+    "arrow-down-third": "section",
+    "type-narrow": "a section",
+    "arrow-down-narrowed": "",
+    "commit-choice": "combo box collapsed has auto complete multi line editable al",
+    "back-to-committed": "alfa a row 2 column 2"
+  }
+}

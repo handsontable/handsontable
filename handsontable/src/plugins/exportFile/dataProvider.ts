@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { extractText } from '../../utils/textExtractor';
-import { normalizeExportOptions, expandNestedHeaderLayers } from './utils';
+import { expandNestedHeaderLayers } from './utils';
 import { toFormulaLiteral, toOoxmlErrorCode } from './types/xlsx/formula-utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
@@ -268,7 +268,7 @@ class ExportDataProvider {
    * @param {object} options Object with specified options.
    */
   setOptions(options: Record<string, unknown>) {
-    this.options = normalizeExportOptions(options);
+    this.options = options;
   }
 
   /**

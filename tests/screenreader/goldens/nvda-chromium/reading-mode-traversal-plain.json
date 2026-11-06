@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "scenario": "reading-mode-traversal-plain",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-03T19:25:40.242Z"
+  },
+  "steps": {
+    "to-grid": "blank",
+    "read-1": "table with 9 rows and 4 columns row 2 column 2 a 1",
+    "read-2": "alpha column 3 b 1",
+    "read-3": "bravo column 4 c 1",
+    "read-4": "row 3 column 2 a 2",
+    "read-5": "alpha column 3 b 2",
+    "read-6": "bravo column 4 c 2",
+    "read-7": "row 4 column 2 a 3",
+    "read-8": "alpha column 3 b 3",
+    "read-9": "bravo column 4 c 3",
+    "read-10": "row 5 column 1",
+    "read-11": "column 2 alpha",
+    "read-12": "column 3 bravo",
+    "read-13": "column 4 charlie",
+    "read-14": "row 6 column 1 1",
+    "read-15": "blank",
+    "read-16": "row 7 2",
+    "read-17": "blank",
+    "read-18": "row 8 3",
+    "read-19": "blank",
+    "read-20": "row 9",
+    "read-21": "out of table blank",
+    "read-22": "button after the grid",
+    "read-23": "button after the grid",
+    "past-grid": "button after the grid"
+  }
+}

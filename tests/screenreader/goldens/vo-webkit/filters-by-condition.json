@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scenario": "filters-by-condition",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T11:08:57.047Z"
+  },
+  "steps": {
+    "open-menu": "clear column menu item group 1 of 1",
+    "tab-to-condition": "none group table 1 column 14 rows",
+    "open-conditions": "none menu item group table 1 column 13 rows",
+    "arrow-down-is-empty": "is empty menu item group table 1 column 13 rows",
+    "arrow-down-is-not-empty": "is not empty menu item group table 1 column 13 rows",
+    "arrow-down-is-equal-to": "is equal to menu item group table 1 column 13 rows",
+    "choose-condition": "value",
+    "type-value": "0 1890",
+    "shift-tab-to-select": "is equal to group table 1 column 16 rows",
+    "shift-tab-to-menu": "clear column menu item group table 1 column 16 rows",
+    "shift-tab-to-cancel": "cancel button table 1 column 16 rows",
+    "shift-tab-to-ok": "ok button table 1 column 16 rows",
+    "apply-filter": "price 1890 table 5 columns"
+  }
+}

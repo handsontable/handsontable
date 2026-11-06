@@ -28,7 +28,9 @@ name: A11y nightly
 on:
   # From any ref: a dispatch on develop with no inputs is the audit (test-health.yml collects it into
   # the findings ledger), and a dispatch from a feature branch is how a new check proves itself before
-  # it merges. Never dispatch two screen reader runs at once; this workflow has no such limit.
+  # it merges (the short suite and the `checks` input are for a branch: the check-inputs job refuses
+  # them on develop, and refuses an entry that is no check id, before the build). Never dispatch two
+  # screen reader runs at once; this workflow has no such limit.
   workflow_dispatch:
     inputs:
       suite:
@@ -55,8 +57,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # The dispatch's inputs, checked before the build spends a runner (tests/scripts/a11y-dispatch-inputs.mjs):
+  # on develop the dispatch is the audit and runs every check, so the short suite and a `checks` subset are
+  # refused there (test-health.yml would collect the run as the latest night, with the checks it skipped
+  # drawn as gone), and an entry of `checks` that is no check id (a space, a typo) is refused, as the config
+  # would refuse it, before the axe scan runs beside a checks job that cannot start. The verdict job reads
+  # the inputs through the same function, so both ends of the run read them one way.
+  check-inputs:
+    name: Check the inputs
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Refuse a subset on develop and an entry that names nothing
+        env:
+          A11Y_SUITE: ${{ inputs.suite == 'pull-request' && 'pull-request' || 'nightly' }}
+          A11Y_CHECKS: ${{ inputs.checks }}
+        run: node tests/scripts/a11y-dispatch-inputs.mjs --ref "$GITHUB_REF" --suite "$A11Y_SUITE" --checks "$A11Y_CHECKS"
+
   build:
     name: Build
+    needs: [ check-inputs ]
     if: github.event_name != 'pull_request'
     uses: ./.github/workflows/build.yml
     with:
@@ -107,10 +139,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_SHA: ${{ github.sha }}
           # Every check on a plain dispatch, as the a11y job runs them; a subset dispatch names its checks, and
-          # the verdict expects those only (the same `checks` input the a11y job reads as A11Y_CHECKS).
+          # the verdict expects those only (the same `checks` input the a11y job reads as A11Y_CHECKS), read
+          # as the check-inputs job read them.
           A11Y_SUITE: ${{ inputs.suite == 'pull-request' && 'pull-request' || 'nightly' }}
           A11Y_CHECKS: ${{ inputs.checks }}
-        run: node tests/scripts/a11y-run-verdict.mjs --prefix "A11y / " --a11y-suite "$A11Y_SUITE" --a11y-checks "$A11Y_CHECKS"
+        run: node tests/scripts/a11y-run-verdict.mjs --prefix "A11y / " --ref "$GITHUB_REF" --a11y-suite "$A11Y_SUITE" --a11y-checks "$A11Y_CHECKS"
 
   # Optional Slack ping, develop only, when the run never reached the checks (the UMD build failed or
   # the called workflow could not start). The checks job carries `continue-on-error`, so a red check is
@@ -132,5 +165,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":red_circle: A11y nightly on ${{ github.ref_name }} failed outside the checks: the UMD build, or the axe scan's tooling. A finding of a check beyond axe is not reported here; its verdict is its A11y check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, A11y: the checks beyond axe."
+              "text": ":red_circle: A11y nightly on ${{ github.ref_name }} failed outside the checks: the UMD build, the axe scan's tooling, or a dispatch input the check-inputs job refused (a subset on develop, an entry that names nothing). A finding of a check beyond axe is not reported here; its verdict is its A11y check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, A11y: the checks beyond axe."
             }

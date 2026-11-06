@@ -11,5 +11,4 @@ export type {
   ConditionalFormattingRule,
   HeaderStyle,
   HeaderStyleBorder,
-  Settings,
 } from './exportFile';

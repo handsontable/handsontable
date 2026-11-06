@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "handsontable-editor",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T14:04:14.460Z"
+  },
+  "steps": {
+    "open-editor": "edit multi line al",
+    "arrow-down-first": "",
+    "arrow-down-second": "",
+    "arrow-down-third": "",
+    "commit-row": "al a row 3 column 2",
+    "back-to-committed": "alto a row 2 column 2"
+  }
+}

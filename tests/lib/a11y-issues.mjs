@@ -52,12 +52,16 @@ export const MATCH_FIELDS = ['source', 'checks', 'kinds', 'rules', 'causes', 'cr
 export const AXE_SCAN_CHECK = 'axe';
 export const AXE_SCAN_KIND = 'axe-violation';
 /**
- * The two kinds of a screen reader step: a required token group missing from the announcement, and an
- * announcement whose wording differs from the recorded golden.
+ * The kinds of a screen reader finding: a required token group missing from a step's announcement, an
+ * announcement whose wording differs from the recorded golden, and a reading traversal that read an item
+ * twice, never or out of order. A traversal spans steps, so its finding sits at `READER_TRAVERSAL_WHERE`
+ * rather than at a step id.
  */
 export const READER_TOKEN_MISSING = 'token-missing';
 export const READER_GOLDEN_DIFFERS = 'golden-differs';
-export const READER_KINDS = [READER_TOKEN_MISSING, READER_GOLDEN_DIFFERS];
+export const READER_TRAVERSAL_OFF = 'traversal-off';
+export const READER_KINDS = [READER_TOKEN_MISSING, READER_GOLDEN_DIFFERS, READER_TRAVERSAL_OFF];
+export const READER_TRAVERSAL_WHERE = 'traversal';
 /**
  * The fields a finding of each source never carries: a rule naming one could never match.
  */

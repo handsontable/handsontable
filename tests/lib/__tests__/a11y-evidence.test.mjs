@@ -101,13 +101,14 @@ test('a subset dispatch names its checks: A11Y_CHECKS wins over the suite, in re
 
   assert.deepEqual(checksForRun({ A11Y_CHECKS: 'slow', HOT_A11Y_CHECKS_SUITE: 'pull-request' }, checks), ['slow'],
     'the named checks run, whatever the suite says');
-  assert.deepEqual(checksForRun({ A11Y_CHECKS: ' other, quick ,quick, ' }, checks), ['quick', 'other'],
-    'trimmed, deduplicated, in registry order');
+  assert.deepEqual(checksForRun({ A11Y_CHECKS: 'other,quick,quick' }, checks), ['quick', 'other'], 'deduplicated, in registry order');
   assert.deepEqual(checksForRun({ HOT_A11Y_CHECKS_SUITE: 'pull-request' }, checks), ['quick'], 'no subset: the suite');
   assert.deepEqual(checksForRun({ A11Y_CHECKS: '' }, checks), ['quick', 'slow', 'other'], 'an empty subset is no subset');
   assert.deepEqual(checksForRun({}, checks), ['quick', 'slow', 'other']);
-  assert.throws(() => checksForRun({ A11Y_CHECKS: 'quick,sloww' }, checks), /A11Y_CHECKS names no check "sloww"; the checks are quick, slow, other/);
-  assert.throws(() => checksForRun({ A11Y_CHECKS: ',' }, checks), /A11Y_CHECKS names no check/);
+  assert.throws(() => checksForRun({ A11Y_CHECKS: 'quick,sloww' }, checks), /A11Y_CHECKS names no check "sloww" \(comma-separated, no spaces\); the checks are quick, slow, other\./);
+  assert.throws(() => checksForRun({ A11Y_CHECKS: ' other,quick' }, checks), /A11Y_CHECKS names no check " other"/,
+    'a space is no check: an entry is a whole id, the way the lane workflow matches a project, so every reader of a subset refuses the same input');
+  assert.throws(() => checksForRun({ A11Y_CHECKS: ',' }, checks), /A11Y_CHECKS names no check ""/);
   assert.throws(() => checksForRun({ HOT_A11Y_CHECKS_SUITE: 'pr' }, checks), /must be one of pull-request, nightly/);
 });
 

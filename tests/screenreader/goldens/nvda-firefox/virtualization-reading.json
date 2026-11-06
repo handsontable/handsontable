@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "scenario": "virtualization-reading",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-06T11:45:22.082Z"
+  },
+  "steps": {
+    "read-1": "row 2 column 3 b 1",
+    "read-2": "column 4 c 1",
+    "read-3": "blank",
+    "read-4": "row 3 column 2 a 2",
+    "read-5": "column 3 b 2",
+    "read-6": "column 4 c 2",
+    "read-7": "blank",
+    "read-8": "row 4 column 2 a 3",
+    "read-9": "column 3 b 3",
+    "read-10": "column 4 c 3",
+    "read-11": "blank",
+    "read-12": "row 5 column 2 a 4 a 6 not selected alpha row 7 column 2",
+    "read-13": "row 6 column 4 c 5",
+    "read-14": "blank",
+    "read-15": "row 7 column 2 a 6",
+    "read-16": "column 3 b 6",
+    "read-17": "column 4 c 6",
+    "read-18": "row 8 column 2 a 7",
+    "read-19": "column 3 b 7",
+    "read-20": "column 4 c 7",
+    "read-21": "row 9 column 2 a 8",
+    "read-22": "column 3 b 8"
+  }
+}
