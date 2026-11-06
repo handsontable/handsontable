@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ACTIONS, PRESS_PATTERN, SCENARIO_FILE_SUFFIX, loadScenarios, scenarioUrl, validateScenario } from '../screenreader-scenario.mjs';
 import { stepLines } from '../screenreader-report.mjs';
-import { SCREENREADER_MODE, SCREENREADER_MODES } from '../screenreader-transcript.mjs';
+import { DEFAULT_TOKEN_SEVERITY, SCREENREADER_MODE, SCREENREADER_MODES, TOKEN_SEVERITIES } from '../screenreader-transcript.mjs';
 
 // tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): a scenario is data the Windows and macOS jobs read, and a
 // mistake in it would surface inside a 30-minute job on the next nightly. The committed files are
@@ -81,6 +81,27 @@ test('a synonym that normalizes to nothing is refused, naming the step and the t
     assert.ok(problems.includes(`steps[0].expect[1]: step "close-editor": the synonym ${JSON.stringify(token)} normalizes to an empty string`), `${token}: ${problems}`);
   });
   assert.deepEqual(expecting([['alice'], ['34.5', 'row 2']]), [], 'a synonym with a fact in it is fine');
+});
+
+test('a step may declare the severity of a token group, named by its first synonym; a group that declares none is serious', () => {
+  const declaring = severity => validateScenario({ ...valid(), steps: [{ id: 'right', action: { press: 'ArrowRight' }, expect: [['34'], ['age', 'column 3']], severity }] },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' });
+
+  assert.deepEqual(declaring({ age: 'minor' }), [], 'a group is named by its first synonym');
+  assert.deepEqual(declaring({ 34: 'critical', age: 'moderate' }), []);
+  assert.deepEqual(TOKEN_SEVERITIES, ['critical', 'serious', 'moderate', 'minor'], 'axe\'s four: an advisory group would not be required');
+  assert.equal(DEFAULT_TOKEN_SEVERITY, 'serious');
+  assert.deepEqual(declaring({ age: 'advisory' }), ['steps[0]: severity of "age" must be one of critical, serious, moderate, minor, got "advisory"']);
+  assert.deepEqual(declaring({ 'column 3': 'minor' }), ['steps[0]: severity names "column 3", which is not the first synonym of a token group of the step (34, age)'],
+    'a synonym that is not the first names no group: renaming a group must not leave its severity behind');
+  assert.deepEqual(declaring({}), ['steps[0]: severity must name at least one token group'], 'an empty declaration is a leftover');
+  assert.deepEqual(declaring('minor'), ['steps[0]: severity must be an object of { "<first synonym of a group>": "<severity>" }']);
+  assert.deepEqual(declaring(['minor']), ['steps[0]: severity must be an object of { "<first synonym of a group>": "<severity>" }']);
+
+  const twice = validateScenario({ ...valid(), steps: [{ id: 'right', action: { press: 'ArrowRight' }, expect: [['age'], ['age', 'column 3']], severity: { age: 'minor' } }] },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' });
+
+  assert.deepEqual(twice, ['steps[0]: severity names "age", the first synonym of more than one token group, so it names none of them']);
 });
 
 test('a step id starts with a letter: JSON.parse would move an integer-like key ahead of the others in the golden', () => {

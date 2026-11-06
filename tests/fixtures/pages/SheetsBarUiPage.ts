@@ -132,6 +132,78 @@ export class SheetsBarUiPage {
   }
 
   /**
+   * The label of a tab, the text a user presses to switch to its sheet.
+   *
+   * @param {number} index The tab's position.
+   * @returns {Locator} The label.
+   */
+  label(index: number): Locator {
+    return this.tab(index).locator('.ht-sheets-bar__tab-label');
+  }
+
+  /**
+   * Presses and releases the mouse inside a tab, a few pixels from its end edge, the spot a shift of the
+   * tab moves out from under the pointer first.
+   *
+   * @param {number} index The tab's position.
+   * @param {number} [inset] How far from the tab's end edge to press, in pixels.
+   */
+  async clickNearTabEnd(index: number, inset = 3): Promise<void> {
+    const box = await this.tab(index).boundingBox();
+
+    if (!box) {
+      throw new Error(`Tab ${index} is not rendered.`);
+    }
+
+    await this.page.mouse.move(box.x + box.width - inset, box.y + (box.height / 2));
+    await this.page.mouse.down();
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Renames every sheet through the API, in tab order.
+   *
+   * @param {string[]} names The new names.
+   */
+  async renameSheets(names: string[]): Promise<void> {
+    await this.page.evaluate((newNames) => {
+      const plugin = (window as any).hot.getPlugin('sheetsBar');
+
+      plugin.getSheets().forEach((sheet: any, index: number) => plugin.renameSheet(sheet.id, newNames[index]));
+    }, names);
+  }
+
+  /**
+   * The sheet names in tab order, the active one marked with a trailing `*`.
+   *
+   * @returns {Promise<string[]>} The names.
+   */
+  sheetStates(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).hot.getPlugin('sheetsBar').getSheets()
+      .map((sheet: any) => `${sheet.name}${sheet.isActive ? '*' : ''}`));
+  }
+
+  /**
+   * Makes an `afterSheetTabStateRestore` listener destroy the grid.
+   */
+  async destroyGridOnStateRestore(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.addHook('afterSheetTabStateRestore', () => hot.destroy());
+    });
+  }
+
+  /**
+   * Whether the grid has been destroyed.
+   *
+   * @returns {Promise<boolean>} `true` once `destroy()` ran.
+   */
+  isDestroyed(): Promise<boolean> {
+    return this.page.evaluate(() => (window as any).hot.isDestroyed === true);
+  }
+
+  /**
    * Whether a tab's border box, which carries its focus ring, lies wholly inside the strip's visible part,
    * with no slack: a ring cut by a fraction of a pixel fails.
    *

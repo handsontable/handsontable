@@ -8,14 +8,17 @@
  * GitHub job summary when `GITHUB_STEP_SUMMARY` is set. With `--check-run` it posts the check runs
  * through the Checks API (`lib/github-check-run.mjs`), behind the fork guard in
  * `.github/workflows/a11y.yml`, with `continue-on-error`. `--dry-run` prints the payloads instead and
- * needs no token. A check run is never a failure: the checks are report-only.
+ * needs no token. A finding never fails a test or the job; each check run follows the severity verdict
+ * (`lib/a11y-verdict.mjs`), and what counts follows the event (`GITHUB_EVENT_NAME`: a schedule or a
+ * dispatch is an audit, anything else a change) and the cluster catalog (`a11y/issues.json`).
  *
  * Environment: `HOT_A11Y_CHECKS_SUITE` (the suite the job ran: a check of it that left no document gets a
- * neutral tooling check run instead of none; `A11Y_CHECKS`, comma-separated, names the checks instead),
+ * red tooling check run instead of none; `A11Y_CHECKS`, comma-separated, names the checks instead),
  * `A11Y_EVIDENCE_URL` (the uploaded evidence artifact),
  * and for the post `GITHUB_TOKEN` (with `checks: write`), `GITHUB_REPOSITORY` and `A11Y_HEAD_SHA` (the
  * pull request's head on a pull request, `github.sha` otherwise), plus the optional `GITHUB_API_URL`,
- * `GITHUB_SERVER_URL` and `GITHUB_RUN_ID`.
+ * `GITHUB_SERVER_URL`, `GITHUB_EVENT_NAME` and `GITHUB_RUN_ID` (stamped on each check run as its
+ * `external_id`, which the run verdict reads).
  */
 import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
@@ -23,6 +26,8 @@ import { fileURLToPath } from 'node:url';
 import { escapeMarkdownText } from '../lib/a11y-baseline.mjs';
 import { pageLines } from '../lib/a11y-check-run.mjs';
 import { buildEvidenceCheckRun, checksForSuite, renderEvidenceSummary, validateEvidence } from '../lib/a11y-evidence.mjs';
+import { VERDICT_RULE } from '../lib/a11y-verdict.mjs';
+import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -59,9 +64,11 @@ for (const check of expected.filter(name => !reports.some(report => report.check
   reports.push({ check, doc: null, problems: [`the ${check} check left no test-results/a11y-checks/${check}.json: no test of it ran to the end`] });
 }
 
-const payloads = reports.map(report => buildEvidenceCheckRun({ ...report, pages, runUrl, artifactUrl }));
+const { scope, tracked, externalId, notes } = verdictInputs({ env, testsRoot: TESTS_ROOT });
+const payloads = reports.map(report => buildEvidenceCheckRun({ ...report, pages, runUrl, artifactUrl, scope, tracked }));
+const ROW = { success: '✔ green', neutral: '⚠ warning', failure: '✖ red' };
 // A subset run names what ran, so nobody reads the missing checks as clean: the ledger resolves a row only
-// where its check measured, and the summary says the same.
+// where its check measured, the run verdict expects the named checks only, and the summary says the same.
 const subsetLine = env.A11Y_CHECKS
   ? [`A subset run: ${escapeMarkdownText(expected.join(', '))} (the \`checks\` input). The other checks did not run and measured nothing.`, '']
   : [];
@@ -69,6 +76,14 @@ const summary = [
   '## A11y: the checks beyond axe',
   '',
   ...subsetLine,
+  `Each check's verdict follows the severity rule ${VERDICT_RULE}, on ${scope === 'audit' ? 'an audit run: every open finding counts' : 'a change run: a tracked finding is a warning at most'}. `
+    + 'Its check run carries the verdict; this job never fails on a finding.',
+  '',
+  ...notes.map(note => `> ${escapeMarkdownText(note)}\n`),
+  '| Verdict | Check run | Title |',
+  '| --- | --- | --- |',
+  ...payloads.map(payload => `| ${ROW[payload.conclusion]} | ${escapeMarkdownText(payload.name)} | ${escapeMarkdownText(payload.title)} |`),
+  '',
   ...reports.map((report, index) => (report.doc && report.problems.length === 0
     ? renderEvidenceSummary(report.doc, { runUrl, artifactUrl })
     : `### ${payloads[index].name}\n\n${payloads[index].summary}\n`)),
@@ -108,6 +123,7 @@ for (const payload of payloads) {
       headSha: env.A11Y_HEAD_SHA,
       payload,
       detailsUrl: artifactUrl || runUrl,
+      externalId,
       apiUrl: env.GITHUB_API_URL,
     });
 

@@ -672,6 +672,11 @@ export class CopyPaste extends BasePlugin {
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
+    // A `modifyCopyableRange` listener can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     const cellsRange = groupedRanges.get('cells');
 
     if (cellsRange !== null && cellsRange !== undefined && cellsRange.isRangeTrimmed) {
@@ -1004,6 +1009,11 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
+    // A `modifyCopyableRange` or `afterCopyLimit` listener can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     const rangedData = this.getRangedData(this.copyableRanges);
     const rangedSourceData = this.getRangedData(this.copyableRanges, true);
 
@@ -1012,6 +1022,11 @@ export class CopyPaste extends BasePlugin {
     const headerRows = new Set(rangedData.slice(0, copiedHeadersCount.columnHeadersCount));
     const dataSnapshot = this.hot.hasHook('beforeCopy') ? this.#snapshotRangedData(rangedData) : null;
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
+
+    // So can a `beforeCopy` listener.
+    if (!this.hot) {
+      return;
+    }
 
     if (allowCopying) {
       this.#setClipboardData(
@@ -1048,10 +1063,20 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCut = false;
 
+    // A `modifyCopyableRange` or `afterCopyLimit` listener can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     const rangedData = this.getRangedData(this.copyableRanges);
     const rangedSourceData = this.getRangedData(this.copyableRanges, true);
     const dataSnapshot = this.hot.hasHook('beforeCut') ? this.#snapshotRangedData(rangedData) : null;
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
+
+    // A `beforeCut` listener can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
 
     if (allowCuttingOut) {
       this.#setClipboardData(
@@ -1061,6 +1086,12 @@ export class CopyPaste extends BasePlugin {
       );
 
       this.hot.emptySelectedCells('CopyPaste.cut');
+
+      // So can the listeners of the writes `emptySelectedCells()` makes.
+      if (!this.hot) {
+        return;
+      }
+
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
     }
   }
@@ -1097,7 +1128,8 @@ export class CopyPaste extends BasePlugin {
 
     const clipboardSnapshot = this.#runBeforePasteParse(event);
 
-    if (clipboardSnapshot === false) {
+    // A `beforePasteParse` listener can destroy the grid, which clears `this.hot`.
+    if (clipboardSnapshot === false || !this.hot) {
       return;
     }
 
@@ -1119,7 +1151,8 @@ export class CopyPaste extends BasePlugin {
     // This is needed to detect if user modified values and respect their modifications over source data.
     const originalPastedData = deepClone(pastedData);
 
-    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
+    // The same goes for a `beforePaste` listener, and for the listeners of the writes below.
+    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false || !this.hot) {
       return;
     }
 
@@ -1129,26 +1162,39 @@ export class CopyPaste extends BasePlugin {
       originalPlainData: originalPastedData as unknown[][],
     });
 
+    if (!this.hot) {
+      return;
+    }
+
     if (startRow !== null && startColumn !== null && endRow !== null && endColumn !== null) {
       this.#selectPastedRange(startRow, startColumn, endRow, endColumn);
-
-      // Read the range back rather than storing what was passed in: the selection can grow it (over
-      // the merged cells it touches), and `#onAfterChange` must compare the live
-      // selection against what actually landed, not against the request.
-      const appliedRange = this.hot.getSelectedRangeActive();
-
-      if (appliedRange) {
-        const { row: appliedStartRow, col: appliedStartColumn } = appliedRange.getTopStartCorner();
-        const { row: appliedEndRow, col: appliedEndColumn } = appliedRange.getBottomEndCorner();
-
-        if (appliedStartRow !== null && appliedStartColumn !== null &&
-            appliedEndRow !== null && appliedEndColumn !== null) {
-          this.#appliedPasteRange = [appliedStartRow, appliedStartColumn, appliedEndRow, appliedEndColumn];
-        }
-      }
+      this.#recordAppliedPasteRange();
     }
 
     this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
+  }
+
+  /**
+   * Stores the range the paste's synchronous selection produced.
+   *
+   * It reads the range back rather than storing what was passed to the selection: the selection can
+   * grow it (over the merged cells it touches), and `#onAfterChange` must compare the live selection
+   * against what actually landed, not against the request.
+   */
+  #recordAppliedPasteRange(): void {
+    const appliedRange = this.hot.getSelectedRangeActive();
+
+    if (!appliedRange) {
+      return;
+    }
+
+    const { row: appliedStartRow, col: appliedStartColumn } = appliedRange.getTopStartCorner();
+    const { row: appliedEndRow, col: appliedEndColumn } = appliedRange.getBottomEndCorner();
+
+    if (appliedStartRow !== null && appliedStartColumn !== null &&
+        appliedEndRow !== null && appliedEndColumn !== null) {
+      this.#appliedPasteRange = [appliedStartRow, appliedStartColumn, appliedEndRow, appliedEndColumn];
+    }
   }
 
   /**

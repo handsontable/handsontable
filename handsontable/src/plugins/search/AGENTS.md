@@ -35,7 +35,9 @@ The fix is `_persistedMetaProps`:
 - **On a non-match**, it is *deleted* from the set, so the cell stays evictable. Forgetting this leaks
   retained meta across queries.
 - **It is intentionally not recorded as user-defined**, so an `updateSettings` cache reset clears it and the
-  next `query()` re-applies it.
+  next `query()` re-applies it. A payload with `columns`, `cells` or `cell`, and a call that really changes the grid-level
+  `type`, all reset the cache. The plugin keeps no last query, so it cannot re-apply the results itself: the guide
+  tells the user to call `query()` again, and `__tests__/typeChangeReset.unit.js` pins it.
 
 The set is created lazily — only matched cells pay for it.
 

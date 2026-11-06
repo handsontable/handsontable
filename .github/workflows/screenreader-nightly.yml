@@ -8,7 +8,10 @@ name: Screen reader nightly
 # request, a semi-lite set on a nightly, the full set on a release candidate and a stable release. The
 # name stays: the ledger, the Slack text and the docs know this workflow as the Screen reader nightly.
 # Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
-# verdict is each job's `Screen reader / <project> report` check run and summary. The transcripts
+# verdict is each job's `Screen reader / <project> report` check run and summary, by the severity rule
+# (tests/AGENTS.md, "A11y: the verdict of a check run"): a step missing a token group is serious unless its
+# scenario declares a lower severity for the group, and a golden difference is advisory. Every lane runs
+# to the end; then the `verdict` job fails the run when any lane's check run is red. The transcripts
 # this run leaves are the evidence a future version of the Accessibility Conformance Report can cite
 # for what a screen reader announces. It runs on its own schedule rather than inside the pull-request
 # pipeline because a real screen reader on a headed Windows or macOS runner is minutes per browser,
@@ -16,9 +19,10 @@ name: Screen reader nightly
 #
 # Triage. A missing token group is a finding about the grid (the announcement lacks the cell text, a
 # position or a role) or a token list that is too strict: read the transcript, then fix the core or
-# widen the synonyms. A golden difference is a wording change: re-record with the `update-goldens`
-# input once the new wording is right. A red step inside a lane job is tooling (the screen reader did
-# not start, a fixture did not load), never a finding, and it shows on that job's `failure` check run and summary:
+# widen the synonyms, or declare the group's severity in the step when its fact matters less. A golden
+# difference is a wording change: re-record with the `update-goldens` input once the new wording is
+# right. A red step inside a lane job is tooling (the screen reader did not start, a fixture did not
+# load), never a finding, and it shows on that job's `failure` check run, titled as a tooling failure, and summary:
 # the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
 # Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). The
 # VoiceOver setup recovers from its known flake on the same runner (screenreader.yml); a VoiceOver job
@@ -83,12 +87,51 @@ jobs:
       projects: ${{ inputs.projects }}
     # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
 
+  # The run's verdict: the worst of the four lanes' check runs (tests/scripts/a11y-run-verdict.mjs), red
+  # when any is red or a lane posted none. It runs after every lane has finished (`!cancelled()`, so a
+  # red job before it never skips it), reads the check runs by the run id their poster stamps as
+  # `external_id`, and fails this job, which fails the run. It stops nothing: by the time it runs, every
+  # lane has run and reported. The four names follow screenreader.yml's matrices.
+  verdict:
+    name: Verdict
+    needs: [ screenreader ]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      # The script and the modules it imports, nothing else: no package to install, no build.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Follow the worst check run of this run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.sha }}
+          # A subset dispatch names its projects (the same input the lane reads); the verdict then expects
+          # those lanes only, and a dispatch that names no real project, which runs no lane, is red for
+          # posting none.
+          SCREENREADER_PROJECTS: ${{ inputs.projects }}
+        run: >-
+          node tests/scripts/a11y-run-verdict.mjs --prefix "Screen reader / " --projects "$SCREENREADER_PROJECTS"
+          --expect "Screen reader / nvda-chromium report" --expect "Screen reader / nvda-firefox report"
+          --expect "Screen reader / vo-webkit report" --expect "Screen reader / vo-chromium report"
+
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
   # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on
   # purpose: the channel that triages one nightly triages the other. The lane's jobs carry job-level
   # `continue-on-error`, so they report success to this caller whatever happened inside them, and
   # `failure()` here fires only when the UMD build failed or the called workflow could not start. A red
-  # lane job never reaches Slack: its verdict is the `Screen reader / <project> report` check runs.
+  # lane job never reaches Slack, and neither does the `verdict` job's red: their verdict is the
+  # `Screen reader / <project> report` check runs.
   notify:
     name: Notify Slack
     needs: [ screenreader ]

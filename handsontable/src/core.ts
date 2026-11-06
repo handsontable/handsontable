@@ -6085,6 +6085,11 @@ export default function Core(
             const metaPhase = applySettings(
               filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
             );
+
+            if (!instance || instance.isDestroyed) {
+              return;
+            }
+
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -6124,7 +6129,7 @@ export default function Core(
         }
       }));
     } finally {
-      if (suspendsRender) {
+      if (suspendsRender && instance && !instance.isDestroyed) {
         instance.resumeRender();
       }
     }
@@ -6397,8 +6402,9 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @returns {boolean} `true` when the payload changed the grid-level `type` to another one.
    */
-  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): void {
+  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): boolean {
     let i;
 
     // eslint-disable-next-line no-restricted-syntax
@@ -6424,9 +6430,11 @@ export default function Core(
 
     // The loop above writes the options one by one, and `type` is only a name there. Expand it once all of
     // them are in, so an `editor`, `renderer` or `validator` of the same payload wins over the type.
-    if (!init) {
-      metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
+    if (init) {
+      return false;
     }
+
+    return metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
   }
 
   /**
@@ -6899,13 +6907,17 @@ export default function Core(
    * @param {Array|null} restoredCellOptionMetas `cell`-option meta, by physical indexes, to put back instead of
    * applying `settings.cell` (see `_applySettingsAndData()`).
    * @param {object|null} keptCellMetas The user-set meta and invalid marks to put back (see `_applySettingsAndData()`).
+   * @param {boolean} gridTypeChanged Whether the call changed the grid-level `type` to another one. The cells already
+   * drawn keep what the previous type's renderer wrote onto their meta (the numeric alignment class, the checkbox
+   * templates), so they are reset the way a `columns` change resets them.
    */
   function applyMetaPhase(
     settings: SettingsUpdate,
     columnPhase: { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean },
     isCellOptionRestated: boolean,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null,
-    keptCellMetas: KeptCellMetas | null
+    keptCellMetas: KeptCellMetas | null,
+    gridTypeChanged: boolean
   ): void {
     const { earlyColumnsSetting, resetsColumnMetaBeforeLoad } = columnPhase;
     const clen = instance.countCols();
@@ -6913,7 +6925,8 @@ export default function Core(
     // Clear the meta caches, unless the early column pass (`applyColumnMetaBeforeLoad()`) already did it for this
     // call.
     if (earlyColumnsSetting === null && !resetsColumnMetaBeforeLoad &&
-        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined ||
+          gridTypeChanged)) {
       resetMetaCaches(isCellOptionRestated);
     }
 
@@ -7118,7 +7131,8 @@ export default function Core(
       previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataSource,
     } = readSettingsBaseline(settings, init);
 
-    mergeSettingsIntoMeta(settings, init);
+    const gridTypeChanged = mergeSettingsIntoMeta(settings, init);
+
     applyThemeSettings(settings, init);
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
@@ -7146,7 +7160,7 @@ export default function Core(
     }
 
     const metaPhase = () => applyMetaPhase(
-      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas
+      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas, gridTypeChanged
     );
 
     if (!defersDataWork) {
@@ -7163,6 +7177,10 @@ export default function Core(
 
     if (!init) {
       notifySettingsUpdated(notifiedSettings);
+
+      if (!instance || instance.isDestroyed) {
+        return null;
+      }
     }
 
     if (!defersDataWork) {

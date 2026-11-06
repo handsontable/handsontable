@@ -52,6 +52,7 @@ import {
   findingShape,
   maskSelector,
 } from '../../../tests/lib/a11y-issues.mjs';
+import { DEFAULT_TOKEN_SEVERITY, TOKEN_SEVERITIES } from '../../../tests/lib/screenreader-transcript.mjs';
 
 export const A11Y_VERSION = 1;
 /**
@@ -330,6 +331,21 @@ function checkFinding(check, item) {
     url: fixturePath(item.url),
     issue: null,
   };
+}
+
+/**
+ * The severity of a reader step that missed a token group: the worst its missed groups carry, as its check run
+ * counts it (`lib/screenreader-report.mjs`). A group without one (a transcript written before groups carried a
+ * severity) is serious, the default a scenario step declares nothing against.
+ *
+ * @param {unknown[]} groups The step's token groups.
+ * @returns {string} The severity.
+ */
+function stepSeverity(groups) {
+  const missed = groups.filter(group => isObject(group) && group.matched === null)
+    .map(group => (TOKEN_SEVERITIES.includes(group.severity) ? group.severity : DEFAULT_TOKEN_SEVERITY));
+
+  return missed.reduce((worst, next) => (TOKEN_SEVERITIES.indexOf(next) < TOKEN_SEVERITIES.indexOf(worst) ? next : worst), missed[0] ?? DEFAULT_TOKEN_SEVERITY);
 }
 
 /**
@@ -616,7 +632,7 @@ function readTranscript(file, label, night, notes) {
         .map(group => group.synonyms.map(synonym => cut(synonym, 60)).join(' | '));
 
       failed.push(step.id);
-      night.findings.push(reader(READER_TOKEN_MISSING, step.id, 'serious', `the announcement lacks: ${missing.join(', ')}`));
+      night.findings.push(reader(READER_TOKEN_MISSING, step.id, stepSeverity(step.tokens.groups), `the announcement lacks: ${missing.join(', ')}`));
     }
   }
   if (malformed > 0) {

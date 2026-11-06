@@ -1252,7 +1252,7 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   so one the base has under another issue is moved, not added: renaming or splitting an issue
   moves all its entries, adds no debt, and gets one line saying where they went. A base file that
   is missing or not JSON is one line saying the growth is unknown, never a failed step. The check
-  run stays as it is: it judges the scan, it never reads the base, and a neutral icon on every pull
+  run stays as it is: it judges the scan, it never reads the base, and a warning on every pull
   request that baselines a finding the documented way would stop meaning "the scan found
   something". Approving the pull request accepts the listed debt. Locally, read the base at the
   merge base, not at `origin/develop`, or everything `develop` changed since the branch forked
@@ -1267,11 +1267,14 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   renamed. `comparison.json` beside it holds everything and is several times larger.
 - **The check run** `A11y / axe report` (`lib/a11y-check-run.mjs`, posted by
   `scripts/a11y-check-run.mjs` on the pull request's head commit, never the merge commit). It is
-  the visible gate while the job stays green: `neutral` when something needs action in warn
-  mode, `success` when nothing does, `failure` in block mode or on a tooling failure, with the
-  counts in its title, the summary and the report link on its page, and an annotation per
-  finding on the line to change (`pages.mjs` for new and grown, the baseline for improved and
-  fixed). Only `CI Gate` is required, so it never blocks a merge by itself.
+  the visible verdict while the job stays green, by the severity rule ("A11y: the verdict of a
+  check run"): on a pull request or a push a new or grown finding counts at its impact (a tracked
+  one as a warning at most), on the nightly every open finding counts; `failure` on a critical or
+  serious one or a tooling failure, `neutral` on a moderate or minor one, `success` otherwise, and
+  `failure` on any finding that needs action in block mode. The counts are in its title, the
+  summary and the report link on its page, and an annotation per finding on the line to change
+  (`pages.mjs` for new and grown, the baseline for known, improved and fixed). Only `CI Gate` is
+  required, so it never blocks a merge by itself.
 
 A fork's or Dependabot's token can write neither checks nor comments, so both steps carry the
 canonical fork guard and `continue-on-error`; the summary, the report and the agent findings
@@ -1287,7 +1290,8 @@ to the config is pinned by `.github/scripts/__tests__/a11y-workflow.test.mjs`.
 ### Warn mode, and when it flips
 
 `A11Y_MODE` in `lib/a11y-baseline.mjs` is the whole switch, and the tooling test pins its value.
-In `warn` the run's status is Playwright's own and the check run is neutral at worst. In `block`
+In `warn` the run's status is Playwright's own and the check run follows the severity rule
+("A11y: the verdict of a check run"). In `block`
 a new, grown, improved or stale finding fails the run and the check run: the ratchet then holds
 both ways, since a fixed finding whose entry was not updated is a red run too. An unverified
 entry never changes the status. The flip comes after a replay of the comparator over recent pull
@@ -1317,9 +1321,10 @@ lands in one evidence document per check, which the conformance report generator
 criterion.
 
 - **Report-only, and the rule is one constant.** `EVIDENCE_MODE` in `lib/a11y-evidence.mjs` is
-  `report`, and `lib/__tests__/a11y-evidence.test.mjs` pins it. A finding is a row in the job summary,
-  an annotation and a `neutral` `A11y / <check> report` check run; `buildEvidenceCheckRun()` never
-  returns `failure`, so no check turns a pull request red. A test fails for tooling only (a fixture that
+  `report`, and `lib/__tests__/a11y-evidence.test.mjs` pins it. A finding is a row in the job summary and
+  an annotation, and never fails a test or the job; the `A11y / <check> report` check run follows the
+  severity rule ("A11y: the verdict of a check run"), red on a critical or serious finding at the target
+  level and on a check that did not measure everything. A test fails for tooling only (a fixture that
   does not load, a state the keyboard did not reach), and the document records that test as a target
   with `status: 'error'` and its error as a problem. So does a test that did not run (the run stopped
   before it, or a failure before it skipped it: a `beforeAll` hook, an earlier test of a serial group, the
@@ -1361,8 +1366,8 @@ criterion.
   no target evaluating it, because the check does not evaluate it everywhere.
 - **Severity is axe's scale plus one.** `critical`, `serious`, `moderate`, `minor`, as axe rates
   impact, so a finding reads the same in every report, and `advisory` for a difference to review that
-  is not a failure on its own (a tab-order golden that moved). An advisory finding still makes the
-  check run neutral: someone has to look at it.
+  is not a failure on its own (a tab-order golden that moved). An advisory finding never raises the
+  check run's verdict: it is a notice annotation and a row to review.
 - **The same pages, states and guards as the scan.** Every check opens its targets through
   `a11y/harness.ts`: `openTarget()` loads the fixture and turns an uncaught page error, a missing theme
   stylesheet or a constructor throw into a red test, and `reachState()` reaches the catalog state with
@@ -1409,7 +1414,7 @@ error target, a retried one flagged, a triage check's part read as triage, a det
 file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
 or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check of the
 suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
-left no document gets a neutral tooling check run instead of none.
+left no document gets a red tooling check run instead of none.
 
 - **Where they run: the nightly, never a pull request.** `a11y.yml` has a second job, `checks`, beside
   `axe`: the same Playwright container and UMD artifact, `continue-on-error` on the job only (a tooling
@@ -1431,11 +1436,12 @@ left no document gets a neutral tooling check run instead of none.
   (`-f checks=<id>[,<id>]`, the proof run of a change to one check): it reaches the job as
   `A11Y_CHECKS`, the config builds the named projects only (`checksForRun()`, which refuses an unknown
   id before a test runs), the report script expects a document of each and names the subset in the job
-  summary, and the check runs keep their names. The evidence goes up as `a11y-checks-evidence`, outside
-  the `playwright-report-*` glob the flake ledger reads, for 30 days from a run of every check (what
-  the report cites) and 7 from the short suite. `EVIDENCE_CHECKS` is the one list: the config builds
-  its projects from it (`checksForRun()`), and the report script posts a neutral tooling check run for
-  a check of the suite that left no document. Locally, after `build:umd`, `build:styles.min` and
+  summary, the check runs keep their names, and the run's `verdict` job expects the named checks only.
+  The evidence goes up as `a11y-checks-evidence`, outside the `playwright-report-*` glob the flake
+  ledger reads, for 30 days from a run of every check (what the report cites) and 7 from the short
+  suite. `EVIDENCE_CHECKS` is the one list: the config builds its projects from it (`checksForRun()`),
+  and the report script posts a red tooling check run for a check of the suite that left no document.
+  Locally, after `build:umd`, `build:styles.min` and
   `build:themes-css.min`: `npm --prefix tests run test:a11y-checks` runs every check,
   `HOT_A11Y_CHECKS_SUITE=pull-request npm --prefix tests run test:a11y-checks` the short suite, and
   `-- --project=<check>` or `A11Y_CHECKS=<check>` one check; the reporter writes the documents only when
@@ -1901,6 +1907,78 @@ on the branch's head commit, so the check run shows on the pull request, whose o
 axe scan alone), then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
+## A11y: the verdict of a check run
+
+Every accessibility check run follows one rule, `lib/a11y-verdict.mjs`: the axe scan's `A11y / axe report`,
+each check's `A11y / <check> report` and each lane's `Screen reader / <project> report`. The modes
+(`A11Y_MODE`, `EVIDENCE_MODE`, `SCREENREADER_MODE`) still say whether a finding fails a test or a job,
+and in their current values it never does: the verdict lives on the check run, and the run's own verdict
+follows its worst check run.
+
+- **Red on critical or serious, a warning on moderate or minor, green on none.** `failure` when a counted
+  finding is critical or serious; `neutral`, with a warning annotation per finding, when the worst
+  counted finding is moderate or minor; `success` when nothing counts. An `advisory` row (a golden that
+  moved, a result axe could not decide, an improved or stale baseline entry) is a notice annotation and
+  never raises the verdict. Why this split: axe's impact scale is the one every source already speaks,
+  and critical and serious are the findings that keep a user from the content. A check red on every
+  minor finding would be red every night and read by nobody. The title states the verdict, the counted
+  findings per severity and the rule, then the check's own headline
+  (`✖ Red: 2 critical, 1 serious, 0 moderate, 0 minor (critical/serious = red, moderate/minor = warning) · …`).
+  The summary opens with the same verdict, what the run counted and a table per severity. A check run
+  carries the hundred worst annotations (`capAnnotations()`), and the summary says how many it left out.
+- **A tooling failure is red for its own reason, and titled as one.** A check that left no document, one
+  that does not validate, a target not measured, a tooling problem in a document, an axe run with a
+  tooling problem or no comparison, a reader that did not start, a lost step, a scenario with no
+  transcript: `✖ Tooling failure: <the first problem>`, and the summary opens with
+  `**Verdict: red, a tooling failure.**`, apart from any finding. A run that proved nothing is never
+  green.
+- **What counts follows the run** (`countingScope()`, from `GITHUB_EVENT_NAME`, which a called workflow
+  reads as its caller's). An **audit** (a schedule or a dispatch: the two nightlies) counts every open
+  finding, tracked or not, the axe scan's known baseline findings too, which it annotates on their
+  baseline entry: an audit says the truth about the product. A **change** (a pull request, a push, a local
+  run) counts what the change can act on. The axe scan counts only a finding new or grown against the
+  baseline, and every check counts a finding whose cluster in `a11y/issues.json` (`clusterOf()`) has a
+  tracker as a warning at most (`trackedBy()`, which reads a finding the way the ledger does, through
+  `catalogFinding()`), so owned debt never turns a pull request's check red. A finding in `needs-triage`, or
+  in a cluster without a tracker, counts at its severity. A catalog that does not load tracks nothing and
+  says so (`lib/a11y-verdict-inputs.mjs`): it can make a check red, never green.
+- **Below the target level is a warning at most.** A finding of a check beyond axe that names no WCAG 2.2
+  A or AA criterion (an AAA criterion alone, a best-practice record of the discovery run) is a warning
+  whatever its severity, because the target is A and AA (root `AGENTS.md`). One that also names an A or AA
+  criterion counts at its severity.
+- **A screen reader step is as severe as the worst token group it missed, and a group is serious unless
+  its step says otherwise.** A required fact missing from an announcement is a screen reader user not
+  told it. A step lowers or raises a group with `"severity": { "<first synonym of the group>": "minor" }`
+  beside `expect` (`critical`, `serious`, `moderate` or `minor`, `TOKEN_SEVERITIES`), and its `note` says
+  why. The schema refuses any other value, a name that is not the first synonym of exactly one group of
+  the step, and an empty declaration, so a renamed group cannot leave its severity on another. The
+  transcript carries each group's severity, a transcript without one reads as serious, and the ledger
+  records the step at the same severity as its check run. A golden difference and a missing golden are
+  advisory.
+- **Block and gate fail on any finding.** `A11Y_MODE: 'block'` and `SCREENREADER_MODE: 'gate'` fail the
+  check run on any finding that needs action, whatever its severity, as they fail the test.
+- **A red check run stops nothing.** It is posted after its job's measurement has run to the end
+  (`!cancelled()`), the jobs that measure carry `continue-on-error`, and the screen reader matrices are
+  `fail-fast: false`, so every scan and lane finishes and reports before anything says red. Only
+  `CI Gate` is required, so a red check run never blocks a merge by itself.
+- **The run follows its worst check run.** Each nightly ends on a `verdict` job
+  (`scripts/a11y-run-verdict.mjs`, `runVerdict()`). It runs after every other job (`needs`, with
+  `!cancelled()`), lists the check runs of the run's commit (`listCheckRuns()`), and keeps the ones its own
+  run posted: every poster stamps `GITHUB_RUN_ID` as the check run's `external_id`, and a re-run's check
+  run replaces the earlier one of its name. It fails when one is red, when one the run should have posted
+  is missing (the A11y nightly expects the axe report and one per check of its suite, the screen reader
+  nightly one per lane, and a subset dispatch the checks or lanes it named: `checks`, `projects`; "A11y:
+  the audit and the proof runs"), when the run posted none, or when one ended a way no poster writes. So the run's
+  conclusion says what its checks found, and a nightly stays red while its open critical and serious
+  findings stand. Slack still hears only of a run that never reached its checks.
+
+Locally, every poster prints its payload with `--dry-run` (set `GITHUB_EVENT_NAME=schedule` to count as an
+audit), and `node scripts/a11y-run-verdict.mjs --prefix "A11y / " --dry-run <check-runs.json>` (with
+`GITHUB_RUN_ID` set to the runs' `external_id`) reads a saved list of check runs. The rule, the counting
+scope, the run verdict and the posters' inputs are pure or near it and tested in
+`lib/__tests__/a11y-verdict.test.mjs` and `lib/__tests__/a11y-verdict-inputs.test.mjs`, each builder's
+use of them in its own test, and both `verdict` jobs in the workflow tests.
+
 ## A11y: the findings ledger and the cluster catalog
 
 A raw night leaves thousands of records (the discovery run alone about 3,900), most of them the same few
@@ -2042,12 +2120,13 @@ release run the full set. The CI mechanics are in `.ai/CI.md`; this section is t
   timings.
 - **A proof run on a branch dispatches the subset that changed.** `gh workflow run a11y-nightly.yml
   --ref <branch> -f checks=<id>[,<id>]` runs the named checks beyond axe (the `checks` input; the job
-  summary names the subset, the check runs keep their `A11y / <check> report` names, and an unknown id
-  fails the run step before a test runs). `gh workflow run screenreader-nightly.yml --ref <branch>
+  summary names the subset, the check runs keep their `A11y / <check> report` names, the `verdict` job expects
+  those check runs only, and an unknown id fails the run step before a test runs). `gh workflow run screenreader-nightly.yml --ref <branch>
   -f projects=<project>[,<project>] -f groups=<group>[,<group>]` runs the named reader projects
   (`nvda-chromium`, `nvda-firefox`, `vo-webkit`, `vo-chromium`; comma-separated, no spaces): a lane job
   none of whose projects is named skips itself, the other browser of a lane is dropped from its matrix,
-  and the check runs keep their `Screen reader / <project> report` names. `groups` is declared ahead of
+  the check runs keep their `Screen reader / <project> report` names, and the `verdict` job expects the
+  named lanes only. `groups` is declared ahead of
   the scenario group axis: until the lane has one, every scenario runs on the named projects. A subset
   run is a night of its subset only (the ledger resolves nothing outside it), and a proof run on a
   branch is not a night at all: `isA11yRun()` takes develop only.
@@ -2073,8 +2152,11 @@ screen readers (`docs/AGENTS.md` 2.20).
 
 - **Report-only, and the rule is one constant.** `SCREENREADER_MODE` in `lib/screenreader-transcript.mjs`
   is `report`: a missing token group or a golden difference is a row in the summary, a line in the
-  transcript, an annotation on the step's line in the scenario file and a `neutral` check run, and the
-  test passes. The job carries `continue-on-error`, so even a tooling red never fails the nightly. What
+  transcript and an annotation on the step's line in the scenario file, and the test passes. The check
+  run follows the severity rule ("A11y: the verdict of a check run"): red on a step missing a serious or
+  critical group (serious unless the step declares the group's severity), a warning on a moderate or
+  minor one, and a golden difference is advisory. The job carries `continue-on-error`, so a red job never
+  stops another lane; the nightly's `verdict` job then fails the run on any red check run. What
   fails a test is tooling only: a fixture that does not load, a constructor throw, a step whose `after`
   state never comes, a screen reader that does not start. The flip to `gate` (a missing token group
   fails the test; a golden difference stays advisory) changes the constant, the pinned tooling test
@@ -2084,7 +2166,8 @@ screen readers (`docs/AGENTS.md` 2.20).
   surface, with `fixture` (under `fixtures/demo/`), an optional `query`, a `setup` (the API selection
   that puts the focus in the grid, so the first key reaches it) and ordered `steps`. A step has an
   `id`, one `action` (`press` a Playwright key or chord, `type` text, `selectCell` `[row, col]`), its
-  `expect` token groups, an optional `after` (`{ "visible": "<selector>" }` or `{ "hidden": … }`,
+  `expect` token groups, an optional `severity` per group (keyed by the group's first synonym; a group
+  without one is serious, "A11y: the verdict of a check run"), an optional `after` (`{ "visible": "<selector>" }` or `{ "hidden": … }`,
   awaited inside the capture so the state's announcement is in it, and a red test when it never comes)
   and a `note`. The schema is `lib/screenreader-scenario.mjs`, and
   `lib/__tests__/screenreader-scenarios.test.mjs` (root `test:tooling`) validates every committed file,

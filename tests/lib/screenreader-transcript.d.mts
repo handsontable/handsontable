@@ -1,6 +1,7 @@
 import type { ScenarioAction } from './screenreader-scenario.mjs';
 
-export interface TokenGroupMatch { synonyms: string[]; matched: string | null }
+export type TokenSeverity = 'critical' | 'serious' | 'moderate' | 'minor';
+export interface TokenGroupMatch { synonyms: string[]; matched: string | null; severity: TokenSeverity }
 export interface TokenVerdict { passed: boolean; groups: TokenGroupMatch[] }
 export interface GoldenDifference { id: string; expected: string | null; actual: string | null }
 export interface GoldenVerdict { status: 'missing' | 'match' | 'differs' | 'recorded' | 'incomplete'; differences: GoldenDifference[] }
@@ -53,9 +54,11 @@ export const TRANSCRIPT_SCHEMA: number;
 export const GOLDEN_SCHEMA: number;
 export const SCREENREADER_MODES: readonly string[];
 export const SCREENREADER_MODE: 'report' | 'gate';
+export const TOKEN_SEVERITIES: readonly TokenSeverity[];
+export const DEFAULT_TOKEN_SEVERITY: TokenSeverity;
 export const CHATTER: readonly string[];
 export function normalizeAnnouncement(text: unknown): string;
-export function matchTokenGroups(normalized: string, groups: string[][]): TokenVerdict;
+export function matchTokenGroups(normalized: string, groups: string[][], severities?: Record<string, string>): TokenVerdict;
 export function goldenFromTranscript(transcript: Transcript): Golden;
 export function compareWithGolden(golden: Golden | null, steps: Pick<TranscriptStep, 'id' | 'normalized'>[]): GoldenVerdict;
 export function transcriptCounts(transcript: Transcript): { steps: number; tokenFailures: number; goldenStatus: string; goldenDifferences: number; durationMs: number };

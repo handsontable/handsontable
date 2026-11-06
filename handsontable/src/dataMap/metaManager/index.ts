@@ -145,9 +145,10 @@ export default class MetaManager {
    * Options the user set at grid level keep winning over the type.
    *
    * @param {object} settings The `updateSettings()` payload.
+   * @returns {boolean} `true` when the grid-level type changed to another one.
    */
-  updateGlobalTypeFromSettings(settings: Record<string, unknown>) {
-    this.globalMeta.updateTypeFromSettings(settings);
+  updateGlobalTypeFromSettings(settings: Record<string, unknown>): boolean {
+    return this.globalMeta.updateTypeFromSettings(settings);
   }
 
   /**

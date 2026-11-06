@@ -23,11 +23,23 @@ export const TRANSCRIPT_SCHEMA = 1;
 export const GOLDEN_SCHEMA = 1;
 export const SCREENREADER_MODES = ['report', 'gate'];
 /**
- * The whole switch. `report`: a failed token group or a golden diff is a row in the summary, a line in
- * the transcript and a neutral check run, and the test passes. `gate`: a failed token group fails the
- * test; a golden diff stays advisory. Pinned by `lib/__tests__/screenreader-transcript.test.mjs`.
+ * The whole switch. `report`: a failed token group or a golden diff is a row in the summary and a line in
+ * the transcript, and the test passes; the check run follows the severity rule (`lib/a11y-verdict.mjs`).
+ * `gate`: a failed token group fails the test and the check run, whatever its severity; a golden diff
+ * stays advisory. Pinned by `lib/__tests__/screenreader-transcript.test.mjs`.
  */
 export const SCREENREADER_MODE = 'report';
+/**
+ * The severities a step may give a token group (`severity` in a scenario step, keyed by the group's first
+ * synonym): axe's four impacts. A missing group is a finding of the check run at its severity, so an advisory
+ * group would be a group that is not required, which is not a token group.
+ */
+export const TOKEN_SEVERITIES = ['critical', 'serious', 'moderate', 'minor'];
+/**
+ * The severity of a group its step declares none for: a required fact missing from an announcement is a
+ * screen reader user not told it, which is serious unless the scenario says otherwise.
+ */
+export const DEFAULT_TOKEN_SEVERITY = 'serious';
 /**
  * What a screen reader says about itself rather than about the page. NVDA announces its mode switch
  * and the `clickable` hint on an element with a click handler; neither is a fact about the grid, so
@@ -109,19 +121,24 @@ function containsToken(normalized, token) {
  * A group that means a position spells it out (`"row 1"`). The limits of the digit rule (a lost sign,
  * a value after `of`) are on `containsToken()`.
  *
+ * Each group carries its severity: the one the step declares for it (keyed by the group's first synonym), or
+ * `DEFAULT_TOKEN_SEVERITY`.
+ *
  * @param {string} normalized The normalized announcement.
  * @param {string[][]} groups The token groups of the step.
- * @returns {{passed: boolean, groups: {synonyms: string[], matched: string|null}[]}} The verdict.
+ * @param {Record<string, string>} [severities] The step's `severity`, by the first synonym of a group.
+ * @returns {{passed: boolean, groups: {synonyms: string[], matched: string|null, severity: string}[]}} The verdict.
  */
-export function matchTokenGroups(normalized, groups) {
+export function matchTokenGroups(normalized, groups, severities = {}) {
   const result = groups.map((synonyms) => {
     const matched = synonyms.find((synonym) => {
       const token = normalizeAnnouncement(synonym);
 
       return token !== '' && containsToken(normalized, token);
     });
+    const declared = severities?.[synonyms[0]];
 
-    return { synonyms, matched: matched ?? null };
+    return { synonyms, matched: matched ?? null, severity: TOKEN_SEVERITIES.includes(declared) ? declared : DEFAULT_TOKEN_SEVERITY };
   });
 
   return { passed: result.every(group => group.matched !== null), groups: result };
