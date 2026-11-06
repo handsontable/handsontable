@@ -1848,6 +1848,40 @@ describe('UndoRedo plugin', () => {
       expect(hot.getDataAtCell(1, 1)).toBe('B2');
     });
 
+    it('should keep a recorded step and a pending one when the same rows come back while the step waits', async() => {
+      const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+      let release = null;
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        columns: [{}, { validator: (value, callback) => { release = () => callback(true); } }],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'prior');
+      hot.batch(() => {
+        hot.alter('remove_row', 2);
+        hot.setDataAtCell(1, 1, 'v');
+      });
+      await settle();
+      hot.updateData(hot.getSettings().data);
+      release();
+      await settle();
+
+      expect(plugin.doneActions.length).toBe(2);
+
+      plugin.undo();
+
+      expect(hot.countRows()).toBe(3);
+      expect(hot.getDataAtCell(1, 1)).toBe('B2');
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
     it('should keep the steps of a column that stays when the same rows come back and `columns` loses another', () => {
       const data = [['A1', 'B1'], ['A2', 'B2']];
       const plugin = createEditedGrid(data, { columns: [{ data: 0 }, { data: 1 }] });
