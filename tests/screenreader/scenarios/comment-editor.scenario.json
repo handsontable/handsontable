@@ -4,6 +4,7 @@
   "surface": "A commented cell and the comment editor opened from the keyboard: its name, typing into it, saving with Ctrl+Enter, closing with Escape, and the grid's keys after it closes.",
   "group": "menus",
   "page": "comments",
+  "state": "comment",
   "criteria": ["1.3.1", "2.1.1", "2.4.3", "4.1.2"],
   "setup": [{"updateSettings": {"cell": [{"row": 1, "col": 1, "comment": {"value": "Check the totals before Friday."}}, {"row": 3, "col": 0, "comment": {"value": "Ask the supplier about delivery."}}]}}, {"selectCell": [0, 0]}],
   "steps": [
