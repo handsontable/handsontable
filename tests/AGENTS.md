@@ -2121,7 +2121,8 @@ screen readers (`docs/AGENTS.md` 2.20).
   surface. The header: `id`, `surface`, `criteria` (the WCAG 2.2 criteria the scenario evidences, which
   the evidence records carry so the report generator can cite a step), exactly one of `page` (a page of
   `a11y/pages.mjs`, whose fixture, query and root container it opens: reuse the catalog) or `fixture` (a
-  file under `fixtures/demo/`, for a grid the catalog does not hold, as `grid-core`'s), a `state` when the
+  file under `fixtures/demo/`, for a grid the catalog does not hold, as `grid-core`'s, with the catalog pages
+  it stands for as `catalogPages`, the pages `screenreader/coverage.mjs` lists it under), a `state` when the
   page has one in the catalog (the runner opens the page at rest and never sets up its state or its
   `device`, so a scenario on a page in the `editor` or a menu state reaches it with its own steps and names
   it, and a page with a `device` is refused), an optional `query` (appended after the page's; a `theme=` or

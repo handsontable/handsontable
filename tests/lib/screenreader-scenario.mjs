@@ -244,7 +244,7 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
   const variant = doc.variantOf !== undefined;
   const known = variant
     ? VARIANT_FIELDS
-    : new Set(['schema', 'id', 'surface', 'group', 'page', 'state', 'fixture', 'query', 'start', 'criteria', 'setup', 'steps', 'traversal']);
+    : new Set(['schema', 'id', 'surface', 'group', 'page', 'state', 'fixture', 'catalogPages', 'query', 'start', 'criteria', 'setup', 'steps', 'traversal']);
 
   Object.keys(doc).filter(key => !known.has(key)).forEach(key => problems.push(variant
     ? `field "${key}" is not allowed in a variant: a variant takes its base's ${key}, and sets only ${[...VARIANT_FIELDS].join(', ')}`
@@ -324,7 +324,8 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
 /**
  * The problems of where a scenario opens: exactly one of `page` (a catalog page of `a11y/pages.mjs`, whose
  * fixture, query and root container it opens) or `fixture` (a file under `fixtures/demo/`, for a page the
- * catalog does not hold).
+ * catalog does not hold). A scenario on a fixture names the catalog pages it stands for (`catalogPages`),
+ * the pages `screenreader/coverage.mjs` lists it under, so the coverage test can match the two.
  *
  * @param {object} doc The scenario.
  * @param {string[]|undefined} fixtures The fixture file names.
@@ -335,6 +336,10 @@ function placeProblems(doc, fixtures) {
     return ['a scenario names exactly one of page (a catalog page of tests/a11y/pages.mjs) or fixture (a file under fixtures/demo/)'];
   }
   if (doc.page !== undefined) {
+    if (doc.catalogPages !== undefined) {
+      return ['catalogPages is for a scenario on a fixture: a scenario on a catalog page stands for that page'];
+    }
+
     return typeof doc.page === 'string' && PAGE_IDS.has(doc.page)
       ? []
       : [`page ${JSON.stringify(doc.page)} is not a page of tests/a11y/pages.mjs`];
@@ -344,6 +349,10 @@ function placeProblems(doc, fixtures) {
   }
   if (fixtures && !fixtures.includes(doc.fixture)) {
     return [`fixture "${doc.fixture}" is not under fixtures/demo/`];
+  }
+  if (!Array.isArray(doc.catalogPages) || doc.catalogPages.length === 0 || new Set(doc.catalogPages).size !== doc.catalogPages.length
+    || doc.catalogPages.some(page => typeof page !== 'string' || !PAGE_IDS.has(page))) {
+    return [`catalogPages must list the pages of tests/a11y/pages.mjs this fixture stands for, each once, the pages screenreader/coverage.mjs lists it under, got ${JSON.stringify(doc.catalogPages)}`];
   }
 
   return [];

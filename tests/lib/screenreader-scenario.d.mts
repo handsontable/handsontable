@@ -40,6 +40,7 @@ export interface Scenario {
   page?: string;
   state?: string;
   fixture?: string;
+  catalogPages?: string[];
   query?: string;
   start?: 'grid' | 'page';
   criteria: string[];

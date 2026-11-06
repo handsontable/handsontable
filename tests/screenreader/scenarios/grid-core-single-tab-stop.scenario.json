@@ -4,6 +4,7 @@
   "surface": "The grid as one tab stop (tabNavigation: false): Tab leaves the grid from any cell, Shift+Tab returns to the cell it left, and the arrows still move inside.",
   "group": "keyboard",
   "fixture": "screenreader-grid.html",
+  "catalogPages": ["grid"],
   "criteria": ["2.1.1", "2.1.2", "2.4.3", "4.1.2"],
   "setup": [{"sentinels": true}, {"updateSettings": {"tabNavigation": false}}, {"selectCell": [1, 1]}],
   "steps": [

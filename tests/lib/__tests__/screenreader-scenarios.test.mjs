@@ -38,6 +38,7 @@ const valid = () => ({
   surface: 'A sample surface for the validator.',
   group: 'keyboard',
   fixture: 'screenreader-grid.html',
+  catalogPages: ['grid'],
   criteria: ['4.1.2'],
   setup: [{ selectCell: [0, 0] }],
   steps: [
@@ -200,8 +201,14 @@ test('a scenario opens exactly one place, names its criteria, and says where the
 
   assert.match(problems({ page: 'grid' }), /exactly one of page/);
   assert.match(problems({ fixture: undefined }), /exactly one of page/);
-  assert.equal(problems({ fixture: undefined, page: 'grid' }), '');
-  assert.match(problems({ fixture: undefined, page: 'no-such-page' }), /page "no-such-page" is not a page of tests\/a11y\/pages\.mjs/);
+  assert.match(problems({ fixture: undefined, page: 'grid' }), /catalogPages is for a scenario on a fixture/);
+  assert.equal(problems({ fixture: undefined, catalogPages: undefined, page: 'grid' }), '');
+  assert.match(problems({ fixture: undefined, catalogPages: undefined, page: 'no-such-page' }), /page "no-such-page" is not a page of tests\/a11y\/pages\.mjs/);
+  assert.match(problems({ catalogPages: undefined }), /catalogPages must list the pages of tests\/a11y\/pages\.mjs this fixture stands for/,
+    'a scenario on its own fixture says which catalog pages it stands for, so the coverage map can be checked against it');
+  assert.match(problems({ catalogPages: ['grid', 'grid'] }), /each once/);
+  assert.match(problems({ catalogPages: ['no-such-page'] }), /catalogPages must list/);
+  assert.equal(problems({ catalogPages: ['grid', 'text-editor'] }), '');
   assert.match(problems({ criteria: undefined }), /criteria must name/);
   assert.match(problems({ criteria: [] }), /criteria must name/);
   assert.match(problems({ criteria: ['4.1.1'] }), /"4\.1\.1" is not a WCAG 2\.2 success criterion/, 'Parsing is obsolete in 2.2');
@@ -304,7 +311,7 @@ test('a traversal names read steps and items that are each distinct', () => {
 });
 
 test('a scenario on a catalog page names the state its steps reach, and never sets a key of the page\'s query', () => {
-  const onPage = extra => validateScenario({ ...valid(), fixture: undefined, page: 'grid', ...extra },
+  const onPage = extra => validateScenario({ ...valid(), fixture: undefined, catalogPages: undefined, page: 'grid', ...extra },
     { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
 
   assert.equal(onPage({}), '', 'a page at rest needs no state');
@@ -320,7 +327,7 @@ test('a scenario on a catalog page names the state its steps reach, and never se
   assert.match(onPage({ page: 'merge-cells', query: 'scenario=thick' }),
     /query sets "scenario", which page "merge-cells" sets already \(scenario=areas\): the fixture reads the page's first value/);
 
-  const base = { ...valid(), id: 'base', fixture: undefined, page: 'merge-cells' };
+  const base = { ...valid(), id: 'base', fixture: undefined, catalogPages: undefined, page: 'merge-cells' };
   const [, variant] = resolveVariants([
     { fileName: 'base.scenario.json', scenario: base, problems: [] },
     { fileName: 'base-thick.scenario.json', scenario: { schema: 1, id: 'base-thick', surface: 'The base on thick rows.', variantOf: 'base', query: 'scenario=thick' }, problems: [] },
