@@ -358,7 +358,7 @@ You are affected if any of the following apply:
 
 ### How to migrate
 
-Rename the radius variable. Replace the removed width and color variables with a CSS `box-shadow` on the table wrapper if you relied on a visible wrapper border.
+Rename the radius variable. Replace the removed width and color variables with a CSS `box-shadow` on the root wrapper (`.ht-root-wrapper`) if you relied on a visible wrapper border.
 
 **Before:**
 
@@ -378,10 +378,12 @@ Rename the radius variable. Replace the removed width and color variables with a
 }
 
 /* Restore a visible wrapper border, if needed */
-.ht-theme-main .ht-root-wrapper {
+.ht-theme-main.ht-root-wrapper {
   box-shadow: 0 0 0 1px #a0aec0;
 }
 ```
+
+Handsontable puts the theme class on `.ht-root-wrapper` itself, so join the two classes without a space. Use an outer `box-shadow`, not an `inset` one: the outer shadow stays visible over frozen columns, while an `inset` shadow is hidden under them.
 
 For the JS theme API, rename `wrapperBorderRadius` to `borderRadius` and remove `wrapperBorderWidth` and `wrapperBorderColor`.
 
