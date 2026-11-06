@@ -1675,6 +1675,22 @@ describe('UndoRedo plugin', () => {
       expect(slice).toHaveBeenCalled();
     });
 
+    it('should keep a step pushed with `done()` when the same rows come back', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+
+      hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, data, undo: true });
+      const plugin = hot.getPlugin('undoRedo');
+
+      plugin.done(() => ({ undo() {}, redo() {} }));
+      hot.updateData(data);
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      hot.updateData(data.slice());
+
+      expect(plugin.isUndoAvailable()).toBe(true);
+    });
+
     it('should drop the history when the rows were reordered in the array in place and a copy comes back', () => {
       const data = [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']];
       const plugin = createEditedGrid(data);

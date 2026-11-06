@@ -822,6 +822,8 @@ export class UndoRedo extends BasePlugin {
     const undoneActionsCopy = this.undoneActions.slice();
 
     this.doneActions.push(step);
+    // A step of the legacy `done()` opens no transaction, so the rows are copied here.
+    this.#ensureDatasetRows();
     this.#trimUndoStack();
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
