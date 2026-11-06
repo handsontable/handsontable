@@ -383,7 +383,7 @@ Rename the radius variable. Replace the removed width and color variables with a
 }
 ```
 
-Handsontable puts the theme class on `.ht-root-wrapper` itself, so join the two classes without a space. Use an outer `box-shadow`, not an `inset` one: the outer shadow stays visible over frozen columns, while an `inset` shadow is hidden under them.
+Handsontable puts the theme class on `.ht-root-wrapper` itself, so join the two classes without a space. Use an outer `box-shadow`, not an `inset` one: the outer shadow stays visible around the whole grid, including over frozen columns, while an `inset` shadow is hidden under the grid cells.
 
 For the JS theme API, rename `wrapperBorderRadius` to `borderRadius` and remove `wrapperBorderWidth` and `wrapperBorderColor`.
 
