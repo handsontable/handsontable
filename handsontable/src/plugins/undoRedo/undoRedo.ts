@@ -217,6 +217,8 @@ export class UndoRedo extends BasePlugin {
    * last step that added or removed rows, left. A copy, because the application can reorder or replace the
    * rows of the live array in place, and the live array then no longer tells what the history was made on.
    * An `updateData()` call that brings the same rows keeps the history; one that brings other rows drops it.
+   * It exists only while there is a history to protect: it is taken when a transaction opens, and dropped with
+   * the history, so a wrapper that passes `data` on every render pays nothing for it.
    */
   #datasetRows: unknown[] | null = null;
 
@@ -322,7 +324,7 @@ export class UndoRedo extends BasePlugin {
     scope.addOpenListener(this.#onTransactionOpen);
     scope.addSettleListener(this.#onTransactionSettle);
 
-    this.#setDataset(this.hot.getSettings().data);
+    this.#setDatasetArray(this.hot.getSettings().data);
 
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterLoadData', this.#onAfterLoadData);
@@ -1063,6 +1065,7 @@ export class UndoRedo extends BasePlugin {
     this.#dropSteps(this.doneActions.length, this.undoneActions.length);
     this.#epoch += 1;
     this.#lastState = null;
+    this.#datasetRows = null;
     this.#pending.clear();
     this.#joined.clear();
     this.#owesColumnsCheck = false;
@@ -1415,6 +1418,7 @@ export class UndoRedo extends BasePlugin {
       this.#lastState = current;
     }
 
+    this.#ensureDatasetRows();
     this.#openEpochs.set(transaction, this.#epoch);
     this.#selectionsBefore.set(transaction, this.hot.getSelected());
     // Added last, so a capture that throws leaves nothing pending.
@@ -1441,13 +1445,32 @@ export class UndoRedo extends BasePlugin {
   }
 
   /**
-   * Remembers the dataset array a data load or update installed, and a copy of its rows.
+   * Remembers the dataset array a data load or update installed. The copy of its rows is taken when a
+   * transaction opens (`#ensureDatasetRows()`), or kept up when a history survives an update.
    *
    * @param {Array|undefined|null} array The dataset array.
    */
-  #setDataset(array: unknown[] | null | undefined) {
+  #setDatasetArray(array: unknown[] | null | undefined) {
     this.#datasetArray = Array.isArray(array) ? array : null;
-    this.#datasetRows = copyRows(array);
+    this.#datasetRows = null;
+  }
+
+  /**
+   * Copies the rows of the dataset array once a step may be recorded on them.
+   */
+  #ensureDatasetRows() {
+    if (this.#datasetRows === null) {
+      this.#datasetRows = copyRows(this.#datasetArray);
+    }
+  }
+
+  /**
+   * Tells whether a step is recorded or being recorded.
+   *
+   * @returns {boolean}
+   */
+  #holdsHistory(): boolean {
+    return this.doneActions.length > 0 || this.undoneActions.length > 0 || this.#pending.size > 0;
   }
 
   /**
@@ -1573,7 +1596,7 @@ export class UndoRedo extends BasePlugin {
    * @param {Array} sourceData The loaded data.
    */
   #onAfterLoadData = (sourceData: unknown[]) => {
-    this.#setDataset(sourceData);
+    this.#setDatasetArray(sourceData);
   };
 
   /**
@@ -1593,11 +1616,14 @@ export class UndoRedo extends BasePlugin {
     const previousArray = this.#datasetArray;
     const previousRows = this.#datasetRows;
 
-    this.#setDataset(sourceData);
+    this.#setDatasetArray(sourceData);
 
     if (!this.#keepsHistory(previousArray, previousRows, sourceData)) {
       this.#resetHistory();
     }
+
+    // A history that stays goes on with the rows it was kept on.
+    this.#datasetRows = this.#holdsHistory() ? copyRows(sourceData) : null;
   };
 
   /**
@@ -1609,11 +1635,15 @@ export class UndoRedo extends BasePlugin {
    * @returns {boolean}
    */
   #keepsHistory(previousArray: unknown[] | null, previousRows: unknown[] | null, sourceData: unknown[]): boolean {
-    const hasHistory = this.doneActions.length > 0 || this.undoneActions.length > 0;
+    // Nothing to protect, so nothing is compared and the state is not captured: a wrapper passes `data` on
+    // every render.
+    if (!this.#holdsHistory()) {
+      return true;
+    }
 
-    // The values of a row that is another object are read only while there is a history to protect. A step
-    // that is still pending is one: its edit is already in the rows, and its handler can pass them again.
-    if (!hasSameRows(previousRows, sourceData, hasHistory || this.#pending.size > 0)) {
+    // A step that is still pending is history too: its edit is already in the rows, and its handler can pass
+    // them again.
+    if (!hasSameRows(previousRows, sourceData, true)) {
       return false;
     }
 
@@ -1622,9 +1652,8 @@ export class UndoRedo extends BasePlugin {
       return false;
     }
 
-    // Nothing to protect, so the state is not captured: a wrapper passes `data` on every render. While a
-    // transaction is pending its partial changes are its own, as in `#checkSettingsUpdate()`.
-    if (!hasHistory || this.#pending.size > 0) {
+    // While a transaction is pending its partial changes are its own, as in `#checkSettingsUpdate()`.
+    if (this.#pending.size > 0) {
       return true;
     }
 

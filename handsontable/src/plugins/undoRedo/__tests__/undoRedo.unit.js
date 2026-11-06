@@ -1656,6 +1656,25 @@ describe('UndoRedo plugin', () => {
       expect(plugin.isUndoAvailable()).toBe(false);
     });
 
+    it('should not copy the rows of the array while there is no history to protect', () => {
+      const data = [['A1', 'B1'], ['A2', 'B2']];
+
+      hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, data, undo: true });
+
+      const slice = jest.spyOn(data, 'slice');
+
+      hot.updateData(data);
+      hot.updateData(data);
+
+      expect(slice).not.toHaveBeenCalled();
+
+      hot.setDataAtCell(0, 0, 'edited');
+      hot.updateData(data);
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+      expect(slice).toHaveBeenCalled();
+    });
+
     it('should drop the history when the rows were reordered in the array in place and a copy comes back', () => {
       const data = [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']];
       const plugin = createEditedGrid(data);

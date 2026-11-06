@@ -281,12 +281,14 @@ grid shows: equal values mean the recorded steps still describe the data. This k
 array, for `data.slice()`, and for an immutable row update (`rows.map(...)` that copies the edited row, with no
 filler row mismatch under `minSpareRows`). A dataset whose rows were all copied (`rows.map(row => ({ ...row }))`,
 a JSON clone) is kept up to the cap and counts as other data past it, so the value walk stays bounded. The
-reference compare runs first and the value compare ends on the first difference. Cost per call: one `slice()` of
-the rows (about 0.1 ms at 100k rows, 3 ms at 1M) and the compare (about 0.2 ms at 100k, 2 ms at 1M), and the cell
-reads of at most 1000 rows. The copy follows the grid's own row changes: `#followGridRows()` runs when a
-transaction settles, and when `updateData()` arrives while one is pending, and copies again only when the row
-count moved or a source shape is recorded. A change of the array that no step made is not followed, so it drops
-the history. A kept history runs a row-count and index-map check (`#keepsHistory()`), so rows spliced out of the
+reference compare runs first and the value compare ends on the first difference. The copy exists only while there
+is a history to protect: `#ensureDatasetRows()` takes it when a transaction opens, an update that keeps the history
+copies again, and `#resetHistory()` drops it, so a render with no step recorded copies and compares nothing (the
+wrapper's common case costs nothing). With a history, a call costs one `slice()` of the rows (about 0.1 ms at 100k
+rows, 3 ms at 1M), the compare (about 0.2 ms at 100k, 2 ms at 1M), and the cell reads of at most 1000 rows. The
+copy follows the grid's own row changes: `#followGridRows()` runs when a transaction settles, and when `updateData()`
+arrives while one is pending, and copies again only when the row count moved or a source shape is recorded. A change
+of the array that no step made is not followed, so it drops the history. A kept history runs a row-count and index-map check (`#keepsHistory()`), so rows spliced out of the
 array in place (the index mapper was already fitted to the new length) still drop it. It captures the grid state
 only when a stack holds a step and no transaction is pending, because a wrapper calls it on every render.
 The columns are left to `#checkSettingsUpdate()`, which keeps the steps that address no changed column.
