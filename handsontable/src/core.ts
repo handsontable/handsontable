@@ -133,6 +133,16 @@ interface SortingPluginLike {
   clearSort(): void;
 }
 
+/**
+ * The part of the Filters plugin that core reads and calls.
+ */
+interface FiltersPluginLike {
+  enabled: boolean;
+  exportConditions(): unknown[];
+  clearConditions(): void;
+  filter(): void;
+}
+
 let activeGuid: string | null = null;
 
 /**
@@ -502,10 +512,12 @@ export default function Core(
   let pendingColumnLayoutCheck: { previousLayout: ColumnLayout, columnsPath: boolean } | null = null;
 
   /**
-   * Set while an `updateData()` call starts the column state over beside a sort, so the sort is cleared once the call
-   * has finished.
+   * Set while an `updateData()` call starts the column state over beside a sort or a filter, so they are cleared once
+   * the call has finished. Both name columns and change the rows, so the rows would keep a result the column state no
+   * longer describes.
    */
-  let sortToClearAfterDataUpdate: SortingPluginLike | null = null;
+  let rowStateToClearAfterDataUpdate: { sorting: SortingPluginLike | null, filters: FiltersPluginLike | null } | null =
+    null;
   /**
    * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
    */
@@ -5579,7 +5591,7 @@ export default function Core(
               // A `columns` change speaks of columns, so the rows keep their order, hiding and trimming, and
               // their generated ids. A sort lives in both axes: it names columns and orders rows, so it is cleared
               // after this call, once the grid is consistent again.
-              sortToClearAfterDataUpdate = getActiveSortedPlugin();
+              rowStateToClearAfterDataUpdate = readRowStateOfColumns();
               instance.columnIndexMapper.initToLength(instance.getInitialColumnCount());
               instance.rowIndexMapper.fitToLength(instance.countSourceRows());
             } else {
@@ -6378,28 +6390,40 @@ export default function Core(
   }
 
   /**
-   * Returns the sorting plugin that holds a sort at the moment, `null` when none does.
+   * Reads the sort and the filter conditions the grid holds, as they stand before the column state starts over.
    *
    * @private
-   * @returns {SortingPluginLike|null}
+   * @returns {object} The sorting plugin that holds a sort and the Filters plugin that holds conditions, `null` for
+   * each one that does not.
    */
-  function getActiveSortedPlugin(): SortingPluginLike | null {
-    const plugins = [instance.getPlugin('columnSorting'), instance.getPlugin('multiColumnSorting')];
+  function readRowStateOfColumns() {
+    const sortingPlugins = [instance.getPlugin('columnSorting'), instance.getPlugin('multiColumnSorting')];
+    const filters = instance.getPlugin('filters') as FiltersPluginLike | undefined;
 
-    return (plugins as (SortingPluginLike | undefined)[]).find(plugin => plugin?.isSorted() === true) ?? null;
+    return {
+      sorting: (sortingPlugins as (SortingPluginLike | undefined)[])
+        .find(plugin => plugin?.isSorted() === true) ?? null,
+      filters: filters?.enabled === true && filters.exportConditions().length > 0 ? filters : null,
+    };
   }
 
   /**
-   * Clears the sort that the column state restart of the last data update left behind. The column states are gone
-   * by now, so the rows go back to the order they had before the sort, and the indicator matches them.
+   * Clears the sort and the filter conditions that the column state restart of the last data update left behind. The
+   * column states are gone by now, so a sort returns the rows to their unsorted order and the cleared filter shows the
+   * rows it trimmed, and the indicators match the rows.
    *
    * @private
    */
-  function clearSortAfterDataUpdate(): void {
-    const sortingPlugin = sortToClearAfterDataUpdate;
+  function clearRowStateAfterDataUpdate(): void {
+    const rowState = rowStateToClearAfterDataUpdate;
 
-    sortToClearAfterDataUpdate = null;
-    sortingPlugin?.clearSort();
+    rowStateToClearAfterDataUpdate = null;
+    rowState?.sorting?.clearSort();
+
+    if (rowState?.filters) {
+      rowState.filters.clearConditions();
+      rowState.filters.filter();
+    }
   }
 
   /**
@@ -6954,7 +6978,7 @@ export default function Core(
         pendingColumnLayoutCheck = null;
       }
 
-      clearSortAfterDataUpdate();
+      clearRowStateAfterDataUpdate();
 
     } else if (settings.columns !== undefined) {
       datamap.createMap();
@@ -7096,9 +7120,10 @@ export default function Core(
       // the data phase can only tell by comparing them with the ones the grid has now. Without `columns`, the schema
       // decides both the number of columns and the property each one reads. The key counts even when its value is
       // `undefined`, which falls back to the schema read off the data. A call with `columns` and no `data` starts
-      // the index state over on its own branch, so it needs no baseline.
+      // the index state over on its own branch, so it needs no baseline. A `columns` function is never compared (see
+      // `isColumnsPayloadWithData()`), also beside a `dataSchema` on a grid that had no `columns`.
       previousColumnLayout: !firstRun && (
-        (!tableMeta.columns && hasOwnProperty(settings, 'dataSchema')) ||
+        (!tableMeta.columns && hasOwnProperty(settings, 'dataSchema') && !isFunction(settings.columns)) ||
         isColumnsPayloadWithData(settings)
       ) ? readColumnLayout(true, isColumnsPayloadWithData(settings)) : null,
       // The stored `height` and `width` before this call. An unreadable value is ignored by

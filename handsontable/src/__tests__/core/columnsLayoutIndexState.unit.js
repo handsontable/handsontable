@@ -7,7 +7,11 @@ import {
   ManualColumnResize,
   ManualRowMove,
   HiddenRows,
+  Filters,
+  DropdownMenu,
+  AutoColumnSize,
 } from 'handsontable/plugins';
+import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerPlugin(ColumnSorting);
@@ -16,6 +20,10 @@ registerPlugin(ManualColumnMove);
 registerPlugin(ManualColumnResize);
 registerPlugin(ManualRowMove);
 registerPlugin(HiddenRows);
+registerPlugin(AutoColumnSize);
+registerPlugin(DropdownMenu);
+registerPlugin(Filters);
+registerCellType(CheckboxCellType);
 
 const ALL_COLUMNS = ['a', 'b', 'c', 'd'];
 const WITHOUT_FIRST = ['b', 'c', 'd'];
@@ -327,6 +335,36 @@ describe('updateSettings() with data and columns', () => {
       expect(afterRowIdsRemoved).not.toHaveBeenCalled();
     });
 
+    it('should show the rows a filter trimmed when its conditions go with the columns', () => {
+      createGrid({ filters: true, data: [1, 2, 3, 4, 5, 6].map(n => ({ a: n, b: n, c: n, d: n })) });
+      hot.getPlugin('filters').addCondition(2, 'gt', [3]);
+      hot.getPlugin('filters').filter();
+
+      expect(hot.countRows()).toBe(3);
+
+      hot.updateSettings({
+        data: [1, 2, 3, 4, 5, 6].map(n => ({ b: n, c: n, d: n })),
+        columns: buildColumns(WITHOUT_FIRST),
+      });
+
+      expect(hot.getPlugin('filters').exportConditions()).toEqual([]);
+      expect(hot.countRows()).toBe(6);
+    });
+
+    it('should keep the rows a filter trimmed when the columns do not change', () => {
+      createGrid({ filters: true, data: [1, 2, 3, 4, 5, 6].map(n => ({ a: n, b: n, c: n, d: n })) });
+      hot.getPlugin('filters').addCondition(2, 'gt', [3]);
+      hot.getPlugin('filters').filter();
+
+      hot.updateSettings({
+        data: [1, 2, 3, 4, 5, 6].map(n => ({ a: n, b: n, c: n, d: n })),
+        columns: buildColumns(ALL_COLUMNS),
+      });
+
+      expect(hot.getPlugin('filters').exportConditions()).toHaveLength(1);
+      expect(hot.countRows()).toBe(3);
+    });
+
     it('should bring the rows back to their unsorted order when the sort is cleared with the columns', () => {
       createGrid();
       hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
@@ -365,6 +403,22 @@ describe('updateSettings() with data and columns', () => {
       hot.getPlugin('manualColumnResize').setManualSize(1, 222);
 
       hot.updateSettings({ data: [['a', 'b'], ['d', 'e']], columns: () => ({}) });
+
+      expect(hot.countCols()).toBe(2);
+      expect(hot.getColWidth(1)).toBe(222);
+    });
+
+    it('should leave the state alone for `data`, `dataSchema`, and a `columns` function on a grid without `columns`', () => {
+      // The schema leg of the comparison reads the layout only when `columns` stays out of the picture, so the function
+      // form does not turn it into a reset.
+      createGrid({ data: [['a', 'b', 'c'], ['d', 'e', 'f']], columns: undefined });
+      hot.getPlugin('manualColumnResize').setManualSize(1, 222);
+
+      hot.updateSettings({
+        data: [['a', 'b'], ['d', 'e']],
+        dataSchema: [null, null],
+        columns: () => ({}),
+      });
 
       expect(hot.countCols()).toBe(2);
       expect(hot.getColWidth(1)).toBe(222);
