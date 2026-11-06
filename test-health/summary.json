@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T12:52:15.600Z",
+  "generatedAt": "2026-11-06T13:17:16.523Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2414,13 +2414,13 @@
       "line": 224,
       "title": "fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-horizon"
       ],
