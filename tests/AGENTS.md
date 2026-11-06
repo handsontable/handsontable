@@ -2121,9 +2121,12 @@ screen readers (`docs/AGENTS.md` 2.20).
   surface. The header: `id`, `surface`, `criteria` (the WCAG 2.2 criteria the scenario evidences, which
   the evidence records carry so the report generator can cite a step), exactly one of `page` (a page of
   `a11y/pages.mjs`, whose fixture, query and root container it opens: reuse the catalog) or `fixture` (a
-  file under `fixtures/demo/`, for a grid the catalog does not hold, as `grid-core`'s), an optional
-  `query` (appended after the page's; a `theme=` or `bundle=` in it takes the project's place, because a
-  fixture reads the first value of a repeated parameter), `start` (`grid`, the default: the reader enters
+  file under `fixtures/demo/`, for a grid the catalog does not hold, as `grid-core`'s), a `state` when the
+  page has one in the catalog (the runner opens the page at rest and never sets up its state or its
+  `device`, so a scenario on a page in the `editor` or a menu state reaches it with its own steps and names
+  it, and a page with a `device` is refused), an optional `query` (appended after the page's; a `theme=` or
+  `bundle=` in it takes the project's place, and any other key the page's query sets is refused, because
+  a fixture reads the first value of a repeated parameter), `start` (`grid`, the default: the reader enters
   the page's first item, the grid; `page`: the reader stays at the top of the page and the steps reach the
   grid as a user arriving does), a `setup` and ordered `steps`. The setup sets the scene before the reader
   settles: `selectCell`, `press` and `type`, plus `updateSettings` (an object, to give a catalog page the
@@ -2135,9 +2138,9 @@ screen readers (`docs/AGENTS.md` 2.20).
   without one is serious, "A11y: the verdict of a check run"), an optional `after` (`{ "visible": "<selector>" }` or
   `{ "hidden": … }`, awaited inside the capture so the state's announcement is in it, and a red test when
   it never comes), an optional `unsupported` and a `note`. A **variant** (`variantOf`) is its base's steps
-  on another theme, query or setup: it sets only `id`, `surface`, `query`, `setup` and `criteria`, so the
-  steps stay one copy (`grid-core-horizon` is `grid-core` on `theme=horizon`, `reading-mode-traversal-plain`
-  the frozen traversal without frozen panes). The schema is `lib/screenreader-scenario.mjs`, and
+  on another theme, query or setup: it sets only `id`, `surface`, `query`, `setup`, `criteria` and `group`
+  (besides `schema` and `variantOf`), so the steps stay one copy (`grid-core-horizon` is `grid-core` on
+  `theme=horizon`). A variant of a base that does not validate is told so. The schema is `lib/screenreader-scenario.mjs`, and
   `lib/__tests__/screenreader-scenarios.test.mjs` (root `test:tooling`) validates every committed file,
   so a mistake fails on the pull request and not inside a Windows or macOS job. That includes every
   `press` value, checked against Playwright's key names (`PRESS_PATTERN`: an optional chord of `Shift`,
@@ -2168,12 +2171,15 @@ screen readers (`docs/AGENTS.md` 2.20).
 - **A reading traversal is judged as a whole.** A scenario with a `traversal` (`from` and `to`, step ids,
   and `items`) asks that each item be announced exactly once across those steps, in the listed order
   (`matchTraversal()` in `lib/screenreader-transcript.mjs`, matched as a token is, a digits-only item
-  never inside a position phrase). An item read twice is what the check exists for: a frozen pane's
+  never inside a position phrase). `from` and `to` are steps every lane runs: a lane skips an
+  `unsupported` step, and the window would widen to the start or the end of the run. An item read twice is what the check exists for: a frozen pane's
   overlay clone read as a second copy of its cells. An item never read is content the reading mode
   skipped, one read before an item listed ahead of it is out of order. List the cell values, which are
   unique, not the headers, which a reader repeats as context on every cell. Give the read steps room to
   reach past the grid, or a copy the clones add after the master table never shows. The verdict is judged
-  on a complete run only, is in the transcript and the report, and turns the check run `neutral`.
+  on a complete run only, is in the transcript and the report, and a traversal that is off is a serious
+  finding (`traversal-off`, at `where` `traversal` in the findings ledger), a warning at most on a change
+  run while its cluster has a tracker.
 - **Every step is an evidence record.** `scripts/screenreader-report.mjs` writes
   `test-results/screenreader/evidence/screen-reader.json` (`lib/screenreader-evidence.mjs`), the
   transcripts artifact uploads it, and it is in the shared shape of the accessibility checks
@@ -2304,7 +2310,7 @@ screen readers (`docs/AGENTS.md` 2.20).
 - **The VoiceOver job is macOS: `macos-26`, `setup --ci --macos-record`, two jobs at most.**
   `npx -y @guidepup/setup@0.29.3 setup --ci --macos-record` writes the automation permissions into the
   TCC database, enables VoiceOver's AppleScript control and turns on Do Not Disturb, and screen-records
-  itself into `tests/recordings/`, uploaded as `screenreader-recordings-vo-<browser>` red or green;
+  itself into `tests/recordings/`, uploaded as `screenreader-recordings-vo-<browser>-<group>` red or green;
   `install voiceover` fetches Guidepup's VoiceOver preferences bundle for the runner's macOS. `vo-webkit`
   is Playwright's own WebKit build (Playwright.app) with the Desktop Safari descriptor, not Safari.app;
   `vo-chromium` is Chrome for Testing. The job carries `max-parallel: 2`, because the organization runs

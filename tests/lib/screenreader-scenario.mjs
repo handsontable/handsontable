@@ -244,7 +244,7 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
   const variant = doc.variantOf !== undefined;
   const known = variant
     ? VARIANT_FIELDS
-    : new Set(['schema', 'id', 'surface', 'group', 'page', 'fixture', 'query', 'start', 'criteria', 'setup', 'steps', 'traversal']);
+    : new Set(['schema', 'id', 'surface', 'group', 'page', 'state', 'fixture', 'query', 'start', 'criteria', 'setup', 'steps', 'traversal']);
 
   Object.keys(doc).filter(key => !known.has(key)).forEach(key => problems.push(variant
     ? `field "${key}" is not allowed in a variant: a variant takes its base's ${key}, and sets only ${[...VARIANT_FIELDS].join(', ')}`
@@ -294,6 +294,7 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
   }
 
   problems.push(...placeProblems(doc, fixtures));
+  problems.push(...catalogPageProblems(doc));
   if (doc.start !== undefined && !STARTS.includes(doc.start)) {
     problems.push(`start must be one of ${STARTS.join(', ')}, got ${JSON.stringify(doc.start)}`);
   }
@@ -346,6 +347,53 @@ function placeProblems(doc, fixtures) {
   }
 
   return [];
+}
+
+/**
+ * The problems of a scenario on a catalog page that the runner cannot set up. The runner opens the page's
+ * fixture, query and root container at rest, never its `state` (a menu or an editor the axe scan opens
+ * first) or its `device`, so:
+ *
+ * - a page with a `device` is refused: the screen reader lanes run desktop browsers;
+ * - a page whose state is not `none` needs the scenario's `state` to name it: the scenario's own steps
+ *   reach that state (they open the editor or the menu with the keys a user presses), and a scenario that
+ *   never reaches it would close the page's gap in `screenreader/coverage.mjs` without reading the surface;
+ * - a page at rest takes no `state`;
+ * - the scenario's query never sets a key the page's query sets: the fixtures read the first value of a
+ *   repeated key, so the page's would win and the scenario would run on the page's grid while it says
+ *   otherwise (`theme` and `bundle` excepted: the runner puts the scenario's first).
+ *
+ * @param {{page?: unknown, state?: unknown, query?: unknown, fixture?: unknown}} scenario The scenario, or a
+ * resolved variant.
+ * @returns {string[]} The problems.
+ */
+function catalogPageProblems(scenario) {
+  const entry = typeof scenario.page === 'string' ? A11Y_PAGES.find(page => page.id === scenario.page) : undefined;
+
+  if (!entry) {
+    return scenario.state === undefined ? [] : ['state names the catalog state of the scenario\'s page: a scenario on a fixture has none'];
+  }
+
+  const problems = [];
+  const pageState = entry.state ?? 'none';
+
+  if (entry.device !== undefined) {
+    problems.push(`page "${entry.id}" emulates a device (${entry.device}), and the screen reader lanes run desktop browsers`);
+  }
+  if (pageState === 'none' && scenario.state !== undefined) {
+    problems.push(`state: page "${entry.id}" is at rest in the catalog, so a scenario on it names no state`);
+  } else if (pageState !== 'none' && scenario.state !== pageState) {
+    problems.push(`page "${entry.id}" is in the "${pageState}" state in the catalog, which the runner does not set up: the scenario's steps reach it, and the scenario says so with "state": "${pageState}"`);
+  }
+  if (typeof scenario.query === 'string' && typeof entry.query === 'string') {
+    const pageKeys = new Set(new URLSearchParams(entry.query).keys());
+
+    [...new Set(new URLSearchParams(scenario.query).keys())]
+      .filter(key => key !== 'theme' && key !== 'bundle' && pageKeys.has(key))
+      .forEach(key => problems.push(`query sets "${key}", which page "${entry.id}" sets already (${entry.query}): the fixture reads the page's first value, so the scenario's would never apply`));
+  }
+
+  return problems;
 }
 
 /**
@@ -565,11 +613,16 @@ function traversalProblems(traversal, steps) {
 
   Object.keys(traversal).filter(key => !['from', 'to', 'items'].includes(key)).forEach(key => problems.push(`traversal: unknown field "${key}"`));
   ['from', 'to'].forEach((key) => {
-    if (!ids.includes(traversal[key])) {
+    const step = steps.find(item => item?.id === traversal[key]);
+
+    if (!step) {
       problems.push(`traversal.${key} must be a step id, got ${JSON.stringify(traversal[key])}`);
+    } else if (isPlainObject(step.unsupported) && Object.keys(step.unsupported).length > 0) {
+      // A lane skips an unsupported step, so the window would lose its bound there and widen to the run.
+      problems.push(`traversal.${key} names step "${step.id}", which ${Object.keys(step.unsupported).join(' and ')} does not drive: a bound of the window is a step every lane runs`);
     }
   });
-  if (ids.indexOf(traversal.from) > ids.indexOf(traversal.to)) {
+  if (ids.includes(traversal.from) && ids.includes(traversal.to) && ids.indexOf(traversal.from) > ids.indexOf(traversal.to)) {
     problems.push('traversal.from comes after traversal.to');
   }
   const synonyms = Array.isArray(traversal.items) ? traversal.items.map(item => (Array.isArray(item) ? item : [item])) : [];
@@ -597,18 +650,27 @@ function traversalProblems(traversal, steps) {
  * @returns {{fileName: string, scenario: object|null, problems: string[]}[]} The same entries, resolved.
  */
 export function resolveVariants(loaded) {
-  const byId = new Map(loaded.filter(entry => entry.scenario && entry.problems.length === 0).map(entry => [entry.scenario.id, entry.scenario]));
+  // Every loaded scenario, valid or not, so a variant of a base that fails validation is told so, not
+  // that its base is missing.
+  const byId = new Map(loaded.filter(entry => isPlainObject(entry.scenario) && typeof entry.scenario.id === 'string')
+    .map(entry => [entry.scenario.id, entry]));
 
   return loaded.map((entry) => {
     if (!entry.scenario || entry.scenario.variantOf === undefined || entry.problems.length > 0) {
       return entry;
     }
 
-    const base = byId.get(entry.scenario.variantOf);
+    const baseEntry = byId.get(entry.scenario.variantOf);
 
-    if (!base) {
+    if (!baseEntry) {
       return { ...entry, problems: [`variantOf "${entry.scenario.variantOf}" is not a committed scenario`] };
     }
+    if (baseEntry.problems.length > 0) {
+      return { ...entry, problems: [`variantOf "${entry.scenario.variantOf}" names a scenario that does not validate (${baseEntry.fileName}): fix it first`] };
+    }
+
+    const base = baseEntry.scenario;
+
     if (base.variantOf !== undefined) {
       return { ...entry, problems: [`variantOf "${base.id}" is a variant itself: a variant varies a scenario with steps`] };
     }
@@ -622,7 +684,11 @@ export function resolveVariants(loaded) {
       group: group ?? base.group,
     };
 
-    return { ...entry, scenario: Object.fromEntries(Object.entries(resolved).filter(([, value]) => value !== undefined)) };
+    const scenario = Object.fromEntries(Object.entries(resolved).filter(([, value]) => value !== undefined));
+    // The variant's query meets its base's page only here.
+    const problems = catalogPageProblems(scenario);
+
+    return { ...entry, scenario, problems };
   });
 }
 

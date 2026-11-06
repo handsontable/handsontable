@@ -38,6 +38,7 @@ export interface Scenario {
   surface: string;
   group: 'keyboard' | 'reading';
   page?: string;
+  state?: string;
   fixture?: string;
   query?: string;
   start?: 'grid' | 'page';

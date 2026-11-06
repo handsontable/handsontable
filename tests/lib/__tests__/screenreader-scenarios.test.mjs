@@ -285,6 +285,7 @@ test('a traversal names read steps and items that are each distinct', () => {
 
   assert.equal(traversal({}), '');
   assert.match(traversal({ from: 'z' }), /traversal\.from must be a step id/);
+  assert.equal(traversal({ to: 'z' }), 'traversal.to must be a step id, got "z"', 'one typo is one problem, never also an order problem');
   assert.match(traversal({ from: 'b', to: 'a' }), /from comes after traversal\.to/);
   assert.match(traversal({ items: [] }), /items must be a non-empty array/);
   assert.match(traversal({ items: ['A1', 'a1'] }), /lists an item twice/, 'items compare normalized');
@@ -293,6 +294,39 @@ test('a traversal names read steps and items that are each distinct', () => {
   assert.match(traversal({ items: [['A1', 'A 1'], ['a 1']] }), /each, and each synonym, is distinct/);
   assert.match(traversal({ items: [[]] }), /or a list of synonyms for one/);
   assert.match(traversal({ every: true }), /traversal: unknown field "every"/);
+
+  const skipped = [{ ...steps[0], unsupported: { nvda: 'NVDA has no interaction level here.' } }, steps[1]];
+  const bounded = validateScenario({ ...valid(), steps: skipped, traversal: { from: 'a', to: 'b', items: ['A1'] } },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.match(bounded, /traversal\.from names step "a", which nvda does not drive: a bound of the window is a step every lane runs/,
+    'a lane that skips a bound would widen the window to the start or end of the run');
+});
+
+test('a scenario on a catalog page names the state its steps reach, and never sets a key of the page\'s query', () => {
+  const onPage = extra => validateScenario({ ...valid(), fixture: undefined, page: 'grid', ...extra },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.equal(onPage({}), '', 'a page at rest needs no state');
+  assert.match(onPage({ state: 'editor' }), /page "grid" is at rest in the catalog, so a scenario on it names no state/);
+  assert.match(onPage({ page: 'text-editor' }), /page "text-editor" is in the "editor" state in the catalog, which the runner does not set up: the scenario's steps reach it, and the scenario says so with "state": "editor"/,
+    'a scenario that never opened the editor would close the page\'s coverage gap without reading it');
+  assert.equal(onPage({ page: 'text-editor', state: 'editor' }), '');
+  assert.match(onPage({ page: 'text-editor', state: 'dropdown-menu' }), /"state": "editor"/);
+  assert.match(onPage({ page: 'mobile-selection-handles', state: 'selection' }), /emulates a device \(iPhone 13\), and the screen reader lanes run desktop browsers/);
+  assert.match(validateScenario({ ...valid(), state: 'editor' }).join('\n'), /a scenario on a fixture has none/);
+
+  assert.equal(onPage({ page: 'merge-cells', query: 'theme=horizon' }), '', 'theme and bundle go first, so the scenario\'s apply');
+  assert.match(onPage({ page: 'merge-cells', query: 'scenario=thick' }),
+    /query sets "scenario", which page "merge-cells" sets already \(scenario=areas\): the fixture reads the page's first value/);
+
+  const base = { ...valid(), id: 'base', fixture: undefined, page: 'merge-cells' };
+  const [, variant] = resolveVariants([
+    { fileName: 'base.scenario.json', scenario: base, problems: [] },
+    { fileName: 'base-thick.scenario.json', scenario: { schema: 1, id: 'base-thick', surface: 'The base on thick rows.', variantOf: 'base', query: 'scenario=thick' }, problems: [] },
+  ]);
+
+  assert.match(variant.problems.join('\n'), /query sets "scenario", which page "merge-cells" sets already/, 'a variant\'s query meets its base\'s page');
 });
 
 test('a variant takes its base\'s steps and sets only its own id, surface, query, setup and criteria', () => {
@@ -318,6 +352,14 @@ test('a variant takes its base\'s steps and sets only its own id, surface, query
   const [, orphan] = resolveVariants([{ fileName: 'x.scenario.json', scenario: { ...base, id: 'x' }, problems: [] }, { fileName: 'v.scenario.json', scenario: { ...variant, variantOf: 'missing' }, problems: [] }]);
 
   assert.match(orphan.problems.join('\n'), /variantOf "missing" is not a committed scenario/);
+
+  const [, ofInvalid] = resolveVariants([
+    { fileName: 'base.scenario.json', scenario: base, problems: ['schema must be 1, got 2'] },
+    { fileName: 'base-horizon.scenario.json', scenario: variant, problems: [] },
+  ]);
+
+  assert.deepEqual(ofInvalid.problems, ['variantOf "base" names a scenario that does not validate (base.scenario.json): fix it first'],
+    'a base with a typo is not a missing file');
 
   const [, , chained] = resolveVariants([
     { fileName: 'base.scenario.json', scenario: base, problems: [] },
