@@ -65,20 +65,6 @@ const inert = new Proxy((() => {}), {
   construct: () => inert,
 });
 
-// The specs in this file provoke console output on purpose (a product warning, or a library's
-// own), and the cases that care assert it through a spy of their own. Keep the rest out of the
-// Jest output, so a warning nobody expected stands out in a run.
-let expectedConsoleSpies;
-
-// `beforeAll`, not `beforeEach`: the examples run in this file's own `beforeAll`.
-beforeAll(() => {
-  expectedConsoleSpies = ['warn', 'log'].map(level => jest.spyOn(console, level).mockImplementation(() => {}));
-});
-
-afterAll(() => {
-  expectedConsoleSpies.forEach(spy => spy.mockRestore());
-});
-
 describe('validateSettings over the documentation examples', () => {
   const recorded = [];
   let currentFile = null;

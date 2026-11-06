@@ -21,19 +21,6 @@ const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include t
  * The license gate keeps a plugin a key does not list off. The console message prints once per page,
  * so every test loads a fresh copy of the modules.
  */
-// The specs in this file provoke console output on purpose (a product warning, or a library's
-// own), and the cases that care assert it through a spy of their own. Keep the rest out of the
-// Jest output, so a warning nobody expected stands out in a run.
-let expectedConsoleSpies;
-
-beforeEach(() => {
-  expectedConsoleSpies = ['warn'].map(level => jest.spyOn(console, level).mockImplementation(() => {}));
-});
-
-afterEach(() => {
-  expectedConsoleSpies.forEach(spy => spy.mockRestore());
-});
-
 describe('BasePlugin license gate', () => {
   let Handsontable;
   let consoleError;

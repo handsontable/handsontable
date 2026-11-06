@@ -9,19 +9,6 @@ const SUMMARY = [{ sourceColumn: 0, destinationRow: 3, destinationColumn: 0, typ
  * array, the destination cells of the outgoing array get back the value they held before the first
  * total was written there, so loading the same array again sums the same input.
  */
-// The specs in this file provoke console output on purpose (a product warning, or a library's
-// own), and the cases that care assert it through a spy of their own. Keep the rest out of the
-// Jest output, so a warning nobody expected stands out in a run.
-let expectedConsoleSpies;
-
-beforeEach(() => {
-  expectedConsoleSpies = ['warn'].map(level => jest.spyOn(console, level).mockImplementation(() => {}));
-});
-
-afterEach(() => {
-  expectedConsoleSpies.forEach(spy => spy.mockRestore());
-});
-
 describe('ColumnSummary destinations of a replaced data array', () => {
   let container;
   let hot;

@@ -93,19 +93,6 @@ function transfer(source: Handsontable, handler: 'onCopy' | 'onCut' = 'onCopy') 
   return target;
 }
 
-// The specs in this file provoke console output on purpose (a product warning, or a library's
-// own), and the cases that care assert it through a spy of their own. Keep the rest out of the
-// Jest output, so a warning nobody expected stands out in a run.
-let expectedConsoleSpies: jest.SpyInstance[];
-
-beforeEach(() => {
-  expectedConsoleSpies = (['warn'] as const).map(level => jest.spyOn(console, level).mockImplementation(() => {}));
-});
-
-afterEach(() => {
-  expectedConsoleSpies.forEach(spy => spy.mockRestore());
-});
-
 describe('CopyPaste source-data flavor and the beforeCopy / beforeCut hooks', () => {
   let hots: Handsontable[] = [];
 
