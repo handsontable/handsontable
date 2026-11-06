@@ -46,6 +46,22 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
     });
   });
 
+  test.describe('sheet names the engine reads as one', () => {
+    test('gives a later sheet whose name differs only in case an engine sheet of its own', async() => {
+      await grid.goto('clashingNames');
+
+      expect(await grid.switchTo('data (2)')).toEqual([true]);
+      await expect(grid.cell(0, 0)).toHaveText('small');
+      expect(await grid.switchTo('Summary')).toEqual([true]);
+      await expect(grid.cell(0, 0)).toHaveText('big');
+      expect(await grid.engineSheetNames()).toEqual(['Data', 'Summary', 'data (2)']);
+      expect(await grid.consoleMessages()).toEqual([
+        'warn: The sheets "Data" and "data (2)" use the same formula engine sheet name (the engine ignores ' +
+          'letter case). "data" was registered as "data (2)". Formulas that reference "data" read the sheet "Data".',
+      ]);
+    });
+  });
+
   test.describe('remove and add', () => {
     test('repaints a formula that reads a sheet removed and added again', async() => {
       await grid.goto('sortedReport');
@@ -351,6 +367,29 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
       const before = await grid.getData();
 
       expect(await grid.switchTo('Other', 'Sheet')).toEqual([true, true]);
+
+      expect(await grid.getData()).toEqual(before);
+    });
+
+    test('keeps the formulas of a moved column on a sheet with an engine of its own', async() => {
+      await grid.goto('ownEngineColumns');
+      await grid.moveColumn(0, 2);
+
+      expect(await grid.getData()).toEqual([[2, 3, 1], [4, 7, 3]]);
+      expect(await grid.switchTo('Plain', 'Sheet')).toEqual([true, true]);
+
+      expect(await grid.getData()).toEqual([[2, 3, 1], [4, 7, 3]]);
+    });
+
+    test('keeps the values of a sheet with an engine of its own after a moved row and a row inserted', async() => {
+      await grid.goto('ownEngineRows');
+      await grid.moveRow(4, 0);
+      await grid.alter('insert_row_above', 2);
+
+      const before = await grid.getData();
+
+      expect(before).toEqual([[30, 1030], [50, 1050], [null, null], [20, 1020], [40, 1040], [10, 1010]]);
+      expect(await grid.switchTo('Plain', 'Sheet')).toEqual([true, true]);
 
       expect(await grid.getData()).toEqual(before);
     });

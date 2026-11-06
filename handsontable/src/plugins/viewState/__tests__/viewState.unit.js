@@ -2150,4 +2150,76 @@ describe('ViewState plugin', () => {
       ]);
     });
   });
+
+  describe('merge rules', () => {
+    /**
+     * Writes a marker into every leaf of a value, in place.
+     *
+     * @param {*} value The value to change.
+     */
+    function overwriteLeaves(value) {
+      if (value === null || typeof value !== 'object') {
+        return;
+      }
+
+      Object.keys(value).forEach((key) => {
+        if (value[key] !== null && typeof value[key] === 'object') {
+          overwriteLeaves(value[key]);
+        } else {
+          value[key] = 'changed';
+        }
+      });
+    }
+
+    it('replaces the trimmed rows, not merges them with the rows trimmed before', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const trimRows = hot.getPlugin('trimRows');
+
+      trimRows.trimRows([0, 1]);
+      vs(hot).setViewState({ version: 1, trimmedRows: [3] });
+
+      expect(trimRows.getTrimmedRows()).toEqual([3]);
+      expect(hot.countRows()).toBe(5);
+    });
+
+    it('returns a state that shares no object with the grid', () => {
+      const hot = createGrid({ ...ALL_PLUGINS, pagination: { pageSize: 2 } });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      hot.getPlugin('filters').addCondition(0, 'neq', ['0-0']);
+      hot.getPlugin('filters').addCondition(1, 'by_value', [['1-1', '2-1', '3-1', '4-1']]);
+      hot.getPlugin('filters').filter();
+      hot.getPlugin('manualColumnResize').setManualSize(2, 120);
+      hot.getPlugin('trimRows').trimRows([5]);
+      hot.getPlugin('hiddenColumns').hideColumn(3);
+      hot.selectCell(0, 1);
+
+      const first = vs(hot).getViewState();
+      const expected = throughJson(first);
+
+      overwriteLeaves(first);
+
+      expect(vs(hot).getViewState()).toEqual(expected);
+    });
+
+    it('moves the page to a restored selection that lies on another page', () => {
+      const hot = createGrid({ pagination: { pageSize: 2 } });
+      const result = vs(hot).setViewState({
+        version: 1,
+        selection: {
+          ranges: [{ from: [4, 0], to: [4, 0], highlight: [4, 0] }],
+          activeLayer: 0,
+          selectedByRowHeader: [],
+          selectedByColumnHeader: [],
+          rowExtentSpansGrid: [],
+          columnExtentSpansGrid: [],
+          disableHeadersHighlight: false,
+        },
+      });
+
+      expect(result.applied).toEqual(['selection']);
+      expect(hot.getPlugin('pagination').getCurrentPage()).toBe(3);
+      expect(hot.getSelected()).toEqual([[4, 0, 4, 0]]);
+    });
+  });
 });

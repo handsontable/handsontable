@@ -1760,32 +1760,52 @@ describe('Grid-level cell type', () => {
     expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
   });
 
-  it.each(['checkbox', 'notRegisteredType'])(
-    'should go back to the creation-time type when one commit removes the props and sets `type` to `%s`',
-    (newType) => {
-      const ref = React.createRef<HotTableRef>();
-      const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
-
-      render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
-
-      expect(() => render({ ...props, type: newType }, ref)).not.toThrow();
-
-      const hotInstance = ref.current!.hotInstance!;
-
-      expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
-      expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
-    }
-  );
-
-  it('should keep the editor and renderer matched when one commit removes one prop and changes `type`', () => {
+  it('should apply the new type when one commit removes the props and changes `type`', () => {
     const ref = React.createRef<HotTableRef>();
     const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
 
-    render({ ...props, hotEditor: 'password' }, ref);
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
     const hotInstance = render({ ...props, type: 'checkbox' }, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('checkbox'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
+  });
+
+  it('should keep the current type when one commit removes the props and sets an unregistered `type`', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+
+    expect(() => render({ ...props, type: 'notRegisteredType' }, ref)).not.toThrow();
+
+    const hotInstance = ref.current!.hotInstance!;
 
     expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
     expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should apply a `type` changed after mount', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render(props, ref);
+    const hotInstance = render({ ...props, type: 'checkbox' }, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('checkbox'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
+  });
+
+  it('should supply the editor of the current `type` when the editor prop is removed after `type` changed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'numeric' });
+
+    render({ ...props, hotEditor: 'password' }, ref);
+    render({ ...props, type: 'dropdown', source: ['A', 'B'], hotEditor: 'password' }, ref);
+
+    const hotInstance = render({ ...props, type: 'dropdown', source: ['A', 'B'] }, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
   });
 
   it('should keep the text editor and renderer on a grid with no type', () => {

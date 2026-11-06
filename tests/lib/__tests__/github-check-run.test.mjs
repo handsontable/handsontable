@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { postCheckRun } from '../github-check-run.mjs';
+import { listCheckRuns, postCheckRun } from '../github-check-run.mjs';
 
 const payload = annotations => ({ name: 'Screen reader / nvda-chromium report', conclusion: 'neutral', title: 't', summary: 's', annotations });
 const annotation = index => ({ path: 'tests/x.json', start_line: index, end_line: index, annotation_level: 'warning', title: 'a', message: 'm' });
@@ -69,5 +69,42 @@ test('an error status throws with the method, the URL, the status and the body',
   await assert.rejects(
     postCheckRun({ token: 't', repository: 'o/r', headSha: 'abc', payload: payload([]), fetchImpl: fakeFetch([], false) }),
     /^Error: POST https:\/\/api\.github\.com\/repos\/o\/r\/check-runs answered 403: forbidden$/,
+  );
+});
+
+test('a check run carries the run that posted it as its external id, so the run verdict reads only its own', async() => {
+  const calls = [];
+
+  await postCheckRun({ token: 't', repository: 'o/r', headSha: 'abc', payload: payload([]), externalId: '4242', fetchImpl: fakeFetch(calls) });
+  assert.equal(calls[0].body.external_id, '4242');
+
+  const without = [];
+
+  await postCheckRun({ token: 't', repository: 'o/r', headSha: 'abc', payload: payload([]), fetchImpl: fakeFetch(without) });
+  assert.equal('external_id' in without[0].body, false);
+});
+
+test('listCheckRuns pages through every check run of a commit until a page is short', async() => {
+  const calls = [];
+  const page = (count, from) => Array.from({ length: count }, (_, index) => ({ id: from + index, name: `run ${from + index}` }));
+  const pages = [page(100, 0), page(100, 100), page(3, 200)];
+  const runs = await listCheckRuns({
+    token: 'tok', repository: 'o/r', sha: 'abc',
+    fetchImpl: async(url, init) => {
+      calls.push({ url, method: init.method, auth: init.headers.Authorization });
+
+      return { ok: true, status: 200, json: async() => ({ total_count: 203, check_runs: pages[calls.length - 1] }), text: async() => '' };
+    },
+  });
+
+  assert.equal(runs.length, 203);
+  assert.deepEqual(calls.map(call => call.url), [1, 2, 3].map(number => `https://api.github.com/repos/o/r/commits/abc/check-runs?filter=all&per_page=100&page=${number}`));
+  assert.deepEqual(calls.map(call => [call.method, call.auth]), Array(3).fill(['GET', 'Bearer tok']));
+});
+
+test('listCheckRuns throws on an error status, never reads it as no check run', async() => {
+  await assert.rejects(
+    listCheckRuns({ token: 't', repository: 'o/r', sha: 'abc', fetchImpl: async() => ({ ok: false, status: 403, text: async() => 'forbidden' }) }),
+    /^Error: GET https:\/\/api\.github\.com\/repos\/o\/r\/commits\/abc\/check-runs\?filter=all&per_page=100&page=1 answered 403: forbidden$/,
   );
 });

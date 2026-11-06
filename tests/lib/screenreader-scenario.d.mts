@@ -17,6 +17,10 @@ export interface ScenarioStep {
   id: string;
   action: ScenarioAction;
   expect: string[][];
+  /**
+   * The severity of a token group, keyed by its first synonym; a group without one is serious.
+   */
+  severity?: Record<string, 'critical' | 'serious' | 'moderate' | 'minor'>;
   after?: { visible: string } | { hidden: string };
   note?: string;
   unsupported?: Record<string, string>;

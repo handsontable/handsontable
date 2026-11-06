@@ -17,7 +17,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { A11Y_PAGES } from '../a11y/pages.mjs';
 import { WCAG_CRITERIA } from './a11y-evidence.mjs';
-import { describeAction, normalizeAnnouncement } from './screenreader-transcript.mjs';
+import { TOKEN_SEVERITIES, describeAction, normalizeAnnouncement } from './screenreader-transcript.mjs';
 
 export const SCENARIO_SCHEMA = 1;
 export const SCENARIO_FILE_SUFFIX = '.scenario.json';
@@ -371,7 +371,7 @@ function validateStep(step, where) {
   }
 
   const problems = [];
-  const known = new Set(['id', 'action', 'expect', 'after', 'note', 'unsupported']);
+  const known = new Set(['id', 'action', 'expect', 'severity', 'after', 'note', 'unsupported']);
 
   Object.keys(step).filter(key => !known.has(key)).forEach(key => problems.push(`${where}: unknown field "${key}"`));
 
@@ -400,6 +400,9 @@ function validateStep(step, where) {
           + '(punctuation or screen reader chatter alone), so it can never match');
       });
     });
+  }
+  if (step.severity !== undefined) {
+    validateSeverity(step.severity, Array.isArray(step.expect) ? step.expect : [], where).forEach(problem => problems.push(problem));
   }
   if (step.after !== undefined) {
     if (!isPlainObject(step.after) || Object.keys(step.after).length !== 1
@@ -432,6 +435,47 @@ function validateStep(step, where) {
     SCREENREADER_LANES.filter(lane => !laneDrives(lane, step.action) && unsupportedReason(step, lane) === null)
       .forEach(lane => problems.push(`${where}: step "${step.id}": the ${lane} lane cannot drive ${JSON.stringify(step.action)} `
         + `(LANE_PRIMITIVES), so the step declares unsupported.${lane} with the reason`));
+  }
+
+  return problems;
+}
+
+/**
+ * Validates a step's `severity`: an object that gives some of its token groups a severity other than the
+ * default (serious), each group named by its first synonym. A name that is not the first synonym of exactly one
+ * group names nothing, so renaming a group cannot leave its severity behind on another.
+ *
+ * @param {unknown} severity The declaration.
+ * @param {unknown[]} groups The step's token groups.
+ * @param {string} where The step's place, for the message.
+ * @returns {string[]} The problems.
+ */
+function validateSeverity(severity, groups, where) {
+  if (!isPlainObject(severity)) {
+    return [`${where}: severity must be an object of { "<first synonym of a group>": "<severity>" }`];
+  }
+
+  const names = Object.keys(severity);
+
+  if (names.length === 0) {
+    return [`${where}: severity must name at least one token group`];
+  }
+
+  const firsts = groups.filter(group => Array.isArray(group) && typeof group[0] === 'string').map(group => group[0]);
+  const problems = [];
+
+  for (const name of names) {
+    const value = severity[name];
+    const groupsNamed = firsts.filter(first => first === name).length;
+
+    if (!TOKEN_SEVERITIES.includes(value)) {
+      problems.push(`${where}: severity of ${JSON.stringify(name)} must be one of ${TOKEN_SEVERITIES.join(', ')}, got ${JSON.stringify(value)}`);
+    }
+    if (groupsNamed === 0) {
+      problems.push(`${where}: severity names ${JSON.stringify(name)}, which is not the first synonym of a token group of the step (${firsts.join(', ')})`);
+    } else if (groupsNamed > 1) {
+      problems.push(`${where}: severity names ${JSON.stringify(name)}, the first synonym of more than one token group, so it names none of them`);
+    }
   }
 
   return problems;

@@ -11,12 +11,15 @@
  * uploads; a document that does not validate is a tooling problem of the report. With `--check-run` it
  * also posts the check run through the Checks API
  * (`lib/github-check-run.mjs`), behind the fork guard in `.github/workflows/screenreader.yml`, with
- * `continue-on-error`: the check run reports, it never decides the job. `--dry-run` prints the
- * payload instead of posting and needs no token.
+ * `continue-on-error`: the check run reports, it never decides the job. Its verdict follows the
+ * severity rule (`lib/a11y-verdict.mjs`); what counts follows the event (`GITHUB_EVENT_NAME`: a
+ * schedule or a dispatch is an audit, anything else a change) and the cluster catalog
+ * (`a11y/issues.json`). `--dry-run` prints the payload instead of posting and needs no token.
  *
  * Environment for the post: `GITHUB_TOKEN` (with `checks: write`), `GITHUB_REPOSITORY`,
  * `SCREENREADER_HEAD_SHA` (the pull request's head on a pull request, `github.sha` otherwise), and
- * optionally `SCREENREADER_REPORT_URL`, `GITHUB_API_URL`, `GITHUB_SERVER_URL` and `GITHUB_RUN_ID`.
+ * optionally `SCREENREADER_REPORT_URL`, `GITHUB_API_URL`, `GITHUB_SERVER_URL`, `GITHUB_EVENT_NAME` and
+ * `GITHUB_RUN_ID` (stamped on the check run as its `external_id`, which the run verdict reads).
  * `SCREENREADER_PROJECT` names the project when the run left no transcript at all, and `SCREENREADER_GROUP`
  * the scenario group the job ran (the check run's name, the scenarios a transcript is expected for).
  */
@@ -28,6 +31,7 @@ import { postCheckRun } from '../lib/github-check-run.mjs';
 import { buildScreenreaderEvidence, SCREENREADER_CHECK } from '../lib/screenreader-evidence.mjs';
 import { buildReport, stepLines } from '../lib/screenreader-report.mjs';
 import { SCENARIO_FILE_SUFFIX, laneOfProject, loadScenarios } from '../lib/screenreader-scenario.mjs';
+import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT_DIR = path.join(TESTS_ROOT, 'test-results/screenreader');
@@ -43,6 +47,11 @@ const runUrl = env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_
   : undefined;
 const problems = [];
 const transcripts = [];
+const { scope, tracked, externalId, notes } = verdictInputs({ env, testsRoot: TESTS_ROOT });
+
+for (const note of notes) {
+  process.stderr.write(`screenreader-report: ${note}\n`);
+}
 
 if (existsSync(TRANSCRIPTS_DIR)) {
   readdirSync(TRANSCRIPTS_DIR).filter(name => name.endsWith('.json')).sort().forEach((name) => {
@@ -99,6 +108,8 @@ const report = buildReport({
   runUrl,
   lines,
   files,
+  scope,
+  tracked,
 });
 // The title is escaped like every value in the summary: a tooling failure's title carries raw error text.
 const summary = `## ${escapeMarkdownText(report.title)}\n\n${report.summary}`;
@@ -136,6 +147,7 @@ const created = await postCheckRun({
   headSha: env.SCREENREADER_HEAD_SHA,
   payload: report,
   detailsUrl: env.SCREENREADER_REPORT_URL || runUrl,
+  externalId,
   apiUrl: env.GITHUB_API_URL,
 });
 

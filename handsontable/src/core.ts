@@ -662,6 +662,7 @@ export default function Core(
    * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
    */
   let slotsResizeObserver: ResizeObserver | null = null;
+  let reserveSlotsChangedAtInit: (() => boolean) | null = null;
   /**
    * Stops watching the document's web font loads (see `refreshAfterFontsLoad()`), or `null` before
    * `init` started watching.
@@ -1533,6 +1534,11 @@ export default function Core(
 
     if (!['shift', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       editorManager.closeEditor();
+
+      // Closing the editor saves it, and a listener of the save can destroy the grid.
+      if (!instance) {
+        return;
+      }
     }
 
     // A `shift` re-lay (`alter()`'s shifts, the trim clamp and the DEV-152 grow) replays every layer
@@ -1541,6 +1547,12 @@ export default function Core(
 
     if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource) && !isIntermediateShiftLayer) {
       instance.view.render();
+
+      // An `afterRender` listener can destroy the grid.
+      if (!instance) {
+        return;
+      }
+
       editorManager.prepareEditor();
     }
   });
@@ -1559,12 +1571,29 @@ export default function Core(
     }
 
     editorManager.closeEditor();
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     editorManager.prepareEditor();
   });
 
   this.selection.addLocalHook('afterSelectionFinished',
     (cellRanges: Array<{from: {row: number, col: number}, to: {row: number, col: number}}>) => {
+      // A listener of the save the selection made (it closed the editor) destroyed the grid.
+      if (!instance) {
+        return;
+      }
+
       const selectionLayerLevel = cellRanges.length - 1;
       const { from, to } = cellRanges[selectionLayerLevel];
 
@@ -1590,7 +1619,18 @@ export default function Core(
 
   this.selection.addLocalHook('afterDeselect', () => {
     editorManager.closeEditor();
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
@@ -2897,7 +2937,9 @@ export default function Core(
       // (toolbars, pagination, license notification) aligns with the grid.
       const lastEdgeWidths = { top: -1, bottom: -1 };
       const syncEdgeSlotsWidth = () => {
-        if (instance.isDestroyed) {
+        // A listener from the settings runs before this one, and the hook run keeps walking its
+        // listeners after such a listener destroyed the grid, which nulls `instance`.
+        if (!instance || instance.isDestroyed) {
           return;
         }
 
@@ -2949,6 +2991,20 @@ export default function Core(
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
       let lastSlotsHeight = measureSlotsHeight();
+      const reserveChangedSlots = () => {
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return false;
+        }
+
+        lastSlotsHeight = slotsHeight;
+        reapplyPixelRootHeight(instance, tableMeta.height);
+
+        return true;
+      };
+
+      reserveSlotsChangedAtInit = reserveChangedSlots;
 
       // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
       // bar that mounts late or changes height would keep a stale reservation until an unrelated
@@ -2961,17 +3017,9 @@ export default function Core(
           return;
         }
 
-        const slotsHeight = measureSlotsHeight();
-
-        if (slotsHeight === lastSlotsHeight) {
-          return;
+        if (reserveChangedSlots()) {
+          instance.render();
         }
-
-        lastSlotsHeight = slotsHeight;
-
-        reapplyPixelRootHeight(instance, tableMeta.height);
-
-        instance.render();
       });
       slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
@@ -3004,7 +3052,22 @@ export default function Core(
 
     instance.runHooks('init');
 
+    // An `init` listener can fill a slot: the license notification writes the missing-features bar there,
+    // once every plugin's ready step has reported what the key leaves out. The slot observer would reserve
+    // its height a frame later, so the first render would size the grid as if the bar took no room. Reserve
+    // it now, and once more after the first render, which sets the slot's width to the table's and can wrap
+    // the bar onto more lines. Both run before `afterInit`, so its listeners read the final viewport.
+    const reserveSlots = reserveSlotsChangedAtInit;
+
+    reserveSlotsChangedAtInit = null;
+    reserveSlots?.();
+
     instance.render();
+
+    // A listener of the first render can destroy the grid, which sets `instance` to `null`.
+    if (reserveSlots !== null && instance && !instance.isDestroyed && reserveSlots()) {
+      instance.render();
+    }
 
     if (stopWatchingFontLoads === null) {
       stopWatchingFontLoads = watchFontLoads(instance.rootDocument, refreshAfterFontsLoad);
@@ -3739,11 +3802,21 @@ export default function Core(
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
 
+      // A listener of `beforeChangeRender`, of the render (`afterRender`), or of `afterChange` can
+      // destroy the grid, and nothing after it may read the destroyed instance or its editor.
+      if (!instance) {
+        return;
+      }
+
       if (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) {
         editorManager.closeEditor();
       }
 
       instance.render();
+
+      if (!instance) {
+        return;
+      }
 
       if (
         (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) ||
@@ -3753,6 +3826,10 @@ export default function Core(
       }
 
       instance.runHooks('afterChange', changes, source || 'edit');
+
+      if (!instance) {
+        return;
+      }
 
       if (
         activeEditor &&
@@ -4117,6 +4194,12 @@ export default function Core(
         openedEditor.prop!)
       : true;
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    // A `beforeChange` listener destroyed the grid, so nothing is left to apply the changes to.
+    if (!instance) {
+      return [];
+    }
+
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
@@ -4273,7 +4356,17 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
+    // `beforeChange` and `afterSetDataAtCell` listeners can destroy the grid, and nothing after them
+    // may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
+
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
+
+    if (!instance) {
+      return;
+    }
 
     validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
@@ -4390,7 +4483,17 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
+    // `beforeChange` and `afterSetDataAtRowProp` listeners can destroy the grid, and nothing after
+    // them may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
+
     instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
+
+    if (!instance) {
+      return;
+    }
 
     validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
@@ -4453,7 +4556,18 @@ export default function Core(
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.closeEditor(revertOriginal);
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
@@ -5971,6 +6085,11 @@ export default function Core(
             const metaPhase = applySettings(
               filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
             );
+
+            if (!instance || instance.isDestroyed) {
+              return;
+            }
+
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -6010,7 +6129,7 @@ export default function Core(
         }
       }));
     } finally {
-      if (suspendsRender) {
+      if (suspendsRender && instance && !instance.isDestroyed) {
         instance.resumeRender();
       }
     }
@@ -6283,8 +6402,9 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @returns {boolean} `true` when the payload changed the grid-level `type` to another one.
    */
-  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): void {
+  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): boolean {
     let i;
 
     // eslint-disable-next-line no-restricted-syntax
@@ -6307,6 +6427,14 @@ export default function Core(
         applyUpdatedSetting(settings, i);
       }
     }
+
+    // The loop above writes the options one by one, and `type` is only a name there. Expand it once all of
+    // them are in, so an `editor`, `renderer` or `validator` of the same payload wins over the type.
+    if (init) {
+      return false;
+    }
+
+    return metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
   }
 
   /**
@@ -6779,13 +6907,17 @@ export default function Core(
    * @param {Array|null} restoredCellOptionMetas `cell`-option meta, by physical indexes, to put back instead of
    * applying `settings.cell` (see `_applySettingsAndData()`).
    * @param {object|null} keptCellMetas The user-set meta and invalid marks to put back (see `_applySettingsAndData()`).
+   * @param {boolean} gridTypeChanged Whether the call changed the grid-level `type` to another one. The cells already
+   * drawn keep what the previous type's renderer wrote onto their meta (the numeric alignment class, the checkbox
+   * templates), so they are reset the way a `columns` change resets them.
    */
   function applyMetaPhase(
     settings: SettingsUpdate,
     columnPhase: { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean },
     isCellOptionRestated: boolean,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null,
-    keptCellMetas: KeptCellMetas | null
+    keptCellMetas: KeptCellMetas | null,
+    gridTypeChanged: boolean
   ): void {
     const { earlyColumnsSetting, resetsColumnMetaBeforeLoad } = columnPhase;
     const clen = instance.countCols();
@@ -6793,7 +6925,8 @@ export default function Core(
     // Clear the meta caches, unless the early column pass (`applyColumnMetaBeforeLoad()`) already did it for this
     // call.
     if (earlyColumnsSetting === null && !resetsColumnMetaBeforeLoad &&
-        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined ||
+          gridTypeChanged)) {
       resetMetaCaches(isCellOptionRestated);
     }
 
@@ -6998,7 +7131,8 @@ export default function Core(
       previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataSource,
     } = readSettingsBaseline(settings, init);
 
-    mergeSettingsIntoMeta(settings, init);
+    const gridTypeChanged = mergeSettingsIntoMeta(settings, init);
+
     applyThemeSettings(settings, init);
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
@@ -7026,7 +7160,7 @@ export default function Core(
     }
 
     const metaPhase = () => applyMetaPhase(
-      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas
+      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas, gridTypeChanged
     );
 
     if (!defersDataWork) {
@@ -7043,6 +7177,10 @@ export default function Core(
 
     if (!init) {
       notifySettingsUpdated(notifiedSettings);
+
+      if (!instance || instance.isDestroyed) {
+        return null;
+      }
     }
 
     if (!defersDataWork) {
@@ -8701,9 +8839,12 @@ export default function Core(
    * Validates every cell in the data set,
    * using a [validator function](@/guides/cell-functions/cell-validator/cell-validator.md) configured for each cell.
    *
-   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md),
-   * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md)
+   * or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
+   *
+   * Does validate rows hidden with [`HiddenRows`](@/api/hiddenRows.md) and columns hidden with
+   * [`HiddenColumns`](@/api/hiddenColumns.md). Those cells stay in the data set.
    *
    * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
    * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
@@ -9608,6 +9749,11 @@ export default function Core(
       }
     }
 
+    // The selection closed the editor, and a listener of that save destroyed the grid.
+    if (!instance) {
+      return wasSelected;
+    }
+
     if (wasSelected && changeListener) {
       instance.listen();
     }
@@ -10105,6 +10251,8 @@ export default function Core(
 
     datamap = null!;
     grid = null!;
+    // A selection method can still be running (it closed an editor whose save destroyed the grid).
+    selection?.destroy();
     selection = null!;
     editorManager = null!;
     instance = null as unknown as HotInstance;

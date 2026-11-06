@@ -1,20 +1,23 @@
 /**
  * The `A11y / axe report` check run: the pure half.
  *
- * The axe job's own check is green in warn mode whatever the scan found, so a
- * finding would sit unseen in the job summary. This check run is the visible
- * gate on the pull request: `neutral` (a grey icon, with the counts in its title)
- * when a finding needs action in warn mode, `success` when nothing does,
- * `failure` in block mode or on a tooling failure. Its page carries the job
- * summary and the link to the HTML report, and its annotations sit on the line
- * of the file to change: a new or grown finding on the page's entry in
- * `tests/a11y/pages.mjs`, an improved or fixed one on its entry in the baseline.
- * It never blocks a merge: only `CI Gate` is required.
+ * The axe job's own check is green in warn mode whatever the scan found, so a finding would sit unseen in the
+ * job summary. This check run is the visible verdict, by the severity rule every accessibility check run
+ * follows (`lib/a11y-verdict.mjs`): red on a critical or serious finding, neutral with a warning on a
+ * moderate or minor one, green on none, and red for a tooling failure, titled as one. What counts depends on
+ * the run: a change run (a pull request, a push) counts what is new or grown against the baseline, and a
+ * finding whose cluster in `tests/a11y/issues.json` has a tracker is a warning at most; an audit run (a
+ * schedule, a dispatch) counts every open finding, the known ones too. An improved or stale entry is
+ * advisory. Block mode, when it comes, fails the check on any finding that needs action. Its page carries the
+ * job summary and the link to the HTML report, and its annotations sit on the line of the file to change: a
+ * new or grown finding on the page's entry in `tests/a11y/pages.mjs`, a known, improved or fixed one on its
+ * entry in the baseline. It never blocks a merge: only `CI Gate` is required.
  *
  * `tests/scripts/a11y-check-run.mjs` reads the reporter's `comparison.json`,
  * builds the payload here, and posts it. No I/O in here.
  */
 import { BASELINE_FILE, entryKey, headline, renderSummary, verdictCounts } from './a11y-baseline.mjs';
+import { annotationLevel, capAnnotations, renderVerdict, severityOfImpact, verdictOf, verdictTitle } from './a11y-verdict.mjs';
 
 export const CHECK_RUN_NAME = 'A11y / axe report';
 export const ANNOTATIONS_PER_REQUEST = 50;
@@ -76,38 +79,40 @@ export function baselineLines(source) {
  * @param {Map<string, number>} input.baseline The baseline lines (`baselineLines()`).
  * @param {string} [input.reportUrl] The HTML report's URL.
  * @param {string} [input.runUrl] The workflow run's URL.
+ * @param {'audit'|'change'} [input.scope] What the run counts (`countingScope()` of `lib/a11y-verdict.mjs`).
+ * @param {(source: string, check: string, item: object) => boolean} [input.tracked] Whether a finding's cluster
+ * has a tracker (`trackedBy()` of `lib/a11y-issues.mjs`); read on a change run only.
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.
  */
-export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl }) {
+export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false }) {
   if (!comparison) {
     return {
       name: CHECK_RUN_NAME,
       conclusion: 'failure',
-      title: '✖ The scan wrote no comparison',
-      summary: `The axe job ended without \`tests/test-results/a11y/comparison.json\`, so nothing was compared. ${runLink(runUrl)}`,
+      title: '✖ Tooling failure: the scan wrote no comparison',
+      summary: `**Verdict: red, a tooling failure.** The axe job ended without \`tests/test-results/a11y/comparison.json\`, so nothing was compared. ${runLink(runUrl)}`,
       annotations: [],
     };
   }
 
   const counts = verdictCounts(comparison);
   const problems = comparison.problems ?? [];
-  let conclusion = 'success';
-
-  if (problems.length > 0) {
-    conclusion = 'failure';
-  } else if (counts.action > 0) {
-    conclusion = comparison.mode === 'block' ? 'failure' : 'neutral';
-  }
-
-  const title = problems.length > 0
-    ? `✖ Tooling failure: ${problems[0]}`
-    : `${counts.action === 0 ? '✔' : (comparison.mode === 'block' ? '✖' : '⚠')} ${headline(comparison)}`;
+  const blocking = comparison.mode === 'block' && problems.length === 0 && counts.action > 0;
+  const findings = countedFindings(comparison, scope, tracked);
+  const verdict = verdictOf({ findings: findings.map(({ severity, warningOnly }) => ({ severity, warningOnly })), tooling: problems });
+  const conclusion = blocking ? 'failure' : verdict.conclusion;
+  const title = blocking ? `✖ ${headline(comparison)}` : verdictTitle(verdict, headline(comparison));
   const notes = [...(comparison.notes ?? []), ...problems.map(problem => `Tooling problem: ${problem}`)];
+  const { annotations, omitted } = capAnnotations(annotationsOf(findings, comparison, pages, baseline));
   const lead = [
+    blocking
+      ? '**Verdict: red, block mode.** A finding that needs action fails this check and the job, whatever its severity.'
+      : renderVerdict(verdict, { scope, counting: 'only a finding that is new or grown against the baseline counts', listTooling: false }),
     comparison.mode === 'block'
       ? '**Block mode:** a finding that needs action fails this check and the job.'
-      : '**Warn mode:** this check is neutral when a finding needs action and never blocks a merge; blocking comes later.',
+      : '**Warn mode:** the job never fails on a finding; this check run\'s verdict says what the scan found, and it never blocks a merge.',
     runLink(runUrl),
+    omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more are in the job summary and the HTML report.` : '',
     ...notes.map(note => `> ${note}`),
   ].filter(Boolean).join('\n\n');
   let summary = `${lead}\n\n${renderSummary(comparison, { reportUrl })}`;
@@ -116,37 +121,71 @@ export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl }
     summary = `${summary.slice(0, SUMMARY_LIMIT)}\n\n… cut at ${SUMMARY_LIMIT} characters; the HTML report and the job summary hold the rest.`;
   }
 
-  return { name: CHECK_RUN_NAME, conclusion, title: title.slice(0, 250), summary, annotations: annotations(comparison, pages, baseline) };
+  return { name: CHECK_RUN_NAME, conclusion, title: title.slice(0, 250), summary, annotations };
 }
 
 /**
- * One annotation per finding that needs action, on the line of the file to change.
+ * The findings the verdict counts, each with its comparison item and set: on a change run the new and grown
+ * ones, a tracked one a warning at most; on an audit run the known ones too, tracked or not. An improved or a
+ * stale entry is advisory: the scan found less than recorded, which needs a baseline edit and no fix.
  *
+ * @param {object} comparison The comparison.
+ * @param {'audit'|'change'} scope The scope.
+ * @param {Function} tracked The tracker predicate.
+ * @returns {Array<{set: string, item: object, severity: string, warningOnly: boolean}>} The findings.
+ */
+function countedFindings(comparison, scope, tracked) {
+  const counted = set => comparison[set].map(item => ({
+    set,
+    item,
+    severity: severityOfImpact(item.impact),
+    warningOnly: scope === 'change' && Boolean(tracked('axe', 'axe', item)),
+  }));
+  const advisory = set => comparison[set].map(item => ({ set, item, severity: 'advisory', warningOnly: false }));
+
+  return [
+    ...counted('newViolations'),
+    ...counted('grown'),
+    ...(scope === 'audit' ? counted('matched') : []),
+    ...advisory('improved'),
+    ...advisory('stale'),
+  ];
+}
+
+/**
+ * One annotation per finding the verdict read, on the line of the file to change, in file and line order.
+ * Block mode keeps every annotation a failure.
+ *
+ * @param {object[]} findings The findings (`countedFindings()`).
  * @param {object} comparison The comparison.
  * @param {Map<string, number>} pages The page lines.
  * @param {Map<string, number>} baseline The baseline lines.
  * @returns {object[]} The annotations.
  */
-function annotations(comparison, pages, baseline) {
-  const level = comparison.mode === 'block' ? 'failure' : 'warning';
+function annotationsOf(findings, comparison, pages, baseline) {
   const where = item => `${item.page} on ${item.theme}: ${item.rule} on ${item.target}`;
-  const onPage = (item, title) => {
-    const line = pages.get(item.page) ?? 1;
-
-    return { path: PAGES_FILE, start_line: line, end_line: line, annotation_level: level, title, message: `${where(item)}. ${item.remedy}` };
-  };
-  const onEntry = (item, title) => {
-    const line = baseline.get(entryKey(item)) ?? 1;
-
-    return { path: `tests/${BASELINE_FILE}`, start_line: line, end_line: line, annotation_level: level, title, message: `${where(item)}. ${item.remedy}` };
+  const titles = {
+    newViolations: (item, severity) => `New accessibility finding (${severity}): ${item.rule}`,
+    grown: (item, severity) => `Grown accessibility finding (${severity}): ${item.rule}`,
+    matched: (item, severity) => `Known accessibility finding (${severity}): ${item.rule}`,
+    improved: () => 'Improved: lower the recorded node count',
+    stale: () => 'Fixed: delete the baseline entry',
   };
 
-  return [
-    ...comparison.newViolations.map(item => onPage(item, `New accessibility finding: ${item.rule}`)),
-    ...comparison.grown.map(item => onPage(item, `Grown accessibility finding: ${item.rule}`)),
-    ...comparison.improved.map(item => onEntry(item, `Improved: lower the recorded node count`)),
-    ...comparison.stale.map(item => onEntry(item, `Fixed: delete the baseline entry`)),
-  ];
+  return findings.map(({ set, item, severity, warningOnly }) => {
+    const onPage = set === 'newViolations' || set === 'grown';
+    const path = onPage ? PAGES_FILE : `tests/${BASELINE_FILE}`;
+    const line = (onPage ? pages.get(item.page) : baseline.get(entryKey(item))) ?? 1;
+
+    return {
+      path,
+      start_line: line,
+      end_line: line,
+      annotation_level: comparison.mode === 'block' ? 'failure' : annotationLevel({ severity, warningOnly }),
+      title: titles[set](item, severity),
+      message: `${where(item)}. ${item.remedy}`,
+    };
+  }).sort((a, b) => a.path.localeCompare(b.path) || a.start_line - b.start_line);
 }
 
 /**

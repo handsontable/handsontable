@@ -9,10 +9,12 @@ name: Screen reader
 #
 # Report-only, by design, and nothing here gates a pull request: the job has `continue-on-error`, the
 # test never fails on a token group in report mode, and the verdict is the
-# `Screen reader / <project> <group> report` check run (neutral when a token group is missing or a
-# golden differs) plus the job summary.
-# The only reds inside the job are tooling: a fixture that does not load, a screen reader that does
-# not start, a scenario that never reached its `after` state.
+# `Screen reader / <project> <group> report` check run plus the job summary, by the severity rule
+# (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a step missing a serious or critical
+# token group (serious unless the scenario declares the group's severity), neutral with a warning on a
+# moderate or minor one, green otherwise; a golden difference is advisory. The only reds inside the job
+# are tooling: a fixture that does not load, a screen reader that does not start, a scenario that never
+# reached its `after` state; the check run is red for them too, titled as a tooling failure.
 #
 # One job per screen reader, browser and scenario group (a job per screen reader, a matrix per browser
 # and group), because Guidepup runs one screen reader per machine and the browsers are headed, so a

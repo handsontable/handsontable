@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error thrown when a `beforeChange`, `afterChange`, `afterRender`, or undo and redo hook destroys the grid during a paste, cut, copy, undo, or redo.",
+  "type": "fixed",
+  "issueOrPR": 14173,
+  "breaking": false,
+  "framework": "none"
+}

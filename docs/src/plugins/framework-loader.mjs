@@ -457,7 +457,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v43';
+const LOADER_VERSION = 'v44';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -876,6 +876,99 @@ function _wrapStepsForLevel(html, level) {
 }
 
 /**
+ * Splits an aside body into text paragraphs and fenced code blocks.
+ * A fence opens on a line that starts with three or more backticks (or tildes),
+ * indented by up to three spaces, and closes on a line of the same kind that holds the
+ * same character at least as many times.
+ * A backtick fence cannot hold a backtick in its info string, as in CommonMark.
+ * An unclosed fence is closed at the end of the body, so it cannot swallow the
+ * markup that closes the aside, or the rest of the page.
+ *
+ * @param {string[]} bodyLines
+ * @returns {{ type: 'text' | 'fence', lines: string[] }[]}
+ */
+function splitAsideBody(bodyLines) {
+  const segments = [];
+  let current = { type: 'text', lines: [] };
+  let marker = null;
+
+  for (const line of bodyLines) {
+    if (marker) {
+      current.lines.push(line);
+
+      const closing = line.match(/^ {0,3}(`{3,}|~{3,})\s*$/);
+
+      if (closing && closing[1][0] === marker[0] && closing[1].length >= marker.length) {
+        segments.push(current);
+        current = { type: 'text', lines: [] };
+        marker = null;
+      }
+    } else {
+      const opening = line.match(/^ {0,3}(`{3,})[^`]*$/) || line.match(/^ {0,3}(~{3,})/);
+
+      if (opening) {
+        segments.push(current);
+        current = { type: 'fence', lines: [line] };
+        marker = opening[1];
+      } else {
+        current.lines.push(line);
+      }
+    }
+  }
+
+  if (marker) {
+    current.lines.push(marker);
+  }
+
+  segments.push(current);
+
+  return segments.filter(segment => segment.lines.join('').trim() !== '');
+}
+
+/**
+ * Builds the aside content element. A body without a fenced code block becomes one
+ * `<p>`. A body with a fence keeps the fence as plain markdown lines, with a blank
+ * line on each side. The aside is raw HTML, so only markdown that sits outside
+ * an HTML block gets highlighted by the markdown renderer.
+ *
+ * @param {string[]} bodyLines
+ * @returns {string[]}
+ */
+function buildAsideContent(bodyLines) {
+  const segments = splitAsideBody(bodyLines);
+
+  if (!segments.some(segment => segment.type === 'fence')) {
+    const body = convertAsideBodyMarkdown(bodyLines.join('\n').trim());
+
+    return [`<div class="starlight-aside__content"><p>${body}</p></div>`];
+  }
+
+  const result = ['<div class="starlight-aside__content">'];
+
+  for (const segment of segments) {
+    result.push('');
+
+    if (segment.type === 'fence') {
+      result.push(...segment.lines);
+    } else {
+      const paragraphs = segment.lines.join('\n').trim().split(/\n\s*\n/);
+
+      paragraphs.forEach((paragraph, index) => {
+        if (index > 0) {
+          result.push('');
+        }
+
+        result.push(`<p>${convertAsideBodyMarkdown(paragraph.trim())}</p>`);
+      });
+    }
+  }
+
+  result.push('', '</div>');
+
+  return result;
+}
+
+/**
  * Transforms `<div class="boxes-list">` blocks with markdown lists into
  * Starlight-styled card grid HTML.
  *
@@ -905,12 +998,10 @@ function convertAsideBlocks(content) {
       result.push(line);
     } else if (/^:::\s*$/.test(line)) {
       // Convert markdown syntax to HTML since the body is injected as raw
-      // HTML and won't be processed by remark.
-      const body = convertAsideBodyMarkdown(asideBody.join('\n').trim());
-
+      // HTML and won't be processed by remark. Fenced code blocks stay markdown.
       result.push(`<aside class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
       result.push(`<p class="starlight-aside__title" aria-hidden="true">${asideTitle}</p>`);
-      result.push(`<div class="starlight-aside__content"><p>${body}</p></div>`);
+      result.push(...buildAsideContent(asideBody));
       result.push('</aside>');
       asideType = null;
       asideTitle = null;

@@ -62,6 +62,8 @@ export function buildEvidenceCheckRun(input: {
   pages?: Map<string, number>;
   runUrl?: string;
   artifactUrl?: string;
-}): { name: string; conclusion: 'success' | 'neutral'; title: string; summary: string; annotations: object[] };
+  scope?: 'audit' | 'change';
+  tracked?: (source: string, check: string, finding: object) => boolean;
+}): { name: string; conclusion: 'success' | 'neutral' | 'failure'; title: string; summary: string; annotations: object[] };
 export function findingText(finding: object): string;
 export function measuredText(measured: Record<string, unknown>): string;

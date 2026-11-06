@@ -935,7 +935,7 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
         action,
         spoken: captured.spoken,
         normalized,
-        tokens: matchTokenGroups(normalized, step.expect),
+        tokens: matchTokenGroups(normalized, step.expect, step.severity),
         durationMs: Date.now() - stepStarted,
         ...(captured.preparing.length > 0 ? { preparing: captured.preparing } : {}),
       });
