@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T12:13:37.844Z",
+  "generatedAt": "2026-11-06T12:44:31.423Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1864,39 +1864,6 @@
       "needsTicket": false
     },
     {
-      "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
-      "tier": "playwright",
-      "file": "e2e/fixed-columns-end.spec.ts",
-      "line": 224,
-      "title": "fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T13:01:48Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37618096029/attempts/2",
-        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
       "key": "jasmine|handsontable/src/__tests__/core/update.spec.js|Core_updateSettings should update cache of index mappers only once when updating `data` and `column` properties",
       "tier": "jasmine",
       "file": "handsontable/src/__tests__/core/update.spec.js",
@@ -2436,6 +2403,39 @@
         "leg": "e2e-firefox",
         "status": "failed",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end.spec.ts",
+      "line": 224,
+      "title": "fixedColumnsEnd keyboard navigation (ltr) › keeps the cell reached with the arrow key visible beside the end columns",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T13:01:48Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37618096029/attempts/2",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
