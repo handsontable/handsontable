@@ -1,5 +1,9 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import type {
+  DataProviderFetchOptions,
+  DataProviderQueryParameters,
+} from 'handsontable/plugins/dataProvider';
 
 registerAllModules();
 
@@ -10,11 +14,6 @@ interface Product {
   category: string;
   price: number;
   stock: number;
-}
-
-interface HotFilter {
-  column: string;
-  value: string;
 }
 
 interface ProductQueryParams {
@@ -74,19 +73,15 @@ const hot = new Handsontable(container, {
     rowId: 'id',
 
     fetchRows: async (
-      { page, pageSize, sort, filters }: {
-        page: number;
-        pageSize: number;
-        sort?: { prop: string; order: string };
-        filters?: HotFilter[];
-      },
-      { signal }: { signal: AbortSignal }
+      { page, pageSize, sort, filters }: DataProviderQueryParameters,
+      { signal }: DataProviderFetchOptions
     ): Promise<{ rows: Product[]; totalRows: number }> => {
       const params: ProductQueryParams = {
         page,
         pageSize,
         sortProp: sort?.prop,
         sortOrder: sort?.order,
+        // Send the filter array as-is: [{ prop, operation, conditions: [{ name, args }] }].
         filters: filters ? JSON.stringify(filters) : undefined,
       };
 

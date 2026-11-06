@@ -20,6 +20,8 @@ describe('colWidths addressed by physical column index', () => {
   function createGrid(settings) {
     hot = new Core(container, {
       licenseKey: TEST_LICENSE_KEY,
+      // A raw `Core` is not a root instance, so no default theme is picked for it; name one.
+      themeName: 'ht-theme-main',
       data: [['a', 'b', 'c']],
       autoColumnSize: false,
       ...settings,

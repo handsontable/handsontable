@@ -21,7 +21,6 @@ import {
   EDITOR_PORTAL_HOST_CLASSNAME,
   MISSING_ROOT_PORTAL_WARNING,
   createEditorPortal,
-  getCellTypeSetting,
   getContainerAttributesProps,
   isComponentEditor,
   isCSR,
@@ -89,12 +88,6 @@ const HotTableInner = forwardRef<
    */
   const namedGlobalEditor = useRef(false);
   const namedGlobalRenderer = useRef(false);
-
-  /**
-   * The grid-level `type` the current instance was created with. Core expands it only at creation, so a
-   * removed `editor` or `renderer` prop is replaced with this type's value, not with a later `type`.
-   */
-  const createdCellType = useRef<unknown>(undefined);
 
   /**
    * HotTable context exposing helper functions.
@@ -200,17 +193,12 @@ const HotTableInner = forwardRef<
       }
     }
 
-    if (init) {
-      createdCellType.current = newSettings.type;
-    }
-
-    // The grid-level `type` supplies the editor and the renderer no prop names. Core expands it only when
-    // the grid is created and only when the same settings carry no `editor` or `renderer`, so an unnamed
-    // one is left out. When the prop that named one is removed, the creation-time type's value is passed
-    // instead, matching the key core expanded and the rule that a `type` changed after mount changes nothing.
+    // The grid-level `type` supplies the editor and the renderer no prop names, so an unnamed one is left out
+    // of the payload. When the prop that named one is removed, `undefined` is sent: core reads it as "unset"
+    // and the current `type` supplies the editor or the renderer again.
     const applyUnnamedSetting = (key: 'editor' | 'renderer', wasNamed: boolean) => {
       if (wasNamed) {
-        (newSettings as Record<string, unknown>)[key] = getCellTypeSetting(createdCellType.current, key);
+        newSettings[key] = undefined;
 
       } else {
         delete newSettings[key];

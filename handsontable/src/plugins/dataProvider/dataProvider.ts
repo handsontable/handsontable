@@ -189,12 +189,6 @@ export interface DataProviderFetchOptions {
   signal: AbortSignal;
 }
 
-/**
- * @deprecated Since 18.0.0, renamed to `DataProviderFetchOptions`. This alias will be removed in
- * 19.0.0. Use {@link DataProviderFetchOptions} instead.
- */
-export type DataProviderOptions = DataProviderFetchOptions;
-
 export interface RowsCreatePayload {
   position: 'above' | 'below';
   referenceRowId?: unknown;
@@ -917,11 +911,24 @@ export class DataProvider extends BasePlugin {
     try {
       return this._runWithoutFetching(callback);
     } finally {
-      this.#detachErrorToasts();
-      this.#rederiveQuery();
-      this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching(), true);
-      this.hot.getPlugin('filters')?._resetDataProviderRollback();
+      this.#syncAfterContextChange();
     }
+  }
+
+  /**
+   * Brings the driven plugins in line with the view a context change has just shown (the steps after `callback`
+   * in `_runContextChange()`). Does nothing once the grid is destroyed: a listener the owner fires inside the
+   * change can destroy it, and every step reads the instance.
+   */
+  #syncAfterContextChange() {
+    if (!this.hot) {
+      return;
+    }
+
+    this.#detachErrorToasts();
+    this.#rederiveQuery();
+    this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching(), true);
+    this.hot.getPlugin('filters')?._resetDataProviderRollback();
   }
 
   /**

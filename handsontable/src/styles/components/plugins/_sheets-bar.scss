@@ -584,9 +584,10 @@ $all-sheets-visible-items: 8;
         // borrows its tokens from — the browser's own focus ring drew a second, rounded
         // outline around the field (UX review: "like the design system").
         outline: none;
-        // The width itself is measured and set inline while typing; these two bound it, so a
-        // one-character name stays clickable and a very long one cannot outgrow the bar.
-        min-width: var(--ht-sizing-size-10);
+        // The width itself is measured and set inline while typing, as wide as the tab will be once
+        // the name commits. No minimum: a floor held a one- or two-character name wider than its
+        // committed tab, and the tabs after it moved on the commit. The maximum keeps a very long
+        // name from outgrowing the bar.
         max-width: 40ch;
       }
 

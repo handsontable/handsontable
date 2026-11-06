@@ -12,6 +12,7 @@ import {
   laneOfProject,
   loadScenarios,
   scenarioPageId,
+  scenarioBudgetMs,
   scenarioPlace,
   scenarioUrl,
   unsupportedReason,
@@ -36,6 +37,7 @@ import {
   type TranscriptStep,
   type TranscriptUnsupportedStep,
 } from '../lib/screenreader-transcript.mjs';
+import { ensureNvdaMode, lastNvdaMode } from '../lib/screenreader-nvda.mjs';
 import {
   OUTPUT_STEP_BOUNDARY,
   READ_LAST_PHRASE,
@@ -137,6 +139,12 @@ type RootWrapper = HTMLElement & { __hotInstance?: HotInstance };
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCENARIOS_DIR = path.join(TESTS_ROOT, 'screenreader/scenarios');
 const GOLDENS_DIR = path.join(TESTS_ROOT, 'screenreader/goldens');
+/**
+ * Where a recording run also writes the goldens it recorded, and nothing else: a job runs one scenario
+ * group, so the goldens it uploads are that group's alone, and every group's artifact extracts into one
+ * tree without one group's checkout copies replacing another's new recordings.
+ */
+const RECORDED_GOLDENS_DIR = path.join(TESTS_ROOT, 'test-results/screenreader/goldens');
 const TRANSCRIPTS_DIR = path.join(TESTS_ROOT, 'test-results/screenreader/transcripts');
 const FIXTURES = readdirSync(path.join(TESTS_ROOT, 'fixtures/demo')).filter(name => name.endsWith('.html'));
 const DOM_ECHO = process.env.HOT_SR_LANE === 'dom-echo';
@@ -163,17 +171,6 @@ const VOICEOVER_SETTINGS = {
   SCRConfigurationCursorTrackingMToVO: false,
 };
 /**
- * What the NVDA reader records in a step's `preparing` when a mode switch named no mode: the run goes on,
- * and the transcript says the mode was never confirmed.
- */
-const NO_MODE_ANNOUNCED = '(no mode announced after the toggle)';
-/**
- * How many times the NVDA reader toggles between focus and browse mode before a primitive: two when NVDA
- * names the mode it lands in (a toggle that landed in the other mode is toggled back), and up to four when
- * a toggle names none.
- */
-const MODE_TOGGLES = 4;
-/**
  * How many times the VoiceOver reader reads the last phrase after it spoke the step boundary, before
  * it speaks the boundary again, and how many times it speaks it before the run stops as tooling. Each
  * read is one `osascript` round trip (tens of milliseconds), which is the polling interval: no timer.
@@ -190,25 +187,15 @@ const OSASCRIPT_TIMEOUT_MS = 10_000;
  */
 const SETUP_STEP = 'setup';
 /**
- * A scenario's test budget grows with its steps, never below the config's five minutes: a step costs four
- * to five seconds on VoiceOver and about thirteen when it is silent, and a run on a busy macOS runner took
- * every step 1.7 to 2 times as long, so a 38-step traversal that reads in under four minutes on a quiet
- * runner ran out a fixed five-minute budget twice. The budget per step covers that slower runner, and the
- * entry covers loading the page and entering it.
- */
-const STEP_BUDGET_MS = 12_000;
-const ENTRY_BUDGET_MS = 60_000;
-
-/**
- * The test timeout of a scenario: the config's, or the scenario's own budget when it has more steps than
- * the config's covers.
+ * The test timeout of a scenario: its budget on a slow runner (`scenarioBudgetMs()` of
+ * `lib/screenreader-scenario.mjs`), never below the config's five minutes.
  *
  * @param configTimeout The config's test timeout.
  * @param scenario The scenario.
  * @returns The timeout, in milliseconds.
  */
 function scenarioTimeout(configTimeout: number, scenario: Scenario): number {
-  return Math.max(configTimeout, ENTRY_BUDGET_MS + (scenario.steps.length * STEP_BUDGET_MS));
+  return Math.max(configTimeout, scenarioBudgetMs(scenario));
 }
 /**
  * The words a screen reader speaks for a role, for the `dom-echo` reader: the raw ARIA role is one word
@@ -537,22 +524,6 @@ function voiceOverReader(screenReader: ScreenReaderPlaywright): Reader {
 }
 
 /**
- * The last mode NVDA named in some phrases: the last mode phrase wins, inside one phrase too (`focus mode.
- * browse mode` is browse mode).
- *
- * @param phrases The phrases, as NVDA spoke them (never normalized: the normalizer strips the mode
- * phrases as chatter).
- * @returns The mode, or `null` when none names one.
- */
-function lastNvdaMode(phrases: string[]): 'focus' | 'browse' | null {
-  return phrases.reduce<'focus' | 'browse' | null>((mode, phrase) => {
-    const found = [...String(phrase).toLowerCase().matchAll(/\b(focus|browse) mode\b/g)];
-
-    return found.length > 0 ? found[found.length - 1][1] as 'focus' | 'browse' : mode;
-  }, null);
-}
-
-/**
  * The NVDA reader.
  *
  * - **Into the page**: Guidepup's `navigateToWebContent()` focuses the browser window and puts NVDA at
@@ -567,8 +538,11 @@ function lastNvdaMode(phrases: string[]): 'focus' | 'browse' | null {
  *   switches on its own when the focus lands on a gridcell (its treatment of ARIA grids), and Guidepup
  *   logs only what a command captured. The mode is read from every phrase the reader heard, the last mode
  *   phrase winning, never from the normalized text, which strips the mode phrases as chatter. A switch
- *   that names no mode leaves the mode unknown and is toggled again (`MODE_TOGGLES`); only when no switch
- *   names one does `(no mode announced after the toggle)` go into the step's `preparing` and the run go on
+ *   that names no mode still flipped it, so the mode follows from the last one NVDA named and the count
+ *   of silent switches after it (`ensureNvdaMode()` of `lib/screenreader-nvda.mjs`): the reader keeps
+ *   switching for a named mode while two switches are left, a mode it can only infer goes into the
+ *   step's `preparing`, and switches that end in the other mode stop the run as tooling. Only when NVDA
+ *   never named a mode does `(no mode announced after the toggle)` go into `preparing` and the run go on
  *   in the mode it asked for. What a switch says is the step's `preparing`, never its announcement.
  * - **Each step**: `screenReader.capture(() => …, { capture: true })` for a page action, and NVDA's own
  *   command with its capture for a reading one; both wait a second of silence after the last phrase. A
@@ -588,28 +562,15 @@ function nvdaReader(screenReader: ScreenReaderPlaywright): Reader {
     return screenReader.lastSpokenPhrase();
   };
   const ensure = async(wanted: 'focus' | 'browse'): Promise<string[]> => {
-    const said: string[] = [];
+    // A toggle that names no mode still flipped it: assuming the wanted mode after one once sent a read's
+    // Down Arrow to the page in focus mode, and the traversal started on a cell (Firefox, the NVDA lane's
+    // proof run). The mode follows from the count of toggles since NVDA last named one, and toggles that
+    // end in the other mode throw, a tooling failure, rather than run the step in the wrong mode.
+    const result = await ensureNvdaMode({ mode, wanted, toggle });
 
-    if (mode === wanted) {
-      return said;
-    }
+    mode = result.mode;
 
-    // A toggle that names no mode leaves the mode unknown, so the reader toggles again until NVDA names
-    // one: assuming the wanted mode once sent a read's Down Arrow to the page in focus mode, and the
-    // traversal started on a cell (Firefox, the NVDA lane's proof run). Only when no toggle names a mode
-    // does the run go on in the mode it asked for, and the step's `preparing` says so.
-    for (let attempt = 0; attempt < MODE_TOGGLES && mode !== wanted; attempt += 1) {
-      const toggled = await toggle();
-
-      said.push(toggled);
-      mode = lastNvdaMode([toggled]);
-    }
-    if (mode === null) {
-      said.push(NO_MODE_ANNOUNCED);
-      mode = wanted;
-    }
-
-    return said;
+    return result.said;
   };
   // Nothing within a second of silence: listen once more for another silence window. NVDA can speak
   // more than a second after the action completed (Shift+F10 on Firefox announced the menu that late,
@@ -861,8 +822,13 @@ async function writeTranscript(page: Page, reader: Reader, scenario: Scenario, t
   };
 
   if (!run.incomplete && updatesGoldens(testInfo)) {
+    const recorded = `${JSON.stringify(goldenFromTranscript(transcript), null, 2)}\n`;
+    const recordedFile = path.join(RECORDED_GOLDENS_DIR, project, `${scenario.id}.json`);
+
     mkdirSync(path.dirname(goldenFile), { recursive: true });
-    writeFileSync(goldenFile, `${JSON.stringify(goldenFromTranscript(transcript), null, 2)}\n`);
+    writeFileSync(goldenFile, recorded);
+    mkdirSync(path.dirname(recordedFile), { recursive: true });
+    writeFileSync(recordedFile, recorded);
     transcript.golden = { status: 'recorded', differences: [] };
   } else if (!run.incomplete) {
     const golden: Golden | null = existsSync(goldenFile) ? JSON.parse(readFileSync(goldenFile, 'utf8')) : null;
@@ -958,7 +924,7 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
         action,
         spoken: captured.spoken,
         normalized,
-        tokens: matchTokenGroups(normalized, step.expect),
+        tokens: matchTokenGroups(normalized, step.expect, step.severity),
         durationMs: Date.now() - stepStarted,
         ...(captured.preparing.length > 0 ? { preparing: captured.preparing } : {}),
       });

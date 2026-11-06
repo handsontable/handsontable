@@ -26,5 +26,7 @@ export function buildCheckRun(input: {
   baseline: Map<string, number>;
   reportUrl?: string;
   runUrl?: string;
+  scope?: 'audit' | 'change';
+  tracked?: (source: string, check: string, finding: object) => boolean;
 }): CheckRunPayload;
 export function annotationBatches<T>(items: T[], size?: number): T[][];

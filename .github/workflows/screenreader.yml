@@ -9,10 +9,12 @@ name: Screen reader
 #
 # Report-only, by design, and nothing here gates a pull request: the job has `continue-on-error`, the
 # test never fails on a token group in report mode, and the verdict is the
-# `Screen reader / <project> <group> report` check run (neutral when a token group is missing or a
-# golden differs) plus the job summary.
-# The only reds inside the job are tooling: a fixture that does not load, a screen reader that does
-# not start, a scenario that never reached its `after` state.
+# `Screen reader / <project> <group> report` check run plus the job summary, by the severity rule
+# (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a step missing a serious or critical
+# token group (serious unless the scenario declares the group's severity), neutral with a warning on a
+# moderate or minor one, green otherwise; a golden difference is advisory. The only reds inside the job
+# are tooling: a fixture that does not load, a screen reader that does not start, a scenario that never
+# reached its `after` state; the check run is red for them too, titled as a tooling failure.
 #
 # One job per screen reader, browser and scenario group (a job per screen reader, a matrix per browser
 # and group), because Guidepup runs one screen reader per machine and the browsers are headed, so a
@@ -22,7 +24,7 @@ name: Screen reader
 # runner Guidepup's own suite is green on (2 to 2.5 minutes per job there), and VoiceOver on `macos-26`.
 # The mitigations that suite uses are here too: Playwright `retries: 2` and a five-minute test timeout
 # (the config), a fresh screen reader per test with a stop in a `finally` (Guidepup's fixture), and
-# Guidepup 0.36.1+ for the NVDA quit fix. The run step's `timeout-minutes: 25` bounds a hung screen
+# Guidepup 0.36.1+ for the NVDA quit fix. The run step's `timeout-minutes: 40` bounds a hung screen
 # reader, and every step that downloads (the setup CLI, the browser, the screen reader) carries its own
 # timeout too: a step timeout is a step failure, so the `!cancelled()` summary, uploads and check run
 # still come, where a job timeout cancels them. Each job's timeout is a backstop above the sum of its
@@ -46,8 +48,8 @@ jobs:
   nvda:
     name: NVDA (${{ matrix.browser }}, ${{ matrix.group }})
     runs-on: windows-2025
-    # The backstop above the step timeouts below (5 + 5 + 5 + 25 minutes).
-    timeout-minutes: 45
+    # The backstop above the step timeouts below (5 + 5 + 5 + 40 minutes).
+    timeout-minutes: 60
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
     continue-on-error: true
     strategy:
@@ -105,12 +107,14 @@ jobs:
       - name: Install NVDA
         timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 install nvda
-      # 25 minutes: a step timeout is a step failure, so the summary, the uploads and the check run
-      # below still run, where a job timeout cancels them and leaves no evidence. Scenarios that keep
-      # timing out (3 attempts x each scenario's test budget) end here, not at the backstop.
+      # 40 minutes: every group's scenario budgets on a slow runner plus one retry of its largest
+      # (scenarioBudgetMs() of tests/lib/screenreader-scenario.mjs; the workflow test checks each group).
+      # A step timeout is a step failure, so the summary, the uploads and the check run below still run,
+      # where a job timeout cancels them and leaves no evidence. Scenarios that keep timing out (3 attempts
+      # x each scenario's test budget) end here, not at the backstop.
       - name: Run the scenarios
         id: scenarios
-        timeout-minutes: 25
+        timeout-minutes: 40
         env:
           HOT_SR_UPDATE_GOLDENS: ${{ inputs.update-goldens && '1' || '' }}
           HOT_SR_GROUP: ${{ matrix.group }}
@@ -139,12 +143,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
           overwrite: true
+      # The goldens this job recorded, never the whole tree: a job runs one group, and the tree's other
+      # files are the checkout's copies, which would replace another group's new recordings when the
+      # artifacts are extracted together.
       - name: Upload the recorded goldens
         if: ${{ !cancelled() && inputs.update-goldens }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: screenreader-goldens-nvda-${{ matrix.browser }}-${{ matrix.group }}
-          path: tests/screenreader/goldens
+          path: tests/test-results/screenreader/goldens
           if-no-files-found: warn
           retention-days: 14
           overwrite: true
@@ -162,9 +169,9 @@ jobs:
   voiceover:
     name: VoiceOver (${{ matrix.browser }}, ${{ matrix.group }})
     runs-on: macos-26
-    # The backstop above the step timeouts below (12 + 5 + 5 + 25 minutes). A hung step fails on its own
+    # The backstop above the step timeouts below (12 + 5 + 5 + 40 minutes). A hung step fails on its own
     # timeout first, so the evidence still uploads; this only stops a runner that hangs outside them.
-    timeout-minutes: 55
+    timeout-minutes: 70
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
     continue-on-error: true
     strategy:
@@ -244,11 +251,12 @@ jobs:
       - name: Install VoiceOver
         timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 install voiceover
-      # 25 minutes, like the NVDA job's: a step timeout is a step failure, so the summary, the uploads
-      # and the check run below still run, where a job timeout cancels them and leaves no evidence.
+      # 40 minutes, like the NVDA job's: every group's budgets plus one retry. A step timeout is a step
+      # failure, so the summary, the uploads and the check run below still run, where a job timeout
+      # cancels them and leaves no evidence.
       - name: Run the scenarios
         id: scenarios
-        timeout-minutes: 25
+        timeout-minutes: 40
         env:
           HOT_SR_UPDATE_GOLDENS: ${{ inputs.update-goldens && '1' || '' }}
           HOT_SR_GROUP: ${{ matrix.group }}
@@ -285,12 +293,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           overwrite: true
+      # The goldens this job recorded, never the whole tree: a job runs one group, and the tree's other
+      # files are the checkout's copies, which would replace another group's new recordings when the
+      # artifacts are extracted together.
       - name: Upload the recorded goldens
         if: ${{ !cancelled() && inputs.update-goldens }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: screenreader-goldens-vo-${{ matrix.browser }}-${{ matrix.group }}
-          path: tests/screenreader/goldens
+          path: tests/test-results/screenreader/goldens
           if-no-files-found: warn
           retention-days: 14
           overwrite: true

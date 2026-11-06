@@ -23,6 +23,7 @@ angular:
 vue:
 searchCategory: Recipes
 category: Themes
+menuTag: updated
 ---
 
 This tutorial shows you how to integrate Handsontable DataGrid into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
@@ -79,7 +80,7 @@ registerAllModules();
 
 ## Step 3: Define shadcn colors for the theme
 
-Create a colors object that maps Handsontable's expected shape to shadcn CSS variables. The grid will follow light/dark automatically because `var(--…)` is resolved at render time.
+Create a colors object that maps Handsontable's expected shape to shadcn CSS variables. The browser resolves each `var(--…)` at render time, so the grid picks up changes to those variables. Dark mode isn't automatic, though: see [Dark mode](#dark-mode) below.
 
 **Option A – use the built-in shadcn colors:**  
 You can import the official mapping from Handsontable instead of defining your own:
@@ -94,14 +95,14 @@ import colorsShadcn from 'handsontable/themes/static/variables/colors/shadcn';
 ```tsx
 /**
  * Handsontable theme colors mapped to shadcn CSS variables (globals.css).
- * Structure must match what tokens/main expects: palette (50–950), primary (100–600), white, black, transparent.
- * Uses var(--…) so the grid follows your shadcn theme and dark mode.
+ * Structure must match what the Horizon tokens expect: palette (50–950), primary (100–600), white, black, transparent.
+ * Uses var(--…) so the grid picks up your shadcn light theme values.
  */
 export const colorsShadcn = {
   palette: {
     50: "var(--color-neutral-50)",
-    100: "var(--color-neutral-200)",
-    200: "var(--color-neutral-100)",
+    100: "var(--color-neutral-100)",
+    200: "var(--color-neutral-200)",
     300: "var(--color-neutral-300)",
     400: "var(--color-neutral-400)",
     500: "var(--color-neutral-500)",
@@ -143,7 +144,7 @@ function icon(svgContent: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg ${lucideAttrs}>${svgContent}</svg>`)}`;
 }
 
-// Lucide: ChevronRight, ChevronLeft, ChevronDown, ChevronUp, ChevronsRight, ChevronsLeft, Check, Menu, Plus, Minus, Circle (filled for radio)
+// Lucide: ChevronRight, ChevronLeft, ChevronDown, ChevronUp, ChevronsRight, ChevronsLeft, Check, Menu, Plus, Minus, Circle (filled for radio), X, Search, List
 export const iconsShadcn = {
   arrowRight: icon('<path d="m9 18 6-6-6-6"/>'),
   arrowRightWithBar: icon('<path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/>'),
@@ -163,10 +164,14 @@ export const iconsShadcn = {
   collapseOff: icon('<path d="M5 12h14"/>'),
   collapseOn: icon('<path d="M5 12h14"/><path d="M12 5v14"/>'),
   radio: icon('<circle cx="12" cy="12" r="6" fill="currentColor"/>'),
+  chipClose: icon('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+  search: icon('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+  plus: icon('<path d="M5 12h14"/><path d="M12 5v14"/>'),
+  menuList: icon('<path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/>'),
 } as const;
 ```
 
-Use the exact icon keys required by your Handsontable theme (e.g. from the theme's type or docs).
+Provide every icon key the theme expects. If one is missing, `registerTheme()` logs a `Missing icon(s)` warning in the console.
 
 ## Step 5: Register the custom theme and create the grid component
 
@@ -206,9 +211,9 @@ import { registerAllModules } from "handsontable/registry";
 
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 
-import { colorsShadcn } from "@/lib/theme/colorsShadcn";
-import { iconsShadcn } from "@/lib/theme/iconsShadcn";
-import { data, config } from "@/lib/helpers";
+import { colorsShadcn } from "../lib/theme/colorsShadcn";
+import { iconsShadcn } from "../lib/theme/iconsShadcn";
+import { data, config } from "../lib/helpers";
 
 registerAllModules();
 
@@ -220,7 +225,7 @@ const shadcnDataGridTheme = registerTheme('shadcn-data-grid', {
   tokens: {
     borderRadius: "var(--radius)",
   },
-})
+}).setColorScheme("light");
 
 const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
   return (<HotTable
@@ -325,7 +330,13 @@ const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
 });
 ```
 
-Use the grid in your page (e.g. **`app/page.tsx`**): `import DataGrid from "@/components/DataGrid"` and render `<DataGrid />`.
+Use the grid in your page (e.g. **`app/page.tsx`**): `import DataGrid from "../components/DataGrid"` and render `<DataGrid />`.
+
+### Dark mode
+
+The theme's color scheme decides whether Horizon tokens use their light or dark palette entries. It defaults to `auto`, which follows the operating system's `prefers-color-scheme` setting, not shadcn's `.dark` class. `.setColorScheme("light")` keeps the grid light to match the light shadcn values in `colorsShadcn`.
+
+The custom mapping from Step 3 supports light mode only: its `white` and `black` follow `--background` and `--foreground`, which shadcn swaps in dark mode, so Horizon's dark token set reads them the wrong way round. To support dark mode, register the theme with the built-in colors from Option A, and call `shadcnDataGridTheme.setColorScheme("dark")` or `setColorScheme("light")` when your app toggles the `.dark` class. Grids that use the theme update in place.
 
 ## Complete example (minimal single-file shape)
 
@@ -339,9 +350,9 @@ import { HotTable, HotColumn, HotTableRef } from "@handsontable/react-wrapper";
 import { registerTheme } from "handsontable/themes";
 import { registerAllModules } from "handsontable/registry";
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
-import { colorsShadcn } from "@/lib/theme/colorsShadcn";
-import { iconsShadcn } from "@/lib/theme/iconsShadcn";
-import { data, config } from "@/lib/helpers";
+import { colorsShadcn } from "../lib/theme/colorsShadcn";
+import { iconsShadcn } from "../lib/theme/iconsShadcn";
+import { data, config } from "../lib/helpers";
 
 registerAllModules();
 
@@ -350,7 +361,7 @@ const shadcnDataGridTheme = registerTheme('shadcn-data-grid', {
   icons: iconsShadcn,
   colors: colorsShadcn,
   tokens: tokensHorizon,
-}).params({ tokens: { borderRadius: "var(--radius)" } });
+}).params({ tokens: { borderRadius: "var(--radius)" } }).setColorScheme("light");
 
 const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
   return (

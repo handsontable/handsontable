@@ -28,8 +28,8 @@ import {
 } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe"): every check writes one evidence document in this
-// shape, the conformance report generator cites it per criterion, and the check run that reports it is
-// never a failure. Plain `node --test`, no packages: the root `test:tooling` installs nothing.
+// shape, the conformance report generator cites it per criterion, and the check run that reports it
+// follows the severity verdict (lib/a11y-verdict.mjs). Plain `node --test`, no packages: the root `test:tooling` installs nothing.
 
 const CHECKS = {
   'demo-check': { title: 'Demo check', criteria: ['2.4.3', '2.1.2'] },
@@ -407,26 +407,74 @@ test('the headline counts findings by severity and the targets measured', () => 
   assert.equal(evidenceHeadline(found), '2 findings (1 serious, 1 advisory) on 2 targets measured, 1 not measured');
 });
 
-test('the check run is neutral on any finding or problem, success when clean, and never a failure', () => {
+const RULE = '(critical/serious = red, moderate/minor = warning)';
+
+test('the check run follows the severity verdict: red on serious, a warning on moderate or minor, green on advisory alone or nothing', () => {
   const pages = new Map([['grid', 12], ['dialog', 40]]);
-  const clean = buildEvidenceCheckRun({ doc: mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part()] }), pages });
-  const advisory = buildEvidenceCheckRun({ doc: mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [ORDER] })] }), pages });
+  const run = findings => buildEvidenceCheckRun({ doc: mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings })] }), pages });
+  const clean = run([]);
+  const advisory = run([ORDER]);
+  const moderate = run([{ ...TRAP, severity: 'moderate' }, ORDER]);
+  const serious = run([TRAP, { ...TRAP, severity: 'minor', selector: 'td.other' }]);
+
+  assert.deepEqual([clean.conclusion, clean.title], ['success', `✔ Green: 0 critical, 0 serious, 0 moderate, 0 minor ${RULE} · No findings on 1 target measured`]);
+  assert.equal(advisory.conclusion, 'success', 'an advisory difference (a golden that moved) never raises the verdict');
+  assert.equal(advisory.title, `✔ Green: 0 critical, 0 serious, 0 moderate, 0 minor ${RULE} · 1 advisory · 1 finding (1 advisory) on 1 target measured`);
+  assert.equal(moderate.conclusion, 'neutral');
+  assert.match(moderate.title, /^⚠ Warning: 0 critical, 0 serious, 1 moderate, 0 minor /);
+  assert.equal(serious.conclusion, 'failure');
+  assert.match(serious.title, /^✖ Red: 0 critical, 1 serious, 0 moderate, 1 minor /);
+  assert.match(serious.summary, /^\*\*Verdict: red\.\*\* Red on a critical or serious finding/);
+  assert.match(serious.summary, /### Demo check \(`demo-check`\)/, 'the verdict leads, the evidence summary follows');
+});
+
+test('a check that measured nothing, or not everything, is a tooling failure: red, and titled as one', () => {
+  const pages = new Map([['grid', 12]]);
   const errored = buildEvidenceCheckRun({
-    doc: mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part()], failures: [{ title: 'x', target: null, error: 'boom' }] }), pages,
+    doc: mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [ORDER] })], failures: [{ title: 'x', target: null, error: 'boom' }] }), pages,
   });
   const missing = buildEvidenceCheckRun({ doc: null, check: 'demo-check' });
   const unreadable = buildEvidenceCheckRun({ doc: {}, check: 'demo-check', problems: ['demo-check.json is not valid JSON'] });
 
-  assert.deepEqual([clean.conclusion, clean.title], ['success', '✔ No findings on 1 target measured']);
-  assert.equal(advisory.conclusion, 'neutral', 'an advisory difference still needs someone to look');
-  assert.equal(errored.conclusion, 'neutral');
-  assert.match(errored.title, /· 1 tooling problem$/);
-  assert.deepEqual([missing.name, missing.conclusion, missing.title], ['A11y / demo-check report', 'neutral', '⚠ Tooling: the check left no evidence document']);
-  assert.deepEqual([unreadable.conclusion, unreadable.title], ['neutral', '⚠ Tooling: demo-check.json is not valid JSON']);
+  assert.equal(errored.conclusion, 'failure');
+  assert.match(errored.title, /^✖ Tooling failure: /);
+  assert.match(errored.summary, /^\*\*Verdict: red, a tooling failure\.\*\*/);
+  assert.deepEqual([missing.name, missing.conclusion, missing.title], ['A11y / demo-check report', 'failure', '✖ Tooling failure: the check left no evidence document']);
+  assert.deepEqual([unreadable.conclusion, unreadable.title], ['failure', '✖ Tooling failure: demo-check.json is not valid JSON']);
   assert.match(unreadable.summary, /- demo-check\.json is not valid JSON/);
-  for (const payload of [clean, advisory, errored, missing, unreadable]) {
-    assert.notEqual(payload.conclusion, 'failure', 'report-only: a check run of this tier never turns a pull request red');
-  }
+});
+
+test('a finding that names no WCAG 2.2 A or AA criterion is a warning at most: the target is A and AA', () => {
+  const aaa = { ...TRAP, kind: 'motion-on-interaction', criteria: ['2.3.3'], severity: 'serious', selector: 'div.ht-dialog' };
+  const bestPractice = { kind: 'axe-violation', rule: 'region', criteria: [], severity: 'critical', selector: 'div.region', reason: 'region' };
+  const aaaOnly = buildEvidenceCheckRun({ doc: mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [aaa] })] }) });
+  const triage = buildEvidenceCheckRun({ doc: mergeEvidence({ check: 'demo-triage', checks: CHECKS, parts: [part({ findings: [bestPractice] })] }) });
+  const both = buildEvidenceCheckRun({ doc: mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [{ ...aaa, criteria: ['2.3.3', '2.4.3'] }] })] }) });
+
+  assert.equal(aaaOnly.conclusion, 'neutral', 'a serious AAA-only finding is a warning: AAA is not the target level');
+  assert.equal(aaaOnly.annotations[0].annotation_level, 'warning');
+  assert.equal(triage.conclusion, 'neutral', 'a best-practice record maps to no criterion, so it is a warning at most');
+  assert.match(triage.title, /· 1 warning only ·/);
+  assert.equal(both.conclusion, 'failure', 'a finding that also names an A or AA criterion counts at its severity');
+});
+
+test('on a change run a finding whose cluster has a tracker is a warning; on an audit every open finding counts', () => {
+  const doc = mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [TRAP] })] });
+  const seen = [];
+  const tracked = (source, check, finding) => {
+    seen.push([source, check, finding.kind]);
+
+    return finding.kind === 'keyboard-trap';
+  };
+  const change = buildEvidenceCheckRun({ doc, scope: 'change', tracked });
+  const audit = buildEvidenceCheckRun({ doc, scope: 'audit', tracked });
+
+  assert.deepEqual(seen[0], ['checks', 'demo-check', 'keyboard-trap'], 'the predicate gets the source, the check and the finding');
+  assert.equal(change.conclusion, 'neutral', 'tracked debt shows as a warning, never red');
+  assert.match(change.summary, /\*\*Change run\*\* \(a pull request or a push\): every finding counts;/);
+  assert.equal(audit.conclusion, 'failure', 'an audit says the truth');
+  assert.match(audit.summary, /\*\*Audit run\*\*/);
+  assert.equal(buildEvidenceCheckRun({ doc }).conclusion, 'failure', 'no predicate, no tracked finding');
 });
 
 test('an annotation sits on the page\'s line in pages.mjs, or on the file and line the finding names', () => {
@@ -438,8 +486,8 @@ test('an annotation sits on the page\'s line in pages.mjs, or on the file and li
   });
 
   assert.deepEqual(payload.annotations.map(item => [item.path, item.start_line, item.annotation_level, item.title]), [
-    ['tests/a11y/pages.mjs', 12, 'warning', '2.1.2 keyboard-trap'],
-    ['tests/a11y/drag-alternatives.mjs', 30, 'warning', '2.5.7 no-drag-alternative'],
+    ['tests/a11y/pages.mjs', 12, 'failure', '2.1.2 keyboard-trap'],
+    ['tests/a11y/drag-alternatives.mjs', 30, 'failure', '2.5.7 no-drag-alternative'],
     ['tests/a11y/pages.mjs', 12, 'notice', '2.4.3 tab-order-changed'],
   ]);
   assert.equal(payload.annotations[0].message,
