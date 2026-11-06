@@ -487,6 +487,12 @@ export default function Core(
    */
   let initReadyStepsRunning = false;
   /**
+   * The column layout a data replacement made by `updateSettings()` must compare with the one it builds: the layout
+   * read before the payload merged, and whether columns added after the existing ones leave it as it was. `null`
+   * outside such a replacement.
+   */
+  let pendingColumnLayoutCheck: { previousLayout: ColumnLayout, tolerateAppend: boolean } | null = null;
+  /**
    * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
    */
   let isBeingDestroyed = false;
@@ -5549,8 +5555,16 @@ export default function Core(
         // creation hooks and `selection.refresh()` the selection hooks, so a hook that throws
         // would otherwise leave the scope open for the rest of the task (DEV-2831).
         try {
-          instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
-          instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+          const layoutCheck = pendingColumnLayoutCheck;
+
+          if (layoutCheck && hasColumnLayoutChanged(layoutCheck.previousLayout, layoutCheck.tolerateAppend)) {
+            // The index state would now apply to the columns of a new schema or `columns` option. Starting it over
+            // here replaces `fitToLength()`, so each mapper updates its cache once.
+            instance.initIndexMappers();
+          } else {
+            instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
+            instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+          }
 
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
@@ -6856,13 +6870,18 @@ export default function Core(
       dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
 
     } else if (settings.data !== undefined) {
-      dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
-
       // `updateData()` keeps the index state, which would now apply to the properties of a new schema or to the
       // columns of a new `columns` option. A wrapper sends `data` with every call, so `columns` reaches this branch
-      // beside it. Columns added after the existing ones keep their place, and with them the state.
-      if (hasColumnLayoutChanged(previousColumnLayout, settings.columns !== undefined)) {
-        instance.initIndexMappers();
+      // beside it. The replacement compares the layouts and starts the state over when they differ. Columns added
+      // after the existing ones keep their place, and with them the state.
+      pendingColumnLayoutCheck = previousColumnLayout === null ?
+        null :
+        { previousLayout: previousColumnLayout, tolerateAppend: settings.columns !== undefined };
+
+      try {
+        dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
+      } finally {
+        pendingColumnLayoutCheck = null;
       }
 
     } else if (settings.columns !== undefined) {
