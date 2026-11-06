@@ -1917,6 +1917,8 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   local `npm --prefix docs run preview`. `docsBaseUrl()` refuses anything but https (or a local http
   preview), credentials, a query or a fragment, because a dispatch input lands there. The baseline is taken
   from the staging deploy, so a run against another deploy reads what that deploy changed as new or fixed.
+  `a11y-findings.json` names the deploy (`baseUrl`), and the findings ledger records a scan of the staging
+  deploy only: a develop dispatch against a preview would otherwise open and resolve the staging rows.
 - **Every page the visual list enumerates, one framework each, and the chrome in its states.** The guide
   pages come from `docs/tests/paths.js`, the list the docs visual suite photographs, so a page added there
   is scanned with no second list. The chrome and the prose are the same in every framework, so a page is
@@ -1929,7 +1931,12 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
 - **The whole document, as a reader gets it.** No include: the header, the sidebar, the table of contents,
   the prose, the code blocks and every example with the grid inside it. A test waits for the examples to
   finish loading (no `.hot-example-preview--loading`), the fonts and two frames, and checks the color scheme
-  took (`data-theme`). Third-party widgets that draw late, from a live service, or by region are blocked
+  took (`data-theme`). After the state, `settle()` waits for every finite animation to end (bounded, and
+  an animation still running names itself in the failure), for the code blocks' script to make every
+  overflowing block focusable, and for the DOM to hold still for 30 frames in a row, counted inside one
+  `evaluate` (`waitForFunction()` does not await a promise its predicate returns). A state waits for the
+  sign that it opened, never for an element that is there all along: the docs assistant's panel is in the
+  DOM before it opens, so the state waits for the focus in its text field. Third-party widgets that draw late, from a live service, or by region are blocked
   (`BLOCKED_HOSTS`: the changelog bell, the consent banner, the GitHub stars count, the error reporter), so
   two runs of one deploy agree; the scan says nothing about them.
 - **Report-only, and a red job is tooling.** A finding never fails a test. A page that answers with the

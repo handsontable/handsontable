@@ -34,7 +34,7 @@
  */
 import { A11Y_THEMES, VOLATILE_CLASSES } from './a11y-baseline.mjs';
 import { EVIDENCE_CHECKS, WCAG_CRITERIA } from './a11y-evidence.mjs';
-import { DOCS_THEMES } from '../a11y/docs/pages.mjs';
+import { DOCS_THEMES } from '../a11y/docs/constants.mjs';
 
 export const ISSUES_SCHEMA = 1;
 export const ISSUES_FILE = 'a11y/issues.json';

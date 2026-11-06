@@ -48,6 +48,7 @@ import {
   runContextFromRun,
 } from '../lib/test-health.mjs';
 import { DOCS_SCAN_CHECK, ISSUES_SCHEMA, TRIAGE_ID, compileIssuesCatalog } from '../../../tests/lib/a11y-issues.mjs';
+import { DEFAULT_DOCS_BASE_URL } from '../../../tests/a11y/docs/constants.mjs';
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA } from '../../../tests/lib/a11y-evidence.mjs';
 import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { repoRoot } from '../lib/repo-root.mjs';
@@ -269,6 +270,7 @@ function readerFiles(docs = {}) {
 const DOCS_DOC = {
   ...AXE_DOC,
   about: 'Accessibility findings of the docs site scan',
+  baseUrl: DEFAULT_DOCS_BASE_URL,
   counts: { new: 1, grown: 0, matched: 2, improved: 0, stale: 0, unverified: 0, action: 1 },
   needsAction: [{
     status: 'new', page: 'chrome-docs-assistant', theme: 'dark', url: '/docs/javascript-data-grid/', steps: null,
@@ -433,6 +435,64 @@ test('the docs site scan is a night of its own: read from its artifact root, rec
     workflow: DOCS_A11Y_WORKFLOW });
   assert.deepEqual(view.checks.find(entry => entry.check === DOCS_SCAN_CHECK),
     { check: DOCS_SCAN_CHECK, title: 'docs site axe scan', targets: null, measured: null, findings: 2, problems: 0 });
+});
+
+test('a run whose workflow holds two sources records a night of each, and a later attempt amends its own source only', () => {
+  // A workflow that calls the A11y nightly's scans and the docs site scan in one run (a full audit).
+  const workflows = { 'A11y audit': ['a11y', 'docs'] };
+  const audit = runContextFromRun({ ...NIGHTLY, id: 41800000001, name: 'A11y audit', event: 'workflow_dispatch' });
+  // The docs scan of attempt 1 left a page unverified, so it measured less than a full scan.
+  const read = readA11yArtifacts([...nightlyFiles(), ...docsFiles({
+    [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: { ...DOCS_DOC, counts: { ...DOCS_DOC.counts, unverified: 1 } },
+  })]);
+  const [a11yNight, docsNight] = read.nights;
+
+  assert.deepEqual([a11yNight.source, docsNight.source, docsNight.axe.complete], ['a11y', 'docs', false]);
+
+  const first = mergeA11yLedger(null, a11yNight, audit, CATALOG, { now: NOW, workflows });
+  const second = mergeA11yLedger(first.doc, docsNight, audit, CATALOG, { now: NOW, workflows });
+
+  assert.deepEqual(second.notes, []);
+  assert.deepEqual(second.doc.nights.map(entry => [entry.runId, entry.source]).sort(),
+    [['41800000001', 'a11y'], ['41800000001', 'docs']], 'one night per source of the run');
+  assert.equal(second.doc.rows.filter(row => row.source === 'docs').length, 3);
+  assert.equal(second.doc.rows.filter(row => row.source !== 'docs').length, first.doc.rows.length, 'the a11y rows stay');
+  assert.deepEqual(second.doc.latest.a11y.runId, '41800000001');
+  assert.deepEqual(second.doc.latest.docs.runId, '41800000001');
+
+  // The same attempt again changes nothing for either source.
+  assert.equal(mergeA11yLedger(second.doc, docsNight, audit, CATALOG, { now: NOW, workflows }).changed, false);
+  assert.equal(mergeA11yLedger(second.doc, a11yNight, audit, CATALOG, { now: NOW, workflows }).changed, false);
+
+  // A later, complete attempt of the docs night amends the docs night and keeps the a11y night of the run.
+  const rerun = mergeA11yLedger(second.doc, nightOf(docsFiles({ [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: { ...DOCS_DOC, needsAction: [] } })),
+    { ...audit, runAttempt: 2 }, CATALOG, { now: NOW, workflows });
+
+  assert.deepEqual(rerun.notes, []);
+  assert.deepEqual(rerun.doc.nights.map(entry => `${entry.source}@${entry.runAttempt}`).sort(), ['a11y@1', 'docs@2']);
+  assert.equal(rerun.doc.rows.filter(row => row.source !== 'docs').length, first.doc.rows.length, 'the a11y rows stay as they were');
+  // The real workflows hold one source each, and the audit is not one of them yet.
+  assert.equal(isA11yRun(audit), false);
+});
+
+test('a docs scan of another deploy than develop staging is never a night', () => {
+  const preview = 'https://pr-14200.handsontable-docs-staging.pages.dev/docs';
+  const read = readA11yArtifacts(docsFiles({ [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: { ...DOCS_DOC, baseUrl: preview } }));
+
+  assert.equal(read.nights[0].axe, null);
+  assert.equal(read.nights[0].findings.length, 0);
+  assert.match(read.notes[0], new RegExp(`a scan of "${preview.replace(/[.]/g, '\\.')}", not the develop staging deploy`));
+
+  const merged = mergeA11yLedger(null, read.nights[0], runContextFromRun(DOCS_RUN), CATALOG, { now: NOW });
+
+  assert.equal(merged.changed, false, 'a develop dispatch with base-url set records nothing');
+  assert.match(merged.notes[0], /no readable accessibility document, nothing recorded/);
+
+  // A findings document from before the field existed is not a staging night either.
+  const { baseUrl, ...unnamed } = DOCS_DOC;
+
+  assert.equal(baseUrl, DEFAULT_DOCS_BASE_URL);
+  assert.equal(readA11yArtifacts(docsFiles({ [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: unnamed })).nights[0].axe, null);
 });
 
 test('collectArtifactFiles hands the a11y family over unparsed, root documents and transcripts only', () => {

@@ -90,6 +90,16 @@ test('docsBaseUrl reads the deploy a run names, and refuses what a dispatch inpu
   assert.throws(() => suiteFor('docs', { docsBaseUrl: 'http://example.com' }), /must be an https URL/, 'the reporter checks it too');
 });
 
+test('the catalog and the ledger read the docs constants without loading the page list', () => {
+  // pages.mjs loads the docs visual list and reads every guide's source; the collector needs two constants.
+  for (const file of ['tests/lib/a11y-issues.mjs', '.github/scripts/lib/a11y-ledger.mjs']) {
+    const source = readFileSync(path.join(TESTS_ROOT, '..', file), 'utf8');
+
+    assert.match(source, /from '[./]+(?:tests\/)?a11y\/docs\/constants\.mjs'/, `${file} reads the constants module`);
+    assert.doesNotMatch(source, /a11y\/docs\/pages\.mjs'/, `${file} does not load the page list`);
+  }
+});
+
 test('the docs suite keeps its own files, artifact and report name, and locates a page by its root-relative path', () => {
   const suite = suiteFor('docs', { docsBaseUrl: 'https://pr-1.example.dev/docs' });
 
@@ -138,6 +148,8 @@ test('the comparator, the summary, the HTML report and the findings run through 
   const findings = agentFindings({ verdict, pages: DOCS_PAGES, suite });
 
   assert.equal(findings.needsAction[0].url, '/docs/javascript-data-grid/', 'root-relative, whatever deploy the run read');
+  assert.equal(findings.baseUrl, 'https://example.dev/docs', 'the document names the deploy, so the ledger records staging only');
+  assert.equal('baseUrl' in agentFindings({ verdict, pages: DOCS_PAGES }), false, 'the product scan reads fixtures, no deploy');
   assert.match(findings.about, /docs site scan/);
   assert.match(findings.reproduce.scan, /test:a11y-docs/);
   assert.equal(findings.pages[page.id].fixture, '/docs/javascript-data-grid/');

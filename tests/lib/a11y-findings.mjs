@@ -80,6 +80,9 @@ export function agentFindings({ verdict, pages, problems = [], suite = PRODUCT_S
     counts: verdictCounts(verdict),
     problems,
     reproduce: suite.reproduce,
+    // The deploy a docs scan read: the findings ledger records the develop staging deploy only, so a dispatch
+    // against a preview never stands in for it. The product scan reads fixtures and has none.
+    ...(suite.baseUrl ? { baseUrl: suite.baseUrl } : {}),
     // How to reach each page's scanned state. A product location's URL is `fixture` plus `?theme=<theme>` and
     // `query`; a docs location's is `fixture` on the deploy, in the light or dark theme.
     pages: Object.fromEntries(list.map(page => [page.id, suite.pageEntry(page)])),

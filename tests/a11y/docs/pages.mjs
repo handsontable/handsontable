@@ -1,5 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { DEFAULT_DOCS_BASE_URL, DOCS_THEMES } from './constants.mjs';
+
+export { DEFAULT_DOCS_BASE_URL, DOCS_THEMES };
 
 /**
  * The pages the docs site scan covers (`tests/a11y/docs/docs-axe.spec.ts`): every guide page the docs
@@ -48,12 +51,6 @@ export function servedSlug(listPath) {
   return permalink ?? listPath.split('/').pop();
 }
 
-export const DOCS_THEMES = ['light', 'dark'];
-/**
- * Where the scan reads the docs from when `DOCS_A11Y_BASE_URL` is not set: the staging deploy of
- * `develop`, which the docs staging workflow redeploys after every docs merge.
- */
-export const DEFAULT_DOCS_BASE_URL = 'https://handsontable-docs-staging.pages.dev/docs';
 export const DOCS_FRAMEWORKS = [
   { prefix: 'js', name: 'JavaScript', urlPath: 'javascript-data-grid', paths: jsPaths },
   { prefix: 'react', name: 'React', urlPath: 'react-data-grid', paths: reactPaths },

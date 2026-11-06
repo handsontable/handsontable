@@ -57,6 +57,7 @@ import {
   findingShape,
   maskSelector,
 } from '../../../tests/lib/a11y-issues.mjs';
+import { DEFAULT_DOCS_BASE_URL } from '../../../tests/a11y/docs/constants.mjs';
 import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { DEFAULT_TOKEN_SEVERITY, TOKEN_SEVERITIES } from '../../../tests/lib/screenreader-transcript.mjs';
 
@@ -166,7 +167,7 @@ const SOURCE_OF_NIGHT = Object.freeze({ checks: 'a11y', axe: 'a11y', reader: 're
  * The night sources each recorded workflow's run holds. A list, so a workflow that calls several of the reusable
  * accessibility workflows (a full audit) names every source its run uploads.
  */
-const SOURCES_OF_WORKFLOW = Object.freeze({
+export const SOURCES_OF_WORKFLOW = Object.freeze({
   [A11Y_NIGHTLY_WORKFLOW]: Object.freeze(['a11y']),
   [READER_NIGHTLY_WORKFLOW]: Object.freeze(['reader']),
   [DOCS_A11Y_WORKFLOW]: Object.freeze(['docs']),
@@ -250,20 +251,22 @@ export function classifyA11yArtifact(name) {
  * here.
  *
  * @param {{branch: string, event: string, workflow: string}} run The run.
+ * @param {Record<string, readonly string[]>} [workflows] The recorded workflows and their sources (`SOURCES_OF_WORKFLOW`).
  * @returns {boolean} The verdict.
  */
-export function isA11yRun(run) {
-  return run.branch === 'develop' && A11Y_EVENTS.includes(run.event) && Object.hasOwn(SOURCES_OF_WORKFLOW, run.workflow);
+export function isA11yRun(run, workflows = SOURCES_OF_WORKFLOW) {
+  return run.branch === 'develop' && A11Y_EVENTS.includes(run.event) && Object.hasOwn(workflows, run.workflow);
 }
 
 /**
  * The night sources a recorded workflow's run holds: one per nightly, and the docs site scan's.
  *
  * @param {string} workflow The workflow's `name:`.
+ * @param {Record<string, readonly string[]>} [workflows] The recorded workflows and their sources (`SOURCES_OF_WORKFLOW`).
  * @returns {readonly string[]} The sources; empty for a workflow the ledger does not read.
  */
-export function sourcesOfWorkflow(workflow) {
-  return Object.hasOwn(SOURCES_OF_WORKFLOW, workflow) ? SOURCES_OF_WORKFLOW[workflow] : [];
+export function sourcesOfWorkflow(workflow, workflows = SOURCES_OF_WORKFLOW) {
+  return Object.hasOwn(workflows, workflow) ? workflows[workflow] : [];
 }
 
 /**
@@ -554,6 +557,14 @@ function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_C
   }
   if (night.axe !== null) {
     notes.push(`${label}: a second findings document, skipped`);
+
+    return;
+  }
+  // A docs night is the develop staging deploy's. A dispatch can scan another deploy (`base-url`, a pull
+  // request's preview), and its findings would open or resolve the staging rows.
+  if (source === 'docs' && doc.baseUrl !== DEFAULT_DOCS_BASE_URL) {
+    notes.push(`${label}: a scan of ${cut(JSON.stringify(doc.baseUrl ?? null), LIMITS.url)}, not the develop staging deploy `
+      + `(${DEFAULT_DOCS_BASE_URL}), skipped`);
 
     return;
   }
@@ -1168,7 +1179,8 @@ function nightSummaries(earlier, night) {
  *   ledger on the next night; a row that matches two clusters goes to the first, with one note per set of
  *   clusters.
  * - The night is recorded with its counts, per cluster, for the trend, and with its coverage while it is the
- *   latest night of its source (what a later attempt is measured against). A run of another workflow than the
+ *   latest night of its source (what a later attempt is measured against). A run whose workflow holds several
+ *   sources records one night per source: a night is the run and its source. A run of another workflow than the
  *   night's source, an attempt already recorded, a run older than the latest night of its source, or a night
  *   with no readable document changes nothing.
  * - Rows past the retention window (from their last sighting) and nights past it go; past the cap, the
@@ -1182,14 +1194,18 @@ function nightSummaries(earlier, night) {
  * @param {Date} options.now The current time.
  * @param {number} [options.retentionDays] Override of `A11Y_RETENTION_DAYS`.
  * @param {number} [options.capBytes] Override of `A11Y_CAP_BYTES`.
+ * @param {Record<string, readonly string[]>} [options.workflows] The recorded workflows and their sources
+ * (`SOURCES_OF_WORKFLOW`); a test passes a workflow that holds several.
  * @returns {{doc: object, changed: boolean, notes: string[], recorded: object|null, ambiguous: Array<{clusters: string[], rows: number}>}}
  * The ledger, whether its text changed, the notes, what the night recorded (`null` when nothing was), and the
  * sets of clusters some rows match more than one of.
  */
-export function mergeA11yLedger(previous, night, run, catalog, { now, retentionDays = A11Y_RETENTION_DAYS, capBytes = A11Y_CAP_BYTES }) {
+export function mergeA11yLedger(previous, night, run, catalog, {
+  now, retentionDays = A11Y_RETENTION_DAYS, capBytes = A11Y_CAP_BYTES, workflows = SOURCES_OF_WORKFLOW,
+}) {
   assertA11yVersion(previous ?? null);
 
-  if (!isA11yRun(run)) {
+  if (!isA11yRun(run, workflows)) {
     throw new Error(`run ${run.runId} is a ${run.event} run of ${run.workflow} on ${run.branch}; only the A11y and Screen reader `
       + 'nightlies and the docs site scan on develop, by schedule or dispatch, are recorded');
   }
@@ -1209,7 +1225,7 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
   const { source } = night;
   const where = `run ${run.runId} (${source})`;
 
-  if (!sourcesOfWorkflow(run.workflow).includes(source)) {
+  if (!sourcesOfWorkflow(run.workflow, workflows).includes(source)) {
     notes.push(`${where}: a ${run.workflow} run holds no ${source} night, nothing recorded`);
 
     return unchanged();
@@ -1226,7 +1242,8 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
     return unchanged();
   }
 
-  const earlier = prior.nights.find(entry => entry.runId === run.runId) ?? null;
+  // A night is a run and its source: a workflow that holds several sources records one night for each.
+  const earlier = prior.nights.find(entry => entry.runId === run.runId && entry.source === source) ?? null;
   const latest = prior.latest?.[source] ?? null;
 
   if (earlier !== null && run.runAttempt <= earlier.runAttempt) {
@@ -1235,7 +1252,7 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
 
     return unchanged();
   }
-  if (earlier !== null && (earlier.source !== source || latest?.runId !== run.runId || !isObject(earlier.coverage))) {
+  if (earlier !== null && (latest?.runId !== run.runId || !isObject(earlier.coverage))) {
     notes.push(`${where} attempt ${run.runAttempt}: attempt ${earlier.runAttempt} is recorded and a later ${source} night followed it; `
       + 'a later attempt amends the latest night of its source only, nothing recorded');
 
@@ -1389,7 +1406,7 @@ export function mergeA11yLedger(previous, night, run, catalog, { now, retentionD
   const cutoff = now.getTime() - (retentionDays * DAY_MS);
   const keptRows = [...rows.values()].filter(row => Date.parse(row.lastSeen) >= cutoff);
   const droppedRows = rows.size - keptRows.length;
-  const others = prior.nights.filter(entry => entry.runId !== run.runId)
+  const others = prior.nights.filter(entry => entry.runId !== run.runId || entry.source !== source)
     .map(({ coverage: stored, ...entry }) => (entry.source === source ? entry : { ...entry, ...(stored ? { coverage: stored } : {}) }));
   const keptNights = sortNights([...others, record]).filter(entry => Date.parse(entry.seenAt) >= cutoff);
 

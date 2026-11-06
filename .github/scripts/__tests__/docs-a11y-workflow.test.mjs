@@ -36,8 +36,19 @@ test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by a d
   const [, paths = ''] = /^ {2}pull_request:\n {4}paths:\n((?: {6}- .*\n)+)/m.exec(triggers) ?? [];
 
   assert.deepEqual([...paths.matchAll(/- '([^']+)'/g)].map(([, file]) => file),
-    ['.github/workflows/docs-a11y.yml', 'tests/a11y/docs/**', 'tests/playwright.a11y-docs.config.ts'],
-    `${DOCS}: a pull request runs the scan only when it changes the scan; a full scan is too long for every docs pull request. ${DOC}`);
+    ['.github/workflows/docs-a11y.yml', 'tests/a11y/docs/**', 'tests/a11y/axe-scan.ts', 'tests/playwright.a11y-docs.config.ts',
+      'tests/reporters/a11y.ts', 'tests/lib/a11y-baseline.*', 'tests/lib/a11y-findings.*', 'tests/lib/a11y-report.*',
+      'tests/lib/a11y-suites.*', 'docs/tests/paths.js'],
+    `${DOCS}: a pull request runs the scan only when it changes the scan's own code; a full scan is too long for every docs pull request. ${DOC}`);
+  // Every module the spec and its reporter import is in the list, so a change to the scan's code runs the scan.
+  const spec = read('tests/a11y/docs/docs-axe.spec.ts') + read('tests/reporters/a11y.ts') + read('tests/lib/a11y-suites.mjs');
+  const imported = [...spec.matchAll(/from '(?:\.\.\/)+lib\/(a11y-[a-z]+)\.mjs'|from '\.\/(a11y-[a-z]+)\.mjs'/g)]
+    .map(([, viaLib, local]) => viaLib ?? local);
+
+  assert.ok(imported.length > 0, 'read the imports');
+  for (const module of new Set(imported)) {
+    assert.ok(paths.includes(`'tests/lib/${module}.*'`), `${DOCS}: the scan imports tests/lib/${module}.mjs, so a change there runs it`);
+  }
   assert.match(triggers, /^ {6}base-url:\n(?: {8}.*\n)*? {8}type: string$/m, `${DOCS}: the dispatch names the deploy to scan`);
   assert.doesNotMatch(workflow, /^permissions:/m,
     `${DOCS}: no workflow-level permissions; a caller validates the job's grants against the token it hands down.`);

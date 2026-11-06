@@ -24,11 +24,21 @@ on:
         type: string
         required: false
         default: ''
+  # The scan's own code: its spec, pages and baseline, the code it shares with the product scan (the rule
+  # set, the comparator, the reporter, the reports, the findings), and the page list it reads. Not the
+  # docs: a full run is too long for every docs pull request.
   pull_request:
     paths:
       - '.github/workflows/docs-a11y.yml'
       - 'tests/a11y/docs/**'
+      - 'tests/a11y/axe-scan.ts'
       - 'tests/playwright.a11y-docs.config.ts'
+      - 'tests/reporters/a11y.ts'
+      - 'tests/lib/a11y-baseline.*'
+      - 'tests/lib/a11y-findings.*'
+      - 'tests/lib/a11y-report.*'
+      - 'tests/lib/a11y-suites.*'
+      - 'docs/tests/paths.js'
   workflow_call:
     inputs:
       base-url:

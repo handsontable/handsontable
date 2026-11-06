@@ -64,6 +64,8 @@ const MAX_CLIP_HEIGHT = 1600;
 const EXAMPLES_TIMEOUT = 60_000;
 // How long the scan gives the code blocks' script to make every overflowing block focusable (`settle()`).
 const CODE_BLOCKS_TIMEOUT = 5_000;
+// How long the scan waits for the finite animations to end before it names the ones that did not.
+const ANIMATIONS_TIMEOUT = 10_000;
 // How long the scan waits for the DOM to hold still: a grid an example builds after its data arrives.
 const STILL_TIMEOUT = 10_000;
 // The embeds whose document is another service's (a video, a design file): axe reads into a frame, and what it
@@ -139,7 +141,10 @@ async function scan(page: Page, testInfo: TestInfo, entry: DocsPage, theme: stri
   }
 
   await DOCS_STATES[entry.state](page);
-  await settle(page);
+
+  if (!(await settle(page))) {
+    testInfo.annotations.push({ type: 'dom-not-still', description: `the DOM kept changing for ${STILL_TIMEOUT} ms; scanned as it was` });
+  }
 
   const results = await new AxeBuilder({ page })
     .options({ ancestry: true })
@@ -201,42 +206,73 @@ async function scan(page: Page, testInfo: TestInfo, entry: DocsPage, theme: stri
 }
 
 /**
- * Waits until the page holds still for a scan. Every finite animation ends (a menu or a panel that is
- * opening). And the code blocks' script (Expressive Code) has made every code block that scrolls
- * focusable: it adds `tabindex="0"` to an overflowing block a few hundred milliseconds after load, so a
- * scan that lands first reports the block as a scrollable region the keyboard cannot reach, and the next
- * run does not. And the DOM holds still for 30 frames: an example that builds its grid once its data arrives
- * (the server-side data guide) is scanned with the grid. Each wait is bounded: a block the script never
- * reaches stays a finding, and a page that never holds still is scanned as it is.
+ * Waits until the page holds still for a scan, and says whether the DOM did.
+ *
+ * - Every finite animation ends (a menu or a panel that is opening). The wait is bounded: an animation still
+ *   running or paused after `ANIMATIONS_TIMEOUT` fails the test with its name, rather than the test running
+ *   out of time with none.
+ * - The code blocks' script (Expressive Code) has made every code block that scrolls focusable: it adds
+ *   `tabindex="0"` to an overflowing block a few hundred milliseconds after load, so a scan that lands first
+ *   reports the block as a scrollable region the keyboard cannot reach, and the next run does not. A block
+ *   the script never reaches stays a finding.
+ * - The DOM holds still for 30 frames in a row: an example that builds its grid once its data arrives (the
+ *   server-side data guide) is scanned with the grid. The count restarts on every change, inside one
+ *   `evaluate`: `waitForFunction()` does not await a predicate's promise, so a promise there passes at once.
+ *   A page that never holds still within `STILL_TIMEOUT` is scanned as it is, and the caller annotates it.
  *
  * @param page The page.
+ * @returns Whether the DOM held still.
  */
-async function settle(page: Page): Promise<void> {
-  await page.evaluate(async() => {
-    await Promise.all(document.getAnimations()
-      .filter(animation => animation.effect?.getTiming().iterations !== Infinity)
-      .map(animation => animation.finished.catch(() => undefined)));
-  });
+async function settle(page: Page): Promise<boolean> {
+  const unfinished = await page.evaluate(async(timeout) => {
+    const finite = document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity);
+    const deadline = new Promise<void>((resolve) => {
+      const start = performance.now();
+      const tick = () => (performance.now() - start >= timeout ? resolve() : requestAnimationFrame(tick));
+
+      requestAnimationFrame(tick);
+    });
+
+    await Promise.race([Promise.all(finite.map(animation => animation.finished.catch(() => undefined))), deadline]);
+
+    return finite.filter(animation => animation.playState === 'running' || animation.playState === 'paused')
+      .map((animation) => {
+        const name = animation instanceof CSSAnimation ? animation.animationName
+          : animation instanceof CSSTransition ? animation.transitionProperty : animation.id || 'a script animation';
+        const target = (animation.effect as KeyframeEffect | null)?.target;
+
+        return `${name} (${animation.playState}) on ${target ? `${target.tagName.toLowerCase()}.${String(target.className).split(' ')[0]}` : 'nothing'}`;
+      });
+  }, ANIMATIONS_TIMEOUT);
+
+  if (unfinished.length > 0) {
+    throw new Error(`animations still unfinished after ${ANIMATIONS_TIMEOUT} ms: ${unfinished.join(', ')}`);
+  }
   await page.waitForFunction(() => [...document.querySelectorAll('.expressive-code pre')]
     .every(block => block.scrollWidth <= block.clientWidth || block.hasAttribute('tabindex')),
   undefined, { polling: 100, timeout: CODE_BLOCKS_TIMEOUT }).catch(() => undefined);
-  await page.waitForFunction(() => new Promise<boolean>((resolve) => {
+
+  return page.evaluate(timeout => new Promise<boolean>((resolve) => {
+    const start = performance.now();
     const count = () => document.getElementsByTagName('*').length;
-    const start = count();
-    let frames = 0;
+    let last = count();
+    let still = 0;
     const tick = () => {
-      if (count() !== start) {
-        resolve(false);
-      } else if (frames >= 30) {
+      const now = count();
+
+      still = now === last ? still + 1 : 0;
+      last = now;
+      if (still >= 30) {
         resolve(true);
+      } else if (performance.now() - start >= timeout) {
+        resolve(false);
       } else {
-        frames += 1;
         requestAnimationFrame(tick);
       }
     };
 
     requestAnimationFrame(tick);
-  }), undefined, { polling: 100, timeout: STILL_TIMEOUT }).catch(() => undefined);
+  }), STILL_TIMEOUT);
 }
 
 /**
@@ -307,9 +343,13 @@ const DOCS_STATES: Record<DocsState, (page: Page) => Promise<void>> = {
     await pressEnterOn(page, '#support-trigger');
     await expect(page.locator('#support-trigger')).toHaveAttribute('aria-expanded', 'true');
   },
+  // The panel is in the DOM and visible before it opens, so its open animation is what says it opened: the
+  // focus moves into its text field once that animation has started (about 100 ms after the key), and
+  // `settle()` then waits it out. A scan before the end read the page behind the panel as it was before
+  // it opened, and reported the off-screen sidebar copy on some runs and not on others.
   'docs-assistant': async(page) => {
     await pressEnterOn(page, '#header-assistant-btn');
-    await expect(page.locator('[role="dialog"]').filter({ has: page.locator('textarea, input') }).first()).toBeVisible();
+    await expect(page.locator('[role="dialog"]').locator('textarea, input').first()).toBeFocused();
   },
   search: async(page) => {
     await pressEnterOn(page, SEARCH_BUTTON);
