@@ -138,6 +138,12 @@ class DataManager {
   #shapeVersion = 0;
 
   /**
+   * Per sibling list: the number of untrimmed siblings and the position of each. Filled lazily by
+   * `getRowSetPosition()` while rows are trimmed, so a rendered header reads in O(1) after one pass.
+   */
+  #reachableSiblings = new WeakMap<RowObject[], { setSize: number; positions: Map<RowObject, number> }>();
+
+  /**
    * Initializes the data manager with references to the NestedRows plugin and the Handsontable instance.
    */
   constructor(nestedRowsPlugin: NestedRows, hotInstance: HotInstance) {
@@ -282,6 +288,7 @@ class DataManager {
    */
   rewriteCache() {
     this.#shapeVersion += 1;
+    this.invalidateSetPositions();
     this.cache = {
       levels: [],
       levelCount: 0,
@@ -665,7 +672,89 @@ class DataManager {
   }
 
   /**
+   * Gets the rows a filter keeps for the provided matching rows, so the tree stays whole: each
+   * matching row, every ancestor of it, and every descendant of it (DEV-512). Both walks read the
+   * flatten cache, never the live `__children` arrays, so a source changed without a re-cache cannot
+   * stretch a subtree over its next sibling. A matching row the cache has no level for stays, but
+   * its subtree and ancestors are not walked.
+   *
+   * A row that matches only through blank cells keeps its ancestors but not its subtree: a parent
+   * with an empty cell must not bring back the children the filter excluded (DEV-512).
+   *
+   * @private
+   * @param {number[]} matchedRows Physical indexes of the matching rows.
+   * @param {number[]} [blankMatchedRows] Physical indexes of the matching rows whose every
+   * conditioned column reads empty.
+   * @returns {number[]} Physical indexes of the rows to keep, ascending.
+   */
+  getRowsToKeepForMatches(matchedRows: number[], blankMatchedRows: number[] = []): number[] {
+    const cachedRowCount = this.cache.rows.length;
+    const isBlankMatch = new Set(blankMatchedRows);
+    // A match past the cache (an empty or stale cache) still stays, so the range covers it too. The
+    // Filters plugin bounds the answer by the source row count.
+    const rowCount = matchedRows.reduce((count, row) => Math.max(count, row + 1), cachedRowCount);
+    const isKept = new Uint8Array(rowCount);
+    // Set for a match and its descendants, whose subtrees are kept already. An ancestor is only in
+    // `isKept`, because its other children are not kept with it.
+    const isSubtreeKept = new Uint8Array(rowCount);
+
+    matchedRows.forEach((matchedRow) => {
+      if (matchedRow < 0 || isSubtreeKept[matchedRow] === 1) {
+        return;
+      }
+
+      // A match always stays, whatever the cache knows about it.
+      isKept[matchedRow] = 1;
+
+      const level = matchedRow < cachedRowCount ? this.getRowLevel(matchedRow) : null;
+
+      if (level === null) {
+        return;
+      }
+
+      if (!isBlankMatch.has(matchedRow)) {
+        isSubtreeKept[matchedRow] = 1;
+
+        // The cache is flattened depth-first, so the descendants are the rows right after the match
+        // that sit deeper than it.
+        for (let row = matchedRow + 1; row < cachedRowCount; row++) {
+          const rowLevel = this.getRowLevel(row);
+
+          if (rowLevel === null || rowLevel <= level) {
+            break;
+          }
+
+          isKept[row] = 1;
+          isSubtreeKept[row] = 1;
+        }
+      }
+
+      let parentRow = this.getRowIndex(this.getRowParent(matchedRow));
+
+      // An ancestor already kept had its own ancestors kept with it.
+      while (parentRow !== null && isKept[parentRow] !== 1) {
+        isKept[parentRow] = 1;
+        parentRow = this.getRowIndex(this.getRowParent(parentRow));
+      }
+    });
+
+    const rowsToKeep: number[] = [];
+
+    for (let row = 0; row < rowCount; row++) {
+      if (isKept[row] === 1) {
+        rowsToKeep.push(row);
+      }
+    }
+
+    return rowsToKeep;
+  }
+
+  /**
    * Gets where the row with the provided physical index sits among its siblings.
+   *
+   * While no row is trimmed, the answer comes straight from the structure cache. While any trimming
+   * map (a filter, for example) hides rows, only the siblings that are not trimmed count: they are the
+   * ones a user can reach, so they are the ones a screen reader should count.
    *
    * @private
    * @param {number} row Physical row index.
@@ -676,7 +765,52 @@ class DataManager {
     const rowObject = this.getDataObject(row);
     const nodeInfo = rowObject ? this.cache.nodeInfo.get(rowObject) : undefined;
 
-    return nodeInfo ? { position: nodeInfo.position, setSize: nodeInfo.setSize } : null;
+    if (!rowObject || !nodeInfo) {
+      return null;
+    }
+
+    const { rowIndexMapper } = this.hot;
+
+    if (rowIndexMapper.getNotTrimmedIndexesLength() === rowIndexMapper.getNumberOfIndexes()) {
+      return { position: nodeInfo.position, setSize: nodeInfo.setSize };
+    }
+
+    const siblings: RowObject[] = nodeInfo.parent ? nodeInfo.parent.__children! : this.data!;
+    let reachable = this.#reachableSiblings.get(siblings);
+
+    if (!reachable) {
+      reachable = { setSize: 0, positions: new Map<RowObject, number>() };
+
+      for (let i = 0; i < siblings.length; i++) {
+        const sibling = siblings[i];
+        const siblingInfo = sibling && typeof sibling === 'object' ? this.cache.nodeInfo.get(sibling) : undefined;
+
+        if (siblingInfo && !rowIndexMapper.isTrimmed(siblingInfo.row)) {
+          reachable.setSize += 1;
+          reachable.positions.set(sibling, reachable.setSize);
+        }
+      }
+
+      this.#reachableSiblings.set(siblings, reachable);
+    }
+
+    const position = reachable.positions.get(rowObject);
+
+    // The row itself is trimmed (so it is not rendered): keep the structural answer.
+    return position === undefined ?
+      { position: nodeInfo.position, setSize: nodeInfo.setSize } :
+      { position, setSize: reachable.setSize };
+  }
+
+  /**
+   * Forgets the reachable-sibling counts that `getRowSetPosition()` keeps while rows are trimmed.
+   * The plugin calls it whenever the row index mapper's cache changes, and `rewriteCache()` calls it
+   * when the tree changes.
+   *
+   * @private
+   */
+  invalidateSetPositions() {
+    this.#reachableSiblings = new WeakMap();
   }
 
   /**

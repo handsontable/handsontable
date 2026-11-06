@@ -944,6 +944,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return _copyableRanges;
   },
+  modifyFiltersMatchedRows: (matchedRows, blankMatchedRows) => {
+    const blank = new Set(blankMatchedRows);
+
+    return matchedRows.filter(row => !blank.has(row));
+  },
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},

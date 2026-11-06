@@ -8,6 +8,7 @@ import {
   getRenderer,
   registerRenderer,
 } from '../../registry';
+import { stripRendererClassNames } from '../../../helpers/rendererClassNames';
 import {
   registerCellType,
   TextCellType,
@@ -288,6 +289,42 @@ describe('numericRenderer', () => {
         // unconditionally would replay a user-defined array `className` as a baked-in string the
         // next time `updateSettings` reads it back (see `handsontable/AGENTS.md`, cell `className` rules).
         expect(cellMeta.className).toBe(existingClassName);
+      });
+
+      it('should record only the class names it added, so a replay can drop them', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        // The user already chose an alignment, so only `htNumeric` is the renderer's own.
+        const cellMeta = {
+          instance,
+          className: 'htLeft marker',
+        };
+        const cellValue = 1;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        expect(cellMeta.className).toBe('htLeft marker htNumeric');
+        expect(stripRendererClassNames(cellMeta, cellMeta.className)).toBe('htLeft marker');
+      });
+
+      it('should record nothing when both class names are already there', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+          className: 'htRight htNumeric',
+        };
+        const cellValue = 1;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        expect(stripRendererClassNames(cellMeta, cellMeta.className)).toBe('htRight htNumeric');
       });
 
       it('should add default class names when `className` is an array', () => {

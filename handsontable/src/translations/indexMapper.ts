@@ -10,6 +10,7 @@ import {
 import type { IndexMap, IndexMapOptions } from './maps/indexMap';
 import type { LinkedPhysicalIndexToValueMap } from './maps/linkedPhysicalIndexToValueMap';
 import type { PhysicalIndexToValueMap } from './maps/physicalIndexToValueMap';
+import type { TrimmingMapOptions } from './maps/trimmingMap';
 import {
   AggregatedCollection,
   MapCollection,
@@ -288,11 +289,15 @@ export class IndexMapper {
    * @param {string} indexName A unique index name.
    * @param {string} mapType The index map type (e.g., "hiding", "trimming", "physicalIndexToValue").
    * @param {*} [initValueOrFn] The initial value for the index map.
+   * @param {object} [options] Map options, passed to the map's constructor. Some options are internal
+   * to Handsontable.
    * @returns {IndexMap}
    */
   createAndRegisterIndexMap(indexName: string, mapType: 'hiding', initValueOrFn?: unknown): HidingMap;
   /* eslint-disable jsdoc/require-jsdoc -- these overloads + the implementation share the JSDoc above */
-  createAndRegisterIndexMap(indexName: string, mapType: 'trimming', initValueOrFn?: unknown): TrimmingMap;
+  createAndRegisterIndexMap(
+    indexName: string, mapType: 'trimming', initValueOrFn?: unknown, options?: TrimmingMapOptions
+  ): TrimmingMap;
   createAndRegisterIndexMap(indexName: string, mapType: 'indexesSequence'): IndexesSequence;
   createAndRegisterIndexMap(
     indexName: string, mapType: 'physicalIndexToValue', initValueOrFn?: unknown, options?: IndexMapOptions
@@ -304,7 +309,7 @@ export class IndexMapper {
     indexName: string, mapType: string, initValueOrFn?: unknown, options?: IndexMapOptions
   ): IndexMap;
   createAndRegisterIndexMap(
-    indexName: string, mapType: string, initValueOrFn?: unknown, options?: IndexMapOptions
+    indexName: string, mapType: string, initValueOrFn?: unknown, options?: IndexMapOptions & TrimmingMapOptions
   ): IndexMap {
     return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn, options));
   }

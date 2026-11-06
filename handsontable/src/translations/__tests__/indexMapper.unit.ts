@@ -137,6 +137,33 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('uniqueName3');
   });
 
+  it('should default keepsRowsInFilterScope to false', () => {
+    const indexMapper = new IndexMapper();
+    const trimmingMap = indexMapper.createAndRegisterIndexMap('uniqueName', 'trimming');
+
+    expect(trimmingMap.keepsRowsInFilterScope).toBe(false);
+    expect(new TrimmingMap().keepsRowsInFilterScope).toBe(false);
+  });
+
+  it('should store keepsRowsInFilterScope for a trimming map', () => {
+    const indexMapper = new IndexMapper();
+    const inScopeMap = indexMapper.createAndRegisterIndexMap('inScope', 'trimming', false, {
+      keepsRowsInFilterScope: true,
+    });
+    const outOfScopeMap = indexMapper.createAndRegisterIndexMap('outOfScope', 'trimming', false, {
+      keepsRowsInFilterScope: false,
+    });
+
+    expect(inScopeMap).toBeInstanceOf(TrimmingMap);
+    expect(inScopeMap.keepsRowsInFilterScope).toBe(true);
+    expect(outOfScopeMap.keepsRowsInFilterScope).toBe(false);
+    // The option changes nothing about what the map trims.
+    indexMapper.initToLength(3);
+    inScopeMap.setValueAtIndex(1, true);
+
+    expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 2]);
+  });
+
   it('should create and register map to proper collection when it is possible', () => {
     const indexMapper = new IndexMapper();
 
