@@ -6,6 +6,11 @@ import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
 import type { CellProperties } from '../../../settings';
 import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
+import {
+  adoptWrittenAlignmentClassNames,
+  forgetRendererClassNames,
+  stripRendererClassNames,
+} from '../../../helpers/rendererClassNames';
 
 /**
  * Tells whether the cell's own last validation failed. The validation flow writes `valid` straight
@@ -479,6 +484,13 @@ export default class CellMeta {
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
 
+    // An alignment the new `className` carries is the user's own choice, the Alignment menu's
+    // included: it reads the rendered value back and writes it with another alignment. Without
+    // this the replay after a cache reset would strip it as a class a renderer added.
+    if (key === 'className') {
+      adoptWrittenAlignmentClassNames(cellMeta, value);
+    }
+
     // Every `setMeta` write - imperative or declarative (`cell` option) - is non-reconstructable by
     // `getCellMeta`, so record it; the viewport-eviction pass keeps cells whose set is non-empty.
     if (cellMeta._persistedMetaProps === undefined) {
@@ -549,6 +561,10 @@ export default class CellMeta {
     (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
     markCellMetaChanged(cellMeta);
+
+    if (key === 'className') {
+      forgetRendererClassNames(cellMeta);
+    }
 
     // Removing `editor` removes an `editor: true` request too (see `setMeta`). The editor the `type`
     // supplied because of it was deleted above, so the next read expands the type as if it was never
@@ -808,7 +824,12 @@ export default class CellMeta {
 
         props.forEach((key) => {
           if (hasOwnProperty(meta, key)) {
-            result.push({ physicalRow, physicalColumn, key, value: meta[key] });
+            // A renderer appends its own class names to the stored `className` (`numericRenderer`
+            // adds `htRight htNumeric`). Replaying them would hand them back as the user's own
+            // and keep them on a cell that stopped being numeric, so the snapshot leaves them out.
+            const value: unknown = key === 'className' ? stripRendererClassNames(meta, meta[key]) : meta[key];
+
+            result.push({ physicalRow, physicalColumn, key, value });
           }
         });
       }
