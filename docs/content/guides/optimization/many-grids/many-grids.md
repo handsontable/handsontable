@@ -290,7 +290,7 @@ Hiding columns is usually a little cheaper. A new `columns` array makes the `Aut
 The two differ in what they keep:
 
 - Hidden columns stay part of the grid. They are still in [`getData()`](@/api/core.md#getdata), they are copied to the clipboard by default, and their validators still run. Sorting, filters, and the columns that users moved or resized stay as they are.
-- A new `columns` array removes the other columns from `getData()` and from copied data. It also resets sorting, filters, and the columns that users moved, hid, or resized, apart from what the plugin options declare. To keep that state, hide columns instead.
+- A new `columns` array removes the other columns from `getData()` and from copied data. It also resets sorting, filters, and the rows and columns that users moved, hid, or resized. The `hiddenColumns` option applies again, but a sort that `initialConfig` declares does not. If the update also carries `data`, as every update from the React and Angular wrappers does, only the column state resets (sorting, order, hiding, and width), and only when the columns changed. The rows keep their order, hiding, and trimming. A new array with the same columns, or with columns added or removed at the end, keeps the column state. To keep that state in every case, hide columns instead.
 
 If you pass a new `columns` array, give each column its header in its own [`title`](@/api/options.md#title). A [`colHeaders`](@/api/options.md#colheaders) array is matched to the columns by position, so after you remove a column, the headers no longer match the columns below them.
 
