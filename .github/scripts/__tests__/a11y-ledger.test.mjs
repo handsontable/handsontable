@@ -408,6 +408,27 @@ test('a reader step is recorded at the severity of the worst group it missed, as
   ], 'a declared severity is kept; a group without one (a transcript recorded before groups carried one) is serious');
 });
 
+test('a reading traversal that read an item twice or never becomes one serious row at where traversal; a passed one, none', () => {
+  const traversal = {
+    passed: false, steps: ['read-1', 'read-9'], outOfOrder: ['B2'],
+    items: [{ item: 'A1', count: 2, firstStep: 'read-1' }, { item: 'B1', count: 0, firstStep: null }, { item: 'B2', count: 1, firstStep: 'read-2' }],
+  };
+  const off = transcript('nvda-chromium', 'reading-mode-traversal', [['read-1', null]], { traversal });
+  const clean = transcript('vo-webkit', 'reading-mode-traversal', [['read-1', null]], { traversal: { ...traversal, passed: true } });
+  const broken = transcript('nvda-firefox', 'reading-mode-traversal', [['read-1', null]], { traversal: { passed: 'no' } });
+  const read = readA11yArtifacts(readerFiles({
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-reading/${READER_TRANSCRIPTS_DIR}/nvda-chromium--reading-mode-traversal.json`]: off,
+    [`${READER_ARTIFACT_PREFIX}vo-webkit-reading/${READER_TRANSCRIPTS_DIR}/vo-webkit--reading-mode-traversal.json`]: clean,
+    [`${READER_ARTIFACT_PREFIX}nvda-firefox-reading/${READER_TRANSCRIPTS_DIR}/nvda-firefox--reading-mode-traversal.json`]: broken,
+  }));
+  const rows = read.nights[0].findings.filter(item => item.page === 'reading-mode-traversal');
+
+  assert.deepEqual(rows.map(item => [item.check, item.kind, item.where, item.severity, item.reason]), [
+    ['nvda-chromium', 'traversal-off', 'traversal', 'serious', 'the reading traversal is off: read more than once: A1 x2; never read: B1; out of order: B2'],
+  ]);
+  assert.ok(read.notes.some(note => /nvda-firefox--reading-mode-traversal\.json: the reading traversal is not a verdict, skipped/.test(note)), read.notes.join('\n'));
+});
+
 test('readA11yArtifacts turns a reader night\'s transcripts into step findings, failed tokens and golden differences', () => {
   const { nights, notes } = readA11yArtifacts(readerFiles());
 

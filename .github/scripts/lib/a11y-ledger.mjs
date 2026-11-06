@@ -47,6 +47,8 @@ import {
   AXE_SCAN_KIND,
   READER_GOLDEN_DIFFERS,
   READER_TOKEN_MISSING,
+  READER_TRAVERSAL_OFF,
+  READER_TRAVERSAL_WHERE,
   TRIAGE_ID,
   clusterOf,
   findingShape,
@@ -159,7 +161,8 @@ const NIGHT_SOURCES = ['a11y', 'reader'];
  * @property {'checks'|'axe'|'reader'} source Where it came from.
  * @property {string} check The check id, `axe` for the gating scan, or the reader project (`nvda-chromium`).
  * @property {string} kind The finding kind; `axe-violation` for every finding of the scan; `token-missing` or
- * `golden-differs` for a reader step.
+ * `golden-differs` for a reader step, `traversal-off` for a reader scenario's reading traversal (at `where`
+ * `traversal`).
  * @property {string|null} rule The axe rule, when the finding names one.
  * @property {string|null} cause The discovery run's needs-review cause, when the finding names one.
  * @property {string} page The page id, or the reader scenario.
@@ -346,6 +349,38 @@ function checkFinding(check, item) {
     url: fixturePath(item.url),
     issue: null,
   };
+}
+
+/**
+ * Why a reader scenario's reading traversal failed, as its check run says it (`lib/screenreader-report.mjs`):
+ * the items read twice, never or out of order. A traversal that passed, or a transcript without one, has no
+ * reason; one that is not a verdict object is malformed.
+ *
+ * @param {unknown} traversal The transcript's `traversal`.
+ * @returns {{reason: string|null, malformed: boolean}} The reason.
+ */
+function traversalReason(traversal) {
+  if (traversal === undefined || traversal === null) {
+    return { reason: null, malformed: false };
+  }
+  if (!isObject(traversal) || typeof traversal.passed !== 'boolean' || !Array.isArray(traversal.items)) {
+    return { reason: null, malformed: true };
+  }
+  if (traversal.passed) {
+    return { reason: null, malformed: false };
+  }
+
+  const items = traversal.items.filter(entry => isObject(entry) && typeof entry.item === 'string' && Number.isInteger(entry.count));
+  const twice = items.filter(entry => entry.count > 1).map(entry => `${cut(entry.item, 30)} x${entry.count}`);
+  const never = items.filter(entry => entry.count === 0).map(entry => cut(entry.item, 30));
+  const outOfOrder = (Array.isArray(traversal.outOfOrder) ? traversal.outOfOrder : []).filter(item => typeof item === 'string').map(item => cut(item, 30));
+  const parts = [
+    twice.length > 0 ? `read more than once: ${twice.join(', ')}` : '',
+    never.length > 0 ? `never read: ${never.join(', ')}` : '',
+    outOfOrder.length > 0 ? `out of order: ${outOfOrder.join(', ')}` : '',
+  ].filter(Boolean);
+
+  return { reason: `the reading traversal is off: ${parts.join('; ') || 'no item read as listed'}`, malformed: false };
 }
 
 /**
@@ -652,6 +687,14 @@ function readTranscript(file, label, night, notes) {
   }
   if (malformed > 0) {
     notes.push(`${label}: ${malformed} malformed step(s) dropped; the transcript resolves nothing tonight`);
+  }
+
+  const traversal = traversalReason(doc.traversal);
+
+  if (traversal.malformed) {
+    notes.push(`${label}: the reading traversal is not a verdict, skipped`);
+  } else if (traversal.reason !== null) {
+    night.findings.push(reader(READER_TRAVERSAL_OFF, READER_TRAVERSAL_WHERE, DEFAULT_TOKEN_SEVERITY, traversal.reason));
   }
 
   const golden = isObject(doc.golden) && typeof doc.golden.status === 'string' ? cut(doc.golden.status, 20) : 'missing';
