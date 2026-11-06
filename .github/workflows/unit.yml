@@ -30,6 +30,10 @@ jobs:
           npm run test:unit
       - name: Test (with coverage)
         if: inputs.is-pr
+        # The base ref goes through the environment rather than into the script body, as
+        # lint.yml and visual.yml do, so a branch name can never be read as shell.
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           # Instrument only the source files this pull request changes. The floor
           # below reads nothing else, and instrumenting all of src/ made the run
@@ -41,9 +45,12 @@ jobs:
           # out deleted files, which have nothing to cover. With no changed source
           # file the pattern matches nothing: Jest instruments nothing, writes an
           # empty lcov, and the floor reports nothing to check.
-          BASE="$(git merge-base "origin/${{ github.base_ref }}" HEAD)"
+          # A plain `*` in a git pathspec crosses `/`, so `src/*.ts` takes `src/core.ts` and
+          # `src/plugins/x/y.ts` alike; `src/**/*.ts` without `:(glob)` needs a path after `src/`
+          # and skips the files directly under `src/`.
+          BASE="$(git merge-base "origin/${BASE_REF}" HEAD)"
           CHANGED="$(git diff --name-only --diff-filter=AMR "$BASE"...HEAD -- \
-            'handsontable/src/**/*.ts' 'handsontable/src/**/*.js' \
+            'handsontable/src/*.ts' 'handsontable/src/*.js' \
             | grep -v -e '/__tests__/' -e '/3rdparty/' \
             | sed 's|^handsontable/|--collectCoverageFrom=|' | tr '\n' ' ')"
           if [ -z "$CHANGED" ]; then CHANGED='--collectCoverageFrom=src/no-source-changed/*'; fi
