@@ -215,33 +215,207 @@ describe('license gates of the plugins that are on in every grid', () => {
       columns: [{ type: 'checkbox', headerCheckbox: true }, {}],
     };
 
-    it('should draw no header checkbox the key does not cover, and report it after the render', async() => {
+    it('should draw no header checkbox the key does not cover, and name it in the one message of the grid', async() => {
       const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
-      const printedAtInit = missingFeatureErrors().length;
+      // CheckboxHeader checks its columns in its ready step, after the plugins the key keeps off are known.
+      // The grid prints one message, before the constructor returns, that names both.
+      const printedAtInit = missingFeatureErrors();
 
       expect(hot.getPlugin('checkboxHeader').hasHeaderCheckbox(0)).toBe(false);
       expect(hot.rootElement.querySelector('.htCheckboxHeaderInput')).toBeNull();
       expect(hot.getPlugin('checkboxHeader').toggleColumn(0)).toBe(false);
       expect(hot.getDataAtCol(0)).toEqual([true, false]);
+      expect(printedAtInit.length).toBe(1);
+      expect(printedAtInit[0]).toContain('Checkbox header (feat:checkbox_header)');
+      expect(printedAtInit[0]).toContain('Copy and paste (feat:copy_paste)');
 
       await Promise.resolve();
 
-      const printed = missingFeatureErrors().slice(printedAtInit);
+      const barLines = hot.rootSlotBottomElement.querySelectorAll('.hot-display-license-info_missing-features');
+
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
+      expect(barLines.length).toBe(1);
+      expect(barLines[0].textContent).toContain('Checkbox header');
+      expect(barLines[0].textContent).toContain('Copy and paste');
+    });
+
+    it('should print one message when an `init` listener updates the settings before the `init` write', async() => {
+      const hot = createGrid({
+        licenseKey: FLAGGED_MINIMAL_KEY,
+        ...settings,
+        colWidths: 60,
+        init() {
+          this.updateSettings({ readOnly: false });
+        },
+      });
+      const printedAtInit = missingFeatureErrors();
+
+      expect(printedAtInit.length).toBe(1);
+      expect(printedAtInit[0]).toContain('Checkbox header (feat:checkbox_header)');
+      expect(printedAtInit[0]).toContain('Copy and paste (feat:copy_paste)');
+
+      await Promise.resolve();
+
+      const barLines = hot.rootSlotBottomElement.querySelectorAll('.hot-display-license-info_missing-features');
+
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
+      expect(barLines.length).toBe(1);
+      expect(barLines[0].textContent).toContain('Checkbox header');
+    });
+
+    it('should print one message when a gated call made before the `init` write throws', async() => {
+      let thrown = null;
+
+      createGrid({
+        licenseKey: FLAGGED_MINIMAL_KEY,
+        ...settings,
+        colWidths: 60,
+        init() {
+          try {
+            this.getPlugin('viewState').getViewState();
+          } catch (error) {
+            thrown = error;
+          }
+        },
+      });
+      const printedAtInit = missingFeatureErrors();
+
+      expect(thrown).not.toBeNull();
+      expect(printedAtInit.length).toBe(1);
+      expect(printedAtInit[0]).toContain('Checkbox header (feat:checkbox_header)');
+      expect(printedAtInit[0]).toContain('View state (feat:view_state)');
+
+      await Promise.resolve();
+
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
+    });
+
+    it('should write the message and the bar on `init`, after the listeners added before it and before the first render',
+      () => {
+        const seen = {};
+        const read = hot => ({
+          errors: missingFeatureErrors().length,
+          barLines: hot.rootSlotBottomElement.querySelectorAll('.hot-display-license-info_missing-features').length,
+        });
+
+        createGrid({
+          licenseKey: FLAGGED_MINIMAL_KEY,
+          ...settings,
+          init() {
+            seen.init = read(this);
+          },
+          afterRender() {
+            seen.firstRender ??= read(this);
+          },
+          afterInit() {
+            seen.afterInit = read(this);
+          },
+        });
+
+        expect(seen.init).toEqual({ errors: 0, barLines: 0 });
+        expect(seen.firstRender).toEqual({ errors: 1, barLines: 1 });
+        expect(seen.afterInit).toEqual({ errors: 1, barLines: 1 });
+      });
+
+    it.each([
+      ['a key that leaves out the header checkbox', FLAGGED_MINIMAL_KEY],
+      ['a key that covers every feature', SUBSCRIPTION_KEY],
+    ])('should let an `afterInit` listener destroy the grid built with %s', (_, licenseKey) => {
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+      containers.push(container);
+
+      let hot = null;
+
+      expect(() => {
+        hot = new Handsontable(container, {
+          licenseKey,
+          ...settings,
+          afterInit() {
+            this.destroy();
+          },
+        });
+      }).not.toThrow();
+      expect(hot.isDestroyed).toBe(true);
+    });
+
+    it('should name the header checkbox of a column the first render does not draw in the one message', async() => {
+      const columnCount = 40;
+      const hot = createGrid({
+        licenseKey: FLAGGED_MINIMAL_KEY,
+        data: [Array.from({ length: columnCount }, (_, column) => column === columnCount - 1)],
+        columns: Array.from({ length: columnCount }, (_, column) => (
+          column === columnCount - 1 ? { type: 'checkbox', headerCheckbox: true } : {}
+        )),
+        colWidths: 100,
+        width: 300,
+        height: 200,
+      });
+      const printedAtInit = missingFeatureErrors();
+
+      expect(hot.countRenderedCols()).toBeLessThan(columnCount);
+      expect(printedAtInit.length).toBe(1);
+      expect(printedAtInit[0]).toContain('Checkbox header (feat:checkbox_header)');
+
+      hot.scrollViewportTo({ col: columnCount - 1 });
+      hot.render();
+      await Promise.resolve();
+
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
+    });
+
+    it('should name the header checkbox of a grid built hidden in the one message', async() => {
+      const container = document.createElement('div');
+
+      container.style.display = 'none';
+      document.body.appendChild(container);
+      containers.push(container);
+
+      const hot = new Handsontable(container, { licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
+
+      grids.push(hot);
+
+      const printedAtInit = missingFeatureErrors();
+
+      expect(printedAtInit.length).toBe(1);
+      expect(printedAtInit[0]).toContain('Checkbox header (feat:checkbox_header)');
+
+      container.style.display = '';
+      hot.render();
+      await Promise.resolve();
+
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
+    });
+
+    it('should name the header checkbox of a column added by a later settings pass in that pass\'s message', () => {
+      const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, data: [[1, true]], colWidths: 60 });
+      const printedAtInit = missingFeatureErrors();
+
+      expect(printedAtInit.every(text => !text.includes('feat:checkbox_header'))).toBe(true);
+
+      hot.suspendRender();
+      hot.updateSettings({ columns: [{}, { type: 'checkbox', headerCheckbox: true }] });
+
+      const printed = missingFeatureErrors().slice(printedAtInit.length);
 
       expect(printed.length).toBe(1);
       expect(printed[0]).toContain('Checkbox header (feat:checkbox_header)');
+
+      hot.resumeRender();
     });
 
-    it('should write nothing for a refused header checkbox when a key that covers it arrives first', async() => {
-      // The first render refuses the header checkbox and leaves its message to a microtask; the key below is
-      // passed before that microtask runs.
+    it('should write nothing more for a refused header checkbox when a key that covers it arrives', async() => {
+      // The ready step refuses the header checkbox and leaves a write to a microtask; the key below is passed
+      // before that microtask runs, so the write finds nothing missing.
       const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
+      const printedAtInit = missingFeatureErrors();
 
       hot.updateSettings({ licenseKey: SUBSCRIPTION_KEY });
 
       await Promise.resolve();
 
-      expect(missingFeatureErrors().filter(text => text.includes('Checkbox header'))).toEqual([]);
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
       expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info_missing-features')).toBeNull();
     });
 

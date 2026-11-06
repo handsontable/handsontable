@@ -185,6 +185,7 @@ const optimizationItems = [
   { path: 'guides/optimization/batch-operations/batch-operations' },
   // TODO { path: 'guides/optimization/touch-events/touch-events' },
   { path: 'guides/optimization/performance/performance' },
+  { path: 'guides/optimization/many-grids/many-grids' },
   // TODO { path: 'guides/optimization/key-concepts/key-concepts' },
   { path: 'guides/optimization/bundle-size/bundle-size' },
 ];
