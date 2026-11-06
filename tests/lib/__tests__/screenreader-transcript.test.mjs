@@ -71,6 +71,17 @@ test('matchTokenGroups needs one synonym per group, as a whole phrase', () => {
   assert.equal(matchTokenGroups('anything', []).passed, true, 'a step with no group asserts nothing');
 });
 
+test('every token group carries its severity: serious unless the step declares one for it', () => {
+  const verdict = matchTokenGroups('row 2', [['34'], ['age', 'column 3'], ['row 2']], { age: 'minor' });
+
+  assert.deepEqual(verdict.groups.map(group => [group.synonyms[0], group.matched, group.severity]), [
+    ['34', null, 'serious'],
+    ['age', null, 'minor'],
+    ['row 2', 'row 2', 'serious'],
+  ]);
+  assert.deepEqual(matchTokenGroups('x', [['y']]).groups[0].severity, 'serious', 'no declaration at all');
+});
+
 test('a synonym of digits alone is a value: a position phrase never satisfies it', () => {
   assert.equal(matchTokenGroups('name column header row 1 column 2', [['1']]).passed, false, '`row 1` is a position, not the value 1');
   assert.equal(matchTokenGroups('1 row header row 8 column 1', [['1']]).passed, true, 'the leading label is the value 1; `column 1` is not');

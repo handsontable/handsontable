@@ -212,7 +212,7 @@ test('every lane job bounds each step that downloads, under a job timeout above 
 test('screenreader-nightly.yml calls the lane after the UMD build, on its own cron and from any ref, and the Tests pipeline never calls it', () => {
   const nightly = stripYamlComments(read(NIGHTLY));
 
-  assert.deepEqual(jobIds(nightly), ['build', 'screenreader', 'notify'], `${NIGHTLY}: build, the lane, the Slack ping. ${DOC}`);
+  assert.deepEqual(jobIds(nightly), ['build', 'screenreader', 'verdict', 'notify'], `${NIGHTLY}: build, the lane, the run verdict, the Slack ping. ${DOC}`);
   assert.match(nightly, /^ {4}- cron: '30 4 \* \* 2-6'$/m, `${NIGHTLY}: weeknights, after the E2E nightly.`);
   assert.match(nightly, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch from a feature branch is the proof run and the golden recorder.`);
   assert.match(job(nightly, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the lane needs the UMD artifact.`);
@@ -230,6 +230,27 @@ test('screenreader-nightly.yml calls the lane after the UMD build, on its own cr
     `${NIGHTLY}: only a dispatch records goldens; the cron always compares. ${DOC}`);
   assert.match(nightly, /^ {2}group: screenreader-nightly-\$\{\{ github\.ref \}\}$/m, `${NIGHTLY}: a static concurrency prefix, never the workflow-name expression.`);
   assert.doesNotMatch(stripYamlComments(read(TESTS)), /screenreader/, `${TESTS}: the lane is report-only and nightly; it is not a pull-request job. ${DOC}`);
+});
+
+test('the screen reader nightly ends on a verdict job that expects one check run per lane of the matrices', () => {
+  const nightly = stripYamlComments(read(NIGHTLY));
+  const lane = stripYamlComments(read(LANE));
+  const verdict = job(nightly, 'verdict');
+  const browsers = id => (/^ {8}browser: \[ ([a-z, ]+) \]$/m.exec(job(lane, id))?.[1] ?? '').split(', ').filter(Boolean);
+  const projects = [...browsers('nvda').map(browser => `nvda-${browser}`), ...browsers('voiceover').map(browser => `vo-${browser}`)];
+  const expected = [...verdict.matchAll(/--expect "Screen reader \/ ([a-z0-9-]+) report"/g)].map(([, project]) => project);
+  const doc = 'See tests/AGENTS.md, "A11y: the verdict of a check run".';
+
+  assert.equal(projects.length, 4, `${LANE}: two browsers per screen reader.`);
+  assert.deepEqual(expected.sort(), projects.sort(), `${NIGHTLY}: the verdict expects exactly the lanes ${LANE} runs; a lane that posted nothing is red. ${doc}`);
+  assert.match(verdict, /^ {4}needs: \[ screenreader \]$/m, `${NIGHTLY}: the verdict waits for every lane. ${doc}`);
+  assert.match(verdict, /^ {4}if: \$\{\{ !cancelled\(\) && github\.event_name != 'pull_request' \}\}$/m,
+    `${NIGHTLY}: !cancelled(), or a red job before it would skip the verdict (the implicit success(), .ai/CI.md). ${doc}`);
+  assert.match(verdict, /^ {6}contents: read\n {6}checks: read$/m, `${NIGHTLY}: the verdict only reads check runs. ${doc}`);
+  assert.doesNotMatch(verdict, /continue-on-error/, `${NIGHTLY}: the verdict's red is the run's red. ${doc}`);
+  assert.match(verdict, /node tests\/scripts\/a11y-run-verdict\.mjs --prefix "Screen reader \/ "/);
+  assert.match(verdict, /HEAD_SHA: \$\{\{ github\.sha \}\}/);
+  assert.match(job(nightly, 'notify'), /^ {4}needs: \[ screenreader \]$/m, `${NIGHTLY}: Slack never hears of the verdict job's red. ${doc}`);
 });
 
 test('no workflow but the nightly calls the screen reader lane', () => {

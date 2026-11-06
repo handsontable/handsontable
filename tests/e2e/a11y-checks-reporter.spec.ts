@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test';
 /**
  * The proof that the reporter of the checks beyond axe (`reporters/a11y-checks.ts`) turns what a run's
  * tests attached into the evidence document `tests/AGENTS.md` describes ("A11y: the checks beyond
- * axe"), and that the report script posts it as a check run that is never a failure. The merge itself
+ * axe"), and that the report script posts it as a check run, red for a check that left nothing readable. The merge itself
  * is unit-tested in `lib/__tests__/a11y-evidence.test.mjs`; this is the step around it that only a real
  * run shows: which attempt is read, a failed test recorded as a target that was not measured, a test
  * that passed on a retry flagged, a test that never ran or left an unreadable part recorded the same
@@ -221,7 +221,7 @@ test.describe('the reporter of the checks beyond axe', () => {
     expect(doc.problems[0]).toMatch(/^grid on main did not measure: .*the page threw no error while it was measured/);
   });
 
-  test('the report script turns a document it cannot validate into a neutral check run, never a failure', async() => {
+  test('the report script turns a document it cannot validate into a red tooling check run, titled as one', async() => {
     const { evidenceDir } = runSyntheticCheck('script', checkTest('grid on main', 'grid', []));
     const child = spawnSync(process.execPath, [reportScript, '--dry-run'], {
       cwd: testsRoot,
@@ -235,11 +235,13 @@ test.describe('the reporter of the checks beyond axe', () => {
     const payloads = JSON.parse(child.stdout.slice(child.stdout.indexOf('[')));
 
     // `demo-check` is registered only in the synthetic reporter's options, so the script, which reads
-    // the real registry, cannot validate its document: a tooling check run, neutral.
+    // the real registry, cannot validate its document: a tooling failure, red for its own reason
+    // (tests/AGENTS.md, "A11y: the verdict of a check run"). The script still exits 0: the check run
+    // reports, it never fails the step.
     expect(payloads.map((payload: { name: string; conclusion: string; title: string }) => [payload.name, payload.conclusion, payload.title])).toEqual([
-      ['A11y / demo-check report', 'neutral', '⚠ Tooling: demo-check.json: check "demo-check" is not in EVIDENCE_CHECKS'],
-      ['A11y / missing-check report', 'neutral',
-        '⚠ Tooling: the missing-check check left no test-results/a11y-checks/missing-check.json: no test of it ran to the end'],
+      ['A11y / demo-check report', 'failure', '✖ Tooling failure: demo-check.json: check "demo-check" is not in EVIDENCE_CHECKS'],
+      ['A11y / missing-check report', 'failure',
+        '✖ Tooling failure: the missing-check check left no test-results/a11y-checks/missing-check.json: no test of it ran to the end'],
     ]);
   });
 

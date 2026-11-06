@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { buildReport, checkRunName, stepLines } from '../screenreader-report.mjs';
 import { matchTokenGroups } from '../screenreader-transcript.mjs';
 
-const step = (id, spoken, groups, action = { press: 'ArrowRight' }) => ({
-  id, action, spoken, normalized: spoken.toLowerCase(), tokens: matchTokenGroups(spoken.toLowerCase(), groups), durationMs: 1500,
+const RULE = '(critical/serious = red, moderate/minor = warning)';
+const step = (id, spoken, groups, action = { press: 'ArrowRight' }, severity = undefined) => ({
+  id, action, spoken, normalized: spoken.toLowerCase(), tokens: matchTokenGroups(spoken.toLowerCase(), groups, severity), durationMs: 1500,
 });
 const transcript = (overrides = {}) => ({
   schema: 1,
@@ -42,9 +43,10 @@ test('a clean run is a success named after the project', () => {
   assert.equal(report.name, 'Screen reader / nvda-chromium report');
   assert.equal(checkRunName('nvda-firefox'), 'Screen reader / nvda-firefox report');
   assert.equal(report.conclusion, 'success');
-  assert.equal(report.title, '✔ 1 scenario, 2 steps: every token group present, every golden matched');
+  assert.equal(report.title, `✔ Green: 0 critical, 0 serious, 0 moderate, 0 minor ${RULE} · 1 scenario, 2 steps: every token group present, every golden matched`);
   assert.deepEqual(report.annotations, []);
-  assert.match(report.summary, /\*\*Report mode:\*\* this check is neutral/);
+  assert.match(report.summary, /\*\*Verdict: green\.\*\* Red on a critical or serious finding/);
+  assert.match(report.summary, /\*\*Report mode:\*\* the test and the job never fail on an announcement; this check run's verdict says what the lane found\./);
   assert.match(report.summary, /\[The workflow run\]\(https:\/\/github\.com\/o\/r\/actions\/runs\/1\)/);
   assert.match(report.summary, /📊 \[Open the Playwright report\]/);
   assert.match(report.summary, /### grid-core on nvda-chromium/);
@@ -55,7 +57,7 @@ test('a clean run is a success named after the project', () => {
 test('the clean headline counts its nouns, and a run that recorded every golden says so', () => {
   const one = build([transcript({ steps: [step('arrow-right', '34 age row 2', [['34']])] })]);
 
-  assert.equal(one.title, '✔ 1 scenario, 1 step: every token group present, every golden matched');
+  assert.equal(one.title, `✔ Green: 0 critical, 0 serious, 0 moderate, 0 minor ${RULE} · 1 scenario, 1 step: every token group present, every golden matched`);
   assert.match(one.summary, /\. 1 step in 3\.0 s,/, 'the scenario line counts its step too');
 
   const recorded = build([
@@ -64,7 +66,7 @@ test('the clean headline counts its nouns, and a run that recorded every golden 
   ], { expectedScenarios: ['grid-core', 'nested-rows'] });
 
   assert.equal(recorded.conclusion, 'success');
-  assert.equal(recorded.title, '✔ 2 scenarios, 4 steps: every token group present, goldens recorded');
+  assert.equal(recorded.title, `✔ Green: 0 critical, 0 serious, 0 moderate, 0 minor ${RULE} · 2 scenarios, 4 steps: every token group present, goldens recorded`);
 });
 
 test('a scenario that stopped at a step is a tooling failure, and the steps it captured are still rendered', () => {
@@ -84,16 +86,55 @@ test('a scenario that stopped at a step is a tooling failure, and the steps it c
   assert.equal(report.counts.goldenMissing, 0, 'a partial run is not a missing golden');
 });
 
-test('a missing token group is neutral in report mode, with an annotation on the step line', () => {
+test('a missing token group is serious unless the step says otherwise, so the check is red, annotated on the step line', () => {
   const report = build([transcript({ steps: [step('arrow-right', 'row 2', [['34'], ['age', 'column 3']]), step('open-editor', 'edit alice', [['alice']])] })]);
 
-  assert.equal(report.conclusion, 'neutral');
-  assert.equal(report.title, '⚠ 1 step missing a token group (report mode)');
+  assert.equal(report.conclusion, 'failure');
+  assert.equal(report.title, `✖ Red: 0 critical, 1 serious, 0 moderate, 0 minor ${RULE} · 1 step missing a token group (report mode)`);
   assert.deepEqual(report.annotations.map(item => [item.path, item.start_line, item.annotation_level, item.title]), [
-    ['tests/screenreader/scenarios/grid-core.scenario.json', 4, 'warning', 'Announcement missing a token group: grid-core / arrow-right'],
+    ['tests/screenreader/scenarios/grid-core.scenario.json', 4, 'failure', 'Announcement missing a token group (serious): grid-core / arrow-right'],
   ]);
   assert.match(report.annotations[0].message, /^nvda-chromium spoke "row 2" for press ArrowRight; missing \[34\], \[age \| column 3\]\.$/);
   assert.match(report.summary, /✖ missing: 34<br>✖ missing: age \\\| column 3/);
+});
+
+test('a step that declares a lower severity for its group turns the check neutral, with a warning annotation', () => {
+  const minor = build([transcript({ steps: [step('arrow-right', '34 row 2', [['34'], ['column 3']], { press: 'ArrowRight' }, { 'column 3': 'minor' })] })]);
+
+  assert.equal(minor.conclusion, 'neutral');
+  assert.equal(minor.title, `⚠ Warning: 0 critical, 0 serious, 0 moderate, 1 minor ${RULE} · 1 step missing a token group (report mode)`);
+  assert.equal(minor.annotations[0].annotation_level, 'warning');
+  assert.equal(minor.annotations[0].title, 'Announcement missing a token group (minor): grid-core / arrow-right');
+
+  const worst = build([transcript({ steps: [step('arrow-right', 'row 2', [['34'], ['column 3']], { press: 'ArrowRight' }, { 'column 3': 'minor' })] })]);
+
+  assert.equal(worst.conclusion, 'failure', 'a step is as severe as the worst group it missed: [34] stays serious');
+
+  const critical = build([transcript({ steps: [step('arrow-right', 'row 2', [['34']], { press: 'ArrowRight' }, { 34: 'critical' })] })]);
+
+  assert.equal(critical.conclusion, 'failure');
+  assert.match(critical.title, /^✖ Red: 1 critical, 0 serious/);
+});
+
+test('a transcript recorded before groups carried a severity reads its failed groups as serious', () => {
+  const legacy = transcript({ steps: [{ ...step('arrow-right', 'row 2', [['34']]), tokens: { passed: false, groups: [{ synonyms: ['34'], matched: null }] } }] });
+
+  assert.equal(build([legacy]).conclusion, 'failure');
+});
+
+test('on a change run a step whose cluster has a tracker is a warning; on an audit every step counts', () => {
+  const failing = [transcript({ steps: [step('arrow-right', 'row 2', [['34']])] })];
+  const tracked = (source, check, item) => source === 'reader' && check === 'nvda-chromium' && item.scenario === 'grid-core' && item.step === 'arrow-right';
+  const change = build(failing, { scope: 'change', tracked });
+
+  assert.equal(change.conclusion, 'neutral', 'known debt with a tracker is a warning on a change run, never red');
+  assert.equal(change.annotations[0].annotation_level, 'warning');
+  assert.match(change.summary, /\*\*Change run\*\*/);
+
+  const audit = build(failing, { scope: 'audit', tracked });
+
+  assert.equal(audit.conclusion, 'failure', 'an audit says the truth: tracked or not, a serious step is red');
+  assert.match(audit.summary, /\*\*Audit run\*\* \(a schedule or a dispatch\): every open finding counts, tracked or not\./);
 });
 
 test('gate mode fails the check on a missing token group', () => {
@@ -102,21 +143,25 @@ test('gate mode fails the check on a missing token group', () => {
   assert.equal(report.conclusion, 'failure');
   assert.equal(report.annotations[0].annotation_level, 'failure');
   assert.match(report.summary, /\*\*Gate mode:\*\*/);
+
+  const minor = build([transcript({ steps: [step('arrow-right', 'row 2', [['34']], { press: 'ArrowRight' }, { 34: 'minor' })] })], { mode: 'gate' });
+
+  assert.equal(minor.conclusion, 'failure', 'gate mode fails on any missing group, whatever its severity');
 });
 
-test('a golden difference and a missing golden are neutral and listed', () => {
+test('a golden difference and a missing golden are advisory: listed, never a warning', () => {
   const differs = build([transcript({ golden: { status: 'differs', differences: [{ id: 'open-editor', expected: 'edit  alice', actual: 'edit alice' }] } })]);
 
-  assert.equal(differs.conclusion, 'neutral');
-  assert.equal(differs.title, '⚠ 1 golden difference (report mode)');
+  assert.equal(differs.conclusion, 'success');
+  assert.equal(differs.title, `✔ Green: 0 critical, 0 serious, 0 moderate, 0 minor ${RULE} · 1 advisory · 1 golden difference (report mode)`);
   assert.match(differs.summary, /### Golden differences \(advisory\)/);
   assert.match(differs.summary, /\| grid-core \| open-editor \| edit {2}alice \| edit alice \|/);
   assert.match(differs.summary, /\| open-editor \| press Enter \| edit alice \| ✔ alice \| ✖ differs \| 1500 \|/);
 
   const missing = build([transcript({ golden: { status: 'missing', differences: [] } })]);
 
-  assert.equal(missing.conclusion, 'neutral');
-  assert.equal(missing.title, '⚠ 1 scenario without a golden (report mode)');
+  assert.equal(missing.conclusion, 'success');
+  assert.equal(missing.title, `✔ Green: 0 critical, 0 serious, 0 moderate, 0 minor ${RULE} · 1 advisory · 1 scenario without a golden (report mode)`);
   assert.match(missing.summary, /no golden recorded yet/);
   assert.equal(build([transcript({ golden: { status: 'recorded', differences: [] } })]).conclusion, 'success', 'a run that records the golden is clean');
 });
@@ -127,6 +172,7 @@ test('a tooling failure is a failed check: a scenario with no transcript, or no 
   assert.equal(missing.conclusion, 'failure');
   assert.equal(missing.title, '✖ Tooling failure: no transcript for "nested-rows": the test did not reach the end of the scenario');
   assert.match(missing.summary, /> Tooling problem: no transcript for "nested-rows"/);
+  assert.match(missing.summary, /\*\*Verdict: red, a tooling failure\.\*\*/, 'red for a reason of its own, which the summary names apart from any finding');
 
   const none = build([], { expectedScenarios: [], project: 'nvda-firefox' });
 

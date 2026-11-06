@@ -380,3 +380,56 @@ export function clusterOf(finding, catalog) {
 
   return { id: cluster.id, tracker: cluster.tracker, ambiguous: matches.length > 1 ? matches : [] };
 }
+
+/**
+ * A finding of a check run as the catalog reads it, the way the ledger reads the same finding from the night's
+ * artifacts (`.github/scripts/lib/a11y-ledger.mjs`), so a cluster rule matches it at pull request time too.
+ *
+ * @param {'checks'|'axe'|'reader'} source The source.
+ * @param {string} check The check (`keyboard-walker`), `axe` for the scan, or the screen reader project.
+ * @param {object} item The finding as the run holds it: an evidence finding, an axe comparison item, or
+ * `{scenario, step, kind}` for a screen reader step.
+ * @returns {object} The finding `clusterOf()` reads.
+ */
+export function catalogFinding(source, check, item) {
+  if (source === 'axe') {
+    return {
+      source, check: AXE_SCAN_CHECK, kind: AXE_SCAN_KIND, rule: item.rule ?? null, cause: null, criteria: [...(item.wcag ?? [])],
+      page: item.page, theme: item.theme ?? null, where: maskSelector(item.target), issue: item.issue ?? item.suggestedIssue ?? null,
+    };
+  }
+  if (source === 'reader') {
+    return {
+      source, check, kind: item.kind ?? READER_TOKEN_MISSING, rule: null, cause: null, criteria: [],
+      page: item.scenario, theme: null, where: item.step, issue: null,
+    };
+  }
+
+  const selector = typeof item.selector === 'string' ? maskSelector(item.selector) : null;
+  const step = typeof item.step === 'string' ? item.step : null;
+
+  return {
+    source, check, kind: item.kind, rule: item.rule ?? null, cause: item.cause ?? null, criteria: [...(item.criteria ?? [])],
+    page: item.page, theme: item.theme ?? null, where: selector !== null && step !== null ? `${selector} @ ${step}` : (selector ?? step ?? ''), issue: null,
+  };
+}
+
+/**
+ * A predicate that says whether a finding's cluster has a tracker: the posters' `tracked` input, which turns
+ * tracked debt into a warning on a change run. Without a catalog nothing is tracked, so a catalog that failed to
+ * load leaves every finding at its severity.
+ *
+ * @param {{clusters: object[]}|null} catalog The compiled catalog (`compileIssuesCatalog()`), or `null`.
+ * @returns {(source: string, check: string, item: object) => boolean} The predicate.
+ */
+export function trackedBy(catalog) {
+  if (!catalog) {
+    return () => false;
+  }
+
+  return (source, check, item) => {
+    const { tracker } = clusterOf(catalogFinding(source, check, item), catalog);
+
+    return Array.isArray(tracker) ? tracker.length > 0 : Boolean(tracker);
+  };
+}

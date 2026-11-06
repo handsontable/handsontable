@@ -591,7 +591,7 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
       });
       const normalized = normalizeAnnouncement(spoken);
 
-      steps.push({ id: step.id, action: step.action, spoken, normalized, tokens: matchTokenGroups(normalized, step.expect), durationMs: Date.now() - stepStarted });
+      steps.push({ id: step.id, action: step.action, spoken, normalized, tokens: matchTokenGroups(normalized, step.expect, step.severity), durationMs: Date.now() - stepStarted });
     }
   } catch (error) {
     incomplete = { step: running, error: errorText(error) };
