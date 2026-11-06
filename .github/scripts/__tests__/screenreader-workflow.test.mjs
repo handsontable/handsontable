@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, jobIds, steps } from '../lib/workflow-text.mjs';
-import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
+import { SCENARIO_GROUPS, loadScenarios, scenarioBudgetMs } from '../../../tests/lib/screenreader-scenario.mjs';
 
 // tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): the screen reader lanes are report-only and run on
 // their own nightly, never in the pull-request Tests pipeline. Every link in that chain fails silently
@@ -79,8 +79,8 @@ test('the NVDA job: Windows, one browser per job, report-only, running the scree
     `${LANE}: the job's scenario group reaches the spec as HOT_SR_GROUP, which runs that group's scenarios only. ${DOC}`);
   assert.match(nvda, /^ {6}SCREENREADER_GROUP: \$\{\{ matrix\.group \}\}$/m,
     `${LANE}: the report names the check run after the group and expects that group's transcripts. ${DOC}`);
-  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 25$/m,
-    `${LANE}: the run step times out before the job does: a step timeout is a step failure, so the transcripts, the summary and the check run still come, where the job's 30-minute timeout would cancel them. ${DOC}`);
+  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 40$/m,
+    `${LANE}: the run step times out before the job does: a step timeout is a step failure, so the transcripts, the summary and the check run still come, where the job's timeout would cancel them. ${DOC}`);
 
   const goldens = step('Upload the recorded goldens');
 
@@ -88,6 +88,8 @@ test('the NVDA job: Windows, one browser per job, report-only, running the scree
     `${LANE}: the recorded goldens upload on an update-goldens run only, red or green. ${DOC}`);
   assert.match(goldens, /^ {10}name: screenreader-goldens-nvda-\$\{\{ matrix\.browser \}\}-\$\{\{ matrix\.group \}\}$/m,
     `${LANE}: one goldens artifact per browser and group, the names tests/AGENTS.md tells you to download. ${DOC}`);
+  assert.match(goldens, /^ {10}path: tests\/test-results\/screenreader\/goldens$/m,
+    `${LANE}: the goldens the job recorded, never the whole tree, whose other groups' files are the checkout's copies and would replace their new recordings when the artifacts are extracted together. ${DOC}`);
 
   const transcripts = step('Upload the transcripts');
 
@@ -155,7 +157,7 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
   assert.match(step('Run the scenarios'), /^ {10}HOT_SR_UPDATE_GOLDENS: \$\{\{ inputs\.update-goldens && '1' \|\| '' \}\}$/m,
     `${LANE}: the update-goldens input reaches the spec as HOT_SR_UPDATE_GOLDENS, '1' or empty. ${DOC}`);
   assert.match(step('Run the scenarios'), /^ {10}HOT_SR_GROUP: \$\{\{ matrix\.group \}\}$/m);
-  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 25$/m,
+  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 40$/m,
     `${LANE}: the run step times out on its own: a step timeout is a step failure, so the transcripts, the recording, the summary and the check run still come. ${DOC}`);
 
   [
@@ -177,6 +179,8 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
     `${LANE}: the recorded goldens upload on an update-goldens run only, red or green. ${DOC}`);
   assert.match(goldens, /^ {10}name: screenreader-goldens-vo-\$\{\{ matrix\.browser \}\}-\$\{\{ matrix\.group \}\}$/m,
     `${LANE}: one goldens artifact per browser and group, the names tests/AGENTS.md tells you to download. ${DOC}`);
+  assert.match(goldens, /^ {10}path: tests\/test-results\/screenreader\/goldens$/m,
+    `${LANE}: the goldens the job recorded, never the whole tree, whose other groups' files are the checkout's copies and would replace their new recordings when the artifacts are extracted together. ${DOC}`);
   assert.match(step('Write the job summary'), /^ {8}run: node tests\/scripts\/screenreader-report\.mjs$/m);
   assert.match(step('Write the job summary'), /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m);
 
@@ -213,17 +217,40 @@ test('every lane job bounds each step that downloads, under a job timeout above 
     const jobTimeout = Number(body.match(/^ {4}timeout-minutes: (\d+)$/m)?.[1]);
     const stepTimeouts = named.reduce((sum, { entry }) => sum + (minutes(entry) || 0), 0);
 
-    assert.equal(minutes(named.find(({ name }) => name === 'Run the scenarios').entry), 25,
-      `${LANE} ${id}: the run step's 25 minutes bound a hung screen reader. ${DOC}`);
+    assert.equal(minutes(named.find(({ name }) => name === 'Run the scenarios').entry), 40,
+      `${LANE} ${id}: the run step's 40 minutes bound a hung screen reader. ${DOC}`);
     assert.ok(jobTimeout > stepTimeouts,
       `${LANE} ${id}: the job's timeout (${jobTimeout}) is a backstop above its steps' own (${stepTimeouts} in all), so a step times out first and the evidence still uploads. ${DOC}`);
+  });
+});
+
+test('the run step fits every group\'s scenario budgets plus one retry of its largest, on both lanes', () => {
+  // A group's scenarios run one at a time, each within its budget on a slow runner (scenarioBudgetMs()), and
+  // the config retries a failed one. A run step shorter than the group's budgets plus one retry of its largest
+  // scenario is killed mid-run on a slow night, and the scenarios after that point never run: part of the group
+  // drops out, where one scenario out of time would have been one red test.
+  const workflow = stripYamlComments(read(LANE));
+  const scenarios = loadScenarios(path.join(ROOT, 'tests/screenreader/scenarios')).filter(entry => entry.scenario).map(entry => entry.scenario);
+
+  ['nvda', 'voiceover'].forEach((id) => {
+    const run = steps(job(workflow, id)).find(entry => /^- name: Run the scenarios$/m.test(entry)) ?? '';
+    const stepMinutes = Number(run.match(/^ {8}timeout-minutes: (\d+)$/m)?.[1]);
+
+    SCENARIO_GROUPS.forEach((group) => {
+      const budgets = scenarios.filter(scenario => scenario.group === group).map(scenarioBudgetMs);
+      const needed = (budgets.reduce((sum, budget) => sum + budget, 0) + Math.max(0, ...budgets)) / 60_000;
+
+      assert.ok(budgets.length > 0, `${group}: a group with scenarios`);
+      assert.ok(needed <= stepMinutes,
+        `${LANE} ${id}: the "${group}" group needs ${needed.toFixed(1)} minutes (its ${budgets.length} scenario budgets plus one retry of its largest), more than the run step's ${stepMinutes}. Raise the step and job timeouts, or move scenarios to another group. ${DOC}`);
+    });
   });
 });
 
 test('screenreader-nightly.yml calls the lane after the UMD build, on its own cron and from any ref, and the Tests pipeline never calls it', () => {
   const nightly = stripYamlComments(read(NIGHTLY));
 
-  assert.deepEqual(jobIds(nightly), ['build', 'screenreader', 'notify'], `${NIGHTLY}: build, the lane, the Slack ping. ${DOC}`);
+  assert.deepEqual(jobIds(nightly), ['build', 'screenreader', 'verdict', 'notify'], `${NIGHTLY}: build, the lane, the run verdict, the Slack ping. ${DOC}`);
   assert.match(nightly, /^ {4}- cron: '30 4 \* \* 2-6'$/m, `${NIGHTLY}: weeknights, after the E2E nightly.`);
   assert.match(nightly, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch from a feature branch is the proof run and the golden recorder.`);
   assert.match(job(nightly, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the lane needs the UMD artifact.`);
@@ -241,6 +268,28 @@ test('screenreader-nightly.yml calls the lane after the UMD build, on its own cr
     `${NIGHTLY}: only a dispatch records goldens; the cron always compares. ${DOC}`);
   assert.match(nightly, /^ {2}group: screenreader-nightly-\$\{\{ github\.ref \}\}$/m, `${NIGHTLY}: a static concurrency prefix, never the workflow-name expression.`);
   assert.doesNotMatch(stripYamlComments(read(TESTS)), /screenreader/, `${TESTS}: the lane is report-only and nightly; it is not a pull-request job. ${DOC}`);
+});
+
+test('the screen reader nightly ends on a verdict job that expects one check run per lane and group of the matrices', () => {
+  const nightly = stripYamlComments(read(NIGHTLY));
+  const lane = stripYamlComments(read(LANE));
+  const verdict = job(nightly, 'verdict');
+  const browsers = id => (/^ {8}browser: \[ ([a-z, ]+) \]$/m.exec(job(lane, id))?.[1] ?? '').split(', ').filter(Boolean);
+  const projects = [...browsers('nvda').map(browser => `nvda-${browser}`), ...browsers('voiceover').map(browser => `vo-${browser}`)];
+  const expected = [...verdict.matchAll(/--expect "Screen reader \/ ([a-z0-9-]+ [a-z0-9-]+) report"/g)].map(([, name]) => name);
+  const lanes = projects.flatMap(project => SCENARIO_GROUPS.map(group => `${project} ${group}`));
+  const doc = 'See tests/AGENTS.md, "A11y: the verdict of a check run".';
+
+  assert.equal(projects.length, 4, `${LANE}: two browsers per screen reader.`);
+  assert.deepEqual(expected.sort(), lanes.sort(), `${NIGHTLY}: the verdict expects exactly the check runs ${LANE} posts, one per project and scenario group of SCENARIO_GROUPS; a job that posted nothing is red. ${doc}`);
+  assert.match(verdict, /^ {4}needs: \[ screenreader \]$/m, `${NIGHTLY}: the verdict waits for every lane. ${doc}`);
+  assert.match(verdict, /^ {4}if: \$\{\{ !cancelled\(\) && github\.event_name != 'pull_request' \}\}$/m,
+    `${NIGHTLY}: !cancelled(), or a red job before it would skip the verdict (the implicit success(), .ai/CI.md). ${doc}`);
+  assert.match(verdict, /^ {6}contents: read\n {6}checks: read$/m, `${NIGHTLY}: the verdict only reads check runs. ${doc}`);
+  assert.doesNotMatch(verdict, /continue-on-error/, `${NIGHTLY}: the verdict's red is the run's red. ${doc}`);
+  assert.match(verdict, /node tests\/scripts\/a11y-run-verdict\.mjs --prefix "Screen reader \/ "/);
+  assert.match(verdict, /HEAD_SHA: \$\{\{ github\.sha \}\}/);
+  assert.match(job(nightly, 'notify'), /^ {4}needs: \[ screenreader \]$/m, `${NIGHTLY}: Slack never hears of the verdict job's red. ${doc}`);
 });
 
 test('no workflow but the nightly calls the screen reader lane', () => {

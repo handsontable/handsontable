@@ -8,8 +8,9 @@
  * An entry is one of three kinds:
  *
  * - `scenarios`: the scenarios of `screenreader/scenarios/` that read it. A page lists a scenario that
- *   opens that catalog page, or one that runs on a fixture of its own (`grid-core`): a scenario on a
- *   catalog page reads that page and no other.
+ *   opens that catalog page, or one that runs on a fixture of its own and names the page in its
+ *   `catalogPages` (`grid-core` stands for `grid` and `text-editor`), and every page a scenario stands
+ *   for lists it.
  * - `none`: it draws nothing a screen reader meets, and why (sizing, events, a pointer-only guide, a color
  *   scheme that changes no element of the tree).
  * - `gap`: a reader meets it and no scenario reads it yet, and what is missing. A gap is debt, not a
@@ -23,10 +24,10 @@
 
 /** @type {Record<string, ScreenReaderCoverage>} */
 export const SR_PAGE_COVERAGE = {
-  grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'virtualization', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop', 'row-selection-corner'] },
+  grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'virtualization', 'virtualization-reading', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop', 'row-selection-corner'] },
   'shared-demo': { gap: 'the demo-shaped grid as a whole (merged cells, hidden-column indicators, sorting, filters, comments) is read by no scenario' },
   'complex-demo': { gap: 'four nested header levels over nested rows, merged cells and frozen panes at once: no scenario reads them together' },
-  'read-only': { gap: 'a read-only cell\'s state is a fact a reader announces, and no scenario reads a read-only cell' },
+  'read-only': { gap: 'a read-only cell\'s state is a fact a reader announces, and no scenario reads this page (checkbox-cell reads one read-only checkbox, on the checkbox page)' },
   checkbox: { scenarios: ['checkbox-cell', 'checkbox-header'] },
   'nested-headers': { scenarios: ['nested-headers'] },
   'collapsible-headers': { scenarios: ['collapsible-headers'] },
@@ -48,7 +49,7 @@ export const SR_PAGE_COVERAGE = {
   'context-menu-submenu': { gap: 'a submenu opened from the context menu, and the way back, are read by no scenario' },
   'dropdown-menu': { scenarios: ['dropdown-menu', 'filters-by-value'] },
   'filters-conditions': { scenarios: ['filters-by-condition'] },
-  'text-editor': { scenarios: ['grid-core'] },
+  'text-editor': { scenarios: ['grid-core', 'grid-core-horizon'] },
   'formula-builder': { gap: 'the formula bar (address box, formula input) and the formula editor are read by no scenario' },
   'formula-builder-suggestions': { gap: 'the formula editor\'s function suggestions list is read by no scenario' },
   'formula-builder-function-help': { gap: 'the formula editor\'s function help popup is read by no scenario' },

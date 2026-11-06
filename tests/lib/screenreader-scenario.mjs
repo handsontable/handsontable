@@ -17,7 +17,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { A11Y_PAGES } from '../a11y/pages.mjs';
 import { WCAG_CRITERIA } from './a11y-evidence.mjs';
-import { describeAction, normalizeAnnouncement } from './screenreader-transcript.mjs';
+import { TOKEN_SEVERITIES, describeAction, normalizeAnnouncement } from './screenreader-transcript.mjs';
 
 export const SCENARIO_SCHEMA = 1;
 export const SCENARIO_FILE_SUFFIX = '.scenario.json';
@@ -79,16 +79,37 @@ export const LANE_PRIMITIVES = Object.freeze({
 export const STARTS = ['grid', 'page'];
 /**
  * The scenario groups a lane job runs one of. Guidepup runs one scenario at a time per machine, so a
- * project's scenarios run in series; once a project's run passes 15 minutes its scenarios split into
- * groups, each a matrix entry of `.github/workflows/screenreader.yml` with its own job, check run and
- * artifacts (`tests/AGENTS.md`, "Screen readers"). `keyboard`: what a keyboard user does in the grid
- * itself. `reading`: the reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the
- * filters inside them. `editors`: the cell editors and the checkbox cell. `selection`: row selection, the
- * check all header, and the selection paging through a virtualized grid. `structure`: nested and collapsible
- * headers, merged cells and the freeze bars. A new group joins this list and the workflow's matrix together;
- * the workflow test keeps the two equal.
+ * project's scenarios run in series, and they split into groups that each fit the 40-minute run step
+ * (`scenarioBudgetMs()` below, summed per group by the workflow test), each a matrix entry of
+ * `.github/workflows/screenreader.yml` with its own job, check run and artifacts (`tests/AGENTS.md`,
+ * "Screen readers"). `keyboard`: what a keyboard user does in the grid itself. `reading`: the
+ * reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the filters inside them.
+ * `editors`: the cell editors and the checkbox cell. `selection`: row selection and the check all
+ * header. `structure`: nested and collapsible headers, merged cells and the freeze bars. A new group
+ * joins this list and the workflow's matrix together; the workflow test keeps the two equal.
  */
 export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure'];
+/**
+ * What a scenario may take on a slow runner: a step costs four to five seconds on VoiceOver and about
+ * thirteen when it is silent, and a run on a busy macOS runner took every step 1.7 to 2 times as long, so a
+ * 38-step traversal that reads in under four minutes on a quiet runner ran out a fixed five-minute budget
+ * twice. The budget per step covers that slower runner, and the entry covers loading the page and entering
+ * it. The runner's test timeout is this budget, never below the config's five minutes
+ * (`screenreader/screenreader.spec.ts`), and the workflow's run step fits every group's budgets plus one
+ * retry of its largest scenario (`.github/scripts/__tests__/screenreader-workflow.test.mjs`).
+ */
+export const STEP_BUDGET_MS = 12_000;
+export const ENTRY_BUDGET_MS = 60_000;
+
+/**
+ * A scenario's budget on a slow runner: the entry plus a step budget per step.
+ *
+ * @param {{steps: unknown[]}} scenario The scenario.
+ * @returns {number} The budget, in milliseconds.
+ */
+export function scenarioBudgetMs(scenario) {
+  return ENTRY_BUDGET_MS + (scenario.steps.length * STEP_BUDGET_MS);
+}
 /**
  * The modifiers a `press` chord may start with, joined to the key by `+` (`Shift+F10`,
  * `Control+Alt+M`), as Playwright names them.
@@ -233,7 +254,7 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
   const variant = doc.variantOf !== undefined;
   const known = variant
     ? VARIANT_FIELDS
-    : new Set(['schema', 'id', 'surface', 'group', 'page', 'fixture', 'query', 'start', 'criteria', 'setup', 'steps', 'traversal']);
+    : new Set(['schema', 'id', 'surface', 'group', 'page', 'state', 'fixture', 'catalogPages', 'query', 'start', 'criteria', 'setup', 'steps', 'traversal']);
 
   Object.keys(doc).filter(key => !known.has(key)).forEach(key => problems.push(variant
     ? `field "${key}" is not allowed in a variant: a variant takes its base's ${key}, and sets only ${[...VARIANT_FIELDS].join(', ')}`
@@ -283,6 +304,7 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
   }
 
   problems.push(...placeProblems(doc, fixtures));
+  problems.push(...catalogPageProblems(doc));
   if (doc.start !== undefined && !STARTS.includes(doc.start)) {
     problems.push(`start must be one of ${STARTS.join(', ')}, got ${JSON.stringify(doc.start)}`);
   }
@@ -312,7 +334,8 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
 /**
  * The problems of where a scenario opens: exactly one of `page` (a catalog page of `a11y/pages.mjs`, whose
  * fixture, query and root container it opens) or `fixture` (a file under `fixtures/demo/`, for a page the
- * catalog does not hold).
+ * catalog does not hold). A scenario on a fixture names the catalog pages it stands for (`catalogPages`),
+ * the pages `screenreader/coverage.mjs` lists it under, so the coverage test can match the two.
  *
  * @param {object} doc The scenario.
  * @param {string[]|undefined} fixtures The fixture file names.
@@ -323,6 +346,10 @@ function placeProblems(doc, fixtures) {
     return ['a scenario names exactly one of page (a catalog page of tests/a11y/pages.mjs) or fixture (a file under fixtures/demo/)'];
   }
   if (doc.page !== undefined) {
+    if (doc.catalogPages !== undefined) {
+      return ['catalogPages is for a scenario on a fixture: a scenario on a catalog page stands for that page'];
+    }
+
     return typeof doc.page === 'string' && PAGE_IDS.has(doc.page)
       ? []
       : [`page ${JSON.stringify(doc.page)} is not a page of tests/a11y/pages.mjs`];
@@ -333,8 +360,59 @@ function placeProblems(doc, fixtures) {
   if (fixtures && !fixtures.includes(doc.fixture)) {
     return [`fixture "${doc.fixture}" is not under fixtures/demo/`];
   }
+  if (!Array.isArray(doc.catalogPages) || doc.catalogPages.length === 0 || new Set(doc.catalogPages).size !== doc.catalogPages.length
+    || doc.catalogPages.some(page => typeof page !== 'string' || !PAGE_IDS.has(page))) {
+    return [`catalogPages must list the pages of tests/a11y/pages.mjs this fixture stands for, each once, the pages screenreader/coverage.mjs lists it under, got ${JSON.stringify(doc.catalogPages)}`];
+  }
 
   return [];
+}
+
+/**
+ * The problems of a scenario on a catalog page that the runner cannot set up. The runner opens the page's
+ * fixture, query and root container at rest, never its `state` (a menu or an editor the axe scan opens
+ * first) or its `device`, so:
+ *
+ * - a page with a `device` is refused: the screen reader lanes run desktop browsers;
+ * - a page whose state is not `none` needs the scenario's `state` to name it: the scenario's own steps
+ *   reach that state (they open the editor or the menu with the keys a user presses), and a scenario that
+ *   never reaches it would close the page's gap in `screenreader/coverage.mjs` without reading the surface;
+ * - a page at rest takes no `state`;
+ * - the scenario's query never sets a key the page's query sets: the fixtures read the first value of a
+ *   repeated key, so the page's would win and the scenario would run on the page's grid while it says
+ *   otherwise (`theme` and `bundle` excepted: the runner puts the scenario's first).
+ *
+ * @param {{page?: unknown, state?: unknown, query?: unknown, fixture?: unknown}} scenario The scenario, or a
+ * resolved variant.
+ * @returns {string[]} The problems.
+ */
+function catalogPageProblems(scenario) {
+  const entry = typeof scenario.page === 'string' ? A11Y_PAGES.find(page => page.id === scenario.page) : undefined;
+
+  if (!entry) {
+    return scenario.state === undefined ? [] : ['state names the catalog state of the scenario\'s page: a scenario on a fixture has none'];
+  }
+
+  const problems = [];
+  const pageState = entry.state ?? 'none';
+
+  if (entry.device !== undefined) {
+    problems.push(`page "${entry.id}" emulates a device (${entry.device}), and the screen reader lanes run desktop browsers`);
+  }
+  if (pageState === 'none' && scenario.state !== undefined) {
+    problems.push(`state: page "${entry.id}" is at rest in the catalog, so a scenario on it names no state`);
+  } else if (pageState !== 'none' && scenario.state !== pageState) {
+    problems.push(`page "${entry.id}" is in the "${pageState}" state in the catalog, which the runner does not set up: the scenario's steps reach it, and the scenario says so with "state": "${pageState}"`);
+  }
+  if (typeof scenario.query === 'string' && typeof entry.query === 'string') {
+    const pageKeys = new Set(new URLSearchParams(entry.query).keys());
+
+    [...new Set(new URLSearchParams(scenario.query).keys())]
+      .filter(key => key !== 'theme' && key !== 'bundle' && pageKeys.has(key))
+      .forEach(key => problems.push(`query sets "${key}", which page "${entry.id}" sets already (${entry.query}): the fixture reads the page's first value, so the scenario's would never apply`));
+  }
+
+  return problems;
 }
 
 /**
@@ -381,7 +459,7 @@ function validateStep(step, where) {
   }
 
   const problems = [];
-  const known = new Set(['id', 'action', 'expect', 'after', 'note', 'unsupported']);
+  const known = new Set(['id', 'action', 'expect', 'severity', 'after', 'note', 'unsupported']);
 
   Object.keys(step).filter(key => !known.has(key)).forEach(key => problems.push(`${where}: unknown field "${key}"`));
 
@@ -410,6 +488,9 @@ function validateStep(step, where) {
           + '(punctuation or screen reader chatter alone), so it can never match');
       });
     });
+  }
+  if (step.severity !== undefined) {
+    validateSeverity(step.severity, Array.isArray(step.expect) ? step.expect : [], where).forEach(problem => problems.push(problem));
   }
   if (step.after !== undefined) {
     if (!isPlainObject(step.after) || Object.keys(step.after).length !== 1
@@ -442,6 +523,47 @@ function validateStep(step, where) {
     SCREENREADER_LANES.filter(lane => !laneDrives(lane, step.action) && unsupportedReason(step, lane) === null)
       .forEach(lane => problems.push(`${where}: step "${step.id}": the ${lane} lane cannot drive ${JSON.stringify(step.action)} `
         + `(LANE_PRIMITIVES), so the step declares unsupported.${lane} with the reason`));
+  }
+
+  return problems;
+}
+
+/**
+ * Validates a step's `severity`: an object that gives some of its token groups a severity other than the
+ * default (serious), each group named by its first synonym. A name that is not the first synonym of exactly one
+ * group names nothing, so renaming a group cannot leave its severity behind on another.
+ *
+ * @param {unknown} severity The declaration.
+ * @param {unknown[]} groups The step's token groups.
+ * @param {string} where The step's place, for the message.
+ * @returns {string[]} The problems.
+ */
+function validateSeverity(severity, groups, where) {
+  if (!isPlainObject(severity)) {
+    return [`${where}: severity must be an object of { "<first synonym of a group>": "<severity>" }`];
+  }
+
+  const names = Object.keys(severity);
+
+  if (names.length === 0) {
+    return [`${where}: severity must name at least one token group`];
+  }
+
+  const firsts = groups.filter(group => Array.isArray(group) && typeof group[0] === 'string').map(group => group[0]);
+  const problems = [];
+
+  for (const name of names) {
+    const value = severity[name];
+    const groupsNamed = firsts.filter(first => first === name).length;
+
+    if (!TOKEN_SEVERITIES.includes(value)) {
+      problems.push(`${where}: severity of ${JSON.stringify(name)} must be one of ${TOKEN_SEVERITIES.join(', ')}, got ${JSON.stringify(value)}`);
+    }
+    if (groupsNamed === 0) {
+      problems.push(`${where}: severity names ${JSON.stringify(name)}, which is not the first synonym of a token group of the step (${firsts.join(', ')})`);
+    } else if (groupsNamed > 1) {
+      problems.push(`${where}: severity names ${JSON.stringify(name)}, the first synonym of more than one token group, so it names none of them`);
+    }
   }
 
   return problems;
@@ -514,11 +636,16 @@ function traversalProblems(traversal, steps) {
 
   Object.keys(traversal).filter(key => !['from', 'to', 'items'].includes(key)).forEach(key => problems.push(`traversal: unknown field "${key}"`));
   ['from', 'to'].forEach((key) => {
-    if (!ids.includes(traversal[key])) {
+    const step = steps.find(item => item?.id === traversal[key]);
+
+    if (!step) {
       problems.push(`traversal.${key} must be a step id, got ${JSON.stringify(traversal[key])}`);
+    } else if (isPlainObject(step.unsupported) && Object.keys(step.unsupported).length > 0) {
+      // A lane skips an unsupported step, so the window would lose its bound there and widen to the run.
+      problems.push(`traversal.${key} names step "${step.id}", which ${Object.keys(step.unsupported).join(' and ')} does not drive: a bound of the window is a step every lane runs`);
     }
   });
-  if (ids.indexOf(traversal.from) > ids.indexOf(traversal.to)) {
+  if (ids.includes(traversal.from) && ids.includes(traversal.to) && ids.indexOf(traversal.from) > ids.indexOf(traversal.to)) {
     problems.push('traversal.from comes after traversal.to');
   }
   const synonyms = Array.isArray(traversal.items) ? traversal.items.map(item => (Array.isArray(item) ? item : [item])) : [];
@@ -546,18 +673,27 @@ function traversalProblems(traversal, steps) {
  * @returns {{fileName: string, scenario: object|null, problems: string[]}[]} The same entries, resolved.
  */
 export function resolveVariants(loaded) {
-  const byId = new Map(loaded.filter(entry => entry.scenario && entry.problems.length === 0).map(entry => [entry.scenario.id, entry.scenario]));
+  // Every loaded scenario, valid or not, so a variant of a base that fails validation is told so, not
+  // that its base is missing.
+  const byId = new Map(loaded.filter(entry => isPlainObject(entry.scenario) && typeof entry.scenario.id === 'string')
+    .map(entry => [entry.scenario.id, entry]));
 
   return loaded.map((entry) => {
     if (!entry.scenario || entry.scenario.variantOf === undefined || entry.problems.length > 0) {
       return entry;
     }
 
-    const base = byId.get(entry.scenario.variantOf);
+    const baseEntry = byId.get(entry.scenario.variantOf);
 
-    if (!base) {
+    if (!baseEntry) {
       return { ...entry, problems: [`variantOf "${entry.scenario.variantOf}" is not a committed scenario`] };
     }
+    if (baseEntry.problems.length > 0) {
+      return { ...entry, problems: [`variantOf "${entry.scenario.variantOf}" names a scenario that does not validate (${baseEntry.fileName}): fix it first`] };
+    }
+
+    const base = baseEntry.scenario;
+
     if (base.variantOf !== undefined) {
       return { ...entry, problems: [`variantOf "${base.id}" is a variant itself: a variant varies a scenario with steps`] };
     }
@@ -571,7 +707,11 @@ export function resolveVariants(loaded) {
       group: group ?? base.group,
     };
 
-    return { ...entry, scenario: Object.fromEntries(Object.entries(resolved).filter(([, value]) => value !== undefined)) };
+    const scenario = Object.fromEntries(Object.entries(resolved).filter(([, value]) => value !== undefined));
+    // The variant's query meets its base's page only here.
+    const problems = catalogPageProblems(scenario);
+
+    return { ...entry, scenario, problems };
   });
 }
 

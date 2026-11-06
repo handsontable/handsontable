@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "id": "reading-mode-traversal-plain",
-  "surface": "Reading mode through the same grid without frozen panes, the control for the frozen traversal: every cell read once, in row-major order.",
+  "surface": "Reading mode through the same grid without frozen panes, the control for the frozen traversal: every body cell read once, in row-major order.",
   "group": "reading",
   "page": "grid",
   "start": "page",
@@ -26,7 +26,7 @@
       "id": "read-1",
       "action": {"read": "next"},
       "expect": [],
-      "note": "Each read moves one item on: NVDA reads one line of its browse-mode buffer (a cell with its row, column and the headers that changed), VoiceOver one cell of the row it is in, wrapping to the next row and on out of the table. The reads are sized for both readers to reach the control after the grid, the overlay clones included. On the grid page the headers are named, so a header letter never stands beside a row number and reads as a cell reference NVDA spells A 1."
+      "note": "Each read moves one item on: NVDA reads one line of its browse-mode buffer (a cell with its row, column and the headers that changed), VoiceOver one cell of the row it is in, wrapping to the next row and on out of the table. The reads are sized for both readers to reach the control after the grid, the overlay clones included. On the grid page the headers are named, so a header letter never stands beside a row number and reads as a cell reference NVDA spells A 1. Finding (known, the overlay clones): after the body every reader reads the header row and the row headers a second time, from the overlay clones, and NVDA and VoiceOver with Chromium count the clones' rows in the table's size (`9 rows` for a grid of 4). The traversal's items are the body cells, so it does not count those copies: this control proves the body is read once and in order, not that the whole grid is."
     },
     {
       "id": "read-2",

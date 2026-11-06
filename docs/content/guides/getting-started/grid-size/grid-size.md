@@ -476,6 +476,8 @@ If you don't define any dimensions, Handsontable generates as many rows and colu
 
 If your grid's contents don't fit in the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) (e.g., [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
 
+A grid without a fixed height listens to page scroll events and runs code on every scroll step. On a page with many grids, give each grid a fixed height. See [Many grids on one page](@/guides/optimization/many-grids/many-grids.md).
+
 ## Stretch columns to fit the grid width
 
 Setting the grid's width doesn't change the width of your columns. When the columns are narrower than the grid, the space on the right stays empty. To redistribute the column widths so they fill the grid's width, use the [`stretchH`](@/api/options.md#stretchh) option: `'all'` stretches all columns proportionally, and `'last'` stretches only the last column.

@@ -316,6 +316,10 @@ The Pagination plugin is particularly useful when:
 
 For more information, see our [Pagination guide](@/guides/rows/rows-pagination/rows-pagination.md).
 
+## Many grids on one page
+
+Every grid on a page adds its own setup cost and its own page listeners. If your page shows many grids, such as a dashboard, see [Many grids on one page](@/guides/optimization/many-grids/many-grids.md).
+
 ## Related articles
 
 ### Related guides
@@ -324,6 +328,7 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 - [Understanding rendering](@/guides/optimization/rendering/rendering.md)
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
+- [Many grids on one page](@/guides/optimization/many-grids/many-grids.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
 - [Pagination](@/guides/rows/rows-pagination/rows-pagination.md)

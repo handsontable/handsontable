@@ -23,6 +23,7 @@ vue:
   metaTitle: MUI theme | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Themes
+menuTag: updated
 ---
 
 This tutorial shows you how to integrate Handsontable DataGrid into a React app that uses MUI, registering a custom theme that maps MUI palette values to Handsontable colors and tokens.
@@ -77,7 +78,7 @@ registerAllModules();
 
 ## Step 3: Create MUI color mapping for Theme API
 
-Handsontable's Theme API expects a specific `colors` shape. Create a mapping helper that reads from your MUI theme.
+Handsontable's Theme API expects a specific `colors` shape. Create a mapping helper that reads from your MUI theme. Keep `white` and `black` static: in dark mode, Horizon uses `white` for light text, such as the cell editor text, so it can't follow MUI's dark `background.paper`.
 
 **File: `src/theme/handsontableMuiColors.ts`**
 
@@ -107,8 +108,8 @@ export function createHandsontableMuiColors(theme: Theme) {
       500: theme.palette.primary.dark,
       600: theme.palette.primary.dark,
     },
-    white: theme.palette.background.paper,
-    black: theme.palette.text.primary,
+    white: theme.palette.common.white,
+    black: theme.palette.common.black,
     transparent: 'transparent',
   };
 }
@@ -118,21 +119,32 @@ export function createHandsontableMuiColors(theme: Theme) {
 
 Register a custom Handsontable theme that uses your mapped colors and Horizon tokens.
 
+`registerTheme()` registers a name only once. If the name is already registered, it logs a warning and returns the existing theme, with the old colors. This function runs again whenever the MUI theme changes (and twice in React Strict Mode), so it re-creates an existing theme with `reinitTheme()` instead. `colorScheme` follows MUI's `palette.mode`, so Horizon uses its light or dark token set to match.
+
 **File: `src/theme/muiDataGridTheme.ts`**
 
 ```ts
 import type { Theme } from '@mui/material/styles';
-import { registerTheme } from 'handsontable/themes';
+import { hasTheme, registerTheme, reinitTheme } from 'handsontable/themes';
 import iconsHorizon from 'handsontable/themes/static/variables/icons/horizon';
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 import { createHandsontableMuiColors } from './handsontableMuiColors';
 
+const THEME_NAME = 'mui-data-grid';
+
 export function createMuiDataGridTheme(theme: Theme) {
-  return registerTheme('mui-data-grid', {
+  const themeConfig = {
+    colorScheme: theme.palette.mode,
     icons: iconsHorizon,
     colors: createHandsontableMuiColors(theme),
     tokens: tokensHorizon,
-  }).params({
+  };
+
+  const hotTheme = hasTheme(THEME_NAME)
+    ? reinitTheme(THEME_NAME, themeConfig)!
+    : registerTheme(THEME_NAME, themeConfig);
+
+  return hotTheme.params({
     tokens: {
       // Match MUI's default rounded corners.
       borderRadius: '4px',
@@ -143,7 +155,7 @@ export function createMuiDataGridTheme(theme: Theme) {
 
 ## Step 5: Build a themed grid component
 
-Use `useTheme()` to read MUI palette values, then register and apply your custom Handsontable theme.
+Use `useTheme()` to read MUI palette values, then create and apply your custom Handsontable theme. `useMemo` re-creates the Handsontable theme only when the MUI theme changes.
 
 **File: `src/components/MuiHotTable.tsx`**
 
@@ -212,7 +224,7 @@ export default function App() {
 
 ## Optional enhancements
 
-- Add a dark mode toggle in MUI, then re-create your Handsontable theme when MUI mode changes.
+- Add a dark mode toggle in MUI. When the mode changes, `useTheme()` returns a new theme, and `createMuiDataGridTheme()` re-creates the Handsontable theme in the matching color scheme.
 - Add custom `icons` in `registerTheme()` to align sort/menu/filter icons with Material Symbols.
 - Override more Theme API tokens (for example spacing and border styles) to match your component library standards.
 
@@ -228,7 +240,7 @@ export default function App() {
 
 ## What you learned
 
-You registered a custom Handsontable theme that maps MUI palette values to Handsontable colors. You used `useTheme()` to read MUI palette values at runtime, `useMemo` to avoid unnecessary theme re-registrations, and `registerTheme` with Horizon tokens and a `borderRadius` override.
+You registered a custom Handsontable theme that maps MUI palette values to Handsontable colors. You used `useTheme()` to read MUI palette values at runtime, `useMemo` to re-create the theme only when the MUI theme changes, `registerTheme()` and `reinitTheme()` to register the theme once and update it afterward, and Horizon tokens with a `borderRadius` override.
 
 ## Next steps
 

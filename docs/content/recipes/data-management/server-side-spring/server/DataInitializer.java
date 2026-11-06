@@ -8,10 +8,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Seeds the H2 database with 55 product rows on application startup.
+ * Seeds the PostgreSQL database with 55 product rows on application startup.
  *
- * The guard `if (repository.count() == 0)` prevents duplicate inserts if
- * the bean is somehow called more than once during testing.
+ * The guard `if (repository.count() == 0)` prevents duplicate inserts on
+ * later restarts, because the PostgreSQL data persists between runs.
  */
 @Configuration
 public class DataInitializer {

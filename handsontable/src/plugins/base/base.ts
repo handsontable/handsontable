@@ -968,7 +968,7 @@ export class BasePlugin {
    * @param {object} newSettings New set of settings passed to the updateSettings method.
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
-    if (!this.isEnabled) {
+    if (!this.hot || !this.isEnabled) {
       return;
     }
 
