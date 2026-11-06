@@ -4,7 +4,7 @@ import { awaitBundle, type Bundle } from '../bundle';
 export type FormulasOrderWorkbook =
   'sortedReport' | 'summary' | 'sortedSummary' | 'ownRefFirst' | 'ownRefSecond' | 'relativeDesc' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
   | 'quotedNames' | 'movedRows' | 'movedColumnRefs' | 'ownRefColumns' | 'ownRefRows' | 'ownRefSorted'
-  | 'ownEngineColumns' | 'ownEngineRows';
+  | 'ownEngineColumns' | 'ownEngineRows' | 'clashingNames';
 
 /**
  * Page object for the sheets-bar-formulas-order fixture (fixtures/demo/sheets-bar-formulas-order.html):
@@ -52,6 +52,13 @@ export class SheetsBarFormulasOrderPage {
   switchTo(...names: string[]): Promise<boolean[]> {
     return this.page.evaluate(sheetNames => sheetNames
       .map(name => window.hot.getPlugin('sheetsBar').setActiveSheet(name)), names);
+  }
+
+  /**
+   * The names of the shared engine's sheets, in the engine's order.
+   */
+  engineSheetNames(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).engine.getSheetNames());
   }
 
   renameSheet(name: string, newName: string): Promise<boolean> {

@@ -758,6 +758,94 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
     });
 
+    test('a press on another tab\'s label during a rename that widens the tab commits the name and switches', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await fixture.renameSheets(['S0', 'S1', 'S2']);
+      await fixture.label(0).dblclick();
+      await fixture.renameInput.fill('Budget');
+      await fixture.label(2).click();
+
+      await expect(fixture.tab(2)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await fixture.sheetStates()).toEqual(['Budget', 'S1', 'S2*']);
+    });
+
+    test('a press on another tab\'s label during a rename that narrows the tab commits the name and switches', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await fixture.renameSheets(['Quarterly budget', 'S1', 'S2']);
+      await fixture.label(0).dblclick();
+      await fixture.renameInput.fill('Q');
+      await fixture.label(2).click();
+
+      await expect(fixture.tab(2)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await fixture.sheetStates()).toEqual(['Q', 'S1', 'S2*']);
+    });
+
+    test('a press on another tab\'s label during a rename to a taken name keeps the names and switches', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await fixture.renameSheets(['Budget-long-name', 'S1', 'S2']);
+      await fixture.label(0).dblclick();
+      await fixture.renameInput.fill('S1');
+      await fixture.label(2).click();
+
+      await expect(fixture.tab(2)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await fixture.sheetStates()).toEqual(['Budget-long-name', 'S1', 'S2*']);
+    });
+
+    [
+      { title: 'a taken one-character name', names: ['A', 'B', 'C'], draft: 'C', states: ['A', 'B*', 'C'] },
+      { title: 'a new one-character name', names: ['A', 'B', 'C'], draft: 'Z', states: ['Z', 'B*', 'C'] },
+      { title: 'a blank name', names: ['A', 'B', 'C'], draft: '', states: ['A', 'B*', 'C'] },
+      { title: 'a one-character name from a long one', names: ['Quarterly budget', 'B', 'C'], draft: 'x',
+        states: ['x', 'B*', 'C'] },
+    ].forEach(({ title, names, draft, states }) => {
+      test(`a press near the end of the next tab during a rename to ${title} switches to it`, async({
+        page, theme, bundle,
+      }) => {
+        const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+        await fixture.goto();
+        await fixture.renameSheets(names);
+        await fixture.label(0).dblclick();
+        await fixture.renameInput.fill(draft);
+        await fixture.clickNearTabEnd(1);
+
+        await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
+        expect(await fixture.sheetStates()).toEqual(states);
+      });
+    });
+
+    test('a tab click whose afterSheetTabStateRestore listener destroys the grid throws nothing', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+      const errors: string[] = [];
+
+      page.on('pageerror', error => errors.push(error.message));
+      await fixture.goto();
+      await fixture.tab(1).click();
+      await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
+      await fixture.tab(0).click();
+      await expect(fixture.tab(0)).toHaveClass(/ht-sheets-bar__tab--active/);
+      await fixture.destroyGridOnStateRestore();
+      await fixture.tab(1).click();
+
+      await expect.poll(() => fixture.isDestroyed()).toBe(true);
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      expect(errors).toEqual([]);
+    });
+
     test('a repaint the rename did not cause keeps the name being typed', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
 

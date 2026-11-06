@@ -662,6 +662,7 @@ export default function Core(
    * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
    */
   let slotsResizeObserver: ResizeObserver | null = null;
+  let reserveSlotsChangedAtInit: (() => boolean) | null = null;
   /**
    * Stops watching the document's web font loads (see `refreshAfterFontsLoad()`), or `null` before
    * `init` started watching.
@@ -2990,6 +2991,20 @@ export default function Core(
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
       let lastSlotsHeight = measureSlotsHeight();
+      const reserveChangedSlots = () => {
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return false;
+        }
+
+        lastSlotsHeight = slotsHeight;
+        reapplyPixelRootHeight(instance, tableMeta.height);
+
+        return true;
+      };
+
+      reserveSlotsChangedAtInit = reserveChangedSlots;
 
       // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
       // bar that mounts late or changes height would keep a stale reservation until an unrelated
@@ -3002,17 +3017,9 @@ export default function Core(
           return;
         }
 
-        const slotsHeight = measureSlotsHeight();
-
-        if (slotsHeight === lastSlotsHeight) {
-          return;
+        if (reserveChangedSlots()) {
+          instance.render();
         }
-
-        lastSlotsHeight = slotsHeight;
-
-        reapplyPixelRootHeight(instance, tableMeta.height);
-
-        instance.render();
       });
       slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
@@ -3045,7 +3052,22 @@ export default function Core(
 
     instance.runHooks('init');
 
+    // An `init` listener can fill a slot: the license notification writes the missing-features bar there,
+    // once every plugin's ready step has reported what the key leaves out. The slot observer would reserve
+    // its height a frame later, so the first render would size the grid as if the bar took no room. Reserve
+    // it now, and once more after the first render, which sets the slot's width to the table's and can wrap
+    // the bar onto more lines. Both run before `afterInit`, so its listeners read the final viewport.
+    const reserveSlots = reserveSlotsChangedAtInit;
+
+    reserveSlotsChangedAtInit = null;
+    reserveSlots?.();
+
     instance.render();
+
+    // A listener of the first render can destroy the grid, which sets `instance` to `null`.
+    if (reserveSlots !== null && instance && !instance.isDestroyed && reserveSlots()) {
+      instance.render();
+    }
 
     if (stopWatchingFontLoads === null) {
       stopWatchingFontLoads = watchFontLoads(instance.rootDocument, refreshAfterFontsLoad);
@@ -6063,6 +6085,11 @@ export default function Core(
             const metaPhase = applySettings(
               filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
             );
+
+            if (!instance || instance.isDestroyed) {
+              return;
+            }
+
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -6102,7 +6129,7 @@ export default function Core(
         }
       }));
     } finally {
-      if (suspendsRender) {
+      if (suspendsRender && instance && !instance.isDestroyed) {
         instance.resumeRender();
       }
     }
@@ -6375,8 +6402,9 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @returns {boolean} `true` when the payload changed the grid-level `type` to another one.
    */
-  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): void {
+  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): boolean {
     let i;
 
     // eslint-disable-next-line no-restricted-syntax
@@ -6399,6 +6427,14 @@ export default function Core(
         applyUpdatedSetting(settings, i);
       }
     }
+
+    // The loop above writes the options one by one, and `type` is only a name there. Expand it once all of
+    // them are in, so an `editor`, `renderer` or `validator` of the same payload wins over the type.
+    if (init) {
+      return false;
+    }
+
+    return metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
   }
 
   /**
@@ -6871,13 +6907,17 @@ export default function Core(
    * @param {Array|null} restoredCellOptionMetas `cell`-option meta, by physical indexes, to put back instead of
    * applying `settings.cell` (see `_applySettingsAndData()`).
    * @param {object|null} keptCellMetas The user-set meta and invalid marks to put back (see `_applySettingsAndData()`).
+   * @param {boolean} gridTypeChanged Whether the call changed the grid-level `type` to another one. The cells already
+   * drawn keep what the previous type's renderer wrote onto their meta (the numeric alignment class, the checkbox
+   * templates), so they are reset the way a `columns` change resets them.
    */
   function applyMetaPhase(
     settings: SettingsUpdate,
     columnPhase: { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean },
     isCellOptionRestated: boolean,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null,
-    keptCellMetas: KeptCellMetas | null
+    keptCellMetas: KeptCellMetas | null,
+    gridTypeChanged: boolean
   ): void {
     const { earlyColumnsSetting, resetsColumnMetaBeforeLoad } = columnPhase;
     const clen = instance.countCols();
@@ -6885,7 +6925,8 @@ export default function Core(
     // Clear the meta caches, unless the early column pass (`applyColumnMetaBeforeLoad()`) already did it for this
     // call.
     if (earlyColumnsSetting === null && !resetsColumnMetaBeforeLoad &&
-        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined ||
+          gridTypeChanged)) {
       resetMetaCaches(isCellOptionRestated);
     }
 
@@ -7090,7 +7131,8 @@ export default function Core(
       previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataSource,
     } = readSettingsBaseline(settings, init);
 
-    mergeSettingsIntoMeta(settings, init);
+    const gridTypeChanged = mergeSettingsIntoMeta(settings, init);
+
     applyThemeSettings(settings, init);
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
@@ -7118,7 +7160,7 @@ export default function Core(
     }
 
     const metaPhase = () => applyMetaPhase(
-      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas
+      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas, gridTypeChanged
     );
 
     if (!defersDataWork) {
@@ -7135,6 +7177,10 @@ export default function Core(
 
     if (!init) {
       notifySettingsUpdated(notifiedSettings);
+
+      if (!instance || instance.isDestroyed) {
+        return null;
+      }
     }
 
     if (!defersDataWork) {

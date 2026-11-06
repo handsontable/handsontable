@@ -481,4 +481,18 @@ describe('Core#_applySettingsAndData', () => {
     expect(hot._isDataWorkDeferred()).toBe(false);
     expect(hot.isRenderSuspended()).toBe(false);
   });
+
+  it('stops after the settings when an afterUpdateSettings listener destroys the grid', () => {
+    const afterLoadData = jest.fn();
+    const grid = createGrid({ data: [['old']], dataProbe: true, afterLoadData });
+
+    afterLoadData.mockClear();
+    grid.addHook('afterUpdateSettings', () => grid.destroy());
+    hot = null;
+
+    expect(() => grid._applySettingsAndData({ colHeaders: true }, [['new']], 'test')).not.toThrow();
+    expect(grid.isDestroyed).toBe(true);
+    expect(afterLoadData).not.toHaveBeenCalled();
+    expect(probeLog.filter(([step]) => step === 'ready')).toEqual([]);
+  });
 });
