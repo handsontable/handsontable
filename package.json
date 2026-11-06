@@ -53,7 +53,6 @@
     "@stryker-mutator/core": "^9.2.0",
     "@stryker-mutator/jest-runner": "^9.2.0",
     "babel-plugin-forbidden-imports": "^0.1.2",
-    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
     "chalk": "^4.1.2",
     "core-js": "^3.37.0",

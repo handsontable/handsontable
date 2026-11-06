@@ -19,6 +19,8 @@ module.exports = {
     // Jest only: frees each file's garbage so a worker exits within jest-worker's grace. The flag
     // it needs comes from the test:unit.jest task; see the file's own comment.
     '<rootDir>/test/jestCollectGarbage.js',
+    // Jest only: swallows the console output the specs provoke on purpose, through one allowlist.
+    '<rootDir>/test/jestExpectedConsole.js',
     // Jest only, for the same reason as above.
     '<rootDir>/test/jsdomComputedStyleSpeed.js'
   ],
@@ -27,11 +29,6 @@ module.exports = {
     '<rootDir>/node_modules/'
   ],
   testRunner: 'jest-jasmine2',
-  // babel-jest, with a cache key that follows the env variables Babel inlines into the source.
-  // See the transformer's own comment.
-  transform: {
-    '\\.[jt]sx?$': '<rootDir>/test/babelJestTransformer.js',
-  },
   // hyperformula-ui ships ES modules only; babel-jest must transform it like our own source.
   transformIgnorePatterns: ['/node_modules/(?!(\\.pnpm/)?hyperformula-ui[@/])'],
   moduleNameMapper: {

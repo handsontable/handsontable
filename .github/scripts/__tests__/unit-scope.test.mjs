@@ -51,9 +51,6 @@ const KNOWN_JEST_KEYS = [
   'setupFilesAfterEnv', 'testEnvironment', 'testPathIgnorePatterns', 'testRegex', 'testRunner',
   // Chooses which node_modules packages Babel transforms; it loads nothing by itself.
   'transformIgnorePatterns',
-  // Maps a file pattern to a transformer module, named as a `<rootDir>/` path, so `rootDirPaths()`
-  // starts the walk there like at any other file the config names.
-  'transform',
 ];
 
 // What introduces a module path the walk follows: `import ... from`, `export ... from`, a bare or
