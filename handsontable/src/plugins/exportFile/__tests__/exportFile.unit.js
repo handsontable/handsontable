@@ -13,6 +13,8 @@ import {
 import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
+import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { _resetDeprecationWarnings } from '../../../helpers/console';
 
 function fakeCtx(exportFileSettings) {
   return { hot: { getSettings: () => ({ exportFile: exportFileSettings }) } };
@@ -204,6 +206,70 @@ describe('BaseType#_mergeOptions', () => {
     const merged = BaseType.prototype._mergeOptions.call({ constructor: BaseType }, {});
 
     expect(merged.colHeaders).toBe(false);
+  });
+});
+
+describe('ExportFile removed `columnHeaders` option', () => {
+  const REMOVED_MESSAGE = 'The `columnHeaders` export option was removed in Handsontable 19.0.0 and is ignored. '
+    + 'Use `colHeaders` instead.';
+  let container;
+  let hot;
+  let warnSpy;
+
+  beforeAll(() => {
+    registerPlugin(ExportFile);
+  });
+
+  beforeEach(() => {
+    // The warning prints once per page, so each case starts with a clean record.
+    _resetDeprecationWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    hot = new Handsontable(container, {
+      data: [['a', 1], ['b', 2]],
+      colHeaders: ['X', 'Y'],
+      exportFile: true,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+  });
+
+  afterEach(() => {
+    hot.destroy();
+    container.remove();
+    warnSpy.mockRestore();
+  });
+
+  const removedWarnings = () => warnSpy.mock.calls.filter(([message]) => message === REMOVED_MESSAGE);
+
+  it('should ignore `columnHeaders` and warn once that it was removed', () => {
+    const plugin = hot.getPlugin('exportFile');
+
+    expect(plugin.exportAsString('csv', { columnHeaders: true })).toBe('\uFEFFa,1\r\nb,2');
+    expect(removedWarnings()).toHaveLength(1);
+
+    plugin.exportAsString('csv', { columnHeaders: true });
+
+    expect(removedWarnings()).toHaveLength(1);
+  });
+
+  it('should not warn for `colHeaders`', () => {
+    expect(hot.getPlugin('exportFile').exportAsString('csv', { colHeaders: true })).toBe('\uFEFF"X","Y"\r\na,1\r\nb,2');
+    expect(removedWarnings()).toHaveLength(0);
+  });
+
+  it('should warn for `columnHeaders` on a `sheets` entry of an XLSX export', async() => {
+    const writeSpy = jest.spyOn(nativeAdapter, 'write').mockResolvedValue(new Uint8Array());
+
+    try {
+      await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        sheets: [{ instance: hot, name: 'Sheet', columnHeaders: true }],
+      });
+    } finally {
+      writeSpy.mockRestore();
+    }
+
+    expect(removedWarnings()).toHaveLength(1);
   });
 });
 

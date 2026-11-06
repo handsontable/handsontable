@@ -1,6 +1,7 @@
 import { extend, clone } from '../../../helpers/object';
 import { substitute } from '../../../helpers/string';
 import { throwWithCause } from '../../../helpers/errors';
+import { warnRemovedColumnHeadersOption } from '../utils';
 import type ExportDataProvider from '../dataProvider';
 
 /**
@@ -96,6 +97,7 @@ class BaseType {
 
     _options = extend(clone(BaseType.DEFAULT_OPTIONS) as Record<string, unknown>, _options) as Record<string, unknown>;
 
+    warnRemovedColumnHeadersOption(options);
     _options = extend(_options, options) as Record<string, unknown>;
 
     _options.filename = substitute(_options.filename as string, {

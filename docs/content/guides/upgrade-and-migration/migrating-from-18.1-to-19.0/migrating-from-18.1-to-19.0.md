@@ -3192,9 +3192,11 @@ For the minimum versions of both releases, see [Supported browsers](@/guides/tec
 
 ## 57. Removed deprecated APIs
 
-Handsontable 19.0 removes the APIs that 17.1 and 18.0 deprecated. Each printed a one-time console
-warning in 18.x. Calling a removed method now throws `TypeError: ... is not a function`, and
-importing a removed type alias is a TypeScript error.
+Handsontable 19.0 removes the APIs that 17.1 and 18.0 deprecated. The methods and the
+`columnHeaders` option printed a one-time console warning in 18.x. The type aliases only showed as
+deprecated in your editor. Calling a removed method now throws `TypeError: ... is not a function`.
+Passing `columnHeaders` is ignored, with a one-time console warning that names `colHeaders`.
+Importing a removed type alias is a TypeScript error.
 
 | Removed | Deprecated in | Replacement |
 | ------- | ------------- | ----------- |
@@ -3220,17 +3222,44 @@ You are affected if your code does any of the following:
 ### How to migrate
 
 Remove the calls to the resize-state methods. They did nothing since the `PersistentState` plugin
-was removed in 17.0. To persist column widths or row heights, read them in the
+was removed in 17.0. To persist column widths or row heights, collect them in the
 [`afterColumnResize`](@/api/hooks.md#aftercolumnresize) or [`afterRowResize`](@/api/hooks.md#afterrowresize)
 hook, and restore them by passing an array to [`manualColumnResize`](@/api/options.md#manualcolumnresize)
-or [`manualRowResize`](@/api/options.md#manualrowresize). See
-[Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods).
+or [`manualRowResize`](@/api/options.md#manualrowresize). The hooks receive the new size of the
+resized column or row, so read the whole array from the grid:
 
-Replace `Handsontable.helper.sanitize()` with a sanitizer of your own. The helper returned its input
-unchanged since 18.0, so removing the call changes nothing in the output. To sanitize the HTML the
+```js
+// Save
+const hot = new Handsontable(container, {
+  manualColumnResize: true,
+  manualRowResize: true,
+  afterColumnResize() {
+    const widths = Array.from({ length: hot.countCols() }, (_, col) => hot.getColWidth(col));
+
+    localStorage.setItem('colWidths', JSON.stringify(widths));
+  },
+  afterRowResize() {
+    const heights = Array.from({ length: hot.countRows() }, (_, row) => hot.getRowHeight(row));
+
+    localStorage.setItem('rowHeights', JSON.stringify(heights));
+  },
+});
+
+// Restore
+const hot = new Handsontable(container, {
+  manualColumnResize: JSON.parse(localStorage.getItem('colWidths')) ?? true,
+  manualRowResize: JSON.parse(localStorage.getItem('rowHeights')) ?? true,
+});
+```
+
+See [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods).
+
+Remove the call to `Handsontable.helper.sanitize()` and use its argument directly. The helper
+returned its input unchanged since 18.0, so the output does not change. To sanitize the HTML the
 grid renders, set the [`sanitizer`](@/api/options.md#sanitizer) option.
 
-Rename the `columnHeaders` export option to `colHeaders`. The value keeps its meaning:
+Rename the `columnHeaders` export option to `colHeaders`. The value keeps its meaning. An export
+that still passes `columnHeaders` writes no header row and warns once in the console:
 
 ```js
 // Before

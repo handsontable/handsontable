@@ -1,5 +1,25 @@
 import { buildTemplate, SVG_NS } from '../../helpers/dom/template';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
+import { removedWarnOnce } from '../../helpers/console';
+
+/**
+ * Warns once per page when caller-supplied export options still carry `columnHeaders`, the name
+ * `colHeaders` replaced in 17.1 and 19.0 removed. The key is copied into the merged options like
+ * any other and nothing reads it, so without this the header row goes missing silently; the
+ * `REMOVED_OPTIONS` check in core cannot cover it, because that one scans grid settings only.
+ *
+ * Call it at every site that merges caller-supplied options: the per-export merge in
+ * `BaseType#_mergeOptions()` and the per-sheet merge of an XLSX `sheets` entry.
+ *
+ * @param {object} options Caller-supplied export options.
+ */
+export function warnRemovedColumnHeadersOption(options: Record<string, unknown>): void {
+  if ('columnHeaders' in options) {
+    removedWarnOnce('ExportFile.columnHeaders',
+      'The `columnHeaders` export option was removed in Handsontable 19.0.0 and is ignored. ' +
+      'Use `colHeaders` instead.');
+  }
+}
 
 /**
  * One entry of a nested-header layer as `ExportDataProvider#getNestedColumnHeaders()` returns it.

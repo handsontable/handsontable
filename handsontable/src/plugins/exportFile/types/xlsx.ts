@@ -6,6 +6,7 @@ import type { SourceLabel } from '../../../utils/cellSource';
 import ExportDataProvider from '../dataProvider';
 import type { ArrayFormulaSize, EngineCellFacts } from '../dataProvider';
 import BaseType from './_base';
+import { warnRemovedColumnHeadersOption } from '../utils';
 import { matchCheckboxTemplate } from '../../../utils/checkboxColumn';
 import {
   buildSummaryFormula,
@@ -877,6 +878,10 @@ class Xlsx extends BaseType {
         // `protection` is a workbook-wide option: only the top-level value, checked by
         // `assertProtectionOption()` above, applies, so a per-sheet one is dropped before the merge.
         const { protection: _ignoredProtection, ...perSheetConfig } = sheetConfig;
+
+        // A sheet entry bypasses `_mergeOptions()`, so the removed-option check runs here too.
+        warnRemovedColumnHeadersOption(perSheetConfig);
+
         const sheetOptions = { ...this.options, ...perSheetConfig };
 
         dp.setOptions(sheetOptions);
