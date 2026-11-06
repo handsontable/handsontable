@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "collapsible-headers",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T11:01:57.357Z"
+  },
+  "steps": {
+    "arrow-up-to-lower-header": "",
+    "arrow-up-to-group": "b expanded",
+    "enter-collapse": "b collapsed column 2 row 6",
+    "arrow-right-after-collapse": "f",
+    "arrow-left-back": "b collapsed",
+    "enter-expand": "",
+    "arrow-down-to-lower": "b menu pop up"
+  }
+}
