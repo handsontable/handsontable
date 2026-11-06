@@ -4,6 +4,7 @@
   "group": "status",
   "surface": "Cells whose values arrive later: the pending state, a value that resolves on the cell the user is on, and a request that fails there.",
   "page": "async-values",
+  "state": "async-pending",
   "start": "page",
   "criteria": ["1.3.1", "4.1.2", "4.1.3"],
   "setup": [{"call": ["startRequest", 0, 1]}, {"call": ["startRequest", 1, 1]}, {"selectCell": [0, 0]}],
