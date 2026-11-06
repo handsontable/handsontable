@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T11:38:30.104Z",
+  "generatedAt": "2026-11-06T12:06:36.301Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1897,74 +1897,6 @@
       "needsTicket": false
     },
     {
-      "key": "playwright|e2e/limit-fixed-to-viewport.spec.ts|limitFixedToViewport › a frozen area bigger than the grid › frozen top rows leave a strip, and the last row is reachable",
-      "tier": "playwright",
-      "file": "e2e/limit-fixed-to-viewport.spec.ts",
-      "line": 46,
-      "title": "limitFixedToViewport › a frozen area bigger than the grid › frozen top rows leave a strip, and the last row is reachable",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon",
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T11:49:14Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
-        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
-        "leg": "e2e-horizon",
-        "status": "failed",
-        "error": "Error: expect(received).toBeLessThan(expected)",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/limit-fixed-to-viewport.spec.ts|limitFixedToViewport › frozen rows taller than the default height › are counted at the height they are drawn at, not the default one",
-      "tier": "playwright",
-      "file": "e2e/limit-fixed-to-viewport.spec.ts",
-      "line": 226,
-      "title": "limitFixedToViewport › frozen rows taller than the default height › are counted at the height they are drawn at, not the default one",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-classic",
-        "e2e-classic-min"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T11:49:14Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
-        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
-        "leg": "e2e-classic",
-        "status": "failed",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
       "key": "jasmine|handsontable/src/__tests__/core/update.spec.js|Core_updateSettings should update cache of index mappers only once when updating `data` and `column` properties",
       "tier": "jasmine",
       "file": "handsontable/src/__tests__/core/update.spec.js",
@@ -2509,19 +2441,87 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/limit-fixed-to-viewport.spec.ts|limitFixedToViewport › a frozen area bigger than the grid › frozen top rows leave a strip, and the last row is reachable",
+      "tier": "playwright",
+      "file": "e2e/limit-fixed-to-viewport.spec.ts",
+      "line": 46,
+      "title": "limitFixedToViewport › a frozen area bigger than the grid › frozen top rows leave a strip, and the last row is reachable",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 2,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:49:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(received).toBeLessThan(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/limit-fixed-to-viewport.spec.ts|limitFixedToViewport › frozen rows taller than the default height › are counted at the height they are drawn at, not the default one",
+      "tier": "playwright",
+      "file": "e2e/limit-fixed-to-viewport.spec.ts",
+      "line": 226,
+      "title": "limitFixedToViewport › frozen rows taller than the default height › are counted at the height they are drawn at, not the default one",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 2,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:49:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
       "tier": "playwright",
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 28,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-classic",
         "e2e-classic-min",
