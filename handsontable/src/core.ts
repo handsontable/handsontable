@@ -3028,20 +3028,12 @@ export default function Core(
     // while the grid was built run their ready steps before the `init` hook and the first render. Rendering
     // is held while they run, so a step that renders (a sort, a cell write) cannot draw the grid before a
     // later step builds its state; the counter is put back without a render, because the first one follows.
-    const renderState = instance as HotInstance & CoreInternals;
-    const suspendedBefore = renderState.renderSuspendedCounter;
-
-    renderState.renderSuspendedCounter = suspendedBefore + 1;
     initReadyStepsRunning = true;
 
     try {
-      runOwedReadySteps();
+      holdRenderWhile(runOwedReadySteps);
     } finally {
       initReadyStepsRunning = false;
-      // Never below the saved value: a step that resumed rendering once more than it suspended would leave
-      // the counter below zero, and the next `suspendRender()` would not hold. A suspension a step made on
-      // its own is kept for its own `resumeRender()`.
-      renderState.renderSuspendedCounter = Math.max(renderState.renderSuspendedCounter - 1, suspendedBefore);
     }
 
     // A held render also skipped the start of a full render, which makes each stored cell meta run its
@@ -5932,6 +5924,13 @@ export default function Core(
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
+   * When `settings` includes [`data`](@/api/options.md#data), loading the data does not paint the grid on its own.
+   * Rendering is held while the data loads, so [`afterUpdateData`](@/api/hooks.md#afterupdatedata) and
+   * [`afterChange`](@/api/hooks.md#afterchange) run with [`isRenderSuspended()`](@/api/core.md#isrendersuspended)
+   * returning `true`. The grid paints after the settings are applied, so
+   * [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) also runs before that paint. Use
+   * [`afterRender`](@/api/hooks.md#afterrender) to read the new cells.
+   *
    * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` replaces `dataProvider` with another value. A `data` value is ignored with a
    * warning and keeps the loaded rows, and so does the same `dataProvider` object passed again; to reload the rows,
@@ -7066,6 +7065,54 @@ export default function Core(
   }
 
   /**
+   * Runs a callback with rendering held and puts the hold back without a render. A step that renders
+   * (a sort, a cell write, a data load) only marks the next render as full, so a caller whose own render
+   * follows draws once. The counter is restored directly, never through `resumeRender()`, which would paint
+   * once more.
+   *
+   * @private
+   * @param {Function} callback The work to run while rendering is held.
+   */
+  function holdRenderWhile(callback: () => void): void {
+    const renderState = instance as HotInstance & CoreInternals;
+    const suspendedBefore = renderState.renderSuspendedCounter;
+
+    renderState.renderSuspendedCounter = suspendedBefore + 1;
+
+    try {
+      callback();
+    } finally {
+      // Never below the saved value: a listener that resumed rendering once more than it suspended would leave
+      // the counter below zero, and the next `suspendRender()` would not hold. A suspension a listener made on
+      // its own is kept for its own `resumeRender()`.
+      renderState.renderSuspendedCounter = Math.max(renderState.renderSuspendedCounter - 1, suspendedBefore);
+    }
+  }
+
+  /**
+   * Runs the data phase of a settings call without painting. The data load renders on its own, and
+   * `fitGridToSettings()` renders after the meta phase, so a call that carries `data` would paint the grid
+   * twice. The grid being built renders at the end of its init pass, so it is left alone.
+   *
+   * @private
+   * @param {Function} dataPhase The data phase.
+   */
+  function runDataPhaseWithoutRender(dataPhase: () => void): void {
+    if (firstRun) {
+      dataPhase();
+
+      return;
+    }
+
+    holdRenderWhile(dataPhase);
+
+    // The held render also skipped the start of a full render, which makes each stored cell meta run its
+    // dynamic extension again. Without it a `cells()` function or an `afterGetCellMeta` listener that reads
+    // values keeps its result for the old data until the call's own render.
+    metaManager.invalidateMetaExtensions();
+  }
+
+  /**
    * Fits the number of rows and columns to the minimum sizes the settings now require and renders.
    *
    * @private
@@ -7152,7 +7199,9 @@ export default function Core(
     const columnPhase = applyColumnMetaBeforeLoad(settings, isCellOptionRestated, defersDataWork);
 
     if (!defersDataWork) {
-      applyDataPhase(settings, init, previousColumnLayout, previousDataSource, dataUpdateFunction);
+      runDataPhaseWithoutRender(
+        () => applyDataPhase(settings, init, previousColumnLayout, previousDataSource, dataUpdateFunction)
+      );
     }
 
     if (!firstRun && settings.language) {
