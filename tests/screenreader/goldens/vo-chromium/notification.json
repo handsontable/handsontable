@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "notification",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:57:18.503Z"
+  },
+  "steps": {
+    "toast-appears": "bottom end notification visual test action action close",
+    "f6-into-toast": "bottom end and 4 more items alert action button",
+    "tab-second-action": "action button",
+    "tab-close": "close button",
+    "escape-to-grid": "company name company 0 column 1 row company 0 country 0 name 0 0 tree grid 5 columns 31 rows",
+    "arrow-down-after-escape": "company name company 1 column 1 row company 1 country 1 name 1 1",
+    "f6-again": "bottom end and 4 more items alert action button",
+    "tab-second-action-again": "action button",
+    "tab-close-again": "close button",
+    "enter-close": "bottom end and 4 more items alert action button"
+  }
+}

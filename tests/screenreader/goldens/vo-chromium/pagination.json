@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "pagination",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:58:35.067Z"
+  },
+  "steps": {
+    "tab-page-size": "10 page size menu pop up collapsed button",
+    "tab-next-page": "go to next page button pagination navigation",
+    "enter-next-page": "page 2 of 10",
+    "tab-last-page": "go to last page button",
+    "enter-last-page": "go to previous page button page 10 of 10",
+    "enter-previous-page": "page 9 of 10",
+    "shift-tab-first-page": "go to first page button",
+    "enter-first-page": "go to next page button page 1 of 10",
+    "shift-tab-page-size": "10 page size menu pop up collapsed button",
+    "shift-tab-grid": "country united kingdom column 9 row tagcat classic vest 10 11 20 checked 172 01 2331942 united kingdom tree grid 10 columns 23 rows"
+  }
+}

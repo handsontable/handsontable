@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "id": "async-values",
+  "group": "status",
+  "surface": "Cells whose values arrive later: the pending state, a value that resolves on the cell the user is on, and a request that fails there.",
+  "page": "async-values",
+  "state": "async-pending",
+  "start": "page",
+  "criteria": ["1.3.1", "4.1.2", "4.1.3"],
+  "setup": [{"call": ["startRequest", 0, 1]}, {"call": ["startRequest", 1, 1]}, {"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "arrow-right-pending",
+      "action": {"press": "ArrowRight"},
+      "expect": [["old a"], ["loading"]],
+      "note": "Two requests are out for the Name column, rows 1 and 2. The cell keeps its old value, `Old A`, and carries the visually hidden text `Loading...`, because no common reader says `aria-busy` on a cell. VoiceOver said nothing on this first key in some runs, with WebKit and with Chromium, as on the first key of other scenarios."
+    },
+    {
+      "id": "value-resolves",
+      "action": {"call": ["resolveRequest", 0, "New A"]},
+      "expect": [["new a"]],
+      "note": "The server answers the request for the cell the user is on with `New A`. The plugin announces no resolved value. Finding: NVDA and VoiceOver with Chromium say nothing, so a reader is not told that the value it read as loading has arrived; with Firefox and WebKit they read the cell again."
+    },
+    {
+      "id": "arrow-down-pending",
+      "action": {"press": "ArrowDown"},
+      "expect": [["old b"], ["loading"]],
+      "note": "The next row's cell is still pending. Finding: VoiceOver with WebKit runs the visually hidden text into the value (`Old BLoading...`), so neither reads on its own."
+    },
+    {
+      "id": "request-fails",
+      "action": {"call": ["rejectRequest", 1, "Price service unavailable"]},
+      "expect": [["price service unavailable"]],
+      "note": "The request for the cell the user is on fails, and the plugin announces its message (polite)."
+    },
+    {
+      "id": "arrow-up-resolved",
+      "action": {"press": "ArrowUp"},
+      "expect": [["new a"]],
+      "note": "The first cell holds the value that arrived."
+    },
+    {
+      "id": "arrow-down-failed",
+      "action": {"press": "ArrowDown"},
+      "expect": [["old b"], ["price service unavailable"]],
+      "note": "The failed cell keeps its old value and carries the error message as visually hidden text, read with the cell. Finding: VoiceOver with WebKit runs the message into the value (`Old BPrice service unavailable`), as with the pending text."
+    }
+  ]
+}
