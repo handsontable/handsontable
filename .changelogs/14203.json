@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed updateSettings() to render the grid once when the new settings include data, which removes a duplicate paint from every React HotTable update.",
+  "type": "changed",
+  "issueOrPR": 14203,
+  "breaking": false,
+  "framework": "none"
+}
