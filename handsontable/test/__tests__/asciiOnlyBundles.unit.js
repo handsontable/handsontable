@@ -19,11 +19,15 @@ describe('ASCII-only bundles', () => {
   it('should pass every check of the minimizer option and the output plugin', async() => {
     expect(() => {
       try {
+        // Jest's own timeout cannot interrupt a synchronous call, so the child gets one of its own.
         execFileSync(process.execPath, ['--test', CHECK], {
-          cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+          cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 80000,
         });
       } catch (error) {
-        throw new Error(`asciiOnlyBundlesCheck.mjs failed:\n${error.stdout}\n${error.stderr}`);
+        // A spawn failure or a timeout carries no TAP output, only a message.
+        const output = [error.stdout, error.stderr].filter(Boolean).join('\n') || error.message;
+
+        throw new Error(`asciiOnlyBundlesCheck.mjs failed:\n${output}`);
       }
     }).not.toThrow();
   }, 90000);

@@ -26,10 +26,9 @@ const EXPECTED_MESSAGES = [
   /^The (?:built-in|ExcelJS) xlsx engine dropped features it cannot write or read: /,
   /^The xlsx export skipped features your license does not unlock: /,
   // `importScoping` imports `values.xlsx` without `colHeaders: 'firstRow'`, so the header row lands
-  // in the inferred date and time columns; `sourceDataValidator.unit.js` passes `invalid` as its
-  // own validator message.
+  // in the inferred date and time columns; `sourceDataValidator.unit.js` names its own message.
   /^Source data warning \(\d+ cells?\)\. /,
-  /^invalid$/,
+  /^sourceDataValidator spec: the value was rejected$/,
   // Partial theme configs, built on purpose in the theme engine specs.
   /^\[ThemeBuilder\] Missing (?:icon|token)\(s\) in /,
   /^Theme "[^"]+" is already registered\. Registration skipped\.$/,
@@ -42,8 +41,8 @@ const EXPECTED_MESSAGES = [
   // Plugin settings validation, fed values of the wrong type on purpose.
   /^\w+ Plugin: (?:"[^"]+" )?(?:option|function \(\) result\s*) ?is not valid and (?:it )?will be ignored\.$/,
   /^The `\w+` plugin cannot be used with the `\w+` option\. This combination is not supported\./,
-  // `headerStateRebuild.unit.js` enables CollapsibleColumns before any `nestedHeaders` arrives;
-  // `nestedHeadersWarning.unit.js` asserts the warning.
+  // Specs that enable CollapsibleColumns on a grid with no `nestedHeaders` anywhere, on purpose;
+  // `nestedHeadersWarning.unit.js` asserts the warning through a spy of its own.
   /^You need to configure the Nested Headers plugin in order to use collapsible headers\.$/,
   // DataProvider specs reject a save; the hook payload is what they assert.
   /^Row update failed:/,
@@ -52,8 +51,9 @@ const EXPECTED_MESSAGES = [
   /^The sheet "[^"]+" passes the HyperFormula class with a sheetName\./,
   // The license specs build keys that are invalid or that lack a token.
   /^The license key for Handsontable is invalid\./,
-  // `docsExamples.unit.js` runs the getting-started demo, which logs the version itself.
-  /^Handsontable: v/,
+  // `docsExamples.unit.js` runs the getting-started demo, which logs
+  // `Handsontable: v${version} (${buildDate})` itself.
+  /^Handsontable: v\d+\.\d+\.\d+\S* \(/,
   // Inputs the specs describe: 2000 rendered rows, an unsupported view state, a string
   // `dateFormat`, nine malformed date formats, a 32-character sheet name, a non-ISO datetime.
   /^Performance tip: Handsontable rendered more than 1000 visible rows\./,
@@ -63,7 +63,6 @@ const EXPECTED_MESSAGES = [
   /^Worksheet name \S+ exceeds 31 chars\./,
   /^IntlDatetimeEditor: value must be in ISO date-time format/,
   // Deprecations under test print once per page; the specs that pin them spy on their own.
-  /^Deprecated: /,
   /^Writing past the last column of an object data source /,
 ];
 
@@ -88,3 +87,5 @@ function isExpected(args) {
     }
   };
 });
+
+module.exports = { EXPECTED_MESSAGES, isExpected };

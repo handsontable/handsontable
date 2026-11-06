@@ -26,9 +26,11 @@ describe('garbage collection between unit test files', () => {
     expect(jestConfig.setupFilesAfterEnv).toContain('<rootDir>/test/jestCollectGarbage.js');
   });
 
-  it('should not depend on gc being exposed to a bare jest call', () => {
-    // The setup file guards on `typeof globalThis.gc`, so this suite runs under a plain `jest`
-    // too. When the flag is there, the hook can be called; when it is not, nothing throws.
-    expect(['function', 'undefined']).toContain(typeof globalThis.gc);
+  it('should see gc in the worker exactly when NODE_OPTIONS carries --expose-gc', () => {
+    // Under the unit task the flag is there and the hook collects; under a bare `jest` the setup
+    // file's `typeof globalThis.gc` guard keeps the suite running without it.
+    const exposed = /(?:^|\s)--expose-gc(?:\s|$)/.test(process.env.NODE_OPTIONS ?? '');
+
+    expect(typeof globalThis.gc).toBe(exposed ? 'function' : 'undefined');
   });
 });
