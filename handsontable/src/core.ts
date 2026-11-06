@@ -63,7 +63,7 @@ import {
 } from './core/minimumSizes';
 import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
-import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
+import { isColumnLayoutAppend, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -6321,15 +6321,26 @@ export default function Core(
 
   /**
    * Checks whether a settings update changed the columns the grid resolves, comparing them with the layout read
-   * before the update. A grid with a `columns` option has its columns decided by that option, not by the schema.
+   * before the update.
    *
    * @private
    * @param {ColumnLayout|null} previousLayout The layout read before the update, `null` when the update could not
    * change it.
+   * @param {boolean} [tolerateAppend] `true` when columns added after the existing ones leave the layout as it was.
+   * The `columns` option names every column, so a new array that only adds some keeps the old ones in place.
    * @returns {boolean}
    */
-  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null): boolean {
-    return previousLayout !== null && !tableMeta.columns && !isSameColumnLayout(previousLayout, readColumnLayout());
+  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null, tolerateAppend = false): boolean {
+    if (previousLayout === null) {
+      return false;
+    }
+
+    const layout = readColumnLayout();
+    const isUnchanged = tolerateAppend ?
+      isColumnLayoutAppend(previousLayout, layout) :
+      isSameColumnLayout(previousLayout, layout);
+
+    return !isUnchanged;
   }
 
   /**
@@ -6847,8 +6858,10 @@ export default function Core(
     } else if (settings.data !== undefined) {
       dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
 
-      // `updateData()` keeps the index state, which would now apply to the properties of a new schema.
-      if (hasColumnLayoutChanged(previousColumnLayout)) {
+      // `updateData()` keeps the index state, which would now apply to the properties of a new schema or to the
+      // columns of a new `columns` option. A wrapper sends `data` with every call, so `columns` reaches this branch
+      // beside it. Columns added after the existing ones keep their place, and with them the state.
+      if (hasColumnLayoutChanged(previousColumnLayout, settings.columns !== undefined)) {
         instance.initIndexMappers();
       }
 
@@ -6957,6 +6970,20 @@ export default function Core(
   }
 
   /**
+   * Checks whether a payload sends `columns` beside `data`, as a wrapper does with every change of its columns.
+   * The function form is left out: counting its columns calls the user's function once per source column, and a
+   * wrapper that writes it inline would pay that twice on every render.
+   *
+   * @private
+   * @param {object} settings A settings object (see {@link Options}).
+   * @returns {boolean}
+   */
+  function isColumnsPayloadWithData(settings: SettingsUpdate): boolean {
+    return settings.data !== undefined && settings.columns !== undefined &&
+      !isFunction(settings.columns) && !isFunction(tableMeta.columns);
+  }
+
+  /**
    * Reads the state an `updateSettings()` call must compare against, before the payload merges into the table meta.
    *
    * @private
@@ -6974,12 +7001,15 @@ export default function Core(
         minCols: tableMeta.minCols,
         minSpareCols: tableMeta.minSpareCols,
       },
-      // A call that carries `dataSchema` may change the columns the grid resolves, and the data phase can only tell
-      // by comparing them with the ones the grid has now. Without `columns`, the schema decides both the number of
-      // columns and the property each one reads. The key counts even when its value is `undefined`, which falls back
-      // to the schema read off the data.
-      previousColumnLayout: !firstRun && !tableMeta.columns &&
-        hasOwnProperty(settings, 'dataSchema') ? readColumnLayout() : null,
+      // A call that carries `dataSchema`, or `columns` beside `data`, may change the columns the grid resolves, and
+      // the data phase can only tell by comparing them with the ones the grid has now. Without `columns`, the schema
+      // decides both the number of columns and the property each one reads. The key counts even when its value is
+      // `undefined`, which falls back to the schema read off the data. A call with `columns` and no `data` starts
+      // the index state over on its own branch, so it needs no baseline.
+      previousColumnLayout: !firstRun && (
+        (!tableMeta.columns && hasOwnProperty(settings, 'dataSchema')) ||
+        isColumnsPayloadWithData(settings)
+      ) ? readColumnLayout() : null,
       // The stored `height` and `width` before this call. An unreadable value is ignored by
       // `applyRootSize()`, and the stored setting must stay on the size the grid uses. On init the
       // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.
