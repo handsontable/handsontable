@@ -1,4 +1,4 @@
-import { test, expect, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { LicenseCapabilitiesPage } from '../fixtures/pages/LicenseCapabilitiesPage';
 
 const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
@@ -12,7 +12,7 @@ const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include t
  * features it lists and what they require. A plugin it leaves out stays off, and one console error
  * and the license bar say so. A key without the flag unlocks every feature, as before.
  */
-test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () => {
+test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let license: LicenseCapabilitiesPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -31,6 +31,32 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
     await expect(license.missingFeatures).toHaveText(FILTERS_BAR_MESSAGE);
     await expect(license.bar).toHaveCount(1);
   });
+
+  test('names every missing feature in one console error and one bar line, the header checkbox included',
+    async() => {
+      // CheckboxHeader checks its columns in its ready step, after the plugins the key keeps off are known.
+      await license.goto({ key: 'flagged-minimal', plugins: 'header-checkbox' });
+
+      await expect(license.grid.locator('.htCheckboxHeaderInput')).toHaveCount(0);
+      await expect(license.missingFeatures).toHaveCount(1);
+      await expect(license.missingFeatures).toContainText('Checkbox header');
+      await expect(license.missingFeatures).toContainText('Copy and paste');
+      // Console messages reach the test in order, so once the one naming the header checkbox is here, an earlier
+      // message without it would be here too.
+      await expect.poll(() => license.licenseErrors().some(text => text.includes('feat:checkbox_header'))).toBe(true);
+      expect(license.licenseErrors()).toHaveLength(1);
+      expect(license.licenseErrors()[0]).toContain('Copy and paste (feat:copy_paste)');
+    });
+
+  test('keeps the declared height with the missing-features bar, as soon as the constructor returns',
+    async() => {
+      await license.goto({ key: 'flagged-minimal', plugins: 'header-checkbox' });
+
+      const size = await license.sizeAtConstruction();
+
+      expect(size.barMounted).toBe(true);
+      expect(size.outerHeight).toBe(200);
+    });
 
   test('shows no Filters items in a column menu the key does list', async() => {
     await license.goto({ key: 'flagged-column-menu', plugins: 'column-menu' });

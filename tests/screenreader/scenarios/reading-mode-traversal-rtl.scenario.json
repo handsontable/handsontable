@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "id": "reading-mode-traversal-rtl",
-  "surface": "Reading mode through a right-to-left grid under a two-row nested header: every cell read once, in the logical row-major order.",
+  "surface": "Reading mode through a right-to-left grid under a two-row nested header: every body cell read once, in the logical row-major order.",
   "group": "reading",
   "page": "rtl-grid",
   "start": "page",
@@ -26,7 +26,7 @@
       "id": "read-1",
       "action": {"read": "next"},
       "expect": [],
-      "note": "Each read moves one item on: NVDA reads one line of its browse-mode buffer (a cell with its row, column and the headers that changed), VoiceOver one cell of the row it is in, wrapping to the next row and on out of the table. The reads are sized for both readers to reach the control after the grid, the overlay clones included. On the grid page the headers are named, so a header letter never stands beside a row number and reads as a cell reference NVDA spells A 1."
+      "note": "Each read moves one item on: NVDA reads one line of its browse-mode buffer (a cell with its row, column and the headers that changed), VoiceOver one cell of the row it is in, wrapping to the next row and on out of the table. The reads are sized for both readers to reach the control after the grid, the overlay clones included. On the rtl-grid page the column headers read `L 0` to `L 4` under the nested `info` and `details`, and none is a letter of the cell references, so a header never reads as one of the items. Finding (known, the overlay clones): after the body every reader reads the two header rows and the row headers a second time, from the overlay clones, and NVDA and VoiceOver with Chromium count the clones' rows in the table's size (`12 rows` for a grid of 5). The traversal's items are the body cells, so it does not count those copies: it proves the body is read once and in the logical order, not that the whole grid is."
     },
     {
       "id": "read-2",

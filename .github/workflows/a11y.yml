@@ -5,10 +5,13 @@ name: A11y
 # the policy is tests/AGENTS.md, "A11y: the axe scan and its baseline"). The `axe` job is
 # one job on purpose: the run has about fifty jobs already, and the scan takes a minute,
 # so it does not fan out by theme. It runs in warn mode: a finding that needs action (new,
-# grown, improved or fixed) is a ::warning annotation, a row in the job summary, and a
-# `neutral` result on the `A11y / axe report` check run, and the job stays green. The
-# only reds are tooling failures: a fixture that does not load, an invalid baseline, a
-# run that completed no scan. The flip to blocking is one constant, `A11Y_MODE` in
+# grown, improved or fixed) is a ::warning annotation and a row in the job summary, and the
+# job stays green. The `A11y / axe report` check run carries the verdict, by the severity rule
+# (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a critical or serious finding,
+# neutral with a warning on a moderate or minor one, green on none. On a pull request or a push
+# only a new or grown finding counts, a tracked one as a warning at most; on the nightly (a
+# schedule or a dispatch) every open finding counts. The job's only reds are tooling failures:
+# a fixture that does not load, an invalid baseline, a run that completed no scan. The flip to blocking is one constant, `A11Y_MODE` in
 # tests/lib/a11y-baseline.mjs, after a replay over recent pull requests shows the
 # comparator is precise.
 #
@@ -16,8 +19,8 @@ name: A11y
 # self-contained file uploaded unzipped (`archive: false`) so it opens in the browser
 # from the run page, built to locate every element (fixture, steps, selector, DOM path,
 # screenshot). The `A11y / axe report` check run on the pull request's head commit: its
-# icon is the visible gate (neutral = something needs action in warn mode), and its
-# annotations sit on the line to change. A sticky pull request comment on every pull
+# icon is the visible verdict, and its annotations sit on the line to change. Only `CI Gate`
+# is required, so a red check run never blocks a merge by itself. A sticky pull request comment on every pull
 # request the scan ran on, edited in place by later runs: the headline, what needs
 # action, what the pull request added to the baseline (compared with the base commit's)
 # and the report link. And `a11y-findings.json` for an
@@ -32,10 +35,11 @@ name: A11y
 # The checks beyond axe (the `checks` job): one Playwright project per check of
 # tests/playwright.a11y-checks.config.ts (the keyboard walker first), each writing an evidence
 # document the Accessibility Conformance Report generator cites per criterion
-# (tests/test-results/a11y-checks/<check>.json, the `a11y-checks-evidence` artifact). Report-only on
-# every level: a finding is a row in the job summary and a `neutral` `A11y / <check> report` check
-# run, a check run is never `failure`, and the job carries `continue-on-error`, so a tooling failure
-# turns the job red, as it does the axe job, and never the Tests pipeline.
+# (tests/test-results/a11y-checks/<check>.json, the `a11y-checks-evidence` artifact). A finding never
+# fails a test or the job: it is a row in the job summary and an annotation on the
+# `A11y / <check> report` check run, whose verdict follows the same severity rule, and the job carries
+# `continue-on-error`, so a tooling failure turns the job red, as it does the axe job, and never the
+# calling pipeline.
 # The job runs only when the caller sets `checks: true`: the A11y nightly (a11y-nightly.yml) does, the
 # pull-request Tests pipeline (test.yml) does not, so a pull request runs the axe scan alone. The checks
 # are report-only and the accessibility program is still building its picture, so a pull request learned
@@ -118,9 +122,10 @@ jobs:
         env:
           REPORT_URL: ${{ steps.report.outputs.artifact-url }}
         run: printf '\n📊 [Open the HTML report](%s)\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"
-      # The visible gate on the pull request (tests/lib/a11y-check-run.mjs). A fork's or
-      # Dependabot's token cannot write checks, so the canonical guard skips it there; the job
-      # summary and the report still carry everything. It reports and never decides the job.
+      # The visible verdict on the pull request (tests/lib/a11y-check-run.mjs), by the severity rule;
+      # GITHUB_EVENT_NAME says what counts and GITHUB_RUN_ID is stamped on it for the nightly's run
+      # verdict. A fork's or Dependabot's token cannot write checks, so the canonical guard skips it
+      # there; the job summary and the report still carry everything. It reports and never decides the job.
       - name: Post the report check run
         id: check
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
@@ -209,8 +214,9 @@ jobs:
           A11Y_EVIDENCE_URL: ${{ steps.evidence.outputs.artifact-url }}
         run: node tests/scripts/a11y-evidence-report.mjs
       # One `A11y / <check> report` check run per check (tests/lib/a11y-evidence.mjs), on the pull
-      # request's head commit, never `failure`. A fork's or Dependabot's token cannot write checks, so
-      # the canonical guard skips it there; the job summary and the evidence still carry everything.
+      # request's head commit, by the severity rule; a check that left nothing readable is a red tooling
+      # check run. A fork's or Dependabot's token cannot write checks, so the canonical guard skips it
+      # there; the job summary and the evidence still carry everything.
       - name: Post the evidence check runs
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
         continue-on-error: true

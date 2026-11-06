@@ -43,7 +43,7 @@
       "platform": "macOS",
       "browsers": ["WebKit (Playwright)", "Chromium"],
       "howTested": ["automated-nightly"],
-      "scenarios": 31,
+      "scenarios": 32,
       "unsupported": []
     },
     {
@@ -64,7 +64,7 @@
       "platform": "Windows Server 2025",
       "browsers": ["Chromium", "Firefox (Playwright)"],
       "howTested": ["automated-nightly"],
-      "scenarios": 31,
+      "scenarios": 32,
       "unsupported": ["read in"]
     },
     {

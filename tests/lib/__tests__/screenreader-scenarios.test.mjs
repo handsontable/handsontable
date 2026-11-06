@@ -23,7 +23,7 @@ import {
   validateScenario,
 } from '../screenreader-scenario.mjs';
 import { stepLines } from '../screenreader-report.mjs';
-import { SCREENREADER_MODE, SCREENREADER_MODES } from '../screenreader-transcript.mjs';
+import { DEFAULT_TOKEN_SEVERITY, SCREENREADER_MODE, SCREENREADER_MODES, TOKEN_SEVERITIES } from '../screenreader-transcript.mjs';
 
 // tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): a scenario is data the Windows and macOS jobs read, and a
 // mistake in it would surface inside a 30-minute job on the next nightly. The committed files are
@@ -38,6 +38,7 @@ const valid = () => ({
   surface: 'A sample surface for the validator.',
   group: 'keyboard',
   fixture: 'screenreader-grid.html',
+  catalogPages: ['grid'],
   criteria: ['4.1.2'],
   setup: [{ selectCell: [0, 0] }],
   steps: [
@@ -101,6 +102,27 @@ test('a synonym that normalizes to nothing is refused, naming the step and the t
     assert.ok(problems.includes(`steps[0].expect[1]: step "close-editor": the synonym ${JSON.stringify(token)} normalizes to an empty string`), `${token}: ${problems}`);
   });
   assert.deepEqual(expecting([['alice'], ['34.5', 'row 2']]), [], 'a synonym with a fact in it is fine');
+});
+
+test('a step may declare the severity of a token group, named by its first synonym; a group that declares none is serious', () => {
+  const declaring = severity => validateScenario({ ...valid(), steps: [{ id: 'right', action: { press: 'ArrowRight' }, expect: [['34'], ['age', 'column 3']], severity }] },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' });
+
+  assert.deepEqual(declaring({ age: 'minor' }), [], 'a group is named by its first synonym');
+  assert.deepEqual(declaring({ 34: 'critical', age: 'moderate' }), []);
+  assert.deepEqual(TOKEN_SEVERITIES, ['critical', 'serious', 'moderate', 'minor'], 'axe\'s four: an advisory group would not be required');
+  assert.equal(DEFAULT_TOKEN_SEVERITY, 'serious');
+  assert.deepEqual(declaring({ age: 'advisory' }), ['steps[0]: severity of "age" must be one of critical, serious, moderate, minor, got "advisory"']);
+  assert.deepEqual(declaring({ 'column 3': 'minor' }), ['steps[0]: severity names "column 3", which is not the first synonym of a token group of the step (34, age)'],
+    'a synonym that is not the first names no group: renaming a group must not leave its severity behind');
+  assert.deepEqual(declaring({}), ['steps[0]: severity must name at least one token group'], 'an empty declaration is a leftover');
+  assert.deepEqual(declaring('minor'), ['steps[0]: severity must be an object of { "<first synonym of a group>": "<severity>" }']);
+  assert.deepEqual(declaring(['minor']), ['steps[0]: severity must be an object of { "<first synonym of a group>": "<severity>" }']);
+
+  const twice = validateScenario({ ...valid(), steps: [{ id: 'right', action: { press: 'ArrowRight' }, expect: [['age'], ['age', 'column 3']], severity: { age: 'minor' } }] },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' });
+
+  assert.deepEqual(twice, ['steps[0]: severity names "age", the first synonym of more than one token group, so it names none of them']);
 });
 
 test('a step id starts with a letter: JSON.parse would move an integer-like key ahead of the others in the golden', () => {
@@ -193,8 +215,14 @@ test('a scenario opens exactly one place, names its criteria, and says where the
 
   assert.match(problems({ page: 'grid' }), /exactly one of page/);
   assert.match(problems({ fixture: undefined }), /exactly one of page/);
-  assert.equal(problems({ fixture: undefined, page: 'grid' }), '');
-  assert.match(problems({ fixture: undefined, page: 'no-such-page' }), /page "no-such-page" is not a page of tests\/a11y\/pages\.mjs/);
+  assert.match(problems({ fixture: undefined, page: 'grid' }), /catalogPages is for a scenario on a fixture/);
+  assert.equal(problems({ fixture: undefined, catalogPages: undefined, page: 'grid' }), '');
+  assert.match(problems({ fixture: undefined, catalogPages: undefined, page: 'no-such-page' }), /page "no-such-page" is not a page of tests\/a11y\/pages\.mjs/);
+  assert.match(problems({ catalogPages: undefined }), /catalogPages must list the pages of tests\/a11y\/pages\.mjs this fixture stands for/,
+    'a scenario on its own fixture says which catalog pages it stands for, so the coverage map can be checked against it');
+  assert.match(problems({ catalogPages: ['grid', 'grid'] }), /each once/);
+  assert.match(problems({ catalogPages: ['no-such-page'] }), /catalogPages must list/);
+  assert.equal(problems({ catalogPages: ['grid', 'text-editor'] }), '');
   assert.match(problems({ criteria: undefined }), /criteria must name/);
   assert.match(problems({ criteria: [] }), /criteria must name/);
   assert.match(problems({ criteria: ['4.1.1'] }), /"4\.1\.1" is not a WCAG 2\.2 success criterion/, 'Parsing is obsolete in 2.2');
@@ -281,6 +309,7 @@ test('a traversal names read steps and items that are each distinct', () => {
 
   assert.equal(traversal({}), '');
   assert.match(traversal({ from: 'z' }), /traversal\.from must be a step id/);
+  assert.equal(traversal({ to: 'z' }), 'traversal.to must be a step id, got "z"', 'one typo is one problem, never also an order problem');
   assert.match(traversal({ from: 'b', to: 'a' }), /from comes after traversal\.to/);
   assert.match(traversal({ items: [] }), /items must be a non-empty array/);
   assert.match(traversal({ items: ['A1', 'a1'] }), /lists an item twice/, 'items compare normalized');
@@ -289,6 +318,39 @@ test('a traversal names read steps and items that are each distinct', () => {
   assert.match(traversal({ items: [['A1', 'A 1'], ['a 1']] }), /each, and each synonym, is distinct/);
   assert.match(traversal({ items: [[]] }), /or a list of synonyms for one/);
   assert.match(traversal({ every: true }), /traversal: unknown field "every"/);
+
+  const skipped = [{ ...steps[0], unsupported: { nvda: 'NVDA has no interaction level here.' } }, steps[1]];
+  const bounded = validateScenario({ ...valid(), steps: skipped, traversal: { from: 'a', to: 'b', items: ['A1'] } },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.match(bounded, /traversal\.from names step "a", which nvda does not drive: a bound of the window is a step every lane runs/,
+    'a lane that skips a bound would widen the window to the start or end of the run');
+});
+
+test('a scenario on a catalog page names the state its steps reach, and never sets a key of the page\'s query', () => {
+  const onPage = extra => validateScenario({ ...valid(), fixture: undefined, catalogPages: undefined, page: 'grid', ...extra },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.equal(onPage({}), '', 'a page at rest needs no state');
+  assert.match(onPage({ state: 'editor' }), /page "grid" is at rest in the catalog, so a scenario on it names no state/);
+  assert.match(onPage({ page: 'text-editor' }), /page "text-editor" is in the "editor" state in the catalog, which the runner does not set up: the scenario's steps reach it, and the scenario says so with "state": "editor"/,
+    'a scenario that never opened the editor would close the page\'s coverage gap without reading it');
+  assert.equal(onPage({ page: 'text-editor', state: 'editor' }), '');
+  assert.match(onPage({ page: 'text-editor', state: 'dropdown-menu' }), /"state": "editor"/);
+  assert.match(onPage({ page: 'mobile-selection-handles', state: 'selection' }), /emulates a device \(iPhone 13\), and the screen reader lanes run desktop browsers/);
+  assert.match(validateScenario({ ...valid(), state: 'editor' }).join('\n'), /a scenario on a fixture has none/);
+
+  assert.equal(onPage({ page: 'merge-cells', query: 'theme=horizon' }), '', 'theme and bundle go first, so the scenario\'s apply');
+  assert.match(onPage({ page: 'merge-cells', query: 'scenario=thick' }),
+    /query sets "scenario", which page "merge-cells" sets already \(scenario=areas\): the fixture reads the page's first value/);
+
+  const base = { ...valid(), id: 'base', fixture: undefined, catalogPages: undefined, page: 'merge-cells' };
+  const [, variant] = resolveVariants([
+    { fileName: 'base.scenario.json', scenario: base, problems: [] },
+    { fileName: 'base-thick.scenario.json', scenario: { schema: 1, id: 'base-thick', surface: 'The base on thick rows.', variantOf: 'base', query: 'scenario=thick' }, problems: [] },
+  ]);
+
+  assert.match(variant.problems.join('\n'), /query sets "scenario", which page "merge-cells" sets already/, 'a variant\'s query meets its base\'s page');
 });
 
 test('a variant takes its base\'s steps and sets only its own id, surface, query, setup and criteria', () => {
@@ -314,6 +376,14 @@ test('a variant takes its base\'s steps and sets only its own id, surface, query
   const [, orphan] = resolveVariants([{ fileName: 'x.scenario.json', scenario: { ...base, id: 'x' }, problems: [] }, { fileName: 'v.scenario.json', scenario: { ...variant, variantOf: 'missing' }, problems: [] }]);
 
   assert.match(orphan.problems.join('\n'), /variantOf "missing" is not a committed scenario/);
+
+  const [, ofInvalid] = resolveVariants([
+    { fileName: 'base.scenario.json', scenario: base, problems: ['schema must be 1, got 2'] },
+    { fileName: 'base-horizon.scenario.json', scenario: variant, problems: [] },
+  ]);
+
+  assert.deepEqual(ofInvalid.problems, ['variantOf "base" names a scenario that does not validate (base.scenario.json): fix it first'],
+    'a base with a typo is not a missing file');
 
   const [, , chained] = resolveVariants([
     { fileName: 'base.scenario.json', scenario: base, problems: [] },

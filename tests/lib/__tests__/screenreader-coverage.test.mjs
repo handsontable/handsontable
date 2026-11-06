@@ -67,14 +67,30 @@ for (const { label, coverage, keys, source } of MAPS) {
   });
 }
 
-test('a page lists a scenario that opens that page, or one on a fixture of its own', () => {
+/**
+ * The catalog pages a scenario stands for: the page it opens, or the ones a scenario on its own fixture names.
+ *
+ * @param {{page?: string, catalogPages?: string[]}} scenario The scenario.
+ * @returns {string[]} The pages.
+ */
+const standsFor = scenario => (scenario.page === undefined ? scenario.catalogPages ?? [] : [scenario.page]);
+
+test('a page lists a scenario that opens that page, or one on a fixture of its own that names the page in its catalogPages', () => {
   for (const [page, entry] of Object.entries(SR_PAGE_COVERAGE)) {
     (entry.scenarios ?? []).filter(id => scenarios.has(id)).forEach((id) => {
       const scenario = scenarios.get(id);
 
-      assert.ok(scenario.page === undefined || scenario.page === page,
-        `${page}: "${id}" opens the catalog page "${scenario.page}", so it reads that page, not this one`);
+      assert.ok(standsFor(scenario).includes(page), scenario.page === undefined
+        ? `${page}: "${id}" runs on its fixture and stands for ${standsFor(scenario).join(', ')} (its catalogPages), not this page`
+        : `${page}: "${id}" opens the catalog page "${scenario.page}", so it reads that page, not this one`);
     });
+  }
+});
+
+test('a scenario is listed under every page it stands for', () => {
+  for (const [id, scenario] of scenarios) {
+    standsFor(scenario).forEach(page => assert.ok((SR_PAGE_COVERAGE[page]?.scenarios ?? []).includes(id),
+      `${page}: "${id}" stands for this page (${scenario.page === undefined ? 'its catalogPages' : 'its page'}), so the page lists it`));
   }
 });
 

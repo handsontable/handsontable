@@ -53,8 +53,8 @@
     {
       "id": "select-all-cells",
       "action": {"press": "ControlOrMeta+a"},
-      "expect": [],
-      "note": "Ctrl+A selects every cell (the grid's own selection, not the row selection). Nothing is required: the grid announces nothing for it and the focus stays on the cell. Finding: no reader says that every cell is selected."
+      "expect": [["selected"]],
+      "note": "Ctrl+A selects every cell (the grid's own selection, not the row selection), and the focus stays on the cell, so the selected state is required, as extend-range in grid-core requires it for a range. Finding: no reader says that every cell is selected (the committed goldens are empty)."
     },
     {
       "id": "arrow-down-after-select-all",

@@ -207,7 +207,7 @@ user-defined, so an `updateSettings` cache reset clears it and it is re-applied 
 It fires neither `beforeSetCellMeta` nor `afterSetCellMeta` and **cannot be vetoed** — matching the direct
 DOM write it replaced.
 
-`refreshCellMetas()` exists because `updateSettings({ columns })` resets cell metas to their initial state.
+`refreshCellMetas()` exists because `updateSettings({ columns })` resets cell metas to their initial state, and so does a payload with `cells` or `cell`, or a call that really changes the grid-level `type`. `#onAfterUpdateSettings` therefore names all four; pinned by `__tests__/cellMetaReset.unit.js`.
 
 ## A read-only summary cell is locked by a `beforeSetCellMeta` veto (DEV-148)
 
