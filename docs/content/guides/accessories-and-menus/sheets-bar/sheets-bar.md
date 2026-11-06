@@ -432,7 +432,9 @@ With `exportFormulas: true`, a formula that references another sheet keeps that 
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - With formulas, a sheet that is sorted or has moved rows or columns doesn't see changes you make in place to its `data` while it's hidden. Pass a new `sheets` value instead, which rebuilds the workbook.
 - Tabs created from a HyperFormula instance are read once, when the bar is enabled. Sheets you add, remove, or rename in the engine yourself after that don't change the tabs, and a different engine passed later through [`updateSettings()`](@/api/core.md#updatesettings) doesn't rebuild them.
-- If you create the grid with a HyperFormula instance and no `data`, and turn the sheets bar on later, the bar shows one extra, empty tab. Set `sheetsBar` when you create the grid to avoid it.
+- If you create the grid with a HyperFormula instance and no `data`, and turn the sheets bar on later, the bar also shows the empty sheet the grid added to the engine when you created it. Set `sheetsBar` when you create the grid to avoid it.
+- Once the bar builds its tabs from a HyperFormula instance, a later grid-level `formulas` change, such as `formulas: false`, has no effect.
+- A value you write into the engine directly, for a sheet that isn't shown, is replaced when you switch to its tab. Change cells through the grid instead.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. Read the current name from `hot.getPlugin('formulas').sheetName`.
 - With formulas, a rename that rewrites references inside a frozen `data` array (for example, from Immer) writes them into a copy, not into your array, so update your store yourself. On the active sheet, this also clears the undo history.
 - A sheet comes back with the invalid marks it had when you left it. A cell that becomes invalid while its sheet is hidden isn't marked until it's validated again, for example by an edit or [`validateCells()`](@/api/core.md#validatecells).
