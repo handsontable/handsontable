@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "nested-headers",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T11:05:25.736Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "this is a very long header title menu pop up",
+    "arrow-up-to-group": "header title expanded",
+    "arrow-right-next-group": "i j expanded",
+    "arrow-down-into-group": "i2 menu pop up",
+    "arrow-left-lowest-level": "h2 menu pop up",
+    "arrow-up-middle-level": "h",
+    "arrow-down-lowest-again": "h2 menu pop up",
+    "arrow-down-to-cell": "h2 h1"
+  }
+}

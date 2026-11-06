@@ -222,9 +222,9 @@ test('a scenario opens exactly one place, names its criteria, and says where the
 test('a scenario runs in one group, the job of the lane workflow that runs it, and a variant may move to another', () => {
   const problems = shape => validateScenario({ ...valid(), ...shape }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
 
-  assert.deepEqual([...SCENARIO_GROUPS], ['keyboard', 'reading', 'menus', 'editors', 'selection']);
-  assert.match(problems({ group: undefined }), /group must be one of keyboard, reading, menus, editors, selection/);
-  assert.match(problems({ group: 'slow' }), /group must be one of keyboard, reading, menus, editors, selection/);
+  assert.deepEqual([...SCENARIO_GROUPS], ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure']);
+  assert.match(problems({ group: undefined }), /group must be one of keyboard, reading, menus, editors, selection, structure/);
+  assert.match(problems({ group: 'slow' }), /group must be one of keyboard, reading, menus, editors, selection, structure/);
   assert.equal(problems({ group: 'reading' }), '');
 
   const variant = { schema: 1, id: 'v', surface: 'A variant of the sample.', variantOf: 'sample' };

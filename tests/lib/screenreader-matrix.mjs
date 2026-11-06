@@ -25,7 +25,8 @@ export const SCREENREADER_PROJECTS = ['nvda-chromium', 'nvda-firefox', 'vo-webki
  * matrix entry of the workflow with its own job, check run and artifacts. `keyboard`: what a keyboard
  * user does in the grid itself. `reading`: the reading-mode traversals, minutes each on VoiceOver.
  * `menus`: the menus and the filters inside them. `editors`: the cell editors and the checkbox cell.
- * `selection`: row selection and the check all header. A new group joins this list and the workflow's
- * matrix together; the workflow test keeps the two equal.
+ * `selection`: row selection and the check all header. `structure`: nested and collapsible headers,
+ * merged cells and the freeze bars. A new group joins this list, the workflow's matrix and its
+ * `exclude` together; the workflow test keeps them equal.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection'];
+export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure'];
