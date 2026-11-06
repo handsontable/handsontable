@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-05T16:16:16.851Z",
+  "generatedAt": "2026-11-06T03:59:05.388Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 431,
+    "tests": 432,
     "needsTicket": 26,
     "quarantined": 0,
-    "entries": 2246
+    "entries": 2248
   },
   "rows": [
     {
@@ -1943,6 +1943,42 @@
         "leg": "cross-browser/chromium",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 dd4a404fe935",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/layout.spec.js|Layout slots applies the filled-slot holder styling through the state class (not `:has()`)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/layout.spec.js",
+      "line": null,
+      "title": "Layout slots applies the filled-slot holder styling through the state class (not `:has()`)",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-06T03:58:20Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42157606947",
+        "branch": "develop",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected 'rgb(231, 231, 233) 0px 0px 0px 1px inset' not to be 'rgb(231, 231, 233) 0px 0px 0px 1px inset'.",
         "source": "ci"
       },
       "needsTicket": false
