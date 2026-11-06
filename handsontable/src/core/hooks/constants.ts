@@ -2431,6 +2431,40 @@ export const REGISTERED_HOOKS = [
   'modifyFiltersMultiSelectValue',
 
   /**
+   * Fired by the Filters plugin after it finds the rows that match every condition, before it trims
+   * the rows that did not match. It fires once per filter pass, never per column. It also fires when
+   * the "Filter by value" list of a column reads the rows the earlier columns' conditions leave.
+   * A listener can return a replacement list of rows to keep, for example to keep the parents of a
+   * matching nested row. The plugin keeps only the integers within the source row range, in
+   * ascending order, without duplicates.
+   *
+   * The second argument lists the matching rows whose every column that the conditions of this pass
+   * read holds an empty cell.
+   * Such a row matches only because a condition accepts empty cells, so a listener can keep the row
+   * without keeping the rows that depend on it - for example, the children of a nested parent.
+   * Several listeners run in a chain: each one gets the rows the previous one returned, and the
+   * same list of blank matches.
+   *
+   * @since 19.0.0
+   * @event Hooks#modifyFiltersMatchedRows
+   * @param {number[]} matchedRows Physical indexes of the rows that match every condition, ascending.
+   * @param {number[]} blankMatchedRows Physical indexes of the rows from `matchedRows` whose every
+   * column that the conditions of this pass read holds an empty cell, ascending. For a "Filter by
+   * value" list, those are the columns filtered before it.
+   * @returns {number[]|undefined} The physical rows to keep, or `undefined` to keep `matchedRows`.
+   * @example
+   * ```js
+   * // Hide the rows that match only through empty cells.
+   * modifyFiltersMatchedRows(matchedRows, blankMatchedRows) {
+   *   const blank = new Set(blankMatchedRows);
+   *
+   *   return matchedRows.filter(row => !blank.has(row));
+   * }
+   * ```
+   */
+  'modifyFiltersMatchedRows',
+
+  /**
    * Fired when focusing a cell or a header element. Allows replacing the element to be focused by returning a
    * different HTML element.
    *
