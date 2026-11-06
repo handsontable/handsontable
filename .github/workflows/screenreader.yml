@@ -24,7 +24,7 @@ name: Screen reader
 # runner Guidepup's own suite is green on (2 to 2.5 minutes per job there), and VoiceOver on `macos-26`.
 # The mitigations that suite uses are here too: Playwright `retries: 2` and a five-minute test timeout
 # (the config), a fresh screen reader per test with a stop in a `finally` (Guidepup's fixture), and
-# Guidepup 0.36.1+ for the NVDA quit fix. The run step's `timeout-minutes: 25` bounds a hung screen
+# Guidepup 0.36.1+ for the NVDA quit fix. The run step's `timeout-minutes: 40` bounds a hung screen
 # reader, and every step that downloads (the setup CLI, the browser, the screen reader) carries its own
 # timeout too: a step timeout is a step failure, so the `!cancelled()` summary, uploads and check run
 # still come, where a job timeout cancels them. Each job's timeout is a backstop above the sum of its
@@ -48,8 +48,8 @@ jobs:
   nvda:
     name: NVDA (${{ matrix.browser }}, ${{ matrix.group }})
     runs-on: windows-2025
-    # The backstop above the step timeouts below (5 + 5 + 5 + 25 minutes).
-    timeout-minutes: 45
+    # The backstop above the step timeouts below (5 + 5 + 5 + 40 minutes).
+    timeout-minutes: 60
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
     continue-on-error: true
     strategy:
@@ -107,12 +107,14 @@ jobs:
       - name: Install NVDA
         timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 install nvda
-      # 25 minutes: a step timeout is a step failure, so the summary, the uploads and the check run
-      # below still run, where a job timeout cancels them and leaves no evidence. Scenarios that keep
-      # timing out (3 attempts x each scenario's test budget) end here, not at the backstop.
+      # 40 minutes: every group's scenario budgets on a slow runner plus one retry of its largest
+      # (scenarioBudgetMs() of tests/lib/screenreader-scenario.mjs; the workflow test checks each group).
+      # A step timeout is a step failure, so the summary, the uploads and the check run below still run,
+      # where a job timeout cancels them and leaves no evidence. Scenarios that keep timing out (3 attempts
+      # x each scenario's test budget) end here, not at the backstop.
       - name: Run the scenarios
         id: scenarios
-        timeout-minutes: 25
+        timeout-minutes: 40
         env:
           HOT_SR_UPDATE_GOLDENS: ${{ inputs.update-goldens && '1' || '' }}
           HOT_SR_GROUP: ${{ matrix.group }}
@@ -164,9 +166,9 @@ jobs:
   voiceover:
     name: VoiceOver (${{ matrix.browser }}, ${{ matrix.group }})
     runs-on: macos-26
-    # The backstop above the step timeouts below (12 + 5 + 5 + 25 minutes). A hung step fails on its own
+    # The backstop above the step timeouts below (12 + 5 + 5 + 40 minutes). A hung step fails on its own
     # timeout first, so the evidence still uploads; this only stops a runner that hangs outside them.
-    timeout-minutes: 55
+    timeout-minutes: 70
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
     continue-on-error: true
     strategy:
@@ -246,11 +248,12 @@ jobs:
       - name: Install VoiceOver
         timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 install voiceover
-      # 25 minutes, like the NVDA job's: a step timeout is a step failure, so the summary, the uploads
-      # and the check run below still run, where a job timeout cancels them and leaves no evidence.
+      # 40 minutes, like the NVDA job's: every group's budgets plus one retry. A step timeout is a step
+      # failure, so the summary, the uploads and the check run below still run, where a job timeout
+      # cancels them and leaves no evidence.
       - name: Run the scenarios
         id: scenarios
-        timeout-minutes: 25
+        timeout-minutes: 40
         env:
           HOT_SR_UPDATE_GOLDENS: ${{ inputs.update-goldens && '1' || '' }}
           HOT_SR_GROUP: ${{ matrix.group }}

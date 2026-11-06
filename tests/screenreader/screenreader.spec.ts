@@ -12,6 +12,7 @@ import {
   laneOfProject,
   loadScenarios,
   scenarioPageId,
+  scenarioBudgetMs,
   scenarioPlace,
   scenarioUrl,
   unsupportedReason,
@@ -172,25 +173,15 @@ const OSASCRIPT_TIMEOUT_MS = 10_000;
  */
 const SETUP_STEP = 'setup';
 /**
- * A scenario's test budget grows with its steps, never below the config's five minutes: a step costs four
- * to five seconds on VoiceOver and about thirteen when it is silent, and a run on a busy macOS runner took
- * every step 1.7 to 2 times as long, so a 38-step traversal that reads in under four minutes on a quiet
- * runner ran out a fixed five-minute budget twice. The budget per step covers that slower runner, and the
- * entry covers loading the page and entering it.
- */
-const STEP_BUDGET_MS = 12_000;
-const ENTRY_BUDGET_MS = 60_000;
-
-/**
- * The test timeout of a scenario: the config's, or the scenario's own budget when it has more steps than
- * the config's covers.
+ * The test timeout of a scenario: its budget on a slow runner (`scenarioBudgetMs()` of
+ * `lib/screenreader-scenario.mjs`), never below the config's five minutes.
  *
  * @param configTimeout The config's test timeout.
  * @param scenario The scenario.
  * @returns The timeout, in milliseconds.
  */
 function scenarioTimeout(configTimeout: number, scenario: Scenario): number {
-  return Math.max(configTimeout, ENTRY_BUDGET_MS + (scenario.steps.length * STEP_BUDGET_MS));
+  return Math.max(configTimeout, scenarioBudgetMs(scenario));
 }
 /**
  * The words a screen reader speaks for a role, for the `dom-echo` reader: the raw ARIA role is one word

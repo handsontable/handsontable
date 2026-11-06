@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, jobIds, steps } from '../lib/workflow-text.mjs';
-import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
+import { SCENARIO_GROUPS, loadScenarios, scenarioBudgetMs } from '../../../tests/lib/screenreader-scenario.mjs';
 
 // tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): the screen reader lanes are report-only and run on
 // their own nightly, never in the pull-request Tests pipeline. Every link in that chain fails silently
@@ -79,8 +79,8 @@ test('the NVDA job: Windows, one browser per job, report-only, running the scree
     `${LANE}: the job's scenario group reaches the spec as HOT_SR_GROUP, which runs that group's scenarios only. ${DOC}`);
   assert.match(nvda, /^ {6}SCREENREADER_GROUP: \$\{\{ matrix\.group \}\}$/m,
     `${LANE}: the report names the check run after the group and expects that group's transcripts. ${DOC}`);
-  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 25$/m,
-    `${LANE}: the run step times out before the job does: a step timeout is a step failure, so the transcripts, the summary and the check run still come, where the job's 30-minute timeout would cancel them. ${DOC}`);
+  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 40$/m,
+    `${LANE}: the run step times out before the job does: a step timeout is a step failure, so the transcripts, the summary and the check run still come, where the job's timeout would cancel them. ${DOC}`);
 
   const goldens = step('Upload the recorded goldens');
 
@@ -155,7 +155,7 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
   assert.match(step('Run the scenarios'), /^ {10}HOT_SR_UPDATE_GOLDENS: \$\{\{ inputs\.update-goldens && '1' \|\| '' \}\}$/m,
     `${LANE}: the update-goldens input reaches the spec as HOT_SR_UPDATE_GOLDENS, '1' or empty. ${DOC}`);
   assert.match(step('Run the scenarios'), /^ {10}HOT_SR_GROUP: \$\{\{ matrix\.group \}\}$/m);
-  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 25$/m,
+  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 40$/m,
     `${LANE}: the run step times out on its own: a step timeout is a step failure, so the transcripts, the recording, the summary and the check run still come. ${DOC}`);
 
   [
@@ -213,10 +213,33 @@ test('every lane job bounds each step that downloads, under a job timeout above 
     const jobTimeout = Number(body.match(/^ {4}timeout-minutes: (\d+)$/m)?.[1]);
     const stepTimeouts = named.reduce((sum, { entry }) => sum + (minutes(entry) || 0), 0);
 
-    assert.equal(minutes(named.find(({ name }) => name === 'Run the scenarios').entry), 25,
-      `${LANE} ${id}: the run step's 25 minutes bound a hung screen reader. ${DOC}`);
+    assert.equal(minutes(named.find(({ name }) => name === 'Run the scenarios').entry), 40,
+      `${LANE} ${id}: the run step's 40 minutes bound a hung screen reader. ${DOC}`);
     assert.ok(jobTimeout > stepTimeouts,
       `${LANE} ${id}: the job's timeout (${jobTimeout}) is a backstop above its steps' own (${stepTimeouts} in all), so a step times out first and the evidence still uploads. ${DOC}`);
+  });
+});
+
+test('the run step fits every group\'s scenario budgets plus one retry of its largest, on both lanes', () => {
+  // A group's scenarios run one at a time, each within its budget on a slow runner (scenarioBudgetMs()), and
+  // the config retries a failed one. A run step shorter than the group's budgets plus one retry of its largest
+  // scenario is killed mid-run on a slow night, and the scenarios after that point never run: part of the group
+  // drops out, where one scenario out of time would have been one red test.
+  const workflow = stripYamlComments(read(LANE));
+  const scenarios = loadScenarios(path.join(ROOT, 'tests/screenreader/scenarios')).filter(entry => entry.scenario).map(entry => entry.scenario);
+
+  ['nvda', 'voiceover'].forEach((id) => {
+    const run = steps(job(workflow, id)).find(entry => /^- name: Run the scenarios$/m.test(entry)) ?? '';
+    const stepMinutes = Number(run.match(/^ {8}timeout-minutes: (\d+)$/m)?.[1]);
+
+    SCENARIO_GROUPS.forEach((group) => {
+      const budgets = scenarios.filter(scenario => scenario.group === group).map(scenarioBudgetMs);
+      const needed = (budgets.reduce((sum, budget) => sum + budget, 0) + Math.max(0, ...budgets)) / 60_000;
+
+      assert.ok(budgets.length > 0, `${group}: a group with scenarios`);
+      assert.ok(needed <= stepMinutes,
+        `${LANE} ${id}: the "${group}" group needs ${needed.toFixed(1)} minutes (its ${budgets.length} scenario budgets plus one retry of its largest), more than the run step's ${stepMinutes}. Raise the step and job timeouts, or move scenarios to another group. ${DOC}`);
+    });
   });
 });
 

@@ -80,6 +80,27 @@ export const STARTS = ['grid', 'page'];
  */
 export const SCENARIO_GROUPS = ['keyboard', 'reading'];
 /**
+ * What a scenario may take on a slow runner: a step costs four to five seconds on VoiceOver and about
+ * thirteen when it is silent, and a run on a busy macOS runner took every step 1.7 to 2 times as long, so a
+ * 38-step traversal that reads in under four minutes on a quiet runner ran out a fixed five-minute budget
+ * twice. The budget per step covers that slower runner, and the entry covers loading the page and entering
+ * it. The runner's test timeout is this budget, never below the config's five minutes
+ * (`screenreader/screenreader.spec.ts`), and the workflow's run step fits every group's budgets plus one
+ * retry of its largest scenario (`.github/scripts/__tests__/screenreader-workflow.test.mjs`).
+ */
+export const STEP_BUDGET_MS = 12_000;
+export const ENTRY_BUDGET_MS = 60_000;
+
+/**
+ * A scenario's budget on a slow runner: the entry plus a step budget per step.
+ *
+ * @param {{steps: unknown[]}} scenario The scenario.
+ * @returns {number} The budget, in milliseconds.
+ */
+export function scenarioBudgetMs(scenario) {
+  return ENTRY_BUDGET_MS + (scenario.steps.length * STEP_BUDGET_MS);
+}
+/**
  * The modifiers a `press` chord may start with, joined to the key by `+` (`Shift+F10`,
  * `Control+Alt+M`), as Playwright names them.
  */
