@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "row-selection-corner",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T08:42:26.110Z"
+  },
+  "steps": {
+    "arrow-left-row-checkbox": "",
+    "space-select-row": "select row 1 row 1 selected",
+    "arrow-up-corner": "select whole grid select all rows 1 of 5 selected",
+    "space-select-all": "5 of 5 rows selected",
+    "space-clear-all": "0 of 5 rows selected",
+    "arrow-down-row-header": "select row 1",
+    "arrow-right-cell": "a a1",
+    "select-all-cells": "",
+    "arrow-down-after-select-all": "a a2"
+  }
+}
