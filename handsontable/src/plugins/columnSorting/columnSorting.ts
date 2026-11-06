@@ -254,6 +254,14 @@ export class ColumnSorting extends BasePlugin {
    */
   #mayHaveMarkedHeaders = false;
   /**
+   * Whether the header hook clears the sort markup even while another sorting plugin is on. It is set
+   * when the plugin turns off and reset after the next view render: the plugin that turns on in the same
+   * update removes only the markup it drew itself, so this plugin clears its own once.
+   *
+   * @type {boolean}
+   */
+  #clearsUnderConflict = false;
+  /**
    * Main settings key designed for the plugin.
    *
    * @private
@@ -390,6 +398,11 @@ export class ColumnSorting extends BasePlugin {
   disablePlugin(): void {
     if (pluginConflictsState.get(this.hot) === this.pluginKey) {
       pluginConflictsState.delete(this.hot);
+    }
+
+    if (this.#mayHaveMarkedHeaders) {
+      this.#clearsUnderConflict = true;
+      this.hot.addHookOnce('afterViewRender', this.#onAfterViewRenderAfterDisable);
     }
 
     this.hot.batchExecution(() => {
@@ -1242,13 +1255,18 @@ export class ColumnSorting extends BasePlugin {
    * Callback for the `afterGetColHeader` hook while the plugin is off. Clears the sort markup a
    * header keeps from the time the plugin was on. A header is reused between renders, and a
    * `nestedHeaders` change moves the previous bottom level up, so every header level is cleared.
-   * Another sorting plugin that is on owns the same classes, so nothing is cleared then.
+   * Another sorting plugin that is on owns the same classes, so nothing is cleared then, except on the
+   * first render after this plugin turned off (`#clearsUnderConflict`).
    *
    * @param {number} column Visual column index.
    * @param {HTMLTableCellElement} TH The header element.
    */
   #onAfterGetColHeaderWhileDisabled = (column: number, TH: HTMLTableCellElement) => {
-    if (!this.#mayHaveMarkedHeaders || this.enabled || column < 0 || pluginConflictsState.has(this.hot)) {
+    if (!this.#mayHaveMarkedHeaders || this.enabled || column < 0) {
+      return;
+    }
+
+    if (pluginConflictsState.has(this.hot) && !this.#clearsUnderConflict) {
       return;
     }
 
@@ -1257,6 +1275,14 @@ export class ColumnSorting extends BasePlugin {
     if (headerSpanElement !== null) {
       this.#clearSortMarkup(headerSpanElement);
     }
+  };
+
+  /**
+   * Callback for the first `afterViewRender` hook after the plugin turns off. Ends the render in which
+   * the header hook clears the sort markup under another sorting plugin.
+   */
+  #onAfterViewRenderAfterDisable = () => {
+    this.#clearsUnderConflict = false;
   };
 
   /**

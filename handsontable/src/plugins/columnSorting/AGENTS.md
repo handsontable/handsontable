@@ -432,8 +432,15 @@ through `#clearSortMarkup()`:
 filled. With ColumnSorting turned off and MultiColumnSorting turned off later, both instances' disabled hooks
 run; ColumnSorting's runs first, strips the classes and cannot see MultiColumnSorting's indicator. A
 "nothing to clear" check on the class then made MultiColumnSorting skip its own indicator, which stayed.
-The disabled hook does skip while another sorting plugin is on (`pluginConflictsState`), because that
-plugin owns the same classes. Pinned by `tests/e2e/header-plugin-markup-all-rows.spec.ts`.
+
+**While another sorting plugin is on (`pluginConflictsState`), the disabled hook clears on one render only.**
+That plugin cannot remove what this one drew: its `#syncIcon` does not know this instance's indicators, and
+ColumnSorting's `getClassesToRemove()` has no `sort-N` badge. So `disablePlugin()` sets `#clearsUnderConflict`,
+and an `afterViewRender` hook added once resets it: one update that switches the two plugins
+(`{ multiColumnSorting: false, columnSorting: true }`, or the other way) clears the old plugin's markup on the
+render that follows. After that render the hook skips again. Clearing on every render under the other plugin
+removes its indicator each time and it draws a new element, so the `<i>` is replaced on every `render()`.
+Pinned by `tests/e2e/header-plugin-markup-all-rows.spec.ts` and `__tests__/disabledHeaderCleanup.unit.js`.
 
 ## The indicator is a real element, and it still needs the ghost-table `*` stand-in
 

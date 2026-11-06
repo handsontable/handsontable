@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
+import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
@@ -14,6 +15,7 @@ describe('ColumnSorting header cleanup while off', () => {
 
   beforeAll(() => {
     registerPlugin(ColumnSorting);
+    registerPlugin(MultiColumnSorting);
   });
 
   beforeEach(() => {
@@ -44,6 +46,33 @@ describe('ColumnSorting header cleanup while off', () => {
     hot.render();
 
     expect(updateHeaderClasses).toHaveBeenCalled();
+  });
+
+  it('clears under another sorting plugin on the first render after it turns off, and not after that', () => {
+    hot = new Handsontable(container, {
+      data: [['b', 'y'], ['a', 'x']],
+      colHeaders: true,
+      columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const plugin = hot.getPlugin('columnSorting');
+    const updateHeaderClasses = jest.spyOn(plugin, 'updateHeaderClasses');
+
+    hot.updateSettings({
+      columnSorting: false,
+      multiColumnSorting: { initialConfig: [{ column: 1, sortOrder: 'asc' }] },
+    });
+
+    expect(updateHeaderClasses).toHaveBeenCalled();
+
+    const indicator = hot.rootElement.querySelector('.ht-sort-indicator');
+
+    updateHeaderClasses.mockClear();
+    hot.render();
+
+    expect(updateHeaderClasses).not.toHaveBeenCalled();
+    expect(hot.rootElement.querySelector('.ht-sort-indicator')).toBe(indicator);
   });
 
   it('stops clearing the headers once the plugin is destroyed', () => {

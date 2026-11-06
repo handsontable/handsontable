@@ -50,6 +50,14 @@ export class HeaderPluginMarkupPage extends PluginUiTeardownPage {
   }
 
   /**
+   * The header labels that show a MultiColumnSorting order badge (`sort-1`, `sort-2`, ...), in the
+   * whole grid.
+   */
+  orderBadges(): Locator {
+    return this.grid().locator('span.colHeader[class*="sort-"]');
+  }
+
+  /**
    * The sort indicator icons inside the scope, the whole grid by default.
    */
   sortIndicators(scope: Locator = this.grid()): Locator {

@@ -114,4 +114,31 @@ test.describe('Plugin markup on every column header row', () => {
     await expect(grid.sortableLabels()).toHaveCount(0);
     await expect(grid.sortIndicators()).toHaveCount(0);
   });
+
+  test('removes the MultiColumnSorting arrows and order badges when one update switches to ColumnSorting', async() => {
+    await grid.build({
+      data: data(),
+      multiColumnSorting: { initialConfig: [{ column: 0, sortOrder: 'asc' }, { column: 2, sortOrder: 'desc' }] },
+    });
+    await expect(grid.sortIndicators(grid.shownHeaders())).toHaveCount(2);
+    await expect(grid.orderBadges()).not.toHaveCount(0);
+
+    await grid.updateSettings({ multiColumnSorting: false, columnSorting: true });
+
+    await expect(grid.sortableLabels(grid.shownHeaders())).toHaveCount(4);
+    await expect(grid.sortedLabels()).toHaveCount(0);
+    await expect(grid.sortIndicators()).toHaveCount(0);
+    await expect(grid.orderBadges()).toHaveCount(0);
+  });
+
+  test('removes the ColumnSorting arrow when one update switches to MultiColumnSorting', async() => {
+    await grid.build({ data: data(), columnSorting: { initialConfig: { column: 1, sortOrder: 'asc' } } });
+    await expect(grid.sortIndicators(grid.shownHeaders())).toHaveCount(1);
+
+    await grid.updateSettings({ columnSorting: false, multiColumnSorting: true });
+
+    await expect(grid.sortableLabels(grid.shownHeaders())).toHaveCount(4);
+    await expect(grid.sortedLabels()).toHaveCount(0);
+    await expect(grid.sortIndicators()).toHaveCount(0);
+  });
 });
