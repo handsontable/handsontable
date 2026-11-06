@@ -3,10 +3,10 @@
   "scenario": "virtualization-reading",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-04T11:04:05.532Z"
+    "at": "2026-11-06T11:52:59.828Z"
   },
   "steps": {
     "read-1": "alpha bravo b1 column 3 of 4",
