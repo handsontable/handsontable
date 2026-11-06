@@ -17,7 +17,7 @@
       "id": "arrow-left-link",
       "action": {"press": "ArrowLeft"},
       "expect": [["one"], ["link"]],
-      "note": "A1 holds `https://example.com/one`, which autoLink wraps in a link: the cell's text and the link role. Column D's user link is left out of the scenario, because its text, `user link`, would satisfy the link group on its own. Finding: NVDA reads the URL but never says `link`, on both browsers and on every link step: the focus stays on the cell, whose name is its text, and the link inside it (tabindex -1) never takes the focus. VoiceOver says `link` on every link step."
+      "note": "A1 holds `https://example.com/one`, which autoLink wraps in a link: the cell's text and the link role. Column D's custom link reads `user anchor`, not a text with the word link: VoiceOver with Chromium reads the whole row with a cell, so that text would satisfy the link group on its own. Finding: NVDA reads the URL but never says `link`, on both browsers and on every link step: the focus stays on the cell, whose name is its text, and the link inside it (tabindex -1) never takes the focus. VoiceOver says `link` on every link step."
     },
     {
       "id": "arrow-down-inline-link",
