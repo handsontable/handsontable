@@ -200,9 +200,6 @@ Other rules:
 - **Clear the style caches for *every* document involved.** In multi-sheet mode each sheet may come from a
   different Handsontable instance in a different document (an iframe), so one document's cache is not
   enough.
-- **`columnHeaders` is a deprecated alias** of `colHeaders` and is promoted on the per-sheet config **before**
-  it is merged with the already-normalized top-level options, which carry `colHeaders` either way. Keep the
-  alias working — see the breaking-changes policy.
 - **The read-only sentinel colors are shared with the import, in `src/utils/xlsxEngine/readOnlyStyle.ts`.**
   `getFontFromMeta`/`getFillFromMeta` paint `READ_ONLY_TEXT_ARGB`/`READ_ONLY_FILL_ARGB` on a `readOnly` cell
   that has no color of its own, and `importFile/styles.ts` recognizes exactly those two values and drops them
@@ -605,6 +602,16 @@ Other rules:
   run it before reordering `writeColumnLayout`/`writeRows`/`writeSheetFeatures` in `exceljs.ts`.
 - **The missing-token warning names only tokens whose feature the export left out.** `Xlsx#needed` (a `Set`, reset per export) collects what each sheet had to write, whatever the license unlocks: `#recordSheetFeatures` records the sheet-level ones (headers while `headerStyle` is not `null` → `styles`; `exportFormulas` plus a formula or summary cell → `formulas`; a width other than `DEFAULT_COLUMN_WIDTH`, a row-header column (it always gets a width), a row height, hidden, merge (nested header groups included), freeze or RTL → `layout`; a non-empty `conditionalFormatting`; the pre-gate read-only scan or a `protection` object → `protection`), and the cell loop records `number_formats` (a non-null `numFmt`), `styles` (without the token `#writeRowCells` never calls `getCssStyleFromElement()`, so it counts what the meta describes plus any class outside `ALIGNMENT_CLASS_NAMES` from `cell-style.ts`), `data_validation` (a dropdown/autocomplete whose `source` is a non-empty array, the same test `getDropdownValidation` and `#buildValidationSheet` make; a function `source` and `[]` write no list) and `comments`. The warning is `missing ∩ needed` in `missing` order. Known gap: a style a renderer writes inline with no class name is not counted. An autosized column counts as layout, because its width differs from the default and the file would carry it: AutoColumnSize is on by default, so a plain grid on DEFAULT settings warns `xlsx:layout` on a key without it. That is deliberate (review round 2 kept the detection and made the export guide say so); only a grid whose widths all stay `DEFAULT_COLUMN_WIDTH` (`autoColumnSize: false`, no `colWidths`) warns nothing. Pinned on the real data provider by `tests/e2e/xlsx-export-license.spec.ts` ("a grid on default settings warns about xlsx:layout …").
 - **The license entitlement is read from `dataProvider.hot`, never from `options`.** A user can pass any option, so `Xlsx#export()` calls `getXlsxEntitlement(hot)` and scopes it with `EXPORT_FILE_CAPABILITY_IDS` before the gates (`numFmt`, layout, header style, validations, formulas, protection) read it. `supportsExportFormat('xlsx')` is also the predicate the "To Excel" context menu item reads, so a missing `xlsx:export` (or a missing `feat:export_file`, checked first) hides the item and throws from `exportAsBlobAsync`; keep the two answers the same. Header alignment is gated in `#applyHeaderStyle`, the one place every header cell passes through. Without `xlsx:number_formats` a date, time, `intl-date`, `intl-time` or `intl-datetime` cell is written as its DISPLAY text (`toDisplayText` in `types/xlsx.ts`, through `formatCellValue()`), never as a bare serial: a serial with no format opens as `45306`. The same holds for a FORMULA in such a cell under `exportFormulas` (`TEMPORAL_CELL_TYPES`, checked at the top of the formula branch of `#resolveCellValue`): without the token the gate would clear the formula's `numFmt` and `=C2+30` would open as `45336`, so the cell goes out as its displayed text with no formula. With the token it stays a live formula with its `numFmt`. Numeric cells stay numbers. Nested-header merges (and the row-header corner merge `#applyNestedHeaderMerges` writes) are gated under `xlsx:layout`, like data merges: without it each group label stays in the group's first header cell. The `protection` password never appears in a message. Token rules: `utils/xlsxEngine/AGENTS.md` "License gating".
+
+## The removed `columnHeaders` option warns at both merge sites
+
+`columnHeaders` (replaced by `colHeaders` in 17.1, removed in 19.0) is a plain key of the caller's options, so
+`extend()` copies it and nothing reads it: the header row goes missing with no error, and TypeScript does not
+flag it because every export method also accepts `Record<string, unknown>`. Core's `REMOVED_OPTIONS` scans
+grid settings only. `warnRemovedColumnHeadersOption()` (`utils.ts`, `removedWarnOnce`) runs in
+`BaseType#_mergeOptions()` and, because a `sheets` entry of an XLSX export bypasses that merge, again on each
+entry in `Xlsx#export()`. A new place that merges caller-supplied export options needs the same call. Pinned
+by "removed `columnHeaders` option" in `__tests__/exportFile.unit.js`.
 
 ## Column widths come from `_getColWidthFromSettings()`
 

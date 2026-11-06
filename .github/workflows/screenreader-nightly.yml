@@ -104,10 +104,22 @@ jobs:
           HEAD_SHA: ${{ github.sha }}
         run: >-
           node tests/scripts/a11y-run-verdict.mjs --prefix "Screen reader / "
-          --expect "Screen reader / nvda-chromium keyboard report" --expect "Screen reader / nvda-chromium reading report"
-          --expect "Screen reader / nvda-firefox keyboard report" --expect "Screen reader / nvda-firefox reading report"
-          --expect "Screen reader / vo-webkit keyboard report" --expect "Screen reader / vo-webkit reading report"
-          --expect "Screen reader / vo-chromium keyboard report" --expect "Screen reader / vo-chromium reading report"
+          --expect "Screen reader / nvda-chromium keyboard report"
+          --expect "Screen reader / nvda-chromium reading report"
+          --expect "Screen reader / nvda-chromium menus report"
+          --expect "Screen reader / nvda-chromium editors report"
+          --expect "Screen reader / nvda-firefox keyboard report"
+          --expect "Screen reader / nvda-firefox reading report"
+          --expect "Screen reader / nvda-firefox menus report"
+          --expect "Screen reader / nvda-firefox editors report"
+          --expect "Screen reader / vo-webkit keyboard report"
+          --expect "Screen reader / vo-webkit reading report"
+          --expect "Screen reader / vo-webkit menus report"
+          --expect "Screen reader / vo-webkit editors report"
+          --expect "Screen reader / vo-chromium keyboard report"
+          --expect "Screen reader / vo-chromium reading report"
+          --expect "Screen reader / vo-chromium menus report"
+          --expect "Screen reader / vo-chromium editors report"
 
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
   # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on

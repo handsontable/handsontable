@@ -6,6 +6,10 @@ import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
 import type { CellProperties } from '../../../settings';
 import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
+import {
+  adoptWrittenClassNames,
+  stripRendererClassNames,
+} from '../../../helpers/rendererClassNames';
 
 /**
  * Tells whether the cell's own last validation failed. The validation flow writes `valid` straight
@@ -94,6 +98,22 @@ function getKeySet(
   const keys: unknown = meta[name];
 
   return keys instanceof Set ? keys : undefined;
+}
+
+/**
+ * Reads a stored meta value for a snapshot (the replay after a cache reset, the undo journal). A
+ * renderer appends its own class names to the stored `className` (`numericRenderer` adds
+ * `htRight htNumeric`). Handed back, they would count as the user's own and stay on a cell that
+ * stopped being numeric, so a `className` read leaves them out.
+ *
+ * @param {object} meta The cell meta object.
+ * @param {string} key The key.
+ * @returns {*} The stored value, without the class names a renderer appended.
+ */
+function readUserClassNames(meta: CellProperties, key: string): unknown {
+  const value: unknown = meta[key];
+
+  return key === 'className' ? stripRendererClassNames(meta, value) : value;
 }
 
 /**
@@ -479,6 +499,12 @@ export default class CellMeta {
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
 
+    // Every class name the new `className` carries is the user's own. Without this the replay after a
+    // cache reset would strip it as a class a renderer added.
+    if (key === 'className') {
+      adoptWrittenClassNames(cellMeta, value);
+    }
+
     // Every `setMeta` write - imperative or declarative (`cell` option) - is non-reconstructable by
     // `getCellMeta`, so record it; the viewport-eviction pass keeps cells whose set is non-empty.
     if (cellMeta._persistedMetaProps === undefined) {
@@ -593,7 +619,7 @@ export default class CellMeta {
 
     return {
       hadOwn: true,
-      value: cellMeta[key],
+      value: readUserClassNames(cellMeta, key),
       origin: getKeyOrigin(cellMeta, key),
     };
   }
@@ -782,7 +808,9 @@ export default class CellMeta {
       const origin = getKeyOrigin(meta, key);
 
       if (origin !== 'none' && hasOwnProperty(meta, key)) {
-        target.push({ physicalRow, physicalColumn, key, state: { hadOwn: true, value: meta[key], origin } });
+        const value = readUserClassNames(meta, key);
+
+        target.push({ physicalRow, physicalColumn, key, state: { hadOwn: true, value, origin } });
       }
     });
   }
@@ -808,7 +836,7 @@ export default class CellMeta {
 
         props.forEach((key) => {
           if (hasOwnProperty(meta, key)) {
-            result.push({ physicalRow, physicalColumn, key, value: meta[key] });
+            result.push({ physicalRow, physicalColumn, key, value: readUserClassNames(meta, key) });
           }
         });
       }
