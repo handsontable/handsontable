@@ -27,7 +27,7 @@ export const SR_PAGE_COVERAGE = {
   grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'virtualization', 'virtualization-reading', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop'] },
   'shared-demo': { gap: 'the demo-shaped grid as a whole (merged cells, hidden-column indicators, sorting, filters, comments) is read by no scenario' },
   'complex-demo': { gap: 'four nested header levels over nested rows, merged cells and frozen panes at once: no scenario reads them together' },
-  'read-only': { gap: 'a read-only cell\'s state is a fact a reader announces, and no scenario reads a read-only cell' },
+  'read-only': { gap: 'a read-only cell\'s state is a fact a reader announces, and no scenario reads this page (checkbox-cell reads one read-only checkbox, on the checkbox page)' },
   checkbox: { scenarios: ['checkbox-cell'] },
   'nested-headers': { gap: 'group headers over their columns (names, spans, collapse) are read by no scenario' },
   'collapsible-headers': { gap: 'a collapse and an expand of a column group, and their expanded state, are read by no scenario' },
