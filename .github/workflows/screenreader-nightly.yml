@@ -4,17 +4,21 @@ name: Screen reader nightly
 # on macOS over the scenarios of tests/screenreader/scenarios/; tests/AGENTS.md, "Screen readers: the
 # NVDA and VoiceOver lanes").
 # Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
-# verdict is each job's `Screen reader / <project> <group> report` check run and summary. The transcripts
-# this run leaves are the evidence a future version of the Accessibility Conformance Report can cite
-# for what a screen reader announces. It runs on its own schedule rather than inside the pull-request
+# verdict is each job's `Screen reader / <project> <group> report` check run and summary, by the
+# severity rule (tests/AGENTS.md, "A11y: the verdict of a check run"): a step missing a token group is
+# serious unless its scenario declares a lower severity for the group, and a golden difference is
+# advisory. Every lane runs to the end; then the `verdict` job fails the run when any lane's check run is
+# red. The transcripts this run leaves are the evidence a future version of the Accessibility
+# Conformance Report can cite for what a screen reader announces. It runs on its own schedule rather than inside the pull-request
 # pipeline because a real screen reader on a headed Windows or macOS runner is minutes per browser,
 # and the answer changes with the core, the browser and the screen reader, not with one pull request.
 #
 # Triage. A missing token group is a finding about the grid (the announcement lacks the cell text, a
 # position or a role) or a token list that is too strict: read the transcript, then fix the core or
-# widen the synonyms. A golden difference is a wording change: re-record with the `update-goldens`
-# input once the new wording is right. A red step inside a lane job is tooling (the screen reader did
-# not start, a fixture did not load), never a finding, and it shows on that job's `failure` check run and summary:
+# widen the synonyms, or declare the group's severity in the step when its fact matters less. A golden
+# difference is a wording change: re-record with the `update-goldens` input once the new wording is
+# right. A red step inside a lane job is tooling (the screen reader did not start, a fixture did not
+# load), never a finding, and it shows on that job's `failure` check run, titled as a tooling failure, and summary:
 # the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
 # Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). The
 # VoiceOver setup recovers from its known flake on the same runner (screenreader.yml); a VoiceOver job
@@ -68,12 +72,70 @@ jobs:
       update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || false }}
     # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
 
+  # The run's verdict: the worst of the lanes' check runs (tests/scripts/a11y-run-verdict.mjs), one per
+  # project and scenario group, red when any is red or a job posted none. It runs after every lane has
+  # finished (`!cancelled()`, so a red job before it never skips it), reads the check runs by the run id
+  # their poster stamps as `external_id`, and fails this job, which fails the run. It stops nothing: by the
+  # time it runs, every lane has run and reported. The names follow screenreader.yml's matrices: every
+  # browser of each lane times every group of SCENARIO_GROUPS, which the workflow test checks.
+  verdict:
+    name: Verdict
+    needs: [ screenreader ]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      # The script and the modules it imports, nothing else: no package to install, no build.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Follow the worst check run of this run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.sha }}
+        run: >-
+          node tests/scripts/a11y-run-verdict.mjs --prefix "Screen reader / "
+          --expect "Screen reader / nvda-chromium keyboard report"
+          --expect "Screen reader / nvda-chromium reading report"
+          --expect "Screen reader / nvda-chromium menus report"
+          --expect "Screen reader / nvda-chromium editors report"
+          --expect "Screen reader / nvda-chromium selection report"
+          --expect "Screen reader / nvda-chromium structure report"
+          --expect "Screen reader / nvda-firefox keyboard report"
+          --expect "Screen reader / nvda-firefox reading report"
+          --expect "Screen reader / nvda-firefox menus report"
+          --expect "Screen reader / nvda-firefox editors report"
+          --expect "Screen reader / nvda-firefox selection report"
+          --expect "Screen reader / nvda-firefox structure report"
+          --expect "Screen reader / vo-webkit keyboard report"
+          --expect "Screen reader / vo-webkit reading report"
+          --expect "Screen reader / vo-webkit menus report"
+          --expect "Screen reader / vo-webkit editors report"
+          --expect "Screen reader / vo-webkit selection report"
+          --expect "Screen reader / vo-webkit structure report"
+          --expect "Screen reader / vo-chromium keyboard report"
+          --expect "Screen reader / vo-chromium reading report"
+          --expect "Screen reader / vo-chromium menus report"
+          --expect "Screen reader / vo-chromium editors report"
+          --expect "Screen reader / vo-chromium selection report"
+          --expect "Screen reader / vo-chromium structure report"
+
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
   # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on
   # purpose: the channel that triages one nightly triages the other. The lane's jobs carry job-level
   # `continue-on-error`, so they report success to this caller whatever happened inside them, and
   # `failure()` here fires only when the UMD build failed or the called workflow could not start. A red
-  # lane job never reaches Slack: its verdict is the `Screen reader / <project> <group> report` check runs.
+  # lane job never reaches Slack, and neither does the `verdict` job's red: their verdict is the
+  # `Screen reader / <project> <group> report` check runs.
   notify:
     name: Notify Slack
     needs: [ screenreader ]

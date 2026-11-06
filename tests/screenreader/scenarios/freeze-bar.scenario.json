@@ -23,7 +23,7 @@
       "id": "arrow-shrink",
       "action": {"press": "ArrowLeft"},
       "expect": [["2"]],
-      "note": "ArrowLeft moves it back."
+      "note": "ArrowLeft moves it back. Finding (the grid's): VoiceOver reads a percentage here too, as on arrow-grow: the separator has no aria-valuetext."
     },
     {
       "id": "f6-to-next-bar",
@@ -35,7 +35,7 @@
       "id": "arrow-down-grow",
       "action": {"press": "ArrowDown"},
       "expect": [["3"]],
-      "note": "ArrowDown moves the top bar one row down: 3 rows frozen."
+      "note": "ArrowDown moves the top bar one row down: 3 rows frozen. Finding (the grid's): VoiceOver reads a percentage here too, as on arrow-grow: the separator has no aria-valuetext."
     },
     {
       "id": "home-unfreeze",
