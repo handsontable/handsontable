@@ -7275,9 +7275,9 @@ export default function Core(
    * Runs the data phase of a settings call without painting. The data load renders on its own, and
    * `fitGridToSettings()` renders after the meta phase, so a call that carries `data` would paint the grid
    * twice. The grid being built renders at the end of its init pass, so it is left alone, and so is a payload
-   * that cannot change the data (`data`, `columns`, `dataSchema`, `dataProvider`): it paints nothing in the
-   * middle of the call, and clearing the cell meta memo for it would make every meta read inside a `batch()`
-   * or `suspendRender()` run the `cells` function and the meta hooks again.
+   * without `data`, `columns`, `dataSchema` or `dataProvider`: it paints nothing in the middle of the call, and
+   * clearing the cell meta memo for it would make every meta read inside a `batch()` or `suspendRender()` run
+   * the `cells` function and the meta hooks again.
    *
    * @private
    * @param {object} settings The settings of the call.
