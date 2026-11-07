@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T13:17:16.523Z",
+  "generatedAt": "2026-11-07T03:58:12.220Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 433,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2251
+    "entries": 2253
   },
   "rows": [
     {
@@ -1104,6 +1104,42 @@
       "needsTicket": false
     },
     {
+      "key": "jasmine|handsontable/src/__tests__/core/layout.spec.js|Layout slots applies the filled-slot holder styling through the state class (not `:has()`)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/layout.spec.js",
+      "line": null,
+      "title": "Layout slots applies the filled-slot holder styling through the state class (not `:has()`)",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-07T03:57:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42334766315",
+        "branch": "develop",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected 'rgb(231, 231, 233) 0px 0px 0px 1px inset' not to be 'rgb(231, 231, 233) 0px 0px 0px 1px inset'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/formulas-object-columns.spec.ts|Formulas: fill handle over object rows read through `columns` › fills the value of the source cell when the source column lies past the keys of the first row",
       "tier": "playwright",
       "file": "e2e/formulas-object-columns.spec.ts",
@@ -1581,42 +1617,6 @@
         "leg": "cross-browser/chromium",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 e927584fef09",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/__tests__/core/layout.spec.js|Layout slots applies the filled-slot holder styling through the state class (not `:has()`)",
-      "tier": "jasmine",
-      "file": "handsontable/src/__tests__/core/layout.spec.js",
-      "line": null,
-      "title": "Layout slots applies the filled-slot holder styling through the state class (not `:has()`)",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (1 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-06T03:58:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42157606947",
-        "branch": "develop",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected 'rgb(231, 231, 233) 0px 0px 0px 1px inset' not to be 'rgb(231, 231, 233) 0px 0px 0px 1px inset'.",
         "source": "ci"
       },
       "needsTicket": false
