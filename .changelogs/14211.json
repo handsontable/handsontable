@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed row headers drifting away from the rows beside them when a row's content height is not a whole pixel, for example with a fractional line height.",
+  "type": "fixed",
+  "issueOrPR": 14211,
+  "breaking": false,
+  "framework": "none"
+}
