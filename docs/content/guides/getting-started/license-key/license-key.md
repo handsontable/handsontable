@@ -2,7 +2,7 @@
 type: how-to
 title: License key
 metaTitle: License key | Handsontable DataGrid for JavaScript
-description: Activate Handsontable DataGrid by passing your license key in the configuration object. Get a trial key, a sponsored license for non-commercial use, or a commercial license.
+description: Activate Handsontable DataGrid by passing your license key in the configuration object. Get a trial key, a free license for non-commercial projects, or a commercial license.
 permalink: /license-key
 canonicalUrl: /license-key
 react:
@@ -15,7 +15,7 @@ searchCategory: Guides
 category: Getting started
 menuTag: updated
 ---
-Activate Handsontable DataGrid by passing your license key in the configuration object. Get a trial key, a sponsored license for non-commercial use, or a commercial license.
+Activate Handsontable DataGrid by passing your license key in the configuration object. Get a trial key, a free license for non-commercial projects, or a commercial license.
 
 [[toc]]
 
@@ -447,9 +447,9 @@ In the console, `[features]` lists each missing feature as its name and token, f
 
 ## Get a license key
 
-- **Evaluation:** get a trial key. Request one at [handsontable.com/pricing](https://handsontable.com/pricing/).
-- **Non-commercial use** (education, research, study, and personal projects): apply for a sponsored license. A sponsored license is a regular license key that we issue free of charge, at our discretion. Contact our [Sales Team](https://handsontable.com/get-a-quote) to apply.
+- **Evaluation:** start a free trial. Get a trial key at [handsontable.com/pricing](https://handsontable.com/pricing/). The trial covers internal evaluation outside production, runs once, and can't be renewed. During the trial, you can contact our technical support team. When it ends, you need a commercial license to keep using Handsontable.
 - **Commercial use:** buy a commercial license. Contact our [Sales Team](https://handsontable.com/get-a-quote).
+- **Non-commercial projects:** projects such as teaching or academic research may qualify for a free license. To apply, [contact our sales team](https://handsontable.com/contact/) and tell us about your project.
 
 ## FAQ
 
