@@ -386,24 +386,14 @@ applied in full. The step is saved and restored around a nested `_applySettingsA
 
 ## A plugin that needs another plugin running
 
-Core keeps a per-instance registry of plugins other plugins need. It lives in `PluginRequirements`
-(`../../core/pluginRequirements.ts`, unit-tested in `../../core/__tests__/pluginRequirements.unit.ts`), which core
-builds once per grid and exposes through three `@private` instance methods that delegate to it:
-`_requirePlugin(pluginKey, requirer)`, `_releasePlugin(pluginKey, requirer)` and `_isPluginRequired(pluginKey)`.
-Keys are `PLUGIN_KEY` values, a requirer is any object (the requiring plugin), one requirer counts once, and a
-release by an object that never required the plugin changes nothing. The map dies with the instance.
-
-- **The required plugin's `isEnabled()` reads `_isPluginRequired(PLUGIN_KEY)`** next to its own option, and knows
-  nothing about who requires it. That is what keeps it on through a settings pass (branch 1 of
-  `onUpdateSettings` would turn it off on its own `false` option otherwise).
-- **The requiring plugin never writes the other plugin's setting.** A write to `getSettings()` lands on the table
-  meta, shadows the global meta `updateSettings()` writes to, and the required plugin then never turns off. It
-  requires in `enablePlugin()` and calls the other plugin's `enablePlugin()` when it is not running (the call
-  goes through the lifecycle wrapper, so the license gate still applies); it releases in `disablePlugin()` and
-  calls the other plugin's `disablePlugin()` when that plugin runs and its `isEnabled()` now answers `false`, so
-  a direct call outside a settings pass turns both off.
-- **Loading → Dialog is the only consumer** (`../loading/AGENTS.md`). Every other dependent plugin keeps the
-  usual convention: it warns and stays inert when the plugin it needs is off, and does not turn it on.
+Core's `PluginRequirements` (`../../core/pluginRequirements.ts`, one per grid, reached through the `@private`
+`hot._requirePlugin()`, `_releasePlugin()` and `_isPluginRequired()`) records which plugins another plugin needs
+running. The required plugin's `isEnabled()` reads `_isPluginRequired(PLUGIN_KEY)` beside its own option and
+knows nothing about who requires it. The requiring plugin requires in `enablePlugin()`, releases in
+`disablePlugin()`, and **never writes the other plugin's setting**: a `getSettings()` write shadows the global
+meta and the required plugin then never turns off. Outside a settings pass it calls the other plugin's
+`enablePlugin()`/`disablePlugin()` itself. Loading → Dialog is the only consumer (`../loading/AGENTS.md`); every
+other dependent plugin warns and stays inert when the plugin it needs is off.
 
 ## Hard conflicts
 
