@@ -77,6 +77,50 @@ when every height is already cached.
 
 The engine's half of the same drift is in `src/3rdparty/walkontable/AGENTS.md`.
 
+## A merged block whose first row or column is hidden is measured on the cell it is drawn on
+
+A merge is drawn from the first row and column of it that are not hidden (`mergeCells/renderer.ts`,
+`getNearestNotHiddenIndex`). When its top-left cell sits in a hidden row or column, the block is drawn on a covered
+cell, and the rows that cell sits in must be as tall as the text. The sampler used to skip every cell with `hidden`
+meta, which includes that one, so the row kept the default height in the row-header clone while the master grew to
+the text (DEV-986). The measurement was not lost: the hidden top-left row was measured and stored, but
+`getRowHeight()` returns the default for a hidden row, so the value was never applied to any row.
+
+- **The sampler asks MergeCells, not the data.** For a covered cell it calls `getBlockDrawnOn(row, column)` through
+  `getPlugin('mergeCells')`, which answers only for the cell the renderer draws the block on. The sample carries the
+  block's text (formatted with the top-left cell's meta) and `block`, the top-left cell and the columns from the sampled
+  cell to the block's last one. A plain covered cell still answers `false`.
+- **The width and the meta must be the block's.** `GhostTable` reads `colspan` from the sampled cell's meta for the
+  `<col>` width, and a covered cell has none, so it takes the width from the sample's `block`. It also renders the ghost
+  cell with the top-left cell's coordinates and meta, because the grid paints a block drawn on a covered cell that way
+  (`modifyGetCellCoords`): with the covered cell's own meta a column with another renderer, `wordWrap` or `className`
+  measures a different height than the master draws. Without the width the text wraps in one column and the row comes
+  out taller than the master draws it.
+- **The sample has a bucket of its own** (`bundleSeed`). A bucket holds a few strings of each length and skips a value
+  already sampled, so the block's text could otherwise be left out by the other cells of its row.
+- **Heights are keyed by the physical row, the cell a block is drawn on follows hiding, trimming and sorting.** A full
+  render measures every row it draws, so a row in view is right after any of them. A row below the fold is measured
+  only when its cached height is dropped, and scrolling measures nothing. So `#remeasureMovedBlocks()` (called first in
+  `#onBeforeRender`) compares the covered cells the blocks are drawn on (`getCellsBlocksAreDrawnOn()`, keyed by physical
+  row, physical column and the block's width from there) with the ones of the last comparison, and drops the heights of
+  the rows that entered or left that set (`clearCache([rows])`, which queues them). The comparison runs only after
+  something that can move a block was reported: `cacheUpdated` of either index mapper with a hidden, trimmed or
+  sequence change, `afterMergeCells`, `afterUnmergeCells`, and the plugin being enabled. Comparing, rather than
+  reacting to the report, is what keeps a settings update that hides nothing new free: HiddenRows registers its hiding
+  map again on every update, which reports a hidden change, and the React and Angular wrappers send the settings on every
+  commit. The mapper callback only sets the flag: clearing from inside it would write the height map in the middle of a
+  cache update. A grid with no merge pays nothing.
+- **A change of data re-measures the carrier rows.** `#onBeforeChange` queues the rows of the changes, and a block
+  drawn on a covered cell takes its text from another cell, so it queues every row of `#blockCarriers` as well.
+- **A merge with nothing hidden is unchanged**: the top-left row takes the whole measured height and the rows it covers
+  keep the default, as before. Pinned by `__tests__/mergedBlockSamples.unit.ts` and
+  `tests/e2e/auto-row-size-merged-hidden-origin.spec.ts`. The E2E block below the fold is the case that fails without
+  the comparison; the cases in view pass without it, because a full render measures them anyway.
+- **Not covered:** a merge drawn by `virtualized` from a row the viewport moved it to, and a block drawn on the bottom
+  overlay's first row; both are drawn on a cell this rule does not name. A merge that re-anchors onto a row that holds
+  the text after a trim or filter, where the new top-left cell still carries the `hidden` flag it had as a covered cell,
+  is skipped by the sampler's `hidden` check and drifts the same way; that is a MergeCells meta defect, not this rule.
+
 ## `updateSettings` does not recalculate — with one exception
 
 Changing `wordWrap`, `textEllipsis` or a renderer changes row heights, but `updateSettings()` alone does not

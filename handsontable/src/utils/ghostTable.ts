@@ -36,6 +36,10 @@ interface SampleString {
   col?: number;
   row?: number;
   value: unknown;
+  /**
+   * The merged block the value belongs to, when it is sampled on a covered cell that the block is drawn on.
+   */
+  block?: { row: number; col: number; colspan: number };
 }
 
 /**
@@ -345,7 +349,7 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        fragment.appendChild(this.createColElement(string.col!, row!));
+        fragment.appendChild(this.createColElement(string.col!, row!, string.block?.colspan));
       });
     });
 
@@ -371,14 +375,16 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        const column = string.col!;
-        const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
+        // The grid paints a block drawn on a covered cell with the top-left cell's own coordinates and meta
+        // (`modifyGetCellCoords`), so the ghost cell is rendered the way the grid renders it.
+        const source = string.block ?? { row, col: string.col! };
+        const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(source.row, source.col);
         const td = rootDocument.createElement('td');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        this.#renderCell(td, row, column, string.value, cellProperties);
+        this.#renderCell(td, source.row, source.col, string.value, cellProperties);
         fragment.appendChild(td);
       });
     });
@@ -533,13 +539,19 @@ class GhostTable {
    *
    * @param {number} column Visual column index.
    * @param {number} row Visual row index.
+   * @param {number} [sampledColspan] The number of columns the sampled value spans, when the cell's own
+   * meta cannot say it. A merged block drawn from a cell it covers (its first row or column is hidden) is
+   * sampled on that cell, which carries no `colspan` of its own.
    * @returns {HTMLElement}
    */
-  createColElement(column: number, row: number) {
+  createColElement(column: number, row: number, sampledColspan?: number) {
     const col = this.hot!.rootDocument.createElement('col');
     let colspan = 0;
 
-    if (row >= 0 && column >= 0) {
+    if (sampledColspan !== undefined) {
+      colspan = sampledColspan;
+
+    } else if (row >= 0 && column >= 0) {
       colspan = Number(this.hot!.getCellMetaTransient(row, column).colspan);
     }
 

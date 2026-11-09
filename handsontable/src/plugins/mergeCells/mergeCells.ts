@@ -1093,6 +1093,92 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Describes the block that a covered cell is drawn for, when the block's top-left cell is hidden. A merge
+   * is drawn from the first row and the first column of it that are not hidden, so a block whose first row
+   * or first column is hidden has no cell of its own to draw on: the renderer draws it on the covered cell
+   * at that row and column. That cell carries the block's text, and the rows it sits in must be as tall as
+   * the text needs, so a reader that sizes rows from the cells (AutoRowSize) asks which block a cell
+   * carries.
+   *
+   * Answers `null` for a cell no block is drawn on: one that no merge covers, the block's own top-left
+   * cell (nothing is hidden there), a covered cell of a block drawn elsewhere, and a block whose rows or
+   * columns are all hidden (nothing is drawn).
+   *
+   * @private
+   * @param {number} row Visual row index of the cell.
+   * @param {number} column Visual column index of the cell.
+   * @returns {object|null} The block's top-left cell (`row`, `col`), and `colspan`, the number of columns the
+   * block spans from `column` on, or `null`.
+   */
+  getBlockDrawnOn(row: number, column: number): { row: number, col: number, colspan: number } | null {
+    const block = this.mergedCellsCollection.get(row, column);
+
+    if (block === false) {
+      return null;
+    }
+
+    const drawnOn = this.#getCellDrawnOn(block);
+
+    if (drawnOn === null || drawnOn.row !== row || drawnOn.col !== column) {
+      return null;
+    }
+
+    return { row: block.row, col: block.col, colspan: drawnOn.colspan };
+  }
+
+  /**
+   * Lists the covered cells that merged blocks are drawn on, one for each block whose top-left cell is
+   * hidden (see {@link MergeCells#getBlockDrawnOn}). A block in the lookup matrix only: one whose rows are
+   * all trimmed is left out, as it is drawn nowhere.
+   *
+   * @private
+   * @returns {Array<object>} The visual `row` and `col` of each cell, and `colspan`, the number of columns
+   * its block spans from `col` on.
+   */
+  getCellsBlocksAreDrawnOn(): Array<{ row: number, col: number, colspan: number }> {
+    const collection = this.mergedCellsCollection;
+    const cells: Array<{ row: number, col: number, colspan: number }> = [];
+
+    collection.mergedCells.forEach((block) => {
+      if (collection.get(block.row, block.col) !== block) {
+        return;
+      }
+
+      const drawnOn = this.#getCellDrawnOn(block);
+
+      if (drawnOn !== null) {
+        cells.push(drawnOn);
+      }
+    });
+
+    return cells;
+  }
+
+  /**
+   * The covered cell a block is drawn on, by the rule of the renderer: the first row and the first column
+   * of the block that are not hidden. `null` when that is the block's own top-left cell, and when nothing of
+   * the block is shown.
+   *
+   * @param {MergedCellCoords} block The merged block.
+   * @returns {object|null} The visual `row` and `col` of the cell, and `colspan`, the number of columns the
+   * block spans from it, or `null`.
+   */
+  #getCellDrawnOn(block: MergedCellCoords): { row: number, col: number, colspan: number } | null {
+    const drawnRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(block.row, 1);
+    const drawnColumn = this.hot.columnIndexMapper.getNearestNotHiddenIndex(block.col, 1);
+
+    if (drawnRow === null || drawnColumn === null || (drawnRow === block.row && drawnColumn === block.col)) {
+      return null;
+    }
+
+    if (drawnRow >= block.row + block.rowspan || drawnColumn >= block.col + block.colspan) {
+      return null;
+    }
+
+    return { row: drawnRow, col: drawnColumn, colspan: block.col + block.colspan - drawnColumn };
+  }
+
+  /**
    * Returns every merged cell the plugin holds, each with the physical rows it owns and its physical left
    * column when the plugin has captured them. Its visual coordinates only describe it under the row and
    * column order they were read with; the anchor still names the same cells after a sort, a move, or a data

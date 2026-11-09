@@ -269,6 +269,9 @@ export class AutoRowSize extends BasePlugin {
     }
 
     let cellMeta;
+    let sourceRow = row;
+    let sourceColumn = column;
+    let block: { row: number, col: number, colspan: number } | null = null;
 
     if (row >= 0 && column >= 0) {
       // The transient read resolves the full dynamic meta (hooks + `cells`, so `hidden` from
@@ -277,15 +280,25 @@ export class AutoRowSize extends BasePlugin {
       cellMeta = this.hot.getCellMetaTransient(row, column);
 
       if (cellMeta.hidden) {
-        // do not generate samples for cells that are covered by merged cell (null values)
-        return false;
+        // A covered cell holds no value of its own (null values), so it is not sampled - unless a merged
+        // block whose first row or column is hidden is drawn on it. That block has no other cell to be
+        // measured on, so its text is sampled here, at the width of the block.
+        block = this.#getBlockDrawnOn(row, column);
+
+        if (block === null) {
+          return false;
+        }
+
+        sourceRow = block.row;
+        sourceColumn = block.col;
+        cellMeta = this.hot.getCellMetaTransient(sourceRow, sourceColumn);
       }
     }
 
     let cellValue;
 
     if (row >= 0) {
-      cellValue = this.hot.getDataAtCell(row, column);
+      cellValue = this.hot.getDataAtCell(sourceRow, sourceColumn);
 
       if (cellMeta) {
         // Format through the same precedence as the render path (cell-level `valueFormatter`, then
@@ -296,7 +309,13 @@ export class AutoRowSize extends BasePlugin {
       cellValue = this.hot.getColHeader(column);
     }
 
-    return { value: cellValue };
+    if (block === null) {
+      return { value: cellValue };
+    }
+
+    // Its own bucket, so the block's text is sampled whatever else the row holds: the usual buckets keep
+    // a few strings of each length and skip a value that was already sampled.
+    return { value: cellValue, block, bundleSeed: `mergedBlock:${sourceRow}:${sourceColumn}` };
   });
   /**
    * `true` if the size calculation is in progress.
@@ -387,6 +406,24 @@ export class AutoRowSize extends BasePlugin {
   #idleSweepTimer = 0;
 
   /**
+   * `true` when something that moves the cell a merged block is drawn on may have changed since the last
+   * render: rows or columns hidden, shown, trimmed or moved, or a merge added or removed. The next render
+   * compares the cells again (`#remeasureMovedBlocks()`).
+   *
+   * @type {boolean}
+   */
+  #mergedBlocksChanged = false;
+  /**
+   * The covered cells that merged blocks were drawn on at the last comparison, with the width of the block
+   * from each. The key holds the physical row and column and that width, and the value the physical row.
+   * A block whose top-left cell is hidden is measured on the cell it is drawn on, so a height cached for
+   * a row stays valid only while the row is, or is not, such a cell. Empty without such a block.
+   *
+   * @type {Map<string, number>}
+   */
+  #blockCarriers = new Map<string, number>();
+
+  /**
    * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
    */
   constructor(hotInstance: HotInstance) {
@@ -452,6 +489,13 @@ export class AutoRowSize extends BasePlugin {
         this.hot.view?.invalidateRowHeightCache();
       });
 
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
+    this.addHook('afterMergeCells', this.#onMergedBlocksChanged);
+    this.addHook('afterUnmergeCells', this.#onMergedBlocksChanged);
+    // Blocks may be drawn on covered cells already, which no earlier comparison has recorded.
+    this.#mergedBlocksChanged = true;
+
     addClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
     super.enablePlugin();
@@ -502,8 +546,11 @@ export class AutoRowSize extends BasePlugin {
       this.#disposeMapObserver = null;
     }
 
+    this.#unbindIndexMapperListeners();
     this.headerHeight = null;
     this.#rowsOwedToColumnSweep = false;
+    this.#mergedBlocksChanged = false;
+    this.#blockCarriers.clear();
 
     removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
@@ -706,6 +753,102 @@ export class AutoRowSize extends BasePlugin {
     // reads `.table` on every row it holds. Only the success path calls `clean()`, so without this
     // the next sweep throws on that leftover, and so does the one after it.
     this.ghostTable.clean();
+  }
+
+  /**
+   * Asks MergeCells which merged block is drawn on a covered cell. A block whose first row or column is
+   * hidden is drawn on the covered cell at its first row and column that are shown, which no other cell
+   * stands in for, so the sampler measures the block there.
+   *
+   * @param {number} row Visual row index of the cell.
+   * @param {number} column Visual column index of the cell.
+   * @returns {object|null} The block's top-left cell and its width in columns from `column` on, or `null`.
+   */
+  #getBlockDrawnOn(row: number, column: number): { row: number, col: number, colspan: number } | null {
+    const mergeCells = this.hot.getPlugin('mergeCells');
+
+    return mergeCells?.enabled ? mergeCells.getBlockDrawnOn(row, column) : null;
+  }
+
+  /**
+   * Marks the merged blocks for a new comparison when the index mappers changed what is hidden, trimmed or
+   * where the rows and columns sit: any of that can move the cell a block is drawn on.
+   *
+   * @param {object} changes The flags of the index mapper's cache update: what is hidden, what is trimmed, and
+   * the order of the indexes.
+   */
+  #onIndexMapperCacheUpdated = (
+    { hiddenIndexesChanged, trimmedIndexesChanged, indexesSequenceChanged }:
+    { hiddenIndexesChanged: boolean, trimmedIndexesChanged: boolean, indexesSequenceChanged: boolean }
+  ) => {
+    if (hiddenIndexesChanged || trimmedIndexesChanged || indexesSequenceChanged) {
+      this.#mergedBlocksChanged = true;
+    }
+  };
+
+  /**
+   * Marks the merged blocks for a new comparison after a merge was added or removed.
+   */
+  #onMergedBlocksChanged = () => {
+    this.#mergedBlocksChanged = true;
+  };
+
+  /**
+   * Removes the listeners of the two index mappers. The plugin may be destroyed before it was initialized,
+   * and has no instance then.
+   */
+  #unbindIndexMapperListeners(): void {
+    this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
+    this.hot?.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
+  }
+
+  /**
+   * Drops the cached heights of the rows that a merged block started or stopped being drawn on. Heights are
+   * keyed by the physical row, while the row a block's text is measured on follows what is hidden, trimmed
+   * and sorted, so a height measured before the block moved is for the wrong row. Runs once a change that
+   * can move a block was reported, and compares the covered cells the blocks are drawn on with those of the
+   * last comparison: a grid whose blocks did not move (a settings update that hides nothing new) drops
+   * nothing.
+   */
+  #remeasureMovedBlocks(): void {
+    if (!this.#mergedBlocksChanged) {
+      return;
+    }
+
+    this.#mergedBlocksChanged = false;
+
+    const mergeCells = this.hot.getPlugin('mergeCells');
+    const carriers = new Map<string, number>();
+
+    if (mergeCells?.enabled) {
+      mergeCells.getCellsBlocksAreDrawnOn().forEach(({ row, col, colspan }) => {
+        const physicalRow = this.hot.toPhysicalRow(row);
+        const physicalColumn = this.hot.toPhysicalColumn(col);
+
+        if (physicalRow !== null && physicalColumn !== null) {
+          carriers.set(`${physicalRow}:${physicalColumn}:${colspan}`, physicalRow);
+        }
+      });
+    }
+
+    const movedRows = new Set<number>();
+
+    carriers.forEach((physicalRow, key) => {
+      if (!this.#blockCarriers.has(key)) {
+        movedRows.add(physicalRow);
+      }
+    });
+    this.#blockCarriers.forEach((physicalRow, key) => {
+      if (!carriers.has(key)) {
+        movedRows.add(physicalRow);
+      }
+    });
+
+    this.#blockCarriers = carriers;
+
+    if (movedRows.size > 0) {
+      this.clearCache(Array.from(movedRows));
+    }
   }
 
   /**
@@ -1038,6 +1181,7 @@ export class AutoRowSize extends BasePlugin {
    * changes before the next render.
    */
   #onBeforeRender = () => {
+    this.#remeasureMovedBlocks();
     this.calculateVisibleRowsHeight();
     this.#drainRowRefreshQueue();
 
@@ -1168,6 +1312,16 @@ export class AutoRowSize extends BasePlugin {
       changedRows.add(Number(row));
     });
 
+    // A block drawn on a covered cell takes its text from another cell, so a change there is not a change of
+    // the row the block is measured on.
+    this.#blockCarriers.forEach((physicalRow) => {
+      const visualRow = this.hot.toVisualRow(physicalRow);
+
+      if (visualRow !== null) {
+        changedRows.add(visualRow);
+      }
+    });
+
     changedRows.forEach((rowIndex) => {
       this.#visualRowsToRefresh.push(rowIndex);
     });
@@ -1221,6 +1375,7 @@ export class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy(): void {
+    this.#unbindIndexMapperListeners();
     this.ghostTable.clean();
     super.destroy();
   }
