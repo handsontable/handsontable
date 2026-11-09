@@ -13,6 +13,7 @@
  * `sizeGetters.ts` they own the "how tall is a row really" answer.
  */
 import { isHTMLElement } from '../../../../helpers/dom/element';
+import { resolveFractionalHeight } from '../../../../helpers/dom/layoutUnit';
 import { CLONE_BOTTOM } from '../overlay';
 import { applyRowHeight } from '../render/exactRowHeight';
 import { firstRowDrawsTopBorder } from './boxModel';
@@ -750,10 +751,26 @@ export function markOversizedRows(
     if (
       !previousRowHeight &&
       stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
-      (previousRowHeight !== undefined && previousRowHeight < rowCurrentHeight)
+      // `rowCurrentHeight` is a whole pixel, so the height it is compared with is one too. A record
+      // that survives the wipe (a frozen-derived one) is fractional now, and `117.73` reads as smaller
+      // than the `118` that `offsetHeight` rounds the same row to: compared as it is, the row would be
+      // recorded again on every draw and drop the row-height cache each time.
+      (previousRowHeight !== undefined && Math.round(previousRowHeight) < rowCurrentHeight)
     ) {
       if (!borderBoxSizing) {
         rowCurrentHeight += 1;
+      } else {
+        // `offsetHeight` is a whole pixel, and this record is what the row-header clone and the
+        // corners get written as their row height. A row that is `118.27px` tall in the master and
+        // recorded as `118` is `0.27px` short in every table that reads the record, and the shortfall
+        // stacks per row. The decision to record stays on the whole-pixel read above, so
+        // which rows are recorded, and when the cache is dropped, is unchanged: only the value is
+        // refined, and only for a row that is recorded. Content-box cells keep the whole pixel,
+        // because their `clientHeight` read and the `+ 1` above have no computed-style twin.
+        rowCurrentHeight = resolveFractionalHeight(
+          table.deps.geometryReader.getComputedStyle(rowHeader ?? currentTr).height,
+          rowCurrentHeight,
+        );
       }
 
       wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;

@@ -12,6 +12,7 @@ import { addClass, removeClass } from '../../helpers/dom/element';
 import { FONT_REMEASURE_ROWS_ORDER_INDEX } from '../../core/fontLoad';
 import { isAutoRowSizeOn } from '../../core/rowHeightSetting';
 import { LICENSE } from './feature.generated';
+import { toStoredRowHeight } from './helpers/measuredRowHeight';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
@@ -582,9 +583,9 @@ export class AutoRowSize extends BasePlugin {
       this.hot.batchExecution(() => {
         this.ghostTable.getHeights((row: number, height: number) => {
           if (row < 0) {
-            this.headerHeight = height;
+            this.headerHeight = Math.round(height);
           } else {
-            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
+            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), this.#toStoredHeight(row, height));
           }
         });
       }, true);
@@ -708,6 +709,17 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * The height to store for a sampled row, from the height the ghost table measured for it.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} measuredHeight The measured height, snapped to the layout grid.
+   * @returns {number}
+   */
+  #toStoredHeight(visualRow: number, measuredHeight: number): number {
+    return toStoredRowHeight(measuredHeight, this.hot.stylesHandler.getDefaultRowHeight(visualRow) ?? 0);
+  }
+
+  /**
    * Measures the rows waiting in the refresh queue, if this moment can measure them at all.
    *
    * Two moments cannot, and both KEEP the queue rather than dropping it, so the rows are measured
@@ -757,7 +769,7 @@ export class AutoRowSize extends BasePlugin {
         this.ghostTable.getHeights((visualRow: number, height: number) => {
           const physicalRow = this.hot.toPhysicalRow(visualRow);
 
-          this.rowHeightsMap.setValueAtIndex(physicalRow, height);
+          this.rowHeightsMap.setValueAtIndex(physicalRow, this.#toStoredHeight(visualRow, height));
         });
       }, true);
 
