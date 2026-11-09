@@ -3740,11 +3740,22 @@ export class Formulas extends BasePlugin {
       return value;
     }
 
-    const entries = this.#validationValues.get(this.#validationValueKey(visualRow, visualColumn));
-    // A set can write one cell twice; each validation is for the change with its value.
-    const pending = entries?.find(entry => Object.is(entry.changeValue, value)) ?? entries?.at(-1);
+    const entries = this.#validationValues.get(this.#validationValueKey(visualRow, visualColumn)) ?? [];
+    // A cell can be written more than once before the Core validates (twice in one set, or by two sets in one
+    // task). The Core validates the changes in the order they were written, so each validation takes the
+    // first entry with its value and removes it: the next change to the cell gets its own entry, also when
+    // it writes the same value against other precedents.
+    let index = entries.findIndex(entry => entry.source === source && Object.is(entry.changeValue, value));
 
-    if (pending && pending.source === source) {
+    for (let last = entries.length - 1; index === -1 && last >= 0; last--) {
+      if (entries[last].source === source) {
+        index = last;
+      }
+    }
+
+    if (index !== -1) {
+      const [pending] = entries.splice(index, 1);
+
       return pending.hasResult ? pending.result : value;
     }
 
@@ -4880,12 +4891,22 @@ export class Formulas extends BasePlugin {
     const lastWriteByCell = new Map<string, ProbeWrite>();
 
     writes.forEach((write) => {
+      lastWriteByCell.set(this.#validationValueKey(write.rejectable.visualRow, write.rejectable.visualColumn), write);
+    });
+
+    writes.forEach((write) => {
       const key = this.#validationValueKey(write.rejectable.visualRow, write.rejectable.visualColumn);
+      const lastWrite = lastWriteByCell.get(key)!;
       const entries = this.#validationValues.get(key) ?? [];
+
+      // An earlier change that writes the same value as the cell's last change of the set reads what the
+      // last one reads (the probe's result), not a value calculated on its own.
+      if (lastWrite !== write && Object.is(lastWrite.entry.changeValue, write.entry.changeValue)) {
+        write.entry = lastWrite.entry;
+      }
 
       entries.push(write.entry);
       this.#validationValues.set(key, entries);
-      lastWriteByCell.set(key, write);
     });
 
     const engine = this.engine;
@@ -4915,7 +4936,8 @@ export class Formulas extends BasePlugin {
     const lastWrites = [...lastWriteByCell.values()];
 
     writes.forEach(({ rejectable: { visualRow, visualColumn }, value, entry }, index) => {
-      if (isFormula(value) && !lastWrites.includes(writes[index])) {
+      if (isFormula(value) && !lastWrites.includes(writes[index]) &&
+        !lastWrites.some(lastWrite => lastWrite.entry === entry)) {
         entry.hasResult = true;
         entry.result = this.#calculateDetached(visualRow, visualColumn, value as string);
       }

@@ -651,4 +651,24 @@ describe('Formulas writes a validated change when the Core applies it', () => {
 
     expect(held.map(({ value }) => value).sort()).toEqual([6, 8]);
   });
+
+  it('validates the same formula written to one cell by two sets, with a write between them, by each set\'s result', async() => {
+    buildGrid();
+
+    hot.setDataAtCell(1, 0, '=C1*10');
+    hot.setDataAtCell(0, 2, 5);
+    hot.setDataAtCell(1, 0, '=C1*10');
+    await waitForValidation();
+
+    expect(held.map(({ value }) => value)).toEqual([10, 50]);
+  });
+
+  it('validates the same formula written twice to one cell of a set by the probe\'s result', async() => {
+    buildGrid();
+
+    hot.setDataAtCell([[1, 0, '=ROW()*10'], [1, 0, '=ROW()*10']]);
+    await waitForValidation();
+
+    expect(held.map(({ value }) => value)).toEqual([20, 20]);
+  });
 });
