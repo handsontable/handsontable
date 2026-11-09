@@ -6,7 +6,7 @@ import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
 
 /**
  * Assembles the ScrollSync's dependencies. Most come from the engine composition context; the ones
- * that drive the owning Overlays coordinator (`refreshAll`/`registerListeners`/`eventManager`/the
+ * that drive the owning Overlays coordinator (`refreshAll`/`registerScrollableElementListeners`/the
  * `destroyed` flag) and the sticky-scroll strategy (`tryActivate`/`syncOffsets`) come from the
  * Overlays instance and its already-built `StickyScrollStrategy` — passed as callbacks so ScrollSync
  * never imports either at runtime (only as a type), keeping the scroll slice free of an overlay cycle.
@@ -31,10 +31,9 @@ export function createScrollSyncDeps(ctx: EngineContext, overlays: Overlays, sti
     getInlineStartOverlay: () => overlays.inlineStartOverlay,
     getInlineEndOverlay: () => overlays.inlineEndOverlay,
     getBottomOverlay: () => overlays.bottomOverlay,
-    eventManager: overlays.eventManager,
     getDestroyed: () => overlays.destroyed,
     refreshAll: () => overlays.refreshAll(),
-    registerListeners: () => overlays.registerListeners(),
+    registerScrollableElementListeners: () => overlays.registerScrollableElementListeners(),
     tryActivateStickyScroll: (verticalScrolling: boolean, horizontalScrolling: boolean) =>
       stickyScroll.tryActivate(verticalScrolling, horizontalScrolling),
     syncStickyScrollOffsets: () => stickyScroll.syncOffsets(),
@@ -627,8 +626,6 @@ export class ScrollSync {
    * Update the main scrollable elements for all the overlays.
    */
   updateMainScrollableElements() {
-    this.#deps.eventManager.clearEvents(true);
-
     this.#deps.getInlineStartOverlay().updateMainScrollableElement();
     this.#deps.getTopOverlay().updateMainScrollableElement();
 
@@ -642,7 +639,7 @@ export class ScrollSync {
 
     this.#scrollableElement = this.#takeScrollableElement();
 
-    this.#deps.registerListeners();
+    this.#deps.registerScrollableElementListeners();
     this.#rememberBoundOwners();
   }
 

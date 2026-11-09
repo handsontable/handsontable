@@ -22,7 +22,7 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
     // container outside the layout goes through.
     let rendered = false;
     const rootWindow = window;
-    const counters = { registerListeners: 0, clearEvents: 0, overlayUpdates: 0, resetAllOversizedRows: 0 };
+    const counters = { registerScrollableElementListeners: 0, overlayUpdates: 0, resetAllOversizedRows: 0 };
     const overlay = {
       updateMainScrollableElement: () => {
         counters.overlayUpdates += 1;
@@ -45,13 +45,8 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
         isRendered: () => rendered,
         getComputedStyle: (element: Element) => rootWindow.getComputedStyle(element),
       },
-      eventManager: {
-        clearEvents: () => {
-          counters.clearEvents += 1;
-        },
-      },
-      registerListeners: () => {
-        counters.registerListeners += 1;
+      registerScrollableElementListeners: () => {
+        counters.registerScrollableElementListeners += 1;
       },
       refreshAll: () => {},
       getDestroyed: () => false,
@@ -112,8 +107,7 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
 
     // A pass that cannot settle used to rebind every listener first and re-arm
     // itself afterwards, so it paid the full cost on every draw for ever.
-    expect(counters.registerListeners).toBe(0);
-    expect(counters.clearEvents).toBe(0);
+    expect(counters.registerScrollableElementListeners).toBe(0);
     expect(counters.overlayUpdates).toBe(0);
     expect(counters.resetAllOversizedRows).toBe(0);
   });
@@ -125,12 +119,11 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
     scrollSync.resolveProvisionalLayout();
 
     expect(scrollSync.isScrollableElementProvisional).toBe(false);
-    expect(counters.registerListeners).toBe(1);
-    expect(counters.clearEvents).toBe(1);
+    expect(counters.registerScrollableElementListeners).toBe(1);
 
     scrollSync.resolveProvisionalLayout();
 
-    expect(counters.registerListeners).toBe(1);
+    expect(counters.registerScrollableElementListeners).toBe(1);
   });
 
   it('should leave the sizes in place until a draw consumes the reset', () => {
@@ -202,7 +195,7 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
     scrollSync.resolveProvisionalLayout();
 
     expect(scrollSync.isScrollableElementProvisional).toBe(true);
-    expect(counters.registerListeners).toBe(1);
+    expect(counters.registerScrollableElementListeners).toBe(1);
   });
 
   it('should drop nothing on a draw that follows no settled layout', () => {
@@ -219,7 +212,7 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
     scrollSync.resolveProvisionalLayout();
 
     expect(scrollSync.isScrollableElementProvisional).toBe(true);
-    expect(counters.registerListeners).toBe(0);
+    expect(counters.registerScrollableElementListeners).toBe(0);
   });
 });
 
@@ -234,7 +227,7 @@ describe('ScrollSync#resyncScrollableElementsWithOwners', () => {
    */
   const createScrollSync = ({ rendered }: { rendered: boolean }) => {
     const rootWindow = window;
-    const counters = { registerListeners: 0 };
+    const counters = { registerScrollableElementListeners: 0 };
     const createOverlay = () => ({
       updateMainScrollableElement: () => {},
       needFullRender: false,
@@ -254,11 +247,8 @@ describe('ScrollSync#resyncScrollableElementsWithOwners', () => {
         isRendered: () => rendered,
         getComputedStyle: (element: Element) => rootWindow.getComputedStyle(element),
       },
-      eventManager: {
-        clearEvents: () => {},
-      },
-      registerListeners: () => {
-        counters.registerListeners += 1;
+      registerScrollableElementListeners: () => {
+        counters.registerScrollableElementListeners += 1;
       },
       refreshAll: () => {},
       getDestroyed: () => false,
@@ -286,7 +276,7 @@ describe('ScrollSync#resyncScrollableElementsWithOwners', () => {
     scrollSync.resyncScrollableElementsWithOwners();
     scrollSync.resyncScrollableElementsWithOwners();
 
-    expect(counters.registerListeners).toBe(0);
+    expect(counters.registerScrollableElementListeners).toBe(0);
   });
 
   it('should rebind once when an axis owner moves, then stay quiet', () => {
@@ -298,12 +288,12 @@ describe('ScrollSync#resyncScrollableElementsWithOwners', () => {
     inlineStartOverlay.trimmingContainer = document.createElement('div');
     scrollSync.resyncScrollableElementsWithOwners();
 
-    expect(counters.registerListeners).toBe(1);
+    expect(counters.registerScrollableElementListeners).toBe(1);
 
     scrollSync.resyncScrollableElementsWithOwners();
     scrollSync.resyncScrollableElementsWithOwners();
 
-    expect(counters.registerListeners).toBe(1);
+    expect(counters.registerScrollableElementListeners).toBe(1);
   });
 
   it('should treat a rebind requested elsewhere as the new baseline', () => {
@@ -314,11 +304,11 @@ describe('ScrollSync#resyncScrollableElementsWithOwners', () => {
     // Core's `updateSettings` calls this on a `height` change, after the owners moved.
     scrollSync.updateMainScrollableElements();
 
-    expect(counters.registerListeners).toBe(1);
+    expect(counters.registerScrollableElementListeners).toBe(1);
 
     scrollSync.resyncScrollableElementsWithOwners();
 
-    expect(counters.registerListeners).toBe(1);
+    expect(counters.registerScrollableElementListeners).toBe(1);
   });
 
   it('should leave a provisional answer to the provisional-layout pass', () => {
@@ -329,7 +319,7 @@ describe('ScrollSync#resyncScrollableElementsWithOwners', () => {
     inlineStartOverlay.trimmingContainer = document.createElement('div');
     scrollSync.resyncScrollableElementsWithOwners();
 
-    expect(counters.registerListeners).toBe(0);
+    expect(counters.registerScrollableElementListeners).toBe(0);
   });
 });
 
@@ -369,8 +359,7 @@ describe('ScrollSync#syncScrollWithMaster', () => {
         isRendered: () => true,
         getComputedStyle: (element: Element) => rootWindow.getComputedStyle(element),
       },
-      eventManager: { clearEvents: () => {} },
-      registerListeners: () => {},
+      registerScrollableElementListeners: () => {},
       refreshAll: () => {},
       getDestroyed: () => false,
       getTopOverlay: () => topOverlay,
