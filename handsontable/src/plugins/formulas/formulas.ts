@@ -731,6 +731,14 @@ export class Formulas extends BasePlugin {
   #dataVersion = 0;
 
   /**
+   * The data version of the last state `captureState()` handed out. `#onChangesRejected` puts back the
+   * version a rejected write drew only while no state carries it: a step recorded during the wait holds a
+   * state at that version, and moving the version back made the next capture differ, so UndoRedo
+   * recorded an empty step.
+   */
+  #capturedDataVersion = 0;
+
+  /**
    * The source data may hold formula text the engine has rewritten: a structural change made out of
    * physical order writes nothing back, and the order returning to physical does not. A state captured
    * while it is set carries the engine's sheet, because the source data cannot rebuild it. Set in
@@ -2360,6 +2368,8 @@ export class Formulas extends BasePlugin {
     }
 
     const sheetSize = this.#hasOwnSheet() ? this.engine.getSheetDimensions(this.sheetId!) : null;
+
+    this.#capturedDataVersion = this.#dataVersion;
 
     if (
       isFormulasUndoState(previous) &&
@@ -4744,8 +4754,12 @@ export class Formulas extends BasePlugin {
       this.#changesAwaitingApply.delete(changes);
       this.#outOfBoundsWrites.delete(changes);
 
-      // Nothing of the set reaches the data, and the engine holds what it held before the write.
-      if (this.#dataVersion === awaitingApply.dataVersionAfter) {
+      // Nothing of the set reaches the data, and the engine holds what it held before the write. A
+      // state captured since already carries the drawn version, and then it stays.
+      if (
+        this.#dataVersion === awaitingApply.dataVersionAfter &&
+        this.#capturedDataVersion !== awaitingApply.dataVersionAfter
+      ) {
         this.#dataVersion = awaitingApply.dataVersionBefore;
       }
     }

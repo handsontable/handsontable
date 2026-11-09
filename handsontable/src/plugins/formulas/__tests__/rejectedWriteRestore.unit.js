@@ -387,6 +387,26 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
     expect(engine.getSheetValues(sheet).map(row => row[0])).toEqual([3, 31, 4]);
   });
 
+  it('records no undo step for a fully rejected change', async() => {
+    buildGrid({ undo: true });
+
+    hot.setDataAtCell(1, 0, -7);
+    await releaseAll();
+
+    expect(hot.getPlugin('undoRedo').doneActions).toEqual([]);
+  });
+
+  it('records only the step made while a rejected change waited for its validator', async() => {
+    buildGrid({ undo: true });
+
+    hot.setDataAtCell(1, 0, -7);
+    // Recorded while the change waits: its state already holds the version the change's write drew.
+    hot.setCellMeta(0, 0, 'className', 'x');
+    await releaseAll();
+
+    expect(hot.getPlugin('undoRedo').doneActions.map(action => action.actionType)).toEqual(['set_cell_meta']);
+  });
+
   it('stops listening for rejected changes when the plugin is turned off', () => {
     buildGrid();
 
