@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "column-summary",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T14:08:18.204Z"
+  },
+  "steps": {
+    "arrow-down-data-row": "",
+    "arrow-down-summary-cell": "a 10",
+    "enter-on-read-only-summary": "",
+    "arrow-right-editable-summary": "b 100",
+    "arrow-up-source-cell": "b 40",
+    "open-editor": "40",
+    "select-all": "",
+    "type-new-value": "0 50",
+    "commit-to-summary": "b 110"
+  }
+}
