@@ -152,6 +152,47 @@ describe('Getters before the view exists', () => {
     });
   });
 
+  describe('writes', () => {
+    it('should apply `setDataAtCell` called inside the initial `afterLoadData`', () => {
+      const afterChange = jest.fn();
+
+      hot = createGrid({
+        afterChange,
+        afterLoadData(sourceData, initialLoad) {
+          if (initialLoad === true) {
+            this.setDataAtCell(0, 0, 'x');
+          }
+        },
+      });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('x');
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('x');
+    });
+
+    it('should apply `setDataAtCell` called inside `afterHideColumns` fired at init', () => {
+      hot = createGrid({
+        hiddenColumns: { columns: [1] },
+        afterHideColumns() {
+          this.setDataAtCell(0, 0, 'x');
+        },
+      });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('x');
+    });
+
+    it('should apply `updateData` called inside the initial `afterLoadData`', () => {
+      hot = createGrid({
+        afterLoadData(sourceData, initialLoad) {
+          if (initialLoad === true) {
+            this.updateData([['x', 'y']]);
+          }
+        },
+      });
+
+      expect(hot.getData()).toEqual([['x', 'y']]);
+    });
+  });
+
   describe('data getters and coordinates', () => {
     it('should answer inside `afterHideColumns` fired at init: the source reads see the data, the grid reads see no rows yet', () => {
       const results = [];

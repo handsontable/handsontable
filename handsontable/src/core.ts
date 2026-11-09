@@ -3829,7 +3829,8 @@ export default function Core(
     runInShiftScope(() => writeChangesToData(changes), false);
 
     const hasChanges = changes.length > 0;
-    const activeEditor = editorManager.getActiveEditor();
+    // The editor manager does not exist yet inside a hook that fires while the grid is being built.
+    const activeEditor = editorManager?.getActiveEditor();
     const closeEditorAfterDataChange = activeEditor?._closeAfterDataChange;
     const isOpenedEditorAffectedByChanges = doesChangeAffectOpenedEditor(changes, activeEditor);
 
@@ -3857,7 +3858,7 @@ export default function Core(
         (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) ||
         !activeEditor?.isOpened()
       ) {
-        editorManager.prepareEditor();
+        editorManager?.prepareEditor();
       }
 
       instance.runHooks('afterChange', changes, source || 'edit');
@@ -5595,7 +5596,7 @@ export default function Core(
         // below is this operation's re-prepare chance - so the same structural-change scope
         // applies, or a trimming change in the same task commits through the stranded editor
         // and appends records (DEV-2739 review).
-        editorManager.suspendStrandDiscards();
+        editorManager?.suspendStrandDiscards();
 
         // `finally`, for the same reason `alter()` uses one: `adjustRowsAndCols()` runs the row
         // creation hooks and `selection.refresh()` the selection hooks, so a hook that throws
@@ -5634,7 +5635,7 @@ export default function Core(
             selection.markEndSource();
           }
         } finally {
-          editorManager.resumeStrandDiscards();
+          editorManager?.resumeStrandDiscards();
         }
       }, {
         hotInstance: instance,

@@ -537,7 +537,7 @@ export const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * The hook also fires once while Handsontable initializes (`initialLoad` is `true`), before the grid has a view.
-   * The data getters, such as {@link Core#getDataAtCol}, work there. The viewport getters, such as
+   * The data getters, such as {@link Core#getDataAtCol}, and the writes, such as {@link Core#setDataAtCell}, work there. The viewport getters, such as
    * {@link Core#getFirstFullyVisibleColumn}, and {@link Core#getCell} return `null`. Methods that need the rendered grid,
    * such as {@link Core#selectCell} and {@link Core#scrollViewportTo}, select or scroll nothing and return `false`.
    *
