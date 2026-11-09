@@ -124,7 +124,8 @@ Everything about that machinery is load-bearing:
   those records, the same way core still writes the waiting edit into them. The wait still resolves on
   the next `postAfterValidate` of any cell, so an unrelated validation that answers first sorts the rows before
   the edit lands, and the edit is written by visual row onto another record. That is a core defect, and once
-  core keeps a waiting change on its record this wait can go.
+  core keeps a waiting change on its record this wait can go. It predates DEV-3760; since then the editor's own
+  wait ends only on the edited cell's answer, so after such a sort the editor itself can still be `WAITING`.
 
 `applyHeaderClickSort(press)` is the extension seam: MultiColumnSorting overrides it to build a different
 sort config for the same gesture without repeating any of the click-versus-drag handling.

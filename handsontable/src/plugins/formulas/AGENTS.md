@@ -727,28 +727,38 @@ early write, writes it, reads the results, and takes the write back with `engine
   at A1); `validation.spec.js` pins the cycle case.
 - **`engine.undo()`, not writing the old content back**: the undo restores an array formula's spill
   exactly, where a serialized value written into a spilled cell breaks the spill. An empty batch still
-  pushes an engine undo entry (checked on 3.3.0), so the undo never reverts an earlier operation. The undo
-  cannot add, remove or rename a sheet, so it does not reset `#ownSheetExists`. An engine with
-  `undoLimit: 0` keeps no entry to undo, so no probe is written there: each deferred formula is calculated
-  on its own with `calculateFormula()` (`#calculateDetached()`), with the limits above, and a formula the
-  engine cannot parse is validated as its text.
+  pushes an engine undo entry (checked on 3.3.0), so with room for both batches each undo takes back its
+  own batch. The undo cannot add, remove or rename a sheet, so it does not reset `#ownSheetExists`. **The
+  guard is `undoLimit` itself** (`engine.getConfig().undoLimit`): a probe pushes up to two batches, and an
+  engine keeping fewer entries drops the first, so the second `undo()` threw `There is no operation to undo`
+  out of `afterSetDataAtCell` with the formula left in the engine (the grid then read 30 over a source
+  holding 2). Below 2 (`undoLimit: 0` or `1`) no probe is written: each deferred formula is calculated on
+  its own with `calculateFormula()` (`#calculateDetached()`), with the limits above, and a formula the
+  engine cannot parse is validated as its text. Pinned by `does not throw or keep the probe in the engine
+  when the engine keeps one undo entry`.
 - **Known limit: the host's own engine undo history.** Each probe batch is pushed and popped, and HF drops
   its oldest entry when the stack is at `undoLimit`, so a probe can evict the host's oldest engine undo
-  entry (`undoLimit: 1` and a host `setCellContents()` lose it). HF exposes no stack length, so there is no
-  cheap guard. The grid's undo never reads that stack.
+  entry (`undoLimit: 2` with two host entries loses one). HF exposes `undoLimit` but no stack length, so the
+  guard above cannot tell how full the stack is. The grid's undo never reads that stack.
 - **A set without a deferred formula skips the round trip**, but every deferred in-bounds change still
-  gets an entry in `#validationValues` (keyed by visual row and column, matched on the change source,
-  cleared in a microtask: the Core validates a set synchronously right after `afterSetDataAtCell`). An entry
+  gets an entry in `#validationValues` (keyed by visual row and column, one entry per change, matched on the
+  change's value and source, cleared in a microtask: the Core validates a set synchronously right after `afterSetDataAtCell`). An entry
   without a result hands the change's own value through, so a value written over a formula cell is
   validated as the value, not as the result the engine still holds there. With the engine's evaluation
   suspended (a host's `batch()`), no probe runs and a formula is validated as its text. **Known limit:** a
   `validateCells()` in the same task with the change's source, or a dependent validation of a pending cell
-  written with source `undefined`, reads the pending entry.
-- **The probe is invisible to this grid's hooks**: `#validationProbePending` makes `#onEngineValuesUpdated`
-  ignore its events, so no `afterFormulasValuesUpdate` fires for it here, and a volatile function
-  (`RAND()`) recalculates in the engine without one. The round trip runs in this grid's write scope
-  (`#writeOwnSheet()`), so another grid on the engine paints once, at the end. **Known limit:** that other
-  grid's own `afterFormulasValuesUpdate` fires for each probe batch and each undo.
+  written with source `undefined`, reads the pending entry. **A set that writes one cell twice** holds the
+  last value in the probe, as the apply will; an earlier formula for that cell is calculated on its own
+  (`#calculateDetached()`, with its limits), so each change is validated by its own value (pinned by
+  `validates each change of a set that writes one cell twice by its own value`).
+- **The probe is invisible to every grid on the engine**: it runs in `withPluginEngineProbe()`
+  (`indexSyncer/pluginEngineWrite.ts`, a per-engine depth next to the write scope), and every grid's
+  `#onEngineValuesUpdated` returns at once while `isPluginEngineProbe(engine)` answers `true`. So no grid
+  fires `afterFormulasValuesUpdate` with probe values (a reader grid used to log the probe value and the
+  undo for an edit later rejected) and none paints for it; a volatile function (`RAND()`) recalculates in
+  the engine without an event. Pinned by `fires no afterFormulasValuesUpdate in another grid on the engine
+  for the probe of a rejected edit`. A host's own `valuesUpdated` listener on the engine still sees both
+  events.
 - **Cost, measured** (jsdom, Jest, 1000-row grid, a paste of 1000 values with one formula that reads A1
   into a column with a sync validator and `allowInvalid: false`, time to the apply, median of 6 runs):
   pre-DEV-3760 early write 42.8 ms (1000 `setCellContents`); deferred write without a probe 47.1 ms;
@@ -869,7 +879,7 @@ Tests: `__tests__/deferredValidatedWrite.unit.js`, `__tests__/validatedWriteResy
 switch, drop and refusal rules; its column A has a validator with the default `allowInvalid: true`, so it is
 written early and restored as before, and `REJECTING_COLUMNS` sets `allowInvalid: false` for the cases that
 need A to wait, the `the early-written cells of a mixed set` block among them) and
-`__tests__/rejectedWriteRestore.unit.js` (every edit path ends with the engine and the grid agreeing after a
+`__tests__/rejectedWriteStaysOut.unit.js` (every edit path ends with the engine and the grid agreeing after a
 rejection: single cell with an async and a sync validator, a multi-cell `setDataAtCell()`, paste, autofill,
 Ctrl+Enter, an `afterValidate` rejection, past the last row, a rejected formula, four overlap orders, a
 reading grid, dependent validation, undo).
@@ -998,6 +1008,20 @@ pre-load order as well reordered the sheet twice (a plain `setupSyncEndpoint()` 
 1, 2 and 2 order calls where the tests pin 0, 1 and 1).
 `AxisSyncer#syncOrderWithEngine` returns early on a null engine. Pinned by
 `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
+
+**Known limit: a sheet-built grid with an array manual move rotates on `updateSettings()`.** A grid built
+from an engine sheet without `data` reloads from that sheet on every `updateSettings()` (`#onAfterCellMetaReset`,
+the `#hotWasInitializedWithEmptyData` branch, through `#loadSheet()`). The sheet already holds the moved
+order, the load resets the index maps, and ManualRowMove/ManualColumnMove re-apply their array to the
+loaded rows and send it to the engine again, so the order moves once more per update. Repro: rows `b, a,
+c` with `manualRowMove: [2, 0, 1]` show `c, b, a` (`[3, 1, 2]` by value), then `a, c, b` (`[2, 3, 1]`) after
+`updateSettings({})`, then `b, a, c` (`[1, 2, 3]`) after another; the engine sheet rotates with it. React
+and Vue call `updateSettings()` on re-render, so the rows cycle per render. On develop the order stayed
+put but the move never reached the engine, so formula results were wrong. A fix that un-permutes the reload
+or holds the move must keep a drag followed by `updateSettings()` free of `#REF!` and keep the read-back of
+a sheet with a trailing blank row or column, which an earlier attempt broke. Pinned as it is (with a TODO)
+by `rotates the manual row order of a sheet-built grid on every updateSettings() (known limit)` in
+`__tests__/sheetBuiltGridSyncEndpoint.unit.js`; a fix flips it.
 
 **A sheet the engine refuses still gets the sync endpoint** (`#clearRejectedSheet()` calls
 `setupSyncEndpoint()`): left on the sheet bound before, a sort of the refused sheet reordered that other
