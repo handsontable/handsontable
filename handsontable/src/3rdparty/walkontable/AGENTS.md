@@ -802,6 +802,56 @@ The rendered band is computed BEFORE the cells render, from `rowHeightCache` —
 
 Two consequences worth stating out loud. **A refill pass repaints only the rows it appends** (DEV-2908). `resolveRefillPaintWindow` gives `renderCellBand` a paint window (`TableRenderer#setPaintWindow`, one render only — `render()` clears it) that starts right after the previous band, and `resetOversizedRows`/`markOversizedRows` take the same window, so over a refilled draw the cell renderer — and with it the core `beforeRenderer` / `afterRenderer` hooks `tableView.ts` fires from inside it — runs once per cell of the FINAL band, never once per pass. Three rules keep the window sound, and each is a fallback to a full repaint, not a tweak: (1) the band's start row must be unchanged — TR/TD nodes are reused in place by visible index, so a moved start re-identifies every element; (2) the column band must be unchanged — the refill's `createCalculators(false)` recomputes both axes without pass 1's columns overscan, so compare the captured `startColumn`/count against the assigned ones; (3) the host's `renderEpoch` setting must be unchanged since the DRAW started (`ctx.renderEpochAtDrawStart`, snapshotted before pass 1 renders — snapshotting per pass would put a change made by the previous pass' own render hooks on both sides of the compare) — a structural change from inside a render hook (a column reorder or hide) can keep the column start and count while re-identifying every TD; (4) the band must render no merged cell (`rendersMergedCells`, one `td[rowspan], th[rowspan]` query) — not because a `rowspan` has to grow (MergeCells caps a span at the merge's own last non-hidden row and only ever raises the ANCHOR to the band's first row, so a span reaching the band end already carries its full value) but because the plugin's after-renderer writes `TD.style.height` on the cells NEXT TO a merged block from row heights pass 1 read before the re-measure, and a skipped row would keep that stale height until the next draw. The skip is also all-or-nothing per TR: `CellsRenderer` and `RowHeadersRenderer` share one `SharedOrderView` size set per TR, so a row skipped by one must be skipped by the other, or a lone `start()` resizes the TR's children with half the count. A windowed measure never takes `markOversizedRows`' TBODY-height fast path — that path judges the whole band — and the wipe (`resetOversizedRows`, before the render, calculator count) and the measure (`markOversizedRows`, after it, TBODY row count) are bound by different sources on purpose: the measure reads a TR per row and the two counts can differ mid-draw (a bottom clone measured from `syncScrollPositions` has fewer TRs than its calculator reports — a calculator-bound measure loop threw on the missing TR in the full E2E suite), so the DOM count is the only safe bound for it; after a normal render they agree, and a windowed call comes only from the refill right after such a render. `TableRenderer#render()` clears the window in a `finally`, so a throwing `cellRenderer` cannot leave it armed. One documented cost under the host's `renderMode: 'onChange'`: the `band` identity handed to `shouldPaintCell` carries `rowsToRender`, so a skipped row keeps the stamp of its own pass and the next ordinary draw repaints the skipped cells once (self-healing; the host owns the stamps, so the engine cannot re-stamp them); where the rows recycle (`hasStableCellIdentity()`), the stable identity carries no band size, so a skipped row's stamp still matches and no repaint follows. The draw-level hooks do not repeat: the `beforeDraw` setting (core's `beforeViewRender`) fires once before the first pass, and the `onDraw` setting (core's `afterViewRender`) fires once after the last one — both sit outside the loop in `runMasterDrawCycle`. `renderCycleSeq` does advance once per pass whatever the window (the pass-cap spec counts passes through it, since cell paints no longer can), but its only consumer is the `skipRender` rollback guard (`restoreRenderedStateIfSafe`). **Every pass rebuilds both size caches**, so the post-render second-calculator-pass skip right after the call site cannot ask `rowHeightCache.isCurrent()` alone — it also asks `!rowHeightsChanged`. Nothing placed between `renderCellBand` and that predicate may call `ensureBuilt()` without feeding the predicate too, or a draw whose rows changed height silently keeps pre-render visible calculators.
 
+## A recorded row height keeps its fraction (DEV-544)
+
+A row laid out at `118.27px` reads `118` through `offsetHeight`. `markOversizedRows` used to record that
+whole pixel, and the record is what the row-header clone and the corners are written as their row height
+(`applyRowHeight`), while the master keeps sizing the row from its own content. The clone's row came out
+`0.27px` short, the next one `0.4px` long, and the error stacked down the grid. It needs no display
+scaling: any content height that is not a whole pixel does it, such as a fractional `line-height` on a
+wrapped cell (`13.3px * 1.37`), at 100% zoom as at 150%. The default theme at a fractional scale lands on
+whole pixels, which is why the ticket's own report no longer reproduces.
+
+- **A row with a height to compare with is judged on the fractional height.** A row that has a floor
+  (`minRowHeights`, a `modifyRowHeight` hook) or a surviving record is compared with the height the browser
+  laid it out at, read from the computed style, not with `offsetHeight`: a floor of `118` over `118.27px` of
+  content reads `118` and `118` is not below it, so a decision on the whole pixel recorded nothing and the
+  clone row was `0.27px` short (`modifyRowHeight: () => 40.6` over `40.89px`: `Math.round(40.6)` is the `41`
+  `offsetHeight` reads, so even a floor with a fraction went unrecorded). `isHeightBelow()`
+  (`helpers/dom/layoutUnit.ts`) is the comparison, with half a layout step of margin so a height that is on
+  the grid is not below itself. The read is made only for a border-box row whose height is within a pixel
+  above its whole-pixel read (`previous < current + 1`): a floor a pixel or more above the content is no
+  floor for it, and a row with no height to compare with is judged on the whole pixel as it always was
+  (the default-height branch).
+- **Computed style, not `getBoundingClientRect()`.** A rect is scaled by an ancestor's CSS `zoom` and
+  `offsetHeight` is not, so a record taken from a rect sits in another space than the heights it is
+  compared with. `getComputedStyle(el).height` is in `offsetHeight`'s space at any zoom, and the read
+  runs only for a row that is compared or recorded.
+- **Snap to 1/64 of the layout's own space.** A computed style serializes three decimals (`118.266px` for a
+  row laid out at `118.265625px`), which written back lands on the neighbouring layout step and leaves a
+  `0.008px` difference per row. `snapToLayoutUnit()` rounds to the grid the browser lays out on. Under an
+  ancestor's CSS `zoom` that grid is the ZOOMED one while the computed height is unzoomed, so
+  `resolveFractionalHeight()` takes the element's `currentCSSZoom` and snaps `used * zoom`, then divides
+  back (`99.8625px` under `zoom: 1.25` is laid out at `99.859375 * 1.25`'s neighbour, and a snap in the
+  unzoomed space left every fractional row `0.003px` off, `0.1px` over 30 rows). `currentCSSZoom` is a style
+  read, not a layout one, and an engine that lacks it reads as `1`.
+- **Content-box cells keep the whole pixel** (`areCellsBorderBox()` false): that branch reads
+  `clientHeight` and adds `1`, which has no computed-style twin. `RenderSizeProbe` also still records
+  whole pixels, so its map equals `oversizedRows` for whole-pixel rows only; nothing reads that map yet, so
+  there is no drift to see today. Give it the same read before the single-pass work starts consuming it.
+- **The comparison tolerates a record that survives the wipe.** A frozen-derived record
+  (`frozenOversizedRows`) is fractional and was snapped by this same read, so the read of the same row
+  compares equal to it: a record of `117.73` over `117.73px` of content is not below itself and is not
+  recorded again, so the row-height cache is not dropped on every draw (a decision on the whole pixel
+  compared `117.73` with the `118` that `offsetHeight` gives it, and it was). Only a counter sees it
+  (`costs no row-height cache invalidation` in `row-header-fractional-height.spec.ts`, frozen column,
+  rows of 63.61px).
+- The AutoRowSize half of the same drift is in `plugins/autoRowSize/AGENTS.md`: there the height is rounded UP
+  to a whole pixel, because that plugin's heights are whole pixels by contract.
+- Pinned by `tests/e2e/row-header-fractional-height.spec.ts` (autoRowSize off and on, a floor at the rounded
+  content, an ancestor CSS zoom, row recycling, a frozen column, all three themes) and
+  `helpers/dom/__tests__/layoutUnit.unit.ts`.
+
 ## The hider height is fractional below 100% zoom, and two coordinate spaces meet there
 
 `SpreaderSize#adjustElementsSize` writes the master hider's height, and below 100% browser zoom or

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — row heights that are not whole pixels</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // `?autoRowSize=` turns the plugin on, which hands the row heights over to its ghost table
+    // measurement; off, the engine measures the rendered rows itself. Two code paths, one symptom.
+    window.htAutoRowSize = ({ 0: false, 1: true })[htParams.get('autoRowSize') ?? '0'];
+    if (window.htAutoRowSize === undefined) {
+      throw new Error('Unknown ?autoRowSize= value: ' + JSON.stringify(htParams.get('autoRowSize')));
+    }
+
+    // `?frozen=1` freezes the first column and narrows the grid so it scrolls sideways: the master
+    // then renders a column band that starts past the frozen column, and the frozen column's row
+    // heights live in the inline-start overlay alone.
+    window.htFrozen = ({ 0: false, 1: true })[htParams.get('frozen') ?? '0'];
+    if (window.htFrozen === undefined) {
+      throw new Error('Unknown ?frozen= value: ' + JSON.stringify(htParams.get('frozen')));
+    }
+
+    // `?renderAll=0` leaves the row virtualization on, so a scroll recycles the rows.
+    window.htRenderAll = ({ 0: false, 1: true })[htParams.get('renderAll') ?? '1'];
+    if (window.htRenderAll === undefined) {
+      throw new Error('Unknown ?renderAll= value: ' + JSON.stringify(htParams.get('renderAll')));
+    }
+
+    // `?zoom=` is the CSS zoom of an ancestor of the grid, applied before the grid is built. The
+    // computed height of a row is then in unzoomed pixels, while the browser lays the row out on a
+    // grid of zoomed ones.
+    window.htZoom = ({ 1: 1, 1.25: 1.25 })[htParams.get('zoom') ?? '1'];
+    if (window.htZoom === undefined) {
+      throw new Error('Unknown ?zoom= value: ' + JSON.stringify(htParams.get('zoom')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+
+    /* The trigger. A line height that is not a whole number of pixels makes every wrapped cell's
+       content height fractional (13.3px * 1.37 = 18.221px per line), whatever the display scaling. */
+    .handsontable td,
+    .handsontable th {
+      font-size: 13.3px !important;
+      line-height: 1.37 !important;
+    }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const SHORT = 'Short';
+    const WRAPPED = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor';
+    const MULTILINE = 'line one\nline two\nline three';
+    const ROWS = 30;
+
+    // A mix of one-line, wrapped and multi-line rows, so the heights are whole and fractional side
+    // by side and the drift builds up the way the ticket describes.
+    const data = [];
+
+    for (let row = 0; row < ROWS; row++) {
+      data.push([
+        // The first column holds the multi-line rows too, so a frozen first column carries a height
+        // with a fraction above one half (a three-line cell is 63.61px) as well as one below it.
+        row % 3 === 0 ? WRAPPED : (row % 4 === 0 ? MULTILINE : `${SHORT} ${row}`),
+        row % 4 === 0 ? MULTILINE : 'x',
+        `y${row}`,
+        row % 5 === 0 ? `${WRAPPED} ${WRAPPED}` : 'z',
+        // Room to scroll sideways past the column overscan in the frozen variant.
+        ...Array.from({ length: window.htFrozen ? 12 : 0 }, (_, col) => `f${row}-${col}`),
+      ]);
+    }
+
+    const container = document.getElementById('grid');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    document.body.style.zoom = String(window.htZoom);
+
+    try {
+      window.hot = new Handsontable(container, {
+        data,
+        colHeaders: true,
+        rowHeaders: true,
+        colWidths: 120,
+        width: window.htFrozen ? 360 : 700,
+        height: 500,
+        autoRowSize: window.htAutoRowSize,
+        fixedColumnsStart: window.htFrozen ? 1 : 0,
+        // With every row in the DOM the clone and the master can be compared row by row.
+        renderAllRows: window.htRenderAll,
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      // Read by `awaitFixtureBuilt()`, so a bad setting is a red test with the cause.
+      window.htBuildError = String(error && error.stack ? error.stack : error);
+    }
+
+    // Counts row-height cache invalidations over `renders` full draws. A steady-state redraw must
+    // cost none: the rows stay aligned and every visible assertion passes while the grid drops and
+    // rebuilds its prefix sums on every draw, so only a counter sees it.
+    window.countRowCacheInvalidations = (renders) => {
+      const { wtViewport } = hot.view._wt;
+      const original = wtViewport.invalidateRowHeightCache.bind(wtViewport);
+      let count = 0;
+
+      wtViewport.invalidateRowHeightCache = (...args) => {
+        count += 1;
+
+        return original(...args);
+      };
+
+      try {
+        for (let i = 0; i < renders; i++) {
+          hot.render();
+        }
+      } finally {
+        wtViewport.invalidateRowHeightCache = original;
+      }
+
+      return count;
+    };
+  </script>
+</body>
+</html>

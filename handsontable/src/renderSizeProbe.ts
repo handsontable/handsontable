@@ -102,9 +102,11 @@ export class RenderSizeProbe {
 
   /**
    * Measures every rendered row of one table body and stores the height under its source row index.
-   * The formula matches `markOversizedRows` (`axisSizing/oversizedRows`)'s stored value exactly (a row with a row header is
-   * measured from the TH; otherwise from the TR minus the content-box border, then the content-box
-   * `+1` is folded back so the stored value equals the engine's).
+   * The formula matches `markOversizedRows` (`axisSizing/oversizedRows`)'s stored value for a whole-pixel
+   * row (a row with a row header is measured from the TH; otherwise from the TR minus the content-box
+   * border, then the content-box `+1` is folded back so the stored value equals the engine's). The
+   * engine keeps the fraction of a border-box row (`118.27px` is recorded as is) and this map does not:
+   * it stays whole pixels, and nothing reads it yet.
    *
    * @param {object} wtTable The engine table (master or bottom clone) whose TBODY is measured.
    * @param {boolean} borderBoxSizing Whether cells use `box-sizing: border-box` (the theme axis).

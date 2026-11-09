@@ -12,6 +12,7 @@ import { addClass, removeClass } from '../../helpers/dom/element';
 import { FONT_REMEASURE_ROWS_ORDER_INDEX } from '../../core/fontLoad';
 import { isAutoRowSizeOn } from '../../core/rowHeightSetting';
 import { LICENSE } from './feature.generated';
+import { toStoredRowHeight } from './helpers/measuredRowHeight';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
@@ -582,9 +583,9 @@ export class AutoRowSize extends BasePlugin {
       this.hot.batchExecution(() => {
         this.ghostTable.getHeights((row: number, height: number) => {
           if (row < 0) {
-            this.headerHeight = height;
+            this.headerHeight = Math.round(height);
           } else {
-            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
+            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), this.#toStoredHeight(height));
           }
         });
       }, true);
@@ -708,6 +709,30 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * The height to store for a sampled row, from the height the ghost table measured for it.
+   *
+   * Compared with the default height WITHOUT the first-row border compensation: the ghost table
+   * measures every row without that border, so the compensated default would count a row up to a
+   * pixel taller than the real default as a default-height row and round it down.
+   *
+   * The margin also takes in what the border inflation adds at the zoom of now: the default height
+   * keeps the value read when the grid was built, so a grid zoomed out afterwards would otherwise read
+   * every default row as a taller one and round it up.
+   *
+   * @param {number} measuredHeight The measured height, snapped to the layout grid.
+   * @returns {number}
+   */
+  #toStoredHeight(measuredHeight: number): number {
+    const { stylesHandler } = this.hot;
+
+    return toStoredRowHeight(
+      measuredHeight,
+      stylesHandler.getDefaultRowHeight() ?? 0,
+      stylesHandler.getMaxDefaultRowOvergrowth(),
+    );
+  }
+
+  /**
    * Measures the rows waiting in the refresh queue, if this moment can measure them at all.
    *
    * Two moments cannot, and both KEEP the queue rather than dropping it, so the rows are measured
@@ -757,7 +782,7 @@ export class AutoRowSize extends BasePlugin {
         this.ghostTable.getHeights((visualRow: number, height: number) => {
           const physicalRow = this.hot.toPhysicalRow(visualRow);
 
-          this.rowHeightsMap.setValueAtIndex(physicalRow, height);
+          this.rowHeightsMap.setValueAtIndex(physicalRow, this.#toStoredHeight(height));
         });
       }, true);
 
