@@ -20,6 +20,21 @@ import type { IconSlotSync } from '../../themes/engine/icons';
  */
 const ICON_SLOT_CLASS = 'ht-page-icon';
 
+/**
+ * The class of the block that holds the body open while there are no rows to draw.
+ *
+ * @type {string}
+ */
+const EMPTY_BODY_RESERVE_CLASS_NAME = 'ht-pagination-placeholder';
+
+/**
+ * The height, in pixels, the body keeps while there are no rows. The same value the
+ * `emptyDataState` placeholder uses, so turning that plugin on does not move the pager.
+ *
+ * @type {number}
+ */
+const EMPTY_BODY_RESERVE_HEIGHT = 150;
+
 const TEMPLATE: TemplateSpec = {
   tag: 'div',
   ref: 'container',
@@ -118,6 +133,12 @@ export class PaginationUI {
    * @type {object}
    */
   #refs: PaginationRefs | null = null;
+  /**
+   * The empty block that keeps the body of a grid with no rows from collapsing.
+   *
+   * @type {HTMLElement | null}
+   */
+  #emptyBodyReserve: HTMLElement | null = null;
   /**
    * The name of the current theme.
    *
@@ -571,8 +592,38 @@ export class PaginationUI {
       }
     }
 
+    this.#emptyBodyReserve?.remove();
+    this.#emptyBodyReserve = null;
     this.#refs?.container.remove();
     this.#refs = null;
+  }
+
+  /**
+   * Keeps an empty block in the table holder while the grid has no rows to draw, so a root whose
+   * height is free does not collapse to its column headers and leave the pager touching them.
+   * Removes the block as soon as it is not needed.
+   *
+   * @param {HTMLElement | null} holder The table holder, or `null` when there is no view yet.
+   * @param {boolean} needed Whether the grid should reserve the body space now.
+   */
+  syncEmptyBodyReserve(holder: HTMLElement | null, needed: boolean) {
+    if (!holder || !needed) {
+      this.#emptyBodyReserve?.remove();
+      this.#emptyBodyReserve = null;
+
+      return;
+    }
+
+    if (!this.#emptyBodyReserve) {
+      this.#emptyBodyReserve = holder.ownerDocument.createElement('div');
+      this.#emptyBodyReserve.classList.add(EMPTY_BODY_RESERVE_CLASS_NAME);
+      this.#emptyBodyReserve.style.width = '100%';
+      this.#emptyBodyReserve.style.height = `${EMPTY_BODY_RESERVE_HEIGHT}px`;
+    }
+
+    if (this.#emptyBodyReserve.parentElement !== holder) {
+      holder.appendChild(this.#emptyBodyReserve);
+    }
   }
 }
 

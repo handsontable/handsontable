@@ -374,6 +374,7 @@ export class Pagination extends BasePlugin {
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
     this.addHook('beforePaste', this.#onBeforePaste);
     this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterRender', this.#onAfterRender);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
@@ -1299,6 +1300,30 @@ export class Pagination extends BasePlugin {
     this.#internalRenderCall = true;
     this.#refreshUI();
   };
+
+  /**
+   * Called after the grid is rendered. It holds the body of a grid with no rows open, so a root with a free
+   * height does not collapse to its column headers and leave the pager touching them.
+   */
+  #onAfterRender = () => {
+    this.#ui?.syncEmptyBodyReserve(this.hot.view._wt.wtTable.holder, this.#shouldReserveEmptyBody());
+  };
+
+  /**
+   * Tells whether the body should keep its own height now: there are no rows to draw, the root's height
+   * is free (unset or `'auto'`), the pager sits under the grid, and `emptyDataState` is not already holding
+   * the same space open.
+   *
+   * @returns {boolean}
+   */
+  #shouldReserveEmptyBody(): boolean {
+    const inlineHeight = this.hot.rootElement.style.height;
+
+    return this.hot.rowIndexMapper.getRenderableIndexesLength() === 0 &&
+      (inlineHeight === '' || inlineHeight === 'auto') &&
+      !this.getSetting('uiContainer') &&
+      !this.hot.getPlugin('emptyDataState')?.enabled;
+  }
 
   /**
    * Called after the language change. It recomputes the pagination state which updates the UI.

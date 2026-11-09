@@ -86,6 +86,16 @@ Pinned by `__tests__/readyStep.unit.js`.
   height instead (`layoutReservedHeight`). Do not add a reservation back here: it would stack on
   core's and shrink the grid twice (DEV-2848).
 
+- **An empty grid with a free height keeps its body open itself (DEV-1103).** With no renderable rows and a root
+  height that is unset or `'auto'`, the holder has no content, so the root collapsed to its column headers and the
+  pager touched them. `#onAfterRender` keeps one `ht-pagination-placeholder` block (150 px, the same as the
+  `emptyDataState` placeholder) in `wtTable.holder` through `PaginationUI#syncEmptyBodyReserve()`; `destroy()`
+  removes it. It stays off with a fixed `height` (the engine already leaves the room), with a custom
+  `uiContainer` (the pager is not under the grid), and while `emptyDataState` is enabled, which holds the same
+  space open, so the two never stack to 300 px. Pinned by `tests/e2e/pagination-all-filtered-gap.spec.ts`. The
+  `auto-height` variant of the bottom-slot fixture fixes the grid's CSS box at 400 px, so its pager never
+  collapses: use `inline-block-host` to reproduce it.
+
 The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
 the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
 is unreachable**; it stays as a statement of the requirement, **not** as support for a nested grid. (The
