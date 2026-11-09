@@ -1306,21 +1306,24 @@ export class Pagination extends BasePlugin {
    * height does not collapse to its column headers and leave the pager touching them.
    */
   #onAfterRender = () => {
-    this.#ui?.syncEmptyBodyReserve(this.hot.view._wt.wtTable.holder, this.#shouldReserveEmptyBody());
+    const holder = this.hot.view._wt.wtTable.holder;
+
+    this.#ui?.syncEmptyBodyReserve(holder, this.#shouldReserveEmptyBody(holder));
   };
 
   /**
-   * Tells whether the body should keep its own height now: there are no rows to draw, the root's height
-   * is free (unset or `'auto'`), the pager sits under the grid, and `emptyDataState` is not already holding
-   * the same space open.
+   * Tells whether the body should keep its own height now: nothing is drawn, the holder follows its content
+   * (the engine gave it no pixel height, as it does for a free root height and not inside a sized scroll
+   * parent), the pager sits under the grid, and `emptyDataState` is not already holding the same space open.
    *
+   * @param {HTMLElement} holder The table holder.
    * @returns {boolean}
    */
-  #shouldReserveEmptyBody(): boolean {
-    const inlineHeight = this.hot.rootElement.style.height;
+  #shouldReserveEmptyBody(holder: HTMLElement): boolean {
+    const holderHeight = holder.style.height;
 
-    return this.hot.rowIndexMapper.getRenderableIndexesLength() === 0 &&
-      (inlineHeight === '' || inlineHeight === 'auto') &&
+    return this.hot.view.countRenderableRows() === 0 &&
+      (holderHeight === '' || holderHeight === 'auto') &&
       !this.getSetting('uiContainer') &&
       !this.hot.getPlugin('emptyDataState')?.enabled;
   }

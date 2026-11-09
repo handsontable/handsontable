@@ -99,6 +99,7 @@ test.describe('pagination with every row filtered out', { tag: THEMES_TAG }, () 
 
     await expect(grid.page.locator(PLACEHOLDER)).toHaveCount(1);
     await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(0);
+    await expect.poll(gapUnderHeaders).toBeGreaterThanOrEqual(RESERVED_BODY_PX);
     await expect.poll(gapUnderHeaders).toBeLessThan(RESERVED_BODY_PX + 5);
   });
 
@@ -112,6 +113,25 @@ test.describe('pagination with every row filtered out', { tag: THEMES_TAG }, () 
 
     await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(0);
     expect((await grid.geometry()).root.height).toBe(heightWithRows);
+  });
+
+  test('adds nothing inside a sized scroll parent with no `height` option', async () => {
+    await grid.goto('scrollable-ancestor', 'pagination');
+    await grid.rebuild({ filters: true });
+    await filterEverything();
+
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(0);
+  });
+
+  test('keeps the gap when `maxRows: 0` draws nothing although the index mapper still has rows', async () => {
+    await grid.goto(FREE_HOST, 'pagination');
+    await grid.page.evaluate(() => {
+      window.initSlotGrid(undefined, undefined, { height: 'auto', maxRows: 0 });
+    });
+    await expect(grid.page.locator('.ht-slot-bottom .ht-pagination')).toBeVisible();
+
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(1);
+    await expect.poll(gapUnderHeaders).toBeGreaterThanOrEqual(RESERVED_BODY_PX);
   });
 
   test('adds nothing when the pager sits in a custom `uiContainer`', async () => {

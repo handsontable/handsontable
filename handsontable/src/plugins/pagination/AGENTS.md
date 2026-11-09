@@ -91,9 +91,11 @@ Pinned by `__tests__/readyStep.unit.js`.
   pager touched them. `#onAfterRender` keeps one `ht-pagination-placeholder` block (150 px, the same as the
   `emptyDataState` placeholder) in `wtTable.holder` through `PaginationUI#syncEmptyBodyReserve()`; the UI keeps
   the request and re-applies it from `#updateContainerVisibility()`, so `hide*Section()`/`show*Section()` (which do not
-  render) move the block at once; `destroy()` removes it. "Free" means the root's INLINE height is empty or `'auto'`, so a root sized by a stylesheet or a short
-  container counts as free and the 150 px can extend past it, the same way the rows do in that layout. It stays off
-  with a pixel, percentage or viewport `height` (the engine already leaves the room), with a custom `uiContainer`
+  render) move the block at once; `destroy()` removes it. "Free" means the table HOLDER has no inline pixel height (`''` or `'auto'`), which is what the engine leaves for a free
+  root height and for a root sized by CSS in a window-scrolled layout. Inside a sized scroll parent the engine gives the
+  holder a pixel height, so the block would only add a scrollbar and is skipped. "No rows" is `view.countRenderableRows()`,
+  not `getRenderableIndexesLength()`: `maxRows: 0` draws nothing while the mapper still holds rows. It stays off
+  with a sized holder (a pixel, percentage or viewport `height`, or a sized scroll parent), with a custom `uiContainer`
   (the pager is not under the grid), while every pager section is hidden, and while `emptyDataState` is enabled,
   which holds the same space open, so the two never stack to 300 px. The 150 is a copy of `MIN_HEIGHT` in
   `../emptyDataState/ui.ts`: change both together, or the pager jumps when that plugin is toggled. Pinned by `tests/e2e/pagination-all-filtered-gap.spec.ts`. The
