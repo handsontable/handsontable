@@ -11,13 +11,21 @@ import { SheetsBarPage } from './SheetsBarPage';
 export class NestedRowsSheetSwitchPage extends NestedRowsPage {
   readonly sheetsBar: SheetsBarPage;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  readonly fixture: 'nested-rows-sheet-switch' | 'nested-rows-sheet-blank-keys';
+
+  constructor(
+    page: Page,
+    theme = 'main',
+    bundle = 'umd',
+    fixture: 'nested-rows-sheet-switch' | 'nested-rows-sheet-blank-keys' = 'nested-rows-sheet-switch',
+  ) {
     super(page, theme, bundle);
     this.sheetsBar = new SheetsBarPage(page, theme, bundle);
+    this.fixture = fixture;
   }
 
   override async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/nested-rows-sheet-switch.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await this.page.goto(`/tests/fixtures/demo/${this.fixture}.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
@@ -41,6 +49,21 @@ export class NestedRowsSheetSwitchPage extends NestedRowsPage {
 
       return rows.length > 0 && rows.every(row => row !== null && typeof row === 'object' && !Array.isArray(row));
     });
+  }
+
+  /**
+   * The keys of the shown sheet's first source row, which the grid reads its columns from when
+   * neither `columns` nor `dataSchema` is set.
+   */
+  firstSourceRowKeys(): Promise<string[]> {
+    return this.page.evaluate(() => Object.keys(window.hot.getSourceDataAtRow(0) ?? {}));
+  }
+
+  /**
+   * How many columns the grid shows.
+   */
+  countCols(): Promise<number> {
+    return this.page.evaluate(() => window.hot.countCols());
   }
 
   /**

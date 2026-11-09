@@ -67,3 +67,20 @@ test.describe('NestedRows collapse state across a sheet switch', { tag: THEMES_T
     expect(await grid.sourceRowsAreObjects()).toBe(false);
   });
 });
+
+test.describe('A blank declared sheet without named columns under NestedRows', { tag: THEMES_TAG }, () => {
+  let grid: NestedRowsSheetSwitchPage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new NestedRowsSheetSwitchPage(page, theme, bundle, 'nested-rows-sheet-blank-keys');
+    await grid.goto();
+  });
+
+  test('takes its columns from the opening sheet\'s rows', async () => {
+    await grid.switchToSheet(1);
+
+    await expect.poll(() => grid.firstSourceRowKeys()).toEqual(['name']);
+    expect(await grid.countCols()).toBe(1);
+    expect(await grid.isPluginEnabled()).toBe(true);
+  });
+});
