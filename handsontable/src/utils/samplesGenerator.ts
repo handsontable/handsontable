@@ -326,8 +326,13 @@ class SamplesGenerator {
         }
 
         sample.strings.push(sampleString);
-        sampledValues.push(value);
         sample.needed -= 1;
+
+        // A block's text has a bucket of its own and is not a value of the row's cells: listed as sampled, it
+        // would make a cell beside it with the same text a duplicate and leave that cell out.
+        if (block === undefined) {
+          sampledValues.push(value);
+        }
       }
     }
   }

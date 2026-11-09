@@ -422,6 +422,21 @@ export class AutoRowSize extends BasePlugin {
    * @type {Map<string, number>}
    */
   #blockCarriers = new Map<string, number>();
+  /**
+   * The physical row a block is drawn on, by the physical top-left cell of that block, as of the last
+   * comparison. A change of that cell's text changes what the block's row is measured to, so
+   * `#onBeforeChange` finds the row here. Empty without a block drawn on a covered cell.
+   *
+   * @type {Map<string, number>}
+   */
+  #blockOrigins = new Map<string, number>();
+  /**
+   * The rows whose cached height was dropped while they were hidden, and not measured then: a hidden row
+   * takes the default height, so a measurement would be wasted. They are measured once they are shown.
+   *
+   * @type {Set<number>}
+   */
+  #hiddenRowsToRemeasure = new Set<number>();
 
   /**
    * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
@@ -554,6 +569,8 @@ export class AutoRowSize extends BasePlugin {
     this.#rowsOwedToColumnSweep = false;
     this.#mergedBlocksChanged = false;
     this.#blockCarriers.clear();
+    this.#blockOrigins.clear();
+    this.#hiddenRowsToRemeasure.clear();
 
     removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
@@ -803,7 +820,7 @@ export class AutoRowSize extends BasePlugin {
    */
   #onMergesRestored = () => {
     this.#mergedBlocksChanged = true;
-    this.#remeasureMovedBlocks();
+    this.#remeasureMovedBlocks(true);
     this.#drainRowRefreshQueue();
   };
 
@@ -835,8 +852,11 @@ export class AutoRowSize extends BasePlugin {
    * can move a block was reported, and compares the covered cells the blocks are drawn on with those of the
    * last comparison: a grid whose blocks did not move (a settings update that hides nothing new) drops
    * nothing.
+   *
+   * @param {boolean} [queueRowsInView=false] Whether the rows in view are queued for a measurement as well.
+   * A render measures them anyway, so only a caller that is not about to render needs it.
    */
-  #remeasureMovedBlocks(): void {
+  #remeasureMovedBlocks(queueRowsInView: boolean = false): void {
     if (!this.#mergedBlocksChanged) {
       return;
     }
@@ -845,14 +865,21 @@ export class AutoRowSize extends BasePlugin {
 
     const mergeCells = this.hot.getPlugin('mergeCells');
     const carriers = new Map<string, number>();
+    const origins = new Map<string, number>();
 
     if (mergeCells?.enabled) {
-      mergeCells.getCellsBlocksAreDrawnOn().forEach(({ row, col, colspan }) => {
+      mergeCells.getCellsBlocksAreDrawnOn().forEach(({ row, col, colspan, originRow, originCol }) => {
         const physicalRow = this.hot.toPhysicalRow(row);
         const physicalColumn = this.hot.toPhysicalColumn(col);
+        const physicalOriginRow = this.hot.toPhysicalRow(originRow);
+        const physicalOriginColumn = this.hot.toPhysicalColumn(originCol);
 
         if (physicalRow !== null && physicalColumn !== null) {
           carriers.set(`${physicalRow}:${physicalColumn}:${colspan}`, physicalRow);
+
+          if (physicalOriginRow !== null && physicalOriginColumn !== null) {
+            origins.set(`${physicalOriginRow}:${physicalOriginColumn}`, physicalRow);
+          }
         }
       });
     }
@@ -869,12 +896,57 @@ export class AutoRowSize extends BasePlugin {
         movedRows.add(physicalRow);
       }
     });
+    this.#hiddenRowsToRemeasure.forEach((physicalRow) => {
+      if (!this.hot.rowIndexMapper.isHidden(physicalRow)) {
+        this.#hiddenRowsToRemeasure.delete(physicalRow);
+        movedRows.add(physicalRow);
+      }
+    });
 
     this.#blockCarriers = carriers;
+    this.#blockOrigins = origins;
+    this.#clearRowHeights(Array.from(movedRows), queueRowsInView);
+  }
 
-    if (movedRows.size > 0) {
-      this.clearCache(Array.from(movedRows));
+  /**
+   * Drops the cached heights of rows, and queues the ones that need a measurement of their own. A hidden row
+   * is not measured until it is shown. A row in view is measured by the render that follows, which measures
+   * every row without a height, so queueing it would measure it twice.
+   *
+   * @param {number[]} physicalRows The physical rows.
+   * @param {boolean} queueRowsInView Whether the rows in view are queued as well.
+   */
+  #clearRowHeights(physicalRows: number[], queueRowsInView: boolean): void {
+    if (physicalRows.length === 0) {
+      return;
     }
+
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
+    const rowsToQueue: number[] = [];
+
+    this.hot.batchExecution(() => {
+      physicalRows.forEach((physicalRow) => {
+        this.rowHeightsMap.setValueAtIndex(physicalRow, null);
+      });
+    }, true);
+
+    physicalRows.forEach((physicalRow) => {
+      if (this.hot.rowIndexMapper.isHidden(physicalRow)) {
+        this.#hiddenRowsToRemeasure.add(physicalRow);
+
+        return;
+      }
+
+      const visualRow = this.hot.toVisualRow(physicalRow);
+      const isInView = visualRow !== null && visualRow >= firstVisibleRow && visualRow <= lastVisibleRow;
+
+      if (visualRow !== null && (queueRowsInView || !isInView)) {
+        rowsToQueue.push(physicalRow);
+      }
+    });
+
+    this.#queueClearedRowsForRefresh(rowsToQueue);
   }
 
   /**
@@ -1334,17 +1406,15 @@ export class AutoRowSize extends BasePlugin {
   #onBeforeChange = (changes: unknown[][]) => {
     const changedRows = new Set<number>();
 
-    changes.forEach(([row]: unknown[]) => {
+    changes.forEach(([row, prop]: unknown[]) => {
       changedRows.add(Number(row));
-    });
 
-    // A block drawn on a covered cell takes its text from another cell, so a change there is not a change of
-    // the row the block is measured on.
-    this.#blockCarriers.forEach((physicalRow) => {
-      const visualRow = this.hot.toVisualRow(physicalRow);
+      // A block drawn on a covered cell takes its text from its top-left cell, so a change there is a change
+      // of the row the block is measured on.
+      const blockRow = this.#getRowOfBlockStartingAt(Number(row), prop);
 
-      if (visualRow !== null) {
-        changedRows.add(visualRow);
+      if (blockRow !== null) {
+        changedRows.add(blockRow);
       }
     });
 
@@ -1352,6 +1422,32 @@ export class AutoRowSize extends BasePlugin {
       this.#visualRowsToRefresh.push(rowIndex);
     });
   };
+
+  /**
+   * The visual row a merged block is drawn on, when the given cell is the block's top-left cell and the block
+   * is drawn on another cell.
+   *
+   * @param {number} row The visual row of the cell.
+   * @param {unknown} prop The property or the visual column of the cell, as a change carries it.
+   * @returns {number|null}
+   */
+  #getRowOfBlockStartingAt(row: number, prop: unknown): number | null {
+    if (this.#blockOrigins.size === 0 || (typeof prop !== 'string' && typeof prop !== 'number')) {
+      return null;
+    }
+
+    const column = this.hot.propToCol(prop);
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = typeof column === 'number' ? this.hot.toPhysicalColumn(column) : null;
+
+    if (physicalRow === null || physicalColumn === null) {
+      return null;
+    }
+
+    const carrierRow = this.#blockOrigins.get(`${physicalRow}:${physicalColumn}`);
+
+    return carrierRow === undefined ? null : this.hot.toVisualRow(carrierRow);
+  }
 
   /**
    * Triggers the first full row height recalculation after Handsontable has finished initializing.

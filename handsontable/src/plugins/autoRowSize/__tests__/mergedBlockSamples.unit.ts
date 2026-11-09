@@ -1,5 +1,7 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, AutoRowSize, MergeCells, HiddenRows, HiddenColumns, UndoRedo } from 'handsontable/plugins';
+import {
+  registerPlugin, AutoRowSize, MergeCells, HiddenRows, HiddenColumns, UndoRedo, ColumnSorting,
+} from 'handsontable/plugins';
 import { createSpreadsheetData } from '../../../helpers/data';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
@@ -8,6 +10,7 @@ registerPlugin(MergeCells);
 registerPlugin(HiddenRows);
 registerPlugin(HiddenColumns);
 registerPlugin(UndoRedo);
+registerPlugin(ColumnSorting);
 
 const BLOCK = { row: 1, col: 4, rowspan: 2, colspan: 2 };
 
@@ -148,6 +151,21 @@ describe('AutoRowSize sampling of a merged block drawn on a covered cell', () =>
     hot.destroy();
   });
 
+  it('should still sample a cell beside the block that holds the same text', () => {
+    // The block's text is not listed as sampled, or the cell with the same text would count as a duplicate.
+    const hot = buildGrid({ hiddenRows: { rows: [1] } });
+
+    hot.setDataAtCell(2, 3, 'merged text');
+
+    const samples = hot.getPlugin('autoRowSize').samplesGenerator.generateRowSamples(2, { from: 0, to: 9 });
+    const strings = Array.from(samples.get(2) as Map<string, { strings: Array<Record<string, unknown>> }>)
+      .flatMap(([, sample]) => sample.strings);
+
+    expect(strings.filter(({ value }) => value === 'merged text').map(({ col }) => col).sort()).toEqual([3, 4]);
+
+    hot.destroy();
+  });
+
   it('should measure the cell of the block at the width of the whole block in the ghost table', () => {
     const hot = buildGrid({ hiddenRows: { rows: [1] } });
     const { ghostTable } = hot.getPlugin('autoRowSize');
@@ -172,7 +190,9 @@ describe('MergeCells#getCellsBlocksAreDrawnOn', () => {
   it('should list the cell a block is drawn on, with the width of the block from it', () => {
     const hot = buildGrid({ hiddenRows: { rows: [1] }, hiddenColumns: { columns: [4] } });
 
-    expect(hot.getPlugin('mergeCells').getCellsBlocksAreDrawnOn()).toEqual([{ row: 2, col: 5, colspan: 1 }]);
+    expect(hot.getPlugin('mergeCells').getCellsBlocksAreDrawnOn()).toEqual([
+      { row: 2, col: 5, colspan: 1, originRow: 1, originCol: 4 },
+    ]);
 
     hot.destroy();
   });
@@ -225,7 +245,9 @@ describe('AutoRowSize heights of the rows a merged block is drawn on', () => {
     rowHeightsMap.setValueAtIndex(2, STALE);
     hot.getPlugin('undoRedo').undo();
 
-    expect(hot.getPlugin('mergeCells').getCellsBlocksAreDrawnOn()).toEqual([{ row: 2, col: 4, colspan: 2 }]);
+    expect(hot.getPlugin('mergeCells').getCellsBlocksAreDrawnOn()).toEqual([
+      { row: 2, col: 4, colspan: 2, originRow: 1, originCol: 4 },
+    ]);
     expect(rowHeightsMap.getValueAtIndex(2)).not.toBe(STALE);
 
     hot.destroy();
@@ -239,6 +261,55 @@ describe('AutoRowSize heights of the rows a merged block is drawn on', () => {
     rowHeightsMap.setValueAtIndex(2, STALE);
     hot.updateSettings({ mergeCells: [] });
 
+    expect(rowHeightsMap.getValueAtIndex(2)).not.toBe(STALE);
+
+    hot.destroy();
+  });
+
+  it('should not measure the row a block is drawn on again for an edit that leaves the block alone', () => {
+    const hot = buildGrid({ hiddenRows: { rows: [1] } });
+    const { rowHeightsMap } = hot.getPlugin('autoRowSize');
+
+    rowHeightsMap.setValueAtIndex(2, STALE);
+    hot.setDataAtCell(5, 0, 'x');
+
+    expect(rowHeightsMap.getValueAtIndex(2)).toBe(STALE);
+
+    // The top-left cell of the block holds the text the row is measured to.
+    hot.setDataAtCell(1, 4, 'a new text of the block');
+
+    expect(rowHeightsMap.getValueAtIndex(2)).not.toBe(STALE);
+
+    hot.destroy();
+  });
+
+  it('should leave the row a block was drawn on unmeasured while it is hidden, and measure it once shown', () => {
+    const hot = buildGrid({ hiddenRows: { rows: [1] } });
+    const { rowHeightsMap } = hot.getPlugin('autoRowSize');
+
+    hot.getPlugin('hiddenRows').hideRows([2]);
+    hot.render();
+
+    expect(rowHeightsMap.getValueAtIndex(2)).toBeNull();
+
+    hot.getPlugin('hiddenRows').showRows([2]);
+    hot.render();
+
+    expect(rowHeightsMap.getValueAtIndex(2)).not.toBeNull();
+
+    hot.destroy();
+  });
+
+  it('should drop the height cached for the row a block is drawn on when a sort moves the block', () => {
+    const hot = buildGrid({ hiddenRows: { rows: [1] }, columnSorting: true });
+    const { rowHeightsMap } = hot.getPlugin('autoRowSize');
+
+    rowHeightsMap.setValueAtIndex(2, STALE);
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+    expect(hot.getPlugin('mergeCells').getCellsBlocksAreDrawnOn()).not.toEqual([
+      expect.objectContaining({ row: 2, col: 4 }),
+    ]);
     expect(rowHeightsMap.getValueAtIndex(2)).not.toBe(STALE);
 
     hot.destroy();

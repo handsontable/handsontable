@@ -1132,12 +1132,14 @@ export class MergeCells extends BasePlugin {
    * all trimmed is left out, as it is drawn nowhere.
    *
    * @private
-   * @returns {Array<object>} The visual `row` and `col` of each cell, and `colspan`, the number of columns
-   * its block spans from `col` on.
+   * @returns {Array<object>} The visual `row` and `col` of each cell, `colspan`, the number of columns its block
+   * spans from `col` on, and `originRow` and `originCol`, the block's top-left cell.
    */
-  getCellsBlocksAreDrawnOn(): Array<{ row: number, col: number, colspan: number }> {
+  getCellsBlocksAreDrawnOn(): Array<{
+    row: number, col: number, colspan: number, originRow: number, originCol: number
+  }> {
     const collection = this.mergedCellsCollection;
-    const cells: Array<{ row: number, col: number, colspan: number }> = [];
+    const cells: Array<{ row: number, col: number, colspan: number, originRow: number, originCol: number }> = [];
 
     collection.mergedCells.forEach((block) => {
       if (collection.get(block.row, block.col) !== block) {
@@ -1147,7 +1149,7 @@ export class MergeCells extends BasePlugin {
       const drawnOn = this.#getCellDrawnOn(block);
 
       if (drawnOn !== null) {
-        cells.push(drawnOn);
+        cells.push({ ...drawnOn, originRow: block.row, originCol: block.col });
       }
     });
 

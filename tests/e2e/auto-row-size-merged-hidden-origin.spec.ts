@@ -164,4 +164,24 @@ test.describe('row headers beside a merge whose origin is hidden', { tag: THEMES
     await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
     await expect.poll(() => grid.misalignedRows()).toEqual([]);
   });
+
+  test('a new text in a merge below the fold that is drawn on the row below its hidden first row', async() => {
+    // The edit queues the row the block is drawn on. That row is below the fold, so no render measures it,
+    // and scrolling measures nothing.
+    const rows = 50;
+    const settings = {
+      mergeCells: [{ row: 44, col: 4, rowspan: 2, colspan: 2 }],
+      hiddenRows: { rows: [44] },
+      dataRows: rows,
+      height: 300,
+    };
+
+    await grid.build(settings, { row: 44, col: 4, value: 'short' });
+    await grid.setDataAtCell(44, 4, LINES);
+
+    await grid.scrollToEnd(rows - 1);
+
+    await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
+    await expect.poll(() => grid.misalignedRows()).toEqual([]);
+  });
 });
