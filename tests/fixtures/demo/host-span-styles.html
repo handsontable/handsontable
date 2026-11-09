@@ -60,6 +60,22 @@
       height: 40px;
       padding: 10px;
     }
+
+    /*
+     * Host rules with three element selectors, (0,0,3), so they outrank an element-level guard of
+     * (0,0,2). `table th span` reaches the header spans; `body div input` reaches every input the
+     * grid and its menu portal draw. Keep these values in sync with HOST_DEEP_BOX_STYLES.
+     */
+    table th span {
+      padding: 6px;
+      margin: 4px;
+    }
+
+    body div input {
+      height: 36px;
+      padding: 7px;
+      margin: 4px;
+    }
   </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
@@ -71,6 +87,8 @@
        host rules, so a fixture edit that silences a rule turns the spec red instead of vacuously green. -->
   <span data-testid="host-control">host control</span>
   <input data-testid="host-input-control" value="host input control">
+  <table><thead><tr><th><span data-testid="host-th-span-control">host th span control</span></th></tr></thead></table>
+  <div><input data-testid="host-div-input-control" value="host div input control"></div>
 
   <script>
     // The bundle under test is appended and the fixture waits for its `load` before building the

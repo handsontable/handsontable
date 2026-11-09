@@ -100,6 +100,8 @@ $text-metrics-properties: font-size, line-height, font-weight, letter-spacing, f
   }
 }
 
+$host-guard-weight: ":not(p):not(p)";
+
 @mixin revert-host-element {
   @include revert-host-box;
   @include revert-host-text-metrics;

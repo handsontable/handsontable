@@ -201,7 +201,8 @@ test.describe('host-page span styles do not leak into grid UI spans', { tag: THE
 
 /**
  * The same host page also gives bare `<span>` and `<input>` elements padding, a margin, a border and
- * (inputs) a height. Every test below renders the page twice, without the host rules and with them,
+ * (inputs) a height, and adds two rules with three element selectors (`table th span`,
+ * `body div input`) that outrank a guard of two element selectors. Every test below renders the page twice, without the host rules and with them,
  * and expects the grid's own spans and inputs, and the rows, bars and menus around them, to measure
  * the same both times. `goto()` first proves the host rules apply to a span and an input outside the
  * grid, so the comparison cannot pass because the rules went missing.
@@ -391,7 +392,7 @@ test.describe('host-page span and input boxes do not resize grid UI', { tag: THE
 });
 
 /**
- * The guard against host element rules sits at element level, (0,0,2), so a user's rule on the
+ * The guard against host element rules sits at element level, (0,0,4), so a user's rule on the
  * guarded element's own class, (0,1,0), still wins. The core stylesheet is injected after the
  * user's, so a guard of the same specificity as the user rule would win on order instead. Each
  * test reads the value first, to prove the user's value is not what the element computes anyway.

@@ -1,7 +1,7 @@
 @use "../utils/mixins";
 
 @mixin output {
-  div:where(.handsontable) {
+  div:where(.handsontable)#{mixins.$host-guard-weight} {
     span:where(.colHeader),
     span:where(.rowHeader),
     span:where(.ht-page-size-section__label),

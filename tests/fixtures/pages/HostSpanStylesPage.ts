@@ -33,6 +33,16 @@ export const HOST_BOX_STYLES = {
 } as const;
 
 /**
+ * The box the fixture's three-element host rules (`table th span`, `body div input`) give the spans
+ * and inputs they reach. They outrank an element-level guard of two elements. Must match the
+ * `<style id="host-element-styles">` block in fixtures/demo/host-span-styles.html.
+ */
+export const HOST_DEEP_BOX_STYLES = {
+  span: { 'padding-top': '6px', 'margin-top': '4px' },
+  input: { 'padding-top': '7px', 'margin-top': '4px', height: '36px' },
+} as const;
+
+/**
  * The computed properties a host element rule can push into the grid's own spans and inputs, read
  * by `HostSpanStylesPage#boxMetrics()`.
  */
@@ -71,6 +81,13 @@ export class HostSpanStylesPage {
    * An input outside the grid. It must take the host box rule; that proves the input rule is live.
    */
   readonly hostInputControl: Locator;
+
+  /**
+   * A span in a `th` and an input in a `div`, both outside the grid. They must take the
+   * three-element host rules; that proves those rules are live.
+   */
+  readonly hostThSpanControl: Locator;
+  readonly hostDivInputControl: Locator;
 
   /**
    * The pagination bar root (a div). Cascade parent of both labels.
@@ -158,6 +175,8 @@ export class HostSpanStylesPage {
 
     this.hostControl = page.getByTestId('host-control');
     this.hostInputControl = page.getByTestId('host-input-control');
+    this.hostThSpanControl = page.getByTestId('host-th-span-control');
+    this.hostDivInputControl = page.getByTestId('host-div-input-control');
 
     this.paginationBar = page.locator('.ht-pagination');
     this.pageSizeLabel = this.paginationBar.locator('.ht-page-size-section__label');
@@ -247,6 +266,9 @@ export class HostSpanStylesPage {
     if (withoutHostStyles) {
       await expect(this.hostControl, errorMessage).not.toHaveCSS('font-size', HOST_SPAN_STYLES['font-size']);
       await expect(this.hostInputControl, errorMessage).not.toHaveCSS('height', HOST_BOX_STYLES.input.height);
+      await expect(this.hostThSpanControl, errorMessage)
+        .not.toHaveCSS('padding-top', HOST_DEEP_BOX_STYLES.span['padding-top']);
+      await expect(this.hostDivInputControl, errorMessage).not.toHaveCSS('height', HOST_DEEP_BOX_STYLES.input.height);
     } else {
       // Fail loud if the fixture's hostile rules are not applying: without them every later
       // "span equals parent" or "clean equals hostile" assertion would pass with the guard reverted.
@@ -260,6 +282,14 @@ export class HostSpanStylesPage {
 
       for (const [property, value] of Object.entries(HOST_BOX_STYLES.input)) {
         await expect(this.hostInputControl, errorMessage).toHaveCSS(property, value);
+      }
+
+      for (const [property, value] of Object.entries(HOST_DEEP_BOX_STYLES.span)) {
+        await expect(this.hostThSpanControl, errorMessage).toHaveCSS(property, value);
+      }
+
+      for (const [property, value] of Object.entries(HOST_DEEP_BOX_STYLES.input)) {
+        await expect(this.hostDivInputControl, errorMessage).toHaveCSS(property, value);
       }
     }
 
