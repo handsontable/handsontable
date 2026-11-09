@@ -17,7 +17,7 @@ test.describe('moving a row by its header while columns are hidden', { tag: [CRO
 
   test('draws no backlight outside the grid when every column is hidden', async() => {
     await grid.hideColumns();
-    await grid.dragRowHeaderDown(1);
+    await grid.dragRowHeaderToLowerHalfOf(1, 2);
 
     const { hider, backlight, guideline, renderedColumns } = await grid.geometry();
 
@@ -34,7 +34,7 @@ test.describe('moving a row by its header while columns are hidden', { tag: [CRO
 
   test('still moves the row through its header when every column is hidden', async() => {
     await grid.hideColumns();
-    await grid.dragRowHeaderDown(1);
+    await grid.dragRowHeaderToLowerHalfOf(1, 2);
     await grid.release();
 
     expect(await grid.physicalRows(4)).toEqual([0, 2, 1, 3]);
@@ -42,7 +42,7 @@ test.describe('moving a row by its header while columns are hidden', { tag: [CRO
 
   test('keeps the backlight over the cells when a column is visible', async() => {
     await grid.hideColumns(2);
-    await grid.dragRowHeaderDown(1);
+    await grid.dragRowHeaderToLowerHalfOf(1, 2);
 
     const { hider, backlight, renderedColumns } = await grid.geometry();
 

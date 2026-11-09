@@ -71,17 +71,20 @@ export class ManualRowMoveNoColumnsPage {
   }
 
   /**
-   * Select a row through its header, then press the pointer on that header and drag it down past the
-   * drag tolerance onto the row below the next one, leaving the button pressed.
+   * Select a row through its header, then press the pointer on that header and drag it down onto the lower
+   * half of another row's header, leaving the button pressed. The drop point is the target row's own
+   * bottom edge less two pixels, never a literal: the plugin compares the pointer with the hovered row's
+   * middle, and the row height is the theme's.
    */
-  async dragRowHeaderDown(row: number): Promise<void> {
+  async dragRowHeaderToLowerHalfOf(row: number, target: number): Promise<void> {
     // The API selects the row: a header click followed by a press on the same point would read as a double click.
     await this.page.evaluate((r) => (window as any).hot.selectRows(r), row);
 
     const box = await this.rowHeader(row).boundingBox();
+    const targetBox = await this.rowHeader(target).boundingBox();
 
-    if (!box) {
-      throw new Error(`Row header ${row} is not rendered`);
+    if (!box || !targetBox) {
+      throw new Error(`Row header ${row} or ${target} is not rendered`);
     }
 
     const x = box.x + box.width / 2;
@@ -89,8 +92,8 @@ export class ManualRowMoveNoColumnsPage {
 
     await this.page.mouse.move(x, y);
     await this.page.mouse.down();
-    await this.page.mouse.move(x, y + box.height, { steps: 4 });
-    await this.page.mouse.move(x, y + box.height * 2, { steps: 4 });
+    await this.page.mouse.move(x, y + box.height / 2, { steps: 4 });
+    await this.page.mouse.move(x, targetBox.y + targetBox.height - 2, { steps: 6 });
   }
 
   /**
