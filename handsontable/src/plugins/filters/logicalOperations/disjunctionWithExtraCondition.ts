@@ -13,7 +13,7 @@ export const SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;
  */
 export function operationResult(conditions: { func: Function }[], value: unknown): boolean {
   if (conditions.length < 3) {
-    throwWithCause('Operation doesn\'t work on less then three conditions.');
+    throwWithCause('The operation requires at least three conditions.');
   }
 
   const lastCondition = conditions[conditions.length - 1];
