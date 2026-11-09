@@ -594,7 +594,9 @@ describe('Formulas general', () => {
         formulas: {
           engine: HyperFormula
         },
-        validator: () => {},
+        // The validator answers, so the change is applied: a validated change reaches the engine, and its
+        // dependents are validated, only then.
+        validator: (value, callback) => callback(true),
         beforeValidate: () => {
           validatorCallsCount += 1;
         }
@@ -603,6 +605,8 @@ describe('Formulas general', () => {
 
       try {
         await setDataAtCell(0, 0, 1);
+        // The dependents are validated when the change is applied.
+        await waitUntil(() => getSourceDataAtCell(0, 0) === 1);
 
       } catch (e) {
         errorList.push(e);
