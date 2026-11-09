@@ -493,9 +493,13 @@ export class Loading extends BasePlugin {
   };
 
   /**
-   * Destroy plugin instance.
+   * Destroy plugin instance. The plugin stops requiring the Dialog plugin, so a plugin destroyed ahead of
+   * the grid does not keep Dialog required; the next settings update turns Dialog off unless the `dialog`
+   * option keeps it on. Dialog is not turned off here: during the grid's own teardown its data source is
+   * already gone, and a direct disable would hide the dialog against it.
    */
   destroy() {
+    this.hot?._releasePlugin('dialog', this);
     this.#dialogPlugin = null;
     this.#ownsDialog = false;
 

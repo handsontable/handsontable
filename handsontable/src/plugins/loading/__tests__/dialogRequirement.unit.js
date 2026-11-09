@@ -146,6 +146,30 @@ describe('Loading requires the Dialog plugin without writing the `dialog` option
     expect(hot.getSettings().dialog).toBe(false);
   });
 
+  it('stops requiring Dialog when the Loading plugin is destroyed ahead of the grid', () => {
+    createGrid({ loading: true });
+
+    const dialog = hot.getPlugin('dialog');
+
+    hot.getPlugin('loading').destroy();
+
+    expect(hot._isPluginRequired('dialog')).toBe(false);
+    expect(dialog.isEnabled()).toBe(false);
+
+    hot.updateSettings({ rowHeaders: true });
+
+    expect(dialog.enabled).toBe(false);
+    expect(countDialogElements()).toBe(0);
+  });
+
+  it('keeps Dialog on when the Loading plugin is destroyed ahead of the grid and `dialog` is set', () => {
+    createGrid({ dialog: true, loading: true });
+
+    hot.getPlugin('loading').destroy();
+
+    expect(hot.getPlugin('dialog').enabled).toBe(true);
+  });
+
   it('keeps the states stable when the same `loading` value is sent twice', () => {
     createGrid({ loading: true });
 
