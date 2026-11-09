@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-07T03:58:12.220Z",
+  "updatedAt": "2026-11-09T08:49:56.664Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-classic",
+      "file": "e2e/manual-row-move-no-columns.spec.ts",
+      "line": 35,
+      "title": "moving a row by its header while columns are hidden › still moves the row through its header when every column is hidden",
+      "status": "failed",
+      "attempts": 2,
+      "error": "Error: expect(received).toEqual(expected) // deep equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "42585892251",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42585892251",
+      "workflow": "Tests",
+      "branch": "feature/DEV-618_Hide-row-move-chrome-without-columns",
+      "headSha": "bf5e41763cd7ab8e44c0c7b7f1e8b312358c795d",
+      "event": "pull_request",
+      "seenAt": "2026-11-09T08:49:09Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD (theme: horizon)",

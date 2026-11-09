@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-07T03:58:12.220Z",
+  "generatedAt": "2026-11-09T08:49:56.664Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 433,
+    "tests": 434,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2253
+    "entries": 2254
   },
   "rows": [
     {
@@ -161,40 +161,6 @@
         "leg": "js/chromium-theme-horizon-dark",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 755633110b79",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "tier": "playwright",
-      "file": "e2e/selection-viewport-scroll.spec.ts",
-      "line": 72,
-      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 0,
-      "count30": 14,
-      "countAll": 14,
-      "runs30": 10,
-      "flakyRuns30": 10,
-      "branches30": 9,
-      "nightlyRuns30": 0,
-      "openBranches30": 9,
-      "legs": [
-        "e2e-horizon",
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-16T09:02:53Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38873309511",
-        "branch": "feature/DEV-3446_Intl-date-editor-ime-fast-edit-playwright",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": true
@@ -459,6 +425,40 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "tier": "playwright",
+      "file": "e2e/selection-viewport-scroll.spec.ts",
+      "line": 72,
+      "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
+      "count7": 0,
+      "count30": 10,
+      "countAll": 14,
+      "runs30": 8,
+      "flakyRuns30": 8,
+      "branches30": 7,
+      "nightlyRuns30": 0,
+      "openBranches30": 7,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-16T09:02:53Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38873309511",
+        "branch": "feature/DEV-3446_Intl-date-editor-ime-fast-edit-playwright",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
@@ -609,7 +609,7 @@
       "line": null,
       "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
       "count7": 0,
-      "count30": 8,
+      "count30": 7,
       "countAll": 10,
       "runs30": 4,
       "flakyRuns30": 0,
@@ -635,39 +635,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "tier": "playwright",
-      "file": "e2e/fixed-columns-end-core.spec.ts",
-      "line": 60,
-      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "count7": 0,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 3,
-      "flakyRuns30": 3,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-13T10:26:27Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38379083113",
-        "branch": "develop",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: inline_end 5,29: top edge",
         "source": "ci"
       },
       "needsTicket": true
@@ -701,43 +668,6 @@
         "leg": "e2e-firefox",
         "status": "flaky",
         "error": "Error: expect(locator).toHaveValue(expected) failed",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
-      "line": null,
-      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 5,
-      "runs30": 3,
-      "flakyRuns30": 0,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-15T13:41:12Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38738667338/attempts/2",
-        "branch": "feature/DEV-140_Autofill-diagonal-drag",
-        "leg": "UMD.min (theme: main)",
-        "status": "failed",
-        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
         "source": "ci"
       },
       "needsTicket": true
@@ -841,6 +771,76 @@
         "leg": "cross-browser/webkit",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 ce84cbd1ce93",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
+      "line": null,
+      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 5,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-15T13:41:12Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38738667338/attempts/2",
+        "branch": "feature/DEV-140_Autofill-diagonal-drag",
+        "leg": "UMD.min (theme: main)",
+        "status": "failed",
+        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end-core.spec.ts",
+      "line": 60,
+      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "count7": 0,
+      "count30": 3,
+      "countAll": 5,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T10:26:27Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38379083113",
+        "branch": "develop",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: inline_end 5,29: top edge",
         "source": "ci"
       },
       "needsTicket": true
@@ -1022,46 +1022,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected 2 to be 1.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/filters/__tests__/component/conditional.spec.js|Filters UI Conditional component should save state of applied filter for specified column",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/filters/__tests__/component/conditional.spec.js",
-      "line": null,
-      "title": "Filters UI Conditional component should save state of applied filter for specified column",
-      "count7": 0,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: horizon)",
-        "UMD (theme: main)",
-        "UMD.min (theme: classic)",
-        "UMD.min (theme: horizon)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (1 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-09T12:58:01Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37929496754",
-        "branch": "feature/DEV-3278_Date-between-filter-date-inputs",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Expected '' to be '5'.",
         "source": "ci"
       },
       "needsTicket": false
@@ -1827,38 +1787,34 @@
       "needsTicket": false
     },
     {
-      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "key": "playwright|e2e/manual-row-move-no-columns.spec.ts|moving a row by its header while columns are hidden › still moves the row through its header when every column is hidden",
       "tier": "playwright",
-      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
-      "line": 100,
-      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 14,
+      "file": "e2e/manual-row-move-no-columns.spec.ts",
+      "line": 35,
+      "title": "moving a row by its header while columns are hidden › still moves the row through its header when every column is hidden",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
       "runs30": 1,
-      "flakyRuns30": 1,
+      "flakyRuns30": 0,
       "branches30": 1,
       "nightlyRuns30": 0,
       "openBranches30": 1,
       "legs": [
-        "e2e-classic",
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main-min"
+        "e2e-classic"
       ],
       "statuses": [
-        "flaky"
+        "failed"
       ],
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-10-09T10:09:36Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
-        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
+        "seenAt": "2026-11-09T08:49:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42585892251",
+        "branch": "feature/DEV-618_Hide-row-move-chrome-without-columns",
         "leg": "e2e-classic",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "status": "failed",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
         "source": "ci"
       },
       "needsTicket": false
@@ -2381,13 +2337,13 @@
       "line": 35,
       "title": "drag-selecting out of the grid over a merge › a vertical merge › ends the selection on the row beside the pointer, inside the merged band",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 1,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-firefox"
       ],
@@ -2403,6 +2359,83 @@
         "leg": "e2e-firefox",
         "status": "failed",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/filters/__tests__/component/conditional.spec.js|Filters UI Conditional component should save state of applied filter for specified column",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/filters/__tests__/component/conditional.spec.js",
+      "line": null,
+      "title": "Filters UI Conditional component should save state of applied filter for specified column",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 6,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-09T12:58:01Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37929496754",
+        "branch": "feature/DEV-3278_Date-between-filter-date-inputs",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected '' to be '5'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "tier": "playwright",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 14,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-09T10:09:36Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
+        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
