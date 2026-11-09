@@ -1830,8 +1830,17 @@ export class Formulas extends BasePlugin {
     // source rows past that count would make `#areSourceColumnsSkipped()` true, and the next resync would
     // write only the visible columns back into the sheet.
     const serialized = this.#isColumnCountCappedBySettings(padded[0]?.length ?? 0) ? unescaped : padded;
+    const loadsData = serialized.length > 0;
 
-    if (serialized.length > 0) {
+    // The order syncers are pointed at the bound sheet BEFORE the load: the load's `afterLoadData` re-applies
+    // a configured `manualRowMove`/`manualColumnMove`, and that move has to reach this sheet, not the one
+    // bound before (a grid built without `data` had no endpoint at all, so its first sort threw). The grid's
+    // order is not sent when a load follows: the load resets it, and the order it takes afterwards reaches
+    // the engine once, through the sequence and move hooks. Sending the order the grid held before the load
+    // as well reordered the sheet twice.
+    this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId, !loadsData);
+
+    if (loadsData) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
     }
   }

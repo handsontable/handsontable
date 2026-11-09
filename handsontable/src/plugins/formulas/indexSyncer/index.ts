@@ -144,13 +144,15 @@ class IndexSyncer {
    *
    * @param {HyperFormula|null} engine The HF's engine instance which will be synced.
    * @param {string|null} sheetId HyperFormula's sheet name.
+   * @param {boolean} [syncOrder=true] Whether to send the grid's current order to the engine (see
+   * `AxisSyncer#init()`).
    */
-  setupSyncEndpoint(engine: HyperFormulaEngine | null, sheetId: number | null) {
+  setupSyncEndpoint(engine: HyperFormulaEngine | null, sheetId: number | null, syncOrder: boolean = true) {
     this.#engine = engine;
     this.#sheetId = sheetId;
 
-    this.#rowIndexSyncer.init();
-    this.#columnIndexSyncer.init();
+    this.#rowIndexSyncer.init(syncOrder);
+    this.#columnIndexSyncer.init(syncOrder);
   }
 }
 

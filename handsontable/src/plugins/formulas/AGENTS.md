@@ -559,7 +559,14 @@ Rules that keep it correct:
 - **The plugin postpones no index sync, so its postpone callback does nothing.** `AxisSyncer` postpones the
   initial order (`#syncInitialOrder()` through `IndexSyncer#getPostponeAction()`) only while the engine or the
   sheet id is `null`, and it runs only from `IndexSyncer#setupSyncEndpoint()`, which the plugin calls with a
-  sheet it has just written or bound. Each setup sends the grid's order itself. `calculateAndSyncMoves()`
+  sheet it has just written or bound. Each setup sends the grid's order itself, except the one in
+  `#loadSheet()` (`switchSheet()`, a grid built from an engine sheet without `data`, and the plugin's own
+  reloads). That one runs BEFORE the sheet's `loadData()`, so a move ManualRowMove/ManualColumnMove re-applies
+  in that load reaches the bound sheet and not the one left, and it passes `syncOrder: false`: the load
+  resets the grid's order, and sending the order the grid held before it reordered the sheet twice. Before
+  DEV-3760 `#loadSheet()` set no endpoint at all, so a grid built without `data` threw on its first sort and a
+  `switchSheet()` sent the re-applied move to the sheet it left. Pinned by
+  `__tests__/sheetBuiltGridSyncEndpoint.unit.js`. `calculateAndSyncMoves()`
   passes its move to `getPostponeAction()` as an argument, which is ignored, so a move made with no sheet
   bound (ManualColumnMove's array at init) is never queued either; the setup sends that order. The one-off
   `init` listener the callback used to add, and the ready-step queue that replaced it, replayed nothing. Do not

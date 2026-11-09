@@ -817,7 +817,15 @@ class AxisSyncer {
    * cannot be extended to hold it.
    */
   #syncOrderWithEngine(targetSequence: number[]): boolean {
-    const engine = this.#indexSyncer.getEngine()!;
+    const engine = this.#indexSyncer.getEngine();
+
+    // No endpoint yet: an order change that arrives before the plugin points the syncer at an engine
+    // sheet (as a grid built from an engine sheet without `data` used to, before its load set one up)
+    // has nowhere to go. A guard, not the fix - every binding sets the endpoint up.
+    if (engine === null) {
+      return false;
+    }
+
     const sheetId = this.#indexSyncer.getSheetId()!;
     const sheetDimensions = engine.getSheetDimensions(sheetId);
     const isRowAxis = this.#axis === 'row';
@@ -1098,7 +1106,7 @@ class AxisSyncer {
    *
    * @private
    */
-  #applyInitialOrder() {
+  #applyInitialOrder(syncOrder: boolean = true) {
     // The engine holds the sheet it was just fed, in physical order, whatever order the previous sheet was
     // left in — so the stored order starts empty, which reads back as that physical order, rather than
     // carrying over what the engine used to hold.
@@ -1108,14 +1116,20 @@ class AxisSyncer {
     this.#orderShifts = new Map<number, number>();
     this.#translationCache = null;
 
-    this.#syncInitialOrder();
+    if (syncOrder) {
+      this.#syncInitialOrder();
+    }
   }
 
   /**
    * Initialize the AxisSyncer.
+   *
+   * @param {boolean} [syncOrder=true] Whether to send the grid's current order to the engine. `false` when
+   * the grid is about to load the sheet's data, which resets its order: whatever order the grid then takes
+   * reaches the engine through the sequence and move hooks.
    */
-  init() {
-    this.#applyInitialOrder();
+  init(syncOrder: boolean = true) {
+    this.#applyInitialOrder(syncOrder);
   }
 }
 
