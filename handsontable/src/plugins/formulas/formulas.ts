@@ -154,6 +154,16 @@ interface ChangeSetAwaitingApply {
    */
   deferredChanges: Set<CellChange>;
   /**
+   * `true` when the set holds a change the Core can reject: only then are the dependents validated at the
+   * apply outside the undo step (`#validateDependentCellsUnrecorded()`).
+   */
+  hasRejectableChange: boolean;
+  /**
+   * The cells the early write recalculated that a deferred change recalculates too, validated at the apply
+   * (see `#splitDependentsOfDeferred()`).
+   */
+  heldDependents: unknown[];
+  /**
    * The cells the first write really reached, with the value each held before it. A sheet switch
    * before the Core applies the set drops it and restores exactly these (`#restoreSwitchedAwaySheet`): by then the
    * grid maps its indexes onto the switched-to sheet's data, so mapping the changes again names
@@ -182,6 +192,44 @@ interface ProbeWrite {
   value: unknown;
   address: FormulasCellAddress;
   entry: ValidationValue;
+}
+
+/**
+ * Builds the key that names an engine cell.
+ *
+ * @param {object} address The engine address.
+ * @returns {string}
+ */
+function toCellKey({ sheet, row, col }: { sheet?: number | null; row?: number; col?: number }) {
+  return `${sheet}:${row}x${col}`;
+}
+
+/**
+ * Drops the repeated cells of an engine change list, keeping the first of each.
+ *
+ * @param {object[]} changes The engine change list.
+ * @returns {object[]}
+ */
+function uniqueCellChanges(changes: unknown[]) {
+  const seen = new Set<string>();
+
+  return changes.filter((change) => {
+    const address = isHFCellChange(change) ? change.address : undefined;
+
+    if (!address) {
+      return true;
+    }
+
+    const key = toCellKey(address);
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+
+    return true;
+  });
 }
 
 /**
@@ -2357,9 +2405,8 @@ export class Formulas extends BasePlugin {
   validateDependentCells(dependentCells: unknown[], changedCells: unknown[] = []) {
     const stringifyAddress = (change: unknown) => {
       const address = isHFCellChange(change) ? change.address : undefined;
-      const { row, col, sheet } = address ?? {};
 
-      return isDefined(sheet) ? `${sheet}:${row}x${col}` : '';
+      return address && isDefined(address.sheet) ? toCellKey(address) : '';
     };
     const changedCellsSet = new Set(changedCells.map((change: unknown) => stringifyAddress(change)));
 
@@ -4635,17 +4682,21 @@ export class Formulas extends BasePlugin {
       changedCells.push({ address: this.#toEngineCellAddress(visualRow, visualColumn) });
     });
 
+    const { earlyDependents, heldDependents } = this.#splitDependentsOfDeferred(dependentCells, rejectableChanges);
+
     this.#changesAwaitingApply.set(changes, {
       writeCount: this.#sheetWriteCount,
       refusedWriteCount: this.#refusedSheetWriteCount,
       foreignLoadCount: this.#foreignLoadCount,
       sheetId: this.sheetId,
       deferredChanges,
+      hasRejectableChange: rejectableChanges.length > 0,
+      heldDependents,
       writtenCells,
     });
 
     this.#probeValidationValues(rejectableChanges, source);
-    this.validateDependentCells(dependentCells, changedCells);
+    this.validateDependentCells(earlyDependents, changedCells);
   };
 
   /**
@@ -4699,6 +4750,67 @@ export class Formulas extends BasePlugin {
     });
 
     return { immediateChanges, deferredChanges, rejectableChanges };
+  }
+
+  /**
+   * Splits the cells the early write recalculated into the ones validated now and the ones a deferred
+   * change of the set also recalculates (directly or through other formulas, `getCellDependents()` walked
+   * from the deferred cells). Those hold a value computed from the deferred cell's old content until the
+   * apply, so validating them now ran their validator and `afterValidate` for a value the cell never ends
+   * with, and an out-of-order answer of that stale validation overwrote the mark of the right one.
+   * `#onBeforeChangeRender` validates them with the final values.
+   *
+   * @param {object[]} dependentCells The cells the early write recalculated.
+   * @param {object[]} rejectableChanges The deferred changes the Core can reject.
+   * @returns {{ earlyDependents: object[], heldDependents: object[] }}
+   */
+  #splitDependentsOfDeferred(dependentCells: unknown[], rejectableChanges: RejectableChange[]) {
+    if (rejectableChanges.length === 0 || dependentCells.length === 0) {
+      return { earlyDependents: dependentCells, heldDependents: [] };
+    }
+
+    const reached = this.#collectDependentKeys(rejectableChanges
+      .map(({ visualRow, visualColumn }) => this.#toEngineCellAddress(visualRow, visualColumn)));
+    const earlyDependents: unknown[] = [];
+    const heldDependents: unknown[] = [];
+
+    dependentCells.forEach((change) => {
+      const address = isHFCellChange(change) ? change.address : undefined;
+
+      (address && reached.has(toCellKey(address)) ? heldDependents : earlyDependents).push(change);
+    });
+
+    return { earlyDependents, heldDependents };
+  }
+
+  /**
+   * Collects the keys (`toCellKey()`) of every cell that depends on the given cells, directly or through
+   * other formulas and ranges, from the engine's dependency graph.
+   *
+   * @param {object[]} addresses The engine addresses to start from.
+   * @returns {Set<string>}
+   */
+  #collectDependentKeys(addresses: FormulasCellAddress[]) {
+    const engine = this.engine!;
+    const reached = new Set<string>();
+    const visitedRanges = new Set<string>();
+    const queue: (FormulasCellAddress | FormulasCellRange)[] = [...addresses];
+
+    while (queue.length > 0) {
+      engine.getCellDependents(queue.pop()!).forEach((dependent) => {
+        const key = 'start' in dependent
+          ? `${toCellKey(dependent.start)}:${toCellKey(dependent.end)}`
+          : toCellKey(dependent);
+        const visited = 'start' in dependent ? visitedRanges : reached;
+
+        if (!visited.has(key)) {
+          visited.add(key);
+          queue.push(dependent);
+        }
+      });
+    }
+
+    return reached;
   }
 
   /**
@@ -5016,20 +5128,29 @@ export class Formulas extends BasePlugin {
       ? changes
       : changes.filter(change => awaitingApply.deferredChanges.has(change));
 
-    if (!engine || changesToWrite.length === 0 || this.#isSheetEmptiedSince(awaitingApply)) {
+    if (!engine || this.#isSheetEmptiedSince(awaitingApply)) {
       return;
     }
 
     // One write, so a grid on another sheet that reads a restored cell and a written one paints once.
-    const { dependentCells, changedCells } = this.#writeOwnSheet(engine, () => {
-      if (awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId) {
-        this.#restoreSwitchedAwaySheet(awaitingApply.writtenCells, awaitingApply.sheetId);
-      }
+    const { dependentCells, changedCells } = changesToWrite.length === 0
+      ? { dependentCells: [], changedCells: [] }
+      : this.#writeOwnSheet(engine, () => {
+        if (awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId) {
+          this.#restoreSwitchedAwaySheet(awaitingApply.writtenCells, awaitingApply.sheetId);
+        }
 
-      return this.#writeChangesToEngine(changesToWrite);
-    });
+        return this.#writeChangesToEngine(changesToWrite);
+      });
+    // The dependents the early write left to the apply (see `#splitDependentsOfDeferred()`), also when every
+    // deferred change was rejected and nothing is written here.
+    const dependentsToValidate = uniqueCellChanges([...dependentCells, ...awaitingApply.heldDependents]);
 
-    this.#validateDependentCellsUnrecorded(dependentCells, changedCells);
+    if (awaitingApply.hasRejectableChange) {
+      this.#validateDependentCellsUnrecorded(dependentsToValidate, changedCells);
+    } else {
+      this.validateDependentCells(dependentsToValidate, changedCells);
+    }
   };
 
   /**
