@@ -92,6 +92,7 @@ describe('BaseEditor validation wait', () => {
 
   it('ignores another cell\'s answer and closes on its own', async() => {
     const data = createData(12);
+    const answers = [];
 
     data[11][0] = -5;
 
@@ -99,6 +100,7 @@ describe('BaseEditor validation wait', () => {
       data,
       columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
     });
+    core.addHook('postAfterValidate', (valid, value, row, col, source) => answers.push([row, source]));
 
     core.validateCells(); // the batch is in flight, its first answer (row 11) will be `false`
     await flush();
@@ -108,14 +110,18 @@ describe('BaseEditor validation wait', () => {
     core.getActiveEditor().setValue('7');
     core.getActiveEditor().finishEditing();
     await flush();
-    jest.advanceTimersByTime(300); // the batch answers, the edited cell's validator still runs
+    jest.advanceTimersByTime(300); // the whole batch answers, (1, 0) included; the editor's validator still runs
     await flush();
 
-    // The batch's `false` for row 11 arrives first and must not reopen the editor.
-    expect(core.getActiveEditor().isOpened()).toBe(false);
+    expect(answers).toHaveLength(12);
+    expect(answers[0]).toEqual([11, 'validateCells']);
+    expect(answers).toContainEqual([1, 'validateCells']);
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
 
     jest.advanceTimersByTime(300); // the edited cell's own answer
     await flush();
+
+    expect(answers[12]).toEqual([1, 'edit']);
 
     expect(core.getActiveEditor().isOpened()).toBe(false);
     expect(core.getDataAtCell(1, 0)).toBe(7);
@@ -168,10 +174,13 @@ describe('BaseEditor validation wait', () => {
   });
 
   it('closes on the edited cell\'s answer during a Ctrl+Enter fill', async() => {
+    const sources = [];
+
     core = createHot(container, {
       data: createData(5),
       columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
     });
+    core.addHook('postAfterValidate', (valid, value, row, col, source) => sources.push(source));
 
     core.selectCells([[1, 0, 3, 0]]);
     core.getActiveEditor().beginEditing();
@@ -181,8 +190,89 @@ describe('BaseEditor validation wait', () => {
     jest.advanceTimersByTime(600);
     await flush();
 
+    expect(sources).toEqual(['edit', 'edit', 'edit']); // a fill validates with the editor's source
     expect(core.getActiveEditor().isOpened()).toBe(false);
     expect(core.getDataAtCol(0).slice(1, 4)).toEqual([7, 7, 7]);
+  });
+
+  it('closes when a beforeChange listener drops the edited cell from a Ctrl+Enter fill', async() => {
+    core = createHot(container, {
+      data: createData(5),
+      columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
+      beforeChange(changes) {
+        changes.forEach((change, index) => {
+          if (change && change[0] === 1 && change[1] === 0) {
+            changes[index] = null;
+          }
+        });
+      },
+    });
+
+    core.selectCells([[1, 0, 3, 0]]);
+    core.getActiveEditor().beginEditing();
+    core.getActiveEditor().setValue('7');
+    core.getActiveEditor().finishEditing(false, true);
+    await flush();
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(core.getActiveEditor().state).not.toBe('STATE_WAITING');
+    expect(core.getActiveEditor().isOpened()).toBe(false);
+    expect(core.getDataAtCol(0).slice(1, 4)).toEqual([18, 7, 7]);
+  });
+
+  /**
+   * Starts a `validateCells()` batch, then confirms an edit of (1, 0) 300 ms into it, so the batch's answer
+   * for the edited cell (its old value) arrives before the editor's own.
+   *
+   * @param {number} oldValue The value (1, 0) holds, which the batch validates.
+   * @param {string} newValue The value the editor confirms.
+   */
+  async function editDuringBatch(oldValue, newValue) {
+    const data = createData(5);
+
+    data[1][0] = oldValue;
+
+    core = createHot(container, {
+      data,
+      columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
+    });
+
+    core.validateCells();
+    await flush();
+    jest.advanceTimersByTime(300);
+    core.selectCell(1, 0);
+    core.getActiveEditor().beginEditing();
+    core.getActiveEditor().setValue(newValue);
+    core.getActiveEditor().finishEditing();
+    await flush();
+    jest.advanceTimersByTime(300); // the batch answers for (1, 0) with the old value
+    await flush();
+  }
+
+  it('closes on its own acceptance, not reopened by the batch\'s rejection of the old value', async() => {
+    await editDuringBatch(-5, '7');
+
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(300);
+    await flush();
+
+    expect(core.getActiveEditor().isOpened()).toBe(false);
+    expect(core.getDataAtCell(1, 0)).toBe(7);
+  });
+
+  it('reopens on its own rejection, not closed by the batch\'s acceptance of the old value', async() => {
+    await editDuringBatch(18, '-5');
+
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(300);
+    await flush();
+
+    expect(core.getActiveEditor().isOpened()).toBe(true);
+    expect(core.getActiveEditor().getValue()).toBe('-5');
+    expect(core.getDataAtCell(1, 0)).toBe(18);
   });
 
   it('matches the answer by prop when columns are moved', async() => {

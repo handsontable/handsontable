@@ -20,6 +20,13 @@ import { getValueGetterValue } from '../../utils/valueAccessors';
 import { collectSelectionFillChanges, selectionFillsOtherCells } from '../../selection/fillSelection';
 
 export const EDITOR_TYPE = 'base';
+
+/**
+ * The source every editor write and validation runs with. The validation wait tells the editor's own
+ * answer from another validation of the same cell (a `validateCells()` batch) by it.
+ */
+const EDIT_SOURCE = 'edit';
+
 export const EDITOR_STATE = Object.freeze({
   VIRGIN: 'STATE_VIRGIN', // before editing
   EDITING: 'STATE_EDITING',
@@ -172,11 +179,11 @@ export class BaseEditor {
 
   /**
    * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on the
-   * first answer for the edited cell that is not stale, and the answer of a dropped call is stale, so a wait
-   * ended early would keep it until another validation of the cell answers.
+   * editor's own first answer that is not stale, and the answer of a dropped call is stale, so a wait ended
+   * early would keep it until another edit of the cell is validated.
    */
   #validationWaitListener: (
-    (result: boolean, value: unknown, row: number, col: number | string) => void
+    (result: boolean, value: unknown, row: number, col: number | string, source?: string) => void
   ) | null = null;
 
   /**
@@ -361,7 +368,7 @@ export class BaseEditor {
     }
 
     // Saving values using the modified coordinates.
-    this.hot.populateFromArray(visualRow as number, visualColumn as number, value, null, null, 'edit');
+    this.hot.populateFromArray(visualRow as number, visualColumn as number, value, null, null, EDIT_SOURCE);
   }
 
   /**
@@ -389,7 +396,7 @@ export class BaseEditor {
     const changes = collectSelectionFillChanges(this.hot, cellValue, selectedRanges);
 
     if (changes.length > 0) {
-      this.hot.setDataAtCell(changes, null, null, 'edit');
+      this.hot.setDataAtCell(changes, null, null, EDIT_SOURCE);
     }
   }
 
@@ -554,11 +561,53 @@ export class BaseEditor {
         return;
       }
 
-      this.#waitForValidation((result) => {
+      const finishWait = this.#waitForValidation((result) => {
         this.discardEditor(result);
       });
-      this.saveValue([[value]], ctrlDown);
+      const validatesEditedCell = this.#saveValueValidatingEditedCell(value, ctrlDown);
+
+      // A listener of the save destroyed the grid, and the editor's DOM went with it.
+      if (this.hot.isDestroyed) {
+        return;
+      }
+
+      // A `beforeChange` listener took the edited cell out of a multi-cell write (a Ctrl+Enter fill), so
+      // no answer of the editor's own will ever come. The editor closes as on a save the listener chose
+      // not to write. A veto of the whole write has already canceled the editor (`isWaiting()` is false).
+      if (!validatesEditedCell && this.isWaiting()) {
+        finishWait(true);
+      }
     }
+  }
+
+  /**
+   * Saves the editor value and tells whether the save asked for the edited cell's own validation. The
+   * request is seen on `beforeValidate`, which `Core#validateCell` runs synchronously, so the answer is
+   * known when `saveValue()` returns.
+   *
+   * @param {*} value The value to save.
+   * @param {boolean} [ctrlDown] If `true`, applies the value to each cell in every selected range.
+   * @returns {boolean}
+   */
+  #saveValueValidatingEditedCell(value: unknown, ctrlDown?: boolean): boolean {
+    let validatesEditedCell = false;
+    const onBeforeValidate = (cellValue: unknown, row: number, col: number | string, source?: string) => {
+      if (this.#isOwnValidationAnswer(row, col, source)) {
+        validatesEditedCell = true;
+      }
+    };
+
+    this.hot.addHook('beforeValidate', onBeforeValidate);
+
+    try {
+      this.saveValue([[value]], ctrlDown);
+    } finally {
+      if (!this.hot.isDestroyed) {
+        this.hot.removeHook('beforeValidate', onBeforeValidate);
+      }
+    }
+
+    return validatesEditedCell;
   }
 
   /**
@@ -612,7 +661,7 @@ export class BaseEditor {
       this.hot.view.render();
     });
 
-    this.hot.validateCell(this.originalValue, this.cellProperties, () => {}, 'edit');
+    this.hot.validateCell(this.originalValue, this.cellProperties, () => {}, EDIT_SOURCE);
   }
 
   /**
@@ -623,32 +672,20 @@ export class BaseEditor {
    * this wait's answer it closed the editor before its own value was validated, or reopened it. The answer
    * is ignored once the wait has been ended or replaced.
    *
-   * The wait also ends on the edited cell's answer only (`#isOwnValidationAnswer()`). `postAfterValidate`
-   * is instance-wide: the Formulas plugin validates the cells that depend on the edited one, and a
-   * `validateCells()` batch can still be in flight, so another cell's answer often arrives first. Taken as
-   * this wait's answer, a `true` closed the editor and the own rejection under `allowInvalid: false` then
-   * landed on nothing, and a `false` reopened it. Such an answer is skipped and the listener stays
-   * registered.
+   * The wait also ends on the editor's own answer only (`#isOwnValidationAnswer()`): the edited cell,
+   * validated with the editor's source. `postAfterValidate` is instance-wide: the Formulas plugin validates
+   * the cells that depend on the edited one, and a `validateCells()` batch can still be in flight, also for
+   * the edited cell itself (its old value), so another answer often arrives first. Taken as this wait's
+   * answer, a `true` closed the editor and the own rejection under `allowInvalid: false` then landed on
+   * nothing, and a `false` reopened it. Such an answer is skipped and the listener stays registered.
    *
    * @param {Function} onAnswer Called with the validation result once the editor is `FINISHED`.
+   * @returns {Function} Finishes the wait with a result, as its own answer would. Does nothing once the wait
+   *   has been ended or replaced.
    */
-  #waitForValidation(onAnswer: (result: boolean) => void): void {
+  #waitForValidation(onAnswer: (result: boolean) => void): (result: boolean) => void {
     const wait = {};
-    const onPostAfterValidate = (result: boolean, value: unknown, row: number, col: number | string) => {
-      // An earlier `postAfterValidate` listener destroyed the grid. The hook registry still reaches
-      // this listener, and every method of the destroyed instance throws.
-      if (this.hot.isDestroyed) {
-        return;
-      }
-
-      if (this.hot._isAnsweringStaleValidation()) {
-        return;
-      }
-
-      if (!this.#isOwnValidationAnswer(row, col)) {
-        return;
-      }
-
+    const finish = (result: boolean) => {
       this.hot.removeHook('postAfterValidate', onPostAfterValidate);
 
       if (this.#validationWait !== wait) {
@@ -660,24 +697,48 @@ export class BaseEditor {
       this.state = EDITOR_STATE.FINISHED;
       onAnswer(result);
     };
+    const onPostAfterValidate = (
+      result: boolean, value: unknown, row: number, col: number | string, source?: string
+    ) => {
+      // An earlier `postAfterValidate` listener destroyed the grid. The hook registry still reaches
+      // this listener, and every method of the destroyed instance throws.
+      if (this.hot.isDestroyed) {
+        return;
+      }
+
+      if (this.hot._isAnsweringStaleValidation()) {
+        return;
+      }
+
+      if (!this.#isOwnValidationAnswer(row, col, source)) {
+        return;
+      }
+
+      finish(result);
+    };
 
     this.#removeValidationWaitListener();
     this.#validationWait = wait;
     this.#validationWaitListener = onPostAfterValidate;
     this.hot.addHook('postAfterValidate', onPostAfterValidate);
+
+    return finish;
   }
 
   /**
-   * Tells whether a `postAfterValidate` answer is for the cell this editor edits. The hook names the column
-   * the way `Core#validateCell` does: by its property, or by its visual index when the property is a data
-   * accessor function.
+   * Tells whether a validation (its `beforeValidate` request or its `postAfterValidate` answer) is the
+   * editor's own: the cell this editor edits, validated with the source every editor write uses
+   * (`EDIT_SOURCE`). The hooks name the column the way `Core#validateCell` does: by its property, or by its
+   * visual index when the property is a data accessor function. The source tells the editor's validation
+   * from another one of the same cell, such as a `validateCells()` batch.
    *
-   * @param {number} row The visual row the answer is for.
-   * @param {number|string} col The column property the answer is for, or the visual column for an accessor.
+   * @param {number} row The visual row the validation is for.
+   * @param {number|string} col The column property the validation is for, or the visual column for an accessor.
+   * @param {string} [source] The source the validation runs with.
    * @returns {boolean}
    */
-  #isOwnValidationAnswer(row: number, col: number | string): boolean {
-    if (row !== this.row) {
+  #isOwnValidationAnswer(row: number, col: number | string, source?: string): boolean {
+    if (source !== EDIT_SOURCE || row !== this.row) {
       return false;
     }
 
