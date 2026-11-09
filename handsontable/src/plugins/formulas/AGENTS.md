@@ -560,13 +560,7 @@ Rules that keep it correct:
   initial order (`#syncInitialOrder()` through `IndexSyncer#getPostponeAction()`) only while the engine or the
   sheet id is `null`, and it runs only from `IndexSyncer#setupSyncEndpoint()`, which the plugin calls with a
   sheet it has just written or bound. Each setup sends the grid's order itself, except the one in
-  `#loadSheet()` (`switchSheet()`, a grid built from an engine sheet without `data`, and the plugin's own
-  reloads). That one runs BEFORE the sheet's `loadData()`, so a move ManualRowMove/ManualColumnMove re-applies
-  in that load reaches the bound sheet and not the one left, and it passes `syncOrder: false`: the load
-  resets the grid's order, and sending the order the grid held before it reordered the sheet twice. Before
-  DEV-3760 `#loadSheet()` set no endpoint at all, so a grid built without `data` threw on its first sort and a
-  `switchSheet()` sent the re-applied move to the sheet it left. Pinned by
-  `__tests__/sheetBuiltGridSyncEndpoint.unit.js`. `calculateAndSyncMoves()`
+  `#loadSheet()`, which sends none (see "`sheetName`, `switchSheet()` and the engine instance"). `calculateAndSyncMoves()`
   passes its move to `getPostponeAction()` as an argument, which is ignored, so a move made with no sheet
   bound (ManualColumnMove's array at init) is never queued either; the setup sends that order. The one-off
   `init` listener the callback used to add, and the ready-step queue that replaced it, replayed nothing. Do not
@@ -855,6 +849,21 @@ setting over a user instance is an engine change while a load is pending** (`#en
 sheets bar's switch): kept on the instance, a sheet that passes the class wrote itself into another sheet's
 engine. Pinned by `__tests__/sheetNameSetting.unit.js`
 and the engine binding cases of `../sheetsBar/__tests__/formulaSheets.unit.js`.
+
+**A sheet bound by loading sets the sync endpoint before the load, and sends no order**
+(`#loadSheet()` calls `setupSyncEndpoint(engine, sheetId, !loadsData)` right after
+`#updateSheetNameAndSheetId()` and before `loadData()`; this covers `switchSheet()`, a grid built from an
+engine sheet without `data`, and the plugin's own reloads). Before DEV-3760 it set no endpoint, with three
+measured effects: (1) a grid built without `data` had no engine on its syncer, so the first sort or
+`setIndexesSequence()` threw `Cannot read properties of null (reading 'getSheetDimensions')`; (2) its
+initial `manualRowMove` never reached the engine, so formula results were wrong with no error; (3) a
+`switchSheet()` on a data-built grid with a manual row move sent the re-applied move to the sheet it left
+(old sheet rotated twice, new sheet never reordered). The endpoint has to exist BEFORE the load because
+ManualRowMove/ManualColumnMove re-apply their arrays through `syncMoves` during it. `syncOrder` is `false`
+when a load follows: the load resets the grid's index maps, and the move plugins re-apply against identity,
+so sending the pre-load order as well reordered the sheet twice (measured 1/2/2 calls instead of 0/1/1).
+`AxisSyncer#syncOrderWithEngine` returns early on a null engine. Pinned by
+`__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
 
 **A sheet the engine refuses still gets the sync endpoint** (`#clearRejectedSheet()` calls
 `setupSyncEndpoint()`): left on the sheet bound before, a sort of the refused sheet reordered that other
