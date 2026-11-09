@@ -1,0 +1,94 @@
+import HyperFormula from 'hyperformula';
+import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
+
+/**
+ * Lets the validator microtasks, and what their answers queue, run.
+ */
+async function flush() {
+  for (let i = 0; i < 30; i++) {
+    await Promise.resolve();
+  }
+}
+
+/**
+ * A validator that answers after 600 ms and rejects negative numbers.
+ *
+ * @param {*} value The validated value.
+ * @param {Function} callback The validator callback.
+ */
+function async600(value, callback) {
+  // eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- an async validator, driven by fake timers
+  setTimeout(() => callback(Number(value) >= 0), 600);
+}
+
+/**
+ * A validator that answers at once and rejects values above 100.
+ *
+ * @param {*} value The validated value.
+ * @param {Function} callback The validator callback.
+ */
+function atMost100(value, callback) {
+  callback(Number(value) <= 100);
+}
+
+describe('Formulas dependent validation and the editor wait', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    jest.useFakeTimers('legacy');
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  /**
+   * @param {Function} column2Validator The validator of the dependent column.
+   * @param {string} newValue The value confirmed in (1, 1).
+   */
+  async function editB2(column2Validator, newValue) {
+    hot = new Handsontable(container, {
+      data: [0, 1, 2, 3].map(i => [i, 18, `=B${i + 1}*2`]),
+      columns: [{}, { type: 'numeric', validator: async600, allowInvalid: false },
+        { type: 'numeric', validator: column2Validator }],
+      formulas: { engine: HyperFormula },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.selectCell(1, 1);
+    hot.getActiveEditor().beginEditing();
+    hot.getActiveEditor().setValue(newValue);
+    hot.getActiveEditor().finishEditing();
+    await flush();
+  }
+
+  it('lets the edited cell\'s async rejection reopen the editor although a dependent answered first', async() => {
+    await editB2(atMost100, '-5'); // the dependent C2 = -10 is valid, and answers in the validation microtask
+
+    expect(hot.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getDataAtCell(1, 1)).toBe(18);
+  });
+
+  it('does not reopen the editor when only the dependent is invalid', async() => {
+    await editB2(atMost100, '60');
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(hot.getDataAtCell(1, 1)).toBe(60);
+    expect(hot.getCellMeta(1, 2).valid).toBe(false);
+  });
+});
