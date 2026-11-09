@@ -289,4 +289,121 @@ describe('Formulas writes a validated change when the Core applies it', () => {
       container2.remove();
     }
   });
+
+  it('makes an accepted edit undoable as soon as it is applied, while a dependent is still validated', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [[2, '=A1*15'], [31, '=A2*15']],
+      columns: [
+        { validator: heldValidator, allowInvalid: false },
+        { validator: heldValidator, allowInvalid: false },
+      ],
+      formulas: { engine },
+      undo: true,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheet = hot.getPlugin('formulas').sheetId;
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.setDataAtCell(1, 0, 10);
+    await waitForValidation();
+
+    expect(held.map(({ value }) => value)).toEqual([10]);
+
+    held.shift().answer();
+    await waitForValidation();
+
+    // The apply wrote A2 and asked B2's validator, which still works.
+    expect(hot.getDataAtCell(1, 1)).toBe(150);
+    expect(held.map(({ value }) => value)).toEqual([150]);
+    expect(undoRedo.isUndoAvailable()).toBe(true);
+
+    undoRedo.undo();
+
+    expect(hot.getSourceDataAtCell(1, 0)).toBe(31);
+    expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(31);
+    expect(hot.getDataAtCell(1, 1)).toBe(465);
+
+    // The late answer marks the dependent and records nothing.
+    held.shift().answer();
+    await waitForValidation();
+
+    expect(undoRedo.isRedoAvailable()).toBe(true);
+    expect(undoRedo.doneActions).toHaveLength(0);
+  });
+
+  it('writes a change to a validated cell that accepts invalid values at once, as before', async() => {
+    const afterFormulasValuesUpdate = jest.fn();
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [[2, '=A1*15'], [31, '=A2*15']],
+      // `allowInvalid` is `true` by default: the Core never rejects the change, so it is not deferred.
+      columns: [{ validator: heldValidator }, {}],
+      formulas: { engine },
+      afterFormulasValuesUpdate,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    afterFormulasValuesUpdate.mockClear();
+    hot.setDataAtCell(1, 0, -7);
+
+    expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(-7);
+    expect(hot.getDataAtCell(1, 1)).toBe(-105);
+    expect(afterFormulasValuesUpdate).toHaveBeenCalledTimes(1);
+
+    await releaseAll();
+
+    expect(hot.getSourceDataAtCell(1, 0)).toBe(-7);
+    expect(hot.getCellMeta(1, 0).valid).toBe(false);
+    expect(afterFormulasValuesUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it('writes a numeric column change at once', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [[1, '=A1*2']],
+      columns: [{ type: 'numeric' }, {}],
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.setDataAtCell(0, 0, 5);
+
+    expect(hot.getDataAtCell(0, 1)).toBe(10);
+  });
+
+  ['edit', undefined].forEach((source) => {
+    it(`validates a deferred cell of a mixed set once, by its new value (source ${source})`, async() => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      hot = new Handsontable(container, {
+        data: [[1, '=A1*2']],
+        columns: [{}, {
+          validator: (value, callback) => held.push({ value, answer: () => callback(value < 10) }),
+          allowInvalid: false,
+        }],
+        formulas: { engine },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      hot.setDataAtCell([[0, 0, 4], [0, 1, '=A1*3']], source);
+      await waitForValidation();
+
+      // B1's old formula reads the new A1 (8), but B1 is a change of the set: only its own value counts.
+      expect(held.map(({ value }) => value)).toEqual([12]);
+
+      held.splice(0).forEach(({ answer }) => answer());
+      await waitForValidation();
+
+      expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*2');
+      expect(hot.getDataAtCell(0, 1)).toBe(8);
+      expect(hot.getCellMeta(0, 1).valid).not.toBe(false);
+    });
+  });
 });
