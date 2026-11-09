@@ -374,6 +374,7 @@ export class Pagination extends BasePlugin {
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
     this.addHook('beforePaste', this.#onBeforePaste);
     this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterRender', this.#onAfterRender);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
@@ -1299,6 +1300,33 @@ export class Pagination extends BasePlugin {
     this.#internalRenderCall = true;
     this.#refreshUI();
   };
+
+  /**
+   * Called after the grid is rendered. It holds the body of a grid with no rows open, so a root with a free
+   * height does not collapse to its column headers and leave the pager touching them.
+   */
+  #onAfterRender = () => {
+    const holder = this.hot.view._wt.wtTable.holder;
+
+    this.#ui?.syncEmptyBodyReserve(holder, this.#shouldReserveEmptyBody(holder));
+  };
+
+  /**
+   * Tells whether the body should keep its own height now: nothing is drawn, the holder follows its content
+   * (the engine gave it no pixel height, as it does for a free root height and not inside a sized scroll
+   * parent), the pager sits under the grid, and `emptyDataState` is not already holding the same space open.
+   *
+   * @param {HTMLElement} holder The table holder.
+   * @returns {boolean}
+   */
+  #shouldReserveEmptyBody(holder: HTMLElement): boolean {
+    const holderHeight = holder.style.height;
+
+    return this.hot.view.countRenderableRows() === 0 &&
+      (holderHeight === '' || holderHeight === 'auto') &&
+      !this.getSetting('uiContainer') &&
+      !this.hot.getPlugin('emptyDataState')?.enabled;
+  }
 
   /**
    * Called after the language change. It recomputes the pagination state which updates the UI.
