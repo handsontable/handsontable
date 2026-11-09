@@ -2096,24 +2096,32 @@ export class Formulas extends BasePlugin {
 
   /**
    * Plans a reload that keeps the grid's order (`#reloadKeepingOrder()`), per axis (`#planReloadAxis()`). It
-   * runs before the sync endpoint is set up again, while the syncers still hold the recorded engine order.
+   * runs before the sync endpoint is set up again, while the syncers still hold the recorded engine order. The
+   * grid's source rows are read once, and only when an axis needs them.
    *
    * @param {Array<Array<*>>} rows The sheet content, in engine order.
    * @returns {object}
    */
   #planReload(rows: unknown[][]): { row: ReloadAxis; column: ReloadAxis } {
-    const sourceRows = this.#readOwnSourceRows();
+    // Read only when an axis asks: that takes an axis out of physical order with lines the engine left out,
+    // so a reload of a grid without a move (every React or Vue re-render of one) reads nothing.
+    let sourceRows: unknown[][] | null = null;
+    const readSourceRows = () => {
+      sourceRows ??= this.#readOwnSourceRows();
+
+      return sourceRows;
+    };
     const hasContent = (value: unknown) => value !== null && value !== undefined && value !== '';
 
     return {
       row: this.#planReloadAxis(
         this.rowAxisSyncer!, this.hot.rowIndexMapper, rows.length,
-        physicalRow => (sourceRows[physicalRow] ?? []).some(hasContent),
+        physicalRow => (readSourceRows()[physicalRow] ?? []).some(hasContent),
       ),
       column: this.#planReloadAxis(
         this.columnAxisSyncer!, this.hot.columnIndexMapper,
         rows.reduce((widest, row) => Math.max(widest, row.length), 0),
-        physicalColumn => sourceRows.some(row => hasContent(row?.[physicalColumn])),
+        physicalColumn => readSourceRows().some(row => hasContent(row?.[physicalColumn])),
       ),
     };
   }

@@ -1042,6 +1042,9 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
   drops it from the height (the blank line would drop again). Lines the engine gained are read through the
   record too (`listEngineElements()` names them after the recorded ones), so the grid shows them where the
   engine has them.
+  The grid's rows are read only for an axis out of physical order whose engine sheet left lines out, so a
+  reload of a grid without a move (every React or Vue re-render of one) reads no source row (pinned by `does
+  not read the grid's source rows on a reload of ...`).
 - loads inside `runWithEngineOrderHeld()`; the plugin's own `afterLoadData` (the early return for its own
   source) adopts the recorded engine order (`#reloadEngineOrder`) after the load reset the grid's order and
   before the move plugins re-apply their arrays, so those moves are held (`adoptedWhileHeld`), not sent.
@@ -1059,12 +1062,16 @@ the old path, so the initial counts above (0, 1, 1) hold. A grid built with `dat
 through `switchSheet(<the sheet it is bound to>)`, which is a same-sheet reload and takes this path too: its
 move order is now kept there, where it rotated before (develop included).
 
-Two limits:
+Three limits:
 
 - **A host that reorders the engine sheet, or writes it with the same shape, is read through the record.** The
   grid shows the engine's lines where the engine has them (the record maps engine line `i` to the grid's
   position `i`), but the physical identity of the records drifts, so meta keyed by physical row follows the
   wrong record. Two grids that reorder one sheet were already broken before this.
+- **A host that removes only lines that are blank in the grid is not detected.** The check needs a line the
+  engine left out that holds content in the grid, so after the host removes the blank row a move put last
+  (`removeRows()` on rows `[a], [null], [c]` with `manualRowMove: [2, 0]`), the grid keeps that blank row
+  while the engine has two. Nothing is lost, since the line was blank.
 - **A reload drops the ColumnSorting state of a sorted grid and keeps its rows sorted.** The load resets the
   sort plugin's state (`getSortConfig()` is `[]`, no indicator), and the order put back is the sorted one, so
   `clearSort()` cannot bring the manual order back. A grid built with `data` keeps its sort across an update.

@@ -714,4 +714,27 @@ describe('Formulas reload of a moved sheet-built grid', () => {
     // A grid built with `data` goes back to the manual order `c, b, a` here.
     expect(hot.getData()).toEqual([['a', 1, 2], ['b', 2, 4], ['c', 3, 6]]);
   });
+
+  it.each([
+    ['a grid without a move', {}],
+    ['a moved grid whose engine sheet covers it', { manualRowMove: [3, 1, 0, 2], manualColumnMove: [2, 0] }],
+  ])('does not read the grid\'s source rows on a reload of %s', (_, settings) => {
+    const engine = buildCrossRowEngine();
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      licenseKey: LICENSE_KEY,
+      ...settings,
+    });
+
+    const before = hot.getData();
+    const getSourceDataAtRow = jest.spyOn(hot, 'getSourceDataAtRow');
+
+    hot.updateSettings({});
+
+    // The rows are read only to tell a sheet the host shrank from a blank line the move put last, which needs
+    // an axis out of physical order with lines the engine left out.
+    expect(getSourceDataAtRow).not.toHaveBeenCalled();
+    expect(hot.getData()).toEqual(before);
+  });
 });
