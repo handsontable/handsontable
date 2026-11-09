@@ -5,6 +5,7 @@ import { TextCellType } from 'handsontable/cellTypes/textType';
 import { registerRenderer, baseRenderer, textRenderer, numericRenderer } from 'handsontable/renderers';
 import { registerPlugin } from 'handsontable/plugins/registry';
 import { ManualColumnMove } from 'handsontable/plugins/manualColumnMove';
+import { TextEditor } from 'handsontable/editors/textEditor';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
@@ -100,7 +101,9 @@ describe('BaseEditor validation wait', () => {
       data,
       columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
     });
-    core.addHook('postAfterValidate', (valid, value, row, col, source) => answers.push([row, source]));
+    core.addHook('postAfterValidate', (valid, value, row, col, source) => {
+      answers.push([row, source]); // returns nothing, so the hook keeps `valid`
+    });
 
     core.validateCells(); // the batch is in flight, its first answer (row 11) will be `false`
     await flush();
@@ -180,7 +183,9 @@ describe('BaseEditor validation wait', () => {
       data: createData(5),
       columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
     });
-    core.addHook('postAfterValidate', (valid, value, row, col, source) => sources.push(source));
+    core.addHook('postAfterValidate', (valid, value, row, col, source) => {
+      sources.push(source); // returns nothing, so the hook keeps `valid`
+    });
 
     core.selectCells([[1, 0, 3, 0]]);
     core.getActiveEditor().beginEditing();
@@ -300,5 +305,140 @@ describe('BaseEditor validation wait', () => {
     expect(postAfterValidate.mock.calls[0][3]).toBe('b'); // the answer carries colArg === 'b'
     expect(core.getActiveEditor().isOpened()).toBe(false);
     expect(core.getDataAtRowProp(0, 'b')).toBe(9);
+  });
+
+  /**
+   * Confirms `newValue` in an editor on (1, 0), then runs `alterDuringWait` while the editor waits for its
+   * 600 ms validator, and lets the validator answer.
+   *
+   * @param {string} newValue The value the editor confirms.
+   * @param {Function} alterDuringWait Changes the rows while the editor waits.
+   */
+  async function editAndAlterDuringWait(newValue, alterDuringWait) {
+    core = createHot(container, {
+      data: [[10], [11], [12], [13], [14]],
+      columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
+    });
+
+    core.selectCell(1, 0);
+    core.getActiveEditor().beginEditing();
+    core.getActiveEditor().setValue(newValue);
+    core.getActiveEditor().finishEditing();
+    await flush();
+    alterDuringWait();
+    await flush();
+
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(600);
+    await flush();
+  }
+
+  it('closes on its own acceptance when a row is inserted above during the wait', async() => {
+    await editAndAlterDuringWait('7', () => core.alter('insert_row_above', 0));
+
+    expect(core.getActiveEditor().state).not.toBe('STATE_WAITING');
+    expect(core.getActiveEditor().isOpened()).toBe(false);
+    expect(core.getDataAtCol(0)).toContain(7);
+    // Where the value lands is core's write path, not the wait: the change keeps the visual row it was
+    // made with, so it lands on the record that now sits there (a known limit, not pinned here).
+  });
+
+  it('reopens on its own rejection when a row is inserted above during the wait', async() => {
+    await editAndAlterDuringWait('-5', () => core.alter('insert_row_above', 0));
+
+    expect(core.getActiveEditor().state).toBe('STATE_EDITING'); // reopened, not left waiting
+    expect(core.getActiveEditor().isOpened()).toBe(true);
+    expect(core.getActiveEditor().getValue()).toBe('-5');
+    expect(core.getDataAtCol(0)).toEqual([null, 10, 11, 12, 13, 14]);
+  });
+
+  it('closes on its own acceptance when a row above is removed during the wait', async() => {
+    await editAndAlterDuringWait('7', () => core.alter('remove_row', 0));
+
+    expect(core.getActiveEditor().state).not.toBe('STATE_WAITING');
+    expect(core.getActiveEditor().isOpened()).toBe(false);
+    expect(core.getDataAtCol(0)).toContain(7);
+    // Where the value lands is core's write path, not the wait: the change keeps the visual row it was
+    // made with, so it lands on the record that now sits there (a known limit, not pinned here).
+  });
+
+  it('reopens on its own rejection when a row above is removed during the wait', async() => {
+    await editAndAlterDuringWait('-5', () => core.alter('remove_row', 0));
+
+    expect(core.getActiveEditor().state).toBe('STATE_EDITING'); // reopened, not left waiting
+    expect(core.getActiveEditor().isOpened()).toBe(true);
+    expect(core.getActiveEditor().getValue()).toBe('-5');
+    expect(core.getDataAtCol(0)).toEqual([11, 12, 13, 14]);
+  });
+
+  it('takes the answer of an editor whose saveValue() writes without a source as its own', async() => {
+    class SourcelessEditor extends TextEditor {
+      saveValue(value) {
+        this.hot.setDataAtCell(this.row, this.col, value[0][0]);
+      }
+    }
+    const sources = [];
+
+    core = createHot(container, {
+      data: createData(3),
+      columns: [{ editor: SourcelessEditor, validator: asyncNonNegative, allowInvalid: false }],
+    });
+    core.addHook('postAfterValidate', (valid, value, row, col, source) => {
+      sources.push(source); // returns nothing, so the hook keeps `valid`
+    });
+
+    core.selectCell(1, 0);
+    core.getActiveEditor().beginEditing();
+    core.getActiveEditor().setValue('-5');
+    core.getActiveEditor().finishEditing();
+    await flush();
+
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(sources).toEqual([undefined]);
+    expect(core.getActiveEditor().isOpened()).toBe(true);
+    expect(core.getActiveEditor().getValue()).toBe('-5');
+    expect(core.getDataAtCell(1, 0)).toBe(18);
+  });
+
+  it('ignores a later validation of the cell once the wait was canceled', async() => {
+    let vetoes = 1;
+
+    core = createHot(container, {
+      data: createData(3),
+      columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
+      beforeChange() {
+        if (vetoes > 0) {
+          vetoes -= 1;
+
+          return false;
+        }
+      },
+    });
+
+    core.selectCell(1, 0);
+
+    const editor = core.getActiveEditor();
+
+    editor.beginEditing();
+    editor.setValue('7');
+    editor.finishEditing(); // the veto cancels the editor and its wait
+
+    expect(editor.isOpened()).toBe(false);
+
+    const discardEditor = jest.spyOn(editor, 'discardEditor');
+
+    core.validateCell(-5, core.getCellMeta(1, 0), () => {}, 'edit');
+    await flush();
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(discardEditor).not.toHaveBeenCalled();
+    expect(editor.isOpened()).toBe(false);
+    expect(editor.state).toBe('STATE_VIRGIN');
   });
 });
