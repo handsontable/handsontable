@@ -1111,7 +1111,7 @@ registration point without treating it as a behavior change.
 ## Sheets other grids are bound to
 
 `getSheetNamesBoundElsewhere(engine)` (`@private`) names every sheet of `engine` that a Handsontable instance
-other than this one is bound to, read from the engine registry (`getRegisteredHotInstances()`). The sheets bar
+other than this one is bound to, read from the engine registry list (`getRegisteredHotInstanceList()`). Not `getRegisteredHotInstances()`: its map is keyed by `sheetId`, so two grids on one sheet collapse into the later one. The sheets bar
 leaves those sheets out when it builds tabs from a shared engine, so it never lists, renames over, or removes
 another grid's sheet. It takes the engine as an argument because the bar asks before it binds a sheet.
 

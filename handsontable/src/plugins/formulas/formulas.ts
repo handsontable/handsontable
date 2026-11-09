@@ -5,7 +5,13 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNumeric } from '../../helpers/number';
 import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
-import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
+import {
+  getRegisteredHotInstanceList,
+  getRegisteredHotInstances,
+  setupEngine,
+  setupSheet,
+  unregisterEngine,
+} from './engine/register';
 import {
   coalesceIndexesToSpans,
   escapeTextValue,
@@ -2238,7 +2244,8 @@ export class Formulas extends BasePlugin {
   getSheetNamesBoundElsewhere(engine: HyperFormulaEngine): string[] {
     const names: string[] = [];
 
-    getRegisteredHotInstances(engine).forEach((hot, sheetId) => {
+    getRegisteredHotInstanceList(engine).forEach((hot) => {
+      const { sheetId } = hot.getPlugin('formulas');
       const name = hot !== this.hot && typeof sheetId === 'number' ? engine.getSheetName(sheetId) : undefined;
 
       if (typeof name === 'string') {

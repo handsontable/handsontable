@@ -349,7 +349,7 @@ For the `dataProvider` setup itself, see [Server-side data](@/guides/getting-sta
 
 To reference other sheets in a formula, pass a [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods) instance that holds your sheets in the `formulas` setting, and set `sheetsBar: true`. The bar shows one tab per engine sheet. If you also set `data`, it becomes one more tab. Every tab uses the grid-level settings. To give a sheet settings of its own, declare `sheets` instead. Removing a tab removes its engine sheet.
 
-The example below also turns on the [formula builder](@/guides/formulas/formula-builder/formula-builder.md), which adds a formula bar and an inline editor with colored references and autocomplete. Set `editor: 'formula'` and `formulaBuilder` at the grid level, so every sheet uses them. Select a cell in the **VAT** column of the **Budget** sheet to see its `Rates!B1` reference in the formula bar.
+The example below also turns on the [formula builder](@/guides/formulas/formula-builder/formula-builder.md), which adds a formula bar and an inline editor with colored references and autocomplete. Set `editor: 'formula'` and `formulaBuilder` at the grid level, so every sheet uses them. Select a cell in column **C** of the **Budget** sheet to see its `Rates!B1` reference in the formula bar.
 
 ::: only-for react
 

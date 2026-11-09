@@ -3512,6 +3512,15 @@ export class SheetsBar extends BasePlugin {
       return null;
     }
 
+    plan.entries.forEach(({ name }) => {
+      const tabName = clampSheetName(name);
+
+      if (tabName !== name) {
+        warn(`The formula engine sheet "${name}" is named "${tabName}" in the sheets bar. Formulas still ` +
+          'reference the engine name, and renaming the tab does not rename the engine sheet.');
+      }
+    });
+
     if (plan.missingSheetName !== null) {
       warn(`The formula engine has no sheet named "${plan.missingSheetName}", so the sheets bar opens its ` +
         'first sheet instead.');
@@ -3560,7 +3569,10 @@ export class SheetsBar extends BasePlugin {
     boundFormulas: Record<string, unknown>,
     excludedNames: string[],
   ): string | null {
-    if (detachedDataSheet === null || detachedDataSheet.engine !== formulas.engine || boundFormulas === formulas) {
+    if (
+      detachedDataSheet === null || detachedDataSheet.engine !== formulas.engine || boundFormulas === formulas
+      || isSameSheetName(boundFormulas.sheetName as string, detachedDataSheet.sheetName)
+    ) {
       return null;
     }
 

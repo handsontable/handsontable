@@ -642,7 +642,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   names, so tab and engine sheet share the name. Pinned by `__tests__/engineSheets.unit.js`, including "writes
   no engine sheet but the opening one while the workbook is built" for rule (2). (5) **Engine sheets bound to
   another grid are left out** (`Formulas#getSheetNamesBoundElsewhere()`, which reads the engine registry and
-  names every sheet a Handsontable instance other than this one is bound to, passed as `excludedNames`), so the bar
+  names every sheet a Handsontable instance other than this one is bound to, passed as `excludedNames`; it walks the registry list, not `getRegisteredHotInstances()`, whose `sheetId` map keeps one grid per sheet, so a sheet two grids share was missed when the bar was enabled on the later one), so the bar
   never lists, edits, renames over, or removes another grid's sheet on a shared engine. An engine whose every
   sheet belongs to other grids falls back to the plain `sheetsBar: true` build. When the grid-level `sheetName`
   names one of those sheets, that build still binds its one tab to it through the grid-level `formulas`, as the
@@ -664,13 +664,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   only when nothing else is remembered.** A `sheetsBar: false` teardown remembers the engine sheet of the data
   owner tab with its engine (`#detachedDataSheet`, from `#dataOwnerEngineSheet()`), and the next build takes it
   (any build drops it; destroy too). When it is in the same engine, not bound to another grid, and the grid
-  shows another sheet (`#detachedDataTab`), that sheet becomes the data tab (`dataIndex`, returned by
+  shows another sheet (`#detachedDataTab`; it returns `null` when the grid still shows that sheet, so the usual plan binds the live `data` array and edits keep reaching it), that sheet becomes the data tab (`dataIndex`, returned by
   `#buildInitialWorkbook` as the owner id) and the plan gets no `data`, so every tab, the shown one included, holds
   its engine content and nothing writes the grid's `data` into the shown sheet. Without it, after a switch and a
   toggle, a later `data` replaced the shown sheet's engine content (`Report!A1`, a formula) or landed in a hidden
   sheet while the grid stayed unchanged. **Known limit:** a grid built with
   the engine, no `data` and no bar already holds the empty engine sheet Formulas added at its init, so a later
   `sheetsBar: true` shows that sheet as one more tab (the open one); the guide says so.
+  An engine sheet name `clampSheetName()` changes (over 50 characters, outer spaces, control characters) gets the
+  clamped tab name and a warning: `formulas.sheetName` keeps the engine name, so a tab rename does not follow into
+  the engine (`#renameFormulaSheet` compares names).
 - **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**
   (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
   arrays by logging an error and turning itself off until the next sheet with object rows, so the add

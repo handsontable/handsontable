@@ -461,6 +461,29 @@ describe('SheetsBar tabs from a formula engine', () => {
       expect(warnings[0]).toContain('`data`');
       expect(warnings[0]).not.toContain('was removed');
     });
+
+    it('lists none of a sheet two grids are bound to when the bar is enabled on the later grid', () => {
+      const engine = buildEngine({
+        Data: [[1, 2], [3, 4]],
+        Rates: [[7]],
+      });
+
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      otherHot = new Handsontable(otherContainer, {
+        data: [[7]],
+        formulas: { engine, sheetName: 'Rates' },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+      hot = new Handsontable(container, {
+        data: [[7]],
+        formulas: { engine, sheetName: 'Rates' },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+      hot.updateSettings({ sheetsBar: true });
+
+      expect(tabNames()).not.toContain('Rates');
+      expect(engine.getSheetNames()).toContain('Rates');
+    });
   });
 
   describe('enabled on a live grid', () => {
@@ -577,5 +600,32 @@ describe('SheetsBar tabs from a formula engine', () => {
       expect(tabNames()).toEqual(['Data', 'Report', 'Summary']);
       expect(engine.getSheetNames()).toEqual(['Data', 'Report', 'Summary']);
     });
+
+    it('keeps the grid data array in the data tab after `sheetsBar: false` and `true` on that tab', () => {
+      const engine = buildEngine();
+      const data = [[5, 6]];
+
+      hot = build({ data, formulas: { engine } });
+      hot.updateSettings({ sheetsBar: false });
+      hot.updateSettings({ sheetsBar: true });
+
+      expect(tabNames()).toEqual(['Data', 'Report', 'Summary', 'Sheet1']);
+      expect(activeName()).toBe('Sheet1');
+      expect(sheetsBar().getSheetData(idOf('Sheet1'))).toBe(data);
+    });
+  });
+
+  it('warns about an engine sheet whose name the tab cannot keep', () => {
+    const longName = 'A'.repeat(60);
+    const engine = buildEngine({ Data: [[1]], [longName]: [[2]] });
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = build({ formulas: { engine } });
+
+    const warnings = warnSpy.mock.calls.map(call => String(call[0])).filter(text => text.includes(longName));
+
+    expect(tabNames()).toEqual(['Data', 'A'.repeat(50)]);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain('renaming the tab does not rename the engine sheet');
   });
 });
