@@ -105,7 +105,10 @@ the text (DEV-986). The measurement was not lost: the hidden top-left row was me
   row, physical column and the block's width from there) with the ones of the last comparison, and drops the heights of
   the rows that entered or left that set (`clearCache([rows])`, which queues them). The comparison runs only after
   something that can move a block was reported: `cacheUpdated` of either index mapper with a hidden, trimmed or
-  sequence change, `afterMergeCells`, `afterUnmergeCells`, and the plugin being enabled. Comparing, rather than
+  sequence change, `afterMergeCells`, `afterUnmergeCells`, an `updateSettings()` that carries `mergeCells` (replacing
+  the merges drops the old ones without a hook), and the plugin being enabled. Undo and redo restore merges without a
+  hook too, and their own render has run by `afterUndo` and `afterRedo`, so those two compare at once and measure the
+  queued rows instead of waiting for a render that may not come. Comparing, rather than
   reacting to the report, is what keeps a settings update that hides nothing new free: HiddenRows registers its hiding
   map again on every update, which reports a hidden change, and the React and Angular wrappers send the settings on every
   commit. The mapper callback only sets the flag: clearing from inside it would write the height map in the middle of a

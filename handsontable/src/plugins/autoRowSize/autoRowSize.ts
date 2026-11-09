@@ -2,7 +2,7 @@ import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
-import { isObject } from '../../helpers/object';
+import { isObject, hasOwnProperty } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
@@ -493,6 +493,9 @@ export class AutoRowSize extends BasePlugin {
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
     this.addHook('afterMergeCells', this.#onMergedBlocksChanged);
     this.addHook('afterUnmergeCells', this.#onMergedBlocksChanged);
+    this.addHook('afterUndo', this.#onMergesRestored);
+    this.addHook('afterRedo', this.#onMergesRestored);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     // Blocks may be drawn on covered cells already, which no earlier comparison has recorded.
     this.#mergedBlocksChanged = true;
 
@@ -791,6 +794,29 @@ export class AutoRowSize extends BasePlugin {
    */
   #onMergedBlocksChanged = () => {
     this.#mergedBlocksChanged = true;
+  };
+
+  /**
+   * Compares the merged blocks right away after an undo or a redo. They restore merges without a hook of their
+   * own, and the render of the step has run by then, so the heights of rows below the fold are corrected here
+   * instead of at a render that may not come.
+   */
+  #onMergesRestored = () => {
+    this.#mergedBlocksChanged = true;
+    this.#remeasureMovedBlocks();
+    this.#drainRowRefreshQueue();
+  };
+
+  /**
+   * Marks the merged blocks for a new comparison when a settings update brought `mergeCells`: replacing the
+   * merges raises no merge hook. The update renders after this hook.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings`.
+   */
+  #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    if (isObject(newSettings) && hasOwnProperty(newSettings, 'mergeCells')) {
+      this.#mergedBlocksChanged = true;
+    }
   };
 
   /**

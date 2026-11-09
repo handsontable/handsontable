@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, AutoRowSize, MergeCells, HiddenRows, HiddenColumns } from 'handsontable/plugins';
+import { registerPlugin, AutoRowSize, MergeCells, HiddenRows, HiddenColumns, UndoRedo } from 'handsontable/plugins';
 import { createSpreadsheetData } from '../../../helpers/data';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
@@ -7,6 +7,7 @@ registerPlugin(AutoRowSize);
 registerPlugin(MergeCells);
 registerPlugin(HiddenRows);
 registerPlugin(HiddenColumns);
+registerPlugin(UndoRedo);
 
 const BLOCK = { row: 1, col: 4, rowspan: 2, colspan: 2 };
 
@@ -208,6 +209,35 @@ describe('AutoRowSize heights of the rows a merged block is drawn on', () => {
     rowHeightsMap.setValueAtIndex(2, STALE);
     hot.getPlugin('hiddenRows').showRows([1]);
     hot.render();
+
+    expect(rowHeightsMap.getValueAtIndex(2)).not.toBe(STALE);
+
+    hot.destroy();
+  });
+
+  it('should drop the height cached for the row a block is drawn on again after an undo', () => {
+    // Undo and redo restore merges without a merge hook.
+    const hot = buildGrid({ hiddenRows: { rows: [1] }, undo: true });
+    const { rowHeightsMap } = hot.getPlugin('autoRowSize');
+
+    hot.getPlugin('mergeCells').unmerge(1, 4, 2, 5);
+    hot.render();
+    rowHeightsMap.setValueAtIndex(2, STALE);
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getPlugin('mergeCells').getCellsBlocksAreDrawnOn()).toEqual([{ row: 2, col: 4, colspan: 2 }]);
+    expect(rowHeightsMap.getValueAtIndex(2)).not.toBe(STALE);
+
+    hot.destroy();
+  });
+
+  it('should drop the height cached for the row a block was drawn on after a settings update removed it', () => {
+    // Replacing the merges through `updateSettings()` drops the old ones without a merge hook.
+    const hot = buildGrid({ hiddenRows: { rows: [1] } });
+    const { rowHeightsMap } = hot.getPlugin('autoRowSize');
+
+    rowHeightsMap.setValueAtIndex(2, STALE);
+    hot.updateSettings({ mergeCells: [] });
 
     expect(rowHeightsMap.getValueAtIndex(2)).not.toBe(STALE);
 
