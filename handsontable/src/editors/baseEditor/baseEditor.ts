@@ -171,11 +171,13 @@ export class BaseEditor {
   #validationWait: object | null = null;
 
   /**
-   * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on its
-   * first answer that is not stale, and the answer of a dropped call is stale, so a wait ended early would
-   * keep it until another validation in the grid answers.
+   * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on the
+   * first answer for the edited cell that is not stale, and the answer of a dropped call is stale, so a wait
+   * ended early would keep it until another validation of the cell answers.
    */
-  #validationWaitListener: ((result: boolean) => void) | null = null;
+  #validationWaitListener: (
+    (result: boolean, value: unknown, row: number, col: number | string) => void
+  ) | null = null;
 
   /**
    * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
@@ -621,11 +623,18 @@ export class BaseEditor {
    * this wait's answer it closed the editor before its own value was validated, or reopened it. The answer
    * is ignored once the wait has been ended or replaced.
    *
+   * The wait also ends on the edited cell's answer only (`#isOwnValidationAnswer()`). `postAfterValidate`
+   * is instance-wide: the Formulas plugin validates the cells that depend on the edited one, and a
+   * `validateCells()` batch can still be in flight, so another cell's answer often arrives first. Taken as
+   * this wait's answer, a `true` closed the editor and the own rejection under `allowInvalid: false` then
+   * landed on nothing, and a `false` reopened it. Such an answer is skipped and the listener stays
+   * registered.
+   *
    * @param {Function} onAnswer Called with the validation result once the editor is `FINISHED`.
    */
   #waitForValidation(onAnswer: (result: boolean) => void): void {
     const wait = {};
-    const onPostAfterValidate = (result: boolean) => {
+    const onPostAfterValidate = (result: boolean, value: unknown, row: number, col: number | string) => {
       // An earlier `postAfterValidate` listener destroyed the grid. The hook registry still reaches
       // this listener, and every method of the destroyed instance throws.
       if (this.hot.isDestroyed) {
@@ -633,6 +642,10 @@ export class BaseEditor {
       }
 
       if (this.hot._isAnsweringStaleValidation()) {
+        return;
+      }
+
+      if (!this.#isOwnValidationAnswer(row, col)) {
         return;
       }
 
@@ -652,6 +665,23 @@ export class BaseEditor {
     this.#validationWait = wait;
     this.#validationWaitListener = onPostAfterValidate;
     this.hot.addHook('postAfterValidate', onPostAfterValidate);
+  }
+
+  /**
+   * Tells whether a `postAfterValidate` answer is for the cell this editor edits. The hook names the column
+   * the way `Core#validateCell` does: by its property, or by its visual index when the property is a data
+   * accessor function.
+   *
+   * @param {number} row The visual row the answer is for.
+   * @param {number|string} col The column property the answer is for, or the visual column for an accessor.
+   * @returns {boolean}
+   */
+  #isOwnValidationAnswer(row: number, col: number | string): boolean {
+    if (row !== this.row) {
+      return false;
+    }
+
+    return typeof this.prop === 'function' ? col === this.col : col === this.prop;
   }
 
   /**
