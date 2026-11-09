@@ -23,7 +23,8 @@
  *
  * A fifth family is the accessibility nightlies' evidence: the check documents and the axe findings
  * of the `A11y nightly` (`a11y-checks-evidence`, `a11y-axe-results`) and the transcripts of the
- * `Screen reader nightly` (`screenreader-transcripts-*`). `collectArtifactFiles` hands the files of
+ * `Screen reader nightly` (`screenreader-transcripts-*`), and the docs site scan's findings of a `Docs a11y`
+ * run (`docs-a11y-axe-results`). `collectArtifactFiles` hands the files of
  * those artifacts to the caller unparsed; `./a11y-ledger.mjs` reads them into the findings ledger
  * (`test-health/a11y.json`, 90 days, one row per finding across nights), never into this one.
  *
@@ -461,8 +462,8 @@ export function collectArtifactFiles(files, run) {
 
 /**
  * Whether a file of an accessibility artifact sits where the ledger reads it: a check document at the
- * evidence artifact's root, the findings at the axe artifact's root, a transcript one level down under
- * `transcripts/`. Everything else (per-test folders, detail files, the comparison, the scans) is skipped.
+ * evidence artifact's root, the findings at the axe artifact's root and at the docs site scan's, a transcript
+ * one level down under `transcripts/`. Everything else (per-test folders, detail files, the comparison, the scans) is skipped.
  *
  * @param {{artifact: string, path: string}} file The file.
  * @returns {boolean} The verdict.
@@ -473,7 +474,7 @@ function isA11yFile(file) {
   if (family === 'checks') {
     return /^[a-z0-9-]+\.json$/.test(file.path);
   }
-  if (family === 'axe') {
+  if (family === 'axe' || family === 'docs') {
     return file.path === 'a11y-findings.json';
   }
 

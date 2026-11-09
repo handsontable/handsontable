@@ -1,5 +1,5 @@
 import type { Verdict } from './a11y-baseline.mjs';
-import type { A11yPage } from '../a11y/pages.mjs';
+import type { A11ySuite } from './a11y-suites.mjs';
 
 export const FINDINGS_SCHEMA: number;
-export function agentFindings(input: { verdict: Verdict; pages: readonly A11yPage[]; problems?: string[] }): object;
+export function agentFindings(input: { verdict: Verdict; pages?: readonly { id: string }[]; problems?: string[]; suite?: A11ySuite }): object;

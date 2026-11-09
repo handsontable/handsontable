@@ -133,9 +133,15 @@ test('the a11y config builds on the e2e config, keeps one project, and leaves th
 
 test('the a11y spec scans the grid root and the portal with the WCAG 2.2 A and AA tags, and never asserts on a violation', () => {
   const spec = stripTsComments(read('tests/a11y/axe.spec.ts'));
+  const docsSpec = stripTsComments(read('tests/a11y/docs/docs-axe.spec.ts'));
 
-  assert.match(spec, /const WCAG_TAGS = \['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'\];/,
+  // One rule set for both scans, in the module they share.
+  assert.match(stripTsComments(read('tests/a11y/axe-scan.ts')), /export const WCAG_TAGS = \['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'\];/,
     `the rule set is the level the conformance report claims. ${DOC}`);
+  assert.match(spec, /import \{ WCAG_TAGS, measureNodes \} from '\.\/axe-scan';/, `the product scan reads the shared rule set. ${DOC}`);
+  assert.match(docsSpec, /import \{ WCAG_TAGS, measureNodes \} from '\.\.\/axe-scan';/, 'the docs site scan reads the same rule set');
+  assert.match(docsSpec, /\.withTags\(WCAG_TAGS\)/, 'the docs site scan runs it');
+  assert.doesNotMatch(docsSpec, /expect\([^)]*violations/, 'a docs test never fails on a violation either');
   assert.match(spec, /\.include\(root\)\s*\.include\(PORTAL\)/, `the scan includes the root container and the marked portals, nothing else. ${DOC}`);
   assert.doesNotMatch(spec, /expect\([^)]*violations/, `a test never fails on a violation: the reporter applies the mode. ${DOC}`);
 });
