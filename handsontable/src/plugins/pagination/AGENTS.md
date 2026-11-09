@@ -89,8 +89,9 @@ Pinned by `__tests__/readyStep.unit.js`.
 - **An empty grid with a free height keeps its body open itself (DEV-1103).** With no renderable rows and a root
   height that is unset or `'auto'`, the holder has no content, so the root collapsed to its column headers and the
   pager touched them. `#onAfterRender` keeps one `ht-pagination-placeholder` block (150 px, the same as the
-  `emptyDataState` placeholder) in `wtTable.holder` through `PaginationUI#syncEmptyBodyReserve()`; `destroy()`
-  removes it. "Free" means the root's INLINE height is empty or `'auto'`, so a root sized by a stylesheet or a short
+  `emptyDataState` placeholder) in `wtTable.holder` through `PaginationUI#syncEmptyBodyReserve()`; the UI keeps
+  the request and re-applies it from `#updateContainerVisibility()`, so `hide*Section()`/`show*Section()` (which do not
+  render) move the block at once; `destroy()` removes it. "Free" means the root's INLINE height is empty or `'auto'`, so a root sized by a stylesheet or a short
   container counts as free and the 150 px can extend past it, the same way the rows do in that layout. It stays off
   with a pixel, percentage or viewport `height` (the engine already leaves the room), with a custom `uiContainer`
   (the pager is not under the grid), while every pager section is hidden, and while `emptyDataState` is enabled,

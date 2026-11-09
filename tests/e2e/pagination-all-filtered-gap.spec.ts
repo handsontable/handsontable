@@ -144,6 +144,33 @@ test.describe('pagination with every row filtered out', { tag: THEMES_TAG }, () 
     await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(0);
   });
 
+  test('follows the pager at once when its sections are hidden and shown through the plugin methods', async () => {
+    await grid.goto(FREE_HOST, 'pagination');
+    await grid.rebuild({ filters: true, height: 'auto' });
+    await filterEverything();
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(1);
+
+    // Both counts are read in the same task as the calls: the slot observer renders a frame later and
+    // would put the space right on its own, which is not what is asserted here.
+    const counts = await grid.page.evaluate(() => {
+      const pagination = window.hot.getPlugin('pagination');
+      const count = () => document.querySelectorAll('.ht-pagination-placeholder').length;
+
+      pagination.hidePageSizeSection();
+      pagination.hidePageCounterSection();
+      pagination.hidePageNavigationSection();
+
+      const whileHidden = count();
+
+      pagination.showPageNavigationSection();
+
+      return { whileHidden, afterShow: count() };
+    });
+
+    expect(counts).toEqual({ whileHidden: 0, afterShow: 1 });
+    await expect.poll(gapUnderHeaders).toBeGreaterThanOrEqual(RESERVED_BODY_PX);
+  });
+
   test('keeps the gap for a grid that starts with no rows', async () => {
     await grid.goto(FREE_HOST, 'pagination');
     await grid.page.evaluate(() => {

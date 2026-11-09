@@ -140,6 +140,13 @@ export class PaginationUI {
    */
   #emptyBodyReserve: HTMLElement | null = null;
   /**
+   * The table holder the last `syncEmptyBodyReserve()` call named, and whether it asked for the block.
+   * Kept so a change of the pager's visibility can re-apply the block without waiting for a render.
+   *
+   * @type {{ holder: HTMLElement | null, needed: boolean }}
+   */
+  #emptyBodyReserveRequest: { holder: HTMLElement | null; needed: boolean } = { holder: null, needed: false };
+  /**
    * The name of the current theme.
    *
    * @type {string | undefined}
@@ -576,6 +583,7 @@ export class PaginationUI {
     }
 
     container.style.display = isSectionVisible ? '' : 'none';
+    this.#applyEmptyBodyReserve();
   }
 
   /**
@@ -594,6 +602,7 @@ export class PaginationUI {
 
     this.#emptyBodyReserve?.remove();
     this.#emptyBodyReserve = null;
+    this.#emptyBodyReserveRequest = { holder: null, needed: false };
     this.#refs?.container.remove();
     this.#refs = null;
   }
@@ -602,13 +611,24 @@ export class PaginationUI {
    * Keeps an empty block in the table holder while the grid has no rows to draw, so a root whose
    * height is free does not collapse to its column headers and leave the pager touching them.
    * Removes the block as soon as it is not needed, and does not add it while every section of the
-   * pager is hidden, because then there is no pager to separate from the headers.
+   * pager is hidden, because then there is no pager to separate from the headers. A later change
+   * of the pager's visibility applies the same request again.
    *
    * @param {HTMLElement} holder The table holder.
    * @param {boolean} needed Whether the grid should reserve the body space now.
    */
   syncEmptyBodyReserve(holder: HTMLElement, needed: boolean) {
-    if (!needed || this.#refs?.container.style.display === 'none') {
+    this.#emptyBodyReserveRequest = { holder, needed };
+    this.#applyEmptyBodyReserve();
+  }
+
+  /**
+   * Adds or removes the empty block according to the last request and the pager's visibility.
+   */
+  #applyEmptyBodyReserve() {
+    const { holder, needed } = this.#emptyBodyReserveRequest;
+
+    if (!holder || !needed || this.#refs?.container.style.display === 'none') {
       this.#emptyBodyReserve?.remove();
       this.#emptyBodyReserve = null;
 
