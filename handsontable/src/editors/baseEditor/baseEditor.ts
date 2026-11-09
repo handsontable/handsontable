@@ -36,6 +36,12 @@ interface ValidationWait {
    * whose `saveValue()` override writes with another source (or none) validates with that source.
    */
   sources: Set<string | undefined>;
+  /**
+   * `true` when the save validated no cell at all (a `saveValue()` override that writes later, after a
+   * timer or a request): the wait then ends on the first answer, whatever cell, as it did before it
+   * matched the edited cell.
+   */
+  acceptsAnyAnswer: boolean;
 }
 
 export const EDITOR_STATE = Object.freeze({
@@ -577,18 +583,27 @@ export class BaseEditor {
       const finishWait = this.#waitForValidation((result) => {
         this.discardEditor(result);
       });
-      const validatesEditedCell = this.#saveValueValidatingEditedCell(value, ctrlDown);
+      const { validatesEditedCell, validatesAnyCell } = this.#saveValueValidatingEditedCell(value, ctrlDown);
 
       // A listener of the save destroyed the grid, and the editor's DOM went with it.
       if (this.hot.isDestroyed) {
         return;
       }
 
-      // A `beforeChange` listener took the edited cell out of a multi-cell write (a Ctrl+Enter fill), so
-      // no answer of the editor's own will ever come. The editor closes as on a save the listener chose
-      // not to write. A veto of the whole write has already canceled the editor (`isWaiting()` is false).
-      if (!validatesEditedCell && this.isWaiting()) {
+      if (validatesEditedCell || !this.isWaiting()) {
+        return;
+      }
+
+      if (validatesAnyCell) {
+        // A `beforeChange` listener took the edited cell out of a multi-cell write (a Ctrl+Enter fill), so
+        // no answer of the editor's own will ever come. The editor closes as on a save the listener chose
+        // not to write. A veto of the whole write has already canceled the editor (`isWaiting()` is false).
         finishWait(true);
+
+      } else if (this.#validationWait) {
+        // The save validated nothing yet: a `saveValue()` override that writes later. Its answer cannot be
+        // told from a foreign one, so the first answer ends the wait.
+        this.#validationWait.acceptsAnyAnswer = true;
       }
     }
   }
@@ -600,13 +615,20 @@ export class BaseEditor {
    * save is recorded on the wait, so the answer of a `saveValue()` override that writes with another
    * source (or none, as a bare `setDataAtCell(row, column, value)` does) still counts as the editor's own.
    *
+   * It also tells whether the save asked to validate any cell, which a save that writes later does not.
+   *
    * @param {*} value The value to save.
    * @param {boolean} [ctrlDown] If `true`, applies the value to each cell in every selected range.
-   * @returns {boolean}
+   * @returns {{ validatesEditedCell: boolean, validatesAnyCell: boolean }}
    */
-  #saveValueValidatingEditedCell(value: unknown, ctrlDown?: boolean): boolean {
+  #saveValueValidatingEditedCell(
+    value: unknown, ctrlDown?: boolean
+  ): { validatesEditedCell: boolean, validatesAnyCell: boolean } {
     let validatesEditedCell = false;
+    let validatesAnyCell = false;
     const onBeforeValidate = (cellValue: unknown, row: number, col: number | string, source?: string) => {
+      validatesAnyCell = true;
+
       if (this.#isEditedCell(row, col)) {
         validatesEditedCell = true;
         this.#validationWait?.sources.add(source);
@@ -623,7 +645,7 @@ export class BaseEditor {
       }
     }
 
-    return validatesEditedCell;
+    return { validatesEditedCell, validatesAnyCell };
   }
 
   /**
@@ -689,7 +711,9 @@ export class BaseEditor {
    * is ignored once the wait has been ended or replaced.
    *
    * The wait also ends on the editor's own answer only: the edited cell (`#isEditedCell()`), validated with
-   * the editor's source or a source its save validated the cell with (`#saveValueValidatingEditedCell()`). `postAfterValidate` is instance-wide: the Formulas plugin validates
+   * the editor's source or a source its save validated the cell with (`#saveValueValidatingEditedCell()`),
+   * unless the save validated no cell at all (`ValidationWait#acceptsAnyAnswer`). `postAfterValidate` is
+   * instance-wide: the Formulas plugin validates
    * the cells that depend on the edited one, and a `validateCells()` batch can still be in flight, also for
    * the edited cell itself (its old value), so another answer often arrives first. Taken as this wait's
    * answer, a `true` closed the editor and the own rejection under `allowInvalid: false` then landed on
@@ -700,7 +724,7 @@ export class BaseEditor {
    *   has been ended or replaced.
    */
   #waitForValidation(onAnswer: (result: boolean) => void): (result: boolean) => void {
-    const wait: ValidationWait = { sources: new Set() };
+    const wait: ValidationWait = { sources: new Set(), acceptsAnyAnswer: false };
     const finish = (result: boolean) => {
       this.hot.removeHook('postAfterValidate', onPostAfterValidate);
 
@@ -726,7 +750,8 @@ export class BaseEditor {
         return;
       }
 
-      if (!this.#isEditedCell(row, col) || (source !== EDIT_SOURCE && !wait.sources.has(source))) {
+      if (!wait.acceptsAnyAnswer &&
+        (!this.#isEditedCell(row, col) || (source !== EDIT_SOURCE && !wait.sources.has(source)))) {
         return;
       }
 

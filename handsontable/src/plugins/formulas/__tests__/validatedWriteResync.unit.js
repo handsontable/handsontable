@@ -609,6 +609,30 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     warnings.mockRestore();
   });
 
+  it('writes a deferred change into a sheet refused before the change, as an immediate write would', async() => {
+    const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 2 });
+
+    // Three rows against `maxRows: 2`: the sheet is refused, and emptied, at construction.
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [3, 'c']],
+      columns: REJECTING_COLUMNS,
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell([[0, 0, '=1+1'], [0, 1, 'x']]);
+
+    await waitForValidation();
+
+    // Only a refusal in the change's own window leaves it out; B was written at once anyway.
+    expect(engine.getSheetSerialized(sheet)).toEqual([['=1+1', 'x']]);
+
+    warnings.mockRestore();
+  });
+
   it('writes a deferred change when a full write filled the sheet again after a refused one', async() => {
     const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 2 });

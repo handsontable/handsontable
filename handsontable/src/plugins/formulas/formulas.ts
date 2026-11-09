@@ -46,6 +46,8 @@ import IndexSyncer from './indexSyncer';
 import {
   deferPaintToPluginEngineWrite,
   holdPluginEngineWritePaints,
+  isPluginEngineProbe,
+  withPluginEngineProbe,
   withPluginEngineWrite,
 } from './indexSyncer/pluginEngineWrite';
 import type AxisSyncer from './indexSyncer/axisSyncer';
@@ -179,6 +181,10 @@ interface ChangeSetAwaitingApply {
  */
 interface ValidationValue {
   source: string | undefined;
+  /**
+   * The change's own value, which tells two changes of one set to the same cell apart.
+   */
+  changeValue: unknown;
   hasResult: boolean;
   result: unknown;
 }
@@ -731,20 +737,13 @@ export class Formulas extends BasePlugin {
 
   /**
    * The values `beforeValidate` hands the validators of the change set `afterSetDataAtCell` just
-   * recorded, keyed by `#validationValueKey()`. The Core validates a set synchronously right after
-   * `afterSetDataAtCell`, so the entries are cleared in a microtask. See `#probeValidationValues()`.
+   * recorded, keyed by `#validationValueKey()`, one entry per change to the cell. The Core validates a set
+   * synchronously right after `afterSetDataAtCell`, so the entries are cleared in a microtask. See
+   * `#probeValidationValues()`.
    *
-   * @type {Map<string, ValidationValue>}
+   * @type {Map<string, ValidationValue[]>}
    */
-  #validationValues = new Map<string, ValidationValue>();
-
-  /**
-   * `true` while `#probeValidationValues()` writes a set into the engine and takes it back, so the
-   * engine's `valuesUpdated` events of that round trip fire no `afterFormulasValuesUpdate` here.
-   *
-   * @type {boolean}
-   */
-  #validationProbePending = false;
+  #validationValues = new Map<string, ValidationValue[]>();
 
   /**
    * `true` while `#validateDependentCellsUnrecorded()` runs: `validateDependentCells()` then validates each
@@ -968,9 +967,9 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   #onEngineValuesUpdated = (changes: unknown[]) => {
-    // The validation probe takes its own write back before anything reads it (see
-    // `#probeValidationValues()`), so the round trip changes nothing a listener could act on.
-    if (this.#validationProbePending) {
+    // A validation probe on this engine, by any grid, takes its own write back before anything reads it
+    // (see `#probeValidationValues()`), so the round trip changes nothing a listener could act on.
+    if (isPluginEngineProbe(this.engine)) {
       return;
     }
 
@@ -3741,7 +3740,9 @@ export class Formulas extends BasePlugin {
       return value;
     }
 
-    const pending = this.#validationValues.get(this.#validationValueKey(visualRow, visualColumn));
+    const entries = this.#validationValues.get(this.#validationValueKey(visualRow, visualColumn));
+    // A set can write one cell twice; each validation is for the change with its value.
+    const pending = entries?.find(entry => Object.is(entry.changeValue, value)) ?? entries?.at(-1);
 
     if (pending && pending.source === source) {
       return pending.hasResult ? pending.result : value;
@@ -4874,11 +4875,17 @@ export class Formulas extends BasePlugin {
       rejectable,
       value: this.#toEngineBoundChangeValue(rejectable),
       address: this.#toEngineCellAddress(rejectable.visualRow, rejectable.visualColumn),
-      entry: { source, hasResult: false, result: undefined } as ValidationValue,
+      entry: { source, changeValue: rejectable.change[3], hasResult: false, result: undefined } as ValidationValue,
     }));
+    const lastWriteByCell = new Map<string, ProbeWrite>();
 
-    writes.forEach(({ rejectable: { visualRow, visualColumn }, entry }) => {
-      this.#validationValues.set(this.#validationValueKey(visualRow, visualColumn), entry);
+    writes.forEach((write) => {
+      const key = this.#validationValueKey(write.rejectable.visualRow, write.rejectable.visualColumn);
+      const entries = this.#validationValues.get(key) ?? [];
+
+      entries.push(write.entry);
+      this.#validationValues.set(key, entries);
+      lastWriteByCell.set(key, write);
     });
 
     const engine = this.engine;
@@ -4888,7 +4895,11 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    if (engine.getConfig().undoLimit === 0) {
+    const { undoLimit } = engine.getConfig();
+
+    // A probe pushes up to two batches and undoes each. An engine that keeps fewer undo entries would drop
+    // the first one, and the second `undo()` would throw with the probe still in the engine.
+    if (typeof undoLimit === 'number' && undoLimit < 2) {
       writes.forEach(({ rejectable: { visualRow, visualColumn }, value, entry }) => {
         if (isFormula(value)) {
           entry.hasResult = true;
@@ -4899,13 +4910,18 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.#validationProbePending = true;
+    // A cell the set writes twice holds its last value in the engine, as after the apply; an earlier formula
+    // for it is calculated on its own.
+    const lastWrites = [...lastWriteByCell.values()];
 
-    try {
-      this.#writeOwnSheet(engine, () => this.#runProbe(writes));
-    } finally {
-      this.#validationProbePending = false;
-    }
+    writes.forEach(({ rejectable: { visualRow, visualColumn }, value, entry }, index) => {
+      if (isFormula(value) && !lastWrites.includes(writes[index])) {
+        entry.hasResult = true;
+        entry.result = this.#calculateDetached(visualRow, visualColumn, value as string);
+      }
+    });
+
+    withPluginEngineProbe(engine, () => this.#writeOwnSheet(engine, () => this.#runProbe(lastWrites)));
   }
 
   /**
@@ -4952,7 +4968,7 @@ export class Formulas extends BasePlugin {
         engine.undo();
       }
 
-      engine.clearRedoStack();
+      engine.clearRedoStack?.();
     }
   }
 

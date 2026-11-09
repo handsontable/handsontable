@@ -91,8 +91,10 @@ export interface HyperFormulaEngine {
   addNamedExpression(name: unknown, expression: unknown, scope: unknown, options: unknown): void;
   undo(): void;
   redo(): void;
-  isThereSomethingToUndo(): boolean;
-  clearRedoStack(): void;
+  /**
+   * Optional, like `calculateFormula`: the validation probe calls it when the engine has it.
+   */
+  clearRedoStack?(): void;
   destroy(): void;
   rebuildAndRecalculate(): void;
   clearUndoStack(): void;
