@@ -949,6 +949,9 @@ class DataManager {
       atAxisEnd: physicalRow === this.hot.rowIndexMapper.getNumberOfIndexes() - 1,
     });
     this.hot._getMetaManager().createRow(physicalRow, 1);
+    // The `rowHeights` and `minRowHeights` arrays are addressed by the physical index too, and only
+    // `alter()` keeps them aligned on its own.
+    this.hot._insertRowSizeSlots(physicalRow, 1);
   }
 
   /**
@@ -983,6 +986,8 @@ class DataManager {
     metaManager.removeRow(fromPhysicalRow, amount);
     recordMetaRowsShift(this.hot, true, toPhysicalRow, amount);
     metaManager.createRow(toPhysicalRow, amount);
+    // A height moves with its row, where the meta above is reset instead (no move primitive there).
+    this.hot._moveRowSizeSlots(fromPhysicalRow, toPhysicalRow, amount);
   }
 
   /**

@@ -396,6 +396,10 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
 
 ## Known gaps
 
+- An undone column removal does not bring back the removed column's `colWidths` entry. The array
+  lives in the settings, outside every step, and `alter()` keeps it aligned by physical index
+  (DEV-918), so the restored column gets an empty slot and the default width. Rows do not have this
+  gap: see "`rowHeights` and `minRowHeights` are snapshot settings" below.
 - A multi-operation step on a NestedRows grid that MOVES rows (a detach, a row move) and edits cells
   can put an edit on another row. The cell writes are mapped to the restored tree shape through the
   step's `insertRows`/`removeRows` entries only; a move is journaled as `metaRows` entries, which
@@ -445,3 +449,17 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
 give it back, and the merge-per-field rule applies: a count set by `updateSettings()` outside any step survives.
 `stepColumns.ts` also treats a changed count as a step that addresses columns. Pinned by
 `__tests__/gridState.unit.js`, `__tests__/removeRowsAndColumns.unit.js` and `tests/e2e/fixed-columns-end-plugins.spec.ts`.
+
+## `rowHeights` and `minRowHeights` are snapshot settings
+
+`GridSettingsSnapshot` holds both options BY REFERENCE (DEV-508). They are addressed by the physical row
+index, and every row change replaces an array value with an aligned copy instead of changing it in place:
+`alter()` on an insert, `DataMap#removeRow()` on a removal (from the final list, after `beforeRemoveRow`
+widened it), and NestedRows' hand-built inserts and moves (`Core#_insertRowSizeSlots()`,
+`_moveRowSizeSlots()`). A reference therefore tells whether a step changed them, at no cost per step, and
+the per-field merge applies: an undo puts back the array the step started from - the height of a removed
+row included, and on a NestedRows grid, whose restore moves only the cell meta rows, the only thing that
+realigns them - while a `rowHeights` set by `updateSettings()` outside any step survives. Anything that
+starts changing these arrays IN PLACE breaks the reference test silently, so keep replacing them. Pinned by
+`__tests__/rowHeights.unit.js` and `../nestedRows/__tests__/rowHeightsPhysical.unit.js`.
+

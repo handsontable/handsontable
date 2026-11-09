@@ -8,7 +8,9 @@ import {
 
 /**
  * The table settings an action can change without going through a plugin: `alter()` shifts the
- * frozen row and column counts and splices an array `colHeaders`, and ManualColumnFreeze changes
+ * frozen row and column counts, splices an array `colHeaders`, and replaces an array `rowHeights` and
+ * `minRowHeights` with an aligned copy (NestedRows does the same on its own row changes), and
+ * ManualColumnFreeze changes
  * the frozen column count.
  */
 export interface GridSettingsSnapshot {
@@ -17,6 +19,12 @@ export interface GridSettingsSnapshot {
   readonly fixedColumnsStart: number;
   readonly fixedColumnsEnd: number;
   readonly colHeaders: readonly string[] | null;
+  /**
+   * The `rowHeights` and `minRowHeights` values, held by reference: Handsontable never changes these
+   * arrays in place, it replaces them, so a reference tells whether a step changed them at no cost.
+   */
+  readonly rowHeights: unknown;
+  readonly minRowHeights: unknown;
 }
 
 /**
@@ -50,6 +58,8 @@ function areSettingsEqual(left: GridSettingsSnapshot, right: GridSettingsSnapsho
     left.fixedRowsBottom === right.fixedRowsBottom &&
     left.fixedColumnsStart === right.fixedColumnsStart &&
     left.fixedColumnsEnd === right.fixedColumnsEnd &&
+    left.rowHeights === right.rowHeights &&
+    left.minRowHeights === right.minRowHeights &&
     areHeadersEqual(left.colHeaders, right.colHeaders);
 }
 
@@ -88,6 +98,8 @@ function mergeChangedSettings(
       base.fixedColumnsStart : target.fixedColumnsStart,
     fixedColumnsEnd: target.fixedColumnsEnd === other.fixedColumnsEnd ? base.fixedColumnsEnd : target.fixedColumnsEnd,
     colHeaders: areHeadersEqual(target.colHeaders, other.colHeaders) ? base.colHeaders : target.colHeaders,
+    rowHeights: target.rowHeights === other.rowHeights ? base.rowHeights : target.rowHeights,
+    minRowHeights: target.minRowHeights === other.minRowHeights ? base.minRowHeights : target.minRowHeights,
   };
 }
 
@@ -340,6 +352,8 @@ export class GridStateTracker {
       fixedColumnsStart: tableMeta.fixedColumnsStart ?? 0,
       fixedColumnsEnd: tableMeta.fixedColumnsEnd ?? 0,
       colHeaders: Array.isArray(tableMeta.colHeaders) ? tableMeta.colHeaders.slice() : null,
+      rowHeights: tableMeta.rowHeights,
+      minRowHeights: tableMeta.minRowHeights,
     };
 
     return previous !== undefined && areSettingsEqual(previous, settings) ? previous : settings;
@@ -363,6 +377,14 @@ export class GridStateTracker {
       // `fixedColumnsStart` reads back `_fixedColumnsStart`, the internal property `alter()` and
       // ManualColumnFreeze write – it is not part of the settings type.
       Reflect.set(tableMeta, '_fixedColumnsStart', settings.fixedColumnsStart);
+    }
+
+    // Written back by reference, the way `alter()` writes them. A step that removed rows journals no
+    // height, so this is what brings a removed row's height back on undo.
+    if (tableMeta.rowHeights !== settings.rowHeights || tableMeta.minRowHeights !== settings.minRowHeights) {
+      tableMeta.rowHeights = settings.rowHeights as typeof tableMeta.rowHeights;
+      tableMeta.minRowHeights = settings.minRowHeights as typeof tableMeta.minRowHeights;
+      this.#hot.view?.invalidateRowHeightCache();
     }
 
     const headers = tableMeta.colHeaders;
