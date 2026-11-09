@@ -9,14 +9,14 @@ import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * A `setDataAtCell()` on a column with a validator applies its changes in a microtask (the Core
- * validates asynchronously). The plugin writes such a change into the engine when the Core applies it,
- * and a change to a cell without a validator synchronously, from `afterSetDataAtCell`. An
- * `updateSettings()` in the same task rebuilds the sheet from the source data in between, before the
- * early-written changes reach it, so the rebuild dropped them from the engine: the cell kept its raw
- * formula text and every formula depending on it read the previous value. A sheet switch in between
- * drops the set, and the early-written changes are taken out of the sheet they reached. Column A has a
- * validator in these grids, column B does not: a set that writes B alongside A waits for A's validator
- * with B already in the engine.
+ * validates asynchronously). The plugin writes a change the Core cannot reject (here column A, whose
+ * `allowInvalid` is the default `true`, and column B, which has no validator) into the engine
+ * synchronously, from `afterSetDataAtCell`, and a change it can reject (`REJECTING_COLUMNS`, A with
+ * `allowInvalid: false`) only when the Core applies it. An `updateSettings()` in the same task rebuilds
+ * the sheet from the source data in between, before the early-written changes reach it, so the rebuild
+ * dropped them from the engine: the cell kept its raw formula text and every formula depending on it read
+ * the previous value. A sheet switch in between drops the set, and the early-written changes are taken
+ * out of the sheet they reached.
  */
 describe('Formulas write validated in flight across a sheet resync', () => {
   let container;
@@ -60,6 +60,12 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     return engine;
   }
+
+  /**
+   * Column A with a validator and `allowInvalid: false`, which the Core can reject, so its change is
+   * written into the engine only when the set is applied; column B without one.
+   */
+  const REJECTING_COLUMNS = [{ validator: (value, callback) => callback(true), allowInvalid: false }, {}];
 
   /**
    * Waits until the Core applied the validated changes.
@@ -140,14 +146,13 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     await waitForValidation();
 
-    // The validator gets the formula's result, which the plugin reads by writing the formula and taking
-    // it back in the same task (the first call); the change itself is written once, when it is applied.
-    expect(writes).toHaveBeenCalledTimes(2);
+    expect(writes).toHaveBeenCalledTimes(1);
     expect(hot.getDataAtCell(2, 0)).toBe(3);
   });
 
   it('writes a change to a cell without a validator once, before the validated one of its set', async() => {
-    const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
+    // `allowInvalid: false`: the Core can reject A's change, so it waits for the apply.
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']], { columns: REJECTING_COLUMNS });
     const sheet = hot.getPlugin('formulas').sheetId;
     const writes = jest.spyOn(engine, 'setCellContents');
 
@@ -163,7 +168,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
   });
 
   it('writes an early-written change back after a settings update in its validation window', async() => {
-    const engine = buildGrid([[1, '=A1'], [2, 'b'], [null, 'c']]);
+    const engine = buildGrid([[1, '=A1'], [2, 'b'], [null, 'c']], { columns: REJECTING_COLUMNS });
     const sheet = hot.getPlugin('formulas').sheetId;
 
     hot.setDataAtCell([[2, 1, '=SUM(A1:A2)'], [2, 0, 4]]);
@@ -212,11 +217,9 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       }
     });
 
-    // B has no validator, so its change reaches the engine at once; A's waits for its validator.
-    hot.setDataAtCell([[2, 0, '=SUM(A1:A2)'], [2, 1, '=A1*10']]);
+    hot.setDataAtCell(2, 0, '=SUM(A1:A2)');
 
-    expect(engine.getCellFormula({ sheet: first, row: 2, col: 1 })).toBe('=A1*10');
-    expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
+    expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBe('=SUM(A1:A2)');
 
     hot.updateSettings({ formulas: { engine, sheetName: 'Other' } });
 
@@ -225,13 +228,9 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getPlugin('formulas').sheetId).toBe(other);
     expect(changes).toEqual([]);
     expect(hot.getSourceDataAtCell(2, 0)).toBeNull();
-    expect(hot.getSourceDataAtCell(2, 1)).toBe('z');
     expect(engine.getCellFormula({ sheet: other, row: 2, col: 0 })).toBeUndefined();
-    expect(engine.getCellFormula({ sheet: other, row: 2, col: 1 })).toBeUndefined();
     expect(engine.getCellFormula({ sheet: first, row: 2, col: 0 })).toBeUndefined();
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBeNull();
-    expect(engine.getCellFormula({ sheet: first, row: 2, col: 1 })).toBeUndefined();
-    expect(engine.getCellValue({ sheet: first, row: 2, col: 1 })).toBe('c');
   });
 
   it('keeps the loaded values when loadData() on the same sheet drops the change', async() => {
@@ -525,8 +524,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     engine.setSheetContent(engine.getSheetId(engine.addSheet('Other')), [[10, 'x']]);
 
-    // Only B's changes reach the engine before validation: A's validator holds the set.
-    hot.setDataAtCell([[0, 1, 'x'], [1, 1, 'y'], [2, 1, 'z'], [0, 0, 7]]);
+    hot.setDataAtCell([[0, 0, 7], [1, 0, 8], [2, 0, 9]]);
     plugin.switchSheet('Other');
     plugin.switchSheet(firstName);
     hot.addHook('afterSetSourceDataAtCell', (changes, source) => sourceWrites.push([changes.length, source]));
@@ -534,8 +532,6 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     await waitForValidation();
 
     expect(hot.getSourceDataAtCol(0)).toEqual([1, 2, 3]);
-    expect(hot.getSourceDataAtCol(1)).toEqual(['a', 'b', 'c']);
-    expect(engine.getSheetSerialized(plugin.sheetId)).toEqual([[1, 'a'], [2, 'b'], [3, 'c']]);
     expect(sourceWrites).toEqual([[3, 'Formulas.restoreDroppedChange']]);
   });
 
@@ -690,8 +686,9 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     });
 
     hot.setDataAtCell(2, 0, 500);
-    // The update swaps the dependent column's validator, and the dependent has to be validated with the
-    // new one.
+    // The update swaps the dependent column's validator. The dependent is validated on the
+    // `afterSetDataAtCell` write against the old one; the write-back recalculates it again, and
+    // only a validation there applies the new one.
     hot.updateSettings({
       columns: [
         { validator: (value, callback) => callback(true) },
@@ -701,18 +698,10 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     await waitForValidation();
 
-    // A's change reaches the engine only when it is applied, after the update, so its dependent is
-    // validated once, against the validator the update installed.
-    expect(dependentValidator).not.toHaveBeenCalledWith(1000, expect.any(Function));
+    expect(dependentValidator).toHaveBeenCalledWith(1000, expect.any(Function));
     expect(hot.getDataAtCell(0, 1)).toBe(1000);
     expect(hot.getCellMeta(0, 1).valid).toBe(true);
   });
-
-  /**
-   * Column A has a validator, so a set that writes it waits; column B has none, so the set's B change is
-   * in the engine during the wait. These cases pin the restore of such an early-written cell when the
-   * waiting set is dropped.
-   */
   describe('the early-written cells of a mixed set', () => {
     it('does not put back a cell the engine refused the first write of', async() => {
       const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -720,7 +709,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
       hot = new Handsontable(container, {
         data: [[1, 'a'], [2, 'b'], [3, 'c']],
-        columns: [{ validator: (value, callback) => callback(true) }, {}],
+        columns: REJECTING_COLUMNS,
         formulas: { engine },
         licenseKey: TEST_LICENSE_KEY,
       });
@@ -738,7 +727,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     });
 
     it('leaves a switched-away sheet alone when it was removed before the set was dropped', async() => {
-      const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c']]);
+      const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c']], { columns: REJECTING_COLUMNS });
       const first = hot.getPlugin('formulas').sheetId;
       const other = engine.getSheetId(engine.addSheet('Other'));
 
@@ -753,7 +742,10 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     });
 
     it('restores the recorded cell when a trim the switch cleared moved the rows', async() => {
-      const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c'], [8, 'd']], { trimRows: true });
+      const engine = buildGrid([[1, 'a'], [2, 'b'], [7, 'c'], [8, 'd']], {
+        trimRows: true,
+        columns: REJECTING_COLUMNS,
+      });
       const first = hot.getPlugin('formulas').sheetId;
       const other = engine.getSheetId(engine.addSheet('Other'));
 
@@ -772,7 +764,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
 
     it('puts a preserved text value back as text in the switched-away sheet', async() => {
       const engine = buildGrid([[1, 'a'], [2, 'b'], [3, '007']], {
-        columns: [{ validator: (value, callback) => callback(true) }, { type: 'text', preserveTextValue: true }],
+        columns: [REJECTING_COLUMNS[0], { type: 'text', preserveTextValue: true }],
       });
       const first = hot.getPlugin('formulas').sheetId;
       const other = engine.getSheetId(engine.addSheet('Other'));
@@ -787,7 +779,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     });
 
     it('takes the dropped change out of the grid data when the grid switched away and back', async() => {
-      const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
+      const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']], { columns: REJECTING_COLUMNS });
       const plugin = hot.getPlugin('formulas');
       const first = plugin.sheetId;
       const firstName = plugin.sheetName;
@@ -848,7 +840,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     });
 
     it('repaints this grid when the restore changes a cell its current sheet reads', async() => {
-      const engine = buildGrid([[1, 'a'], [2, 'b'], [3, 4]]);
+      const engine = buildGrid([[1, 'a'], [2, 'b'], [3, 4]], { columns: REJECTING_COLUMNS });
       const firstName = hot.getPlugin('formulas').sheetName;
       const other = engine.getSheetId(engine.addSheet('Other'));
 

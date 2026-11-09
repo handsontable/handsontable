@@ -209,6 +209,25 @@ describe('Formulas writes a validated change when the Core applies it', () => {
     expect(hot.getDataAtCell(1, 1)).toBe(120);
   });
 
+  it('validates a formula that sums a range of the same set by the new values', async() => {
+    buildGrid();
+
+    hot.setDataAtCell([[0, 0, 3], [1, 0, 4], [2, 0, '=SUM(A1:A2)']]);
+    await waitForValidation();
+
+    expect(held.map(({ value }) => value).sort()).toEqual([3, 4, 7]);
+  });
+
+  it('writes only the formulas of a set, and the values they read, into the validation probe', () => {
+    const { engine } = buildGrid();
+    const writes = jest.spyOn(engine, 'setCellContents');
+
+    hot.setDataAtCell([[0, 0, 5], [1, 0, 6], [2, 0, '=1+1']]);
+
+    // The probe wrote the formula alone: nothing of the set reads the plain values.
+    expect(writes.mock.calls.map(([address, value]) => [address.row, value])).toEqual([[2, '=1+1']]);
+  });
+
   it('validates a formula that refers to itself through a dependent as a cycle', async() => {
     const { engine, sheet } = buildGrid();
 

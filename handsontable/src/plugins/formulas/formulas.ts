@@ -133,7 +133,7 @@ interface MoveCellsRect {
 /**
  * A `setDataAtCell()` / `setDataAtRowProp()` change set the Core has not applied to the source data
  * yet (see `Formulas#changesAwaitingApply`). `writeCount` and `sheetId` are taken in
- * `afterSetDataAtCell`, when the changes to cells without a validator are written into the engine.
+ * `afterSetDataAtCell`, when the changes the Core cannot reject are written into the engine.
  */
 interface ChangeSetAwaitingApply {
   writeCount: number;
@@ -147,9 +147,10 @@ interface ChangeSetAwaitingApply {
   foreignLoadCount: number;
   sheetId: number | null;
   /**
-   * The changes `afterSetDataAtCell` did not write: the ones to a cell with a validator, and the ones
-   * past the last row or column. `beforeChangeRender` writes those still in the set's array once the
-   * Core applies it, so a change a validator rejected never reaches the engine.
+   * The changes `afterSetDataAtCell` did not write: the ones the Core can reject (a validator and
+   * `allowInvalid: false`), and the ones past the last row or column. `beforeChangeRender` writes those
+   * still in the set's array once the Core applies it, so a change a validator rejected never reaches the
+   * engine.
    */
   deferredChanges: Set<CellChange>;
   /**
@@ -173,9 +174,38 @@ interface ValidationValue {
 }
 
 /**
- * A change to a cell with a validator, with the grid coordinates `afterSetDataAtCell` resolved for it.
+ * One cell of the validation probe (`Formulas#probeValidationValues`): the change, the value a write puts
+ * into the engine, the engine address, and the `beforeValidate` entry it fills.
  */
-interface ValidatedChange {
+interface ProbeWrite {
+  rejectable: RejectableChange;
+  value: unknown;
+  address: FormulasCellAddress;
+  entry: ValidationValue;
+}
+
+/**
+ * Answers whether an engine cell is a precedent `getCellPrecedents()` reported, or inside one.
+ *
+ * @param {object} address The engine address.
+ * @param {object} precedent A precedent cell or range.
+ * @returns {boolean}
+ */
+function isAddressInPrecedent(address: FormulasCellAddress, precedent: FormulasCellAddress | FormulasCellRange) {
+  if ('start' in precedent) {
+    return precedent.start.sheet === address.sheet &&
+      address.row >= precedent.start.row && address.row <= precedent.end.row &&
+      address.col >= precedent.start.col && address.col <= precedent.end.col;
+  }
+
+  return precedent.sheet === address.sheet && precedent.row === address.row && precedent.col === address.col;
+}
+
+/**
+ * A change the Core can reject (its cell has a validator and `allowInvalid: false`), with the grid
+ * coordinates `afterSetDataAtCell` resolved for it.
+ */
+interface RejectableChange {
   change: CellChange;
   visualRow: number;
   visualColumn: number;
@@ -639,7 +669,7 @@ export class Formulas extends BasePlugin {
    * and to `beforeChangeRender`). Each one records the sheet write count and the sheet id at the
    * moment `afterSetDataAtCell` ran, and the changes it left to `beforeChangeRender`.
    *
-   * The plugin writes a change to a cell without a validator into the engine from `afterSetDataAtCell`,
+   * The plugin writes a change the Core cannot reject into the engine from `afterSetDataAtCell`,
    * while the Core applies a set with a validated change to the source data only after its validators
    * resolve, in a microtask. A full sheet write in between - an `updateSettings()` in the same task -
    * scans source data that does not hold the change yet and drops it from the engine;
@@ -2307,7 +2337,9 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Validates dependent cells based on the cells that are modified by the change.
+   * Validates dependent cells based on the cells that are modified by the change. The validation is not
+   * part of any undo step (it records nothing), so an async validator of a dependent never delays the step
+   * of the change that recalculated it.
    *
    * @private
    * @param {object[]} dependentCells The values and location of applied changes within HF engine.
@@ -2344,12 +2376,14 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        // It will just re-render certain cell when necessary.
-        boundHot.validateCell(
+        // It will just re-render certain cell when necessary. The `valid` mark is never journaled, so the
+        // validation joins no undo step: inside the step of the write that recalculated the cell, an async
+        // validator held that step until it answered, and the edit could not be undone in the meantime.
+        boundHot._getOperationScope().suppress(() => boundHot.validateCell(
           boundHot.getDataAtCell(row, col),
           boundHot.getCellMeta(row, col),
           () => {}
-        );
+        ));
       }
     });
   }
@@ -3609,7 +3643,7 @@ export class Formulas extends BasePlugin {
    * The hook allows to translate the formula value to calculated value before it goes to the
    * validator function.
    *
-   * A change waiting for its validator is not in the engine yet (see `#splitChangesByValidation()`), so
+   * A change the Core can reject is not in the engine yet (see `#splitChangesByValidation()`), so
    * its value comes from `#validationValues`, which `afterSetDataAtCell` filled for the set the Core is
    * validating: the result of a formula, or the change's own value. Every other validation (a dependent
    * cell, `validateCells()`) reads the engine.
@@ -3656,8 +3690,22 @@ export class Formulas extends BasePlugin {
       sheet: this.sheetId,
     };
 
+    // Date as an integer (Excel-like date).
+    return this.#toValidationValue(visualRow, visualColumn, this.engine!.getCellValue(address));
+  }
+
+  /**
+   * Turns an engine value into what a validator gets: a date or a time column's serial number in the
+   * grid's format, and an error as its text.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @param {*} engineValue The engine value.
+   * @returns {*}
+   */
+  #toValidationValue(visualRow: number, visualColumn: number, engineValue: unknown) {
     const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
-    let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel-like date).
+    let cellValue = engineValue;
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue);
@@ -4544,10 +4592,16 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const { immediateChanges, deferredChanges, validatedChanges } = this.#splitChangesByValidation(changes);
+    const { immediateChanges, deferredChanges, rejectableChanges } = this.#splitChangesByValidation(changes);
     const { dependentCells, changedCells, writtenCells } = immediateChanges.length > 0
       ? this.#writeChangesToEngine(immediateChanges)
-      : { dependentCells: [], changedCells: [], writtenCells: [] };
+      : { dependentCells: [], changedCells: [] as unknown[], writtenCells: [] };
+
+    // The Core validates the deferred cells as changes of the set, so the dependent validation skips them:
+    // read from the engine, they would be validated again by the formula they are about to replace.
+    rejectableChanges.forEach(({ visualRow, visualColumn }) => {
+      changedCells.push({ address: this.#toEngineCellAddress(visualRow, visualColumn) });
+    });
 
     this.#changesAwaitingApply.set(changes, {
       writeCount: this.#sheetWriteCount,
@@ -4558,26 +4612,29 @@ export class Formulas extends BasePlugin {
       writtenCells,
     });
 
-    this.#probeValidationValues(validatedChanges, source);
+    this.#probeValidationValues(rejectableChanges, source);
     this.validateDependentCells(dependentCells, changedCells);
   };
 
   /**
    * Splits a change set into the changes `afterSetDataAtCell` writes into the engine at once and the
-   * ones left to `beforeChangeRender`. A change to a cell with a validator waits, because the Core may
-   * reject it: written now, the engine and every formula that reads the cell showed the rejected value
-   * while the validator worked, and kept it after a rejection. The test is the one the Core validates by,
-   * `getCellValidator()` of the cell meta. A change past the last row or column waits too, because the
-   * Core creates its row or column only when it applies the set. A change whose property names no column
-   * has no engine address and is left out.
+   * ones left to `beforeChangeRender`. A change the Core can reject waits: written now, the engine and
+   * every formula that reads the cell showed the rejected value while the validator worked, and kept it
+   * after a rejection. The Core rejects a change only when the cell has a validator (`getCellValidator()`
+   * of the cell meta) AND `allowInvalid` is `false` (`queueValidators()` drops a change whose validator
+   * answered `false` under that condition), so that is the test here too. A validated cell that accepts
+   * invalid values (`allowInvalid` defaults to `true`: a `numeric`, `date` or `dropdown` column) is written
+   * at once, as before. A change past the last row or column waits too, because the Core creates its row
+   * or column only when it applies the set. A change whose property names no column has no engine address
+   * and is left out.
    *
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
-   * @returns {{ immediateChanges: Array[], deferredChanges: Set<Array>, validatedChanges: object[] }}
+   * @returns {{ immediateChanges: Array[], deferredChanges: Set<Array>, rejectableChanges: object[] }}
    */
   #splitChangesByValidation(changes: CellChange[]) {
     const immediateChanges: CellChange[] = [];
     const deferredChanges = new Set<CellChange>();
-    const validatedChanges: ValidatedChange[] = [];
+    const rejectableChanges: RejectableChange[] = [];
 
     changes.forEach((change) => {
       const [visualRow, prop] = change;
@@ -4600,36 +4657,68 @@ export class Formulas extends BasePlugin {
       if (physicalRow === null || physicalColumn === null) {
         deferredChanges.add(change);
 
-      } else if (this.hot.getCellValidator(this.hot.getCellMetaTransient(visualRow, visualColumn))) {
+      } else if (this.#canCoreRejectChange(visualRow, visualColumn)) {
         deferredChanges.add(change);
-        validatedChanges.push({ change, visualRow, visualColumn, physicalRow, physicalColumn });
+        rejectableChanges.push({ change, visualRow, visualColumn, physicalRow, physicalColumn });
 
       } else {
         immediateChanges.push(change);
       }
     });
 
-    return { immediateChanges, deferredChanges, validatedChanges };
+    return { immediateChanges, deferredChanges, rejectableChanges };
   }
 
   /**
-   * Reads, for each change of a set to a cell with a validator, the value `beforeValidate` hands its
-   * validator. The plugin validates a formula by its result, so a validated formula has to be calculated
-   * while the engine does not hold it yet. The set is written into the engine in one batch, the results
-   * of its formulas are read, and the batch is taken back with `engine.undo()` (by the content read before
-   * it when the engine keeps no undo history), all in this task, so nothing paints the probe and the
-   * engine ends as it was. Writing the whole set keeps what the validator saw when the plugin wrote every
-   * change before validation: a formula that reads another validated cell of the set reads its new value,
+   * Answers whether the Core can reject a change to the cell: it has a validator and does not accept
+   * invalid values. The condition `queueValidators()` drops a change under, read from the same cell meta.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {boolean}
+   */
+  #canCoreRejectChange(visualRow: number, visualColumn: number) {
+    const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+
+    return cellMeta.allowInvalid === false && !!this.hot.getCellValidator(cellMeta);
+  }
+
+  /**
+   * Builds the engine address of a grid cell on the bound sheet.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {object}
+   */
+  #toEngineCellAddress(visualRow: number, visualColumn: number) {
+    return {
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      sheet: this.sheetId as number,
+    };
+  }
+
+  /**
+   * Reads, for each change of a set the Core can reject, the value `beforeValidate` hands its validator.
+   * The plugin validates a formula by its result, so such a formula has to be calculated while the engine
+   * does not hold it yet. The set's rejectable changes are written into the engine in one batch, the
+   * results of its formulas are read, and the batch is taken back with `engine.undo()` and
+   * `clearRedoStack()`, all in this task, so nothing paints the probe and the engine ends as it was.
+   * Writing all of them, plain values included, keeps what the validator saw when the plugin wrote every
+   * change before validation: a formula that reads another deferred cell of the set reads its new value,
    * and one that reads itself through a dependent is a cycle. A set without a formula skips the round
    * trip. Its changes still get an entry, so a value written over a formula cell is validated as the
    * value, not as the result the engine still holds. The other grids on the engine paint once, when the
    * write scope ends, and this grid fires no `afterFormulasValuesUpdate` for it.
    *
-   * @param {object[]} validatedChanges The changes to cells with a validator.
+   * An engine that keeps no undo history (`undoLimit: 0`) cannot take a batch back without risking an
+   * array formula's spill, so each formula is calculated on its own there (`#calculateDetached()`).
+   *
+   * @param {object[]} rejectableChanges The changes the Core can reject.
    * @param {string} [source] The change source, which the Core hands `beforeValidate`.
    */
-  #probeValidationValues(validatedChanges: ValidatedChange[], source: string | undefined) {
-    if (validatedChanges.length === 0) {
+  #probeValidationValues(rejectableChanges: RejectableChange[], source: string | undefined) {
+    if (rejectableChanges.length === 0) {
       return;
     }
 
@@ -4637,22 +4726,17 @@ export class Formulas extends BasePlugin {
       this.hot._registerMicrotask(() => this.#validationValues.clear());
     }
 
-    const writes = validatedChanges.map(validated => ({
-      validated,
-      value: this.#toEngineBoundChangeValue(validated),
-      address: {
-        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(validated.visualRow),
-        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(validated.visualColumn),
-        sheet: this.sheetId as number,
-      },
+    const writes: ProbeWrite[] = rejectableChanges.map(rejectable => ({
+      rejectable,
+      value: this.#toEngineBoundChangeValue(rejectable),
+      address: this.#toEngineCellAddress(rejectable.visualRow, rejectable.visualColumn),
+      entry: { source, hasResult: false, result: undefined } as ValidationValue,
     }));
-    const entries = writes.map(({ validated }) => {
-      const entry: ValidationValue = { source, hasResult: false, result: undefined };
 
-      this.#validationValues.set(this.#validationValueKey(validated.visualRow, validated.visualColumn), entry);
-
-      return entry;
+    writes.forEach(({ rejectable: { visualRow, visualColumn }, entry }) => {
+      this.#validationValues.set(this.#validationValueKey(visualRow, visualColumn), entry);
     });
+
     const engine = this.engine;
 
     if (!engine || this.sheetId === null || engine.isEvaluationSuspended() ||
@@ -4660,61 +4744,113 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const contentBefore = writes.map(({ address }) => this.#readEngineContent(address));
+    if (engine.getConfig().undoLimit === 0) {
+      writes.forEach(({ rejectable: { visualRow, visualColumn }, value, entry }) => {
+        if (isFormula(value)) {
+          entry.hasResult = true;
+          entry.result = this.#calculateDetached(visualRow, visualColumn, value as string);
+        }
+      });
+
+      return;
+    }
 
     this.#validationProbePending = true;
 
     try {
-      this.#writeOwnSheet(engine, () => {
-        try {
-          engine.batch(() => {
-            writes.forEach(({ address, value }) => {
-              if (engine.isItPossibleToSetCellContents(address)) {
-                engine.setCellContents(address, value);
-              }
-            });
-          });
-          writes.forEach(({ validated: { visualRow, visualColumn }, value }, index) => {
-            if (isFormula(value) && this.isFormulaCellType(visualRow, visualColumn)) {
-              entries[index].hasResult = true;
-              entries[index].result = this.#readValidationValue(visualRow, visualColumn);
-            }
-          });
-        } finally {
-          this.#takeProbeBack(writes.map(({ address }) => address), contentBefore);
-        }
-      });
+      this.#writeOwnSheet(engine, () => this.#runProbe(writes));
     } finally {
       this.#validationProbePending = false;
     }
   }
 
   /**
-   * Takes the validation probe's batch back (see `#probeValidationValues()`): with `engine.undo()`, which
-   * restores array formulas and their spill areas exactly, or, when the engine keeps no undo history
-   * (`undoLimit: 0`), by writing back the content the cells held. The redo entry the undo leaves is
-   * cleared, so `engine.redo()` cannot bring the probe back.
+   * Writes the probe (see `#probeValidationValues()`), reads the formula results into their entries, and
+   * takes every batch it wrote back. The formulas go in first. A plain value of the set goes in, in a
+   * second batch, only when one of those formulas reads its cell (`getCellPrecedents()`, a range
+   * included): a formula of the set reads every other formula of the set from the first batch, so this
+   * covers a chain through them, and a paste of many plain values with one formula writes one cell, not
+   * the whole paste.
    *
-   * @param {object[]} addresses The engine addresses the probe wrote.
-   * @param {Array} contentBefore What the engine held in each of them before the probe.
+   * @param {object[]} writes The probe writes: the change, its engine-bound value, address and entry.
    */
-  #takeProbeBack(addresses: WrittenCell['address'][], contentBefore: unknown[]) {
+  #runProbe(writes: ProbeWrite[]) {
+    const engine = this.engine!;
+    const formulaWrites = writes.filter(({ value }) => isFormula(value));
+    let batches = 0;
+
+    try {
+      batches += 1;
+      this.#writeProbeBatch(formulaWrites);
+
+      const precedents = formulaWrites.flatMap(({ address }) => engine.getCellPrecedents(address));
+      const readValueWrites = writes.filter(({ value, address }) => !isFormula(value) &&
+        precedents.some(precedent => isAddressInPrecedent(address, precedent)));
+
+      if (readValueWrites.length > 0) {
+        batches += 1;
+        this.#writeProbeBatch(readValueWrites);
+      }
+
+      formulaWrites.forEach(({ rejectable: { visualRow, visualColumn }, entry }) => {
+        if (this.isFormulaCellType(visualRow, visualColumn)) {
+          entry.hasResult = true;
+          entry.result = this.#readValidationValue(visualRow, visualColumn);
+        }
+      });
+    } finally {
+      // An empty batch still pushes an undo entry, so this never takes back an earlier operation.
+      for (let batch = 0; batch < batches; batch++) {
+        engine.undo();
+      }
+
+      engine.clearRedoStack();
+    }
+  }
+
+  /**
+   * Writes probe values into the engine in one batch, skipping a cell the engine cannot hold.
+   *
+   * @param {object[]} writes The probe writes.
+   */
+  #writeProbeBatch(writes: ProbeWrite[]) {
     const engine = this.engine!;
 
-    if (engine.isThereSomethingToUndo()) {
-      engine.undo();
-      engine.clearRedoStack();
-
-      return;
-    }
-
     engine.batch(() => {
-      addresses.forEach((address, index) => {
+      writes.forEach(({ address, value }) => {
         if (engine.isItPossibleToSetCellContents(address)) {
-          engine.setCellContents(address, contentBefore[index] ?? null);
+          engine.setCellContents(address, value);
         }
       });
     });
+  }
+
+  /**
+   * Calculates a formula for its validator without writing it (`calculateFormula()`), for an engine that
+   * keeps no undo history. The engine evaluates it on its own, as if it were in the first cell, so a cycle
+   * through the cell itself, a reference to another deferred cell of the set, `ROW()` and a spill are not
+   * what the cell would hold; a parse error reads as the formula text. An engine without the method hands
+   * the formula text to the validator.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @param {string} formula The engine-bound formula.
+   * @returns {*}
+   */
+  #calculateDetached(visualRow: number, visualColumn: number, formula: string) {
+    const engine = this.engine!;
+
+    if (typeof engine.calculateFormula !== 'function' || !engine.validateFormula(formula)) {
+      return formula;
+    }
+
+    let result = engine.calculateFormula(formula, this.sheetId as number);
+
+    if (Array.isArray(result)) {
+      result = result[0]?.[0];
+    }
+
+    return this.#toValidationValue(visualRow, visualColumn, result);
   }
 
   /**
@@ -4736,7 +4872,7 @@ export class Formulas extends BasePlugin {
    * @param {object} validated The change with its coordinates.
    * @returns {*} The engine-bound value.
    */
-  #toEngineBoundChangeValue({ change, visualRow, visualColumn, physicalRow, physicalColumn }: ValidatedChange) {
+  #toEngineBoundChangeValue({ change, visualRow, visualColumn, physicalRow, physicalColumn }: RejectableChange) {
     const value = this.#getValueGetterValue(physicalRow, physicalColumn, change[3]);
 
     if (typeof value !== 'string') {
@@ -4808,7 +4944,7 @@ export class Formulas extends BasePlugin {
    * `beforeChangeRender` hook callback.
    *
    * Writes what `afterSetDataAtCell` left of a change set into the engine, now that the Core applies it:
-   * the changes to cells with a validator that the validators accepted (the Core spliced the rejected
+   * the changes the Core could reject that the validators accepted (the Core spliced the rejected
    * ones out of this very array, so they never reach the engine), and the changes past the last row or
    * column, whose rows and columns the Core has just created. `beforeChangeRender` is the first hook
    * `applyChanges` runs on its own after it writes the set to the data (the row and column hooks of
@@ -4891,7 +5027,7 @@ export class Formulas extends BasePlugin {
    *
    * The restore runs in a plugin write that paints this grid as well: the Core renders nothing for a
    * dropped set, so a cell of the sheet shown that reads a restored cell kept the value computed from the
-   * dropped one. Only the changes to cells without a validator were written early; the others never
+   * dropped one. Only the changes the Core cannot reject were written early; the others never
    * reached the engine, so they need nothing.
    *
    * @param {Array[]} changes The dropped change array, the one `afterSetDataAtCell` received.
@@ -4986,8 +5122,8 @@ export class Formulas extends BasePlugin {
    * The cells come from the record the FIRST write kept (`ChangeSetAwaitingApply#writtenCells`), not
    * from mapping the changes again: by now the grid's indexes describe the switched-to sheet's data -
    * rows the Core just created included - so a fresh mapping named cells that write never touched
-   * and skipped ones it did. An out-of-bounds change was never written there (its write is the
-   * deferred `afterChange` one), so it has no record. The old values are what that sheet held,
+   * and skipped ones it did. An out-of-bounds change, or one the Core could reject, was never written
+   * there (it waits for `beforeChangeRender`), so it has no record. The old values are what that sheet held,
    * because the grid's data was that sheet's when the change was made. A sheet removed from the
    * engine in the meantime is left alone.
    *

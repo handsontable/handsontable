@@ -32,6 +32,12 @@ function atMost100(value, callback) {
   callback(Number(value) <= 100);
 }
 
+/**
+ * The edited column rejects under `allowInvalid: false`, so the Formulas plugin writes its value into the
+ * engine only when the validator accepts it, and the dependent C2 is neither recalculated nor validated
+ * while the editor waits. It used to be (its answer came first and the editor took it as its own); that
+ * core-side guard is pinned without Formulas by `src/editors/baseEditor/__tests__/validationWaitOwnCell.unit.js`.
+ */
 describe('Formulas dependent validation and the editor wait', () => {
   let container;
   let hot;
@@ -70,16 +76,20 @@ describe('Formulas dependent validation and the editor wait', () => {
     await flush();
   }
 
-  it('lets the edited cell\'s async rejection reopen the editor although a dependent answered first', async() => {
-    await editB2(atMost100, '-5'); // the dependent C2 = -10 is valid, and answers in the validation microtask
+  it('lets the edited cell\'s async rejection reopen the editor, with no dependent validated during the wait', async() => {
+    const dependentValidator = jest.fn(atMost100);
+
+    await editB2(dependentValidator, '-5');
 
     expect(hot.getActiveEditor().state).toBe('STATE_WAITING');
+    expect(dependentValidator).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(600);
     await flush();
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
     expect(hot.getDataAtCell(1, 1)).toBe(18);
+    expect(dependentValidator).not.toHaveBeenCalled();
   });
 
   it('does not reopen the editor when only the dependent is invalid', async() => {
