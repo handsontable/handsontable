@@ -649,21 +649,27 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   second time by that old formula (source `undefined`), and an out-of-order answer left an invalid value
   with a valid mark. The Core validates them as changes. Pinned by `validates a deferred cell of a mixed set
   once, by its new value` (both sources).
-- **A dependent's validation joins no undo step.** `validateDependentCells()` runs each `validateCell()`
-  under the grid's `operationScope.suppress()`. The `valid` mark is never journaled, so nothing is lost,
-  but `validateCell()` holds the step it runs in until the validator answers: called from the apply, an
-  async validator on a dependent (a total row over the column) held the edit's step for its whole run, so
-  `isUndoAvailable()` was `false` and an `undo()` made right after `afterChange` was dropped. On develop the
-  dependents were validated during the edit's own wait, so the step settled with the edit. Now the step
-  settles at the apply on every path, the early write included. Pinned by `makes an accepted edit undoable
-  as soon as it is applied, while a dependent is still validated` and the Playwright step of
-  `tests/e2e/editor-validation-wait-own-cell.spec.ts`.
+- **On a deferred apply, a dependent's validation joins no undo step.** `validateCell()` holds the step it
+  runs in until the validator answers. Called from the apply, an async validator on a dependent (a total
+  row over the column) held the edit's step for its whole run, so `isUndoAvailable()` was `false` and an
+  `undo()` made right after `afterChange` was dropped. On develop the dependents were validated during the
+  edit's own wait, so the step settled with the edit. So `#onBeforeChangeRender` validates the dependents
+  through `#validateDependentCellsUnrecorded()`, which runs each `validateCell()` under the grid's
+  `operationScope.suppress()`. **The cost: for a deferred edit, what a dependent's validator or
+  `afterValidate` listener writes (a `setCellMeta()`, a `*Validator` correction) is recorded in no step, so
+  an undo of the edit does not undo it.** On develop it joined the edit's step. Every other path (the early
+  write in `afterSetDataAtCell`, the write of a restored state, a source write) validates the dependents
+  inside the step, as on develop: their writes are undone with the edit, and an async dependent validator
+  still delays the step there. Pinned by `makes an accepted edit undoable as soon as it is applied, while a
+  dependent is still validated`, the Playwright step of `tests/e2e/editor-validation-wait-own-cell.spec.ts`,
+  and `undoes what a dependent's afterValidate writes with an edit written at once, as before`.
 
-**Known limit (the predicate is duplicated).** The Core decides again in `queueValidators()`, after
-`afterSetDataAtCell`. An `afterSetDataAtCell` listener registered after Formulas that gives the cell a
-validator or sets `allowInvalid: false` (through `setCellMeta()` or `updateSettings()`) makes Formulas
-write the change at once while the Core can still reject it, and with the restore gone the engine then
-keeps the rejected value until the next full write.
+**Known limit (the predicate is duplicated).** Formulas decides in `afterSetDataAtCell`; the Core reads
+the cell's validator when it validates and `allowInvalid` when the validator answers (`queueValidators()`).
+Any change of the cell's validator or `allowInvalid` between the two (an `afterSetDataAtCell` listener
+registered after Formulas, or a `setCellMeta()` / `updateSettings()` made while the validator of a change
+written at once still works) that turns it into a change the Core rejects leaves that change written: with
+the restore gone, the engine keeps the rejected value until the next full write.
 
 **The validator of a formula still gets its result: the validation probe.** `#onBeforeValidate` hands a
 validator the engine's result for a formula cell (an error as its text, a date or time column's serial
@@ -674,7 +680,10 @@ early write, writes it, reads the results, and takes the write back with `engine
 
 - **Formulas first, then only the plain values they read** (`#runProbe()`): the deferred formulas go into
   one batch; a deferred plain value goes into a second batch only when a probed formula reads its cell
-  (`getCellPrecedents()`, a range included, `isAddressInPrecedent()`). Every formula of the set is in the
+  (`getCellPrecedents()`, a range included, `isAddressInPrecedent()`). A named expression is reported as a
+  precedent with `sheet: -1` and does not say which cells it reads, so when any probed formula reads one,
+  every deferred plain value of the set goes into the second batch (pinned by `writes a plain value of the
+  set a formula reads through a named expression into the probe`). Every formula of the set is in the
   first batch, so a chain through other formulas of the set is covered, and the validator sees what it saw
   when every change was written first: a formula reading another deferred cell of the set reads its new
   value, and one that reaches itself through a dependent is `#CYCLE!`. Each batch is undone. Writing the
