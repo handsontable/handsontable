@@ -60,6 +60,10 @@ when every height is already cached.
   layout, so they differ by a layout step (1/64px) at most. Do not use a bare `Math.ceil()` (a default row
   measured a fraction above a whole pixel jumps a whole pixel) or a bare `Math.round()` (drops the fraction of
   a taller row, which is the drift).
+- **The default is the uncompensated one** (`getDefaultRowHeight()` with no row). The first rendered body row
+  of a grid with no column headers draws its own 1px `border-top`, which `getDefaultRowHeight(row)` adds for
+  that row, but the ghost table measures every row without it. Compared with the compensated default, a first
+  row up to a pixel taller than the real default would count as a default-height row and round down.
 - **The header row keeps `Math.round()`** (the `row < 0` branch): it has no content-driven height of its own
   to align.
 - Zoom is not testable here with CSS `zoom`: that scales the ghost table's rect too, so the measurement is

@@ -585,7 +585,7 @@ export class AutoRowSize extends BasePlugin {
           if (row < 0) {
             this.headerHeight = Math.round(height);
           } else {
-            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), this.#toStoredHeight(row, height));
+            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), this.#toStoredHeight(height));
           }
         });
       }, true);
@@ -711,12 +711,15 @@ export class AutoRowSize extends BasePlugin {
   /**
    * The height to store for a sampled row, from the height the ghost table measured for it.
    *
-   * @param {number} visualRow The visual row index.
+   * Compared with the default height WITHOUT the first-row border compensation: the ghost table
+   * measures every row without that border, so the compensated default would count a row up to a
+   * pixel taller than the real default as a default-height row and round it down.
+   *
    * @param {number} measuredHeight The measured height, snapped to the layout grid.
    * @returns {number}
    */
-  #toStoredHeight(visualRow: number, measuredHeight: number): number {
-    return toStoredRowHeight(measuredHeight, this.hot.stylesHandler.getDefaultRowHeight(visualRow) ?? 0);
+  #toStoredHeight(measuredHeight: number): number {
+    return toStoredRowHeight(measuredHeight, this.hot.stylesHandler.getDefaultRowHeight() ?? 0);
   }
 
   /**
@@ -769,7 +772,7 @@ export class AutoRowSize extends BasePlugin {
         this.ghostTable.getHeights((visualRow: number, height: number) => {
           const physicalRow = this.hot.toPhysicalRow(visualRow);
 
-          this.rowHeightsMap.setValueAtIndex(physicalRow, this.#toStoredHeight(visualRow, height));
+          this.rowHeightsMap.setValueAtIndex(physicalRow, this.#toStoredHeight(height));
         });
       }, true);
 
