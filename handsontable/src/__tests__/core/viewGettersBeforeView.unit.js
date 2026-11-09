@@ -170,14 +170,17 @@ describe('Getters before the view exists', () => {
       expect(afterChange.mock.calls.filter(([changes]) => changes !== null)).toEqual([[[[0, 0, 'A1', 'x']], 'edit']]);
     });
 
-    it('should write nothing and warn from `setDataAtCell` inside `afterHideColumns` fired at init', () => {
+    it.each([
+      ['setDataAtCell', instance => instance.setDataAtCell(0, 0, 'x')],
+      ['setDataAtRowProp', instance => instance.setDataAtRowProp(0, 0, 'x')],
+    ])('should write nothing and warn from `%s` inside `afterHideColumns` fired at init', (_, write) => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       try {
         hot = createGrid({
           hiddenColumns: { columns: [1] },
           afterHideColumns() {
-            this.setDataAtCell(0, 0, 'x');
+            write(this);
           },
         });
 

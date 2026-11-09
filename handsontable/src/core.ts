@@ -4329,6 +4329,26 @@ export default function Core(
   };
 
   /**
+   * Tells whether a write by visual coordinates has no row to land on yet, and warns when it has not.
+   *
+   * Inside `afterHideColumns` and `afterHideRows` at init the source data is loaded but the grid has no
+   * visual row yet, so a write would see every row as past the end and append a record.
+   *
+   * @param {string} methodName The public method that was called.
+   * @returns {boolean} `true` when the write must be skipped.
+   */
+  const isWriteBeforeRowsExist = (methodName: string): boolean => {
+    if (instance.view || instance.countRows() > 0 || instance.countSourceRows() === 0) {
+      return false;
+    }
+
+    warn(`\`${methodName}()\` writes nothing while Handsontable initializes and the grid has no rows yet, ` +
+      'as inside `afterHideColumns`. Write in `afterInit`, or use `setSourceDataAtCell()`.');
+
+    return true;
+  };
+
+  /**
    * The body of `setDataAtCell`, run inside its operation.
    *
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
@@ -4340,12 +4360,7 @@ export default function Core(
     this: HotInstance,
     row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
   ) {
-    // Inside `afterHideColumns` and `afterHideRows` at init the source data is loaded but the grid has no
-    // visual row yet, so a write would see every row as past the end and append a record.
-    if (!instance.view && instance.countRows() === 0 && instance.countSourceRows() > 0) {
-      warn('`setDataAtCell()` writes nothing while Handsontable initializes and the grid has no rows yet, ' +
-        'as inside `afterHideColumns`. Write in `afterInit`, or use `setSourceDataAtCell()`.');
-
+    if (isWriteBeforeRowsExist('setDataAtCell')) {
       return;
     }
 
@@ -4513,6 +4528,10 @@ export default function Core(
     this: HotInstance,
     row: number | Array<[number, string | number, unknown]>, prop: string | number, value: string, source?: string
   ) {
+    if (isWriteBeforeRowsExist('setDataAtRowProp')) {
+      return;
+    }
+
     const input = setDataInputToArray(row, prop, value);
     const changes: CellChange[] = [];
     let changeSource = source;

@@ -42,7 +42,7 @@ into `-1`. The data getters and `getCoords()` work there too, because `_createCe
 `selectCell()`, `selectCells()`, `selectRows()`, `selectColumns()` and `selectAll()` answer `null`, `false` or
 nothing, and select nothing. `setDataAtCell()` and `updateData()` write through in the initial `afterLoadData`, because `applyChanges()` and
 `replaceData()` read `editorManager` with `?.` (it is assigned after the first `afterLoadData`). In
-`afterHideColumns`/`afterHideRows` the grid has no visual row yet, so `setDataAtCell()` warns and writes nothing:
+`afterHideColumns`/`afterHideRows` the grid has no visual row yet, so `setDataAtCell()` and `setDataAtRowProp()` warn and write nothing:
 a write there would append a record. **That is all that is guarded.** Other reads of `hot.view`
 (`AutoColumnSize#onScreenColumns`) still assume it exists, and `countRenderedRows()` and its siblings use their
 own `-1` answer. A new Core method that reads
