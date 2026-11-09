@@ -644,12 +644,24 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   another grid are left out** (`Formulas#getSheetNamesBoundElsewhere()`, which reads the engine registry and
   names every sheet a Handsontable instance other than this one is bound to, passed as `excludedNames`), so the bar
   never lists, edits, renames over, or removes another grid's sheet on a shared engine. An engine whose every
-  sheet belongs to other grids falls back to the plain `sheetsBar: true` build. (6) **On a live grid (an enable
-  after init, or `false` then `true`) without a grid-level `sheetName`, the data tab is the engine sheet the
-  Formulas plugin is bound to** (`#withBoundSheetName`, when that plugin is on and holds the same engine): the
-  grid's rows already sit there, so that sheet opens under its own name and no new engine sheet is added. Without
-  it, a late enable with `data` added a second copy of the rows (`Sheet1 (2)`), and a re-enable after
-  `sheetsBar: false` reopened the first tab instead of the sheet the grid kept. **Known limit:** a grid built with
+  sheet belongs to other grids falls back to the plain `sheetsBar: true` build. **A grid-level `sheetName` that
+  names a sheet bound to another grid gets no tab, with `data` or without:** `planEngineWorkbook()` reports it as
+  `boundElsewhereSheetName`, the first tab opens, and `#planEngineSheets` warns that the sheet is bound to another
+  grid. Matched against the filtered names, it read as missing: with `data` the data tab was bound to the other
+  grid's sheet (removing the tab deleted it), and without `data` the warning said the engine had no such sheet.
+  (6) **On a live grid (an enable after init, or `false` then `true`) without a grid-level `sheetName`, the sheet
+  the Formulas plugin is bound to opens in place** (`#withBoundSheetName`, when that plugin is on and holds the
+  same engine): the grid's rows already sit there, so that sheet opens under its own name and no new engine sheet
+  is added. Without it, a late enable with `data` added a second copy of the rows (`Sheet1 (2)`), and a re-enable
+  after `sheetsBar: false` reopened the first tab instead of the sheet the grid kept. **That sheet is the data tab
+  only when nothing else is remembered.** A `sheetsBar: false` teardown remembers the engine sheet of the data
+  owner tab with its engine (`#detachedDataSheet`, from `#dataOwnerEngineSheet()`), and the next build takes it
+  (any build drops it; destroy too). When it is in the same engine, not bound to another grid, and the grid
+  shows another sheet (`#detachedDataTab`), that sheet becomes the data tab (`dataIndex`, returned by
+  `#buildInitialWorkbook` as the owner id) and the plan gets no `data`, so every tab, the shown one included, holds
+  its engine content and nothing writes the grid's `data` into the shown sheet. Without it, after a switch and a
+  toggle, a later `data` replaced the shown sheet's engine content (`Report!A1`, a formula) or landed in a hidden
+  sheet while the grid stayed unchanged. **Known limit:** a grid built with
   the engine, no `data` and no bar already holds the empty engine sheet Formulas added at its init, so a later
   `sheetsBar: true` shows that sheet as one more tab (the open one); the guide says so.
 - **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**

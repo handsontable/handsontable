@@ -19,14 +19,15 @@ export interface EngineSheetEntry {
 }
 
 /**
- * What the build makes of an engine: the tabs in the engine's order, the position of the opening tab, and
- * the `sheetName` the grid-level `formulas` asks for when the engine has no such sheet and no `data` was
- * given (`null` otherwise).
+ * What the build makes of an engine: the tabs in the engine's order, the position of the opening tab, the
+ * `sheetName` the grid-level `formulas` asks for when the engine has no such sheet and no `data` was given,
+ * and the `sheetName` it asks for when that sheet is bound to another grid (each `null` otherwise).
  */
 export interface EngineWorkbookPlan {
   entries: EngineSheetEntry[];
   openingIndex: number;
   missingSheetName: string | null;
+  boundElsewhereSheetName: string | null;
 }
 
 /**
@@ -128,7 +129,7 @@ function planDataTab(input: EngineWorkbookInput, entries: EngineSheetEntry[], na
 
     entries[namedIndex] = { name, data: data as unknown[], settings: boundSettings(formulas, name) };
 
-    return { entries, openingIndex: namedIndex, missingSheetName: null };
+    return { entries, openingIndex: namedIndex, missingSheetName: null, boundElsewhereSheetName: null };
   }
 
   const engineNames = engine.getSheetNames();
@@ -137,7 +138,7 @@ function planDataTab(input: EngineWorkbookInput, entries: EngineSheetEntry[], na
 
   entries.push({ name, data: data as unknown[], settings: boundSettings(formulas, name) });
 
-  return { entries, openingIndex: entries.length - 1, missingSheetName: null };
+  return { entries, openingIndex: entries.length - 1, missingSheetName: null, boundElsewhereSheetName: null };
 }
 
 /**
@@ -149,7 +150,8 @@ function planDataTab(input: EngineWorkbookInput, entries: EngineSheetEntry[], na
  * (an existing engine sheet is then not listed again, its content is replaced by the data on load) or,
  * without one, to a new engine sheet named after the tab (`defaultName`, made free), added last; the data tab
  * opens. Without `data`, the opening tab is the `sheetName` sheet when the engine has it, else the
- * `activeSheet` position, else the first one.
+ * `activeSheet` position, else the first one. A `sheetName` that names an excluded sheet gets no tab, with or
+ * without `data`: the first tab opens and the name is reported as bound elsewhere.
  *
  * @param {object} input The engine, the grid-level `formulas` object, `data`, `activeSheet`, the default tab
  * name, and the engine sheet names to leave out.
@@ -165,6 +167,11 @@ export function planEngineWorkbook(input: EngineWorkbookInput): EngineWorkbookPl
     settings: boundSettings(formulas, name),
   }));
   const sheetName = requestedSheetName(formulas);
+
+  if (sheetName !== null && excludedNames.some(excluded => isSameSheetName(excluded, sheetName))) {
+    return { entries, openingIndex: 0, missingSheetName: null, boundElsewhereSheetName: sheetName };
+  }
+
   const namedIndex = sheetName === null ? -1 : names.findIndex(name => isSameSheetName(name, sheetName));
 
   if (Array.isArray(data)) {
@@ -172,13 +179,16 @@ export function planEngineWorkbook(input: EngineWorkbookInput): EngineWorkbookPl
   }
 
   if (sheetName !== null) {
-    return namedIndex === -1
-      ? { entries, openingIndex: 0, missingSheetName: sheetName }
-      : { entries, openingIndex: namedIndex, missingSheetName: null };
+    return {
+      entries,
+      openingIndex: namedIndex === -1 ? 0 : namedIndex,
+      missingSheetName: namedIndex === -1 ? sheetName : null,
+      boundElsewhereSheetName: null,
+    };
   }
 
   const openingIndex = Number.isInteger(activeSheet) && (activeSheet as number) >= 0 &&
     (activeSheet as number) < entries.length ? activeSheet as number : 0;
 
-  return { entries, openingIndex, missingSheetName: null };
+  return { entries, openingIndex, missingSheetName: null, boundElsewhereSheetName: null };
 }

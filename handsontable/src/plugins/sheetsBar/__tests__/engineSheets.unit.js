@@ -354,6 +354,61 @@ describe('SheetsBar tabs from a formula engine', () => {
       expect(otherHot.getPlugin('formulas').sheetName).toBe('Rates');
       expect(otherHot.getData()).toEqual([[7]]);
     });
+
+    it('warns once and opens the first tab for a `sheetName` the other grid is bound to, without data', () => {
+      const engine = buildEngine({
+        Data: [[1, 2], [3, 4]],
+        Rates: [[7]],
+        Report: [['=SUM(Data!A1:B2)']],
+      });
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      otherHot = new Handsontable(otherContainer, {
+        data: [[7]],
+        formulas: { engine, sheetName: 'Rates' },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+      hot = build({ formulas: { engine, sheetName: 'Rates' } });
+
+      const warnings = warnSpy.mock.calls.map(call => String(call[0])).filter(text => text.includes('Rates'));
+
+      expect(tabNames()).toEqual(['Data', 'Report']);
+      expect(activeName()).toBe('Data');
+      expect(hot.getData()).toEqual([[1, 2], [3, 4]]);
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('another grid');
+      expect(warnings[0]).not.toContain('no sheet named');
+      expect(engine.getSheetNames()).toEqual(['Data', 'Rates', 'Report']);
+    });
+
+    it('binds no tab to a `sheetName` the other grid is bound to, with data, so no removal reaches it', () => {
+      const engine = buildEngine({
+        Data: [[1, 2], [3, 4]],
+        Rates: [[7]],
+        Report: [['=SUM(Data!A1:B2)']],
+      });
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      otherHot = new Handsontable(otherContainer, {
+        data: [[7]],
+        formulas: { engine, sheetName: 'Rates' },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+      hot = build({ data: [[9]], formulas: { engine, sheetName: 'Rates' } });
+
+      const warnings = warnSpy.mock.calls.map(call => String(call[0])).filter(text => text.includes('Rates'));
+
+      expect(tabNames()).toEqual(['Data', 'Report']);
+      expect(activeName()).toBe('Data');
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('another grid');
+
+      sheetsBar().removeSheet(idOf('Report'));
+
+      expect(engine.getSheetNames()).toEqual(['Data', 'Rates']);
+      expect(engine.getSheetSerialized(engine.getSheetId('Rates'))).toEqual([[7]]);
+      expect(otherHot.getData()).toEqual([[7]]);
+    });
   });
 
   describe('enabled on a live grid', () => {
@@ -419,6 +474,55 @@ describe('SheetsBar tabs from a formula engine', () => {
       expect(tabNames()).toEqual(['Data', 'Report', 'Summary']);
       expect(activeName()).toBe('Report');
       expect(hot.getDataAtCell(0, 0)).toBe(10);
+      expect(engine.getSheetNames()).toEqual(['Data', 'Report', 'Summary']);
+    });
+
+    it('keeps new grid data in the data tab after `sheetsBar: false` and `true` on another tab', () => {
+      const engine = buildEngine();
+
+      hot = build({ data: [[5, 6]], formulas: { engine } });
+
+      expect(tabNames()).toEqual(['Data', 'Report', 'Summary', 'Sheet1']);
+
+      sheetsBar().setActiveSheet(idOf('Report'));
+      hot.updateSettings({ sheetsBar: false });
+      hot.updateSettings({ sheetsBar: true });
+
+      expect(tabNames()).toEqual(['Data', 'Report', 'Summary', 'Sheet1']);
+      expect(activeName()).toBe('Report');
+
+      hot.updateSettings({ data: [['NEW']] });
+
+      expect(activeName()).toBe('Report');
+      expect(hot.getDataAtCell(0, 0)).toBe(10);
+      expect(engine.getSheetSerialized(engine.getSheetId('Report'))).toEqual([['=SUM(Data!A1:B2)']]);
+      expect(engine.getSheetSerialized(engine.getSheetId('Sheet1'))).toEqual([['NEW']]);
+      expect(tabNames()).toEqual(['Data', 'Report', 'Summary', 'Sheet1']);
+      expect(engine.getSheetNames()).toEqual(['Data', 'Report', 'Summary', 'Sheet1']);
+
+      sheetsBar().setActiveSheet(idOf('Sheet1'));
+
+      expect(hot.getData()).toEqual([['NEW']]);
+    });
+
+    it('keeps new grid data in the first data tab after `sheetsBar: false` and `true` without data', () => {
+      const engine = buildEngine();
+
+      hot = build({ formulas: { engine } });
+      sheetsBar().setActiveSheet(idOf('Report'));
+      hot.updateSettings({ sheetsBar: false });
+      hot.updateSettings({ sheetsBar: true });
+
+      expect(activeName()).toBe('Report');
+
+      sheetsBar().setActiveSheet(idOf('Data'));
+      hot.updateSettings({ data: [[8, 9]] });
+
+      expect(activeName()).toBe('Data');
+      expect(hot.getData()).toEqual([[8, 9]]);
+      expect(engine.getSheetSerialized(engine.getSheetId('Data'))).toEqual([[8, 9]]);
+      expect(engine.getSheetSerialized(engine.getSheetId('Report'))).toEqual([['=SUM(Data!A1:B2)']]);
+      expect(tabNames()).toEqual(['Data', 'Report', 'Summary']);
       expect(engine.getSheetNames()).toEqual(['Data', 'Report', 'Summary']);
     });
   });

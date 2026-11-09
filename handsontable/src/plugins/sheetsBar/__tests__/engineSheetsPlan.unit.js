@@ -125,4 +125,35 @@ describe('planEngineWorkbook', () => {
 
     expect(names(result)).toEqual(['A', 'Sheet1 (2)']);
   });
+
+  it('reports a `sheetName` bound elsewhere and opens the first entry, without data', () => {
+    const result = plan({
+      sheets: { A: [], Rates: [[1]], B: [] },
+      formulas: { sheetName: 'rates' },
+      activeSheet: 1,
+      excludedNames: ['Rates'],
+    });
+
+    expect(names(result)).toEqual(['A', 'B']);
+    expect(result.openingIndex).toBe(0);
+    expect(result.boundElsewhereSheetName).toBe('rates');
+    expect(result.missingSheetName).toBeNull();
+  });
+
+  it('binds no entry to a `sheetName` bound elsewhere and opens the first entry, with data', () => {
+    const result = plan({
+      sheets: { A: [[1]], Rates: [[2]] }, formulas: { sheetName: 'Rates' }, data: [[9]], excludedNames: ['Rates'],
+    });
+
+    expect(names(result)).toEqual(['A']);
+    expect(result.entries.map(entry => entry.settings.formulas.sheetName)).toEqual(['A']);
+    expect(result.entries[0].data).toEqual([[1]]);
+    expect(result.openingIndex).toBe(0);
+    expect(result.boundElsewhereSheetName).toBe('Rates');
+    expect(result.missingSheetName).toBeNull();
+  });
+
+  it('reports no sheet bound elsewhere for an engine sheet this grid may use', () => {
+    expect(plan({ sheets: { A: [] } }).boundElsewhereSheetName).toBeNull();
+  });
 });

@@ -1091,6 +1091,15 @@ export class SheetsBar extends BasePlugin {
    */
   #topLevelDataOwnerId: number | null = null;
   /**
+   * The engine sheet the top-level `data` belonged to when a `sheetsBar: false` teardown left a workbook read
+   * from an engine, with that engine. The next live enable on the same engine binds its data tab to that sheet
+   * again, while it opens the sheet the grid shows. Taken by the next build, whatever it builds, and dropped on
+   * destroy.
+   *
+   * @type {object|null}
+   */
+  #detachedDataSheet: { engine: unknown, sheetName: string } | null = null;
+  /**
    * The top-level `data` arrays already reported as not applied (`REMOVED_DATA_OWNER_WARNING`), so a wrapper
    * sending the same array on every render warns once.
    *
@@ -1283,14 +1292,12 @@ export class SheetsBar extends BasePlugin {
         this.#gridCellOption = this.hot.getSettings().cell;
 
         const topLevelData = this.hot.getSettings().data;
+        const dataOwnerId = this.#buildInitialWorkbook();
 
-        this.#buildInitialWorkbook();
         this.#receivedTopLevelData = this.#declaredEntries.size === 0 && Array.isArray(topLevelData)
           ? topLevelData
           : null;
-        this.#topLevelDataOwnerId = this.#declaredEntries.size === 0
-          ? (this.#model.getActiveSheet()?.id ?? null)
-          : null;
+        this.#topLevelDataOwnerId = this.#declaredEntries.size === 0 ? dataOwnerId : null;
       } catch (error) {
         this.hot._removeSettingsFilter(this.#filterGridSettings);
         throw error;
@@ -1873,6 +1880,7 @@ export class SheetsBar extends BasePlugin {
       const activeSheet = this.#activeSheetRecord();
       const keptImportedKeys = isTeardown && activeSheet ? this.#importedKeys.get(activeSheet) : undefined;
 
+      this.#detachedDataSheet = isTeardown ? this.#dataOwnerEngineSheet() : null;
       this.#model = null;
       this.#forgetTopLevelData();
       this.#releaseDataProviderContexts(discardedSheets);
@@ -2261,7 +2269,25 @@ export class SheetsBar extends BasePlugin {
     this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#releaseState();
     this.#forgetTopLevelData();
+    this.#detachedDataSheet = null;
     super.destroy();
+  }
+
+  /**
+   * Returns the engine sheet the top-level `data` belongs to, with its engine: the `formulas` binding of the
+   * `#topLevelDataOwnerId` sheet, or `null` when that sheet is gone or not bound to an engine instance.
+   *
+   * @returns {object|null}
+   */
+  #dataOwnerEngineSheet(): { engine: unknown, sheetName: string } | null {
+    const owner = this.#topLevelDataOwnerId === null ? null : this.#model?.getSheetById(this.#topLevelDataOwnerId);
+    const formulas = owner ? formulasSettingOf(owner) : null;
+
+    if (formulas === null || !isEngineInstance(formulas.engine) || typeof formulas.sheetName !== 'string') {
+      return null;
+    }
+
+    return { engine: formulas.engine, sheetName: formulas.sheetName };
   }
 
   /**
@@ -3378,22 +3404,31 @@ export class SheetsBar extends BasePlugin {
   /**
    * Builds the initial workbook from the `sheets` setting; without one, from the sheets of the grid-level
    * formula engine instance (`#planEngineSheets`), or else wraps the grid's current data as `Sheet1`.
+   * Returns the id of the sheet the top-level `data` belongs to: the opening sheet, unless an engine
+   * workbook names another data tab.
+   *
+   * @returns {number|null}
    */
-  #buildInitialWorkbook() {
+  #buildInitialWorkbook(): number | null {
     const sheetsSetting = this.getSetting('sheets') as SheetsBarSheetConfig[] | null;
+    const detachedDataSheet = this.#detachedDataSheet;
+
+    this.#detachedDataSheet = null;
 
     if (Array.isArray(sheetsSetting) && sheetsSetting.length > 0) {
       this.#buildSheetsWorkbook(sheetsSetting, true, this.getSetting<number>('activeSheet') ?? 0);
 
-      return;
+      return null;
     }
 
-    const enginePlan = this.#planEngineSheets();
+    const enginePlan = this.#planEngineSheets(detachedDataSheet);
 
     if (enginePlan !== null) {
       this.#buildSheetsWorkbook(enginePlan.entries, false, enginePlan.openingIndex);
 
-      return;
+      return enginePlan.dataIndex === null
+        ? ((this.#model as SheetModel).getActiveSheet()?.id ?? null)
+        : (this.#physicalOrder[enginePlan.dataIndex] ?? null);
     }
 
     const model = this.#model as SheetModel;
@@ -3405,6 +3440,8 @@ export class SheetsBar extends BasePlugin {
 
     this.#loadedSheetId = model.addSheet(null, this.#getLiveSourceData()).id;
     this.#physicalOrder = [this.#loadedSheetId];
+
+    return this.#loadedSheetId;
   }
 
   /**
@@ -3412,11 +3449,16 @@ export class SheetsBar extends BasePlugin {
    * the position of the opening one, or `null` when that is not an engine instance holding a sheet this grid
    * may list. Read once, when the workbook is built, so engine sheets added, removed, or renamed outside the
    * grid later are not followed. A `sheetName` the engine lacks, with no grid `data`, is reported, and no
-   * engine sheet is made for it. Engine sheets other grids are bound to are left out.
+   * engine sheet is made for it. Engine sheets other grids are bound to are left out, and a `sheetName` that
+   * names one is reported. `dataIndex` is the position of the data tab when it is not the opening one (see
+   * `#detachedDataTab`), else `null`.
    *
+   * @param {object|null} detachedDataSheet The engine sheet a `sheetsBar: false` teardown left the data in.
    * @returns {object|null}
    */
-  #planEngineSheets(): { entries: SheetsBarSheetConfig[], openingIndex: number } | null {
+  #planEngineSheets(detachedDataSheet: { engine: unknown, sheetName: string } | null): {
+    entries: SheetsBarSheetConfig[], openingIndex: number, dataIndex: number | null,
+  } | null {
     const { formulas, data } = this.hot.getSettings();
 
     if (!isPlainObject(formulas) || !isEngineInstance((formulas as SheetFormulas).engine)) {
@@ -3430,13 +3472,21 @@ export class SheetsBar extends BasePlugin {
     }
 
     const formulasPlugin = this.hot.getPlugin('formulas');
+    const excludedNames = formulasPlugin?.getSheetNamesBoundElsewhere(engine as unknown as HyperFormulaEngine) ?? [];
+    const boundFormulas = this.#withBoundSheetName(formulas as Record<string, unknown>);
+    const detachedTab = this.#detachedDataTab(
+      detachedDataSheet,
+      formulas as Record<string, unknown>,
+      boundFormulas,
+      excludedNames,
+    );
     const plan = planEngineWorkbook({
       engine,
-      formulas: this.#withBoundSheetName(formulas as Record<string, unknown>),
-      data,
+      formulas: boundFormulas,
+      data: detachedTab === null ? data : undefined,
       activeSheet: this.getSetting('activeSheet'),
       defaultName: (this.#model as SheetModel).peekDefaultName(),
-      excludedNames: formulasPlugin?.getSheetNamesBoundElsewhere(engine as unknown as HyperFormulaEngine) ?? [],
+      excludedNames,
     });
 
     if (plan.entries.length === 0) {
@@ -3448,13 +3498,54 @@ export class SheetsBar extends BasePlugin {
         'first sheet instead.');
     }
 
+    if (plan.boundElsewhereSheetName !== null) {
+      warn(`The formula engine sheet "${plan.boundElsewhereSheetName}" is bound to another grid, so the sheets ` +
+        'bar does not list it and opens its first sheet instead.');
+    }
+
+    const dataIndex = detachedTab === null
+      ? -1
+      : plan.entries.findIndex(entry => isSameSheetName(entry.name, detachedTab));
+
     return {
       entries: plan.entries.map(entry => ({
         ...entry,
         data: entry.data ?? this.#blankSheetData(entry.settings),
       })),
       openingIndex: plan.openingIndex,
+      dataIndex: dataIndex === -1 ? null : dataIndex,
     };
+  }
+
+  /**
+   * Returns the engine sheet the data tab binds to on a live enable after a `sheetsBar: false` teardown, or
+   * `null` to plan the data tab as usual. It is the sheet the teardown left the top-level `data` in
+   * (`#detachedDataSheet`), when it is in the same engine and the grid shows another sheet: that sheet opens
+   * in place with the engine's content, and nothing writes the grid's `data` into it. A grid-level
+   * `sheetName`, or a sheet now bound to another grid, keeps the usual plan.
+   *
+   * @param {object|null} detachedDataSheet The engine sheet a teardown left the data in.
+   * @param {object} formulas The grid-level `formulas` setting.
+   * @param {object} boundFormulas The same, with the `sheetName` the Formulas plugin is bound to.
+   * @param {string[]} excludedNames The engine sheets other grids are bound to.
+   * @returns {string|null}
+   */
+  #detachedDataTab(
+    detachedDataSheet: { engine: unknown, sheetName: string } | null,
+    formulas: Record<string, unknown>,
+    boundFormulas: Record<string, unknown>,
+    excludedNames: string[],
+  ): string | null {
+    if (detachedDataSheet === null || detachedDataSheet.engine !== formulas.engine || boundFormulas === formulas) {
+      return null;
+    }
+
+    const { sheetName } = detachedDataSheet;
+    const engine = formulas.engine as unknown as EngineSheetsSource;
+    const isAvailable = typeof engine.getSheetId(sheetName) === 'number'
+      && !excludedNames.some(excluded => isSameSheetName(excluded, sheetName));
+
+    return isAvailable ? sheetName : null;
   }
 
   /**
