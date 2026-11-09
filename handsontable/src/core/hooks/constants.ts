@@ -4223,6 +4223,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenRows} plugin after marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
+   * The hook also fires once while Handsontable initializes, before the grid has a view. At that point,
+   * {@link Core#getFirstFullyVisibleRow} and the other viewport getters of `Core` return `null`, and
+   * {@link AutoRowSize#getFirstVisibleRow} and {@link AutoRowSize#getLastVisibleRow} return `-1`.
+   * Methods that need the rendered grid, such as {@link Core#selectCell}, are not available yet.
+   *
    * @event Hooks#afterHideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical row indexes.
@@ -4308,6 +4313,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link HiddenColumns} plugin after marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
+   *
+   * The hook also fires once while Handsontable initializes, before the grid has a view. At that point,
+   * {@link Core#getFirstFullyVisibleColumn} and the other viewport getters of `Core` return `null`, and
+   * {@link AutoColumnSize#getFirstVisibleColumn} and {@link AutoColumnSize#getLastVisibleColumn} return `-1`.
+   * Methods that need the rendered grid, such as {@link Core#selectCell}, are not available yet.
    *
    * @event Hooks#afterHideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.

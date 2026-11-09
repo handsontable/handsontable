@@ -94,8 +94,8 @@ import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
-import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
-import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
+import CellCoords from './3rdparty/walkontable/src/cell/coords';
+import CellRange from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from './settings';
 import type {
   CellOptionMetaEntry, GridHelperInstance, HotInstance, KeptCellMetas, SelectAllOptions, ViewportScrollerInstance,
@@ -128,6 +128,17 @@ import { colToPropOrIndex } from './helpers/columnProp';
 /**
  * The part of a sorting plugin that core reads and calls.
  */
+/**
+ * The `TableView` getters behind the Core viewport getters that answer `null` while the view does not exist.
+ */
+type ViewportGetterName =
+  | 'getFirstRenderedVisibleRow' | 'getLastRenderedVisibleRow'
+  | 'getFirstRenderedVisibleColumn' | 'getLastRenderedVisibleColumn'
+  | 'getFirstFullyVisibleRow' | 'getLastFullyVisibleRow'
+  | 'getFirstFullyVisibleColumn' | 'getLastFullyVisibleColumn'
+  | 'getFirstPartiallyVisibleRow' | 'getLastPartiallyVisibleRow'
+  | 'getFirstPartiallyVisibleColumn' | 'getLastPartiallyVisibleColumn';
+
 interface SortingPluginLike {
   isSorted(): boolean;
   clearSort(): void;
@@ -3879,7 +3890,13 @@ export default function Core(
    * @returns {CellCoords}
    */
   this._createCellCoords = function(row: number, column: number): CellCoords {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
+
+    // A hook that fires during initialization (`afterLoadData`, `afterHideColumns`) runs before the view
+    // exists. The object is the same one the engine builds, so no view is needed to create it.
+    if (!view) {
+      return new CellCoords(row, column, instance.isRtl());
+    }
 
     return view._wt.createCellCoords(row, column) as CellCoords;
   };
@@ -3899,13 +3916,20 @@ export default function Core(
   this._createCellRange = function(
     highlight: {row: number, col: number}, from: {row: number, col: number}, to: {row: number, col: number}
   ): CellRange {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.createCellRange(
+    const coords = [
       highlight as unknown as CellCoords,
       from as unknown as CellCoords,
-      to as unknown as CellCoords
-    ) as CellRange;
+      to as unknown as CellCoords,
+    ] as const;
+
+    // Same as `_createCellCoords`: no view exists yet inside a hook fired during initialization.
+    if (!view) {
+      return new CellRange(...coords, instance.isRtl());
+    }
+
+    return view._wt.createCellRange(...coords) as CellRange;
   };
 
   /**
@@ -7694,6 +7718,11 @@ export default function Core(
    * ```
    */
   this.getCoords = function(element: HTMLElement) {
+    // No element is rendered before the view exists (a hook fired during initialization).
+    if (!instance.view) {
+      return null;
+    }
+
     const renderableCoords = instance.view._wt.wtTable.getCoords(element) as CellCoords | null;
 
     if (renderableCoords === null) {
@@ -10529,6 +10558,24 @@ export default function Core(
   };
 
   /**
+   * Reads a viewport index through the view. Answers `null` while the view does not exist yet, which is
+   * the case inside a hook that fires during initialization (`afterHideColumns` with `hiddenColumns`
+   * enabled), the same value the view gives before its first render. It takes the getter's name, not a
+   * callback, so a call on the render path allocates nothing.
+   *
+   * @private
+   * @param {string} getterName The name of the `TableView` getter to call.
+   * @returns {number | null} The index, or `null` when there is no view.
+   */
+  const readViewportIndex = (getterName: ViewportGetterName): number => {
+    const view = instance.view as TableView | undefined;
+
+    // The public signature stays `number` so that strict-null consumers keep compiling, but these getters
+    // already answer `null` before the first render (see their `@returns`).
+    return (view ? view[getterName]() : null) as number;
+  };
+
+  /**
    * Returns the first rendered row in the DOM (usually, it is not visible in the table's viewport).
    *
    * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
@@ -10539,10 +10586,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstRenderedVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstRenderedVisibleRow = function(): number {
-    return (instance.view as TableView).getFirstRenderedVisibleRow() as number;
+    return readViewportIndex('getFirstRenderedVisibleRow');
   };
 
   /**
@@ -10556,10 +10603,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastRenderedVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastRenderedVisibleRow = function(): number {
-    return (instance.view as TableView).getLastRenderedVisibleRow() as number;
+    return readViewportIndex('getLastRenderedVisibleRow');
   };
 
   /**
@@ -10573,10 +10620,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstRenderedVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstRenderedVisibleColumn = function(): number {
-    return (instance.view as TableView).getFirstRenderedVisibleColumn() as number;
+    return readViewportIndex('getFirstRenderedVisibleColumn');
   };
 
   /**
@@ -10590,10 +10637,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastRenderedVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastRenderedVisibleColumn = function(): number {
-    return (instance.view as TableView).getLastRenderedVisibleColumn() as number;
+    return readViewportIndex('getLastRenderedVisibleColumn');
   };
 
   /**
@@ -10603,10 +10650,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstFullyVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstFullyVisibleRow = function(): number {
-    return (instance.view as TableView).getFirstFullyVisibleRow() as number;
+    return readViewportIndex('getFirstFullyVisibleRow');
   };
 
   /**
@@ -10616,10 +10663,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastFullyVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastFullyVisibleRow = function(): number {
-    return (instance.view as TableView).getLastFullyVisibleRow() as number;
+    return readViewportIndex('getLastFullyVisibleRow');
   };
 
   /**
@@ -10629,10 +10676,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstFullyVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstFullyVisibleColumn = function(): number {
-    return (instance.view as TableView).getFirstFullyVisibleColumn() as number;
+    return readViewportIndex('getFirstFullyVisibleColumn');
   };
 
   /**
@@ -10642,10 +10689,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastFullyVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastFullyVisibleColumn = function(): number {
-    return (instance.view as TableView).getLastFullyVisibleColumn() as number;
+    return readViewportIndex('getLastFullyVisibleColumn');
   };
 
   /**
@@ -10655,10 +10702,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstPartiallyVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstPartiallyVisibleRow = function(): number {
-    return (instance.view as TableView).getFirstPartiallyVisibleRow() as number;
+    return readViewportIndex('getFirstPartiallyVisibleRow');
   };
 
   /**
@@ -10668,10 +10715,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastPartiallyVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastPartiallyVisibleRow = function(): number {
-    return (instance.view as TableView).getLastPartiallyVisibleRow() as number;
+    return readViewportIndex('getLastPartiallyVisibleRow');
   };
 
   /**
@@ -10681,10 +10728,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstPartiallyVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstPartiallyVisibleColumn = function(): number {
-    return (instance.view as TableView).getFirstPartiallyVisibleColumn() as number;
+    return readViewportIndex('getFirstPartiallyVisibleColumn');
   };
 
   /**
@@ -10694,10 +10741,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastPartiallyVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastPartiallyVisibleColumn = function(): number {
-    return (instance.view as TableView).getLastPartiallyVisibleColumn() as number;
+    return readViewportIndex('getLastPartiallyVisibleColumn');
   };
 
   /**
