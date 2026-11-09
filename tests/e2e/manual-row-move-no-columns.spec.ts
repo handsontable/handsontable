@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { ManualRowMoveNoColumnsPage } from '../fixtures/pages/ManualRowMoveNoColumnsPage';
 
 /**
@@ -7,7 +7,7 @@ import { ManualRowMoveNoColumnsPage } from '../fixtures/pages/ManualRowMoveNoCol
  * keep the full width of the table's hider and was drawn past the right edge of the grid, right of the
  * row headers, as a grey box.
  */
-test.describe('moving a row by its header while columns are hidden', { tag: THEMES_TAG }, () => {
+test.describe('moving a row by its header while columns are hidden', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: ManualRowMoveNoColumnsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
