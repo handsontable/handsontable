@@ -73,10 +73,20 @@ test.describe('A blank declared sheet without named columns under NestedRows', {
 
   test.beforeEach(async ({ page, theme, bundle }) => {
     grid = new NestedRowsSheetSwitchPage(page, theme, bundle, 'nested-rows-sheet-blank-keys');
-    await grid.goto();
   });
 
   test('takes its columns from the opening sheet\'s rows', async () => {
+    await grid.goto();
+    await grid.switchToSheet(1);
+
+    await expect.poll(() => grid.firstSourceRowKeys()).toEqual(['name']);
+    expect(await grid.countCols()).toBe(1);
+    expect(await grid.isPluginEnabled()).toBe(true);
+  });
+
+  test('takes its columns from the first sheet when activeSheet names no sheet', async () => {
+    await grid.gotoWithOutOfRangeActiveSheet();
+    await grid.sheetsBar.expectActiveTab(0);
     await grid.switchToSheet(1);
 
     await expect.poll(() => grid.firstSourceRowKeys()).toEqual(['name']);

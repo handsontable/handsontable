@@ -35,6 +35,8 @@
     A tree sheet and a sheet declared without data, with NestedRows on and neither `columns` nor
     `dataSchema` set and no top-level `data`. The blank sheet takes its columns from the keys of the
     opening sheet's rows, the way a sheet added with `addSheet()` takes them from the shown sheet.
+    `?activeSheet=out-of-range` opens on a position no sheet holds, so the grid falls back to the
+    first sheet; an unknown value throws, like `?theme=` and `?bundle=`.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -53,6 +55,13 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
+    const activeSheetParam = htParams.get('activeSheet');
+    const activeSheet = activeSheetParam === null ? undefined : ({ 'out-of-range': 9 })[activeSheetParam];
+
+    if (activeSheetParam !== null && activeSheet === undefined) {
+      throw new Error('Unknown ?activeSheet= value: ' + JSON.stringify(activeSheetParam));
+    }
+
     const hot = new Handsontable(container, {
       nestedRows: true,
       rowHeaders: true,
@@ -61,6 +70,7 @@
       width: 500,
       height: 360,
       sheetsBar: {
+        ...(activeSheet === undefined ? {} : { activeSheet }),
         sheets: [
           {
             name: 'Regions',

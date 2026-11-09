@@ -681,7 +681,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts` ("NestedRows on the whole grid").
   When neither `columns` nor `dataSchema` names the columns, each blank row gets the keys of the grid's
   first row with `null` values (no `__children`): core reads object rows' columns from the first row, so
-  empty objects gave the new sheet 0 columns and a "no columns" warning.
+  empty objects gave the new sheet 0 columns and a "no columns" warning. A sheet in `sheets` without
+  `data` gets the same rows when the workbook is built (`#buildSheetsWorkbook`), keyed by the opening
+  sheet's first row instead: the grid's own `data` is not that sheet's yet, so reading it gave the sheet
+  0 columns. The opening sheet is the `activeSheet` entry, or the first one when `activeSheet` names no
+  entry, the same fallback the switch uses. Pinned by `tests/e2e/nested-rows-sheet-switch.spec.ts`.
 - **A declared workbook wins the initial data load.** `#onBeforeLoadData` redirects the init
   load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
   init pass loads `data` after the plugin already applied its sheet, and without the redirect

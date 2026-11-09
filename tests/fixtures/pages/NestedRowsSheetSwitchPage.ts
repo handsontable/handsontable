@@ -52,6 +52,17 @@ export class NestedRowsSheetSwitchPage extends NestedRowsPage {
   }
 
   /**
+   * Opens the fixture with an `activeSheet` no sheet holds, so the grid opens on the first sheet.
+   */
+  async gotoWithOutOfRangeActiveSheet(): Promise<void> {
+    await this.page.goto(
+      `/tests/fixtures/demo/${this.fixture}.html?theme=${this.theme}&bundle=${this.bundle}&activeSheet=out-of-range`
+    );
+    await awaitBundle(this.page);
+    await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
    * The keys of the shown sheet's first source row, which the grid reads its columns from when
    * neither `columns` nor `dataSchema` is set.
    */

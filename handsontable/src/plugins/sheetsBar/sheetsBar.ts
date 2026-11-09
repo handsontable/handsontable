@@ -3611,7 +3611,8 @@ export class SheetsBar extends BasePlugin {
    * Builds a workbook from sheet entries: the host's `sheets` array (`declared`, so the bar writes into it),
    * or the tabs read from a formula engine. `activeIndex` is the opening sheet's position in the entries. An
    * entry without `data` starts with the rows `addSheet()` gives a new sheet (`#blankSheetData()`), keyed
-   * like the opening sheet's rows, the ones the grid shows first.
+   * like the opening sheet's rows, the ones the grid shows first (the first entry's when `activeIndex` names
+   * no entry, as the opening sheet falls back to it).
    *
    * @param {Array} entries The sheet entries.
    * @param {boolean} declared Whether the entries are the host's `sheets` array.
@@ -3623,7 +3624,7 @@ export class SheetsBar extends BasePlugin {
     this.#declaredEntries = new Map();
     this.#physicalOrder = [];
 
-    const openingRow = entries[activeIndex]?.data?.[0];
+    const openingRow = (entries[activeIndex] ?? entries[0])?.data?.[0];
 
     entries.forEach((entry) => {
       const data = entry.data ?? this.#blankSheetData(entry.settings, openingRow);
