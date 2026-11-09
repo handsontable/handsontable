@@ -116,6 +116,16 @@ They are written in different places and can drift. Keep this in mind:
   `ht_nestingLevel_empty` spacers come before it). Scope any new rule there the same way. Pinned by
   `tests/e2e/icon-elements.spec.ts` ("renderer markup inside the nested rows button gets no row-header
   label padding").
+- **The row header's label and button are aligned to the TOP, never centered.** The header's inner
+  `.relative` is a flex row with `align-items: flex-start`, and the button's top margin
+  (`(--ht-line-height - --ht-icon-button-hit-area-size) / 2`) centers the 24px button on the label's
+  first line. It was `align-items: center` until the exact row-height mode (DEV-2791) made a row with
+  an exact `rowHeights` height stretch the `.rowHeader` span to the whole row (`.htExactRow`, so a long
+  label clips instead of growing the row): the label's text moved to the top while the button stayed
+  in the middle, 30px and more apart. Top alignment matches the cells, which are top-aligned too, in
+  every row mode. Plain `flex-start` is not enough: the button's negative margins (meant for centering)
+  then lift it above the label, 3.5px on `classic`, out of the row. Pinned by
+  `tests/e2e/nested-rows-header-alignment.spec.ts` on every theme.
 - **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
   The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
   header's inner `div` is `HeadersUI#appendLevelIndicators()`, which runs from `afterGetRowHeader` —

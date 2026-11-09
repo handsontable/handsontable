@@ -4,10 +4,20 @@
   .handsontable {
     th {
       &.ht_nestingLevels {
+        // The label and the button start at the top of the row, like the cell text. Centered, they
+        // drifted apart in a row with an exact `rowHeights` height, where the label is stretched to the
+        // full row (`.htExactRow`) while the button stayed in the middle.
         > .relative {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           gap: 5px;
+        }
+
+        // The button is taller than a line of text, so it is centered on the label's first line.
+        > .relative > .ht_nestingButton {
+          // The fallbacks keep the declaration valid on a theme that does not define the tokens: an
+          // invalid `calc()` would drop it to 0 instead of the shared button margin.
+          margin-top: calc((var(--ht-line-height, 20px) - var(--ht-icon-button-hit-area-size, 24px)) / 2);
         }
 
         // Lines a leaf row's label up with the labels of rows that have a button. Direct children
