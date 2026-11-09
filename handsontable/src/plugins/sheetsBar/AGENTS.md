@@ -644,7 +644,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   another grid are left out** (`Formulas#getSheetNamesBoundElsewhere()`, which reads the engine registry and
   names every sheet a Handsontable instance other than this one is bound to, passed as `excludedNames`), so the bar
   never lists, edits, renames over, or removes another grid's sheet on a shared engine. An engine whose every
-  sheet belongs to other grids falls back to the plain `sheetsBar: true` build. **A grid-level `sheetName` that
+  sheet belongs to other grids falls back to the plain `sheetsBar: true` build. When the grid-level `sheetName`
+  names one of those sheets, that build still binds its one tab to it through the grid-level `formulas`, as the
+  grid does without the bar (two grids on one engine sheet is a Formulas misconfiguration the bar cannot undo), so
+  `#planEngineSheets` warns before it returns `null` instead of falling back silently. **A grid-level `sheetName` that
   names a sheet bound to another grid gets no tab, with `data` or without:** `planEngineWorkbook()` reports it as
   `boundElsewhereSheetName`, the first tab opens, and `#planEngineSheets` warns that the sheet is bound to another
   grid. Matched against the filtered names, it read as missing: with `data` the data tab was bound to the other

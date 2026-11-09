@@ -3504,6 +3504,11 @@ export class SheetsBar extends BasePlugin {
     });
 
     if (plan.entries.length === 0) {
+      if (plan.boundElsewhereSheetName !== null) {
+        warn(`The formula engine sheet "${plan.boundElsewhereSheetName}" is bound to another grid, and so is ` +
+          'every other engine sheet, so the sheets bar builds no tabs from the engine.');
+      }
+
       return null;
     }
 

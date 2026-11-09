@@ -381,6 +381,27 @@ describe('SheetsBar tabs from a formula engine', () => {
       expect(engine.getSheetNames()).toEqual(['Data', 'Rates', 'Report']);
     });
 
+    it('warns about a `sheetName` the other grid is bound to when every engine sheet belongs to it', () => {
+      const engine = buildEngine({
+        Rates: [[7]],
+      });
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      otherHot = new Handsontable(otherContainer, {
+        data: [[7]],
+        formulas: { engine, sheetName: 'Rates' },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+      hot = build({ formulas: { engine, sheetName: 'Rates' } });
+
+      const warnings = warnSpy.mock.calls.map(call => String(call[0])).filter(text => text.includes('Rates'));
+
+      expect(tabNames()).toHaveLength(1);
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('another grid');
+      expect(warnings[0]).toContain('builds no tabs from the engine');
+    });
+
     it('binds no tab to a `sheetName` the other grid is bound to, with data, so no removal reaches it', () => {
       const engine = buildEngine({
         Data: [[1, 2], [3, 4]],
