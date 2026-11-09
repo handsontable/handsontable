@@ -62,6 +62,15 @@ test.describe('clear_column through executeCommand()', () => {
         expect(await grid.data()).toEqual(SEED);
       });
 
+      test('clears the column in one undo step', async () => {
+        await grid.selectColumns(1);
+        await grid.executeCommand(plugin, 'clear_column');
+        expect(await grid.data()).toEqual(withClearedColumn(1));
+
+        await grid.undo();
+        expect(await grid.data()).toEqual(SEED);
+      });
+
       test('still honors a selection passed as the argument', async () => {
         // The selected column is 1, the argument names column 2: the argument wins, as it always did.
         await grid.selectColumns(1);
@@ -92,6 +101,7 @@ test.describe('DropdownMenu#executeCommand() with keys outside the defaults', ()
   });
 
   test('throws for clear_column on a context menu with the default items', async () => {
+    await grid.configure({ contextMenu: true });
     expect(await grid.executeCommand('contextMenu', 'clear_column')).toBe("Menu command 'clear_column' not exists.");
   });
 
@@ -112,8 +122,15 @@ test.describe('DropdownMenu#executeCommand() with keys outside the defaults', ()
     await grid.selectColumns(1);
 
     expect(await grid.executeCommand('dropdownMenu', 'col_right')).toBeNull();
+    expect(await grid.countCols()).toBe(4);
+
     expect(await grid.executeCommand('dropdownMenu', 'make_read_only')).toBeNull();
+    expect(await grid.cellMeta(0, 1, 'readOnly')).toBe(true);
+
     expect(await grid.executeCommand('dropdownMenu', 'alignment:center')).toBeNull();
+    expect(await grid.cellMeta(0, 1, 'className')).toContain('htCenter');
+
     expect(await grid.executeCommand('dropdownMenu', 'remove_col')).toBeNull();
+    expect(await grid.countCols()).toBe(3);
   });
 });

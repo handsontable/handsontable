@@ -35,10 +35,6 @@ tolerance to widen. `__tests__/helpers/helpers.js`'s `getDropdownMenuButtonIconO
 
 Pinned by `tests/e2e/menu-unresolved-key-warning.spec.ts` and `utils/menu/__tests__/itemsFactory.unit.js`.
 
-## `executeCommand()` passes no `selection`: a menu item reads the selection off the instance
-
-A menu click hands every item callback `(key, selection, event)`. `DropdownMenu#executeCommand(name, ...params)` (and `ContextMenu`'s) forwards only what the caller passes, so `selection` is `undefined` unless the caller supplies it. An item callback that reads `selection[0]` throws `Cannot read properties of undefined` on every programmatic call: `clear_column` did. A predefined item reads `this.getSelectedRange()` itself and treats the `selection` argument as an optional override (`utils/menu/predefinedItems/clearColumn.ts`). `executeCommand()` also runs the item's `disabled()` first, so a command that needs a column selection does nothing for a cell selection, and a key the menu did not register throws `Menu command '<key>' not exists.` The default dropdown items are `col_left`, `col_right`, `remove_col`, `clear_column`, `make_read_only` and `alignment`; `undo`, `redo` and the row items work only when the `dropdownMenu` setting lists them. Pinned by `tests/e2e/menu-execute-command.spec.ts`.
-
 ## Where to look next
 
 - Full ContextMenu vs Column Menu comparison: `handsontable/src/plugins/contextMenu/AGENTS.md`.

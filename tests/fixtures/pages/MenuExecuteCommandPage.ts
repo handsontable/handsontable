@@ -56,4 +56,21 @@ export class MenuExecuteCommandPage extends GridPage {
   async data(): Promise<unknown[][]> {
     return this.page.evaluate(() => (window as any).hot.getData());
   }
+
+  /** The number of columns the grid holds. */
+  async countCols(): Promise<number> {
+    return this.page.evaluate(() => (window as any).hot.countCols());
+  }
+
+  /** One property of a cell's meta. */
+  async cellMeta(row: number, col: number, key: string): Promise<unknown> {
+    return this.page.evaluate(([r, c, k]) => (window as any).hot.getCellMeta(r, c)[k as string], [row, col, key] as const);
+  }
+
+  /** Undoes the last change through the UndoRedo plugin. */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).hot.getPlugin('undoRedo').undo();
+    });
+  }
 }

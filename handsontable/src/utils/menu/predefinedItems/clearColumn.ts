@@ -42,11 +42,11 @@ export default function clearColumnItem() {
       const { col: startColumn, row: startRow } = range.start;
       const { col: endColumn, row: lastRow } = range.end;
 
-      if (startColumn === null || endColumn === null || startRow === null || lastRow === null) {
+      if (startColumn === null || endColumn === null) {
         return;
       }
 
-      const endRow = Math.max(startRow, lastRow);
+      const endRow = Math.max(startRow ?? 0, lastRow ?? 0);
       const clearVisibleRows = () => {
         if (this.countRows()) {
           this.populateFromArray(0, startColumn, [[null]], endRow, endColumn, SOURCE);
