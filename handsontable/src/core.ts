@@ -8290,6 +8290,12 @@ export default function Core(
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
+   * This method fires [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell). It doesn't fire
+   * [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange), so a custom
+   * `source` never reaches those two hooks. To pass a custom `source` to `afterChange`, use
+   * [`setDataAtCell()`](@/api/core.md#setdataatcell) or
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
+   *
    * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
    * editor shows the new value.
    *
@@ -8299,7 +8305,9 @@ export default function Core(
    * @param {number|string|Function} column Physical column index, prop name, or a `columns[].data`
    *   accessor function (called as `accessor(rowObject, value)`).
    * @param {*} value The value to be set at the provided coordinates.
-   * @param {string} [source] Source of the change as a string.
+   * @param {string} [source] Source of the change as a string. The method passes it to the
+   *   `afterSetSourceDataAtCell` hook.
+   * @fires Hooks#afterSetSourceDataAtCell
    */
 
   this.setSourceDataAtCell = function(
