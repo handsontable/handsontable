@@ -722,14 +722,49 @@ build also ends with a wrong value here, so this is pre-existing.
 
 A validator's rejection needs no guard **in the write-back**: `validateChanges()` splices a rejected change
 out of the very array `beforeChangeRender` receives, so the write-back never sees it. Keep the write-back
-reading that array, not a copy taken in `afterSetDataAtCell`. **That does not hold for the FIRST write.**
-`afterSetDataAtCell` writes the change into the engine before validation, and nothing puts the old value
-back when the validator rejects it: when every change of the set is rejected `beforeChangeRender` does not
-fire at all, and a partly rejected set is applied without the rejected cell. A formula reading that cell
-shows a wrong result until the next full resync (`allowInvalid: false` numeric column, `setDataAtCell(2, 0,
-'abc')`: the engine holds `'abc'`, the grid keeps the old number). Pre-existing on `develop`, deferred to a
-follow-up. The test `does not write a change the validator rejected back into the engine` calls
-`updateSettings({})`, which rebuilds the sheet from source data, so it does not cover this leak.
+reading that array, not a copy taken in `afterSetDataAtCell`. **The FIRST write is taken back by
+`#onChangesRejected`** (DEV-3760). `afterSetDataAtCell` writes a change into the engine before validation,
+and a rejected change never reaches the grid's data: when every change of the set was rejected
+`beforeChangeRender` does not fire at all, and a partly rejected set is applied without the rejected cell. A
+formula reading that cell showed a result computed from the rejected value until the next full resync (a
+`-7` typed into a validated column made `=C3*D3` read -105 instead of 465). The Core reports the rejected
+changes of an applied set through the `@private` `_addRejectedChangesListener()` (registered and removed
+next to the dropped-changes listener), before it writes the rest of the set, so its render paints the
+restore. A dropped set does not come here: `#onChangesDropped` restores all of it. The rules:
+
+- **The cells come from the record, matched by the change object** (`WrittenCell#change`): the Core hands
+  back the very change objects `afterSetDataAtCell` received, spliced out of the array, so neither an index
+  nor a fresh mapping is used.
+- **A cell is restored only while the engine still holds what this write left** (`writtenContent`): a newer
+  write to the cell, or a full sheet write from the source data (the resync path), reached it, and the
+  engine already holds what the grid will.
+- **The value put back is what the grid will hold once the waiting writes settle**, not the change's old
+  value: the newest write to the same engine cell still waiting for its validators (`_getWaitingChangeSets()`,
+  only changes still in their set's array), else the grid's stored value read with the source projection
+  suspended (`#readStoredValue()`; through `modifySourceData` it would read the engine's rejected value
+  back). The old value was wrong twice: an older write applied while this one validated (the grid holds 5,
+  the old value says 31), and an older write still waiting when this one is rejected first (the engine must
+  hold 5 for it to apply onto). Both escape like any engine-bound write (`#toEngineBoundValue()`, shared with
+  `#restoreSwitchedAwaySheet`). A cell on a sheet the grid no longer shows gets the old value.
+- **A rejected out-of-bounds change is taken out of `#outOfBoundsWrites`**: its row is never created, and
+  the deferred `afterChange` write warned `Not possible to set cell data at {"row":-1,â€¦}`.
+- **A fully rejected set takes its data version back** (`dataVersionBefore`/`dataVersionAfter` on the
+  record, only while nothing changed the data since): the first write drew a new `#dataVersion`, so
+  `captureState()` returned a new state and UndoRedo recorded an empty grid step for an edit that never
+  happened. Putting back an older version is safe here for the reason `restoreState()` does it: the engine
+  holds what that version described.
+- **One engine batch in `#writeOwnSheet()`**: this grid is painted by the Core's render right after, the
+  other grids that read a restored cell by the scope, and the recalculated dependents are validated. The
+  restore adds one entry to the engine's own undo stack, which no grid undo reads.
+
+Not covered: a row or column inserted or removed while the rejected change validated moves the recorded
+physical coordinates, so the grid value would be read from the wrong record; the `writtenContent` guard
+usually skips such a cell. Tests: `__tests__/rejectedWriteRestore.unit.js` (every edit path: single cell
+with an async and a sync validator, a multi-cell `setDataAtCell()`, paste, autofill, Ctrl+Enter, an
+`afterValidate` rejection, past the last row, a rejected formula's dependency graph, four overlap orders, a
+reading grid on another sheet, dependent validation, undo) and the Escape step of
+`tests/e2e/editor-validation-wait-own-cell.spec.ts`; the Core contract in
+`src/__tests__/core/validateChangesLoadData.unit.js`.
 
 The write-back adds one engine undo entry on top of the resync's own, which is what keeps a later grid undo
 of that change consistent: `engine.undo()` then reverts the write-back, not the resync. Without a resync the
@@ -742,7 +777,7 @@ writes the in-bounds changes and the out-of-bounds ones in two engine batches â€
 own undo stack for one grid action. A grid undo does not use that stack, so it restores the engine
 correctly; an app that calls `engine.undo()` directly reverts only the out-of-bounds half.
 
-Tests: `__tests__/validatedWriteResync.unit.js`.
+Tests: `__tests__/validatedWriteResync.unit.js` and `__tests__/rejectedWriteRestore.unit.js`.
 
 ## A `sheetName` change applied ahead of its data only binds (DEV-3040)
 
