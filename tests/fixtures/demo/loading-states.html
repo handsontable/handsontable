@@ -46,7 +46,9 @@
     params are that route's: `content=custom` (its own icon, title and description), `nodata=1` (a grid
     with no rows) and `dir=rtl` (an RTL grid with the ar-AR language pack loaded, as the demo does). The
     grid's rows are synthetic (four columns rather than the route's seven): the overlay covers the grid's
-    box whatever its cells hold.
+    box whatever its cells hold. `window.htShowLoading()` and `window.htHideLoading()` show and hide the
+    overlay from a top-level name, for a screen reader scenario's `call` step (the application starting and
+    ending a load while the user works in the grid).
   -->
   <input data-testid="input-before" placeholder="Input">
   <div data-testid="grid"></div>
@@ -95,6 +97,8 @@
       });
 
       window.hot.getPlugin('loading').show();
+      window.htShowLoading = () => window.hot.getPlugin('loading').show();
+      window.htHideLoading = () => window.hot.getPlugin('loading').hide();
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);
     }

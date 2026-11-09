@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "notification",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:57:59.177Z"
+  },
+  "steps": {
+    "toast-appears": "bottom end notification visual test action action close close",
+    "f6-into-toast": "bottom end and 4 more items alert action button",
+    "tab-second-action": "action button",
+    "tab-close": "close button",
+    "escape-to-grid": "company name company 0 table 5 columns",
+    "arrow-down-after-escape": "company name company 1",
+    "f6-again": "bottom end and 4 more items alert action button",
+    "tab-second-action-again": "action button",
+    "tab-close-again": "close button",
+    "enter-close": "bottom end and 4 more items alert action button"
+  }
+}

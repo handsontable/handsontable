@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "empty-data",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T13:52:51.468Z"
+  },
+  "steps": {
+    "tab-last-header": "qty column header sub menu row 1 column 8",
+    "tab-empty-message": "section",
+    "tab-out": "after the grid button",
+    "shift-tab-empty-message": "section",
+    "shift-tab-header": "table qty column header sub menu row 1 column 8",
+    "arrow-left-header": "in stock column header sub menu row 1 column 7"
+  }
+}

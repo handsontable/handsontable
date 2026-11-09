@@ -299,7 +299,7 @@ test.describe('empty cell values', () => {
     // Undoing a removed COLUMN is the same code path - `removeColumn.ts` restores through the same
     // `setSourceDataAtCell()` call with the same `UndoRedo.undo` source - so it is not repeated here.
     // It could not be staged from this fixture anyway: the grid declares `columns`, and Handsontable
-    // refuses to remove a column then ("cannot remove column with object data source or columns
-    // option specified").
+    // refuses to remove a column then (the `removeCol()` error in
+    // `dataMap.ts`).
   });
 });

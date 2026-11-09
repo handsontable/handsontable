@@ -57,11 +57,11 @@ test('dispatchSubset resolves a dispatch: the checks the A11y nightly runs, the 
   assert.deepEqual(dispatchSubset({ ref: BRANCH, projects: 'vo-webkit', groups: 'menus,keyboard' }),
     { checks: every, projects: ['vo-webkit'], groups: ['keyboard', 'menus'], subset: true });
   assert.throws(() => dispatchSubset({ ref: BRANCH, projects: 'vo-webkit, nvda-chromium' }), /projects names no project " nvda-chromium"/);
-  assert.throws(() => dispatchSubset({ ref: BRANCH, groups: 'keyboard,nope' }), /groups names no group "nope" \(comma-separated, no spaces\); the groups are keyboard, reading, menus, editors, selection, structure\./);
+  assert.throws(() => dispatchSubset({ ref: BRANCH, groups: 'keyboard,nope' }), /groups names no group "nope" \(comma-separated, no spaces\); the groups are keyboard, reading, menus, editors, selection, structure, status\./);
   assert.throws(() => dispatchSubset({ ref: BRANCH, checks: 'nope' }), /A11Y_CHECKS names no check "nope"/);
   assert.throws(() => dispatchSubset({ ref: BRANCH, suite: 'pr' }), /HOT_A11Y_CHECKS_SUITE must be one of/);
   assert.deepEqual(SCREENREADER_PROJECTS, ['nvda-chromium', 'nvda-firefox', 'vo-webkit', 'vo-chromium'], 'the lists the inputs are checked against');
-  assert.deepEqual(SCENARIO_GROUPS, ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure']);
+  assert.deepEqual(SCENARIO_GROUPS, ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure', 'status']);
 });
 
 test('a subset on develop is refused: the dispatch there is the audit, and the audit runs everything', () => {

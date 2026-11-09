@@ -540,10 +540,9 @@ class DataMap {
             { source, mode = 'start', fillsMinimumSize = false }:
             { source?: string; mode?: 'start' | 'end'; fillsMinimumSize?: boolean } = {}) {
     if (!this.hot!.isColumnModificationAllowed()) {
-      throwWithCause('Cannot create new column. When data source in an object, ' +
-        // eslint-disable-next-line max-len
-        'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
-        'If you want to be able to add new columns, you have to use array datasource.');
+      throwWithCause('Cannot create a new column when the data source holds objects or the "columns" option is set. ' +
+        'You can only have as many columns as defined in the first data row, the data schema, ' +
+        'or the "columns" setting. To add new columns, use an array data source without the "columns" option.');
     }
 
     const dataSource = this.dataSource ?? [];
@@ -812,7 +811,7 @@ class DataMap {
    */
   removeCol(index: number, amount = 1, source: string) {
     if (this.hot!.dataType === 'object' || this.tableMeta.columns) {
-      throwWithCause('cannot remove column with object data source or columns option specified');
+      throwWithCause('Cannot remove a column when the data source holds objects or the "columns" option is set.');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
 

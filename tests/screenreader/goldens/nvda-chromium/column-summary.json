@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "column-summary",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T14:07:15.875Z"
+  },
+  "steps": {
+    "arrow-down-data-row": "4 a row 5 column 2",
+    "arrow-down-summary-cell": "10 a row 6 column 2",
+    "enter-on-read-only-summary": "",
+    "arrow-right-editable-summary": "100 b row 6 a column 3",
+    "arrow-up-source-cell": "40 b row 5 a column 3",
+    "open-editor": "edit multi line 40",
+    "select-all": "40 selected",
+    "type-new-value": "50 unselected",
+    "commit-to-summary": "110 b row 6 a column 3"
+  }
+}

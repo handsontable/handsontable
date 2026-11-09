@@ -339,7 +339,7 @@ export function renderTranscriptLog(transcript) {
 }
 
 /**
- * One action, as text.
+ * One action, as text. A `call` reads as the call it makes (`call resolveRequest(0, "New A")`).
  *
  * @param {object} action The action.
  * @returns {string} The text.
@@ -350,6 +350,11 @@ export function describeAction(action) {
 
   if (value === true) {
     return name;
+  }
+  if (name === 'call') {
+    const [fn, ...args] = value;
+
+    return `call ${fn}(${args.map(arg => JSON.stringify(arg)).join(', ')})`;
   }
 
   return `${name} ${Array.isArray(value) ? `[${value.join(', ')}]` : String(value)}`;

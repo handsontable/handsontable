@@ -2135,7 +2135,7 @@ release run the full set. The CI mechanics are in `.ai/CI.md`; this section is t
   job expects those check runs only). `gh workflow run screenreader-nightly.yml --ref <branch>
   -f projects=<project>[,<project>] -f groups=<group>[,<group>]` runs the named reader projects
   (`nvda-chromium`, `nvda-firefox`, `vo-webkit`, `vo-chromium`) and scenario groups (`keyboard`,
-  `reading`, `menus`, `editors`, `selection`, `structure`): a lane job none of whose projects is named skips itself,
+  `reading`, `menus`, `editors`, `selection`, `structure`, `status`): a lane job none of whose projects is named skips itself,
   its matrix drops the other browser and the groups not named, the check runs keep their
   `Screen reader / <project> <group> report` names, and the `verdict` job expects the named lanes only.
   An entry is a whole name, comma-separated, no spaces: the lane matches it as `,<name>,`, which cannot
@@ -2196,9 +2196,10 @@ screen readers (`docs/AGENTS.md` 2.20).
   larger than its viewport),
   `sentinels` (`true`: a button named `Before the grid` before the root container and one named `After
   the grid` after it, so a Tab out of the grid lands on the page instead of leaving the document, as the
-  keyboard walker brackets a grid) and `focus` (a selector). A step has an `id`, exactly one primitive as
-  its `action`, its `expect` token groups, an optional `severity` per group (keyed by the group's first synonym; a group
-  without one is serious, "A11y: the verdict of a check run"), an optional `after` (`{ "visible": "<selector>" }` or
+  keyboard walker brackets a grid), `focus` (a selector) and `call` (a host event, below). A step has an
+  `id`, exactly one primitive as its `action`, its `expect` token groups, an optional `severity` per group
+  (keyed by the group's first synonym; a group without one is serious, "A11y: the verdict of a check
+  run"), an optional `after` (`{ "visible": "<selector>" }` or
   `{ "hidden": … }`, awaited inside the capture so the state's announcement is in it, and a red test when
   it never comes), an optional `unsupported` and a `note`. A **variant** (`variantOf`) is its base's steps
   on another theme, query or setup: it sets only `id`, `surface`, `query`, `setup`, `criteria` and `group`
@@ -2221,6 +2222,17 @@ screen readers (`docs/AGENTS.md` 2.20).
   log, never inside `screenReader.capture()`, whose action holds Guidepup's queue (a nested command waits
   for itself forever). The iOS and TalkBack readers will drive the same field (`moveForward`, next item,
   double tap) when their lanes exist; the scenarios do not change for them.
+- **`call` is a host event, for a status message no key causes.** `["name", ...args]` calls a function
+  the fixture puts on `window` (`["resolveRequest", 0, "New A"]`: the server answers a pending request),
+  because a status message (WCAG 4.1.3) often follows something the user did not do, such as a fetch
+  that lands or a value that resolves, and no key reaches it. It is a page action like `press`: every
+  lane drives it, NVDA in focus mode, and the reader's phrase around it is captured. The name is an
+  identifier (`CALL_NAME_PATTERN`), never a path such as `htServer.release`, so a scenario calls only what
+  the fixture exposes for it (a fixture adds a top-level wrapper when the function sits on an object). The
+  arguments are JSON values, and a function the page lacks fails the test instead of passing as a silent
+  step. It runs in the setup (start a request before the reader settles) and in a step, whose note says
+  which host event it stands for. The step's token groups are what a reader should announce for the change,
+  so silence after it is a finding, not a pass by default.
 - **A primitive a lane cannot drive is declared, never skipped silently.** NVDA has no interaction level:
   browse mode reads into a table without entering it, so `read in` and `read out` mean nothing to it. A
   step whose primitive a lane cannot drive carries `unsupported: { "<lane>": "<reason>" }` (`nvda`,
@@ -2408,12 +2420,14 @@ screen readers (`docs/AGENTS.md` 2.20).
 - **A project's scenarios split into groups that each fit the run step.** Guidepup runs one scenario
   at a time per machine, so a project's run grows with every scenario: a step costs about a second and a
   half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
-  scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
-  keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the menus
-  and the filters inside them, `editors` for the cell editors and the checkbox cell, `selection` for row
-  selection and the check all header, `structure` for nested and collapsible headers, merged cells and
-  the freeze bars), each group is a matrix entry of both jobs in `.github/workflows/screenreader.yml`
-  with its own job, `HOT_SR_GROUP`,
+  scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what
+  a keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the
+  menus and the filters inside them, the comment editor, the column summary row and the links autoLink
+  draws, `editors` for the cell editors and the checkbox cell, `selection` for row selection and the
+  check all header, `structure` for nested and collapsible headers, merged cells and the freeze bars,
+  `status` for the status messages and the bars around the grid: pagination, the sheets bar, a dialog, a
+  notification, the loading and empty data overlays, and a value that resolves later), each group is a
+  matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
   runs every group. When a group's budgets plus one retry of its largest no longer fit the 40-minute run

@@ -24,9 +24,12 @@ export const SCREENREADER_PROJECTS = ['nvda-chromium', 'nvda-firefox', 'vo-webki
  * (`scenarioBudgetMs()` of `screenreader-scenario.mjs`, summed per group by the workflow test), each a
  * matrix entry of the workflow with its own job, check run and artifacts. `keyboard`: what a keyboard
  * user does in the grid itself. `reading`: the reading-mode traversals, minutes each on VoiceOver.
- * `menus`: the menus and the filters inside them. `editors`: the cell editors and the checkbox cell.
- * `selection`: row selection and the check all header. `structure`: nested and collapsible headers,
- * merged cells and the freeze bars. A new group joins this list, the workflow's matrix and its
- * `exclude` together; the workflow test keeps them equal.
+ * `menus`: the menus and the filters inside them, the comment editor, the column summary row and the
+ * links autoLink draws. `editors`: the cell editors and the checkbox cell. `selection`: row selection
+ * and the check all header. `structure`: nested and collapsible headers, merged cells and the freeze
+ * bars. `status`: the status messages and the bars around the grid (pagination, the sheets bar, a
+ * dialog, a notification, the loading and empty data overlays, a value that resolves later). A new
+ * group joins this list, the workflow's matrix and its `exclude` together; the workflow test keeps
+ * them equal.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure'];
+export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure', 'status'];
