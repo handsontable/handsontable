@@ -345,6 +345,9 @@ export interface HotInstance {
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
   _addSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
   _removeSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
+  _requirePlugin(pluginKey: string, requirer: object): void;
+  _releasePlugin(pluginKey: string, requirer: object): void;
+  _isPluginRequired(pluginKey: string): boolean;
   _getWaitingChangeSets(): Array<{ changes: CellChange[], source: string | undefined }>;
   _addDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void

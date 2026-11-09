@@ -5,7 +5,7 @@ The `loading` plugin shows a spinner over the grid. Read this before touching `l
 It is the smallest plugin here (~340 lines) because **it owns no DOM of its own**: it drives the Dialog
 plugin.
 
-## It force-enables the Dialog plugin
+## It requires the Dialog plugin
 
 **Dialog must be registered, and `new Handsontable()` throws without it (since 19.0).** `PLUGIN_DEPS` names
 `plugin:Dialog` (`feature.json`, `enforceAtInit`; generated into `feature.generated.ts`). Before 19.0 a modular
@@ -13,21 +13,50 @@ build that registered Loading alone got a working grid where `show()` showed not
 because every method below returns early without a dialog. This was a breaking change, with a step in the
 18.1 → 19.0 migration guide. Pinned by `__tests__/pluginDependencies.unit.ts`.
 
-`enablePlugin()` resolves `getPlugin('dialog')` and, if that plugin is not enabled, sets
-`getSettings().dialog = true` directly. Four things follow:
+Loading needs Dialog running, so it **requires** it through core's plugin requirement registry (see "A plugin
+that needs another plugin running" in `../base/AGENTS.md`). It never writes the `dialog` setting. The earlier
+`getSettings().dialog = true` write landed on the table meta and shadowed the global meta `updateSettings()`
+writes to, so `{ loading: false }` and then `{ dialog: false }` left Dialog enabled with `getSettings().dialog`
+still `true`, and a sheets bar switch from a `loading` sheet to a plain one left a hidden `.ht-dialog` behind.
 
-- **This is the exception to "no direct cross-plugin coupling"**, and it is deliberate. Everything visible —
-  `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog, while the dialog is this plugin's
-  (see "Loading owns the dialog" below). `show()`, `hide()` and `update()` re-check
-  `this.#dialogPlugin?.enabled` (Dialog runs) before acting; keep those checks as guards, but do not read them as
-  "the user can turn Dialog off". Only `enablePlugin()` reads `isEnabled()`, the option, to switch it on: Dialog
-  may not have started yet there. It is the one allowlisted read in `test/__tests__/crossPluginIsEnabled.unit.js`.
-- **Dialog stays on, by design.** The direct settings write is never undone: after `loading: false` the
-  Dialog plugin is still enabled and `getSettings().dialog` is still `true`. And while `loading` is on,
-  `updateSettings({ dialog: false })` does not turn Dialog off either (measured: the plugin stays enabled
-  and `show()` still shows the overlay). Loading is built on Dialog, so this is the intended state; the
-  class JSDoc says so for users. Do not "fix" it by restoring the previous `dialog` value on disable: an
-  application may have opened its own dialog in the meantime.
+- **`enablePlugin()`** resolves the dialog reference, then on every enable calls
+  `hot._requirePlugin('dialog', this)` and, if Dialog is not running (`enabled`), calls its `enablePlugin()`
+  directly, the Filters → DropdownMenu pattern. The call goes through the lifecycle wrapper, so the license gate
+  applies (Loading's `LICENSE.implies` grants `feat:dialog`).
+- **`disablePlugin()`** hides the screen, then calls `hot._releasePlugin('dialog', this)` and, when Dialog runs
+  and its `isEnabled()` now answers `false` (no `dialog` option, no other requirer), calls its `disablePlugin()`.
+  That `isEnabled()` read is the one allowlisted line in `test/__tests__/crossPluginIsEnabled.unit.js`. A double
+  disable is harmless: the `enabled` check skips the second Dialog disable, and the release is a no-op.
+- **Inside a settings pass the order does the work.** Loading (priority 350) runs before Dialog (360). On
+  `{ loading: false }` Loading releases and turns Dialog off itself; Dialog's own `onUpdateSettings` then finds it
+  off and `isEnabled()` false. On `{ dialog: false }` while Loading is on, Dialog's `isEnabled()` still answers
+  `true`, so branch 1 does not turn it off. Outside a pass (`getPlugin('loading').disablePlugin()` or
+  `enablePlugin()` called directly) the direct Dialog calls above are what keep the two in step.
+- `show()`, `hide()` and `update()` re-check `this.#dialogPlugin?.enabled` (Dialog runs) before acting; keep
+  those checks as guards.
+
+The contract, each case pinned by `__tests__/dialogRequirement.unit.js` (and the sheets bar case by
+`../sheetsBar/__tests__/loadingDialogRequirement.unit.js`): Dialog is enabled iff the `dialog` option is truthy or
+an enabled plugin requires it.
+
+1. `{ loading: true }` → `{ loading: false }` → `{ dialog: false }`: Dialog off, `getSettings().dialog` `false`, no
+   `.ht-dialog` in the DOM.
+2. `{ loading: true }` → `{ loading: false }`: Dialog off, no `.ht-dialog`.
+3. `{ dialog: true, loading: true }` → `{ loading: false }`: Dialog stays on.
+4. `{ loading: true }` → `{ dialog: false }`: Dialog stays on, `getSettings().dialog` is `false`, and `show()`
+   still shows the screen.
+5. `{ loading: true }`: `getSettings().dialog` stays `false`; Dialog is enabled.
+6. `{ loading: true }` → `{ dialog: true }` → `{ loading: false }`: Dialog stays on.
+7. `{ loading: true, dialog: false }` at construction: Dialog on, the screen works.
+8. Direct `disablePlugin()` / `enablePlugin()` on Loading turn Dialog off and on; an unrelated `updateSettings()`
+   afterwards changes neither.
+9. The same `loading` value sent twice (a wrapper re-render) keeps both states and throws nothing.
+
+Do not restore a `dialog` value on disable: an application may have opened its own dialog in the meantime, and
+the requirement registry already gives the `dialog` option back its meaning.
+
+More rules about the enable and the update:
+
 - **The dialog reference is resolved once**, guarded on `#dialogPlugin === null`, and it outlives a
   disable. **The `afterDialogFocus` hook is not**: it is registered with the tracked `this.addHook(...)` on
   every `enablePlugin()`, outside that guard, so `disablePlugin()` drops it and the next enable puts it

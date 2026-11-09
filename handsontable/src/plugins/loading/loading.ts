@@ -12,6 +12,8 @@ import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 interface DialogPlugin {
   enabled: boolean;
   isEnabled(): boolean;
+  enablePlugin(): void;
+  disablePlugin(): void;
   isVisible(): boolean;
   hide(): void;
   focus(): void;
@@ -60,9 +62,9 @@ export { LOADING_CLASS_NAME };
  *
  * In order to enable the loading mechanism, {@link Options#loading} option must be set to `true`.
  *
- * The loading overlay is a dialog, so enabling this plugin also enables the Dialog plugin
- * ({@link Options#dialog}). The Dialog plugin stays enabled after you turn `loading` off, and while
- * `loading` is on, setting `dialog: false` does not turn the Dialog plugin off.
+ * The loading overlay is a dialog, so enabling this plugin also turns the Dialog plugin on, without
+ * changing the {@link Options#dialog} option. The Dialog plugin stays on while `loading` is on or the
+ * `dialog` option is set, and turns off when neither holds.
  *
  * If you register modules one by one, register the Dialog plugin too: `new Handsontable()` throws an error
  * when the Loading plugin is registered without it.
@@ -258,10 +260,12 @@ export class Loading extends BasePlugin {
 
     if (this.#dialogPlugin === null) {
       this.#dialogPlugin = this.hot.getPlugin('dialog') as DialogPlugin;
+    }
 
-      if (!this.#dialogPlugin?.isEnabled()) {
-        this.hot.getSettings().dialog = true;
-      }
+    this.hot._requirePlugin('dialog', this);
+
+    if (this.#dialogPlugin && !this.#dialogPlugin.enabled) {
+      this.#dialogPlugin.enablePlugin();
     }
 
     // Registered on every enable, not only on the first: disabling the plugin removes its hooks
@@ -289,11 +293,17 @@ export class Loading extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disable plugin for this Handsontable instance. The plugin stops requiring the Dialog plugin, and the
+   * Dialog plugin turns off too unless the `dialog` option keeps it on.
    */
   disablePlugin() {
     this.hide();
     this.#dialogPlugin?._removeReplacedListener(this.#onDialogReplaced);
+    this.hot?._releasePlugin('dialog', this);
+
+    if (this.#dialogPlugin?.enabled && !this.#dialogPlugin.isEnabled()) {
+      this.#dialogPlugin.disablePlugin();
+    }
 
     super.disablePlugin();
   }

@@ -553,6 +553,11 @@ export default function Core(
   const filterSettings = (settings: SettingsUpdate) => settingsFilters
     .reduce((payload, filter) => filter(payload), settings);
   /**
+   * The plugins other plugins need running, keyed by plugin key, each with the objects that require it
+   * (see `_requirePlugin()`).
+   */
+  const pluginRequirements = new Map<string, Set<object>>();
+  /**
    * The functions told about a change set that waited for its validators while `loadData()` replaced the
    * data, and that is therefore never applied (see `_addDroppedChangesListener()`).
    */
@@ -6311,6 +6316,59 @@ export default function Core(
   };
 
   /**
+   * Marks a plugin as needed by another object, usually another plugin, so the required plugin's
+   * `isEnabled()` answers `true` while its own option is off. Requiring a plugin twice by the same object
+   * changes nothing. The caller still enables the required plugin itself when it is not running.
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that needs the plugin running.
+   */
+  this._requirePlugin = function(pluginKey: string, requirer: object) {
+    let requirers = pluginRequirements.get(pluginKey);
+
+    if (!requirers) {
+      requirers = new Set();
+      pluginRequirements.set(pluginKey, requirers);
+    }
+
+    requirers.add(requirer);
+  };
+
+  /**
+   * Drops the requirement `_requirePlugin()` recorded for a plugin. Releasing a requirement that was not
+   * recorded changes nothing. The plugin stays required while another object still requires it.
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that no longer needs the plugin running.
+   */
+  this._releasePlugin = function(pluginKey: string, requirer: object) {
+    const requirers = pluginRequirements.get(pluginKey);
+
+    if (!requirers) {
+      return;
+    }
+
+    requirers.delete(requirer);
+
+    if (requirers.size === 0) {
+      pluginRequirements.delete(pluginKey);
+    }
+  };
+
+  /**
+   * Checks whether any object requires the plugin through `_requirePlugin()`.
+   *
+   * @private
+   * @param {string} pluginKey The key of the plugin, as in its `PLUGIN_KEY`.
+   * @returns {boolean}
+   */
+  this._isPluginRequired = function(pluginKey: string): boolean {
+    return pluginRequirements.has(pluginKey);
+  };
+
+  /**
    * Removes a function `_addSettingsFilter()` added. Removing one that is not there changes nothing.
    *
    * @private
@@ -6560,8 +6618,8 @@ export default function Core(
     // That creates an own property which shadows the global value written above, so a later
     // `updateSettings()` would be ignored. Drop the shadow when the value really changes. A wrapper
     // re-sends every prop on each commit, and an unchanged value must not undo the state kept there.
-    // Only the frozen counts are handled: other own table-meta values (the Loading plugin's `dialog`,
-    // the theme options) are shadows kept on purpose.
+    // Only the frozen counts are handled: other own table-meta values (the theme options) are shadows
+    // kept on purpose.
     if (FROZEN_COUNT_OPTIONS.has(key) && settings[key] !== previousValue) {
       Reflect.deleteProperty(tableMeta, key);
 
