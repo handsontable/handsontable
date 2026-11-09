@@ -64,6 +64,8 @@ border trade that no longer happens, and with headers on it now moves the guidel
 
 There are also clamps for the backlight below the table and the guideline below the table.
 
+**A zero size is a size.** `ui/_base.ts` `setSize()` writes `0` through `isNumeric()`, like `../manualColumnMove/ui/_base.ts`. The backlight is sized `hider.offsetWidth - leftPos`, and with no rendered column (every column hidden) that is `0`. A truthiness check skipped it, so the CSS `width: 100%` stayed and a box as wide as the row headers was drawn right of the grid. With no columns the backlight is therefore zero wide; the guideline stays, because the rows can still be moved by their headers. Pinned by `__tests__/ui/_base.unit.ts` and `tests/e2e/manual-row-move-no-columns.spec.ts`.
+
 `isFixedRowTop(row)` and `isFixedRowBottom(row)` exist because a row inside `fixedRowsTop` or
 `fixedRowsBottom` behaves differently as a drop target. Both are checked — a fix aimed at only the top
 band misses the bottom one.
