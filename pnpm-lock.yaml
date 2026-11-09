@@ -858,6 +858,9 @@ importers:
       handsontable:
         specifier: workspace:^
         version: link:../../handsontable/tmp
+      hyperformula:
+        specifier: ^3.0.0
+        version: 3.5.0
       jest:
         specifier: ^30.5.2
         version: 30.5.2(@types/node@20.19.42)
@@ -1072,6 +1075,9 @@ importers:
       handsontable:
         specifier: workspace:^
         version: link:../../handsontable/tmp
+      hyperformula:
+        specifier: ^3.0.0
+        version: 3.5.0
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.19.42)

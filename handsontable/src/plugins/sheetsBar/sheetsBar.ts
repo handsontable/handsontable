@@ -62,6 +62,12 @@ import {
 } from './formulaSheetData';
 import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
 import { remapOwnSheetReferences } from './formulaReferences';
+import {
+  freeNumberedSheetName,
+  isSameSheetName,
+  planEngineWorkbook,
+  type EngineSheetsSource,
+} from './engineSheets';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement, removeAttribute, setAttribute } from '../../helpers/dom/element';
 import { A11Y_LABELED_BY } from '../../helpers/a11y';
@@ -77,6 +83,7 @@ import type {
   DataProviderRequestKind,
 } from '../dataProvider/dataProvider';
 import type { FormulasEngineSheetOrder } from '../formulas/formulas';
+import type { HyperFormulaEngine } from '../formulas/engine/types';
 import { listEngineElements } from '../formulas/indexSyncer/engineElements';
 import { LICENSE } from './feature.generated';
 
@@ -595,15 +602,6 @@ function isOtherEngineSheet(engine: NonNullable<SheetFormulas['engine']>, oldNam
 }
 
 /**
- * Whether two sheet names name one sheet to the engine, which compares them without regard to case
- * through a plain `toLowerCase()`. A locale-aware lower case follows the host: on a Turkish host `ITEMS`
- * becomes `ıtems`, so a rename of the engine sheet `items` left `=ITEMS!A1` behind in the host's data.
- */
-function isSameSheetName(first: string, second: string): boolean {
-  return first.toLowerCase() === second.toLowerCase();
-}
-
-/**
  * Returns a name the engine has no sheet under yet, counting up from the requested one. A
  * brand-new binding — a runtime-added sheet, a duplicate — must never adopt an engine sheet
  * that already exists: a `sheetName` is allowed to differ from its tab's name, so a free tab
@@ -615,15 +613,7 @@ function freeEngineName(
   requested: string,
   isTaken: (name: string) => boolean = name => engine.doesSheetExist!(name),
 ): string {
-  let candidate = requested;
-  let counter = 2;
-
-  while (isTaken(candidate)) {
-    candidate = `${requested} (${counter})`;
-    counter += 1;
-  }
-
-  return candidate;
+  return freeNumberedSheetName(requested, isTaken);
 }
 
 /**
@@ -1101,6 +1091,22 @@ export class SheetsBar extends BasePlugin {
    */
   #topLevelDataOwnerId: number | null = null;
   /**
+   * The engine sheet the top-level `data` belonged to when a `sheetsBar: false` teardown left a workbook read
+   * from an engine, with that engine. The next live enable on the same engine binds its data tab to that sheet
+   * again, while it opens the sheet the grid shows. Taken by the next build, whatever it builds, and dropped on
+   * destroy.
+   *
+   * @type {object|null}
+   */
+  #detachedDataSheet: { engine: unknown, sheetName: string } | null = null;
+  /**
+   * Whether the workbook gave the top-level `data` no tab, because the grid-level `formulas.sheetName` names an
+   * engine sheet another grid is bound to. The build warned about it, so a later `data` is ignored silently.
+   *
+   * @type {boolean}
+   */
+  #topLevelDataIgnored = false;
+  /**
    * The top-level `data` arrays already reported as not applied (`REMOVED_DATA_OWNER_WARNING`), so a wrapper
    * sending the same array on every render warns once.
    *
@@ -1293,14 +1299,12 @@ export class SheetsBar extends BasePlugin {
         this.#gridCellOption = this.hot.getSettings().cell;
 
         const topLevelData = this.hot.getSettings().data;
+        const dataOwnerId = this.#buildInitialWorkbook();
 
-        this.#buildInitialWorkbook();
         this.#receivedTopLevelData = this.#declaredEntries.size === 0 && Array.isArray(topLevelData)
           ? topLevelData
           : null;
-        this.#topLevelDataOwnerId = this.#declaredEntries.size === 0
-          ? (this.#model.getSheets()[0]?.id ?? null)
-          : null;
+        this.#topLevelDataOwnerId = this.#declaredEntries.size === 0 ? dataOwnerId : null;
       } catch (error) {
         this.hot._removeSettingsFilter(this.#filterGridSettings);
         throw error;
@@ -1883,6 +1887,7 @@ export class SheetsBar extends BasePlugin {
       const activeSheet = this.#activeSheetRecord();
       const keptImportedKeys = isTeardown && activeSheet ? this.#importedKeys.get(activeSheet) : undefined;
 
+      this.#detachedDataSheet = isTeardown ? this.#dataOwnerEngineSheet() : null;
       this.#model = null;
       this.#forgetTopLevelData();
       this.#releaseDataProviderContexts(discardedSheets);
@@ -2271,7 +2276,25 @@ export class SheetsBar extends BasePlugin {
     this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#releaseState();
     this.#forgetTopLevelData();
+    this.#detachedDataSheet = null;
     super.destroy();
+  }
+
+  /**
+   * Returns the engine sheet the top-level `data` belongs to, with its engine: the `formulas` binding of the
+   * `#topLevelDataOwnerId` sheet, or `null` when that sheet is gone or not bound to an engine instance.
+   *
+   * @returns {object|null}
+   */
+  #dataOwnerEngineSheet(): { engine: unknown, sheetName: string } | null {
+    const owner = this.#topLevelDataOwnerId === null ? null : this.#model?.getSheetById(this.#topLevelDataOwnerId);
+    const formulas = owner ? formulasSettingOf(owner) : null;
+
+    if (formulas === null || !isEngineInstance(formulas.engine) || typeof formulas.sheetName !== 'string') {
+      return null;
+    }
+
+    return { engine: formulas.engine, sheetName: formulas.sheetName };
   }
 
   /**
@@ -2282,6 +2305,7 @@ export class SheetsBar extends BasePlugin {
   #forgetTopLevelData() {
     this.#receivedTopLevelData = null;
     this.#topLevelDataOwnerId = null;
+    this.#topLevelDataIgnored = false;
     this.#unappliedTopLevelData = new WeakSet<unknown[]>();
   }
 
@@ -3386,80 +3410,280 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Builds the initial workbook from the `sheets` setting, or wraps the grid's
-   * current data as `Sheet1` when the setting is omitted.
+   * Builds the initial workbook from the `sheets` setting; without one, from the sheets of the grid-level
+   * formula engine instance (`#planEngineSheets`), or else wraps the grid's current data as `Sheet1`.
+   * Returns the id of the sheet the top-level `data` belongs to: the opening sheet, unless an engine
+   * workbook names another data tab or gives the data no tab (`null`, `#topLevelDataIgnored`).
+   *
+   * @returns {number|null}
    */
-  #buildInitialWorkbook() {
-    const model = this.#model as SheetModel;
-    const sheetsSetting = this.getSetting('sheets') as
-      Array<{ name?: string, data?: unknown[], settings?: Record<string, unknown> }> | null;
+  #buildInitialWorkbook(): number | null {
+    const sheetsSetting = this.getSetting('sheets') as SheetsBarSheetConfig[] | null;
+    const detachedDataSheet = this.#detachedDataSheet;
+
+    this.#detachedDataSheet = null;
 
     if (Array.isArray(sheetsSetting) && sheetsSetting.length > 0) {
-      this.#declaredEntries = new Map();
+      this.#buildSheetsWorkbook(sheetsSetting, true, this.getSetting<number>('activeSheet') ?? 0);
 
-      this.#physicalOrder = [];
+      return null;
+    }
 
-      sheetsSetting.forEach((entry) => {
-        const sheet = model.addSheet(entry.name ?? null, entry.data ?? undefined, entry.settings);
+    const enginePlan = this.#planEngineSheets(detachedDataSheet);
 
+    if (enginePlan !== null) {
+      this.#buildSheetsWorkbook(enginePlan.entries, false, enginePlan.openingIndex);
+      this.#topLevelDataIgnored = enginePlan.ignoresData;
+
+      if (enginePlan.ignoresData) {
+        return null;
+      }
+
+      return enginePlan.dataIndex === null
+        ? ((this.#model as SheetModel).getActiveSheet()?.id ?? null)
+        : (this.#physicalOrder[enginePlan.dataIndex] ?? null);
+    }
+
+    const model = this.#model as SheetModel;
+    const settings = this.#withBaselineFor(undefined);
+
+    if (settings) {
+      this.hot.updateSettings(settings);
+    }
+
+    this.#loadedSheetId = model.addSheet(null, this.#getLiveSourceData()).id;
+    this.#physicalOrder = [this.#loadedSheetId];
+
+    return this.#loadedSheetId;
+  }
+
+  /**
+   * Returns the tabs of a workbook built from the grid-level `formulas.engine` (`planEngineWorkbook()`) and
+   * the position of the opening one, or `null` when that is not an engine instance holding a sheet this grid
+   * may list. Read once, when the workbook is built, so engine sheets added, removed, or renamed outside the
+   * grid later are not followed. A `sheetName` the engine lacks, with no grid `data`, is reported, and no
+   * engine sheet is made for it. Engine sheets other grids are bound to are left out, and a `sheetName` that
+   * names one is reported. `dataIndex` is the position of the data tab when it is not the opening one (see
+   * `#detachedDataTab`), else `null`. `ignoresData` tells that the grid's `data` gets no tab, because its
+   * `sheetName` is bound to another grid.
+   *
+   * @param {object|null} detachedDataSheet The engine sheet a `sheetsBar: false` teardown left the data in.
+   * @returns {object|null}
+   */
+  #planEngineSheets(detachedDataSheet: { engine: unknown, sheetName: string } | null): {
+    entries: SheetsBarSheetConfig[], openingIndex: number, dataIndex: number | null, ignoresData: boolean,
+  } | null {
+    const { formulas, data } = this.hot.getSettings();
+
+    if (!isPlainObject(formulas) || !isEngineInstance((formulas as SheetFormulas).engine)) {
+      return null;
+    }
+
+    const engine = (formulas as SheetFormulas).engine as unknown as EngineSheetsSource;
+
+    if (typeof engine.getSheetNames !== 'function' || engine.getSheetNames().length === 0) {
+      return null;
+    }
+
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const excludedNames = formulasPlugin?.getSheetNamesBoundElsewhere(engine as unknown as HyperFormulaEngine) ?? [];
+    const boundFormulas = this.#withBoundSheetName(formulas as Record<string, unknown>);
+    const detachedTab = this.#detachedDataTab(
+      detachedDataSheet,
+      formulas as Record<string, unknown>,
+      boundFormulas,
+      excludedNames,
+    );
+    const plan = planEngineWorkbook({
+      engine,
+      formulas: boundFormulas,
+      data: detachedTab === null ? data : undefined,
+      activeSheet: this.getSetting('activeSheet'),
+      defaultName: (this.#model as SheetModel).peekDefaultName(),
+      excludedNames,
+    });
+
+    if (plan.entries.length === 0) {
+      if (plan.boundElsewhereSheetName !== null) {
+        warn(`The formula engine sheet "${plan.boundElsewhereSheetName}" is bound to another grid, and so is ` +
+          'every other engine sheet, so the sheets bar builds no tabs from the engine.');
+      }
+
+      return null;
+    }
+
+    plan.entries.forEach(({ name }) => {
+      const tabName = clampSheetName(name);
+
+      if (tabName !== name) {
+        warn(`The formula engine sheet "${name}" is named "${tabName}" in the sheets bar. Formulas still ` +
+          'reference the engine name, and renaming the tab does not rename the engine sheet.');
+      }
+    });
+
+    if (plan.missingSheetName !== null) {
+      warn(`The formula engine has no sheet named "${plan.missingSheetName}", so the sheets bar opens its ` +
+        'first sheet instead.');
+    }
+
+    const ignoresData = plan.boundElsewhereSheetName !== null && Array.isArray(data) && detachedTab === null;
+
+    if (plan.boundElsewhereSheetName !== null) {
+      warn(`The formula engine sheet "${plan.boundElsewhereSheetName}" is bound to another grid, so the sheets ` +
+        `bar does not list it and opens its first sheet instead${ignoresData
+          ? '. The grid\'s `data` gets no tab, and a later `data` is not applied.'
+          : '.'}`);
+    }
+
+    const dataIndex = detachedTab === null
+      ? -1
+      : plan.entries.findIndex(entry => isSameSheetName(entry.name, detachedTab));
+
+    return {
+      entries: plan.entries.map(entry => ({
+        ...entry,
+        data: entry.data ?? this.#blankSheetData(entry.settings),
+      })),
+      openingIndex: plan.openingIndex,
+      dataIndex: dataIndex === -1 ? null : dataIndex,
+      ignoresData,
+    };
+  }
+
+  /**
+   * Returns the engine sheet the data tab binds to on a live enable after a `sheetsBar: false` teardown, or
+   * `null` to plan the data tab as usual. It is the sheet the teardown left the top-level `data` in
+   * (`#detachedDataSheet`), when it is in the same engine and the grid shows another sheet: that sheet opens
+   * in place with the engine's content, and nothing writes the grid's `data` into it. A grid-level
+   * `sheetName`, or a sheet now bound to another grid, keeps the usual plan.
+   *
+   * @param {object|null} detachedDataSheet The engine sheet a teardown left the data in.
+   * @param {object} formulas The grid-level `formulas` setting.
+   * @param {object} boundFormulas The same, with the `sheetName` the Formulas plugin is bound to.
+   * @param {string[]} excludedNames The engine sheets other grids are bound to.
+   * @returns {string|null}
+   */
+  #detachedDataTab(
+    detachedDataSheet: { engine: unknown, sheetName: string } | null,
+    formulas: Record<string, unknown>,
+    boundFormulas: Record<string, unknown>,
+    excludedNames: string[],
+  ): string | null {
+    if (
+      detachedDataSheet === null || detachedDataSheet.engine !== formulas.engine || boundFormulas === formulas
+      || isSameSheetName(boundFormulas.sheetName as string, detachedDataSheet.sheetName)
+    ) {
+      return null;
+    }
+
+    const { sheetName } = detachedDataSheet;
+    const engine = formulas.engine as unknown as EngineSheetsSource;
+    const isAvailable = typeof engine.getSheetId(sheetName) === 'number'
+      && !excludedNames.some(excluded => isSameSheetName(excluded, sheetName));
+
+    return isAvailable ? sheetName : null;
+  }
+
+  /**
+   * Returns the grid-level `formulas` object a workbook is planned from. On a live grid (the bar enabled
+   * after init, or enabled again) without a grid-level `sheetName`, the grid's rows already sit in the engine
+   * sheet the Formulas plugin is bound to, so that sheet is named, and it becomes the data tab instead of a
+   * new engine sheet.
+   *
+   * @param {object} formulas The grid-level `formulas` setting.
+   * @returns {object}
+   */
+  #withBoundSheetName(formulas: Record<string, unknown>): Record<string, unknown> {
+    if (!this.hot.view || (typeof formulas.sheetName === 'string' && formulas.sheetName !== '')) {
+      return formulas;
+    }
+
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const boundName = formulasPlugin?.enabled && formulasPlugin.engine === formulas.engine
+      ? formulasPlugin.sheetName
+      : null;
+
+    return typeof boundName === 'string' ? { ...formulas, sheetName: boundName } : formulas;
+  }
+
+  /**
+   * Builds a workbook from sheet entries: the host's `sheets` array (`declared`, so the bar writes into it),
+   * or the tabs read from a formula engine. `activeIndex` is the opening sheet's position in the entries.
+   *
+   * @param {Array} entries The sheet entries.
+   * @param {boolean} declared Whether the entries are the host's `sheets` array.
+   * @param {number} activeIndex The position of the opening sheet.
+   */
+  #buildSheetsWorkbook(entries: SheetsBarSheetConfig[], declared: boolean, activeIndex: number) {
+    const model = this.#model as SheetModel;
+
+    this.#declaredEntries = new Map();
+    this.#physicalOrder = [];
+
+    entries.forEach((entry) => {
+      const sheet = model.addSheet(entry.name ?? null, entry.data ?? undefined, entry.settings);
+
+      if (declared) {
         this.#declaredEntries.set(sheet.id, entry);
-        this.#physicalOrder.push(sheet.id);
-      });
-
-      const activeIndex = this.getSetting<number>('activeSheet') ?? 0;
-      const descriptors = model.getSheets();
-      const retained = this.#retainActiveName === null
-        ? undefined
-        : descriptors.find(descriptor => descriptor.id === model.resolveId(this.#retainActiveName));
-      const target = retained
-        ?? descriptors.find(descriptor => descriptor.id === this.#physicalOrder[activeIndex])
-        ?? descriptors[0];
-
-      const targetSheet = model.getSheetById(target.id) as Sheet;
-
-      this.#engineNameClaims = new WeakMap();
-      this.#engineNameRequests = this.#collectEngineNameRequests();
-
-      try {
-        this.#withEngineWrites(
-          this.#sheetRecords().flatMap((sheet) => {
-            const engine = formulasSettingOf(sheet)?.engine;
-
-            return isEngineInstance(engine) ? [engine!] : [];
-          }),
-          () => this.#sheetRecords()
-            .forEach(sheet => this.#registerFormulaSheet(sheet, { feed: sheet !== targetSheet })),
-        );
-      } finally {
-        this.#engineNameClaims = null;
-        this.#engineNameRequests = null;
       }
 
-      model.setActiveSheet(target.id);
+      this.#physicalOrder.push(sheet.id);
+    });
 
-      // On a live grid — an enable after startup, or an updatePlugin rebuild — `loadData` does
-      // not clear filters, hidden or trimmed indexes, merges, borders, or manual sizes, so the
-      // previous workbook's view collections would land on the new workbook's opening sheet
-      // and be captured as its own state on the first switch away. The reset runs before the
-      // sheet is applied, so the opening sheet's own declared `settings` stay in force.
-      if (this.hot.view) {
-        this.#withoutUndoEntry(() => resetViewState(this.hot, this.#getNeutralFrozenCounts()));
-      }
+    const descriptors = model.getSheets();
+    const retained = this.#retainActiveName === null
+      ? undefined
+      : descriptors.find(descriptor => descriptor.id === model.resolveId(this.#retainActiveName));
+    const target = retained
+      ?? descriptors.find(descriptor => descriptor.id === this.#physicalOrder[activeIndex])
+      ?? descriptors[0];
 
-      this.#applySheet(targetSheet, SOURCE_API);
+    const targetSheet = model.getSheetById(target.id) as Sheet;
 
-      if (!this.hot.view) {
-        this.#handOpeningSheetToInitPass(targetSheet.settings);
-      }
-    } else {
-      const settings = this.#withBaselineFor(undefined);
+    this.#registerWorkbookFormulaSheets(declared ? targetSheet : null);
+    model.setActiveSheet(target.id);
 
-      if (settings) {
-        this.hot.updateSettings(settings);
-      }
+    // On a live grid — an enable after startup, or an updatePlugin rebuild — `loadData` does
+    // not clear filters, hidden or trimmed indexes, merges, borders, or manual sizes, so the
+    // previous workbook's view collections would land on the new workbook's opening sheet
+    // and be captured as its own state on the first switch away. The reset runs before the
+    // sheet is applied, so the opening sheet's own declared `settings` stay in force.
+    if (this.hot.view) {
+      this.#withoutUndoEntry(() => resetViewState(this.hot, this.#getNeutralFrozenCounts()));
+    }
 
-      this.#loadedSheetId = model.addSheet(null, this.#getLiveSourceData()).id;
-      this.#physicalOrder = [this.#loadedSheetId];
+    this.#applySheet(targetSheet, SOURCE_API);
+
+    if (!this.hot.view) {
+      this.#handOpeningSheetToInitPass(targetSheet.settings);
+    }
+  }
+
+  /**
+   * Registers every sheet of a workbook build in its formula engine. Every sheet but `openingSheet` is fed
+   * its data, because the opening sheet's own load feeds it. With `openingSheet` `null` (a workbook read from
+   * an engine) no sheet is fed: each engine sheet already holds its tab's content.
+   *
+   * @param {object|null} openingSheet The sheet the opening load feeds, or `null` to feed none.
+   */
+  #registerWorkbookFormulaSheets(openingSheet: Sheet | null) {
+    this.#engineNameClaims = new WeakMap();
+    this.#engineNameRequests = this.#collectEngineNameRequests();
+
+    try {
+      this.#withEngineWrites(
+        this.#sheetRecords().flatMap((sheet) => {
+          const engine = formulasSettingOf(sheet)?.engine;
+
+          return isEngineInstance(engine) ? [engine!] : [];
+        }),
+        () => this.#sheetRecords().forEach((sheet) => {
+          this.#registerFormulaSheet(sheet, { feed: openingSheet !== null && sheet !== openingSheet });
+        }),
+      );
+    } finally {
+      this.#engineNameClaims = null;
+      this.#engineNameRequests = null;
     }
   }
 
@@ -6331,18 +6555,23 @@ export class SheetsBar extends BasePlugin {
    * `data`, so without this check every workbook whose active sheet declares a `dataProvider`
    * would warn on every load. The redirect to the active sheet's array still applies — the
    * placeholder must not overwrite it — only the warning is skipped.
+   *
+   * An engine workbook that gave the top-level `data` no tab (`#topLevelDataIgnored`) redirects the initial
+   * load the same way, without this warning: the build already warned, and loaded, the `data` would replace
+   * the opening engine sheet's content.
    */
   #onBeforeLoadData = (sourceData: unknown[][], initialLoad: boolean) => {
     const activeId = this.#model?.getActiveSheet()?.id ?? null;
     const activeSheet = activeId === null ? null : this.#model?.getSheetById(activeId);
+    const ownsInitialLoad = this.#declaredEntries.size > 0 || this.#topLevelDataIgnored;
 
-    if (!initialLoad || !activeSheet || this.#declaredEntries.size === 0 || sourceData === activeSheet.data) {
+    if (!initialLoad || !activeSheet || !ownsInitialLoad || sourceData === activeSheet.data) {
       return;
     }
 
     const isExternalDataSourcePlaceholder = this.hot.runHooks('hasExternalDataSource') === true;
 
-    if (!isExternalDataSourcePlaceholder && !this.#warnedAboutTopLevelData) {
+    if (!isExternalDataSourcePlaceholder && !this.#topLevelDataIgnored && !this.#warnedAboutTopLevelData) {
       this.#warnedAboutTopLevelData = true;
       warn(TOP_LEVEL_DATA_WARNING);
     }
@@ -6491,7 +6720,7 @@ export class SheetsBar extends BasePlugin {
     const owner = ownerId === null ? null : this.#model?.getSheetById(ownerId) ?? null;
 
     if (owner === null) {
-      if (!this.#unappliedTopLevelData.has(sourceData)) {
+      if (!this.#topLevelDataIgnored && !this.#unappliedTopLevelData.has(sourceData)) {
         this.#unappliedTopLevelData.add(sourceData);
         warn(REMOVED_DATA_OWNER_WARNING);
       }
