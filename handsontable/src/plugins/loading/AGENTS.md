@@ -28,6 +28,10 @@ still `true`, and a sheets bar switch from a `loading` sheet to a plain one left
   and its `isEnabled()` now answers `false` (no `dialog` option, no other requirer), calls its `disablePlugin()`.
   That `isEnabled()` read is the one allowlisted line in `test/__tests__/crossPluginIsEnabled.unit.js`. A double
   disable is harmless: the `enabled` check skips the second Dialog disable, and the release is a no-op.
+- **`destroy()` releases the requirement only.** A plugin destroyed ahead of the grid stops requiring Dialog,
+  and the next settings update turns Dialog off through its own branch 1. It must not call Dialog's
+  `disablePlugin()`: core destroys plugins after it dropped the data source, and Dialog's `hide()` then
+  threw from the selection import (`Cannot read properties of null (reading 'getAtCell')`).
 - **Inside a settings pass the order does the work.** Loading (priority 350) runs before Dialog (360). On
   `{ loading: false }` Loading releases and turns Dialog off itself; Dialog's own `onUpdateSettings` then finds it
   off and `isEnabled()` false. On `{ dialog: false }` while Loading is on, Dialog's `isEnabled()` still answers
