@@ -26,6 +26,11 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+    // An optional initial manual row move, through the same allowlist rule: absent means none.
+    window.htRowMove = ({ none: false, array: [2, 0, 1] })[htParams.get('rowMove') ?? 'none'];
+    if (window.htRowMove === undefined) {
+      throw new Error('Unknown ?rowMove= value: ' + JSON.stringify(htParams.get('rowMove')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
@@ -68,6 +73,7 @@
     window.hot = new Handsontable(container, {
       formulas: { engine, sheetName },
       columnSorting: true,
+      manualRowMove: window.htRowMove,
       width: 400,
       height: 160,
       rowHeaders: true,

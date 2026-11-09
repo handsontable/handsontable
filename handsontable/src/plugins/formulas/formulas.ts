@@ -20,6 +20,7 @@ import {
   isPreservedText,
   normalizeValueForFormulaEngine,
   padRowsToWidestRow,
+  trimTrailingEmptyCells,
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
 } from './utils';
@@ -50,7 +51,9 @@ import {
   withPluginEngineProbe,
   withPluginEngineWrite,
 } from './indexSyncer/pluginEngineWrite';
+import { listEngineElements } from './indexSyncer/engineElements';
 import type AxisSyncer from './indexSyncer/axisSyncer';
+import type { IndexMapper } from '../../translations';
 import type { EngineOrder } from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
 import type { CellChange, CellValue } from '../../settings';
@@ -609,6 +612,13 @@ export class Formulas extends BasePlugin {
    * writing the loaded data into it, and whether a load did. `null` outside such a call.
    */
   #pendingAdoption: { order: FormulasEngineSheetOrder; adopted: boolean } | null = null;
+
+  /**
+   * The engine order of both axes the running load takes over, while `#reloadKeepingOrder()` reloads the
+   * sheet the order syncers are synced with; `null` outside such a load. The plugin's own `afterLoadData`
+   * takes it over, so the moves the move plugins re-apply in the same hook are held and not sent.
+   */
+  #reloadEngineOrder: { row: EngineOrder; column: EngineOrder } | null = null;
 
   /**
    * The `formulas.sheetName` setting the binding last followed (see `#requestedSheetName()`), or
@@ -1955,20 +1965,36 @@ export class Formulas extends BasePlugin {
     // `#onAfterCellMetaReset` performs on the empty-data branch - can confirm the unescaping against
     // the grid's own source data, which a switch to a genuinely different sheet cannot.
     const isSameSheetReload = this.engine.getSheetId(sheetName) === this.sheetId;
+    // A reload of the sheet the order syncers are synced with keeps the grid's order (`#reloadKeepingOrder()`).
+    const keepsOrder = isSameSheetReload && this.#engineOrderHolds === 0
+      && this.indexSyncer!.getEngine() === this.engine && this.indexSyncer!.getSheetId() === this.sheetId;
+    const engineOrder = keepsOrder
+      ? { row: this.rowAxisSyncer!.getEngineOrder(), column: this.columnAxisSyncer!.getEngineOrder() }
+      : null;
 
     this.#updateSheetNameAndSheetId(sheetName);
 
     const unescaped = this.#unescapeEngineSheetArray(
       this.#readableSheet(this.engine.getSheetSerialized(this.sheetId)), isSameSheetReload
     );
+    // The engine holds the sheet in its own order; a reload that keeps the grid's order reads it back in
+    // physical order.
+    const physical = engineOrder === null ? unescaped : this.#toPhysicalOrder(unescaped, engineOrder);
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
-    const padded = padRowsToWidestRow(unescaped);
+    const padded = padRowsToWidestRow(physical);
     // A grid whose settings cap the column count below the padded width is left as it was: padding the
     // source rows past that count would make `#areSourceColumnsSkipped()` true, and the next resync would
     // write only the visible columns back into the sheet.
-    const serialized = this.#isColumnCountCappedBySettings(padded[0]?.length ?? 0) ? unescaped : padded;
+    const serialized = this.#isColumnCountCappedBySettings(padded[0]?.length ?? 0)
+      ? trimTrailingEmptyCells(physical) : padded;
     const loadsData = serialized.length > 0;
+
+    if (engineOrder !== null && loadsData) {
+      this.#reloadKeepingOrder(serialized, engineOrder);
+
+      return;
+    }
 
     // The order syncers are pointed at the bound sheet BEFORE the load: the load's `afterLoadData` re-applies
     // a configured `manualRowMove`/`manualColumnMove`, and that move has to reach this sheet, not the one
@@ -1981,6 +2007,109 @@ export class Formulas extends BasePlugin {
     if (loadsData) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
     }
+  }
+
+  /**
+   * Reloads the sheet the order syncers are synced with, keeping the grid's row and column order. A grid
+   * built from an engine sheet without `data` reloads it on every `updateSettings()`. The engine holds the
+   * sheet in the grid's order, and the load resets the grid's order, after which ManualRowMove and
+   * ManualColumnMove re-apply their arrays in `afterLoadData`. Read as the engine holds it and taken as
+   * physical, the re-applied move moved the rows once more per reload, and was sent to the engine again. So
+   * the sheet is read back in physical order (`#toPhysicalOrder()`, done by the caller), which keeps the
+   * physical indexes and with them the syncers' engine order valid, and the load runs with the order held:
+   * the plugin's own `afterLoadData` takes the engine order over (`#reloadEngineOrder`), the re-applied moves
+   * are not sent, and the grid's order is put back to the one it had before the load. The release finds the
+   * engine holding that order and sends nothing. So a user's drag survives the reload too, as it does on a
+   * grid built with `data`, where `updateSettings()` loads nothing.
+   *
+   * The engine's formula text is in the engine's order, so with the order not physical the loaded source data
+   * holds text the engine would write differently in physical order: `#sourceHasStaleFormulas` records it.
+   *
+   * @param {Array<Array<*>>} data The sheet content, in physical order.
+   * @param {object} engineOrder The engine order of both axes before the reload.
+   */
+  #reloadKeepingOrder(data: unknown[][], engineOrder: { row: EngineOrder; column: EngineOrder }): void {
+    const gridSequences = {
+      row: this.hot.rowIndexMapper.getIndexesSequence(),
+      column: this.hot.columnIndexMapper.getIndexesSequence(),
+    };
+
+    this.runWithEngineOrderHeld(() => {
+      this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId, false);
+      this.#reloadEngineOrder = engineOrder;
+
+      try {
+        this.hot.loadData(data, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+      } finally {
+        this.#reloadEngineOrder = null;
+      }
+
+      // A listener can have destroyed the grid or turned the plugin off during the load.
+      if (!this.enabled || this.hot.isDestroyed) {
+        return;
+      }
+
+      // The order the load's listeners applied is dropped: the rows already stood in the grid's order. A
+      // line the sheet gained or lost since takes its place as the engine reads it (`listEngineElements()`).
+      [[this.hot.rowIndexMapper, gridSequences.row], [this.hot.columnIndexMapper, gridSequences.column]]
+        .forEach(([indexMapper, previousSequence]) => {
+          const mapper = indexMapper as IndexMapper;
+          const sequence = listEngineElements(previousSequence as number[], null, mapper.getNumberOfIndexes());
+          const current = mapper.getIndexesSequence();
+
+          if (sequence.some((physicalIndex, position) => physicalIndex !== current[position])) {
+            mapper.setIndexesSequence(sequence);
+          }
+        });
+
+      if (!this.rowAxisSyncer!.isEngineOrderPhysical() || !this.columnAxisSyncer!.isEngineOrderPhysical()) {
+        this.#sourceHasStaleFormulas = this.#sourceHasStaleFormulas || this.#engineHoldsFormula();
+      }
+    });
+  }
+
+  /**
+   * Tells whether the engine holds a formula in the bound sheet.
+   *
+   * @returns {boolean}
+   */
+  #engineHoldsFormula(): boolean {
+    return this.engine!.getSheetFormulas(this.sheetId!).some(row => row.some(isDefined));
+  }
+
+  /**
+   * Puts the rows and columns of a sheet read from the engine back in physical order, the order the syncers
+   * say the engine holds them in (`engineOrder`). On an axis the engine holds in another order, the sheet
+   * covers the whole axis: the engine leaves out its trailing lines that hold nothing, and a blank line the
+   * order put last is one of them, so read as it is, the line in front of it took its place. An axis in
+   * physical order is left as read, so a line emptied there still drops on a reload, as before.
+   *
+   * @param {Array<Array<*>>} rows The sheet content, in engine order.
+   * @param {object} engineOrder The engine order of both axes.
+   * @returns {Array<Array<*>>}
+   */
+  #toPhysicalOrder(rows: unknown[][], engineOrder: { row: EngineOrder; column: EngineOrder }): unknown[][] {
+    const rowsPhysical = this.rowAxisSyncer!.isEngineOrderPhysical();
+    const columnsPhysical = this.columnAxisSyncer!.isEngineOrderPhysical();
+
+    if (rowsPhysical && columnsPhysical) {
+      return rows;
+    }
+
+    const widestRow = rows.reduce((widest, row) => Math.max(widest, row.length), 0);
+    const height = rowsPhysical ? rows.length : Math.max(rows.length, this.hot.rowIndexMapper.getNumberOfIndexes());
+    const width = columnsPhysical ? widestRow : Math.max(widestRow, this.hot.columnIndexMapper.getNumberOfIndexes());
+    const rowElements = listEngineElements(engineOrder.row.sequence, engineOrder.row.fillSequence, height);
+    const columnElements = listEngineElements(engineOrder.column.sequence, engineOrder.column.fillSequence, width);
+    const physical = Array.from({ length: height }, () => new Array<unknown>(width).fill(null));
+
+    rows.forEach((row, engineRow) => {
+      row.forEach((value, engineColumn) => {
+        physical[rowElements[engineRow]][columnElements[engineColumn]] = value;
+      });
+    });
+
+    return physical;
   }
 
   /**
@@ -4258,6 +4387,14 @@ export class Formulas extends BasePlugin {
     this.#hyperlinkCells.clear();
 
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
+      // The engine already holds the reloaded sheet in this order (see `#reloadKeepingOrder()`). Taken over
+      // here, after the load reset the grid's order and before the move plugins re-apply their arrays, so
+      // their moves are held (`AxisSyncer#calculateAndSyncMoves`).
+      if (this.#reloadEngineOrder !== null) {
+        this.rowAxisSyncer!.adoptEngineOrder(this.#reloadEngineOrder.row);
+        this.columnAxisSyncer!.adoptEngineOrder(this.#reloadEngineOrder.column);
+      }
+
       return;
     }
 

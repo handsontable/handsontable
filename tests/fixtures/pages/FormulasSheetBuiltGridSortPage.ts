@@ -18,10 +18,15 @@ export class FormulasSheetBuiltGridSortPage {
     this.bundle = bundle;
   }
 
-  /** Open the fixture and wait for the bundle. */
-  async goto(): Promise<void> {
+  /**
+   * Open the fixture and wait for the bundle.
+   *
+   * @param rowMove `'array'` builds the grid with `manualRowMove: [2, 0, 1]`.
+   */
+  async goto(rowMove: 'none' | 'array' = 'none'): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/formulas-sheet-built-grid-sort.html?theme=${this.theme}&bundle=${this.bundle}`
+        + `&rowMove=${rowMove}`
     );
     await awaitBundle(this.page);
   }
@@ -39,6 +44,11 @@ export class FormulasSheetBuiltGridSortPage {
   /** Sort by a column the way a user does: click its header. */
   async sortByHeader(col: number): Promise<void> {
     await this.sortLabel(col).click();
+  }
+
+  /** `updateSettings({})`, the call a React or Vue re-render makes, run in the page. */
+  async updateSettingsWithNothing(): Promise<void> {
+    await this.page.evaluate(() => window.hot.updateSettings({}));
   }
 
   /** `getDataAtCol()`, read in the page. */

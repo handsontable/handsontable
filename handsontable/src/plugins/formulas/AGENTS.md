@@ -1014,19 +1014,44 @@ pre-load order as well reordered the sheet twice (a plain `setupSyncEndpoint()` 
 `AxisSyncer#syncOrderWithEngine` returns early on a null engine. Pinned by
 `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
 
-**Known limit: a sheet-built grid with an array manual move rotates on `updateSettings()`.** A grid built
-from an engine sheet without `data` reloads from that sheet on every `updateSettings()` (`#onAfterCellMetaReset`,
-the `#hotWasInitializedWithEmptyData` branch, through `#loadSheet()`). The sheet already holds the moved
-order, the load resets the index maps, and ManualRowMove/ManualColumnMove re-apply their array to the
-loaded rows and send it to the engine again, so the order moves once more per update. Repro: rows `b, a,
-c` with `manualRowMove: [2, 0, 1]` show `c, b, a` (`[3, 1, 2]` as 1-based source row positions), then `a, c, b` (`[2, 3, 1]`) after
-`updateSettings({})`, then `b, a, c` (`[1, 2, 3]`) after another; the engine sheet rotates with it. React
-and Vue call `updateSettings()` on re-render, so the rows cycle per render. On develop the order stayed
-put but the move never reached the engine, so formula results were wrong. A fix that un-permutes the reload
-or holds the move must keep a drag followed by `updateSettings()` free of `#REF!` and keep the read-back of
-a sheet with a trailing blank row or column, which an earlier attempt broke. Pinned as it is (with a TODO)
-by `rotates the manual row order of a sheet-built grid on every updateSettings() (known limit)` in
-`__tests__/sheetBuiltGridSyncEndpoint.unit.js`; a fix flips it.
+**A reload of the sheet the syncers are synced with keeps the grid's order** (`#reloadKeepingOrder()`). A
+grid built from an engine sheet without `data` reloads that sheet on every `updateSettings()`
+(`#onAfterCellMetaReset`, the `#hotWasInitializedWithEmptyData` branch, through `#loadSheet()`), and React and
+Vue call `updateSettings()` on every re-render. The engine holds the sheet in the grid's order, the load resets
+the grid's order, and ManualRowMove/ManualColumnMove re-apply their arrays in `afterLoadData`. Read as the
+engine holds it and taken as physical, the re-applied array moved the rows once more per update and was sent
+to the engine again: rows `b, a, c` with `manualRowMove: [2, 0, 1]` showed `c, b, a`, then `a, c, b`, then
+`b, a, c`, the engine sheet with them. So when the bound sheet is the one both syncers point at (same engine,
+same sheet id, no `runWithEngineOrderHeld()` running), the reload:
+
+- reads the sheet back in **physical** order (`#toPhysicalOrder()`, through `listEngineElements()` and the
+  syncers' `getEngineOrder()`), after the unescape step, which already reads engine order. Physical indexes
+  stay what they were, so the syncers' engine order, padded lines and order shifts stay valid.
+- covers the whole axis on an axis the engine holds out of physical order: the engine leaves out trailing
+  lines that hold nothing, and a blank line the order put last is one of them, so read as it is the line in
+  front of it took its place. An axis in physical order is read as before, so a line emptied there still drops
+  on a reload (DEV-1143) and a sheet the host replaced by a smaller one still shrinks the grid.
+- loads inside `runWithEngineOrderHeld()`; the plugin's own `afterLoadData` (the early return for its own
+  source) adopts the recorded engine order (`#reloadEngineOrder`) after the load reset the grid's order and
+  before the move plugins re-apply their arrays, so those moves are held (`adoptedWhileHeld`), not sent.
+- puts the grid's order back to the one it had before the load (any order a load listener applied is
+  dropped: the rows already stood in it), so the release finds the engine holding it and sends nothing (0
+  order calls per update). A user's drag survives the update too, as on a grid built with `data`, where
+  `updateSettings()` loads nothing. Do not "re-apply the array instead": after a drag the array is not the
+  engine's order, and the release then sent it with `setRowOrder`, which wrote `#REF!` (the first attempt).
+- sets `#sourceHasStaleFormulas` when the engine order is not physical and the sheet holds a formula: the
+  engine's text names lines in the engine's order, now stored in physical rows, so a step that brings the
+  order back to physical and then restructures must undo from the engine sheet, not from that text.
+
+A first load, a switch to another sheet, and a reload inside `runWithEngineOrderHeld()` (the sheets bar) take
+the old path, so the initial counts above (0, 1, 1) hold. A grid built with `data` never reloads from the
+sheet. Limit: the order the reload reads back with is the syncers' record, so a sheet the host reorders or
+replaces through the engine API while the grid shows it moved is read back through a stale order (rows land
+in the wrong physical places, and a moved axis keeps its length). Pinned by the `Formulas reload of a moved
+sheet-built grid` block in `__tests__/sheetBuiltGridSyncEndpoint.unit.js` (rows, columns, both, a new array,
+a drag with `true` and with an array, a blank line the move put last, the trailing blank lines of the sheet,
+sorting, undo of a move, undo after the order came back) and the `updateSettings()` step of
+`tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
 
 **A sheet the engine refuses still gets the sync endpoint** (`#clearRejectedSheet()` calls
 `setupSyncEndpoint()`): left on the sheet bound before, a sort of the refused sheet reordered that other

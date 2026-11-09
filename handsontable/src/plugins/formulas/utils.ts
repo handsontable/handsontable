@@ -236,6 +236,27 @@ export function unescapeEngineBoundValue(
 }
 
 /**
+ * Drops the trailing empty (`null` or `undefined`) cells of each row, the way the engine's
+ * `getSheetSerialized()` writes a sheet. Returns the same array when no row ends in one.
+ *
+ * @param {Array<Array<*>>} rows Sheet content.
+ * @returns {Array<Array<*>>} The trimmed content.
+ */
+export function trimTrailingEmptyCells(rows: unknown[][]): unknown[][] {
+  const trimRow = (row: unknown[]) => {
+    let length = row.length;
+
+    while (length > 0 && (row[length - 1] === null || row[length - 1] === undefined)) {
+      length -= 1;
+    }
+
+    return length === row.length ? row : row.slice(0, length);
+  };
+
+  return rows.some(row => row.length > 0 && trimRow(row) !== row) ? rows.map(trimRow) : rows;
+}
+
+/**
  * Pads every row of a sheet array with `null` up to the length of its longest row.
  *
  * The engine's `getSheetSerialized()` trims the trailing empty cells of each row on its own, so
