@@ -46,7 +46,9 @@ export class FormulasSheetBuiltGridSortPage {
     await this.sortLabel(col).click();
   }
 
-  /** `updateSettings({})`, the call a React or Vue re-render makes, run in the page. */
+  /**
+   * `updateSettings({})`, the call a React or Vue re-render makes, run in the page.
+   */
   async updateSettingsWithNothing(): Promise<void> {
     await this.page.evaluate(() => window.hot.updateSettings({}));
   }

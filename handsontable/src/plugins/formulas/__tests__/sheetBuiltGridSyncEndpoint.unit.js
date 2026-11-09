@@ -4,6 +4,10 @@ import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const LICENSE_KEY = TEST_LICENSE_KEY;
 const SHEET_CONTENT = [['b', 2, '=B1*2'], ['a', 1, '=B2*2'], ['c', 3, '=B3*2']];
+// Each formula reads the number of the next record (the last one the first), so a mis-mapping that swaps
+// whole rows shows: the results per letter are b 10, a 40, d 30, c 20.
+const CROSS_ROW_CONTENT = [['b', 2, '=B2*10'], ['a', 1, '=B3*10'], ['d', 4, '=B4*10'], ['c', 3, '=B1*10']];
+const CROSS_ROW_RESULTS = { b: 10, a: 40, d: 30, c: 20 };
 
 /**
  * Builds an engine with the `S1` sheet holding `SHEET_CONTENT`. Every test builds its own engine, so no
@@ -206,18 +210,24 @@ describe('Formulas reload of a moved sheet-built grid', () => {
   }
 
   /**
-   * Reads, for each visual cell, the value the engine holds at the cell the grid translates it to.
+   * Reads, for each visual cell, the value the engine holds at the cell the grid translates it to, an error
+   * as its text.
    *
    * @returns {Array<Array<*>>}
    */
   function readEngineThroughGrid() {
     const formulas = hot.getPlugin('formulas');
 
-    return hot.getData().map((row, visualRow) => row.map((_, visualColumn) => formulas.engine.getCellValue({
-      sheet: formulas.sheetId,
-      row: formulas.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-      col: formulas.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
-    })));
+    return hot.getData().map((row, visualRow) => row.map((_, visualColumn) => {
+      const value = formulas.engine.getCellValue({
+        sheet: formulas.sheetId,
+        row: formulas.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+        col: formulas.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+      });
+
+      // An error reads as its text in the grid.
+      return value !== null && typeof value === 'object' ? value.value : value;
+    }));
   }
 
   it('keeps the row order of an array manualRowMove across updateSettings() calls', () => {
@@ -519,5 +529,189 @@ describe('Formulas reload of a moved sheet-built grid', () => {
 
     expect(hot.getData()).toEqual([['b', 2, 4], ['a', 1, 2], ['c', 3, 6]]);
     expect(readEngineThroughGrid()).toEqual(hot.getData());
+  });
+
+  /**
+   * Reads the sheet's values as the grid shows them: an error as its text.
+   *
+   * @param {HyperFormula} engine The engine.
+   * @param {number} sheetId The sheet id.
+   * @returns {Array<Array<*>>}
+   */
+  function engineValues(engine, sheetId) {
+    return engine.getSheetValues(sheetId)
+      .map(row => row.map(value => (value !== null && typeof value === 'object' ? value.value : value)));
+  }
+
+  /**
+   * Builds an engine with the `S1` sheet holding `CROSS_ROW_CONTENT`.
+   *
+   * @returns {HyperFormula}
+   */
+  function buildCrossRowEngine() {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    engine.addSheet('S1');
+    engine.setSheetContent(engine.getSheetId('S1'), CROSS_ROW_CONTENT);
+
+    return engine;
+  }
+
+  /**
+   * Asserts that every visual row shows the result its record's formula has, read off the letter.
+   */
+  function expectCrossRowResults() {
+    hot.getData().forEach(([letter, , result]) => expect(result).toBe(CROSS_ROW_RESULTS[letter]));
+  }
+
+  it('keeps the row order and the cross-row results of an array manualRowMove across updates', () => {
+    const engine = buildCrossRowEngine();
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      manualRowMove: [3, 1, 0, 2],
+      licenseKey: LICENSE_KEY,
+    });
+
+    expect(hot.getDataAtCol(0)).toEqual(['c', 'a', 'b', 'd']);
+    expectCrossRowResults();
+
+    for (let update = 0; update < 3; update += 1) {
+      hot.updateSettings({});
+
+      expect(hot.getDataAtCol(0)).toEqual(['c', 'a', 'b', 'd']);
+      expectCrossRowResults();
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+    }
+  });
+
+  it('keeps the order and the cross-row results of a user drag across updates', () => {
+    const engine = buildCrossRowEngine();
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      manualRowMove: [3, 1, 0, 2],
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.getPlugin('manualRowMove').dragRows([3], 0);
+
+    const dragged = hot.getDataAtCol(0);
+
+    expect(dragged).toEqual(['d', 'c', 'a', 'b']);
+
+    for (let update = 0; update < 3; update += 1) {
+      hot.updateSettings({});
+
+      expect(hot.getDataAtCol(0)).toEqual(dragged);
+      expectCrossRowResults();
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+    }
+  });
+
+  it.each([
+    ['removeRows', engine => engine.removeRows(engine.getSheetId('S1'), [0, 1])],
+    ['a smaller setSheetContent', engine => engine.setSheetContent(engine.getSheetId('S1'), [
+      ['n1', 1, '=B2*10'], ['n2', 2, '=B1*10'],
+    ])],
+  ])('shrinks a moved grid when the host shrinks the engine sheet with %s', (_, shrink) => {
+    const engine = buildCrossRowEngine();
+    const sheetId = engine.getSheetId('S1');
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      manualRowMove: [3, 1, 0, 2],
+      licenseKey: LICENSE_KEY,
+    });
+
+    shrink(engine);
+
+    const orderCalls = countOrderCalls(engine);
+
+    for (let update = 0; update < 3; update += 1) {
+      hot.updateSettings({});
+
+      // The grid shows what the engine holds, in the engine's order, and nothing more.
+      expect(hot.countRows()).toBe(engine.getSheetValues(sheetId).length);
+      expect(hot.getData()).toEqual(engineValues(engine, sheetId));
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+    }
+
+    expect(orderCalls()).toBe(0);
+  });
+
+  it('shrinks a moved grid when the host removes engine columns', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const sheetId = engine.addSheet('S1') && engine.getSheetId('S1');
+
+    engine.setSheetContent(sheetId, [[1, 2, 3, '=A1+B1'], [4, 5, 6, '=C2*10']]);
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      manualColumnMove: [3, 0],
+      licenseKey: LICENSE_KEY,
+    });
+
+    expect(hot.getData()).toEqual([[3, 1, 2, 3], [60, 4, 5, 6]]);
+
+    engine.removeColumns(sheetId, [0, 1]);
+
+    for (let update = 0; update < 3; update += 1) {
+      hot.updateSettings({});
+
+      expect(hot.countCols()).toBe(3);
+      expect(hot.getData()).toEqual(engineValues(engine, sheetId));
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+    }
+  });
+
+  it.each([
+    ['at the end', 4],
+    ['in the middle', 1],
+  ])('shows the rows the host adds to a moved engine sheet %s', (_, row) => {
+    const engine = buildCrossRowEngine();
+    const sheetId = engine.getSheetId('S1');
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      manualRowMove: [3, 1, 0, 2],
+      licenseKey: LICENSE_KEY,
+    });
+
+    engine.addRows(sheetId, [row, 1]);
+    engine.setCellContents({ sheet: sheetId, row, col: 0 }, [['e', 5, '=B1*10']]);
+
+    for (let update = 0; update < 3; update += 1) {
+      hot.updateSettings({});
+
+      expect(hot.countRows()).toBe(5);
+      expect(hot.getData()).toEqual(engineValues(engine, sheetId));
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+    }
+  });
+
+  // Known limit, pinned (see "A reload of the sheet the syncers are synced with keeps the grid's order" in
+  // `../AGENTS.md`): the reload resets ColumnSorting's state, so the rows stay in the sorted order with no
+  // sort config, and `clearSort()` cannot bring the manual order back. A grid built with `data` keeps its sort.
+  it('keeps the sorted rows but drops the sort state of a moved sheet-built grid on a reload (known limit)', () => {
+    const engine = buildEngine();
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      manualRowMove: [2, 0, 1],
+      columnSorting: true,
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+    hot.updateSettings({});
+
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+    expect(hot.getData()).toEqual([['a', 1, 2], ['b', 2, 4], ['c', 3, 6]]);
+
+    hot.getPlugin('columnSorting').clearSort();
+
+    // A grid built with `data` goes back to the manual order `c, b, a` here.
+    expect(hot.getData()).toEqual([['a', 1, 2], ['b', 2, 4], ['c', 3, 6]]);
   });
 });

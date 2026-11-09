@@ -424,6 +424,25 @@ const isRestoreSource = (source: unknown) => source === 'UndoRedo.undo' || sourc
  * moved or sorted, the engine rewrites formula references in its own order and the source data keeps
  * the text written in the physical one.
  */
+/**
+ * How a reload that keeps the grid's order reads one axis of the sheet back (see `Formulas#planReloadAxis()`).
+ */
+interface ReloadAxis {
+  /**
+   * The engine order the reload takes over.
+   */
+  order: EngineOrder;
+  /**
+   * The physical index of each engine line, to read the sheet back in physical order with, or `null` to read
+   * the axis as the engine holds it.
+   */
+  elements: number[] | null;
+  /**
+   * The grid's order to put back after the load; empty for the identity.
+   */
+  previousSequence: number[];
+}
+
 interface EngineSheetSnapshot {
   readonly content: unknown[][];
   readonly rowOrder: EngineOrder;
@@ -1968,9 +1987,6 @@ export class Formulas extends BasePlugin {
     // A reload of the sheet the order syncers are synced with keeps the grid's order (`#reloadKeepingOrder()`).
     const keepsOrder = isSameSheetReload && this.#engineOrderHolds === 0
       && this.indexSyncer!.getEngine() === this.engine && this.indexSyncer!.getSheetId() === this.sheetId;
-    const engineOrder = keepsOrder
-      ? { row: this.rowAxisSyncer!.getEngineOrder(), column: this.columnAxisSyncer!.getEngineOrder() }
-      : null;
 
     this.#updateSheetNameAndSheetId(sheetName);
 
@@ -1979,7 +1995,8 @@ export class Formulas extends BasePlugin {
     );
     // The engine holds the sheet in its own order; a reload that keeps the grid's order reads it back in
     // physical order.
-    const physical = engineOrder === null ? unescaped : this.#toPhysicalOrder(unescaped, engineOrder);
+    const reload = keepsOrder ? this.#planReload(unescaped) : null;
+    const physical = reload === null ? unescaped : this.#toPhysicalOrder(unescaped, reload);
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
     const padded = padRowsToWidestRow(physical);
@@ -1990,8 +2007,8 @@ export class Formulas extends BasePlugin {
       ? trimTrailingEmptyCells(physical) : padded;
     const loadsData = serialized.length > 0;
 
-    if (engineOrder !== null && loadsData) {
-      this.#reloadKeepingOrder(serialized, engineOrder);
+    if (reload !== null && loadsData) {
+      this.#reloadKeepingOrder(serialized, reload);
 
       return;
     }
@@ -2025,18 +2042,16 @@ export class Formulas extends BasePlugin {
    * The engine's formula text is in the engine's order, so with the order not physical the loaded source data
    * holds text the engine would write differently in physical order: `#sourceHasStaleFormulas` records it.
    *
+   * An axis whose recorded order no longer describes the engine sheet (`#planReloadAxis()`) is read as the
+   * engine holds it instead, and the grid shows it in that order.
+   *
    * @param {Array<Array<*>>} data The sheet content, in physical order.
-   * @param {object} engineOrder The engine order of both axes before the reload.
+   * @param {object} reload The plan of both axes (`#planReload()`).
    */
-  #reloadKeepingOrder(data: unknown[][], engineOrder: { row: EngineOrder; column: EngineOrder }): void {
-    const gridSequences = {
-      row: this.hot.rowIndexMapper.getIndexesSequence(),
-      column: this.hot.columnIndexMapper.getIndexesSequence(),
-    };
-
+  #reloadKeepingOrder(data: unknown[][], reload: { row: ReloadAxis; column: ReloadAxis }): void {
     this.runWithEngineOrderHeld(() => {
       this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId, false);
-      this.#reloadEngineOrder = engineOrder;
+      this.#reloadEngineOrder = { row: reload.row.order, column: reload.column.order };
 
       try {
         this.hot.loadData(data, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -2050,17 +2065,19 @@ export class Formulas extends BasePlugin {
       }
 
       // The order the load's listeners applied is dropped: the rows already stood in the grid's order. A
-      // line the sheet gained or lost since takes its place as the engine reads it (`listEngineElements()`).
-      [[this.hot.rowIndexMapper, gridSequences.row], [this.hot.columnIndexMapper, gridSequences.column]]
-        .forEach(([indexMapper, previousSequence]) => {
-          const mapper = indexMapper as IndexMapper;
-          const sequence = listEngineElements(previousSequence as number[], null, mapper.getNumberOfIndexes());
-          const current = mapper.getIndexesSequence();
+      // line the sheet gained since takes its place as the engine reads it (`listEngineElements()`); an axis
+      // read as the engine holds it is shown in that order (the identity).
+      const putBack = (mapper: IndexMapper, previousSequence: number[]) => {
+        const sequence = listEngineElements(previousSequence, null, mapper.getNumberOfIndexes());
+        const current = mapper.getIndexesSequence();
 
-          if (sequence.some((physicalIndex, position) => physicalIndex !== current[position])) {
-            mapper.setIndexesSequence(sequence);
-          }
-        });
+        if (sequence.some((physicalIndex, position) => physicalIndex !== current[position])) {
+          mapper.setIndexesSequence(sequence);
+        }
+      };
+
+      putBack(this.hot.rowIndexMapper, reload.row.previousSequence);
+      putBack(this.hot.columnIndexMapper, reload.column.previousSequence);
 
       if (!this.rowAxisSyncer!.isEngineOrderPhysical() || !this.columnAxisSyncer!.isEngineOrderPhysical()) {
         this.#sourceHasStaleFormulas = this.#sourceHasStaleFormulas || this.#engineHoldsFormula();
@@ -2078,34 +2095,120 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Puts the rows and columns of a sheet read from the engine back in physical order, the order the syncers
-   * say the engine holds them in (`engineOrder`). On an axis the engine holds in another order, the sheet
-   * covers the whole axis: the engine leaves out its trailing lines that hold nothing, and a blank line the
-   * order put last is one of them, so read as it is, the line in front of it took its place. An axis in
-   * physical order is left as read, so a line emptied there still drops on a reload, as before.
+   * Plans a reload that keeps the grid's order (`#reloadKeepingOrder()`), per axis (`#planReloadAxis()`). It
+   * runs before the sync endpoint is set up again, while the syncers still hold the recorded engine order.
    *
    * @param {Array<Array<*>>} rows The sheet content, in engine order.
-   * @param {object} engineOrder The engine order of both axes.
+   * @returns {object}
+   */
+  #planReload(rows: unknown[][]): { row: ReloadAxis; column: ReloadAxis } {
+    const sourceRows = this.#readOwnSourceRows();
+    const hasContent = (value: unknown) => value !== null && value !== undefined && value !== '';
+
+    return {
+      row: this.#planReloadAxis(
+        this.rowAxisSyncer!, this.hot.rowIndexMapper, rows.length,
+        physicalRow => (sourceRows[physicalRow] ?? []).some(hasContent),
+      ),
+      column: this.#planReloadAxis(
+        this.columnAxisSyncer!, this.hot.columnIndexMapper,
+        rows.reduce((widest, row) => Math.max(widest, row.length), 0),
+        physicalColumn => sourceRows.some(row => hasContent(row?.[physicalColumn])),
+      ),
+    };
+  }
+
+  /**
+   * Plans how a reload that keeps the grid's order reads one axis of the sheet back. An axis the engine holds
+   * in physical order is read as it is. An axis it holds in another order is read back in physical order
+   * through the recorded order (`elements`), and covers the whole axis: the engine leaves out its trailing
+   * lines that hold nothing, and a blank line the order put last is one of them. The engine sheet can have
+   * changed since the record, though: a host that removed lines or replaced the sheet with a smaller one
+   * through the engine API. That shows as a line the engine left out while the grid holds content in it, so
+   * then the record no longer describes the sheet, and the axis is read as the engine holds it and taken as
+   * physical (`elements` `null`, the order physical, the grid shown in that order), the way a grid without a
+   * move reads it. Lines the engine gained are read through the record too (`listEngineElements()` names
+   * them after the recorded ones), so the grid shows them where the engine has them.
+   *
+   * @param {AxisSyncer} syncer The axis syncer.
+   * @param {IndexMapper} indexMapper The axis' index mapper.
+   * @param {number} engineLength How many lines of the axis the engine wrote out.
+   * @param {Function} hasContent Tells whether the grid holds content in a line, by its physical index.
+   * @returns {object}
+   */
+  #planReloadAxis(
+    syncer: AxisSyncer,
+    indexMapper: IndexMapper,
+    engineLength: number,
+    hasContent: (physicalIndex: number) => boolean,
+  ): ReloadAxis {
+    const order = syncer.getEngineOrder();
+    const previousSequence = indexMapper.getIndexesSequence();
+
+    if (syncer.isEngineOrderPhysical()) {
+      return { order, elements: null, previousSequence };
+    }
+
+    const gridLength = indexMapper.getNumberOfIndexes();
+    const elements = listEngineElements(order.sequence, order.fillSequence, Math.max(engineLength, gridLength));
+
+    for (let engineIndex = engineLength; engineIndex < gridLength; engineIndex += 1) {
+      if (hasContent(elements[engineIndex])) {
+        return {
+          order: { sequence: [], fillSequence: null, paddedElements: [], orderShifts: [] },
+          elements: null,
+          previousSequence: [],
+        };
+      }
+    }
+
+    return { order, elements, previousSequence };
+  }
+
+  /**
+   * Reads the grid's source rows as the grid stores them, by physical row, without the engine's projection.
+   *
    * @returns {Array<Array<*>>}
    */
-  #toPhysicalOrder(rows: unknown[][], engineOrder: { row: EngineOrder; column: EngineOrder }): unknown[][] {
-    const rowsPhysical = this.rowAxisSyncer!.isEngineOrderPhysical();
-    const columnsPhysical = this.columnAxisSyncer!.isEngineOrderPhysical();
+  #readOwnSourceRows(): unknown[][] {
+    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
 
-    if (rowsPhysical && columnsPhysical) {
+    this.#sourceDataProjectionSuspended = true;
+
+    try {
+      return Array.from({ length: this.hot.rowIndexMapper.getNumberOfIndexes() }, (_, physicalRow) => {
+        const row: unknown = this.hot.getSourceDataAtRow(physicalRow);
+
+        return Array.isArray(row) ? row as unknown[] : [];
+      });
+    } finally {
+      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
+    }
+  }
+
+  /**
+   * Puts the rows and columns of a sheet read from the engine back in physical order, through the elements
+   * `#planReloadAxis()` planned for each axis. An axis with no elements is left as read.
+   *
+   * @param {Array<Array<*>>} rows The sheet content, in engine order.
+   * @param {object} reload The plan of both axes.
+   * @returns {Array<Array<*>>}
+   */
+  #toPhysicalOrder(rows: unknown[][], reload: { row: ReloadAxis; column: ReloadAxis }): unknown[][] {
+    const rowElements = reload.row.elements;
+    const columnElements = reload.column.elements;
+
+    if (rowElements === null && columnElements === null) {
       return rows;
     }
 
-    const widestRow = rows.reduce((widest, row) => Math.max(widest, row.length), 0);
-    const height = rowsPhysical ? rows.length : Math.max(rows.length, this.hot.rowIndexMapper.getNumberOfIndexes());
-    const width = columnsPhysical ? widestRow : Math.max(widestRow, this.hot.columnIndexMapper.getNumberOfIndexes());
-    const rowElements = listEngineElements(engineOrder.row.sequence, engineOrder.row.fillSequence, height);
-    const columnElements = listEngineElements(engineOrder.column.sequence, engineOrder.column.fillSequence, width);
+    const height = rowElements?.length ?? rows.length;
+    const width = columnElements?.length ?? rows.reduce((widest, row) => Math.max(widest, row.length), 0);
     const physical = Array.from({ length: height }, () => new Array<unknown>(width).fill(null));
 
     rows.forEach((row, engineRow) => {
       row.forEach((value, engineColumn) => {
-        physical[rowElements[engineRow]][columnElements[engineColumn]] = value;
+        physical[rowElements?.[engineRow] ?? engineRow][columnElements?.[engineColumn] ?? engineColumn] = value;
       });
     });
 
