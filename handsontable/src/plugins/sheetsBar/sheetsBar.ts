@@ -3540,10 +3540,7 @@ export class SheetsBar extends BasePlugin {
       : plan.entries.findIndex(entry => isSameSheetName(entry.name, detachedTab));
 
     return {
-      entries: plan.entries.map(entry => ({
-        ...entry,
-        data: entry.data ?? this.#blankSheetData(entry.settings),
-      })),
+      entries: plan.entries,
       openingIndex: plan.openingIndex,
       dataIndex: dataIndex === -1 ? null : dataIndex,
       ignoresData,
@@ -3608,7 +3605,8 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Builds a workbook from sheet entries: the host's `sheets` array (`declared`, so the bar writes into it),
-   * or the tabs read from a formula engine. `activeIndex` is the opening sheet's position in the entries.
+   * or the tabs read from a formula engine. `activeIndex` is the opening sheet's position in the entries. An
+   * entry without `data` starts with the rows `addSheet()` gives a new sheet (`#blankSheetData()`).
    *
    * @param {Array} entries The sheet entries.
    * @param {boolean} declared Whether the entries are the host's `sheets` array.
@@ -3621,7 +3619,8 @@ export class SheetsBar extends BasePlugin {
     this.#physicalOrder = [];
 
     entries.forEach((entry) => {
-      const sheet = model.addSheet(entry.name ?? null, entry.data ?? undefined, entry.settings);
+      const data = entry.data ?? this.#blankSheetData(entry.settings);
+      const sheet = model.addSheet(entry.name ?? null, data, entry.settings);
 
       if (declared) {
         this.#declaredEntries.set(sheet.id, entry);

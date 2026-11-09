@@ -50,4 +50,20 @@ test.describe('NestedRows collapse state across a sheet switch', { tag: THEMES_T
     await expect.poll(() => grid.visibleNames()).toEqual(['Europe', 'Poland', 'Germany', 'Asia', 'Japan']);
     await expect(grid.collapseButton(0)).toBeVisible();
   });
+
+  test('a sheet declared without data starts with object rows and keeps the plugin on', async () => {
+    await grid.switchToSheet(3);
+
+    await expect.poll(() => grid.sourceRowsAreObjects()).toBe(true);
+    expect(await grid.isPluginEnabled()).toBe(true);
+    expect(await grid.nestedRowsSetting()).toBe(true);
+  });
+
+  test('a sheet declared without data that turns the plugin off keeps the default blank grid', async () => {
+    await grid.switchToSheet(4);
+
+    await expect.poll(() => grid.nestedRowsSetting()).toBe(false);
+    expect(await grid.isPluginEnabled()).toBe(false);
+    expect(await grid.sourceRowsAreObjects()).toBe(false);
+  });
 });

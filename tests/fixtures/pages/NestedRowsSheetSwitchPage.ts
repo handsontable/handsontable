@@ -33,6 +33,17 @@ export class NestedRowsSheetSwitchPage extends NestedRowsPage {
   }
 
   /**
+   * Whether every source row of the shown sheet is an object, the only row shape NestedRows takes.
+   */
+  sourceRowsAreObjects(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      const rows = window.hot.getSourceData();
+
+      return rows.length > 0 && rows.every(row => row !== null && typeof row === 'object' && !Array.isArray(row));
+    });
+  }
+
+  /**
    * Switches to the sheet under the given tab and waits until the bar reports it active.
    */
   async switchToSheet(index: number): Promise<void> {
