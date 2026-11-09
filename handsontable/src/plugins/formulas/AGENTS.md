@@ -738,7 +738,7 @@ early write, writes it, reads the results, and takes the write back with `engine
   when the engine keeps one undo entry`.
 - **Known limit: the host's own engine undo history.** Each probe batch is pushed and popped, and HF drops
   its oldest entry when the stack is at `undoLimit`, so a probe can evict the host's oldest engine undo
-  entry (`undoLimit: 2` with two host entries loses one). HF exposes `undoLimit` but no stack length, so the
+  entries (a two-batch probe on `undoLimit: 2` drops up to two). HF exposes `undoLimit` but no stack length, so the
   guard above cannot tell how full the stack is. The grid's undo never reads that stack.
 - **A set without a deferred formula skips the round trip**, but every deferred in-bounds change still
   gets an entry in `#validationValues` (keyed by visual row and column, one entry per change, matched on the
@@ -747,10 +747,14 @@ early write, writes it, reads the results, and takes the write back with `engine
   validated as the value, not as the result the engine still holds there. With the engine's evaluation
   suspended (a host's `batch()`), no probe runs and a formula is validated as its text. **Known limit:** a
   `validateCells()` in the same task with the change's source, or a dependent validation of a pending cell
-  written with source `undefined`, reads the pending entry. **A set that writes one cell twice** holds the
-  last value in the probe, as the apply will; an earlier formula for that cell is calculated on its own
-  (`#calculateDetached()`, with its limits), so each change is validated by its own value (pinned by
-  `validates each change of a set that writes one cell twice by its own value`).
+  written with source `undefined`, reads the pending entry. **A cell written more than once before the Core
+  validates** (twice in one set, or by two sets in one task) has one entry per change: a validation takes
+  the first entry with its value and source and removes it, since the Core validates in write order, so the
+  same formula written by two sets around a write to its precedent gets each set's result. In one set, the
+  cell's last value is the one in the probe, as the apply will hold; an earlier change with the same value
+  shares that entry, and an earlier formula with another value is calculated on its own
+  (`#calculateDetached()`, with its limits). Pinned by `validates each change of a set that writes one cell
+  twice by its own value` and the two `validates the same formula ...` cases.
 - **The probe is invisible to every grid on the engine**: it runs in `withPluginEngineProbe()`
   (`indexSyncer/pluginEngineWrite.ts`, a per-engine depth next to the write scope), and every grid's
   `#onEngineValuesUpdated` returns at once while `isPluginEngineProbe(engine)` answers `true`. So no grid
@@ -758,7 +762,8 @@ early write, writes it, reads the results, and takes the write back with `engine
   undo for an edit later rejected) and none paints for it; a volatile function (`RAND()`) recalculates in
   the engine without an event. Pinned by `fires no afterFormulasValuesUpdate in another grid on the engine
   for the probe of a rejected edit`. A host's own `valuesUpdated` listener on the engine still sees both
-  events.
+  events. The probe depth lives in this bundle's module, so a grid from a second Handsontable bundle sharing
+  the engine does not see it and still fires for the probe.
 - **Cost, measured** (jsdom, Jest, 1000-row grid, a paste of 1000 values with one formula that reads A1
   into a column with a sync validator and `allowInvalid: false`, time to the apply, median of 6 runs):
   pre-DEV-3760 early write 42.8 ms (1000 `setCellContents`); deferred write without a probe 47.1 ms;
@@ -1014,7 +1019,7 @@ from an engine sheet without `data` reloads from that sheet on every `updateSett
 the `#hotWasInitializedWithEmptyData` branch, through `#loadSheet()`). The sheet already holds the moved
 order, the load resets the index maps, and ManualRowMove/ManualColumnMove re-apply their array to the
 loaded rows and send it to the engine again, so the order moves once more per update. Repro: rows `b, a,
-c` with `manualRowMove: [2, 0, 1]` show `c, b, a` (`[3, 1, 2]` by value), then `a, c, b` (`[2, 3, 1]`) after
+c` with `manualRowMove: [2, 0, 1]` show `c, b, a` (`[3, 1, 2]` as 1-based source row positions), then `a, c, b` (`[2, 3, 1]`) after
 `updateSettings({})`, then `b, a, c` (`[1, 2, 3]`) after another; the engine sheet rotates with it. React
 and Vue call `updateSettings()` on re-render, so the rows cycle per render. On develop the order stayed
 put but the move never reached the engine, so formula results were wrong. A fix that un-permutes the reload
