@@ -365,6 +365,55 @@ describe('Core validation of a change when loadData() replaces the data', () => 
     expect(edits).toEqual([]);
   });
 
+  it('should still write the accepted changes when a rejected-changes listener throws', async() => {
+    createGrid({ allowInvalid: false });
+
+    const error = new Error('listener failed');
+    const errors = [];
+
+    hot._addRejectedChangesListener(() => {
+      throw error;
+    });
+    // The answer that drains the queue runs the listener, so its throw leaves through that callback.
+    const answerCatching = (value, result) => {
+      try {
+        answer(value, result);
+      } catch (caught) {
+        errors.push(caught);
+      }
+    };
+
+    hot.setDataAtCell([[0, 1, 'kept'], [1, 1, 'rejected']], 'edit');
+    await settle();
+    answerCatching('rejected', false);
+    answerCatching('kept');
+    await settle();
+
+    expect(errors).toEqual([error]);
+    expect(hot.getDataAtCol(1)).toEqual(['kept', 'bob']);
+    expect(edits).toEqual([[[0, 'name', 'alice', 'kept']]]);
+  });
+
+  it('should not write the accepted changes into a grid a rejected-changes listener destroyed', async() => {
+    createGrid({ allowInvalid: false });
+
+    const afterChange = jest.fn();
+
+    hot.addHook('afterChange', afterChange);
+    hot._addRejectedChangesListener(() => {
+      hot.destroy();
+    });
+
+    hot.setDataAtCell([[0, 1, 'kept'], [1, 1, 'rejected']], 'edit');
+    await settle();
+    answer('rejected', false);
+
+    expect(() => answer('kept')).not.toThrow();
+    expect(hot.isDestroyed).toBe(true);
+    expect(afterChange).not.toHaveBeenCalled();
+    hot = null;
+  });
+
   it('should not tell the rejected-changes listeners about a set nothing rejected, or a dropped one', async() => {
     createGrid({ allowInvalid: false });
 

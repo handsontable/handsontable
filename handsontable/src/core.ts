@@ -4421,7 +4421,8 @@ export default function Core(
    * under `allowInvalid: false`, which were taken out of that array.
    * The functions `_addRejectedChangesListener()` added are told about the rejected changes of a set
    * that is applied, before `applyChanges()` writes what is left of it (nothing, when every change was
-   * rejected), so the render that follows paints what they put back.
+   * rejected), so the render that follows paints what they put back. A listener that throws does not stop
+   * the write (its error leaves after it), and one that destroys the grid ends the call there.
    *
    * @param {Array} changes The processed changes.
    * @param {string} [source] The change source.
@@ -4441,11 +4442,17 @@ export default function Core(
         try {
           if (loadGeneration === validationLoadGeneration) {
             hold.resume(() => {
-              if (rejectedChanges.length > 0) {
-                rejectedChangesListeners.slice().forEach(listener => listener(changes, source, rejectedChanges));
+              try {
+                if (rejectedChanges.length > 0) {
+                  rejectedChangesListeners.slice().forEach(listener => listener(changes, source, rejectedChanges));
+                }
+              } finally {
+                // A listener that throws must not cost the set its accepted changes (its error still leaves
+                // after them), and one that destroyed the grid leaves nothing to write into.
+                if (instance && !instance.isDestroyed) {
+                  applyChanges(changes, source);
+                }
               }
-
-              applyChanges(changes, source);
             });
           } else {
             droppedChangesListeners.slice().forEach(listener => listener(changes, source, rejectedChanges));
