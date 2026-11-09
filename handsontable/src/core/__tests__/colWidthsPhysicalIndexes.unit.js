@@ -142,4 +142,109 @@ describe('colWidths addressed by physical column index', () => {
 
     expect(hot.getColWidth(1)).toBe(90);
   });
+  /**
+   * Reads the width of every column.
+   *
+   * @returns {Array}
+   */
+  function widths() {
+    return Array.from({ length: hot.countCols() }, (_, column) => hot.getColWidth(column));
+  }
+
+  it('should apply a new array passed to updateSettings() after columns were inserted and removed', () => {
+    createGrid({ colWidths: [100, 150, 200] });
+
+    hot.alter('insert_col_start', 1);
+    hot.updateSettings({ colWidths: [30, 31, 32, 33] });
+
+    expect(widths()).toEqual([30, 31, 32, 33]);
+
+    hot.alter('remove_col', 0);
+    hot.updateSettings({ colWidths: [40, 41, 42] });
+
+    expect(widths()).toEqual([40, 41, 42]);
+  });
+
+  it('should never change the array the user passed', () => {
+    const colWidths = [100, 150, 200];
+
+    createGrid({ colWidths });
+
+    hot.alter('insert_col_start', 1);
+    hot.alter('remove_col', 0);
+
+    expect(hot.getSettings().colWidths).toBe(colWidths);
+    expect(colWidths).toEqual([100, 150, 200]);
+    expect(widths()).toEqual([50, 150, 200]);
+  });
+
+  it('should keep the same array declared when updateSettings() passes it again', () => {
+    const colWidths = [100, 150, 200];
+
+    createGrid({ colWidths });
+
+    hot.alter('insert_col_start', 0);
+    hot.updateSettings({ colWidths });
+
+    expect(widths()).toEqual([50, 100, 150, 200]);
+  });
+
+  it('should apply an entry the user changes in place to the column it belongs to', () => {
+    const colWidths = [100, 150, 200];
+
+    createGrid({ colWidths });
+
+    hot.alter('insert_col_start', 0);
+    colWidths[1] = 99;
+    hot.view.invalidateColumnWidthCache();
+
+    expect(widths()).toEqual([50, 100, 99, 200]);
+  });
+
+  it('should give the columns appended at the end the next entries, whichever way they are created', () => {
+    createGrid({ colWidths: [100, 150, 200, 250, 300, 350] });
+
+    hot.alter('insert_col_end', 2); // to the right of the last column
+    hot.alter('insert_col_end'); // with no index, after the last column
+    hot.setDataAtCell(0, 5, 'x'); // a write past the last column
+
+    expect(widths()).toEqual([100, 150, 200, 250, 300, 350]);
+  });
+
+  it('should give a column appended after a removal the entry after the highest one in use', () => {
+    createGrid({ colWidths: [100, 150, 200, 250] });
+
+    hot.alter('remove_col', 1);
+    hot.alter('insert_col_end', 1);
+
+    // the removed entry (150) is not handed out again
+    expect(widths()).toEqual([100, 200, 250]);
+  });
+
+  it('should give a column inserted to the right of another no width of its own', () => {
+    createGrid({ colWidths: [100, 150, 200] });
+
+    hot.alter('insert_col_end', 0);
+
+    expect(widths()).toEqual([100, 50, 150, 200]);
+  });
+
+  it('should apply the declared widths to the columns added to a grid created narrower', () => {
+    createGrid({ data: [['a']], colWidths: [40, 60, 80], minSpareCols: 2 });
+
+    expect(widths()).toEqual([40, 60, 80]);
+  });
+
+  it('should stop reading through the map once colWidths is no longer an array', () => {
+    createGrid({ colWidths: [100, 150, 200] });
+
+    hot.alter('insert_col_start', 0);
+    hot.updateSettings({ colWidths: 70 });
+
+    expect(widths()).toEqual([70, 70, 70, 70]);
+
+    hot.updateSettings({ colWidths: [10, 20, 30, 40] });
+
+    expect(widths()).toEqual([10, 20, 30, 40]);
+  });
 });

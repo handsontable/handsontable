@@ -61,7 +61,7 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
-import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { ColumnSizeSettings } from './core/columnSizeSettings';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
@@ -1951,8 +1951,8 @@ export default function Core(
 
             if (colDelta) {
               // `getColHeader()` reads the array by the physical index, so the empty entries go in at the
-              // physical index the created column takes, the same as `colWidths` below. The array is changed
-              // in place, because the user holds it and UndoRedo refills it in place.
+              // physical index the created column takes. The array is changed in place, because the user holds
+              // it and UndoRedo refills it in place.
               if (Array.isArray(tableMeta.colHeaders)) {
                 const spliceArray = [startColumnPhysicalIndex!, 0];
 
@@ -1960,12 +1960,9 @@ export default function Core(
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
               }
 
-              // `colWidths` is addressed by the physical index, which a created column takes in the middle of
-              // the physical order after any column move, so the widths after it shift with their columns.
-              if (Array.isArray(tableMeta.colWidths)) {
-                tableMeta.colWidths =
-                  insertColWidths(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
-              }
+              // An array `colWidths` is read through a column index map, which the index mapper already moved.
+              // The settings are never written: a copy would shadow `updateSettings()` (see `ColumnSizeSettings`).
+              columnSizeSettings.alignInsertedColumns(startColumnPhysicalIndex!, colDelta as number);
 
               selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
             }
@@ -2122,7 +2119,7 @@ export default function Core(
                 // The physical indexes of the columns the removal takes, read before it renumbers them.
                 const removedPhysicalColumns: number[] = [];
 
-                if (Array.isArray(tableMeta.colWidths) || Array.isArray(tableMeta.colHeaders)) {
+                if (Array.isArray(tableMeta.colHeaders)) {
                   const firstRemovedVisualColumn = isEmpty(groupIndex) ?
                     Math.max(totalColumnsBefore - groupAmount, 0) : calcIndex;
 
@@ -2216,10 +2213,6 @@ export default function Core(
                   [...removedPhysicalColumns].sort((a, b) => b - a).forEach((removedPhysicalColumn) => {
                     colHeaders.splice(removedPhysicalColumn, 1);
                   });
-                }
-
-                if (Array.isArray(tableMeta.colWidths)) {
-                  tableMeta.colWidths = removeColWidths(tableMeta.colWidths, removedPhysicalColumns);
                 }
 
                 offset += groupAmount;
@@ -9550,9 +9543,20 @@ export default function Core(
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
-        case 'object': // array, addressed by the physical column index
-          width = (width as Record<number, unknown>)[toPhysicalWidthIndex(col)];
+        case 'object': { // array, addressed by the physical column index
+          const physicalColumn = col >= 0 ? instance.toPhysicalColumn(col) : null;
+          // The grid-level array is read through the entry each column was declared at, which the column keeps
+          // when columns are inserted or removed. A column inserted between others has none. A header or a
+          // column outside the index mapper keeps the index it was given.
+          let entry: number | null = physicalColumn ?? col;
+
+          if (physicalColumn !== null && width === tableMeta.colWidths) {
+            entry = columnSizeSettings.getDeclaredIndex(physicalColumn);
+          }
+
+          width = entry === null ? undefined : (width as Record<number, unknown>)[entry];
           break;
+        }
 
         case 'function': // called with the physical column index
           width = (width as (col: number) => unknown)(toPhysicalWidthIndex(col));
@@ -11211,6 +11215,7 @@ export default function Core(
   });
 
   const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
+  const columnSizeSettings = new ColumnSizeSettings(instance);
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
     // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).
