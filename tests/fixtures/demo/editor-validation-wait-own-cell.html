@@ -32,6 +32,11 @@
     if (!window.htEditor) {
       throw new Error('Unknown ?editor= value: ' + JSON.stringify(htParams.get('editor')));
     }
+    // `?dependent=held` gives column C an async validator too, held in `window.htDependentPending`.
+    window.htDependent = ({ none: 'none', held: 'held' })[htParams.get('dependent') ?? 'none'];
+    if (!window.htDependent) {
+      throw new Error('Unknown ?dependent= value: ' + JSON.stringify(htParams.get('dependent')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -70,6 +75,10 @@
      * The B validations asked and not answered yet, in the order they were asked.
      */
     window.htPending = [];
+    /**
+     * The C validations asked and not answered yet (`?dependent=held` only).
+     */
+    window.htDependentPending = [];
 
     /**
      * Rejects negative numbers once the spec releases the call: an async validator.
@@ -106,7 +115,13 @@
         // Wide enough for the formula bar's address box and formula area side by side.
         colWidths: 160,
         editor: 'formula',
-        columns: [{}, columnB, { type: 'numeric' }],
+        columns: [{}, columnB, window.htDependent === 'held' ? {
+          type: 'numeric',
+          validator(value, callback) {
+            window.htDependentPending.push({ row: this.visualRow, value, callback });
+          },
+        } : { type: 'numeric' }],
+        undo: true,
         formulas: {
           engine: HyperFormula,
         },

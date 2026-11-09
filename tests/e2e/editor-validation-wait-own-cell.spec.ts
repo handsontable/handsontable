@@ -78,6 +78,29 @@ async function expectAcceptedValueUpdatesDependent(grid: EditorValidationWaitPag
 }
 
 /**
+ * With an async validator on C too, commits an accepted value over B2 and undoes it with the keyboard
+ * right after the apply, while C2's validation (asked by the apply) is still held: the edit's undo step
+ * must not wait for it.
+ *
+ * @param {EditorValidationWaitPage} grid The page object, on the fixture with `goto('held')`.
+ */
+async function expectUndoRightAfterApply(grid: EditorValidationWaitPage): Promise<void> {
+  await grid.typeInCell(1, 1, '10');
+  await grid.page.keyboard.press('Enter');
+  await expect.poll(() => grid.heldValidations()).toEqual([expect.objectContaining({ row: 1 })]);
+  await grid.releaseNextValidation();
+
+  await expect(grid.cell(1, 2)).toHaveText('20');
+  await expect.poll(() => grid.heldDependentValidationCount()).toBe(1);
+  expect(await grid.undoAvailable()).toBe(true);
+
+  await grid.page.keyboard.press('ControlOrMeta+z');
+
+  await expect(grid.cell(1, 1)).toHaveText('18');
+  await expect(grid.cell(1, 2)).toHaveText('36');
+}
+
+/**
  * Starts a `validateCells()` batch, confirms an unchanged edit of B2 while the batch is held, and
  * releases the batch's answers before the editor's own.
  *
@@ -127,6 +150,15 @@ test.describe('Editor validation wait: the formula editor', { tag: BUNDLES_TAG }
 
     await grid.goto();
     await expectAcceptedValueUpdatesDependent(grid);
+  });
+
+  test('an accepted edit is undone right after the apply while a dependent is still validated', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new EditorValidationWaitPage(page, theme, bundle, 'formula');
+
+    await grid.goto('held');
+    await expectUndoRightAfterApply(grid);
   });
 
   test('Enter during a validateCells() batch closes the editor and moves down', async({ page, theme, bundle }) => {

@@ -23,8 +23,10 @@ interface FixtureWindow {
     getActiveEditor(): { isOpened?: () => boolean, state?: string } | undefined;
     getDataAtCell(row: number, col: number): unknown;
     getCellMeta(row: number, col: number): { valid?: boolean };
+    getPlugin(name: 'undoRedo'): { isUndoAvailable(): boolean, undo(): void };
   };
   htPending: Array<HeldValidation & { callback: (valid: boolean) => void }>;
+  htDependentPending: unknown[];
 }
 
 /**
@@ -79,10 +81,10 @@ export class EditorValidationWaitPage {
    * Opens the fixture and waits for the grid. `awaitFixtureBuilt()` rethrows a failed
    * `hyperformula-ui` import or a constructor throw the fixture captured.
    */
-  async goto(): Promise<void> {
+  async goto(dependent: 'none' | 'held' = 'none'): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/editor-validation-wait-own-cell.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&editor=${this.editor}`
+      `&editor=${this.editor}&dependent=${dependent}`
     );
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
@@ -153,6 +155,24 @@ export class EditorValidationWaitPage {
    */
   async clickValidateCells(): Promise<void> {
     await this.validateCellsButton.click();
+  }
+
+  /**
+   * How many C validations the fixture holds (`goto('held')` only).
+   *
+   * @returns {Promise<number>}
+   */
+  async heldDependentValidationCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htDependentPending.length);
+  }
+
+  /**
+   * Whether the grid's UndoRedo plugin has a step to undo.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async undoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getPlugin('undoRedo').isUndoAvailable());
   }
 
   /**
