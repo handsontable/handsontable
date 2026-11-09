@@ -4340,6 +4340,15 @@ export default function Core(
     this: HotInstance,
     row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
   ) {
+    // Inside `afterHideColumns` and `afterHideRows` at init the source data is loaded but the grid has no
+    // visual row yet, so a write would see every row as past the end and append a record.
+    if (!instance.view && instance.countRows() === 0 && instance.countSourceRows() > 0) {
+      warn('`setDataAtCell()` writes nothing while Handsontable initializes and the grid has no rows yet, ' +
+        'as inside `afterHideColumns`. Write in `afterInit`, or use `setSourceDataAtCell()`.');
+
+      return;
+    }
+
     const input = setDataInputToArray(row, column, value);
     const changes: CellChange[] = [];
     let changeSource = source;

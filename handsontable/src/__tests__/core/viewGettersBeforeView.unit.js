@@ -165,19 +165,27 @@ describe('Getters before the view exists', () => {
         },
       });
 
-      expect(hot.getDataAtCell(0, 0)).toBe('x');
-      expect(hot.getSourceDataAtCell(0, 0)).toBe('x');
+      expect(hot.getSourceData()).toEqual([['x', 'B1', 'C1'], ['A2', 'B2', 'C2']]);
+      // `afterChange` also fires once for the initial load, with `changes` set to `null`.
+      expect(afterChange.mock.calls.filter(([changes]) => changes !== null)).toEqual([[[[0, 0, 'A1', 'x']], 'edit']]);
     });
 
-    it('should apply `setDataAtCell` called inside `afterHideColumns` fired at init', () => {
-      hot = createGrid({
-        hiddenColumns: { columns: [1] },
-        afterHideColumns() {
-          this.setDataAtCell(0, 0, 'x');
-        },
-      });
+    it('should write nothing and warn from `setDataAtCell` inside `afterHideColumns` fired at init', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-      expect(hot.getDataAtCell(0, 0)).toBe('x');
+      try {
+        hot = createGrid({
+          hiddenColumns: { columns: [1] },
+          afterHideColumns() {
+            this.setDataAtCell(0, 0, 'x');
+          },
+        });
+
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(hot.getSourceData()).toEqual([['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']]);
+      } finally {
+        warn.mockRestore();
+      }
     });
 
     it('should apply `updateData` called inside the initial `afterLoadData`', () => {
