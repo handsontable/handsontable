@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-09T13:32:50.979Z",
+  "generatedAt": "2026-11-09T13:49:32.630Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 434,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2257
+    "entries": 2258
   },
   "rows": [
     {
@@ -459,6 +459,39 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "tier": "playwright",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 701,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "count7": 8,
+      "count30": 8,
+      "countAll": 8,
+      "runs30": 5,
+      "flakyRuns30": 5,
+      "branches30": 5,
+      "nightlyRuns30": 0,
+      "openBranches30": 5,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-09T13:48:29Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42619406851/attempts/2",
+        "branch": "feature/DEV-999_Comment-popup-position",
+        "leg": "e2e-firefox",
+        "status": "flaky",
+        "error": "Error: expect(locator).toHaveValue(expected) failed",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
@@ -598,39 +631,6 @@
         "leg": "UMD (theme: horizon)",
         "status": "failed",
         "error": "Expected 94 to be 97.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "tier": "playwright",
-      "file": "e2e/formula-builder-picking.spec.ts",
-      "line": 701,
-      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "count7": 7,
-      "count30": 7,
-      "countAll": 7,
-      "runs30": 5,
-      "flakyRuns30": 5,
-      "branches30": 5,
-      "nightlyRuns30": 0,
-      "openBranches30": 5,
-      "legs": [
-        "e2e-firefox"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-09T13:31:47Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42619406851",
-        "branch": "feature/DEV-999_Comment-popup-position",
-        "leg": "e2e-firefox",
-        "status": "flaky",
-        "error": "Error: expect(locator).toHaveValue(expected) failed",
         "source": "ci"
       },
       "needsTicket": true
