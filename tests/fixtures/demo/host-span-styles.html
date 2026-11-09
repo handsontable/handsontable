@@ -25,7 +25,8 @@
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
-
+  </style>
+  <style id="host-element-styles">
     /*
      * DEV-75. A host page that styles bare <span> elements. The values are deliberately odd so no
      * shipped theme token can coincide with them (main/horizon/classic use 12-14px sizes, 20-22px
@@ -42,15 +43,33 @@
       letter-spacing: 3px;
       font-family: serif;
     }
+
+    /*
+     * The same host page also gives bare <span> and <input> elements a box. The grid's own spans
+     * and inputs must keep their clean-render size under it: the spec loads the page with and
+     * without this <style> element and compares. Keep these values in sync with HOST_BOX_STYLES.
+     */
+    span,
+    input {
+      padding: 12px;
+      margin: 3px;
+      border: 2px solid rgb(255, 0, 0);
+    }
+
+    input {
+      height: 40px;
+      padding: 10px;
+    }
   </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
 
-  <!-- Positive control: a span the grid does not own. The spec asserts this one DOES take the host
-       rule, so a fixture edit that silences the rule turns the spec red instead of vacuously green. -->
+  <!-- Positive controls: a span and an input the grid does not own. The spec asserts they DO take the
+       host rules, so a fixture edit that silences a rule turns the spec red instead of vacuously green. -->
   <span data-testid="host-control">host control</span>
+  <input data-testid="host-input-control" value="host input control">
 
   <script>
     // The bundle under test is appended and the fixture waits for its `load` before building the
@@ -70,6 +89,10 @@
       const container = document.querySelector('[data-testid="grid"]');
 
       container.className = `ht-theme-${window.htTheme}`;
+
+      if (htParams.has('withoutHostStyles')) {
+        document.getElementById('host-element-styles').remove();
+      }
 
       const categories = ['Electronics', 'Medical Supplies', 'Auto Parts', 'Fresh Produce', 'Textiles'];
 
@@ -98,6 +121,20 @@
           showNavigation: true,
         },
         layoutDirection: 'ltr',
+        ...(htParams.has('menus') ? {
+          dropdownMenu: {
+            items: {
+              host_checked: { name: 'Checked item', checked: true, callback() {} },
+              host_mixed: { name: 'Mixed item', checked: 'mixed', callback() {} },
+              filter_by_condition: {},
+              filter_operators: {},
+              filter_by_condition2: {},
+              filter_by_value: {},
+              filter_action_bar: {},
+            },
+          },
+          filters: true,
+        } : {}),
         ...(htParams.has('sheetsBar') ? {
           sheetsBar: {
             sheets: [

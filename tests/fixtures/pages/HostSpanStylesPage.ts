@@ -24,6 +24,33 @@ export const HOST_SPAN_STYLES: TextMetrics = {
 };
 
 /**
+ * The box the fixture's host rules give bare `<span>` and `<input>` elements. Must match the
+ * `<style id="host-element-styles">` block in fixtures/demo/host-span-styles.html.
+ */
+export const HOST_BOX_STYLES = {
+  span: { 'padding-top': '12px', 'margin-top': '3px', 'border-top-width': '2px' },
+  input: { 'padding-top': '10px', 'margin-top': '3px', 'border-top-width': '2px', height: '40px' },
+} as const;
+
+/**
+ * The computed properties a host element rule can push into the grid's own spans and inputs, read
+ * by `HostSpanStylesPage#boxMetrics()`.
+ */
+export const BOX_PROPERTIES = [
+  'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+  'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+  'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+  'height', 'line-height', 'font-size', 'font-weight', 'letter-spacing', 'font-family',
+] as const;
+
+/**
+ * The size and position of one element, plus its computed `BOX_PROPERTIES`. The position is
+ * relative to the element's `.handsontable` root, so a menu that opens a few pixels lower does not
+ * hide or fake a difference inside it.
+ */
+export type BoxMetrics = Record<string, string | number>;
+
+/**
  * Page object for the host-span-styles fixture (fixtures/demo/host-span-styles.html).
  *
  * The fixture styles bare `<span>` elements on the host page. Every locator below points at either
@@ -39,6 +66,11 @@ export class HostSpanStylesPage {
    * A span outside the grid. It must compute the host values; that proves the hostile rule is live.
    */
   readonly hostControl: Locator;
+
+  /**
+   * An input outside the grid. It must take the host box rule; that proves the input rule is live.
+   */
+  readonly hostInputControl: Locator;
 
   /**
    * The pagination bar root (a div). Cascade parent of both labels.
@@ -65,6 +97,35 @@ export class HostSpanStylesPage {
   readonly columnHeaderSpan: Locator;
 
   /**
+   * The corner header cell and its span, and the first row's header cell, header span, and data cell.
+   */
+  readonly cornerHeaderCell: Locator;
+  readonly cornerHeaderSpan: Locator;
+  readonly rowHeaderCell: Locator;
+  readonly rowHeaderSpan: Locator;
+  readonly firstDataCell: Locator;
+
+  /**
+   * The column dropdown menu (present only with `goto({ menus: true })`), its check marks, and the
+   * Filters controls inside it.
+   */
+  readonly dropdownMenu: Locator;
+  readonly checkMark: Locator;
+  readonly checkMarkIcon: Locator;
+  readonly mixedMark: Locator;
+  readonly mixedMarkIcon: Locator;
+  readonly conditionCaptionLabel: Locator;
+  readonly conditionInput: Locator;
+  readonly operatorRadio: Locator;
+  readonly valueSearchInput: Locator;
+  readonly valueCheckboxLabel: Locator;
+  readonly valueCheckboxText: Locator;
+  readonly valueCheckboxBox: Locator;
+  readonly valueCheckboxInput: Locator;
+  readonly okButton: Locator;
+  readonly cancelButton: Locator;
+
+  /**
    * The active sheet tab (a div, the cascade parent of its label, chevron and rename field), and
    * the spans and the input inside it. Present only with `goto({ sheetsBar: true })`.
    */
@@ -86,6 +147,7 @@ export class HostSpanStylesPage {
     this.bundle = bundle;
 
     this.hostControl = page.getByTestId('host-control');
+    this.hostInputControl = page.getByTestId('host-input-control');
 
     this.paginationBar = page.locator('.ht-pagination');
     this.pageSizeLabel = this.paginationBar.locator('.ht-page-size-section__label');
@@ -102,6 +164,29 @@ export class HostSpanStylesPage {
     this.columnHeaderCell = page.locator('.ht_clone_top thead tr').first().locator('th').nth(1);
     this.columnHeaderSpan = this.columnHeaderCell.locator('span.colHeader');
 
+    this.cornerHeaderCell = page.locator('.ht_clone_top_inline_start_corner thead th').first();
+    this.cornerHeaderSpan = this.cornerHeaderCell.locator('span.cornerHeader');
+    this.rowHeaderCell = page.locator('.ht_clone_inline_start tbody tr').first().locator('th');
+    this.rowHeaderSpan = this.rowHeaderCell.locator('span.rowHeader');
+    this.firstDataCell = page.locator('.ht_master tbody tr').first().locator('td').first();
+
+    this.dropdownMenu = page.locator('.htDropdownMenu[role="menu"]');
+    this.checkMark = this.dropdownMenu.locator('.htItemWrapper > span.selected');
+    this.checkMarkIcon = this.checkMark.locator('.ht-icon');
+    this.mixedMark = this.dropdownMenu.locator('.htItemWrapper > span.htMixed');
+    this.mixedMarkIcon = this.mixedMark.locator('.ht-icon');
+    this.conditionCaptionLabel = this.dropdownMenu.locator('.htFiltersMenuCondition .htUISelectCaptionLabel').first();
+    this.conditionInput = this.dropdownMenu.locator('.htFiltersMenuCondition .htUIInput input').first();
+    this.operatorRadio = this.dropdownMenu.locator('.htFiltersMenuOperators input[type="radio"]').first();
+    this.valueSearchInput = this.dropdownMenu.locator('.htUIMultipleSelectSearch input');
+    this.valueCheckboxLabel = this.dropdownMenu
+      .locator('.htUIMultipleSelect .ht_master .htCheckboxRendererLabel').first();
+    this.valueCheckboxText = this.valueCheckboxLabel.locator('> span:not(.htCheckboxRendererBox)');
+    this.valueCheckboxBox = this.valueCheckboxLabel.locator('.htCheckboxRendererBox');
+    this.valueCheckboxInput = this.valueCheckboxLabel.locator('.htCheckboxRendererInput');
+    this.okButton = this.dropdownMenu.locator('.htUIButtonOK input');
+    this.cancelButton = this.dropdownMenu.locator('.htUIButtonCancel input');
+
     this.activeTab = page.locator('.ht-sheets-bar__tab--active');
     this.tabLabel = this.activeTab.locator('.ht-sheets-bar__tab-label');
     this.tabChevron = this.activeTab.locator('.ht-sheets-bar__tab-chevron');
@@ -116,23 +201,47 @@ export class HostSpanStylesPage {
    *
    * @param {object} [options] Fixture options.
    * @param {boolean} [options.sheetsBar] Adds the sheets bar to the grid.
+   * @param {boolean} [options.menus] Adds Filters and a dropdown menu with a checked and a mixed item.
+   * @param {boolean} [options.withoutHostStyles] Removes the host element rules before the grid is
+   * built, for the clean render a hostile one is compared with.
    */
-  async goto({ sheetsBar = false }: { sheetsBar?: boolean } = {}): Promise<void> {
+  async goto({ sheetsBar = false, menus = false, withoutHostStyles = false }: {
+    sheetsBar?: boolean;
+    menus?: boolean;
+    withoutHostStyles?: boolean;
+  } = {}): Promise<void> {
     const pageErrors: string[] = [];
 
     this.page.on('pageerror', error => pageErrors.push(error.message));
 
-    const query = sheetsBar ? '&sheetsBar=1' : '';
+    const query = [
+      sheetsBar ? '&sheetsBar=1' : '',
+      menus ? '&menus=1' : '',
+      withoutHostStyles ? '&withoutHostStyles=1' : '',
+    ].join('');
 
     await this.page.goto(`/tests/fixtures/demo/host-span-styles.html?theme=${this.theme}&bundle=${this.bundle}${query}`);
     await awaitBundle(this.page);
 
     const errorMessage = pageErrors.length > 0 ? `the fixture page threw: ${pageErrors.join(' | ')}` : undefined;
 
-    // Fail loud if the fixture's hostile `span {}` rule is not applying: without it every later
-    // "span equals parent" assertion would pass with the guard reverted.
-    for (const property of TEXT_PROPERTIES) {
-      await expect(this.hostControl, errorMessage).toHaveCSS(property, HOST_SPAN_STYLES[property]);
+    if (withoutHostStyles) {
+      await expect(this.hostControl, errorMessage).not.toHaveCSS('font-size', HOST_SPAN_STYLES['font-size']);
+      await expect(this.hostInputControl, errorMessage).not.toHaveCSS('height', HOST_BOX_STYLES.input.height);
+    } else {
+      // Fail loud if the fixture's hostile rules are not applying: without them every later
+      // "span equals parent" or "clean equals hostile" assertion would pass with the guard reverted.
+      for (const property of TEXT_PROPERTIES) {
+        await expect(this.hostControl, errorMessage).toHaveCSS(property, HOST_SPAN_STYLES[property]);
+      }
+
+      for (const [property, value] of Object.entries(HOST_BOX_STYLES.span)) {
+        await expect(this.hostControl, errorMessage).toHaveCSS(property, value);
+      }
+
+      for (const [property, value] of Object.entries(HOST_BOX_STYLES.input)) {
+        await expect(this.hostInputControl, errorMessage).toHaveCSS(property, value);
+      }
     }
 
     await expect(this.pageNavLabel, errorMessage).toBeVisible();
@@ -156,6 +265,78 @@ export class HostSpanStylesPage {
   async openAllSheetsMenu(): Promise<void> {
     await this.page.locator('.ht-sheets-bar__all').click();
     await expect(this.menuItemName).toBeVisible();
+  }
+
+  /**
+   * Opens the dropdown menu of the "Airport" column, with the Filters controls in it.
+   */
+  async openColumnMenu(): Promise<void> {
+    await this.columnHeaderCell.locator('.changeType').click();
+    await expect(this.dropdownMenu).toBeVisible();
+    await expect(this.okButton).toBeVisible();
+    await expect(this.valueCheckboxInput).toBeAttached();
+  }
+
+  /**
+   * Picks a condition in the first "Filter by condition" select, which shows its value input and
+   * the and/or radios.
+   *
+   * @param {string} name The condition's menu label.
+   */
+  async chooseCondition(name: string): Promise<void> {
+    await this.conditionCaptionLabel.click();
+
+    const conditionsMenu = this.page.locator('.htFiltersConditionsMenu[role="menu"]');
+
+    await conditionsMenu.getByRole('menuitem', { name, exact: true }).click();
+    await expect(conditionsMenu).toBeHidden();
+    await expect(this.conditionCaptionLabel).toHaveText(name);
+    await expect(this.conditionInput).toBeVisible();
+    await expect(this.operatorRadio).toBeVisible();
+  }
+
+  /**
+   * Reads the size, the position inside the element's `.handsontable` root, and the computed
+   * `BOX_PROPERTIES` of several elements, keyed by the caller's names. All of them are read in one
+   * evaluation, so no render can land between two reads.
+   *
+   * @param {Record<string, Locator>} locators The elements to read.
+   * @returns {Promise<Record<string, BoxMetrics>>} The metrics keyed by the same names.
+   */
+  async boxMetrics(locators: Record<string, Locator>): Promise<Record<string, BoxMetrics>> {
+    const handles = await Promise.all(Object.values(locators).map(locator => locator.elementHandle()));
+
+    const metrics = await this.page.evaluate(([elements, properties]) => elements.map((element) => {
+      if (!element) {
+        return null;
+      }
+
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      const rootRect = (element.closest('.handsontable') ?? document.body).getBoundingClientRect();
+      const result: Record<string, string | number> = {
+        x: rect.x - rootRect.x,
+        y: rect.y - rootRect.y,
+        width: rect.width,
+        renderedHeight: rect.height,
+      };
+
+      for (const property of properties) {
+        result[property] = style.getPropertyValue(property);
+      }
+
+      return result;
+    }), [handles, BOX_PROPERTIES] as const);
+
+    return Object.fromEntries(Object.keys(locators).map((name, index) => {
+      const value = metrics[index];
+
+      if (!value) {
+        throw new Error(`boxMetrics(): "${name}" is not in the page`);
+      }
+
+      return [name, value];
+    }));
   }
 
   /**

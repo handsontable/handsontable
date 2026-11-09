@@ -1,0 +1,26 @@
+@use "../utils/mixins";
+
+@mixin output {
+  :where(.handsontable) {
+    .colHeader:where(span),
+    .rowHeader:where(span),
+    .ht-page-size-section__label,
+    .ht-page-navigation-section__label,
+    .ht-multi-select-arrow,
+    .ht-multi-select-chip,
+    .ht-multi-select-chip-label,
+    .ht-multi-select-chip-remove,
+    .ht-multi-select-overflow,
+    .htUISelectCaptionLabel,
+    .htCheckboxRendererBox,
+    .htCheckboxRendererInput,
+    .htCheckboxRendererLabelText,
+    :where(.htUIInput) > [type="text"],
+    :where(.htUIInput) > [type="button"],
+    :where(.htUIRadio) > [type="radio"],
+    :where(.htItemWrapper) > .selected:where(span),
+    :where(.htItemWrapper) > .htMixed:where(span) {
+      @include mixins.revert-host-element;
+    }
+  }
+}

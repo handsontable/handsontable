@@ -1,8 +1,11 @@
 import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { type Locator, type Page } from '@playwright/test';
 import {
   HostSpanStylesPage,
+  HOST_BOX_STYLES,
   HOST_SPAN_STYLES,
   TEXT_PROPERTIES,
+  type BoxMetrics,
   type TextMetrics,
 } from '../fixtures/pages/HostSpanStylesPage';
 
@@ -193,5 +196,159 @@ test.describe('host-page span styles do not leak into grid UI spans', { tag: THE
 
     await expect(fixture.columnHeaderSpan).toHaveCSS('font-size', expected['font-size']);
     await expect(fixture.columnHeaderSpan).toHaveCSS('line-height', expected['line-height']);
+  });
+});
+
+/**
+ * The same host page also gives bare `<span>` and `<input>` elements padding, a margin, a border and
+ * (inputs) a height. Every test below renders the page twice, without the host rules and with them,
+ * and expects the grid's own spans and inputs, and the rows, bars and menus around them, to measure
+ * the same both times. `goto()` first proves the host rules apply to a span and an input outside the
+ * grid, so the comparison cannot pass because the rules went missing.
+ */
+test.describe('host-page span and input boxes do not resize grid UI', { tag: THEMES_TAG }, () => {
+  type ReadMetrics = (fixture: HostSpanStylesPage) => Promise<Record<string, BoxMetrics>>;
+  type GotoOptions = Parameters<HostSpanStylesPage['goto']>[0];
+
+  async function renderCleanAndHostile(
+    page: Page,
+    theme: string,
+    bundle: string,
+    options: GotoOptions,
+    read: ReadMetrics,
+  ): Promise<{ clean: Record<string, BoxMetrics>; hostile: Record<string, BoxMetrics> }> {
+    const cleanFixture = new HostSpanStylesPage(page, theme, bundle);
+
+    await cleanFixture.goto({ ...options, withoutHostStyles: true });
+
+    const clean = await read(cleanFixture);
+    const hostileFixture = new HostSpanStylesPage(page, theme, bundle);
+
+    await hostileFixture.goto(options);
+
+    const hostile = await read(hostileFixture);
+
+    return { clean, hostile };
+  }
+
+  function expectSameMetrics(clean: Record<string, BoxMetrics>, hostile: Record<string, BoxMetrics>): void {
+    for (const name of Object.keys(clean)) {
+      expect(hostile[name], `${name} measures differently under the host span and input rules`).toEqual(clean[name]);
+    }
+  }
+
+  function expectCleanBoxDiffersFromHost(metrics: BoxMetrics, element: 'span' | 'input'): void {
+    const differs = Object.entries(HOST_BOX_STYLES[element])
+      .some(([property, value]) => metrics[property] !== value);
+
+    expect(differs, `the clean ${element} already has the host box`).toBe(true);
+  }
+
+  function readAll(locators: (fixture: HostSpanStylesPage) => Record<string, Locator>): ReadMetrics {
+    return fixture => fixture.boxMetrics(locators(fixture));
+  }
+
+  test('header spans keep the header and row heights', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, {}, readAll(fixture => ({
+      columnHeaderCell: fixture.columnHeaderCell,
+      columnHeaderSpan: fixture.columnHeaderSpan,
+      cornerHeaderCell: fixture.cornerHeaderCell,
+      cornerHeaderSpan: fixture.cornerHeaderSpan,
+      rowHeaderCell: fixture.rowHeaderCell,
+      rowHeaderSpan: fixture.rowHeaderSpan,
+      firstDataCell: fixture.firstDataCell,
+    })));
+
+    for (const span of ['columnHeaderSpan', 'cornerHeaderSpan', 'rowHeaderSpan']) {
+      expectCleanBoxDiffersFromHost(clean[span], 'span');
+    }
+
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('multiselect chips and the dropdown arrow keep their boxes', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, {}, readAll(fixture => ({
+      multiselectCell: fixture.multiselectCell,
+      arrow: fixture.arrow,
+      chip: fixture.chip,
+      chipLabel: fixture.chipLabel,
+      chipRemove: fixture.chipRemove,
+      overflow: fixture.overflow,
+    })));
+
+    for (const span of ['arrow', 'chip', 'chipLabel', 'chipRemove', 'overflow']) {
+      expectCleanBoxDiffersFromHost(clean[span], 'span');
+    }
+
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('the pagination bar and its labels keep their size', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, {}, readAll(fixture => ({
+      paginationBar: fixture.paginationBar,
+      pageSizeLabel: fixture.pageSizeLabel,
+      pageNavLabel: fixture.pageNavLabel,
+    })));
+
+    expectCleanBoxDiffersFromHost(clean.pageSizeLabel, 'span');
+    expectCleanBoxDiffersFromHost(clean.pageNavLabel, 'span');
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('the Filters controls keep the dropdown menu size', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { menus: true }, async(fixture) => {
+      await fixture.openColumnMenu();
+
+      const closed = await fixture.boxMetrics({
+        menu: fixture.dropdownMenu,
+        conditionCaptionLabel: fixture.conditionCaptionLabel,
+        valueSearchInput: fixture.valueSearchInput,
+        valueCheckboxLabel: fixture.valueCheckboxLabel,
+        valueCheckboxText: fixture.valueCheckboxText,
+        valueCheckboxBox: fixture.valueCheckboxBox,
+        valueCheckboxInput: fixture.valueCheckboxInput,
+        okButton: fixture.okButton,
+        cancelButton: fixture.cancelButton,
+      });
+
+      await fixture.chooseCondition('Contains');
+
+      const withCondition = await fixture.boxMetrics({
+        menuWithCondition: fixture.dropdownMenu,
+        conditionInput: fixture.conditionInput,
+        operatorRadio: fixture.operatorRadio,
+        okButtonWithCondition: fixture.okButton,
+      });
+
+      return { ...closed, ...withCondition };
+    });
+
+    for (const span of ['conditionCaptionLabel', 'valueCheckboxText', 'valueCheckboxBox']) {
+      expectCleanBoxDiffersFromHost(clean[span], 'span');
+    }
+
+    for (const input of ['valueSearchInput', 'valueCheckboxInput', 'okButton', 'cancelButton', 'conditionInput',
+      'operatorRadio']) {
+      expectCleanBoxDiffersFromHost(clean[input], 'input');
+    }
+
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('menu check marks stay where the clean render draws them', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { menus: true }, async(fixture) => {
+      await fixture.openColumnMenu();
+
+      return fixture.boxMetrics({
+        checkMark: fixture.checkMark,
+        checkMarkIcon: fixture.checkMarkIcon,
+        mixedMark: fixture.mixedMark,
+        mixedMarkIcon: fixture.mixedMarkIcon,
+      });
+    });
+
+    expectCleanBoxDiffersFromHost(clean.checkMark, 'span');
+    expectCleanBoxDiffersFromHost(clean.mixedMark, 'span');
+    expectSameMetrics(clean, hostile);
   });
 });
