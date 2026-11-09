@@ -418,6 +418,27 @@ export class FormulaBuilderPage {
   }
 
   /**
+   * The theme's accent color as the browser serializes it, resolved through a probe element inside
+   * the grid's root, where the theme applies.
+   *
+   * @returns {Promise<string>}
+   */
+  async accentColor(): Promise<string> {
+    return this.page.evaluate(() => {
+      const probe = document.createElement('div');
+
+      probe.style.color = 'var(--ht-accent-color)';
+      (window as unknown as FixtureWindow).hot.rootElement.appendChild(probe);
+
+      const color = getComputedStyle(probe).color;
+
+      probe.remove();
+
+      return color;
+    });
+  }
+
+  /**
    * The last selection range, as `getSelectedLast()` returns it.
    *
    * @returns {Promise<SelectionTuple | null>}

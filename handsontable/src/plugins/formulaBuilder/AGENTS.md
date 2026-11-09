@@ -495,10 +495,13 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
   grid surface uses. The formula bar's own rings (the address box and the bar-hosted editor) use it too:
   `--hfe-formula-bar-input-focus-ring` is `--ht-cell-selection-border-color`, so a focused bar reads like
   the selected cell. A darker text-accent mix was tried and looked like a different control next to the
-  cell. Raising horizon's contrast belongs in the theme token, not in a bar override. The
+  cell. Raising horizon's contrast belongs in the theme token, not in a bar override. The accent text
+  (matched letters, the active parameter name), the active argument chip, and the paren match read the
+  theme accent too, as the design does, so on horizon they measure 2.45:1 and on classic 3.08:1 on white. The
   bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
   of the ring width (the idle overlay too, so the text does not shift on focus); drawing the ring outward
-  instead is clipped by the top slot. Pinned by "the bar editor's focus ring" and "the address box's focus ring" in
+  instead is clipped by the top slot. Pinned by "the bar editor's focus ring", "the address box's focus ring" and "the matched letters, the
+  active argument chip and the paren match use the theme accent" in
   `tests/e2e/formula-builder-popups.spec.ts`.
 - `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
   exact version because the 0.x line may break in a minor.

@@ -86,6 +86,23 @@ test.describe('formulaBuilder autocomplete popup', { tag: [THEMES_TAG, BUNDLES_T
     await expect(grid.cell(3, 1)).toBeFocused();
     expect(await grid.sourceAt(3, 1)).toBe('');
   });
+
+  test('the matched letters, the active argument chip and the paren match use the theme accent', async({ page }) => {
+    const accent = await grid.accentColor();
+
+    await expect(grid.suggestions.locator('.hfe-suggestions__match').first()).toHaveCSS('color', accent);
+
+    await page.keyboard.type('M(');
+    await expect(grid.fnHelp.locator('.hfe-fn-help__arg--active')).toHaveCSS('background-color', accent);
+
+    const tokens = await grid.editorInput.evaluate((input) => {
+      const style = getComputedStyle(input);
+
+      return [style.getPropertyValue('--hfe-token-paren-match'), style.getPropertyValue('--ht-accent-color')];
+    });
+
+    expect(tokens[0]).toBe(tokens[1]);
+  });
 });
 
 // Engine-neutral: a DOM placement, so not tagged for the other engines.

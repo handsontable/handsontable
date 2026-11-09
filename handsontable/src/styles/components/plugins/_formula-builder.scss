@@ -17,13 +17,6 @@ $error-text-color: color-mix(in srgb, var(--ht-notification-error-accent) 65%, v
 // active row) to 4.75:1 and stays muted next to the function names.
 $secondary-text-color: color-mix(in srgb, var(--ht-foreground-secondary-color) 80%, var(--ht-foreground-color));
 
-// The accent color for TEXT (the matched letters of a suggestion, a parameter name in the function
-// help, a matching parenthesis) and for the chip that carries the active argument under light text.
-// The theme accent is drawn for borders and focus rings: classic's measures 3.08:1 and horizon's 2.45:1
-// on white. Mixing 45% of the foreground in lifts the lowest of the three light themes to 4.85:1
-// (horizon, on the hover background of a suggestion); 40% left horizon at 4.41:1.
-$accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-foreground-color));
-
 @mixin output {
   // hyperformula-ui puts the grid's theme class on the grid root, the formula bar, the popup portal
   // it mounts in the document body, and a popup moved into a host element. Those are the elements
@@ -51,7 +44,7 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
     --hfe-color-background: var(--ht-cell-editor-background-color);
     --hfe-color-foreground: var(--ht-cell-editor-foreground-color);
     --hfe-color-foreground-secondary: var(--ht-foreground-secondary-color);
-    --hfe-color-accent: #{$accent-text-color};
+    --hfe-color-accent: var(--ht-accent-color);
     --hfe-color-border: var(--ht-border-color);
     --hfe-color-error: #{$error-text-color};
     --hfe-color-highlight: color-mix(
@@ -91,7 +84,7 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
     --hfe-menu-border-color: var(--ht-menu-border-color);
     --hfe-menu-background: var(--ht-background-color);
     --hfe-menu-kbd-row-border-color: var(--ht-background-color);
-    --hfe-menu-chip-background: #{$accent-text-color};
+    --hfe-menu-chip-background: var(--ht-accent-color);
     --hfe-menu-chip-foreground: var(--ht-background-color);
     --hfe-menu-chip-border-radius: var(--ht-chip-border-radius);
     --hfe-menu-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur)
@@ -105,7 +98,7 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
     --hfe-token-op: var(--ht-foreground-color);
     --hfe-token-paren: var(--ht-foreground-color);
     --hfe-token-paren-err: #{$error-text-color};
-    --hfe-token-paren-match: #{$accent-text-color};
+    --hfe-token-paren-match: var(--ht-accent-color);
     --hfe-token-bracket: var(--ht-foreground-color);
     --hfe-token-sep: var(--ht-foreground-color);
     --hfe-token-sheet: #{$secondary-text-color};
