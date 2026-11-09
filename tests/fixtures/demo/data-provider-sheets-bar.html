@@ -76,7 +76,9 @@
     `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` park the same way on
     `window.htServer.releaseUpdates()`; `failNextUpdate` makes the next released mutation reject, and every
     `onRowsUpdate` call records its `{ id, changes }` rows in `window.htServer.updatePayloads`. `failNext`
-    makes the next `fetchRows` call for a prefix reject instead of resolving.
+    makes the next `fetchRows` call for a prefix reject instead of resolving. `window.htReleaseFetch(prefix)` and
+    `window.htFailNextFetch(prefix)` do the same two things from a top-level name, because a screen reader
+    scenario's `call` step names a function on `window`, never a path into an object.
 
     `window.htServer.consoleProblems` mirrors every `console.error`/`console.warn` call so specs can
     assert on it directly instead of reading the browser's own console. `window.htServer.events`
@@ -141,6 +143,10 @@
     };
 
     window.htServer = server;
+    window.htReleaseFetch = prefix => server.release(prefix);
+    window.htFailNextFetch = (prefix) => {
+      server.failNext.add(prefix);
+    };
 
     ['error', 'warn'].forEach((level) => {
       const original = console[level];

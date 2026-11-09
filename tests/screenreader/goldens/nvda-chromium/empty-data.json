@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "empty-data",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T13:52:46.830Z"
+  },
+  "steps": {
+    "tab-last-header": "qty column header sub menu row 1 column 8",
+    "tab-empty-message": "no data available there s nothing to display yet section",
+    "tab-out": "after the grid button",
+    "shift-tab-empty-message": "no data available there s nothing to display yet section",
+    "shift-tab-header": "table qty column header sub menu row 1 column 8",
+    "arrow-left-header": "in stock column header sub menu row 1 column 7"
+  }
+}

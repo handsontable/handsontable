@@ -139,6 +139,8 @@ test('transcriptCounts and the log say what passed and what did not', () => {
   assert.equal(describeAction({ selectCell: [0, -1] }), 'selectCell [0, -1]');
   assert.equal(describeAction({ read: 'next' }), 'read next');
   assert.equal(describeAction({ activate: true }), 'activate', 'a primitive without a value is its name');
+  assert.equal(describeAction({ call: ['resolveRequest', 0, 'New A'] }), 'call resolveRequest(0, "New A")', 'a host event reads as the call it makes');
+  assert.equal(describeAction({ call: ['htReleaseFetch'] }), 'call htReleaseFetch()');
 });
 
 test('the log lists the steps the lane did not drive, what the reader said preparing a step, and the traversal', () => {
