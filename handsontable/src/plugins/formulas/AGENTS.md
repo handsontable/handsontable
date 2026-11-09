@@ -660,7 +660,8 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   deferred change was rejected and the apply writes nothing: the immediate changes still reach the data, so
   the set reaches `beforeChangeRender`. Pinned by `validates a dependent of a deferred and an immediate cell
   of one set once, at the apply` (reverse-order answers) and `validates a shared dependent when the deferred
-  cell is rejected and the immediate one applies`. **Not reachable by a test, documented:** a set reaches
+  cell is rejected and the immediate one applies`. **Not covered by a test, documented** (two overlapping
+  calls where the second overtakes the first's immediate cell would reach it): a set reaches
   no `beforeChangeRender` only when its array ends empty. A cell without `allowInvalid: false` can leave it
   only through the write ledger, when a newer applied write to the same cell overtook it, so a set whose
   immediate changes were all overtaken and whose deferred changes were all rejected or overtaken never
@@ -692,6 +693,18 @@ Any change of the cell's validator or `allowInvalid` between the two (an `afterS
 registered after Formulas, or a `setCellMeta()` / `updateSettings()` made while the validator of a change
 written at once still works) that turns it into a change the Core rejects leaves that change written: with
 the restore gone, the engine keeps the rejected value until the next full write.
+
+**Known limit (held dependents are engine addresses).** `heldDependents` keeps the engine addresses the
+early write found. A row or column inserted or removed while a deferred change waits for its validator
+moves the real dependent, so the apply validates the cell now at the old address and the moved dependent
+is not validated. The Core has the same limit for the change itself (it is applied at its old visual
+address). Physical indexes would fix the dependents only.
+
+**Known limit (a deferred cell past the last row starts no walk).** `#splitDependentsOfDeferred()` walks
+from deferred cells the engine already holds. A deferred change past the last row has no engine cell yet,
+so a dependent it shares with an immediate cell of the set (`=SUM(A1:A5)+B1`, A5 created by the set) is
+validated by the early write from the old value, and an out-of-order async answer can leave its mark
+wrong. Develop behaves the same.
 
 **The validator of a formula still gets its result: the validation probe.** `#onBeforeValidate` hands a
 validator the engine's result for a formula cell (an error as its text, a date or time column's serial
