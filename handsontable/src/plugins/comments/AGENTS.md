@@ -250,6 +250,18 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 - **Reset the editor position to (0, 0) before measuring**, or the previous position influences the
   opening-direction calculation.
 - The editor flips left/right when it would leave the browser viewport.
+- **The box reaches `EDITOR_TOP_OVERLAP` (1px) above its cell, so its top edge sits on the selection border's top
+  edge.** The 2px selection border is drawn 1px outside the cell's box, and the design has the editor flush with it
+  (the box's start border already overlaps the border's end edge through the textarea's `margin: 0 -1px`). The
+  reach-up is applied AFTER the clamp, and only when
+  `!isFlippedUp && !targetingPreviousRow && clamped.y === y && y - overlap >= scrollY`:
+  a flipped box keeps its own placement (its bottom ends 1px above the cell's bottom edge, pinned by the flip
+  specs), a box anchored to the neighbor of a hidden row has no selection border to reach (a hidden cell cannot be
+  selected), a clamped box is already where the viewport allows, and a cell at the window's top edge has no room
+  above it. Subtracting the 1px before the clamp looked simpler and broke that last case: `y` went to -1, below
+  the viewport's top edge, so `clampPositionToViewport` moved the box a whole margin (8px) down. Pinned by
+  `tests/e2e/comments-editor-selection-alignment.spec.ts` (all three themes) and the "not scrolled" cases of
+  `__tests__/comments.spec.js`, which assert the editor top equals the cell top for a cell at the window's top.
 - **The RTL flip compares against the viewport, not the document extent.** The branch is keyed on the
   grid's direction (`hot.isRtl()`), not the page's, so `scrollX` can be zero, negative (RTL page), or
   positive (RTL grid on an LTR page). The viewport's left edge in document coordinates is

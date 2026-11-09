@@ -19,6 +19,7 @@ import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorHeight, getEditorAnchorWidth } from './utils';
 import {
+  EDITOR_TOP_OVERLAP,
   META_COMMENT,
   META_COMMENT_VALUE,
   META_STYLE,
@@ -883,6 +884,7 @@ export class Comments extends BasePlugin {
     const mergedBorderCompensation = metaColspan > 1 ? 1 : 0;
     let x = left + rootWindow.scrollX + lastColWidth - mergedBorderCompensation;
     let y = top + rootWindow.scrollY + lastRowHeight;
+    let isFlippedUp = false;
 
     if (this.hot.isRtl()) {
       x -= (editorWidth + lastColWidth);
@@ -898,6 +900,7 @@ export class Comments extends BasePlugin {
 
     if (top + editorHeight > innerHeight - horizontalScrollbarWidth) {
       y -= (editorHeight - (blockHeight ?? cellHeight) + 1);
+      isFlippedUp = true;
     }
 
     // Cap the display size to the viewport. This setSize MUST happen before
@@ -925,7 +928,14 @@ export class Comments extends BasePlugin {
       }
     );
 
-    this.#editor.setPosition(clamped.x, clamped.y);
+    // The selection border of the cell is drawn `EDITOR_TOP_OVERLAP` above the cell's box, and the editor's top edge
+    // goes up to it. Only a box that sits on its cell does: a flipped or clamped one has its own placement, one
+    // anchored to a visible neighbor of a hidden row has no border to reach, and a cell at the window's top edge has
+    // no room above it (the clamp would move the box a margin down).
+    const reachesUp = !isFlippedUp && !targetingPreviousRow && clamped.y === y &&
+      y - EDITOR_TOP_OVERLAP >= rootWindow.scrollY;
+
+    this.#editor.setPosition(clamped.x, reachesUp ? clamped.y - EDITOR_TOP_OVERLAP : clamped.y);
     this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY) ?? false);
     this.#editor.observeSize();
   }
