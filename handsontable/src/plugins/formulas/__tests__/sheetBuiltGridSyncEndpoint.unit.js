@@ -68,7 +68,7 @@ describe('Formulas sync endpoint of a grid built from an engine sheet', () => {
     expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a']);
   });
 
-  it('sends the order once on switchSheet() of a grid built with data', () => {
+  it('sends no order on switchSheet() of a grid built with data after a sort', () => {
     const engine = buildEngine();
 
     engine.addSheet('S2');
@@ -92,6 +92,42 @@ describe('Formulas sync endpoint of a grid built from an engine sheet', () => {
     // sort, so the grid's sequence is the identity when the endpoint is set up and no order is sent.
     expect(setRowOrder).toHaveBeenCalledTimes(0);
     expect(hot.getData()).toEqual([['y', 20, 40], ['x', 10, 20], ['z', 30, 60]]);
+  });
+
+  it('sends the order once on switchSheet() of a grid built with data and a manual row move', () => {
+    const engine = buildEngine();
+
+    engine.addSheet('S2');
+    engine.setSheetContent(engine.getSheetId('S2'), [['y', 20, '=B1*2'], ['x', 10, '=B2*2'], ['z', 30, '=B3*2']]);
+
+    hot = new Handsontable(container, {
+      data: SHEET_CONTENT.map(row => [...row]),
+      formulas: { engine, sheetName: 'S1' },
+      manualRowMove: [2, 0, 1],
+      licenseKey: LICENSE_KEY,
+    });
+
+    const s1Id = engine.getSheetId('S1');
+    const s2Id = engine.getSheetId('S2');
+    const s1Before = engine.getSheetSerialized(s1Id);
+    const moveRows = jest.spyOn(engine, 'moveRows');
+    const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+
+    hot.getPlugin('formulas').switchSheet('S2');
+
+    // The move survives the switch's `loadData()` (ManualRowMove re-applies its array), so the order has to
+    // reach S2 exactly once. Develop makes one engine call, but it is `moveRows(0, 2, 1, 0)` on S1, the sheet
+    // the grid left: the sync endpoint still names S1, so S1 is rotated a second time and S2 is never
+    // reordered. The count of 1 is develop's, pinned so the fix cannot add a second order; the sheet id, the
+    // untouched S1 and the values are what develop gets wrong.
+    const orderCalls = [...moveRows.mock.calls, ...setRowOrder.mock.calls];
+
+    expect(orderCalls.length).toBe(1);
+    expect(orderCalls[0][0]).toBe(s2Id);
+    expect(engine.getSheetSerialized(s1Id)).toEqual(s1Before);
+    expect(hot.getDataAtCol(0)).toEqual(['z', 'y', 'x']);
+    // Each formula doubles its own row's number, so a double transform or a `#REF!` shows here.
+    expect(hot.getDataAtCol(2)).toEqual([60, 40, 20]);
   });
 
   it('applies an initial manual move once on a sheet-built grid', () => {
