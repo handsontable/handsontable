@@ -91,6 +91,8 @@ export interface HyperFormulaEngine {
   addNamedExpression(name: unknown, expression: unknown, scope: unknown, options: unknown): void;
   undo(): void;
   redo(): void;
+  isThereSomethingToUndo(): boolean;
+  clearRedoStack(): void;
   destroy(): void;
   rebuildAndRecalculate(): void;
   clearUndoStack(): void;

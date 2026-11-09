@@ -224,6 +224,8 @@ describe('Formulas writes a validated change when the Core applies it', () => {
     const { engine, sheet } = buildGrid({ afterFormulasValuesUpdate });
     const contentBefore = engine.getSheetSerialized(sheet);
 
+    // The load at construction reports its values.
+    afterFormulasValuesUpdate.mockClear();
     hot.setDataAtCell(1, 0, '=A1*3');
 
     expect(afterFormulasValuesUpdate).not.toHaveBeenCalled();

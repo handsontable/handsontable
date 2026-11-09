@@ -7,12 +7,13 @@ import { UndoRedo } from '../../undoRedo';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
- * The plugin writes a `setDataAtCell()` change into the engine from `afterSetDataAtCell`, before the
- * Core validates it. A change the validator rejects under `allowInvalid: false` never reaches the grid's
- * data, so the engine must not keep it either: a formula reading the cell showed a result computed from
- * the rejected value until the next full resync.
+ * A change the validator rejects under `allowInvalid: false` never reaches the grid's data, so the
+ * engine must not hold it either: when the plugin wrote every change into the engine before validation,
+ * a formula reading the cell showed a result computed from the rejected value until the next full
+ * resync. The plugin now writes a change to a cell with a validator only when the Core applies it, so
+ * these cases check that every edit path ends with the engine and the grid agreeing.
  */
-describe('Formulas restores the engine when a validator rejects a change', () => {
+describe('Formulas keeps a change a validator rejects out of the engine', () => {
   let container;
   let hot;
   let held;
@@ -94,7 +95,9 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
 
     hot.setDataAtCell(1, 0, -7);
 
-    expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(-7);
+    // The change waits for its validator outside the engine.
+    expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(31);
+    expect(hot.getDataAtCell(1, 1)).toBe(465);
 
     await releaseAll();
 
@@ -205,7 +208,8 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
 
     await releaseAll();
 
-    expect(sync).not.toHaveBeenCalled();
+    // Only the accepted change of row 2 is written, when the set is applied.
+    expect(sync.mock.calls.map(([row]) => row)).toEqual([2]);
     expect(hot.countRows()).toBe(3);
     expect(hot.getDataAtCol(0)).toEqual([2, 31, 5]);
     expect(engine.getSheetValues(sheet).map(row => row[0])).toEqual([2, 31, 5]);
@@ -325,7 +329,7 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
     try {
       hot.setDataAtCell(1, 0, -7);
 
-      expect(reader.getCell(0, 0).textContent).toBe('-14');
+      expect(reader.getCell(0, 0).textContent).toBe('62');
 
       await releaseAll();
 
@@ -337,14 +341,15 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
     }
   });
 
-  it('validates the dependents the restore recalculated', async() => {
+  it('never validates a dependent against a rejected value, and validates it after an accepted one', async() => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const dependentValidator = jest.fn((value, callback) => callback(value >= 0));
 
     hot = new Handsontable(container, {
       data: [[2, '=A1*15'], [31, '=A2*15']],
       columns: [
         { validator: heldValidator, allowInvalid: false },
-        { validator: (value, callback) => callback(value >= 0) },
+        { validator: dependentValidator },
       ],
       formulas: { engine },
       licenseKey: TEST_LICENSE_KEY,
@@ -353,12 +358,20 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
     hot.setDataAtCell(1, 0, -7);
     await waitForValidation();
 
-    // The first write recalculated B2 to -105, which its validator marked invalid.
-    expect(hot.getCellMeta(1, 1).valid).toBe(false);
+    // Nothing recalculated B2 from the waiting -7, so its validator never saw -105.
+    expect(hot.getCellMeta(1, 1).valid).not.toBe(false);
+    expect(hot.getDataAtCell(1, 1)).toBe(465);
 
     await releaseAll();
 
     expect(hot.getDataAtCell(1, 1)).toBe(465);
+    expect(hot.getCellMeta(1, 1).valid).not.toBe(false);
+    expect(dependentValidator).not.toHaveBeenCalledWith(-105, expect.any(Function));
+
+    hot.setDataAtCell(1, 0, 4);
+    await releaseAll();
+
+    expect(dependentValidator).toHaveBeenCalledWith(60, expect.any(Function));
     expect(hot.getCellMeta(1, 1).valid).toBe(true);
   });
 
@@ -405,15 +418,5 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
     await releaseAll();
 
     expect(hot.getPlugin('undoRedo').doneActions.map(action => action.actionType)).toEqual(['set_cell_meta']);
-  });
-
-  it('stops listening for rejected changes when the plugin is turned off', () => {
-    buildGrid();
-
-    const remove = jest.spyOn(hot, '_removeRejectedChangesListener');
-
-    hot.getPlugin('formulas').disablePlugin();
-
-    expect(remove).toHaveBeenCalledTimes(1);
   });
 });
