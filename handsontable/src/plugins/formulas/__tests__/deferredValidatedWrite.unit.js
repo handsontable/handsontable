@@ -425,4 +425,61 @@ describe('Formulas writes a validated change when the Core applies it', () => {
       expect(hot.getCellMeta(0, 1).valid).not.toBe(false);
     });
   });
+
+  it('undoes what a dependent\'s afterValidate writes with an edit written at once, as before', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [[1, '=A1*2']],
+      columns: [{}, { validator: (value, callback) => callback(value < 10) }],
+      formulas: { engine },
+      undo: true,
+      afterValidate(isValid, value, row, prop) {
+        if (prop === 1 && !isValid) {
+          this.setCellMeta(row, 1, 'flagged', true);
+        }
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.setDataAtCell(0, 0, 50);
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 1)).toBe(100);
+    expect(hot.getCellMeta(0, 1).flagged).toBe(true);
+
+    hot.getPlugin('undoRedo').undo();
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 0)).toBe(1);
+    expect(hot.getCellMeta(0, 1).flagged).toBeUndefined();
+  });
+
+  it('writes a plain value of the set a formula reads through a named expression into the probe', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const values = [];
+
+    hot = new Handsontable(container, {
+      data: [[1, 0]],
+      columns: [
+        { validator: (value, callback) => callback(true), allowInvalid: false },
+        {
+          validator: (value, callback) => {
+            values.push(value);
+            callback(true);
+          },
+          allowInvalid: false,
+        },
+      ],
+      formulas: { engine, sheetName: 'S' },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    engine.addNamedExpression('MyA', '=S!$A$1');
+    hot.setDataAtCell([[0, 0, 5], [0, 1, '=MyA*2']]);
+    await waitForValidation();
+
+    expect(values).toEqual([10]);
+    expect(hot.getDataAtCell(0, 1)).toBe(10);
+  });
 });
