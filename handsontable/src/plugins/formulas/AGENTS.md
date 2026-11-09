@@ -498,7 +498,9 @@ Rules that keep it correct:
   the drain runs. No core plugin reads any of those inside the window.
 - **A listener throw is self-healing; a scan throw is not retried.** If a default-order listener throws,
   `updateSettings()` unwinds before the late listener runs and the flag stays set; the next draw or engine
-  read drains it, and so does the next `updateSettings()` or `loadData()`. If the SCAN throws — a `cells()`
+  read drains it, and so does the next `updateSettings()` or `loadData()`. A call that carries `data` makes
+  that draw itself before it rethrows (`repaintAfterFailedDataCall()` in `core.ts`), so the resync runs there
+  and not on a later read. If the SCAN throws — a `cells()`
   handler that throws for one cell, a dependent grid whose `afterRender` throws — `#resyncSheet()` leaves
   the flag cleared and the layout unrecorded, and the next `updateSettings()` retries. It must not re-arm
   the flag: measured with a persistently throwing write, a re-armed flag turned every later `getDataAtCell()`

@@ -222,7 +222,11 @@ For commercial use, a paid license is required. This license includes support an
 
 ## 🔑 License Key
 
-Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key. To evaluate Handsontable, get a trial key. For non-commercial use, apply for a sponsored license.
+Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key.
+
+To evaluate Handsontable, [get a trial key](https://handsontable.com/pricing/). A standard trial key lasts 45 days. During the trial, the grid shows the Handsontable badge and a "Powered by Handsontable DataGrid" bar below the table, and the console warns how many days remain. After the trial expires, the grid shows an expiration message and the console reports an error. When the grace period stored in the key also passes, a blocking screen replaces the grid. See [Trial keys](https://handsontable.com/docs/react-data-grid/license-key/#trial-keys) for details.
+
+For non-commercial use, apply for a sponsored license.
 
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/react-data-grid/license-key/).
 

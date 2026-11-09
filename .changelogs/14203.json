@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed updateSettings() to render the grid once when the new settings include data. The afterUpdateSettings hook now runs before that render, so getCell() there returns the previous render, and a React HotTable update no longer paints twice.",
+  "type": "changed",
+  "issueOrPR": 14203,
+  "breaking": false,
+  "framework": "none"
+}

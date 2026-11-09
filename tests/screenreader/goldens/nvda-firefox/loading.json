@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "loading",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T13:53:13.484Z"
+  },
+  "steps": {
+    "loading-shows": "loading dialog blank",
+    "arrow-down-while-loading": "",
+    "loading-ends": "table company 1 company name row 3 column 2",
+    "arrow-down-after-load": "company 2 company name row 4 column 2",
+    "loading-shows-again": "loading dialog blank",
+    "loading-ends-again": "table company 2 company name row 4 column 2"
+  }
+}

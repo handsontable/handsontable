@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "loading",
+  "group": "status",
+  "surface": "The loading overlay the application shows over the grid: its message when it appears, the focus it holds, and the focus it gives back when the load ends.",
+  "page": "loading",
+  "start": "page",
+  "criteria": ["2.4.3", "4.1.2"],
+  "setup": [{"call": ["htHideLoading"]}, {"selectCell": [1, 0]}],
+  "steps": [
+    {
+      "id": "loading-shows",
+      "action": {"call": ["htShowLoading"]},
+      "expect": [["loading"], ["dialog"]],
+      "note": "The application starts a load while the user is in the grid, and the loading overlay takes the focus: an `alertdialog` named `Loading...`, which a reader should say with its role (`dialog`, VoiceOver `alert dialog`). The page's own overlay, shown on load, is hidden in the setup. The scenario starts on the page (`start: page`): the page's first item is the `Input` field. VoiceOver with WebKit said nothing on this first step in some runs, and read the overlay when it showed again."
+    },
+    {
+      "id": "arrow-down-while-loading",
+      "action": {"press": "ArrowDown"},
+      "expect": [],
+      "note": "The overlay holds the keyboard: the arrow key does not reach the grid behind it. Nothing is required."
+    },
+    {
+      "id": "loading-ends",
+      "action": {"call": ["htHideLoading"]},
+      "expect": [["company 1"]],
+      "note": "The load ends: the overlay goes, and the focus goes back to the cell the user was on, `Company 1`."
+    },
+    {
+      "id": "arrow-down-after-load",
+      "action": {"press": "ArrowDown"},
+      "expect": [["company 2"]],
+      "note": "The grid has the keyboard again."
+    },
+    {
+      "id": "loading-shows-again",
+      "action": {"call": ["htShowLoading"]},
+      "expect": [["loading"], ["dialog"]],
+      "note": "A second load: the overlay's name and its role."
+    },
+    {
+      "id": "loading-ends-again",
+      "action": {"call": ["htHideLoading"]},
+      "expect": [["company 2"]],
+      "note": "The focus goes back to `Company 2`."
+    }
+  ]
+}
