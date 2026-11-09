@@ -8,21 +8,30 @@ import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
 export type ValidationWaitEditor = 'formula' | 'text';
 
 /**
+ * A B validation the fixture holds until the spec releases it: the visual row and the value asked.
+ */
+export interface HeldValidation {
+  row: number;
+  value: unknown;
+}
+
+/**
  * The fixture's globals the page object reads.
  */
 interface FixtureWindow {
   hot: {
-    getActiveEditor(): { isOpened?: () => boolean } | undefined;
+    getActiveEditor(): { isOpened?: () => boolean, state?: string } | undefined;
     getDataAtCell(row: number, col: number): unknown;
     getCellMeta(row: number, col: number): { valid?: boolean };
   };
+  htPending: Array<HeldValidation & { callback: (valid: boolean) => void }>;
 }
 
 /**
  * Page object for the editor validation wait fixture (`demo/editor-validation-wait-own-cell.html`):
- * column B is numeric with a 600 ms async validator that rejects negatives (`allowInvalid: false`),
- * column C holds `=B<n>*2`, and a button runs `hot.validateCells()`. The fixture's status line
- * counts the B validations in flight and records how many were in flight at the last Enter.
+ * column B is numeric with an async validator that rejects negatives (`allowInvalid: false`),
+ * column C holds `=B<n>*2`, and a button runs `hot.validateCells()`. B's validator answers only
+ * when the spec releases it (`window.htPending`), in the order the validations were asked.
  */
 export class EditorValidationWaitPage {
   readonly page: Page;
@@ -31,9 +40,6 @@ export class EditorValidationWaitPage {
   readonly editor: ValidationWaitEditor;
   readonly grid: Locator;
   readonly validateCellsButton: Locator;
-  readonly validationsPending: Locator;
-  readonly validationsAnswered: Locator;
-  readonly pendingAtEnter: Locator;
   /**
    * The FormulaBuilder editor input, shared by the bar and the inline editor.
    */
@@ -62,9 +68,6 @@ export class EditorValidationWaitPage {
     this.editor = editor;
     this.grid = page.getByTestId('grid');
     this.validateCellsButton = page.getByTestId('validate-cells');
-    this.validationsPending = page.getByTestId('validations-pending');
-    this.validationsAnswered = page.getByTestId('validations-answered');
-    this.pendingAtEnter = page.getByTestId('pending-at-enter');
     this.formulaEditorInput = page.getByRole('combobox', { name: 'Formula editor', exact: true });
     this.barFormulaArea = page.getByRole('textbox', { name: 'Formula input', exact: true });
     this.barEditorOverlay = page.locator('.hfe-formula-bar__overlay .hfe-editor');
@@ -146,11 +149,39 @@ export class EditorValidationWaitPage {
   }
 
   /**
-   * Clicks the button that runs `hot.validateCells()`, and waits for the batch to be in flight.
+   * Clicks the button that runs `hot.validateCells()`.
    */
   async clickValidateCells(): Promise<void> {
     await this.validateCellsButton.click();
-    await expect(this.validationsPending).not.toHaveText('0');
+  }
+
+  /**
+   * The B validations the fixture holds, in the order they were asked.
+   *
+   * @returns {Promise<HeldValidation[]>}
+   */
+  async heldValidations(): Promise<HeldValidation[]> {
+    return this.page.evaluate(
+      () => (window as unknown as FixtureWindow).htPending.map(({ row, value }) => ({ row, value })));
+  }
+
+  /**
+   * Answers the oldest held B validation (negatives are rejected) and tells which one it was.
+   *
+   * @returns {Promise<HeldValidation>}
+   */
+  async releaseNextValidation(): Promise<HeldValidation> {
+    return this.page.evaluate(() => {
+      const held = (window as unknown as FixtureWindow).htPending.shift();
+
+      if (!held) {
+        throw new Error('No B validation is held');
+      }
+
+      held.callback(Number(held.value) >= 0);
+
+      return { row: held.row, value: held.value };
+    });
   }
 
   /**
@@ -165,7 +196,18 @@ export class EditorValidationWaitPage {
   }
 
   /**
-   * The `valid` flag the last validation left in a cell's meta (`undefined` before any).
+   * The active editor's state (`STATE_EDITING`, `STATE_WAITING`, ...): `STATE_WAITING` while it
+   * waits for its validation answer.
+   *
+   * @returns {Promise<string | null>}
+   */
+  async editorState(): Promise<string | null> {
+    return this.page.evaluate(
+      () => (window as unknown as FixtureWindow).hot.getActiveEditor()?.state ?? null);
+  }
+
+  /**
+   * The `valid` flag the last validation left in a cell's meta (`null` before any).
    *
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
@@ -174,16 +216,6 @@ export class EditorValidationWaitPage {
   async cellValid(row: number, col: number): Promise<boolean | null> {
     return this.page.evaluate(
       ([r, c]) => (window as unknown as FixtureWindow).hot.getCellMeta(r, c).valid ?? null, [row, col]);
-  }
-
-  /**
-   * How many B validations were in flight when the last Enter was pressed, as the fixture
-   * recorded it on keydown (`NaN` before any Enter).
-   *
-   * @returns {Promise<number>}
-   */
-  async validationsPendingAtEnter(): Promise<number> {
-    return Number(await this.pendingAtEnter.textContent());
   }
 
   /**

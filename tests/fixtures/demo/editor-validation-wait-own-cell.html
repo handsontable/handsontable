@@ -41,20 +41,15 @@
 </head>
 <body>
   <!--
-    The editor's validation wait. Column B is numeric with an async validator (600 ms, rejects
-    negatives) and `allowInvalid: false`; column C holds `=B<n>*2`, numeric too, so the Formulas
-    plugin validates it whenever B changes. Row 12 holds B = -5, so a `validateCells()` batch
-    (the button) ends invalid: the batch walks the rows from last to first, and its first answer
-    is row 12's rejection. The status line counts the B validations in flight and answered, and
-    records how many were in flight at the last Enter keydown, so a test proves the edit ran
-    inside the batch. No column headers: a data row's `aria-rowindex` is its visual row + 1.
+    The editor's validation wait. Column B is numeric with an async validator that rejects
+    negatives, under `allowInvalid: false`; column C holds `=B<n>*2`, numeric too, so the Formulas
+    plugin validates it (synchronously) whenever B changes. B's validator answers only when the
+    spec releases it (`window.htPending`, in the order the validations were asked), so the spec
+    decides which answer lands first. Row 12 holds B = -5, so a `validateCells()` batch (the
+    button) ends invalid: the batch walks the rows from last to first, so row 12 is asked first.
+    No column headers: a data row's `aria-rowindex` is its visual row + 1.
   -->
   <button type="button" data-testid="validate-cells">Validate cells</button>
-  <p>
-    B validations in flight: <output data-testid="validations-pending">0</output>,
-    answered: <output data-testid="validations-answered">0</output>,
-    in flight at the last Enter: <output data-testid="pending-at-enter">-</output>
-  </p>
   <div id="grid" data-testid="grid"></div>
 
   <script>
@@ -68,38 +63,22 @@
   </script>
   <script type="module">
     const container = document.querySelector('[data-testid="grid"]');
-    const pendingOutput = document.querySelector('[data-testid="validations-pending"]');
-    const answeredOutput = document.querySelector('[data-testid="validations-answered"]');
-    const pendingAtEnterOutput = document.querySelector('[data-testid="pending-at-enter"]');
-    let pending = 0;
-    let answered = 0;
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    // Capture phase on the window, so the count is read before the grid handles the key.
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        pendingAtEnterOutput.textContent = String(pending);
-      }
-    }, true);
+    /**
+     * The B validations asked and not answered yet, in the order they were asked.
+     */
+    window.htPending = [];
 
     /**
-     * Rejects negative numbers, 600 ms after it is asked: an async validator.
+     * Rejects negative numbers once the spec releases the call: an async validator.
      *
      * @param {*} value The value to validate.
      * @param {Function} callback Takes the result.
      */
-    function asyncNonNegative(value, callback) {
-      pending += 1;
-      pendingOutput.textContent = String(pending);
-
-      setTimeout(() => {
-        callback(Number(value) >= 0);
-        pending -= 1;
-        answered += 1;
-        pendingOutput.textContent = String(pending);
-        answeredOutput.textContent = String(answered);
-      }, 600);
+    function heldNonNegative(value, callback) {
+      window.htPending.push({ row: this.visualRow, value, callback });
     }
 
     // B values 9, 18, 27, …; row 12 (index 11) holds -5.
@@ -117,7 +96,7 @@
       const columnB = {
         type: 'numeric',
         editor: window.htEditor,
-        validator: asyncNonNegative,
+        validator: heldNonNegative,
         allowInvalid: false,
       };
 
