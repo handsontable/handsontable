@@ -482,4 +482,97 @@ describe('Formulas writes a validated change when the Core applies it', () => {
     expect(values).toEqual([10]);
     expect(hot.getDataAtCell(0, 1)).toBe(10);
   });
+
+  it('validates a dependent of a deferred and an immediate cell of one set once, at the apply', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const dependentHeld = [];
+    const heldDependent = (limit) => {
+      return (value, callback) => dependentHeld.push({ value, answer: () => callback(value < limit) });
+    };
+
+    hot = new Handsontable(container, {
+      data: [[1, 1, '=A1+B1', '=C1*2']],
+      columns: [
+        { validator: (value, callback) => callback(true), allowInvalid: false },
+        {},
+        { validator: heldDependent(10) },
+        { validator: heldDependent(20) },
+      ],
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.setDataAtCell([[0, 0, 50], [0, 1, 2]]);
+    await waitForValidation();
+
+    // The early write of B recalculated C and D from A's old value; neither is validated by that.
+    expect(dependentHeld.map(({ value }) => value)).toEqual([52, 104]);
+
+    // Answered in the reverse order, the marks still describe the values the cells hold.
+    dependentHeld.splice(0).reverse().forEach(({ answer }) => answer());
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 2)).toBe(52);
+    expect(hot.getCellMeta(0, 2).valid).toBe(false);
+    expect(hot.getCellMeta(0, 3).valid).toBe(false);
+  });
+
+  it('validates a shared dependent when the deferred cell is rejected and the immediate one applies', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const dependentValues = [];
+
+    hot = new Handsontable(container, {
+      data: [[1, 1, '=A1+B1']],
+      columns: [
+        { validator: (value, callback) => callback(value < 10), allowInvalid: false },
+        {},
+        {
+          validator: (value, callback) => {
+            dependentValues.push(value);
+            callback(value < 10);
+          },
+        },
+      ],
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.setDataAtCell([[0, 0, 50], [0, 1, 20]]);
+    await waitForValidation();
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 0)).toBe(1);
+    expect(hot.getDataAtCell(0, 2)).toBe(21);
+    expect(dependentValues).toEqual([21]);
+    expect(hot.getCellMeta(0, 2).valid).toBe(false);
+  });
+
+  it('undoes what a dependent\'s afterValidate writes with a write past the last row, as before', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [[1, '=SUM(A1:A5)']],
+      columns: [{}, { validator: (value, callback) => callback(value < 10) }],
+      formulas: { engine },
+      undo: true,
+      afterValidate(isValid, value, row, prop) {
+        if (prop === 1 && !isValid) {
+          this.setCellMeta(row, 1, 'flagged', true);
+        }
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.setDataAtCell(2, 0, 50);
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 1)).toBe(51);
+    expect(hot.getCellMeta(0, 1).flagged).toBe(true);
+
+    hot.getPlugin('undoRedo').undo();
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 1)).toBe(1);
+    expect(hot.getCellMeta(0, 1).flagged).toBeUndefined();
+  });
 });
