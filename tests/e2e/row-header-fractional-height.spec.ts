@@ -63,6 +63,41 @@ for (const autoRowSize of [false, true]) {
       });
     }
 
+    if (autoRowSize) {
+      test('stores a content-tall row rounded up to a whole pixel', async() => {
+        // Aligned panes do not prove the stored value: a fractional store aligns them too. The stored
+        // height is the contract of the plugin, and a row that is not a default one is rounded UP so the
+        // content has room. The content height comes from the same grid with the plugin off, because
+        // with it on the rows render at the stored whole pixels. Row 0 is left out: it draws its own top
+        // border and measures a pixel less in the ghost table than it renders.
+        await grid.goto({ autoRowSize: false });
+
+        const natural = (await grid.rowHeights()).master.slice(1);
+
+        expect(natural.some(height => height - Math.floor(height) > 0.05)).toBe(true);
+
+        await grid.goto({ autoRowSize: true });
+
+        const stored = (await grid.storedRowHeights()).slice(1).map(row => row.stored);
+
+        expect(stored).toHaveLength(natural.length);
+        natural.forEach((height, index) => {
+          expect(stored[index], `row ${index + 1}`).toBe(Math.ceil(height - TOLERANCE));
+        });
+      });
+    }
+
+    if (!autoRowSize) {
+      test('a row floor equal to the rounded content height still lines the clone up', async() => {
+        // `minRowHeights` of 118 over 118.27px of content: `offsetHeight` reads 118, the same as the
+        // floor, so a decision taken on that read records nothing and the clone row is 0.27px short.
+        await grid.goto({ autoRowSize });
+        await grid.floorRowsAtRoundedContent();
+
+        expectPanesAligned(await grid.rowHeights(), 'with a rounded floor');
+      });
+    }
+
     test('every row of the clone is as tall as its row in the master', async() => {
       await grid.goto({ autoRowSize });
 
@@ -76,6 +111,18 @@ for (const autoRowSize of [false, true]) {
       const { masterBottom, cloneBottom } = await grid.rowHeights();
 
       expect(Math.abs(cloneBottom - masterBottom)).toBeLessThanOrEqual(TOLERANCE * 4);
+    });
+
+    test('stays aligned under an ancestor CSS zoom', async() => {
+      // Under `zoom: 1.25` the computed height is in unzoomed pixels, while the browser lays the row
+      // out on a grid of zoomed ones, so a snap to the unzoomed 1/64px grid lands a step off.
+      await grid.goto({ autoRowSize, zoom: 1.25 });
+
+      const heights = await grid.rowHeights();
+
+      expectPanesAligned(heights, 'zoom 1.25');
+      // The per-row error is a fraction of a step; the sum of it is what a reader sees.
+      expect(Math.abs(heights.cloneBottom - heights.masterBottom)).toBeLessThanOrEqual(0.05);
     });
 
     test('stays aligned while scrolling recycles the rows', async() => {

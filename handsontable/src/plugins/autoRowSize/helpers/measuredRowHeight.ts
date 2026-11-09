@@ -17,11 +17,17 @@ export const DEFAULT_HEIGHT_TOLERANCE = 0.05;
  * the cells' 1px border, so a default row measures a fraction above a whole pixel (`29.11px`);
  * rounding that up would make every default row a pixel taller than it renders.
  *
+ * The default height is the one the grid declares, which does not follow a zoom made after the grid
+ * was built: a grid built at 100% and zoomed to 90% still declares 29px while its default rows
+ * measure `29.097px`. The caller passes what the border inflation can add at the zoom of now
+ * (`overgrowth`), and it widens the margin by that much.
+ *
  * @param {number} measuredHeight The height of the sampled row, snapped to the layout grid.
  * @param {number} defaultHeight The default row height.
+ * @param {number} [overgrowth=0] How much taller than the default a default row can render now.
  * @returns {number} The whole-pixel height to store for the row.
  */
-export function toStoredRowHeight(measuredHeight: number, defaultHeight: number): number {
-  return measuredHeight <= defaultHeight + DEFAULT_HEIGHT_TOLERANCE ?
+export function toStoredRowHeight(measuredHeight: number, defaultHeight: number, overgrowth = 0): number {
+  return measuredHeight <= defaultHeight + overgrowth + DEFAULT_HEIGHT_TOLERANCE ?
     Math.round(measuredHeight) : Math.ceil(measuredHeight);
 }

@@ -41,12 +41,13 @@ export class RowHeightFractionalPage {
    * @param options.autoRowSize Whether the AutoRowSize plugin supplies the row heights.
    * @param options.frozen Whether the first column is frozen and the grid scrolls sideways.
    * @param options.renderAll Whether every row is rendered (off: scrolling recycles the rows).
+   * @param options.zoom The CSS zoom of an ancestor of the grid, applied before the grid is built.
    */
-  async goto({ autoRowSize = false, frozen = false, renderAll = true } = {}): Promise<void> {
+  async goto({ autoRowSize = false, frozen = false, renderAll = true, zoom = 1 } = {}): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/row-height-fractional.html` +
       `?theme=${this.theme}&bundle=${this.bundle}&autoRowSize=${autoRowSize ? 1 : 0}` +
-      `&frozen=${frozen ? 1 : 0}&renderAll=${renderAll ? 1 : 0}`
+      `&frozen=${frozen ? 1 : 0}&renderAll=${renderAll ? 1 : 0}&zoom=${zoom}`
     );
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
@@ -144,7 +145,9 @@ export class RowHeightFractionalPage {
       return Math.abs(master.scrollTop - clone.scrollTop) < 1;
     }), { message: 'the row-header clone follows the master scroll' }).toBe(true);
 
-    if (top > 0) {
+    // A scroll that moves the band draws other rows, and it is the draw this method ends on. Scrolling
+    // back to the top moves it too, unless the band was at the top already.
+    if (top > 0 || before > 0) {
       await expect.poll(() => this.firstRenderedRow(), { message: 'the scroll drew other rows' }).not.toBe(before);
     }
   }
@@ -174,5 +177,36 @@ export class RowHeightFractionalPage {
     return this.page.evaluate(count => (window as unknown as {
       countRowCacheInvalidations: (renders: number) => number,
     }).countRowCacheInvalidations(count), renders);
+  }
+
+  /**
+   * Gives every row a `minRowHeights` floor equal to its content height rounded to a whole pixel. A row
+   * whose content has a fraction below one half is then rendered at its content height, taller than its
+   * floor, while `offsetHeight` reads the floor.
+   */
+  async floorRowsAtRoundedContent(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as { hot: { updateSettings(settings: object): void } };
+      const rows = [...document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')] as HTMLElement[];
+      const floors = rows.map(row => Math.round(row.getBoundingClientRect().height));
+
+      hot.updateSettings({ minRowHeights: (row: number) => floors[row] });
+    });
+  }
+
+  /**
+   * The height AutoRowSize stored for each rendered row of the master, by row, next to the height the
+   * row renders at. Read in ONE evaluation, for the same reason as `rowHeights()`.
+   */
+  async storedRowHeights(): Promise<{ stored: number, rendered: number }[]> {
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as { hot: { getRowHeight(row: number): number } };
+      const rows = [...document.querySelectorAll('[data-testid="grid"] .ht_master tbody tr')] as HTMLElement[];
+
+      return rows.map((row, index) => ({
+        stored: hot.getRowHeight(index),
+        rendered: row.getBoundingClientRect().height,
+      }));
+    });
   }
 }

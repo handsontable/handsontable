@@ -812,35 +812,45 @@ scaling: any content height that is not a whole pixel does it, such as a fractio
 wrapped cell (`13.3px * 1.37`), at 100% zoom as at 150%. The default theme at a fractional scale lands on
 whole pixels, which is why the ticket's own report no longer reproduces.
 
-- **Only the recorded value is refined, never the decision to record.** The `previous < current` test
-  still runs on the whole-pixel read, so which rows are recorded and when the row-height cache is dropped
-  are exactly what they were; the record then takes `resolveFractionalHeight()`
-  (`helpers/dom/layoutUnit.ts`). Changing the decision to the fractional read would put a `1/64px` of
-  noise on the cache-invalidation path, which `frozen-column-row-heights.spec.ts` pins at zero per
-  steady-state draw. A row whose provided floor equals the rounded content height (`minRowHeights` of
-  `118` over `118.27px` of content) is therefore still not recorded.
+- **A row with a height to compare with is judged on the fractional height.** A row that has a floor
+  (`minRowHeights`, a `modifyRowHeight` hook) or a surviving record is compared with the height the browser
+  laid it out at, read from the computed style, not with `offsetHeight`: a floor of `118` over `118.27px` of
+  content reads `118` and `118` is not below it, so a decision on the whole pixel recorded nothing and the
+  clone row was `0.27px` short (`modifyRowHeight: () => 40.6` over `40.89px`: `Math.round(40.6)` is the `41`
+  `offsetHeight` reads, so even a floor with a fraction went unrecorded). `isHeightBelow()`
+  (`helpers/dom/layoutUnit.ts`) is the comparison, with half a layout step of margin so a height that is on
+  the grid is not below itself. The read is made only for a border-box row whose height is within a pixel
+  above its whole-pixel read (`previous < current + 1`): a floor a pixel or more above the content is no
+  floor for it, and a row with no height to compare with is judged on the whole pixel as it always was
+  (the default-height branch).
 - **Computed style, not `getBoundingClientRect()`.** A rect is scaled by an ancestor's CSS `zoom` and
   `offsetHeight` is not, so a record taken from a rect sits in another space than the heights it is
   compared with. `getComputedStyle(el).height` is in `offsetHeight`'s space at any zoom, and the read
-  runs only for a row that is recorded.
-- **Snap to 1/64.** A computed style serializes three decimals (`118.266px` for a row laid out at
-  `118.265625px`), which written back lands on the neighbouring layout step and leaves a `0.008px`
-  difference per row. `snapToLayoutUnit()` rounds to the grid the browser lays out on.
+  runs only for a row that is compared or recorded.
+- **Snap to 1/64 of the layout's own space.** A computed style serializes three decimals (`118.266px` for a
+  row laid out at `118.265625px`), which written back lands on the neighbouring layout step and leaves a
+  `0.008px` difference per row. `snapToLayoutUnit()` rounds to the grid the browser lays out on. Under an
+  ancestor's CSS `zoom` that grid is the ZOOMED one while the computed height is unzoomed, so
+  `resolveFractionalHeight()` takes the element's `currentCSSZoom` and snaps `used * zoom`, then divides
+  back (`99.8625px` under `zoom: 1.25` is laid out at `99.859375 * 1.25`'s neighbour, and a snap in the
+  unzoomed space left every fractional row `0.003px` off, `0.1px` over 30 rows). `currentCSSZoom` is a style
+  read, not a layout one, and an engine that lacks it reads as `1`.
 - **Content-box cells keep the whole pixel** (`areCellsBorderBox()` false): that branch reads
   `clientHeight` and adds `1`, which has no computed-style twin. `RenderSizeProbe` also still records
-  whole pixels, so its equality with `oversizedRows` holds for whole-pixel rows only; give it the same
-  read before the single-pass work starts consuming it.
-- **The comparison reads at whole-pixel resolution too.** `rowCurrentHeight` is whole, so the height it is
-  compared with is rounded (`Math.round(previousRowHeight)`). A record that survives the wipe (a
-  frozen-derived one, `frozenOversizedRows`) is fractional now: `117.73` compared as it is reads as smaller
-  than the `118` that `offsetHeight` gives the same row, so a fraction of one half or more was recorded again
-  on every draw and dropped the row-height cache each time, with the rows aligned throughout. Only a counter
-  sees it (`costs no row-height cache invalidation` in `row-header-fractional-height.spec.ts`, frozen
-  column, rows of 63.61px).
+  whole pixels, so its map equals `oversizedRows` for whole-pixel rows only; nothing reads that map yet, so
+  there is no drift to see today. Give it the same read before the single-pass work starts consuming it.
+- **The comparison tolerates a record that survives the wipe.** A frozen-derived record
+  (`frozenOversizedRows`) is fractional and was snapped by this same read, so the read of the same row
+  compares equal to it: a record of `117.73` over `117.73px` of content is not below itself and is not
+  recorded again, so the row-height cache is not dropped on every draw (a decision on the whole pixel
+  compared `117.73` with the `118` that `offsetHeight` gives it, and it was). Only a counter sees it
+  (`costs no row-height cache invalidation` in `row-header-fractional-height.spec.ts`, frozen column,
+  rows of 63.61px).
 - The AutoRowSize half of the same drift is in `plugins/autoRowSize/AGENTS.md`: there the height is rounded UP
   to a whole pixel, because that plugin's heights are whole pixels by contract.
-- Pinned by `tests/e2e/row-header-fractional-height.spec.ts` (autoRowSize off and on, row recycling, a frozen
-  column, all three themes) and `helpers/dom/__tests__/layoutUnit.unit.ts`.
+- Pinned by `tests/e2e/row-header-fractional-height.spec.ts` (autoRowSize off and on, a floor at the rounded
+  content, an ancestor CSS zoom, row recycling, a frozen column, all three themes) and
+  `helpers/dom/__tests__/layoutUnit.unit.ts`.
 
 ## The hider height is fractional below 100% zoom, and two coordinate spaces meet there
 

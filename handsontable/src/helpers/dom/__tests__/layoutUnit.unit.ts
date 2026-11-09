@@ -1,4 +1,4 @@
-import { resolveFractionalHeight, snapToLayoutUnit } from '../layoutUnit';
+import { isHeightBelow, resolveFractionalHeight, snapToLayoutUnit } from '../layoutUnit';
 
 describe('layoutUnit', () => {
   describe('snapToLayoutUnit', () => {
@@ -33,6 +33,13 @@ describe('layoutUnit', () => {
       expect(resolveFractionalHeight('117.734px', 118)).toBe(117.734375);
     });
 
+    it('should snap on the grid of the zoomed layout, then bring the value back', () => {
+      // Under `zoom: 1.25` the browser lays the row out on 1/64px steps of the ZOOMED space.
+      // 99.8625 * 1.25 = 124.828125, which is on that grid; a snap in the unzoomed space gives 99.859375.
+      expect(resolveFractionalHeight('99.8625px', 100, 1.25) * 1.25).toBe(124.828125);
+      expect(resolveFractionalHeight('99.8625px', 100)).toBe(99.859375);
+    });
+
     it('should fall back to the whole-pixel read for a height that is not a length', () => {
       expect(resolveFractionalHeight('auto', 118)).toBe(118);
       expect(resolveFractionalHeight('', 118)).toBe(118);
@@ -42,6 +49,23 @@ describe('layoutUnit', () => {
       // Not a refinement of it: the two reads describe different boxes.
       expect(resolveFractionalHeight('120px', 118)).toBe(118);
       expect(resolveFractionalHeight('119px', 118)).toBe(118);
+    });
+  });
+
+  describe('isHeightBelow', () => {
+    it('should not count a height as below itself', () => {
+      expect(isHeightBelow(118.265625, 118.265625)).toBe(false);
+      expect(isHeightBelow(41, 41)).toBe(false);
+    });
+
+    it('should count a provided height below the content it is shorter than', () => {
+      expect(isHeightBelow(40.6, 40.890625)).toBe(true);
+      expect(isHeightBelow(118, 118.265625)).toBe(true);
+    });
+
+    it('should not count a height above the other, or one a layout step apart', () => {
+      expect(isHeightBelow(40.9, 40.890625)).toBe(false);
+      expect(isHeightBelow(40.89, 40.890625)).toBe(false);
     });
   });
 });

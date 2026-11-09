@@ -39,14 +39,33 @@ export function snapToLayoutUnit(value: number): number {
  *
  * @param {string} usedHeight The element's computed `height`.
  * @param {number} roundedHeight The element's `offsetHeight`.
+ * @param {number} [zoom=1] The element's effective CSS zoom (`currentCSSZoom`).
  * @returns {number} The used height on the layout grid, or `roundedHeight` when it cannot be refined.
  */
-export function resolveFractionalHeight(usedHeight: string, roundedHeight: number): number {
+export function resolveFractionalHeight(usedHeight: string, roundedHeight: number, zoom = 1): number {
   const used = Number.parseFloat(usedHeight);
 
   if (!Number.isFinite(used) || Math.abs(used - roundedHeight) >= 1) {
     return roundedHeight;
   }
 
-  return snapToLayoutUnit(used);
+  // Under an ancestor's CSS `zoom` the computed height is in unzoomed pixels, while the browser lays
+  // the row out on a grid of zoomed ones: a snap in the unzoomed space lands a step off (`99.8625px`
+  // under `zoom: 1.25` is laid out at `99.859375px` after a snap, and a row is `0.003px` off each time).
+  // The snap is made where the layout is, then brought back.
+  return snapToLayoutUnit(used * zoom) / zoom;
+}
+
+/**
+ * Whether a height is below another by more than the layout grid can tell apart.
+ *
+ * A height that is on the layout grid compares equal to itself, and one that is not (a height a
+ * caller provided) is below another only when the browser would lay the two out differently.
+ *
+ * @param {number} height The height to test.
+ * @param {number} other The height it is compared with.
+ * @returns {boolean} `true` when `height` is below `other` by more than half a layout step.
+ */
+export function isHeightBelow(height: number, other: number): boolean {
+  return height < other - (0.5 / LAYOUT_UNITS_PER_PIXEL);
 }

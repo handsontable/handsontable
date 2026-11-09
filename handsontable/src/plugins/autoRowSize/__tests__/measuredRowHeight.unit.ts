@@ -39,6 +39,23 @@ describe('toStoredRowHeight', () => {
     });
   });
 
+  describe('a grid zoomed out after it was built', () => {
+    // The default height still declares 29px (read at 100%), while a default row now measures
+    // 29.097px at 90%: the inflation the zoom adds is passed in, so the row is not rounded up.
+    it('should keep a default row at its whole pixel when the zoom-made overgrowth is passed in', () => {
+      expect(toStoredRowHeight(29.097, 29, 1 / 9)).toBe(29);
+    });
+
+    it('should round that row up when the overgrowth is not known', () => {
+      expect(toStoredRowHeight(29.097, 29)).toBe(30);
+    });
+
+    it('should still round a row that is taller than the default and the overgrowth up', () => {
+      // 29.4px is content, not border inflation: 0.4 is more than the 0.11 a 90% zoom can add.
+      expect(toStoredRowHeight(29.4, 29, 1 / 9)).toBe(30);
+    });
+  });
+
   it('should treat a missing default height (0) as a default of nothing', () => {
     expect(toStoredRowHeight(18.2, 0)).toBe(19);
   });

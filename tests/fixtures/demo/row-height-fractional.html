@@ -47,6 +47,14 @@
     if (window.htRenderAll === undefined) {
       throw new Error('Unknown ?renderAll= value: ' + JSON.stringify(htParams.get('renderAll')));
     }
+
+    // `?zoom=` is the CSS zoom of an ancestor of the grid, applied before the grid is built. The
+    // computed height of a row is then in unzoomed pixels, while the browser lays the row out on a
+    // grid of zoomed ones.
+    window.htZoom = ({ 1: 1, 1.25: 1.25 })[htParams.get('zoom') ?? '1'];
+    if (window.htZoom === undefined) {
+      throw new Error('Unknown ?zoom= value: ' + JSON.stringify(htParams.get('zoom')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -95,6 +103,7 @@
     const container = document.getElementById('grid');
 
     container.className = `ht-theme-${window.htTheme}`;
+    document.body.style.zoom = String(window.htZoom);
 
     try {
       window.hot = new Handsontable(container, {
