@@ -151,6 +151,13 @@ interface ChangeSetAwaitingApply {
    * other cells.
    */
   writtenCells: WrittenCell[];
+  /**
+   * The data version (`#dataVersion`) before and after the first write drew a new one. When a validator
+   * rejects every change of the set and nothing changed the data since, `#onChangesRejected` puts the
+   * version back, so the undo history records no step for a write that never happened.
+   */
+  dataVersionBefore: number;
+  dataVersionAfter: number;
 }
 
 /**
@@ -170,6 +177,11 @@ interface WrittenCell {
    * reached it.
    */
   writtenContent: unknown;
+  /**
+   * The change the cell was written for: the object the Core reports again when a validator rejects
+   * that change (`#onChangesRejected`).
+   */
+  change: CellChange;
 }
 
 /**
@@ -617,7 +629,7 @@ export class Formulas extends BasePlugin {
    */
   #outOfBoundsWrites = new WeakMap<CellChange[], {
     awaitingApply: ChangeSetAwaitingApply;
-    changes: [number, number, unknown][];
+    changes: [number, number, unknown, CellChange][];
   }>();
 
   /**
@@ -1170,6 +1182,7 @@ export class Formulas extends BasePlugin {
     this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
     this.addHook('afterChange', this.#onAfterChangeWriteOutOfBounds);
     this.hot._addDroppedChangesListener(this.#onChangesDropped);
+    this.hot._addRejectedChangesListener(this.#onChangesRejected);
 
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('beforeCreateCol', this.#onBeforeCreateCol);
@@ -1312,6 +1325,7 @@ export class Formulas extends BasePlugin {
     // `HYPERLINK` anchors again after the cleanup below. The engine is still set here too.
     this.#notifyEngineDetach();
     this.hot._removeDroppedChangesListener(this.#onChangesDropped);
+    this.hot._removeRejectedChangesListener(this.#onChangesRejected);
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -1613,6 +1627,7 @@ export class Formulas extends BasePlugin {
     this.#notifyEngineDetach();
     this.#engineDetachListeners.clear();
     this.hot._removeDroppedChangesListener(this.#onChangesDropped);
+    this.hot._removeRejectedChangesListener(this.#onChangesRejected);
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
 
@@ -4465,8 +4480,11 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const dataVersionBefore = this.#dataVersion;
     const { dependentCells, changedCells, outOfBoundsChanges, writtenCells } = this.#writeChangesToEngine(changes);
     const awaitingApply: ChangeSetAwaitingApply = {
+      dataVersionBefore,
+      dataVersionAfter: this.#dataVersion,
       writeCount: this.#sheetWriteCount,
       foreignLoadCount: this.#foreignLoadCount,
       sheetId: this.sheetId,
@@ -4525,14 +4543,17 @@ export class Formulas extends BasePlugin {
    * @returns {{ dependentCells: unknown[], changedCells: unknown[], outOfBoundsChanges: Array[] }}
    */
   #writeChangesToEngine(changes: CellChange[]) {
-    const outOfBoundsChanges: [number, number, unknown][] = [];
+    const outOfBoundsChanges: [number, number, unknown, CellChange][] = [];
     const changedCells: unknown[] = [];
     const writtenCells: WrittenCell[] = [];
 
     this.#markDataChanged();
 
     const dependentCells = this.#writeOwnSheet(this.engine!, () => this.engine!.batch(() => {
-      changes.forEach(([visualRow, prop, oldValue, newValue]) => {
+      changes.forEach((change) => {
+        const [visualRow, prop, oldValue] = change;
+        let newValue = change[3];
+
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
         }
@@ -4559,11 +4580,11 @@ export class Formulas extends BasePlugin {
         if (physicalRow !== null && physicalColumn !== null) {
           this.syncChangeWithEngine(visualRow, visualColumn, newValue);
           writtenCells.push({
-            address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue, writtenContent: undefined,
+            address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue, writtenContent: undefined, change,
           });
 
         } else {
-          outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
+          outOfBoundsChanges.push([visualRow, visualColumn, newValue, change]);
         }
 
         changedCells.push({ address });
@@ -4680,6 +4701,195 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * Called by the Core with the changes a validator rejected under `allowInvalid: false` in a change set
+   * it is about to apply (`_addRejectedChangesListener()`), before it writes the rest of the set to the
+   * data. `afterSetDataAtCell` wrote every change of the set into the engine before validation, and the
+   * grid's data never gets a rejected one, so the engine has to give it up too: without this a formula
+   * that reads the cell showed a result computed from the rejected value until the next full resync.
+   *
+   * Each rejected cell gets back the value the grid will hold for it once the writes still waiting for
+   * their validators are settled: the value of the newest such write to the same engine cell (the engine
+   * held it before this write overwrote it), or else the value the grid's data holds now, which covers an
+   * older write to the cell applied while this one was validated. A cell whose engine content is no
+   * longer what this write left (`WrittenCell#writtenContent`) is skipped: a newer write, or a full sheet
+   * write from the source data, reached it, and the engine already holds what the grid will.
+   *
+   * The restore is one engine batch in this grid's own write scope: the Core renders this grid right
+   * after, also when every change was rejected, and the scope repaints the other grids on the engine that
+   * read a restored cell. The dependents the restore recalculated are validated, as on the write path.
+   * The rejected out-of-bounds changes are taken out of the deferred `afterChange` write, since their rows
+   * are never created. When every change was rejected, the set's records are dropped: neither
+   * `beforeChangeRender` nor `afterChange` fires for it.
+   *
+   * @param {Array[]} changes The change array of the set, without the rejected changes.
+   * @param {string} [source] The change source.
+   * @param {Array[]} rejectedChanges The rejected changes, the objects `afterSetDataAtCell` received.
+   */
+  #onChangesRejected = (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => {
+    const rejected = new Set(rejectedChanges);
+    const outOfBounds = this.#outOfBoundsWrites.get(changes);
+    const awaitingApply = this.#changesAwaitingApply.get(changes);
+
+    if (outOfBounds) {
+      outOfBounds.changes = outOfBounds.changes.filter(([, , , change]) => !rejected.has(change));
+    }
+
+    if (!awaitingApply) {
+      return;
+    }
+
+    this.#restoreRejectedCells(awaitingApply.writtenCells.filter(cell => rejected.has(cell.change)));
+
+    if (changes.length === 0) {
+      this.#changesAwaitingApply.delete(changes);
+      this.#outOfBoundsWrites.delete(changes);
+
+      // Nothing of the set reaches the data, and the engine holds what it held before the write.
+      if (this.#dataVersion === awaitingApply.dataVersionAfter) {
+        this.#dataVersion = awaitingApply.dataVersionBefore;
+      }
+    }
+  };
+
+  /**
+   * Puts back the engine cells of rejected writes (see `#onChangesRejected`), skipping a cell a newer
+   * write or a full sheet write reached since.
+   *
+   * @param {Array} cells The cells the rejected writes reached.
+   */
+  #restoreRejectedCells(cells: WrittenCell[]) {
+    const engine = this.engine;
+    const rejectedCells = cells.filter(cell => cell.writtenContent !== undefined
+      && this.#readEngineContent(cell.address) === cell.writtenContent);
+
+    if (!engine || rejectedCells.length === 0) {
+      return;
+    }
+
+    const waitingWrites = this.#collectWaitingWrites();
+    const restores = rejectedCells.map(cell => ({
+      address: cell.address,
+      value: this.#valueBeforeRejectedWrite(cell, waitingWrites.get(this.#engineCellKey(cell.address))),
+    }));
+    const dependentCells = this.#writeOwnSheet(engine, () => engine.batch(() => {
+      restores.forEach(({ address, value }) => {
+        if (engine.isItPossibleToSetCellContents(address)) {
+          engine.setCellContents(address as { row: number; col: number; sheet: number }, value ?? null);
+        }
+      });
+    }));
+
+    this.validateDependentCells(dependentCells, restores);
+  }
+
+  /**
+   * Maps every engine cell that a change set still waiting for its validators wrote to the newest such
+   * write (`_getWaitingChangeSets()` lists the sets in the order they were made). A change a validator
+   * has already rejected is no longer in its set's array, so it is left out.
+   *
+   * @returns {Map<string, object>} The newest waiting write per engine cell, keyed by `#engineCellKey()`.
+   */
+  #collectWaitingWrites() {
+    const waitingWrites = new Map<string, WrittenCell>();
+
+    this.hot._getWaitingChangeSets().forEach(({ changes }) => {
+      const awaitingApply = this.#changesAwaitingApply.get(changes);
+
+      if (!awaitingApply) {
+        return;
+      }
+
+      const pending = new Set(changes);
+
+      awaitingApply.writtenCells.forEach((cell) => {
+        if (pending.has(cell.change)) {
+          waitingWrites.set(this.#engineCellKey(cell.address), cell);
+        }
+      });
+    });
+
+    return waitingWrites;
+  }
+
+  /**
+   * Builds the key that names an engine cell.
+   *
+   * @param {object} address The engine address.
+   * @returns {string}
+   */
+  #engineCellKey({ sheet, row, col }: WrittenCell['address']) {
+    return `${sheet}:${row}:${col}`;
+  }
+
+  /**
+   * Answers what the engine has to hold in a cell whose write a validator rejected: the value of the
+   * newest write to it still waiting for its validators, else the value the grid's data holds for it now.
+   * A cell on a sheet the grid no longer shows gets the value the rejected change replaced.
+   *
+   * @param {object} cell The cell the rejected write reached.
+   * @param {object} [waitingWrite] The newest write to the same engine cell still waiting for its validators.
+   * @returns {*} The engine-bound value.
+   */
+  #valueBeforeRejectedWrite(cell: WrittenCell, waitingWrite: WrittenCell | undefined) {
+    if (waitingWrite) {
+      return this.#toEngineBoundValue(waitingWrite, waitingWrite.change[3]);
+    }
+
+    if (cell.address.sheet !== this.sheetId) {
+      return this.#toEngineBoundValue(cell, cell.oldValue);
+    }
+
+    return this.#toEngineBoundValue(cell, this.#readStoredValue(cell));
+  }
+
+  /**
+   * Reads the value the grid's data holds in a cell, without the projection of the engine's formula text
+   * (`modifySourceData`), which would hand back what the engine holds.
+   *
+   * @param {object} cell The cell, by the physical coordinates its write recorded.
+   * @returns {*} The stored value, or the old value of the write when the column is no longer visible.
+   */
+  #readStoredValue({ physicalRow, physicalColumn, oldValue }: WrittenCell): unknown {
+    const visualColumn = this.hot.toVisualColumn(physicalColumn);
+
+    if (visualColumn === null) {
+      return oldValue;
+    }
+
+    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
+
+    this.#sourceDataProjectionSuspended = true;
+
+    try {
+      return this.hot.getSourceDataAtCell(physicalRow, visualColumn);
+    } finally {
+      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
+    }
+  }
+
+  /**
+   * Turns a grid value into what a write puts into the engine for a recorded cell: the column's
+   * `valueGetter` resolves an object, and a text value is escaped like any engine-bound write
+   * (`#escapeEngineBoundValue`), so a preserved text `'007'` stays text.
+   *
+   * @param {object} cell The cell, with the grid coordinates its write recorded.
+   * @param {*} value The grid value.
+   * @returns {*} The engine-bound value.
+   */
+  #toEngineBoundValue({ physicalRow, physicalColumn, visualRow, visualColumn }: WrittenCell, value: unknown) {
+    const engineValue = this.#getValueGetterValue(physicalRow, physicalColumn, value);
+
+    if (typeof engineValue !== 'string') {
+      return engineValue;
+    }
+
+    return this.#escapeEngineBoundValue(
+      engineValue,
+      this.hot._getMetaManager().getCellMetaTransient(physicalRow, physicalColumn, { visualRow, visualColumn }),
+    );
+  }
+
+  /**
    * Puts the old values of a dropped change set back into a grid that loaded its data from the engine
    * sheet the set was written into, and into that sheet. The grid's data and the engine both hold the
    * dropped value then. The values go through `setSourceDataAtCell()`, whose `afterSetSourceDataAtCell`
@@ -4761,21 +4971,12 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const metaManager = this.hot._getMetaManager();
-
     engine.batch(() => {
-      writtenCells.forEach(({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue }) => {
-        let previous = this.#getValueGetterValue(physicalRow, physicalColumn, oldValue);
+      writtenCells.forEach((cell) => {
+        const previous = this.#toEngineBoundValue(cell, cell.oldValue);
 
-        if (typeof previous === 'string') {
-          previous = this.#escapeEngineBoundValue(
-            previous,
-            metaManager.getCellMetaTransient(physicalRow, physicalColumn, { visualRow, visualColumn }),
-          );
-        }
-
-        if (engine.isItPossibleToSetCellContents(address)) {
-          engine.setCellContents(address, previous ?? null);
+        if (engine.isItPossibleToSetCellContents(cell.address)) {
+          engine.setCellContents(cell.address, previous ?? null);
         }
       });
     });

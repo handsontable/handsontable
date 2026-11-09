@@ -36,13 +36,16 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
   });
 
   /**
-   * A validator that answers only when the test releases it, rejecting negative numbers.
+   * A validator that answers only when the test releases it, rejecting negative numbers, typed or not.
    *
    * @param {*} value The validated value.
    * @param {Function} callback The validator callback.
    */
   function heldValidator(value, callback) {
-    held.push({ value, answer: () => callback(!(typeof value === 'number' && value < 0)) });
+    // An editor hands the validator the typed text.
+    const number = typeof value === 'string' && value !== '' ? Number(value) : value;
+
+    held.push({ value, answer: () => callback(!(typeof number === 'number' && number < 0)) });
   }
 
   /**
@@ -177,7 +180,7 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
       data: [[2, '=A1*15'], [31, '=A2*15']],
       columns: [{ validator: (value, callback) => callback(true), allowInvalid: false }, {}],
       formulas: { engine },
-      afterValidate: value => value !== 99,
+      afterValidate: (isValid, value) => isValid && value !== 99,
       licenseKey: TEST_LICENSE_KEY,
     });
 
@@ -214,7 +217,8 @@ describe('Formulas restores the engine when a validator rejects a change', () =>
     hot = new Handsontable(container, {
       data: [[2, '=A1*15'], [31, '=A2*15']],
       columns: [{
-        validator: (value, callback) => callback(!(typeof value === 'string' && value.startsWith('='))),
+        // The plugin validates a formula by its result, so `=A1` reads 2 here.
+        validator: (value, callback) => callback(value !== 2),
         allowInvalid: false,
       }, {}],
       formulas: { engine },
