@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "id": "pagination",
+  "group": "status",
+  "surface": "The pagination bar: the page size select and the page buttons, the page each button announces, and the focus a disabled button hands on.",
+  "page": "pagination",
+  "start": "page",
+  "criteria": ["2.1.1", "2.4.3", "4.1.2", "4.1.3"],
+  "setup": [{"selectCell": [0, 8]}],
+  "steps": [
+    {
+      "id": "tab-page-size",
+      "action": {"press": "Tab"},
+      "expect": [["page size"], ["10"]],
+      "note": "Tab leaves the last cell of the first row for the bar's first control, the page size select, which holds 10. The scenario starts on the page (`start: page`): the page's first item is the `Input top` field, not the grid. VoiceOver with WebKit said nothing on this first key, as on the first key of other scenarios."
+    },
+    {
+      "id": "tab-next-page",
+      "action": {"press": "Tab"},
+      "expect": [["go to next page"]],
+      "note": "On the first page the first and previous page buttons are disabled, so Tab skips them to the next page button."
+    },
+    {
+      "id": "enter-next-page",
+      "action": {"press": "Enter"},
+      "expect": [["page 2 of 10"]],
+      "note": "Enter turns the page, and the plugin announces it (`Page 2 of 10`, assertive). The focus stays on the button."
+    },
+    {
+      "id": "tab-last-page",
+      "action": {"press": "Tab"},
+      "expect": [["go to last page"]],
+      "note": "The last page button."
+    },
+    {
+      "id": "enter-last-page",
+      "action": {"press": "Enter"},
+      "expect": [["page 10 of 10"], ["go to previous page"]],
+      "note": "Enter goes to the last page, which disables the next and last page buttons, so the plugin hands the focus to the previous page button. A reader says the page and the button the focus landed on. Finding: VoiceOver says only the page, not the button: WebKit on every run, Chromium on some."
+    },
+    {
+      "id": "enter-previous-page",
+      "action": {"press": "Enter"},
+      "expect": [["page 9 of 10"]],
+      "note": "Enter on the previous page button."
+    },
+    {
+      "id": "shift-tab-first-page",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["go to first page"]],
+      "note": "Off the first page, the first page button is enabled and comes before the previous one."
+    },
+    {
+      "id": "enter-first-page",
+      "action": {"press": "Enter"},
+      "expect": [["page 1 of 10"], ["go to next page"]],
+      "note": "Enter goes back to the first page, which disables the first and previous page buttons, so the focus moves to the next page button. Finding: VoiceOver with WebKit says only the page, not the button, as on the last page."
+    },
+    {
+      "id": "shift-tab-page-size",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["page size"]],
+      "note": "Shift+Tab skips the two disabled buttons back to the page size select."
+    },
+    {
+      "id": "shift-tab-grid",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["united kingdom"]],
+      "note": "Shift+Tab goes back into the grid, on the cell it left (`United Kingdom`, the last cell of the first row)."
+    }
+  ]
+}

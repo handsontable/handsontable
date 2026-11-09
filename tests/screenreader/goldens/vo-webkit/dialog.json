@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "dialog",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:54:15.407Z"
+  },
+  "steps": {
+    "dialog-opens": "",
+    "tab-ok": "ok button confirm this is a confirm web alert dialog",
+    "tab-past-ok": "input 2 edit text blank",
+    "shift-tab-ok": "ok button confirm this is a confirm web alert dialog",
+    "escape-closes": "country country 1 table 5 columns",
+    "arrow-down-after-close": "country country 2",
+    "dialog-opens-again": "cancel button confirm this is a confirm web alert dialog",
+    "tab-ok-again": "ok button",
+    "enter-ok": "country country 2 table 5 columns"
+  }
+}

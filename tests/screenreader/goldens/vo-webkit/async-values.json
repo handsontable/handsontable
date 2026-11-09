@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "async-values",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:51:31.095Z"
+  },
+  "steps": {
+    "arrow-right-pending": "",
+    "value-resolves": "name new a",
+    "arrow-down-pending": "name old bloading website cell busy",
+    "request-fails": "price service unavailable",
+    "arrow-up-resolved": "name new a",
+    "arrow-down-failed": "price service unavailable name old bprice service unavailable invalid data"
+  }
+}
