@@ -105,12 +105,75 @@ test.describe('pagination with every row filtered out', { tag: THEMES_TAG }, () 
   test('adds nothing to a grid with a fixed `height`', async () => {
     await grid.goto('explicit-height', 'pagination');
     await grid.rebuild({ filters: true });
+
+    const heightWithRows = (await grid.geometry()).root.height;
+
     await filterEverything();
 
-    const before = (await grid.geometry()).root.height;
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(0);
+    expect((await grid.geometry()).root.height).toBe(heightWithRows);
+  });
+
+  test('adds nothing when the pager sits in a custom `uiContainer`', async () => {
+    await grid.goto(FREE_HOST, 'pagination');
+    await grid.page.evaluate(() => {
+      const host = document.createElement('div');
+
+      document.body.appendChild(host);
+      window.initSlotGrid(undefined, undefined, {
+        filters: true,
+        height: 'auto',
+        pagination: { pageSize: 25, uiContainer: host },
+      });
+    });
+    await expect(grid.cell(1, 1)).toBeVisible();
+    await filterEverything();
 
     await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(0);
-    expect((await grid.geometry()).root.height).toBe(before);
+  });
+
+  test('adds nothing while every section of the pager is hidden', async () => {
+    await grid.goto(FREE_HOST, 'pagination');
+    await grid.rebuild({
+      filters: true,
+      height: 'auto',
+      pagination: { pageSize: 25, showPageSize: false, showCounter: false, showNavigation: false },
+    });
+    await filterEverything();
+
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(0);
+  });
+
+  test('keeps the gap for a grid that starts with no rows', async () => {
+    await grid.goto(FREE_HOST, 'pagination');
+    await grid.page.evaluate(() => {
+      window.initSlotGrid(undefined, undefined, {
+        data: [],
+        columns: [{ data: 0 }, { data: 1 }],
+        height: 'auto',
+      });
+    });
+    await expect(grid.page.locator('.ht-slot-bottom .ht-pagination')).toBeVisible();
+
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(1);
+    await expect.poll(gapUnderHeaders).toBeGreaterThanOrEqual(RESERVED_BODY_PX);
+  });
+
+  test('hands the space to `emptyDataState` when it is turned on, and takes it back when it is turned off', async () => {
+    await grid.goto(FREE_HOST, 'pagination');
+    await grid.rebuild({ filters: true, height: 'auto' });
+    await filterEverything();
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(1);
+
+    await grid.page.evaluate(() => window.hot.updateSettings({ emptyDataState: true }));
+
+    await expect(grid.page.locator('.ht-empty-data-state-placeholder')).toHaveCount(1);
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(0);
+
+    await grid.page.evaluate(() => window.hot.updateSettings({ emptyDataState: false }));
+
+    await expect(grid.page.locator('.ht-empty-data-state-placeholder')).toHaveCount(0);
+    await expect(grid.page.locator('.ht-pagination-placeholder')).toHaveCount(1);
   });
 
   test('removes the space with the plugin', async () => {

@@ -601,13 +601,14 @@ export class PaginationUI {
   /**
    * Keeps an empty block in the table holder while the grid has no rows to draw, so a root whose
    * height is free does not collapse to its column headers and leave the pager touching them.
-   * Removes the block as soon as it is not needed.
+   * Removes the block as soon as it is not needed, and does not add it while every section of the
+   * pager is hidden, because then there is no pager to separate from the headers.
    *
-   * @param {HTMLElement | null} holder The table holder, or `null` when there is no view yet.
+   * @param {HTMLElement} holder The table holder.
    * @param {boolean} needed Whether the grid should reserve the body space now.
    */
-  syncEmptyBodyReserve(holder: HTMLElement | null, needed: boolean) {
-    if (!holder || !needed) {
+  syncEmptyBodyReserve(holder: HTMLElement, needed: boolean) {
+    if (!needed || this.#refs?.container.style.display === 'none') {
       this.#emptyBodyReserve?.remove();
       this.#emptyBodyReserve = null;
 

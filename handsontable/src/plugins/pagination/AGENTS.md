@@ -90,9 +90,12 @@ Pinned by `__tests__/readyStep.unit.js`.
   height that is unset or `'auto'`, the holder has no content, so the root collapsed to its column headers and the
   pager touched them. `#onAfterRender` keeps one `ht-pagination-placeholder` block (150 px, the same as the
   `emptyDataState` placeholder) in `wtTable.holder` through `PaginationUI#syncEmptyBodyReserve()`; `destroy()`
-  removes it. It stays off with a fixed `height` (the engine already leaves the room), with a custom
-  `uiContainer` (the pager is not under the grid), and while `emptyDataState` is enabled, which holds the same
-  space open, so the two never stack to 300 px. Pinned by `tests/e2e/pagination-all-filtered-gap.spec.ts`. The
+  removes it. "Free" means the root's INLINE height is empty or `'auto'`, so a root sized by a stylesheet or a short
+  container counts as free and the 150 px can extend past it, the same way the rows do in that layout. It stays off
+  with a pixel, percentage or viewport `height` (the engine already leaves the room), with a custom `uiContainer`
+  (the pager is not under the grid), while every pager section is hidden, and while `emptyDataState` is enabled,
+  which holds the same space open, so the two never stack to 300 px. The 150 is a copy of `MIN_HEIGHT` in
+  `../emptyDataState/ui.ts`: change both together, or the pager jumps when that plugin is toggled. Pinned by `tests/e2e/pagination-all-filtered-gap.spec.ts`. The
   `auto-height` variant of the bottom-slot fixture fixes the grid's CSS box at 400 px, so its pager never
   collapses: use `inline-block-host` to reproduce it.
 
