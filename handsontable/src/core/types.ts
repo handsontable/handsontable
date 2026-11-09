@@ -352,6 +352,12 @@ export interface HotInstance {
   _removeDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   ): void;
+  _addRejectedChangesListener(
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  ): void;
+  _removeRejectedChangesListener(
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  ): void;
 
   // DOM references
   rootElement: HTMLElement;
