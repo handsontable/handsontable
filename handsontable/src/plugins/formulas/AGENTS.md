@@ -649,20 +649,42 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   second time by that old formula (source `undefined`), and an out-of-order answer left an invalid value
   with a valid mark. The Core validates them as changes. Pinned by `validates a deferred cell of a mixed set
   once, by its new value` (both sources).
-- **On a deferred apply, a dependent's validation joins no undo step.** `validateCell()` holds the step it
-  runs in until the validator answers. Called from the apply, an async validator on a dependent (a total
-  row over the column) held the edit's step for its whole run, so `isUndoAvailable()` was `false` and an
-  `undo()` made right after `afterChange` was dropped. On develop the dependents were validated during the
-  edit's own wait, so the step settled with the edit. So `#onBeforeChangeRender` validates the dependents
-  through `#validateDependentCellsUnrecorded()`, which runs each `validateCell()` under the grid's
-  `operationScope.suppress()`. **The cost: for a deferred edit, what a dependent's validator or
-  `afterValidate` listener writes (a `setCellMeta()`, a `*Validator` correction) is recorded in no step, so
-  an undo of the edit does not undo it.** On develop it joined the edit's step. Every other path (the early
-  write in `afterSetDataAtCell`, the write of a restored state, a source write) validates the dependents
-  inside the step, as on develop: their writes are undone with the edit, and an async dependent validator
-  still delays the step there. Pinned by `makes an accepted edit undoable as soon as it is applied, while a
+- **So are the cells a deferred change also recalculates.** In a mixed set, the early write of an
+  immediate cell recalculates a formula that reads a deferred cell too (`C = A1+B1`, A deferred, B immediate)
+  from the deferred cell's OLD value. Validated then, its validator and `afterValidate` ran for a value the
+  cell never ends with, and an out-of-order async answer of that stale validation overwrote the mark of the
+  right one (C = 52 marked valid). `#splitDependentsOfDeferred()` walks `getCellDependents()` from the
+  deferred cells (formulas and ranges, transitively, `#collectDependentKeys()`), leaves those cells out of the
+  early validation, and keeps them on the record (`heldDependents`). `#onBeforeChangeRender` validates them
+  with the write's own dependents (`uniqueCellChanges()`), with the final engine values, also when every
+  deferred change was rejected and the apply writes nothing: the immediate changes still reach the data, so
+  the set reaches `beforeChangeRender`. Pinned by `validates a dependent of a deferred and an immediate cell
+  of one set once, at the apply` (reverse-order answers) and `validates a shared dependent when the deferred
+  cell is rejected and the immediate one applies`. **Not reachable by a test, documented:** a set reaches
+  no `beforeChangeRender` only when its array ends empty. A cell without `allowInvalid: false` can leave it
+  only through the write ledger, when a newer applied write to the same cell overtook it, so a set whose
+  immediate changes were all overtaken and whose deferred changes were all rejected or overtaken never
+  validates its held dependents. The newer writes recalculated and validated them, and their marks stay. A
+  dropped set (a `loadData()`) needs none: the data was replaced.
+- **When the set holds a change the Core can reject, the apply's dependent validation joins no undo
+  step.** `validateCell()` holds the step it runs in until the validator answers. Called from the apply,
+  an async validator on a dependent (a total row over the column) held the edit's step for its whole run, so
+  `isUndoAvailable()` was `false` and an `undo()` made right after `afterChange` was dropped. On develop the
+  dependents were validated during the edit's own wait, so the step settled with the edit. So
+  `#onBeforeChangeRender` validates them through `#validateDependentCellsUnrecorded()`, which runs each
+  `validateCell()` under the grid's `operationScope.suppress()`, when the record says `hasRejectableChange`.
+  **The cost: for a set with a deferred change, what the validator or `afterValidate` listener of a
+  dependent validated at the apply writes (a `setCellMeta()`, a `*Validator` correction) is recorded in no
+  step, so an undo of the edit does not undo it.** That covers every dependent of the deferred cells, a
+  dependent the set's immediate cells share with them included (it is validated only at the apply now). On
+  develop those writes joined the edit's step. A dependent of the immediate cells only is validated by the
+  early write inside the step, as on develop. An apply without a rejectable change (a set past the last row
+  only, or the whole-set write-back of a resync window when nothing was deferred) validates inside the step,
+  as on develop; so do the write of a restored state and a source write. There an async dependent validator
+  still delays the step. Pinned by `makes an accepted edit undoable as soon as it is applied, while a
   dependent is still validated`, the Playwright step of `tests/e2e/editor-validation-wait-own-cell.spec.ts`,
-  and `undoes what a dependent's afterValidate writes with an edit written at once, as before`.
+  `undoes what a dependent's afterValidate writes with an edit written at once, as before`, and `undoes
+  what a dependent's afterValidate writes with a write past the last row, as before`.
 
 **Known limit (the predicate is duplicated).** Formulas decides in `afterSetDataAtCell`; the Core reads
 the cell's validator when it validates and `allowInvalid` when the validator answers (`queueValidators()`).
