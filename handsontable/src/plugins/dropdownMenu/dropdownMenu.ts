@@ -587,13 +587,11 @@ export class DropdownMenu extends BasePlugin {
    *
    * When no cells are selected, `executeCommand()` doesn't do anything.
    *
-   * You can execute all predefined commands:
+   * You can execute the predefined commands that the default `dropdownMenu` items register:
    *  * `'col_left'` - Insert column left
    *  * `'col_right'` - Insert column right
-   *  * `'clear_column'` - Clear selected column
+   *  * `'clear_column'` - Clear selected column (works only for selected columns, for example after `selectColumns()`)
    *  * `'remove_col'` - Remove column
-   *  * `'undo'` - Undo last action
-   *  * `'redo'` - Redo last action
    *  * `'make_read_only'` - Make cell read only
    *  * `'alignment:left'` - Alignment to the left
    *  * `'alignment:top'` - Alignment to the top
@@ -601,6 +599,10 @@ export class DropdownMenu extends BasePlugin {
    *  * `'alignment:bottom'` - Alignment to the bottom
    *  * `'alignment:middle'` - Alignment to the middle
    *  * `'alignment:center'` - Alignment to the center (justify).
+   *
+   * Any other predefined command, such as `'undo'` or `'redo'`, works only when you list it in
+   * the [`dropdownMenu`](@/api/options.md#dropdownmenu) option. Running a command that the menu doesn't register
+   * throws an error.
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
