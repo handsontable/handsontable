@@ -26,6 +26,7 @@ interface DataManager {
   ): void;
   rewriteCache(): void;
   untranslateTrimmedRow(index: number): number;
+  captureRowSizeOrigins(): (() => void) | null;
 }
 
 interface NestedRowsPlugin {
@@ -142,9 +143,13 @@ export default class RowMoveController {
 
     this.shiftCollapsibleParentsLocations(physicalStartIndexes, physicalDropIndex, sameParent);
 
+    // `moveRows()` moves each row object on its own, so the declared row heights follow the objects.
+    const restoreRowSizeOrigins = this.dataManager.captureRowSizeOrigins();
+
     this.moveRows(physicalStartIndexes, physicalDropIndex, targetParent);
 
     this.dataManager.rewriteCache();
+    restoreRowSizeOrigins?.();
 
     this.moveCellsMeta(physicalStartIndexes, physicalDropIndex);
 
@@ -298,10 +303,6 @@ export default class RowMoveController {
     this.hot.spliceCellsMeta(baseIndexes[0], baseIndexes.length);
 
     this.hot.spliceCellsMeta(targetIndex - (movingDown ? rowsOfMeta.length : 0), 0, ...rowsOfMeta);
-    // The indexes are physical, which is what the `rowHeights` and `minRowHeights` arrays are addressed
-    // by, so the heights move with their rows.
-    this.hot._moveRowSizeSlots(baseIndexes[0]!, targetIndex - (movingDown ? baseIndexes.length : 0),
-      baseIndexes.length);
   }
 
   /**

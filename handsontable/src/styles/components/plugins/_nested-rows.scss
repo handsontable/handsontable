@@ -15,8 +15,9 @@
 
         // The button is taller than a line of text, so it is centered on the label's first line.
         > .relative > .ht_nestingButton {
-          // The fallbacks keep the declaration valid on a theme that does not define the tokens: an
-          // invalid `calc()` would drop it to 0 instead of the shared button margin.
+          // The fallbacks keep the declaration valid on a theme that does not define the tokens: this rule
+          // is more specific than the shared button margin, so an invalid `calc()` would leave the button
+          // with no top margin at all.
           margin-top: calc((var(--ht-line-height, 20px) - var(--ht-icon-button-hit-area-size, 24px)) / 2);
         }
 

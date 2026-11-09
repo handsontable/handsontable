@@ -118,11 +118,21 @@ describe('rowHeights addressed by physical row index', () => {
 
     hot.alter('insert_row_above', 1);
 
-    expect(hot.getSettings().rowHeights).toEqual([100, undefined, 50, 40]);
     expect(hot.getRowHeight(0)).toBe(100);
     expect(hot.getRowHeight(1)).toBeUndefined();
     expect(hot.getRowHeight(2)).toBe(50);
     expect(hot.getRowHeight(3)).toBe(40);
+  });
+
+  it('should give a row inserted below another no height of its own', () => {
+    createGrid({ rowHeights: [100, 50, 40] });
+
+    hot.alter('insert_row_below', 0);
+
+    expect(hot.getDataAtCol(0)).toEqual(['a', null, 'b', 'c']);
+    expect(hot.getRowHeight(0)).toBe(100);
+    expect(hot.getRowHeight(1)).toBeUndefined();
+    expect(hot.getRowHeight(2)).toBe(50);
   });
 
   it('should keep the heights with their rows when a row is appended after a move', () => {
@@ -139,6 +149,36 @@ describe('rowHeights addressed by physical row index', () => {
     expect(hot.getRowHeight(3)).toBeUndefined();
   });
 
+  it('should give the rows appended at the end the next entries, whichever way they are created', () => {
+    createGrid({ data: [['a']], rowHeights: [40, 60, 70, 80] });
+
+    hot.alter('insert_row_below');
+    hot.setDataAtCell(2, 0, 'c');
+    // below the last row is an append too
+    hot.alter('insert_row_below', 2);
+
+    expect(hot.countRows()).toBe(4);
+    expect([0, 1, 2, 3].map(row => hot.getRowHeight(row))).toEqual([40, 60, 70, 80]);
+  });
+
+  it('should apply the declared heights to the rows added to a grid created empty', () => {
+    createGrid({ data: [], columns: [{}], rowHeights: [40, 60] });
+
+    hot.alter('insert_row_below', undefined, 2);
+
+    expect([0, 1].map(row => hot.getRowHeight(row))).toEqual([40, 60]);
+  });
+
+  it('should give an appended row the entry after the highest one in use', () => {
+    createGrid({ data: [['a'], ['b'], ['c'], ['d']], rowHeights: [100, 50, 40, 30, 20] });
+
+    hot.alter('remove_row', 1);
+    hot.alter('insert_row_below');
+
+    // a, c and d keep entries 0, 2 and 3, and the appended row takes entry 4
+    expect([0, 1, 2, 3].map(row => hot.getRowHeight(row))).toEqual([100, 40, 30, 20]);
+  });
+
   it('should drop the height of a removed row after a move', () => {
     createGrid({ rowHeights: [100, 50, 40] });
 
@@ -146,7 +186,6 @@ describe('rowHeights addressed by physical row index', () => {
     hot.alter('remove_row', 0);
 
     // visual order was [b, c, a], so b is gone
-    expect(hot.getSettings().rowHeights).toEqual([100, 40]);
     expect(hot.getRowHeight(0)).toBe(40);
     expect(hot.getRowHeight(1)).toBe(100);
   });
@@ -158,7 +197,7 @@ describe('rowHeights addressed by physical row index', () => {
     // visual order is [a, c, d], so c (physical 2) is removed
     hot.alter('remove_row', 1);
 
-    expect(hot.getSettings().rowHeights).toEqual([100, 50, 30]);
+    expect(hot.getRowHeight(0)).toBe(100);
     expect(hot.getRowHeight(1)).toBe(30);
   });
 
@@ -168,7 +207,6 @@ describe('rowHeights addressed by physical row index', () => {
     hot.alter('remove_row', undefined, 2);
 
     expect(hot.countRows()).toBe(1);
-    expect(hot.getSettings().rowHeights).toEqual([100]);
     expect(hot.getRowHeight(0)).toBe(100);
   });
 
@@ -196,19 +234,76 @@ describe('rowHeights addressed by physical row index', () => {
     hot.alter('remove_row', 0, 1);
 
     expect(hot.getDataAtCol(0)).toEqual(['b', 'd']);
-    expect(hot.getSettings().rowHeights).toEqual([50, 30]);
+    expect(hot.getRowHeight(0)).toBe(50);
+    expect(hot.getRowHeight(1)).toBe(30);
   });
 
-  it('should keep an array `minRowHeights` aligned with its rows', () => {
+  it('should keep an array `minRowHeights` with its rows', () => {
     createGrid({ minRowHeights: [80, 60, 70] });
 
     hot.alter('remove_row', 0);
 
-    expect(hot.getSettings().minRowHeights).toEqual([60, 70]);
+    expect(hot.getRowHeight(0)).toBe(60);
+    expect(hot.getRowHeight(1)).toBe(70);
 
     hot.alter('insert_row_above', 0);
 
-    expect(hot.getSettings().minRowHeights).toEqual([undefined, 60, 70]);
+    expect(hot.getRowHeight(1)).toBe(60);
+    expect(hot.getRowHeight(2)).toBe(70);
+  });
+
+  it('should never change the array the user passed', () => {
+    const rowHeights = [100, 50, 40];
+
+    createGrid({ rowHeights });
+
+    hot.alter('insert_row_above', 1);
+    hot.alter('remove_row', 0);
+
+    expect(hot.getSettings().rowHeights).toBe(rowHeights);
+    expect(rowHeights).toEqual([100, 50, 40]);
+  });
+
+  it('should apply a new array passed to `updateSettings()` after rows were inserted and removed', () => {
+    createGrid({ rowHeights: [100, 50, 40] });
+
+    hot.alter('insert_row_above', 1);
+    hot.updateSettings({ rowHeights: [30, 31, 32, 33] });
+
+    expect([0, 1, 2, 3].map(row => hot.getRowHeight(row))).toEqual([30, 31, 32, 33]);
+
+    hot.alter('remove_row', 0);
+    hot.updateSettings({ minRowHeights: [70, 71, 72] });
+
+    expect(hot.getSettings().rowHeights).toEqual([30, 31, 32, 33]);
+    expect([0, 1, 2].map(row => hot.getRowHeight(row))).toEqual([31, 32, 33]);
+
+    hot.updateSettings({ rowHeights: undefined });
+
+    expect([0, 1, 2].map(row => hot.getRowHeight(row))).toEqual([70, 71, 72]);
+  });
+
+  it('should keep the declaration when `updateSettings()` passes the same array again', () => {
+    const rowHeights = [100, 50, 40];
+
+    createGrid({ rowHeights });
+
+    hot.alter('insert_row_above', 0);
+    hot.updateSettings({ rowHeights });
+
+    expect([0, 1, 2, 3].map(row => hot.getRowHeight(row))).toEqual([undefined, 100, 50, 40]);
+  });
+
+  it('should apply an entry the user changes in place to the row it belongs to', () => {
+    const rowHeights = [100, 50, 40];
+
+    createGrid({ rowHeights });
+
+    hot.alter('insert_row_above', 0);
+    rowHeights[1] = 77;
+
+    // b, declared at entry 1, is now at visual 2
+    expect(hot.getRowHeight(2)).toBe(77);
   });
 
   it('should leave a `rowHeights` function untouched when rows are inserted', () => {

@@ -330,9 +330,9 @@ export interface HotInstance {
   _getEditorManager(): EditorManagerInstance;
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
-  _insertRowSizeSlots(physicalRow: number, amount: number): void;
-  _removeRowSizeSlots(physicalRows: number[]): void;
-  _moveRowSizeSlots(fromPhysicalRow: number, toPhysicalRow: number, amount: number): void;
+  _alignInsertedRowSizes(physicalRow: number, amount: number): void;
+  _readRowSizeOrigins(): Map<'rowHeights' | 'minRowHeights', unknown[]> | null;
+  _writeRowSizeOrigins(origins: Map<'rowHeights' | 'minRowHeights', unknown[]>): void;
   _getOperationScope(): OperationScope;
   _hasPendingValidation(): boolean;
   _isAnsweringStaleValidation(): boolean;

@@ -99,6 +99,40 @@ describe('NestedRows with rowHeights addressed by physical row index', () => {
     expect(heightsByName()).toEqual({ P: 100, C0: undefined, C1: 50, C2: 40, Q: 70 });
   });
 
+  it('should keep the heights with their rows when a sibling is added below a nested child', () => {
+    buildGrid({
+      data: [
+        { name: 'A', __children: [{ name: 'A1', __children: [{ name: 'A1a' }, { name: 'A1b' }] }, { name: 'A2' }] },
+        { name: 'B' },
+      ],
+      rowHeights: [100, 60, 45, 50, 55, 90],
+    });
+
+    // what the context menu's "Insert row below" does on A2 (visual row 4)
+    hot.getPlugin('nestedRows').dataManager.addSibling(4, 'below');
+
+    expect(hot.getDataAtCol(0)).toEqual(['A', 'A1', 'A1a', 'A1b', 'A2', null, 'B']);
+    expect([0, 1, 2, 3, 4, 5, 6].map(row => hot.getRowHeight(row)))
+      .toEqual([100, 60, 45, 50, 55, undefined, 90]);
+  });
+
+  it('should keep the heights with their rows when a sibling is added above a nested child', () => {
+    buildGrid({
+      data: [
+        { name: 'A', __children: [{ name: 'A1', __children: [{ name: 'A1a' }, { name: 'A1b' }] }, { name: 'A2' }] },
+        { name: 'B' },
+      ],
+      rowHeights: [100, 60, 45, 50, 55, 90],
+    });
+
+    // what the context menu's "Insert row above" does on A1b (visual row 3)
+    hot.getPlugin('nestedRows').dataManager.addSibling(3, 'above');
+
+    expect(hot.getDataAtCol(0)).toEqual(['A', 'A1', 'A1a', null, 'A1b', 'A2', 'B']);
+    expect([0, 1, 2, 3, 4, 5, 6].map(row => hot.getRowHeight(row)))
+      .toEqual([100, 60, 45, undefined, 50, 55, 90]);
+  });
+
   it('should move the height of a detached child with it', () => {
     buildGrid();
 
@@ -119,12 +153,52 @@ describe('NestedRows with rowHeights addressed by physical row index', () => {
     expect(heightsByName()).toEqual({ P: 100, C2: 40, C1: 50, Q: 70 });
   });
 
+  it('should move the heights of rows dragged down across their siblings', () => {
+    buildGrid({
+      data: [{ name: 'P', __children: [{ name: 'C1' }, { name: 'C2' }, { name: 'C3' }, { name: 'C4' }] }],
+      rowHeights: [100, 11, 22, 33, 44],
+      manualRowMove: true,
+    });
+
+    hot.getPlugin('manualRowMove').dragRows([1], 4);
+
+    expect(hot.getDataAtCol(0)).not.toEqual(['P', 'C1', 'C2', 'C3', 'C4']);
+    expect(heightsByName()).toEqual({ P: 100, C1: 11, C2: 22, C3: 33, C4: 44 });
+  });
+
+  it('should move the height of each row of an unsorted multi-row drag with its own row', () => {
+    buildGrid({
+      data: [{ name: 'P', __children: [{ name: 'C1' }, { name: 'C2' }, { name: 'C3' }, { name: 'C4' }] }],
+      rowHeights: [100, 11, 22, 33, 44],
+      manualRowMove: true,
+    });
+
+    hot.getPlugin('manualRowMove').dragRows([2, 1], 5);
+
+    expect(hot.getDataAtCol(0)).not.toEqual(['P', 'C1', 'C2', 'C3', 'C4']);
+    expect(heightsByName()).toEqual({ P: 100, C1: 11, C2: 22, C3: 33, C4: 44 });
+  });
+
+  it('should keep the array the user passed unchanged through the tree operations', () => {
+    const rowHeights = [100, 50, 40, 70];
+
+    buildGrid({ rowHeights, manualRowMove: true });
+
+    const plugin = hot.getPlugin('nestedRows');
+
+    plugin.dataManager.addChild(plugin.dataManager.getDataObject(0));
+    plugin.dataManager.detachFromParent([1, 0, 1, 0]);
+    hot.alter('remove_row', 0, 1);
+
+    expect(hot.getSettings().rowHeights).toBe(rowHeights);
+    expect(rowHeights).toEqual([100, 50, 40, 70]);
+  });
+
   it('should drop the heights of a removed parent and its whole subtree', () => {
     buildGrid();
 
     hot.alter('remove_row', 0, 1);
 
-    expect(hot.getSettings().rowHeights).toEqual([70]);
     expect(heightsByName()).toEqual({ Q: 70 });
   });
 
@@ -134,7 +208,6 @@ describe('NestedRows with rowHeights addressed by physical row index', () => {
     hot.getPlugin('nestedRows').collapseParent(0);
     hot.alter('remove_row', 0, 1);
 
-    expect(hot.getSettings().rowHeights).toEqual([70]);
     expect(heightsByName()).toEqual({ Q: 70 });
   });
 

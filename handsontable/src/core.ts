@@ -61,7 +61,8 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
-import { insertSizeSlots, moveSizeSlots, removeSizeSlots } from './core/sizeArraySplice';
+import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { RowSizeSettings, type RowSizeOption } from './core/rowSizeSettings';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
@@ -1728,23 +1729,6 @@ export default function Core(
       (totalCols: number) => instance.alter('insert_col_start', totalCols, 1, 'auto'));
 
   /**
-   * Applies a change to the `rowHeights` and `minRowHeights` arrays, which are addressed by the physical
-   * row index, so every height stays with its row when rows are inserted, removed, or moved in the data.
-   * A number, a string, and a function name no row by its index, so they are left as they are.
-   *
-   * @param {Function} splice Returns the changed copy of a size array.
-   */
-  const alignRowSizeSettings = (splice: (sizes: unknown[]) => unknown[]): void => {
-    if (Array.isArray(tableMeta.rowHeights)) {
-      tableMeta.rowHeights = splice(tableMeta.rowHeights);
-    }
-
-    if (Array.isArray(tableMeta.minRowHeights)) {
-      (tableMeta as Record<string, unknown>).minRowHeights = splice(tableMeta.minRowHeights);
-    }
-  };
-
-  /**
    * Removes the last rows or columns of the grid with the `auto` source, and keeps the editor and the selection
    * on what is left.
    *
@@ -1942,10 +1926,7 @@ export default function Core(
             } = datamap.createRow(rowIndex, amount, { source, mode: insertRowMode });
 
             if (rowDelta) {
-              // `rowHeights` and `minRowHeights` are addressed by the physical index, which a created row
-              // takes in the middle of the physical order after any row move, so the heights after it shift
-              // with their rows.
-              alignRowSizeSettings(sizes => insertSizeSlots(sizes, startRowPhysicalIndex!, rowDelta as number));
+              rowSizeSettings.alignInsertedRows(startRowPhysicalIndex!, rowDelta as number);
             }
 
             selection.shiftRows(instance.toVisualRow(startRowPhysicalIndex!), rowDelta as number);
@@ -1988,7 +1969,7 @@ export default function Core(
               // the physical order after any column move, so the widths after it shift with their columns.
               if (Array.isArray(tableMeta.colWidths)) {
                 tableMeta.colWidths =
-                  insertSizeSlots(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
+                  insertColWidths(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
               }
 
               selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
@@ -2243,7 +2224,7 @@ export default function Core(
                 }
 
                 if (Array.isArray(tableMeta.colWidths)) {
-                  tableMeta.colWidths = removeSizeSlots(tableMeta.colWidths, removedPhysicalColumns);
+                  tableMeta.colWidths = removeColWidths(tableMeta.colWidths, removedPhysicalColumns);
                 }
 
                 offset += groupAmount;
@@ -9620,24 +9601,38 @@ export default function Core(
   };
 
   /**
-   * Resolves one row's value out of the `rowHeights` or `minRowHeights` setting. The array and the
-   * function are addressed by the physical row index, so a height stays with its row when rows are
-   * moved, sorted, trimmed, filtered, or collapsed. Headers (negative indexes) and rows outside the
-   * index mapper have no physical index, so they keep the index they were given. A number and a
-   * string apply to every row, so they skip the translation.
+   * Resolves one row's value out of the `rowHeights` or `minRowHeights` setting. The function is called
+   * with the physical row index, and the array is read at the entry the row was declared at (the physical
+   * index at the time of the declaration, kept by `RowSizeSettings` across row inserts and removals), so a
+   * height stays with its row when rows are moved, sorted, trimmed, filtered, collapsed, inserted, or
+   * removed. Headers (negative indexes) and rows outside the index mapper have no physical index, so they
+   * keep the index they were given. A number and a string apply to every row, so they skip the translation.
    *
-   * @param {*} setting The value of the `rowHeights` or `minRowHeights` option.
+   * @param {string} option `rowHeights` or `minRowHeights`.
    * @param {number} row Visual row index.
    * @returns {number|undefined|null}
    */
-  const resolveRowHeightByPhysicalIndex = (setting: unknown, row: number) => {
+  const resolveRowHeightByPhysicalIndex = (option: RowSizeOption, row: number) => {
+    const setting: unknown = tableMeta[option];
+
     if (typeof setting !== 'object' && typeof setting !== 'function') {
       return resolveRowHeightSetting(setting, row);
     }
 
-    const physicalRow = (row >= 0 ? instance.toPhysicalRow(row) : null) ?? row;
+    const physicalRow = row >= 0 ? instance.toPhysicalRow(row) : null;
 
-    return resolveRowHeightSetting(setting, physicalRow);
+    if (physicalRow === null) {
+      return resolveRowHeightSetting(setting, row);
+    }
+
+    if (!Array.isArray(setting)) {
+      return resolveRowHeightSetting(setting, physicalRow);
+    }
+
+    const declaredIndex = rowSizeSettings.getDeclaredIndex(option, physicalRow);
+
+    // A row created after the declaration has no entry of its own.
+    return declaredIndex === null ? undefined : resolveRowHeightSetting(setting, declaredIndex);
   };
 
   /**
@@ -9659,7 +9654,7 @@ export default function Core(
       return false;
     }
 
-    return isExactRowHeight(resolveRowHeightByPhysicalIndex(tableMeta.rowHeights, row));
+    return isExactRowHeight(resolveRowHeightByPhysicalIndex('rowHeights', row));
   };
 
   /**
@@ -9673,7 +9668,7 @@ export default function Core(
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row: number) {
-    const rowHeights = resolveRowHeightByPhysicalIndex(tableMeta.rowHeights, row);
+    const rowHeights = resolveRowHeightByPhysicalIndex('rowHeights', row);
     const hasOwnHeight = isExactRowHeight(rowHeights);
 
     // Resolved once: a `rowHeights` function runs for every rendered row on every draw.
@@ -9686,7 +9681,7 @@ export default function Core(
     const hasRowHeightsOption = tableMeta.rowHeights !== undefined && tableMeta.rowHeights !== null;
     const fallbackHeight = hasRowHeightsOption ? rowHeights : undefined;
     const height = hasOwnHeight ?
-      rowHeights : (resolveRowHeightByPhysicalIndex(tableMeta.minRowHeights, row) ?? fallbackHeight);
+      rowHeights : (resolveRowHeightByPhysicalIndex('minRowHeights', row) ?? fallbackHeight);
 
     const numHeight = height;
     const numDefaultRowHeight = defaultRowHeight as number | null;
@@ -11229,44 +11224,40 @@ export default function Core(
   };
 
   /**
-   * Inserts empty slots into the `rowHeights` and `minRowHeights` arrays at a physical row index, so the
-   * heights after it stay with their rows. For a plugin that builds a row insert by hand instead of
-   * through `alter()`, which keeps the arrays aligned on its own. Private use intended.
+   * Moves the slots of rows a plugin just inserted through `rowIndexMapper.insertIndexes()` to the physical
+   * index the rows really took in the data, in the maps that keep the `rowHeights` and `minRowHeights`
+   * arrays on their rows. For a hand-built insert whose index-mapper index differs from the data's (the
+   * NestedRows plugin's). Private use intended.
    *
    * @private
-   * @param {number} physicalRow The physical index of the first created row.
-   * @param {number} amount The number of created rows.
+   * @param {number} physicalRow The physical index of the first inserted row.
+   * @param {number} amount The number of inserted rows.
    */
-  this._insertRowSizeSlots = function(physicalRow: number, amount: number) {
-    alignRowSizeSettings(sizes => insertSizeSlots(sizes, physicalRow, amount));
+  this._alignInsertedRowSizes = function(physicalRow: number, amount: number) {
+    rowSizeSettings.alignInsertedRows(physicalRow, amount);
   };
 
   /**
-   * Removes the slots of removed physical rows from the `rowHeights` and `minRowHeights` arrays, so the
-   * other heights stay with their rows. `DataMap#removeRow()` calls it with the final list of removed
-   * rows, which a `beforeRemoveRow` listener can widen (NestedRows adds a parent's descendants).
-   * Private use intended.
+   * Returns a copy of the maps that keep the `rowHeights` and `minRowHeights` arrays on their rows, for a
+   * plugin that moves rows by rewriting the data rather than through the index mapper (NestedRows), or
+   * `null` when neither option is an array. Private use intended.
    *
    * @private
-   * @param {number[]} physicalRows The physical indexes of the removed rows.
+   * @returns {Map<string, Array>|null} For each option, the array entry index each physical row was declared at.
    */
-  this._removeRowSizeSlots = function(physicalRows: number[]) {
-    alignRowSizeSettings(sizes => removeSizeSlots(sizes, physicalRows));
+  this._readRowSizeOrigins = function() {
+    return rowSizeSettings.readOrigins();
   };
 
   /**
-   * Moves a block of the `rowHeights` and `minRowHeights` arrays to another physical row index, so the
-   * heights stay with rows a plugin moves in the data by hand. The arguments are the ones the rows'
-   * cell meta moves with: the block is removed at `fromPhysicalRow`, then inserted at `toPhysicalRow`,
-   * counted after the removal. Private use intended.
+   * Writes back the maps `_readRowSizeOrigins()` returned, after the caller rearranged them to the rows'
+   * new physical indexes. Private use intended.
    *
    * @private
-   * @param {number} fromPhysicalRow The physical index of the first moved row.
-   * @param {number} toPhysicalRow The physical index the block starts at after the move.
-   * @param {number} amount The number of moved rows.
+   * @param {Map<string, Array>} origins For each option, the array entry index of each physical row.
    */
-  this._moveRowSizeSlots = function(fromPhysicalRow: number, toPhysicalRow: number, amount: number) {
-    alignRowSizeSettings(sizes => moveSizeSlots(sizes, fromPhysicalRow, toPhysicalRow, amount));
+  this._writeRowSizeOrigins = function(origins: Map<RowSizeOption, unknown[]>) {
+    rowSizeSettings.writeOrigins(origins);
   };
 
   /**
@@ -11302,6 +11293,7 @@ export default function Core(
   });
 
   const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
+  const rowSizeSettings = new RowSizeSettings(instance);
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
     // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).

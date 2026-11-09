@@ -4,50 +4,71 @@ import { setUpUndoGrid, spreadsheet } from './grid';
 registerPlugin(UndoRedo);
 
 /**
- * `alter()` replaces an array `rowHeights` and `minRowHeights` with a copy aligned to the physical rows
- * (DEV-508). A step holds the arrays by reference in its settings snapshot, so an undo puts back the
- * array the step started from, the height of a removed row included.
+ * An array `rowHeights` or `minRowHeights` is read through a core row index map that holds the entry each row
+ * was declared at (DEV-508). UndoRedo snapshots that map with the other index maps, so undo and redo put every
+ * height back on its row, a removed row's height included, while the array the user passed is never changed.
  */
 describe('UndoRedo with an array rowHeights', () => {
   const { create } = setUpUndoGrid();
 
+  /**
+   * Reads the height of every row.
+   *
+   * @param {Handsontable} hot The grid.
+   * @returns {Array}
+   */
+  function heights(hot) {
+    return Array.from({ length: hot.countRows() }, (_, row) => hot.getRowHeight(row));
+  }
+
   it('should bring back the height of a removed row on undo, and drop it again on redo', () => {
-    const hot = create({ data: spreadsheet(3, 1), rowHeights: [100, 50, 40], autoRowSize: false });
+    const rowHeights = [100, 50, 40];
+    const hot = create({ data: spreadsheet(3, 1), rowHeights, autoRowSize: false });
     const undoRedo = hot.getPlugin('undoRedo');
 
     hot.alter('remove_row', 0);
 
-    expect(hot.getSettings().rowHeights).toEqual([50, 40]);
+    expect(heights(hot)).toEqual([50, 40]);
 
     undoRedo.undo();
 
     expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
-    expect(hot.getSettings().rowHeights).toEqual([100, 50, 40]);
-    expect([0, 1, 2].map(row => hot.getRowHeight(row))).toEqual([100, 50, 40]);
+    expect(heights(hot)).toEqual([100, 50, 40]);
 
     undoRedo.redo();
 
-    expect(hot.getSettings().rowHeights).toEqual([50, 40]);
-    expect(hot.getRowHeight(0)).toBe(50);
+    expect(heights(hot)).toEqual([50, 40]);
+    expect(hot.getSettings().rowHeights).toBe(rowHeights);
+    expect(rowHeights).toEqual([100, 50, 40]);
   });
 
-  it('should take an inserted row\'s slot out on undo', () => {
+  it('should take an inserted row back out on undo', () => {
     const hot = create({ data: spreadsheet(3, 1), minRowHeights: [80, 60, 70], autoRowSize: false });
 
     hot.alter('insert_row_above', 1);
     hot.getPlugin('undoRedo').undo();
 
-    expect(hot.getSettings().minRowHeights).toEqual([80, 60, 70]);
+    expect(heights(hot)).toEqual([80, 60, 70]);
   });
 
   it('should keep heights set after a step that did not change them', () => {
     const hot = create({ data: spreadsheet(3, 1), rowHeights: [100, 50, 40], autoRowSize: false });
 
     hot.setDataAtCell(0, 0, 'edited');
-    hot.updateSettings({ rowHeights: [30, 30, 30] });
+    hot.updateSettings({ rowHeights: [30, 31, 32] });
     hot.getPlugin('undoRedo').undo();
 
     expect(hot.getDataAtCell(0, 0)).toBe('A1');
-    expect(hot.getSettings().rowHeights).toEqual([30, 30, 30]);
+    expect(heights(hot)).toEqual([30, 31, 32]);
+  });
+
+  it('should drop the history when `rowHeights` becomes an array, rather than undo into other heights', () => {
+    const hot = create({ data: spreadsheet(3, 1), rowHeights: 30, autoRowSize: false });
+
+    hot.alter('remove_row', 0);
+    hot.updateSettings({ rowHeights: [50, 60] });
+
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    expect(heights(hot)).toEqual([50, 60]);
   });
 });

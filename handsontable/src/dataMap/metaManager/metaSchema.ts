@@ -7390,9 +7390,12 @@ export default (): Record<string, unknown> => {
      *
      * The array and the function address a row by its physical index, so a height stays with its row
      * when rows are moved, sorted, filtered, trimmed, or collapsed (for example, by the
-     * {@link NestedRows} plugin). The physical index doesn't change in any of those cases. When you insert
-     * or remove a row with [`alter()`](@/api/core.md#alter), an array `rowHeights` is updated to match,
-     * so the other heights stay with their rows. [`colWidths`](#colWidths) addresses columns the same way.
+     * {@link NestedRows} plugin). The physical index doesn't change in any of those cases. An array entry
+     * also stays with the row it was declared for when you insert or remove rows: a row inserted between
+     * others has no height of its own, a row added after the last one takes the next entry, and the array
+     * you passed is never changed. To declare the heights again, pass a
+     * new array to [`updateSettings()`](@/api/core.md#updatesettings). [`colWidths`](#colWidths) addresses
+     * columns by the physical index too.
      *
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
      * row still grows to fit its content, and the clipping described above does not apply. The

@@ -793,9 +793,6 @@ class DataMap {
     this.#eachDescendingRun(descendingPhysicalRows, (start, runLength) => {
       this.metaManager!.removeRow(start, runLength);
     });
-    // The `rowHeights` and `minRowHeights` arrays are addressed by the physical index too, and like the
-    // meta they follow the final list, which the `beforeRemoveRow` hook may have widened.
-    this.hot!._removeRowSizeSlots(removedPhysicalIndexes);
 
     this.hot!.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
 

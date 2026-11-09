@@ -4,12 +4,13 @@ import { isObject } from '../helpers/object';
  * Resolves one row's value out of a `rowHeights` or `minRowHeights` setting.
  *
  * A number and a numeric string apply to every row, an array is read by the given row index,
- * and a function is called with it. Core passes the physical row index, so a height stays with
- * its row. A string is read as a pixel size (`'100px'` is `100`). Anything else the setting or
+ * and a function is called with it. Core passes the physical row index (for an array, the index of
+ * the entry the row was declared at), so a height stays with its row. A string is read as a pixel size (`'100px'` is `100`). Anything else the setting or
  * the function returns gives the row no height.
  *
  * @param {*} setting The value of the `rowHeights` or `minRowHeights` option.
- * @param {number} row Physical row index, or a negative header index.
+ * @param {number} row The index to read: a physical row index or a declared entry index, or a negative
+ * header index.
  * @returns {number|undefined|null} The height, or `undefined`/`null` when the setting gives the row none.
  */
 export function resolveRowHeightSetting(setting: unknown, row: number): number | undefined | null {

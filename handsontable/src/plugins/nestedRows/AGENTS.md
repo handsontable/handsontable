@@ -288,16 +288,19 @@ They are written in different places and can drift. Keep this in mind:
   hooks by hand. So
   stored meta (comments, `className`, everything) stays on the old physical rows and lands on the
   wrong cells: #7727 for the insert side, DEV-2626 for the detach side, same context menu. Use
-  `dataManager.shiftCellsMeta()` for an insert and `dataManager.moveCellsMeta()` for a move. Both
-  also keep an array `rowHeights` and `minRowHeights` aligned (`Core#_insertRowSizeSlots()`,
-  `Core#_moveRowSizeSlots()`), because those arrays are addressed by the physical index since DEV-508
-  and only `alter()` aligns them on its own; `RowMoveController#moveCellsMeta()` moves them with its
-  physical arguments too. A parent removal needs nothing here: `DataMap#removeRow()` drops the slots of
-  the final, subtree-widened list itself. Known limit: `RowMoveController` moves the heights as one
-  contiguous block (`baseIndexes[0]` and the count), the same assumption its cell-meta code makes, so a
-  drag of a non-contiguous selection, or of a parent whose collapsed children are not in
-  `baseIndexes`, can leave heights on other rows. Without that, every height below a child added or detached by hand shifts by
-  one row (pinned by `__tests__/rowHeightsPhysical.unit.js`). Both
+  `dataManager.shiftCellsMeta()` for an insert and `dataManager.moveCellsMeta()` for a move. The
+  declared row heights need less: an array `rowHeights` or `minRowHeights` is read through a core row
+  index map (`core/rowSizeSettings.ts`, DEV-508), which `insertIndexes()` and `removeIndexes()` keep
+  aligned on their own, so a parent removal needs nothing here. An insert almost does: the parent branch of
+  `addChildAtIndex()` hands `insertIndexes()` a position inside the parent, so its slot lands rows above the
+  data (the context menu's "Insert row above/below" on a nested child), and `shiftCellsMeta()`, which has
+  the real physical index, calls `Core#_alignInsertedRowSizes()` to move it there. A detach and a row move
+  renumber rows without the index mapper, so both wrap the tree rewrite in
+  `dataManager.captureRowSizeOrigins()`: it records each row OBJECT's declared entry before the rewrite
+  and writes it back at the object's new physical index after `rewriteCache()`. Keyed by object, never
+  by index arithmetic, because `RowMoveController#moveRows()` moves each row object on its own, in the
+  order of the dragged indexes, so a block formula swapped heights on an unsorted multi-row drag (pinned
+  by `__tests__/rowHeightsPhysical.unit.js`). Both
   take **physical** indexes, which is what `getRowIndex()` already returns, so never pass the result
   through `toPhysicalRow()` and never use `hot.spliceCellsMeta()`, which takes a **visual** index and
   would translate a second time. Qualify the class when you name the mover: `RowMoveController` has
