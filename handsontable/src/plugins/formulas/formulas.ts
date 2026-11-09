@@ -699,6 +699,14 @@ export class Formulas extends BasePlugin {
   #validationProbePending = false;
 
   /**
+   * `true` while `#validateDependentCellsUnrecorded()` runs: `validateDependentCells()` then validates each
+   * dependent with the grid's operation scope suppressed.
+   *
+   * @type {boolean}
+   */
+  #dependentValidationUnrecorded = false;
+
+  /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
    * `commitPendingMoveCells` can execute the corresponding HF operation without recomputing
    * visual-to-HF coordinates. `rect` carries the same operation in visual coordinates for the
@@ -2337,9 +2345,10 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Validates dependent cells based on the cells that are modified by the change. The validation is not
-   * part of any undo step (it records nothing), so an async validator of a dependent never delays the step
-   * of the change that recalculated it.
+   * Validates dependent cells based on the cells that are modified by the change. Called inside the
+   * operation of the change, so `validateCell()` holds that undo step until the validators answer, and
+   * what a dependent's validator or `afterValidate` listener writes joins it. The deferred apply calls
+   * `#validateDependentCellsUnrecorded()` instead.
    *
    * @private
    * @param {object[]} dependentCells The values and location of applied changes within HF engine.
@@ -2376,16 +2385,39 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        // It will just re-render certain cell when necessary. The `valid` mark is never journaled, so the
-        // validation joins no undo step: inside the step of the write that recalculated the cell, an async
-        // validator held that step until it answered, and the edit could not be undone in the meantime.
-        boundHot._getOperationScope().suppress(() => boundHot.validateCell(
+        const validate = () => boundHot.validateCell(
           boundHot.getDataAtCell(row, col),
           boundHot.getCellMeta(row, col),
           () => {}
-        ));
+        );
+
+        // It will just re-render certain cell when necessary.
+        if (this.#dependentValidationUnrecorded) {
+          boundHot._getOperationScope().suppress(validate);
+        } else {
+          validate();
+        }
       }
     });
+  }
+
+  /**
+   * Validates the dependents of a deferred change's apply (see `#onBeforeChangeRender`) outside every undo
+   * step. Inside the edit's step, `validateCell()` held it until a dependent's async validator answered, so
+   * the edit could not be undone right after `afterChange`. The cost: what a dependent's validator or
+   * `afterValidate` listener writes there is recorded in no step, so an undo of the edit leaves it.
+   *
+   * @param {object[]} dependentCells The cells the write recalculated.
+   * @param {object[]} changedCells The cells the write changed.
+   */
+  #validateDependentCellsUnrecorded(dependentCells: unknown[], changedCells: unknown[]) {
+    this.#dependentValidationUnrecorded = true;
+
+    try {
+      this.validateDependentCells(dependentCells, changedCells);
+    } finally {
+      this.#dependentValidationUnrecorded = false;
+    }
   }
 
   /**
@@ -4784,8 +4816,12 @@ export class Formulas extends BasePlugin {
       this.#writeProbeBatch(formulaWrites);
 
       const precedents = formulaWrites.flatMap(({ address }) => engine.getCellPrecedents(address));
+      // A named expression is reported with sheet -1 and hides the cells it reads, so any plain value of
+      // the set may be one of them.
+      const readsNamedExpression = precedents
+        .some(precedent => ('start' in precedent ? precedent.start : precedent).sheet < 0);
       const readValueWrites = writes.filter(({ value, address }) => !isFormula(value) &&
-        precedents.some(precedent => isAddressInPrecedent(address, precedent)));
+        (readsNamedExpression || precedents.some(precedent => isAddressInPrecedent(address, precedent))));
 
       if (readValueWrites.length > 0) {
         batches += 1;
@@ -4993,7 +5029,7 @@ export class Formulas extends BasePlugin {
       return this.#writeChangesToEngine(changesToWrite);
     });
 
-    this.validateDependentCells(dependentCells, changedCells);
+    this.#validateDependentCellsUnrecorded(dependentCells, changedCells);
   };
 
   /**
