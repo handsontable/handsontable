@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an array `colWidths` after a column insert or removal: `updateSettings()` applies a new array again, the React and Vue wrappers no longer send the prop again, undo brings back a removed column's width, and the array you passed is never changed.",
+  "type": "fixed",
+  "issueOrPR": 14223,
+  "breaking": false,
+  "framework": "none"
+}
