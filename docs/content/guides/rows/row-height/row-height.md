@@ -106,6 +106,8 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 In this example, the height is only set for the first rows. Each additional row would be automatically adjusted to the content.
 
+The `rowHeights` and `minRowHeights` arrays and functions address rows by their physical index, so a height stays with its row when rows are moved, sorted, filtered, or collapsed with [`NestedRows`](@/api/nestedRows.md). The physical index doesn't change in any of those cases. To read the physical index of a row on the screen, use [`toPhysicalRow()`](@/api/core.md#tophysicalrow).
+
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
@@ -151,7 +153,7 @@ In this example, the height is only set for the first rows. Each additional row 
 
 ## Set row heights with a function
 
-The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row `index` (1, 2 ...) and multiplies it by `20px` for each consecutive row.
+The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row's physical `index` (0, 1, 2 ...) and multiplies it by `20px` for each consecutive row.
 
 ::: only-for javascript
 
