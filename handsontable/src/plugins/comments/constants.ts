@@ -4,8 +4,8 @@ export const META_STYLE = 'style';
 export const META_READONLY = 'readOnly';
 
 /**
- * How far, in pixels, the comment editor reaches above the cell it opens on. The selection border of a
- * cell is drawn this far outside the cell's box, so the editor's top edge lands on the border's top edge.
+ * The most, in pixels, the comment editor reaches above the cell it opens on. The selection border of a cell
+ * is drawn this far outside the cell's box, so the editor's top edge can land on the border's top edge.
  */
 export const EDITOR_TOP_OVERLAP = 1;
 

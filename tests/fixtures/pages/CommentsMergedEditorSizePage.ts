@@ -149,6 +149,36 @@ export class CommentsMergedEditorSizePage {
   }
 
   /**
+   * Selects one cell and opens the comment editor of another through the plugin API, so the selection
+   * border belongs to a cell the editor does not.
+   *
+   * @param {{ row: number, col: number }} selected The cell to select.
+   * @param {{ row: number, col: number }} commented The cell whose comment editor opens.
+   */
+  async selectCellAndShowEditorAt(
+    selected: { row: number, col: number },
+    commented: { row: number, col: number }
+  ): Promise<void> {
+    await this.page.evaluate(({ r, c }) => {
+      (window as any).hot.selectCell(r, c);
+    }, { r: selected.row, c: selected.col });
+    await this.showEditorAt(commented.row, commented.col);
+  }
+
+  /**
+   * Clears the selection and opens a cell's comment editor through the plugin API, the way a hover does.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async showEditorWithoutSelection(row: number, col: number): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).hot.deselectCell();
+    });
+    await this.showEditorAt(row, col);
+  }
+
+  /**
    * Scrolls the window until a cell's top edge is `viewportTop` px from the viewport's top edge. The page
    * is made taller first, so it has room to scroll, and the method ends on the cell's measured position.
    *

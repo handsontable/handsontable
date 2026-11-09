@@ -166,7 +166,7 @@ describe('Comments', () => {
         const cellOffset = $(getCell(countRows() - 10, countCols() - 9)).offset();
         const editorOffset = $editor.offset();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top - 1, 0);
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
@@ -223,7 +223,7 @@ describe('Comments', () => {
         const cellOffset = $(getCell(countRows() - 2, countCols() - (colFromEnd - 1))).offset();
         const editorOffset = $editor.offset();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top - 1, 0);
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
@@ -256,7 +256,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
         const editorWidth = $editor.outerWidth();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top - 1, 0);
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
       });
 
@@ -362,7 +362,7 @@ describe('Comments', () => {
 
         const editorOffset = $editor.offset();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top - 1, 0);
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
       });
 
@@ -508,7 +508,7 @@ describe('Comments', () => {
         top: commentEditorOffset.top,
         left: commentEditorOffset.left - cell.outerWidth(),
       }).toEqual({
-        top: cell.offset().top - 1, // the editor reaches the border of the selected cell
+        top: cell.offset().top,
         left: cell.offset().left - 1, // border compensation?
       });
 
@@ -1244,7 +1244,7 @@ describe('Comments', () => {
 
       plugin.showAtCell(1, 1);
 
-      expect($editor.offset().top).toBeCloseTo($mergedCell.offset().top - 1, 0);
+      expect($editor.offset().top).toBeCloseTo($mergedCell.offset().top, 0);
       expect($editor.offset().left).toBeCloseTo($mergedCell.offset().left + $mergedCell.outerWidth() - 1, 0);
     });
   });
@@ -1284,7 +1284,7 @@ describe('Comments', () => {
 
       plugin.showAtCell(3, 3);
 
-      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(3, 5)).offset().top - 1, 0);
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(3, 5)).offset().top, 0);
       expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(3, 5)).offset().left, 0);
 
       plugin.showAtCell(4, 4);
@@ -1294,12 +1294,12 @@ describe('Comments', () => {
 
       plugin.showAtCell(5, 5);
 
-      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(5, 6)).offset().top - 1, 0);
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(5, 6)).offset().top, 0);
       expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(5, 6)).offset().left, 0);
 
       plugin.showAtCell(7, 7);
 
-      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(7, 7)).offset().top - 1, 0);
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(7, 7)).offset().top, 0);
       expect($(editor.parentNode).offset().left)
         .toBeCloseTo($(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth(), 0);
 

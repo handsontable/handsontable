@@ -250,18 +250,32 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 - **Reset the editor position to (0, 0) before measuring**, or the previous position influences the
   opening-direction calculation.
 - The editor flips left/right when it would leave the browser viewport.
-- **The box reaches `EDITOR_TOP_OVERLAP` (1px) above its cell, so its top edge sits on the selection border's top
-  edge.** The 2px selection border is drawn 1px outside the cell's box, and the design has the editor flush with it
-  (the box's start border already overlaps the border's end edge through the textarea's `margin: 0 -1px`). The
-  reach-up is applied AFTER the clamp, and only when
-  `!isFlippedUp && !targetingPreviousRow && clamped.y === y && y - overlap >= scrollY`:
-  a flipped box keeps its own placement (its bottom ends 1px above the cell's bottom edge, pinned by the flip
-  specs), a box anchored to the neighbor of a hidden row has no selection border to reach (a hidden cell cannot be
-  selected), a clamped box is already where the viewport allows, and a cell at the window's top edge has no room
-  above it. Subtracting the 1px before the clamp looked simpler and broke that last case: `y` went to -1, below
-  the viewport's top edge, so `clampPositionToViewport` moved the box a whole margin (8px) down. Pinned by
-  `tests/e2e/comments-editor-selection-alignment.spec.ts` (all three themes) and the "not scrolled" cases of
-  `__tests__/comments.spec.js`, which assert the editor top equals the cell top for a cell at the window's top.
+- **The box reaches up to the top edge of the cell's selection border, by as much as the border is drawn above the
+  cell.** The 2px border is drawn up to `EDITOR_TOP_OVERLAP` (1px) outside the cell's box, and the design has the
+  editor flush with it (the box's start border already overlaps the border's end edge through the textarea's
+  `margin: 0 -1px`). The reach is MEASURED, never assumed: `getSelectionBorderOverhang()` (`utils.ts`) reads the
+  drawn `.wtBorder.current` edges next to the cell's table and answers the gap between the border's top and the
+  cell's top, `0` when the border does not enclose the cell. Reading it avoids repeating `border.ts`, which moves
+  the border back onto the cell's top edge under a column header, on a cell that draws its own top border, and
+  under an overlay: a constant 1px reached past the border there. It also answers `0` for a comment opened by a
+  hover (nothing selected) and for a selection elsewhere, with no condition of ours. The reach is applied AFTER
+  the clamp, and only when the box sits on its own cell: not flipped up (a flipped box keeps its own placement,
+  its bottom ending 1px above the cell's bottom edge, pinned by the flip specs), not clamped, and not anchored to
+  the neighbor of a hidden row or column (`targetingPreviousRow`, `targetingOtherColumn`: the border drawn there
+  is the neighbor's). The reach is also capped by the room above the cell in the window (`y - scrollY`).
+  Subtracting the 1px before the clamp looked simpler and broke a cell at the window's top edge: `y` went to -1,
+  below the viewport's top edge, so `clampPositionToViewport` moved the box a whole margin (8px) down. Pinned by
+  `tests/e2e/comments-editor-selection-alignment.spec.ts` (all three themes: a plain cell, a scrolled window, the
+  window's top edge, the row under the column headers, the row under a frozen row, no selection, another cell's
+  border, a hidden column).
+  The legacy `__tests__/comments.spec.js` never selects the comment cell, so it expects no reach and does not pin
+  this. `utils.unit.js` pins the helper's branches with stubbed boxes.
+  **Two limits.** The helper depends on the Walkontable DOM names `.wtSpreader`, `.htBorders`, `.wtBorder.current`
+  and `:not(.corner)`, and on `.current` being the single focus highlight: rename any of them and the box silently
+  stops reaching, and only the Playwright cases notice. And it reads what is drawn NOW, so an editor opened inside
+  `hot.batch()` or `suspendRender()` right after a selection sees the previous border (no reach, never a wrong
+  one), and a comment cell inside a range that is not the active cell has only the `.area` outline, which the helper
+  does not read.
 - **The RTL flip compares against the viewport, not the document extent.** The branch is keyed on the
   grid's direction (`hot.isRtl()`), not the page's, so `scrollX` can be zero, negative (RTL page), or
   positive (RTL grid on an LTR page). The viewport's left edge in document coordinates is

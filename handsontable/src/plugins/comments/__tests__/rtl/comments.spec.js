@@ -93,7 +93,7 @@ describe('Comments (RTL mode)', () => {
         const editorOffset = $editor.offset();
         const editorWidth = $editor.outerWidth();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top - 1, 0);
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
       });
 
@@ -180,7 +180,7 @@ describe('Comments (RTL mode)', () => {
         const cellOffset = $(getCell(countRows() - 5, countCols() - 3)).offset();
         const editorOffset = $editor.offset();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top - 1, 0);
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
 

@@ -17,7 +17,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
-import { getEditorAnchorHeight, getEditorAnchorWidth } from './utils';
+import { getEditorAnchorHeight, getEditorAnchorWidth, getSelectionBorderOverhang } from './utils';
 import {
   EDITOR_TOP_OVERLAP,
   META_COMMENT,
@@ -928,14 +928,15 @@ export class Comments extends BasePlugin {
       }
     );
 
-    // The selection border of the cell is drawn `EDITOR_TOP_OVERLAP` above the cell's box, and the editor's top edge
-    // goes up to it. Only a box that sits on its cell does: a flipped or clamped one has its own placement, one
-    // anchored to a visible neighbor of a hidden row has no border to reach, and a cell at the window's top edge has
-    // no room above it (the clamp would move the box a margin down).
-    const reachesUp = !isFlippedUp && !targetingPreviousRow && clamped.y === y &&
-      y - EDITOR_TOP_OVERLAP >= rootWindow.scrollY;
+    // The editor's top edge goes up to the top edge of the cell's selection border, which is drawn up to
+    // `EDITOR_TOP_OVERLAP` above the cell's box. Only a box that sits on its own cell does: a flipped or clamped one
+    // has its own placement, and one anchored to a neighbor of a hidden row or column has no border of its own to
+    // reach. The box never goes above the window's top edge, where the clamp would move it a margin down.
+    const sitsOnCell = !isFlippedUp && !targetingPreviousRow && !targetingOtherColumn && clamped.y === y;
+    const reach = sitsOnCell ?
+      Math.min(getSelectionBorderOverhang(TD, EDITOR_TOP_OVERLAP), y - rootWindow.scrollY) : 0;
 
-    this.#editor.setPosition(clamped.x, reachesUp ? clamped.y - EDITOR_TOP_OVERLAP : clamped.y);
+    this.#editor.setPosition(clamped.x, clamped.y - reach);
     this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY) ?? false);
     this.#editor.observeSize();
   }
