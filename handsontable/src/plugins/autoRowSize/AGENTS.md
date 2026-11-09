@@ -40,6 +40,43 @@ when every height is already cached.
 - **The first rendered row gets +1px** to compensate for its `border-top-width`. That compensation is
   per-render, not baked into the cached height.
 
+## A measured row height rounds UP, unless the row is a default-height one (DEV-544)
+
+`GhostTable#getHeights()` hands this plugin the sampled row's height snapped to the layout grid
+(`snapToLayoutUnit()`, `helpers/dom/layoutUnit.ts`), and the plugin stores `toStoredRowHeight()` of it
+(`helpers/measuredRowHeight.ts`). The stored heights stay whole pixels, which `getRowHeight()` (plugin and
+`hot.getRowHeight()`) keeps returning; the `#dev-1926` case of `__tests__/autoRowSize.spec.js` pins that.
+
+- **A row taller than the default rounds UP.** A row whose content is `118.27px` tall stored as `118` is
+  `0.27px` short in the row-header clone, which is written the stored height, while the master keeps sizing
+  the row from its own content. With the plugin on, `markOversizedRows` is a no-op (`externalRowCalculator`),
+  so this value is the only record of the row, and the shortfall stacked down the grid. Stored as `119`, both
+  panes lay the row out at `119`.
+- **A row at the default height keeps `Math.round()`.** Below 100% browser zoom the cells' 1px border is
+  inflated (1.111px at 90%), so a default row measures `29.11px`. Rounded up it would be `30`, and every
+  default row would be a pixel taller than it renders. That is why `GhostTable` hands the height over
+  unrounded: it does not know the default, this plugin does (`stylesHandler.getDefaultRowHeight()`).
+  `DEFAULT_HEIGHT_TOLERANCE` (0.05px) is what counts as "at the default": both numbers come off the same
+  layout, so they differ by a layout step (1/64px) at most. On top of it goes
+  `StylesHandler#getMaxDefaultRowOvergrowth()`, what the border inflation adds at the zoom of NOW (`1 / ratio
+  - 1`, `0` at 100% and above): the default height keeps the value read when the grid was built, so a grid
+  built at 100% and zoomed to 90% declares `29px` while its default rows measure `29.097px`, more than the
+  tolerance, and every one of them would round up to `30`. Do not use a bare `Math.ceil()` (a default row
+  measured a fraction above a whole pixel jumps a whole pixel) or a bare `Math.round()` (drops the fraction of
+  a taller row, which is the drift).
+- **The default is the uncompensated one** (`getDefaultRowHeight()` with no row). The first rendered body row
+  of a grid with no column headers draws its own 1px `border-top`, which `getDefaultRowHeight(row)` adds for
+  that row, but the ghost table measures every row without it. Compared with the compensated default, a first
+  row up to a pixel taller than the real default would count as a default-height row and round down.
+- **The header row keeps `Math.round()`** (the `row < 0` branch): it has no content-driven height of its own
+  to align.
+- Zoom is not testable here with CSS `zoom`: that scales the ghost table's rect too, so the measurement is
+  not what a zoomed-out browser reports. The default-row rule is pinned at unit level
+  (`__tests__/measuredRowHeight.unit.ts`, and the overgrowth in `utils/__tests__/stylesHandler.unit.js`); the
+  stored value of a content-tall row is pinned in `tests/e2e/row-header-fractional-height.spec.ts`.
+
+The engine's half of the same drift is in `src/3rdparty/walkontable/AGENTS.md`.
+
 ## `updateSettings` does not recalculate — with one exception
 
 Changing `wordWrap`, `textEllipsis` or a renderer changes row heights, but `updateSettings()` alone does not

@@ -163,7 +163,7 @@
 <section class="a11y viz" aria-labelledby="a11y">
   <h2 id="a11y">Accessibility</h2>
   <div class="meta" id="a11y-meta">
-    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan) and of the <code>Screen reader nightly</code> on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
+    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan), of the <code>Screen reader nightly</code> and of the docs site scan (<code>Docs a11y</code>) on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
   </div>
   <div class="empty" id="a11y-empty" hidden>No accessibility night collected yet.</div>
   <div id="a11y-body">
@@ -721,7 +721,7 @@ var runPage = (function() {
 
   var runs = document.getElementById('a11y-runs');
   runs.appendChild(document.createTextNode('Updated ' + when(view.updatedAt) + '. Latest nights: '));
-  [['a11y', view.latest.a11y], ['reader', view.latest.reader]].forEach(function(entry, index) {
+  [['a11y', view.latest.a11y], ['reader', view.latest.reader], ['docs', view.latest.docs]].forEach(function(entry, index) {
     if (index) { runs.appendChild(document.createTextNode('; ')); }
     if (!entry[1]) {
       runs.appendChild(document.createTextNode(entry[0] + ': none yet'));
@@ -734,14 +734,14 @@ var runPage = (function() {
     runs.appendChild(link);
     runs.appendChild(document.createTextNode(' (' + when(entry[1].seenAt) + ', develop ' + entry[1].headSha + ')'));
   });
-  runs.appendChild(document.createTextNode('. The run page holds the artifacts: the evidence documents, the axe report and the transcripts.'));
+  runs.appendChild(document.createTextNode('. The run page holds the artifacts: the evidence documents, the axe reports and the transcripts.'));
 
   // An own property, or undefined: a project or a scenario named `constructor` must not read the prototype's.
   function own(object, key) {
     return object && Object.prototype.hasOwnProperty.call(object, key) ? object[key] : undefined;
   }
 
-  var SOURCE_NAMES = { a11y: 'A11y nightly', reader: 'Screen reader nightly' };
+  var SOURCE_NAMES = { a11y: 'A11y nightly', reader: 'Screen reader nightly', docs: 'Docs a11y' };
 
   // The trend: one series per source the cluster comes from, over that source's nights only (the two nightlies
   // run an hour apart, so one series over both would draw every other night at zero), one bar per night, the
@@ -886,7 +886,7 @@ var runPage = (function() {
     var status = document.createElement('td');
     status.appendChild(badge(row.status, row.status));
     tr.appendChild(status);
-    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.check);
+    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.source === 'docs' ? row.check + ' (docs site)' : row.check);
     var kind = cell(tr, row.kind + (row.rule ? ' ' + row.rule : '') + (row.cause ? ' (' + row.cause + ')' : ''));
     kind.appendChild(text('div', row.reason, 'error'));
     cell(tr, row.where, 'where');
@@ -910,7 +910,7 @@ var runPage = (function() {
     link.textContent = when(night[1]);
     td.appendChild(link);
     tr.appendChild(td);
-    cell(tr, night[2] === 'reader' ? 'Screen reader nightly' : 'A11y nightly');
+    cell(tr, own(SOURCE_NAMES, night[2]) || night[2]);
     cell(tr, night[3], 'num');
     cell(tr, night[4], 'num');
     cell(tr, night[5], 'num');

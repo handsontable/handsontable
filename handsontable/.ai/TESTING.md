@@ -27,6 +27,7 @@ npm run test:types                 # TypeScript type checking only
 cd tests && npm test               # Playwright functional E2E (visual regression is the separate visual-tests/ package)
 cd tests && npm run test:a11y      # axe-core scan over the curated fixture pages, three themes, compared with tests/a11y/axe-baseline.json
 cd tests && npm run test:a11y-checks  # the accessibility checks beyond axe (keyboard walker, ...): one evidence document per check
+cd tests && npm run test:a11y-docs    # axe-core scan over the deployed docs site, light and dark, compared with tests/a11y/docs/docs-baseline.json
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -595,6 +596,10 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Config: `tests/playwright.a11y.config.ts`; the comparator is `tests/lib/a11y-baseline.mjs`, the reporter `tests/reporters/a11y.ts`
 - CI: one job, `A11y / axe`, in warn mode — a finding that needs action is an annotation and a summary row, never a red job; the job's only reds are tooling failures. The `A11y / axe report` check run follows the severity rule (red on a new or grown critical or serious finding, neutral on a moderate or minor one; `tests/AGENTS.md` → "A11y: the verdict of a check run"). An HTML report that locates every element (fixture, steps, selector, DOM path, screenshot) opens from the run page, a sticky pull request comment links it, and `a11y-findings.json` gives an implementer agent the same findings, concise. The baseline moves only with the code: the change that fixes a finding deletes its entry
 - It is not a test of a change: a pull request that touches an accessible surface still proves its behavior with a Playwright spec in `tests/e2e/`. How to add a page, baseline a finding, and when warn mode flips: `tests/AGENTS.md` → "A11y: the axe scan and its baseline"
+
+**Docs site accessibility scan (axe):**
+- The same rule set and comparator as the scan above, over a deployed docs site: `tests/a11y/docs/` (`docs-axe.spec.ts`, `pages.mjs` from the docs visual list plus the header's keyboard-opened states, `docs-baseline.json`), in the site's light and dark color schemes; config `tests/playwright.a11y-docs.config.ts`
+- Report-only, on demand: `.github/workflows/docs-a11y.yml` (`Docs a11y`: a dispatch, a caller, or a pull request that changes the scan's own code; never a docs change); a develop dispatch feeds the findings ledger's `docs` source. Locally: `cd tests && npm run test:a11y-docs` (`DOCS_A11Y_BASE_URL` picks the deploy). Policy: `tests/AGENTS.md`, "A11y: the docs site scan"
 
 **Accessibility checks beyond axe:**
 - Framework: Playwright, over the same catalog pages and keyboard-reached states as the axe scan (`tests/a11y/harness.ts`), one project per check

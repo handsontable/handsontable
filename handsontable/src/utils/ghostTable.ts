@@ -3,6 +3,7 @@ import type { CellProperties } from '../settings';
 import type { BaseRenderer } from '../renderers/baseRenderer';
 import { renderCell } from '../renderers/renderCell';
 import { addClass } from './../helpers/dom/element';
+import { snapToLayoutUnit } from './../helpers/dom/layoutUnit';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
 import { colToPropOrIndex } from '../helpers/columnProp';
@@ -254,15 +255,12 @@ class GhostTable {
     }
 
     arrayEach(this.rows, (row: Record<string, unknown>) => {
-      // Use getBoundingClientRect() instead of offsetHeight for sub-pixel precision.
-      // Math.round is used instead of Math.ceil to avoid over-rounding at non-100% browser zoom
-      // levels (e.g. 90%), where fractional BCR values like 28.88 would ceil to 29 but
-      // a default-height row should remain at 29, not be inflated to 30.
-      // For genuinely taller rows the fractional part is typically >= 0.5, so round still
-      // produces the correct ceiling.
+      // Use getBoundingClientRect() instead of offsetHeight for sub-pixel precision. The height is
+      // handed over snapped to the layout grid and NOT rounded: how a fraction rounds depends on the
+      // row (a default-height row and a taller one need different rounding), which the caller knows.
       const { height } = (row.table as HTMLTableElement).getBoundingClientRect();
 
-      callback(row.row, Math.round(height));
+      callback(row.row, snapToLayoutUnit(height));
     });
   }
 
