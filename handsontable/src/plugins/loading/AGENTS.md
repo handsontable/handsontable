@@ -13,8 +13,9 @@ build that registered Loading alone got a working grid where `show()` showed not
 because every method below returns early without a dialog. This was a breaking change, with a step in the
 18.1 → 19.0 migration guide. Pinned by `__tests__/pluginDependencies.unit.ts`.
 
-Loading needs Dialog running, so it **requires** it through core's plugin requirement registry (see "A plugin
-that needs another plugin running" in `../base/AGENTS.md`). It never writes the `dialog` setting. The earlier
+Loading needs Dialog running, so it **requires** it through core's plugin requirement registry
+(`PluginRequirements` in `../../core/pluginRequirements.ts`, reached through `hot._requirePlugin()` and its
+siblings; see "A plugin that needs another plugin running" in `../base/AGENTS.md`). It never writes the `dialog` setting. The earlier
 `getSettings().dialog = true` write landed on the table meta and shadowed the global meta `updateSettings()`
 writes to, so `{ loading: false }` and then `{ dialog: false }` left Dialog enabled with `getSettings().dialog`
 still `true`, and a sheets bar switch from a `loading` sheet to a plain one left a hidden `.ht-dialog` behind.

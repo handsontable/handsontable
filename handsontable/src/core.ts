@@ -109,6 +109,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { PluginRequirements } from './core/pluginRequirements';
 import { normalizeFixedColumnsAlias, withCallerFixedColumnsName } from './core/fixedColumnsAlias';
 import { watchFontLoads } from './core/fontLoad';
 import {
@@ -553,10 +554,9 @@ export default function Core(
   const filterSettings = (settings: SettingsUpdate) => settingsFilters
     .reduce((payload, filter) => filter(payload), settings);
   /**
-   * The plugins other plugins need running, keyed by plugin key, each with the objects that require it
-   * (see `_requirePlugin()`).
+   * The plugins other plugins need running (see `_requirePlugin()`).
    */
-  const pluginRequirements = new Map<string, Set<object>>();
+  const pluginRequirements = new PluginRequirements();
   /**
    * The functions told about a change set that waited for its validators while `loadData()` replaced the
    * data, and that is therefore never applied (see `_addDroppedChangesListener()`).
@@ -6317,55 +6317,39 @@ export default function Core(
 
   /**
    * Marks a plugin as needed by another object, usually another plugin, so the required plugin's
-   * `isEnabled()` answers `true` while its own option is off. Requiring a plugin twice by the same object
-   * changes nothing. The caller still enables the required plugin itself when it is not running.
+   * `isEnabled()` answers `true` while its own option is off. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
    *
    * @private
    * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
    * @param {object} requirer The object that needs the plugin running.
    */
   this._requirePlugin = function(pluginKey: string, requirer: object) {
-    let requirers = pluginRequirements.get(pluginKey);
-
-    if (!requirers) {
-      requirers = new Set();
-      pluginRequirements.set(pluginKey, requirers);
-    }
-
-    requirers.add(requirer);
+    pluginRequirements.require(pluginKey, requirer);
   };
 
   /**
-   * Drops the requirement `_requirePlugin()` recorded for a plugin. Releasing a requirement that was not
-   * recorded changes nothing. The plugin stays required while another object still requires it.
+   * Drops the requirement `_requirePlugin()` recorded for a plugin. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
    *
    * @private
    * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
    * @param {object} requirer The object that no longer needs the plugin running.
    */
   this._releasePlugin = function(pluginKey: string, requirer: object) {
-    const requirers = pluginRequirements.get(pluginKey);
-
-    if (!requirers) {
-      return;
-    }
-
-    requirers.delete(requirer);
-
-    if (requirers.size === 0) {
-      pluginRequirements.delete(pluginKey);
-    }
+    pluginRequirements.release(pluginKey, requirer);
   };
 
   /**
-   * Checks whether any object requires the plugin through `_requirePlugin()`.
+   * Checks whether any object requires the plugin through `_requirePlugin()`. The rules are in
+   * `PluginRequirements` (`core/pluginRequirements.ts`).
    *
    * @private
    * @param {string} pluginKey The key of the plugin, as in its `PLUGIN_KEY`.
    * @returns {boolean}
    */
   this._isPluginRequired = function(pluginKey: string): boolean {
-    return pluginRequirements.has(pluginKey);
+    return pluginRequirements.isRequired(pluginKey);
   };
 
   /**

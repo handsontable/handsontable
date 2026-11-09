@@ -386,7 +386,9 @@ applied in full. The step is saved and restored around a nested `_applySettingsA
 
 ## A plugin that needs another plugin running
 
-Core keeps a per-instance registry of plugins other plugins need (`core.ts`, all `@private`):
+Core keeps a per-instance registry of plugins other plugins need. It lives in `PluginRequirements`
+(`../../core/pluginRequirements.ts`, unit-tested in `../../core/__tests__/pluginRequirements.unit.ts`), which core
+builds once per grid and exposes through three `@private` instance methods that delegate to it:
 `_requirePlugin(pluginKey, requirer)`, `_releasePlugin(pluginKey, requirer)` and `_isPluginRequired(pluginKey)`.
 Keys are `PLUGIN_KEY` values, a requirer is any object (the requiring plugin), one requirer counts once, and a
 release by an object that never required the plugin changes nothing. The map dies with the instance.
