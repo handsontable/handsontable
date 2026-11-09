@@ -33,7 +33,7 @@ async function expectRejectionReopensEditor(grid: EditorValidationWaitPage): Pro
   await expect.poll(() => grid.heldValidations()).toEqual([expect.objectContaining({ row: 1 })]);
   expect(await grid.editorState()).toBe('STATE_WAITING');
 
-  // The engine gets B's value only once the validator accepts it, so C2 keeps reading 18 meanwhile.
+  // The engine gets B's value only once the validator accepts it, so C2 keeps showing 36 (B2 = 18) meanwhile.
   await expect(grid.cell(1, 2)).toHaveText('36');
   expect(await grid.dataAt(1, 2)).toBe(36);
 

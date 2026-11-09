@@ -90,7 +90,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     return { engine, sheet: hot.getPlugin('formulas').sheetId };
   }
 
-  it('puts the old value back into the engine when an async validator rejects a single change', async() => {
+  it('keeps the old value in the engine when an async validator rejects a single change', async() => {
     const { engine, sheet } = buildGrid();
 
     hot.setDataAtCell(1, 0, -7);
@@ -106,7 +106,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(hot.getDataAtCell(1, 1)).toBe(465);
   });
 
-  it('puts the old value back when a sync validator rejects the change', async() => {
+  it('keeps the old value when a sync validator rejects the change', async() => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
     hot = new Handsontable(container, {
@@ -126,7 +126,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(hot.getDataAtCell(1, 1)).toBe(465);
   });
 
-  it('restores the rejected cells and keeps the accepted ones of a multi-cell write', async() => {
+  it('keeps the rejected cells out and writes the accepted ones of a multi-cell write', async() => {
     const { engine, sheet } = buildGrid();
 
     hot.setDataAtCell([[0, 0, 5], [1, 0, -7], [2, 0, 6]]);
@@ -137,7 +137,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(hot.getDataAtCol(1)).toEqual([75, 465, 90]);
   });
 
-  it('restores the rejected cells of a paste', async() => {
+  it('keeps the rejected cells of a paste out of the engine', async() => {
     const { engine, sheet } = buildGrid();
 
     hot.populateFromArray(0, 0, [[5], [-7], [-8]], undefined, undefined, 'CopyPaste.paste');
@@ -148,7 +148,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(hot.getDataAtCol(1)).toEqual([75, 465, 60]);
   });
 
-  it('restores the rejected cells of an autofill', async() => {
+  it('keeps the rejected cells of an autofill out of the engine', async() => {
     const { engine, sheet } = buildGrid();
 
     // The fill handle writes through `populateFromArray()` with this source.
@@ -159,7 +159,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(engine.getSheetValues(sheet).map(row => row[0])).toEqual([2, 31, 4]);
   });
 
-  it('restores every cell of a rejected Ctrl+Enter fill', async() => {
+  it('keeps every cell of a rejected Ctrl+Enter fill out of the engine', async() => {
     const { engine, sheet } = buildGrid();
 
     hot.selectCell(0, 0, 2, 0);
@@ -176,7 +176,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(hot.getDataAtCol(1)).toEqual([30, 465, 60]);
   });
 
-  it('restores the engine when an afterValidate listener rejects the change', async() => {
+  it('keeps the change out of the engine when an afterValidate listener rejects it', async() => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
     hot = new Handsontable(container, {
@@ -215,7 +215,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(engine.getSheetValues(sheet).map(row => row[0])).toEqual([2, 31, 5]);
   });
 
-  it('restores the dependency graph when the rejected value was a formula', async() => {
+  it('leaves the dependency graph alone when the rejected value was a formula', async() => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
     hot = new Handsontable(container, {
@@ -262,7 +262,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(hot.getDataAtCell(1, 1)).toBe(75);
   });
 
-  it('puts back the value of an older write still waiting when a newer write is rejected first', async() => {
+  it('ends with an older write still waiting when a newer write is rejected first', async() => {
     const { engine, sheet } = buildGrid();
 
     hot.setDataAtCell(1, 0, 5);
@@ -279,7 +279,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(hot.getDataAtCell(1, 1)).toBe(75);
   });
 
-  it('puts back the value an older write applied when a newer write is rejected', async() => {
+  it('keeps the value an older write applied when a newer write is rejected', async() => {
     const { engine, sheet } = buildGrid();
 
     hot.setDataAtCell(1, 0, 5);
@@ -291,7 +291,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(hot.getDataAtCell(1, 1)).toBe(75);
   });
 
-  it('puts back the grid value when two overlapping writes are both rejected', async() => {
+  it('keeps the grid value when two overlapping writes are both rejected', async() => {
     const { engine, sheet } = buildGrid();
 
     hot.setDataAtCell(1, 0, -7);
@@ -307,7 +307,7 @@ describe('Formulas keeps a change a validator rejects out of the engine', () => 
     expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(31);
   });
 
-  it('repaints another sheet\'s grid that reads the restored cell', async() => {
+  it('keeps another sheet\'s grid that reads the cell on the old value', async() => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const container2 = document.createElement('div');
 

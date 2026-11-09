@@ -594,8 +594,8 @@ describe('Formulas general', () => {
         formulas: {
           engine: HyperFormula
         },
-        // The validator answers, so the change is applied: a validated change reaches the engine, and its
-        // dependents are validated, only then.
+        // The validator answers, so the change is applied and its dependents are validated before the
+        // count is read.
         validator: (value, callback) => callback(true),
         beforeValidate: () => {
           validatorCallsCount += 1;
