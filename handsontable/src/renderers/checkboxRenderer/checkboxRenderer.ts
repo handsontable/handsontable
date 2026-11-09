@@ -620,6 +620,7 @@ function createLabel(rootDocument: Document, text: string, fullWidth: boolean): 
   if (fullWidth) {
     const span = rootDocument.createElement('span');
 
+    span.className = 'htCheckboxRendererLabelText';
     span.appendChild(textNode);
     label.appendChild(span);
   } else {
