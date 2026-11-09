@@ -109,20 +109,4 @@ export class ScrollOwnerChangeListenersPage {
     await this.cell(1, 1).hover();
     await this.page.mouse.wheel(0, deltaY);
   }
-
-  /**
-   * Selects a cell through the API, the way a click would leave it.
-   */
-  async selectCell(row: number, col: number): Promise<void> {
-    await this.page.evaluate(([r, c]) => {
-      (window as any).hot.selectCell(r, c);
-    }, [row, col]);
-  }
-
-  /**
-   * The last selected range, as `[row, column, row2, column2]`.
-   */
-  async lastSelected(): Promise<number[] | undefined> {
-    return this.page.evaluate(() => (window as any).hot.getSelectedLast());
-  }
 }

@@ -20,7 +20,13 @@ describe('NativeScrollInput#registerScrollableElementListeners', () => {
     const mirroredCloneHolder = document.createElement('div');
     const cornerCloneHolder = document.createElement('div');
     const state = { scrollableElement: document.createElement('div') as HTMLElement | Window };
-    const counters = { resetStickyScroll: 0, registerStickyScrollListeners: 0, observeResize: 0 };
+    const counters = {
+      resetStickyScroll: 0,
+      registerStickyScrollListeners: 0,
+      observeResize: 0,
+      notifyScrolledForScrollbarVisibility: 0,
+      syncScrollPositions: 0,
+    };
     const eventManager = new EventManager();
     const masterOverlay = {
       get mainTableScrollableElement() {
@@ -51,6 +57,12 @@ describe('NativeScrollInput#registerScrollableElementListeners', () => {
       },
       observeResize: () => {
         counters.observeResize += 1;
+      },
+      notifyScrolledForScrollbarVisibility: () => {
+        counters.notifyScrolledForScrollbarVisibility += 1;
+      },
+      syncScrollPositions: () => {
+        counters.syncScrollPositions += 1;
       },
     } as unknown as NativeScrollInputDeps;
 
@@ -170,6 +182,61 @@ describe('NativeScrollInput#registerScrollableElementListeners', () => {
 
     expect(counters.resetStickyScroll).toBe(2);
     expect(counters.observeResize).toBe(2);
+
+    eventManager.destroy();
+  });
+
+  it('should keep the arrow-key state after a rebind, so a key-driven scroll skips the scrollbar band', () => {
+    const { input, eventManager, state, counters } = createInput();
+
+    input.registerListeners();
+    state.scrollableElement = document.createElement('div');
+    input.registerScrollableElementListeners();
+
+    const scrollableElement = state.scrollableElement as HTMLElement;
+    const arrowDown = new KeyboardEvent('keydown', { bubbles: true });
+
+    Object.defineProperty(arrowDown, 'keyCode', { value: 40 });
+    document.documentElement.dispatchEvent(arrowDown);
+    scrollableElement.dispatchEvent(new Event('scroll'));
+
+    expect(counters.notifyScrolledForScrollbarVisibility).toBe(0);
+    expect(counters.syncScrollPositions).toBe(1);
+
+    document.documentElement.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+    scrollableElement.dispatchEvent(new Event('scroll'));
+
+    expect(counters.notifyScrolledForScrollbarVisibility).toBe(1);
+    expect(counters.syncScrollPositions).toBe(2);
+
+    eventManager.destroy();
+  });
+
+  it('should re-bind the wheel listeners as passive only while the window scrolls the grid', () => {
+    const { input, eventManager, state, elements } = createInput();
+    const rootAdd = jest.spyOn(elements.wtRootElement, 'addEventListener');
+    const cloneAdd = jest.spyOn(elements.cornerCloneHolder, 'addEventListener');
+    const lastWheelOptions = (spy: jest.SpyInstance) =>
+      spy.mock.calls.filter(([eventName]) => eventName === 'wheel').at(-1)?.[2];
+
+    spies = [rootAdd, cloneAdd];
+    input.registerListeners();
+
+    expect(lastWheelOptions(rootAdd)).toEqual({ passive: false });
+    expect(lastWheelOptions(cloneAdd)).toEqual({ passive: false });
+
+    state.scrollableElement = window;
+    input.registerScrollableElementListeners();
+
+    expect(lastWheelOptions(rootAdd)).toEqual({ passive: true });
+    expect(lastWheelOptions(cloneAdd)).toEqual({ passive: true });
+
+    state.scrollableElement = document.createElement('div');
+    input.registerScrollableElementListeners();
+
+    expect(lastWheelOptions(rootAdd)).toEqual({ passive: false });
+    expect(lastWheelOptions(cloneAdd)).toEqual({ passive: false });
+    expect(listenersOn(eventManager, elements.wtRootElement)).toEqual(['wheel']);
 
     eventManager.destroy();
   });

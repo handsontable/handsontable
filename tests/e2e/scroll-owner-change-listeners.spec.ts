@@ -48,12 +48,4 @@ test.describe('listeners after a scroll owner change', () => {
       return master === rowHeaders;
     }).toBe(true);
   });
-
-  test('keeps the arrow-key navigation working after the change', async ({ page }) => {
-    await grid.enablePagination();
-    await grid.selectCell(1, 1);
-    await page.keyboard.press('ArrowDown');
-
-    await expect.poll(() => grid.lastSelected()).toEqual([2, 1, 2, 1]);
-  });
 });
