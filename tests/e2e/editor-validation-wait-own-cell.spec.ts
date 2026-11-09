@@ -14,11 +14,14 @@ import { EditorValidationWaitPage } from '../fixtures/pages/EditorValidationWait
  *   walks the rows from last to first) reopened the editor, and the editor's own answer, which came
  *   later, no longer reached it: Enter never closed the editor.
  *
- * Both happened with the FormulaBuilder editor and the plain text editor alike.
+ * Both happened with the FormulaBuilder editor and the plain text editor alike. Since the Formulas plugin
+ * writes a validated value into the engine only once the validator accepts it, C is no longer
+ * recalculated (or validated) while B's answer is held: it keeps the old result, and follows an accepted
+ * value after the answer.
  */
 
 /**
- * Types a rejected value over B2, commits it, and releases B's answer only after C's has come.
+ * Types a rejected value over B2, commits it, and releases B's held answer.
  *
  * @param {EditorValidationWaitPage} grid The page object, already on the fixture.
  */
@@ -26,9 +29,13 @@ async function expectRejectionReopensEditor(grid: EditorValidationWaitPage): Pro
   await grid.typeInCell(1, 1, '-7');
   await grid.page.keyboard.press('Enter');
 
-  // C's synchronous answer has come; B's own is held, and the editor still waits on it.
+  // B's answer is held, and the editor still waits on it.
   await expect.poll(() => grid.heldValidations()).toEqual([expect.objectContaining({ row: 1 })]);
   expect(await grid.editorState()).toBe('STATE_WAITING');
+
+  // The engine gets B's value only once the validator accepts it, so C2 keeps reading 18 meanwhile.
+  await expect(grid.cell(1, 2)).toHaveText('36');
+  expect(await grid.dataAt(1, 2)).toBe(36);
 
   expect(await grid.releaseNextValidation()).toMatchObject({ row: 1 });
 
@@ -39,13 +46,35 @@ async function expectRejectionReopensEditor(grid: EditorValidationWaitPage): Pro
   await expect(grid.cell(1, 1)).toHaveText('18');
   expect(await grid.dataAt(1, 1)).toBe(18);
 
-  // The engine got -7 before B's validator answered; the rejection puts 18 back, so C2 reads
-  // `=B2*2` from it again, before and after the user gives up the edit.
+  // The rejected -7 never reached the engine, so C2 still reads 18, before and after the user gives up
+  // the edit.
   await expect(grid.cell(1, 2)).toHaveText('36');
   await grid.page.keyboard.press('Escape');
   await expect.poll(() => grid.editorOpened()).toBe(false);
   await expect(grid.cell(1, 2)).toHaveText('36');
   expect(await grid.dataAt(1, 2)).toBe(36);
+}
+
+/**
+ * Types an accepted value over B2 and commits it: C2 keeps the old result while B's answer is held, and
+ * follows the new value once the validator accepts it.
+ *
+ * @param {EditorValidationWaitPage} grid The page object, already on the fixture.
+ */
+async function expectAcceptedValueUpdatesDependent(grid: EditorValidationWaitPage): Promise<void> {
+  await grid.typeInCell(1, 1, '10');
+  await grid.page.keyboard.press('Enter');
+
+  await expect.poll(() => grid.heldValidations()).toEqual([expect.objectContaining({ row: 1 })]);
+  await expect(grid.cell(1, 2)).toHaveText('36');
+  expect(await grid.dataAt(1, 2)).toBe(36);
+
+  expect(await grid.releaseNextValidation()).toMatchObject({ row: 1 });
+
+  await expect.poll(() => grid.editorOpened()).toBe(false);
+  await expect(grid.cell(1, 1)).toHaveText('10');
+  await expect(grid.cell(1, 2)).toHaveText('20');
+  expect(await grid.dataAt(1, 2)).toBe(20);
 }
 
 /**
@@ -93,6 +122,13 @@ test.describe('Editor validation wait: the formula editor', { tag: BUNDLES_TAG }
     await expectRejectionReopensEditor(grid);
   });
 
+  test('an accepted value reaches the dependent formula only after the validator answers', async({ page, theme, bundle }) => {
+    const grid = new EditorValidationWaitPage(page, theme, bundle, 'formula');
+
+    await grid.goto();
+    await expectAcceptedValueUpdatesDependent(grid);
+  });
+
   test('Enter during a validateCells() batch closes the editor and moves down', async({ page, theme, bundle }) => {
     const grid = new EditorValidationWaitPage(page, theme, bundle, 'formula');
 
@@ -108,6 +144,15 @@ test.describe('Editor validation wait: the plain text editor behaves the same (c
 
     await grid.goto();
     await expectRejectionReopensEditor(grid);
+  });
+
+  test('an accepted value reaches the dependent formula only after the text editor\'s validator answers', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new EditorValidationWaitPage(page, theme, bundle, 'text');
+
+    await grid.goto();
+    await expectAcceptedValueUpdatesDependent(grid);
   });
 
   test('Enter during a validateCells() batch closes the text editor and moves down', async({ page, theme, bundle }) => {
