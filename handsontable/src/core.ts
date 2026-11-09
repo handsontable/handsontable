@@ -549,13 +549,6 @@ export default function Core(
     (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   > = [];
   /**
-   * The functions told about the changes a validator rejected under `allowInvalid: false` in a change set
-   * that is applied (see `_addRejectedChangesListener()`).
-   */
-  const rejectedChangesListeners: Array<
-    (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
-  > = [];
-  /**
    * The change sets made on the data the grid holds that wait for their validators, with their source (see
    * `_getWaitingChangeSets()`). A set leaves when its validators have answered, written or dropped, and every
    * set leaves on `loadData()`, which drops them all; a set whose validator never answers leaves then too.
@@ -4419,10 +4412,6 @@ export default function Core(
    * The functions `_addDroppedChangesListener()` added are told about a dropped set, in the order they
    * were added, with the same array the other change hooks received and the changes a validator rejected
    * under `allowInvalid: false`, which were taken out of that array.
-   * The functions `_addRejectedChangesListener()` added are told about the rejected changes of a set
-   * that is applied, before `applyChanges()` writes what is left of it (nothing, when every change was
-   * rejected), so the render that follows paints what they put back. A listener that throws does not stop
-   * the write (its error leaves after it), and one that destroys the grid ends the call there.
    *
    * @param {Array} changes The processed changes.
    * @param {string} [source] The change source.
@@ -4441,19 +4430,7 @@ export default function Core(
 
         try {
           if (loadGeneration === validationLoadGeneration) {
-            hold.resume(() => {
-              try {
-                if (rejectedChanges.length > 0) {
-                  rejectedChangesListeners.slice().forEach(listener => listener(changes, source, rejectedChanges));
-                }
-              } finally {
-                // A listener that throws must not cost the set its accepted changes (its error still leaves
-                // after them), and one that destroyed the grid leaves nothing to write into.
-                if (instance && !instance.isDestroyed) {
-                  applyChanges(changes, source);
-                }
-              }
-            });
+            hold.resume(() => applyChanges(changes, source));
           } else {
             droppedChangesListeners.slice().forEach(listener => listener(changes, source, rejectedChanges));
           }
@@ -6326,46 +6303,6 @@ export default function Core(
   ) {
     if (!droppedChangesListeners.includes(listener)) {
       droppedChangesListeners.push(listener);
-    }
-  };
-
-  /**
-   * Adds a function that is told about the changes a validator rejected under `allowInvalid: false` in a
-   * change set that is applied, that is, one no `loadData()` dropped (a dropped set goes to the functions
-   * `_addDroppedChangesListener()` added instead). The function runs once the set's last validator
-   * answered and before the Core writes the rest of the set to the data, so the render that follows
-   * paints what it changed, also when every change was rejected and `beforeChangeRender` and `afterChange`
-   * do not fire. It receives the change array the other change hooks received (the rejected changes are
-   * taken out of it), the change source, and the rejected changes, the same objects that array held. It
-   * is for a plugin that acted on a change before validation and has to take that back: the Formulas
-   * plugin writes a change into the engine from `afterSetDataAtCell`. Adding a function that is already
-   * there changes nothing.
-   *
-   * @private
-   * @param {Function} listener The function to add.
-   */
-  this._addRejectedChangesListener = function(
-    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
-  ) {
-    if (!rejectedChangesListeners.includes(listener)) {
-      rejectedChangesListeners.push(listener);
-    }
-  };
-
-  /**
-   * Removes a function `_addRejectedChangesListener()` added. Removing one that is not there changes
-   * nothing.
-   *
-   * @private
-   * @param {Function} listener The function to remove.
-   */
-  this._removeRejectedChangesListener = function(
-    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
-  ) {
-    const index = rejectedChangesListeners.indexOf(listener);
-
-    if (index !== -1) {
-      rejectedChangesListeners.splice(index, 1);
     }
   };
 
