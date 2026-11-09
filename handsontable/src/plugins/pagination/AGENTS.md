@@ -213,8 +213,9 @@ token keeps a user's own override on the bar working – one that beats the bar'
 `.handsontable.ht-pagination` (0,2,0), for example `div.handsontable.ht-pagination`. The trade: the guard
 sits at (0,3,0), so a user rule on the label class itself (`.ht-page-navigation-section__label` or
 `.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Their box (padding,
-margin, border, height) is guarded separately, in `src/styles/base/_host-guards.scss`, so a host
-`span { padding: 12px }` cannot make the bar taller. Any new text-bearing span added to the bar needs the
+margin, border, height) is guarded separately, at element level (0,0,2), in
+`src/styles/base/_host-guards.scss`, so a host `span { padding: 12px }` cannot make the bar taller while a
+user's `.ht-page-size-section__label { padding: 2px }` still applies. Any new text-bearing span added to the bar needs the
 mixin and an entry in that guard list; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
 
 ## Server-backed paging is read live, not updated

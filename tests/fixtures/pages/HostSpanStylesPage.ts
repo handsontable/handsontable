@@ -141,6 +141,16 @@ export class HostSpanStylesPage {
   readonly menuItemWrapper: Locator;
   readonly menuItemName: Locator;
 
+  /**
+   * The NestedRows grid (present only with `goto({ nestedRows: true })`): the header cell of its
+   * second-level child row, the level spacers and label inside it, and the row's data cell.
+   */
+  readonly nestedGrid: Locator;
+  readonly nestedChildHeaderCell: Locator;
+  readonly nestedLevelSpacer: Locator;
+  readonly nestedChildHeaderSpan: Locator;
+  readonly nestedChildDataCell: Locator;
+
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
@@ -194,6 +204,12 @@ export class HostSpanStylesPage {
     this.renameMirror = this.activeTab.locator('.ht-sheets-bar__tab-rename-mirror');
     this.menuItemWrapper = page.locator('.htSheetsBarMenu .htItemWrapper').first();
     this.menuItemName = this.menuItemWrapper.locator('.ht-sheets-bar__menu-item-name');
+
+    this.nestedGrid = page.getByTestId('nested-grid');
+    this.nestedChildHeaderCell = this.nestedGrid.locator('.ht_clone_inline_start tbody tr').nth(2).locator('th');
+    this.nestedLevelSpacer = this.nestedChildHeaderCell.locator('span.ht_nestingLevel_empty');
+    this.nestedChildHeaderSpan = this.nestedChildHeaderCell.locator('span.rowHeader');
+    this.nestedChildDataCell = this.nestedGrid.locator('.ht_master tbody tr').nth(2).locator('td').first();
   }
 
   /**
@@ -202,12 +218,14 @@ export class HostSpanStylesPage {
    * @param {object} [options] Fixture options.
    * @param {boolean} [options.sheetsBar] Adds the sheets bar to the grid.
    * @param {boolean} [options.menus] Adds Filters and a dropdown menu with a checked and a mixed item.
+   * @param {boolean} [options.nestedRows] Adds a second grid with NestedRows and three row levels.
    * @param {boolean} [options.withoutHostStyles] Removes the host element rules before the grid is
    * built, for the clean render a hostile one is compared with.
    */
-  async goto({ sheetsBar = false, menus = false, withoutHostStyles = false }: {
+  async goto({ sheetsBar = false, menus = false, nestedRows = false, withoutHostStyles = false }: {
     sheetsBar?: boolean;
     menus?: boolean;
+    nestedRows?: boolean;
     withoutHostStyles?: boolean;
   } = {}): Promise<void> {
     const pageErrors: string[] = [];
@@ -217,6 +235,7 @@ export class HostSpanStylesPage {
     const query = [
       sheetsBar ? '&sheetsBar=1' : '',
       menus ? '&menus=1' : '',
+      nestedRows ? '&nestedRows=1' : '',
       withoutHostStyles ? '&withoutHostStyles=1' : '',
     ].join('');
 
@@ -249,6 +268,10 @@ export class HostSpanStylesPage {
     // The overflow indicator only renders when the chips do not fit; its presence pins the fixture
     // geometry (column 200px, four values) so a later width change cannot silently drop it.
     await expect(this.overflow, errorMessage).toBeVisible();
+
+    if (nestedRows) {
+      await expect(this.nestedLevelSpacer, errorMessage).toHaveCount(2);
+    }
   }
 
   /**
@@ -268,10 +291,15 @@ export class HostSpanStylesPage {
   }
 
   /**
-   * Opens the dropdown menu of the "Airport" column, with the Filters controls in it.
+   * Opens a column's dropdown menu, with the Filters controls in it.
+   *
+   * @param {string} [label] The column header's label.
    */
-  async openColumnMenu(): Promise<void> {
-    await this.columnHeaderCell.locator('.changeType').click();
+  async openColumnMenu(label = 'Airport'): Promise<void> {
+    const headerCell = this.page.locator('.ht_clone_top thead tr').first().locator('th')
+      .filter({ has: this.page.locator('span.colHeader').getByText(label, { exact: true }) });
+
+    await headerCell.locator('.changeType').click();
     await expect(this.dropdownMenu).toBeVisible();
     await expect(this.okButton).toBeVisible();
     await expect(this.valueCheckboxInput).toBeAttached();

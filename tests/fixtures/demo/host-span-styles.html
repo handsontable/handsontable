@@ -65,6 +65,7 @@
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
+  <div id="nested-grid" data-testid="nested-grid"></div>
 
   <!-- Positive controls: a span and an input the grid does not own. The spec asserts they DO take the
        host rules, so a fixture edit that silences a rule turns the spec red instead of vacuously green. -->
@@ -103,15 +104,21 @@
       const data = Array.from({ length: 12 }, (_, row) => [
         `Airport ${row}`,
         categories.slice(0, 4),
+        `2024-01-${String(row + 10)}`,
+        `${String(row + 10)}:30`,
+        `2024-01-${String(row + 10)}T${String(row + 10)}:30`,
       ]);
 
       const hot = new Handsontable(container, {
         data,
-        colHeaders: ['Airport', 'Shipment'],
+        colHeaders: ['Airport', 'Shipment', 'Shipped on', 'Shipped at', 'Arrived'],
         rowHeaders: true,
         columns: [
           { type: 'text' },
           { type: 'multiselect', source: categories, width: 200 },
+          { type: 'date' },
+          { type: 'intl-time' },
+          { type: 'intl-datetime' },
         ],
         height: 400,
         pagination: {
@@ -147,6 +154,34 @@
       });
 
       window.hot = hot;
+
+      if (htParams.has('nestedRows')) {
+        const nestedContainer = document.querySelector('[data-testid="nested-grid"]');
+
+        nestedContainer.className = `ht-theme-${window.htTheme}`;
+
+        window.nestedHot = new Handsontable(nestedContainer, {
+          data: [
+            {
+              name: 'Level 0',
+              __children: [
+                {
+                  name: 'Level 1',
+                  __children: [
+                    { name: 'Level 2' },
+                  ],
+                },
+              ],
+            },
+          ],
+          columns: [{ data: 'name' }],
+          colHeaders: ['Name'],
+          rowHeaders: true,
+          nestedRows: true,
+          layoutDirection: 'ltr',
+          licenseKey: window.htTestLicenseKey,
+        });
+      }
     }
 
     loadBundle();

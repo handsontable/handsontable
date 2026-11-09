@@ -335,7 +335,44 @@ test.describe('host-page span and input boxes do not resize grid UI', { tag: THE
     expectSameMetrics(clean, hostile);
   });
 
-  test('menu check marks stay where the clean render draws them', async({ page, theme, bundle }) => {
+  for (const { column, inputType } of [
+    { column: 'Shipped on', inputType: 'date' },
+    { column: 'Shipped at', inputType: 'time' },
+    { column: 'Arrived', inputType: 'datetime-local' },
+  ]) {
+    test(`the ${inputType} condition input keeps the dropdown menu size`, async({ page, theme, bundle }) => {
+      const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { menus: true }, async(fixture) => {
+        await fixture.openColumnMenu(column);
+        await fixture.chooseCondition('Before');
+        await expect(fixture.conditionInput).toHaveAttribute('type', inputType);
+
+        return fixture.boxMetrics({
+          menu: fixture.dropdownMenu,
+          conditionInput: fixture.conditionInput,
+          okButton: fixture.okButton,
+        });
+      });
+
+      expectCleanBoxDiffersFromHost(clean.conditionInput, 'input');
+      expectSameMetrics(clean, hostile);
+    });
+  }
+
+  test('NestedRows level spacers keep the child row header and row heights', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { nestedRows: true },
+      readAll(fixture => ({
+        childHeaderCell: fixture.nestedChildHeaderCell,
+        levelSpacer: fixture.nestedLevelSpacer.first(),
+        childHeaderSpan: fixture.nestedChildHeaderSpan,
+        childDataCell: fixture.nestedChildDataCell,
+      })));
+
+    expectCleanBoxDiffersFromHost(clean.levelSpacer, 'span');
+    expectCleanBoxDiffersFromHost(clean.childHeaderSpan, 'span');
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('menu check marks stay where the clean render draws them',async({ page, theme, bundle }) => {
     const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { menus: true }, async(fixture) => {
       await fixture.openColumnMenu();
 
@@ -350,5 +387,34 @@ test.describe('host-page span and input boxes do not resize grid UI', { tag: THE
     expectCleanBoxDiffersFromHost(clean.checkMark, 'span');
     expectCleanBoxDiffersFromHost(clean.mixedMark, 'span');
     expectSameMetrics(clean, hostile);
+  });
+});
+
+/**
+ * The guard against host element rules sits at element level, (0,0,2), so a user's rule on the
+ * guarded element's own class, (0,1,0), still wins. The core stylesheet is injected after the
+ * user's, so a guard of the same specificity as the user rule would win on order instead. Each
+ * test reads the value first, to prove the user's value is not what the element computes anyway.
+ */
+test.describe('user class rules on guarded grid elements beat the host element guard', { tag: THEMES_TAG }, () => {
+  test('user rules on header and pagination label classes apply', async({ page, theme, bundle }) => {
+    const fixture = new HostSpanStylesPage(page, theme, bundle);
+    const userRules = [
+      { locator: fixture.columnHeaderSpan, rule: '.colHeader { font-weight: 600; }', property: 'font-weight', value: '600' },
+      { locator: fixture.rowHeaderSpan, rule: '.rowHeader { padding-inline: 8px; }', property: 'padding-left', value: '8px' },
+      { locator: fixture.pageSizeLabel, rule: '.ht-page-size-section__label { padding: 2px; }', property: 'padding-top', value: '2px' },
+    ];
+
+    await fixture.goto();
+
+    for (const { locator, property, value } of userRules) {
+      await expect(locator).not.toHaveCSS(property, value);
+    }
+
+    await fixture.prependUserStyles(userRules.map(({ rule }) => rule).join('\n'));
+
+    for (const { locator, property, value } of userRules) {
+      await expect.soft(locator).toHaveCSS(property, value);
+    }
   });
 });
