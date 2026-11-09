@@ -539,6 +539,12 @@ hooks, changes the column widths too. Two paths already do without them: `clearC
 compares the merges at every fit and rescans the columns of any that changed, so a new hook-less path is
 caught there too, as long as something asks for a fit. See "Merged cells" in `../autoColumnSize/AGENTS.md`.
 
+AutoRowSize is the other reader, through `getBlockDrawnOn(row, column)`: it names the block a covered cell is drawn
+for when the block's top-left cell is in a hidden row or column, so the sampler can measure the block's text on the
+cell that carries it (see "A merged block whose first row or column is hidden" in `../autoRowSize/AGENTS.md`). The
+method answers with the same rule the renderer draws by, the nearest not-hidden row and column of the top-left cell,
+so a change to where the renderer draws a block changes the row heights too.
+
 ## `disablePlugin()` clears the field, so copy first
 
 `generateFromSettings()` needs to tell a **re-applied** area from a **newly declared** one, so the previous
