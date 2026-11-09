@@ -1411,11 +1411,7 @@ export class AutoRowSize extends BasePlugin {
 
       // A block drawn on a covered cell takes its text from its top-left cell, so a change there is a change
       // of the row the block is measured on.
-      const blockRow = this.#getRowOfBlockStartingAt(Number(row), prop);
-
-      if (blockRow !== null) {
-        changedRows.add(blockRow);
-      }
+      this.#getRowsOfBlocksStartingAt(Number(row), prop).forEach(blockRow => changedRows.add(blockRow));
     });
 
     changedRows.forEach((rowIndex) => {
@@ -1424,29 +1420,46 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
-   * The visual row a merged block is drawn on, when the given cell is the block's top-left cell and the block
-   * is drawn on another cell.
+   * The visual rows that merged blocks are drawn on, for the blocks whose top-left cell is the given cell and
+   * that are drawn on another cell.
    *
    * @param {number} row The visual row of the cell.
-   * @param {unknown} prop The property or the visual column of the cell, as a change carries it.
-   * @returns {number|null}
+   * @param {*} prop The property or the visual column of the cell, as a change carries it. It is a function for
+   * a column read through a data accessor.
+   * @returns {number[]}
    */
-  #getRowOfBlockStartingAt(row: number, prop: unknown): number | null {
-    if (this.#blockOrigins.size === 0 || (typeof prop !== 'string' && typeof prop !== 'number')) {
-      return null;
-    }
-
-    const column = this.hot.propToCol(prop);
+  #getRowsOfBlocksStartingAt(row: number, prop: unknown): number[] {
     const physicalRow = this.hot.toPhysicalRow(row);
-    const physicalColumn = typeof column === 'number' ? this.hot.toPhysicalColumn(column) : null;
 
-    if (physicalRow === null || physicalColumn === null) {
-      return null;
+    if (this.#blockOrigins.size === 0 || physicalRow === null) {
+      return [];
     }
 
-    const carrierRow = this.#blockOrigins.get(`${physicalRow}:${physicalColumn}`);
+    const column = typeof prop === 'string' || typeof prop === 'number' ? this.hot.propToCol(prop) : null;
+    const physicalColumn = typeof column === 'number' ? this.hot.toPhysicalColumn(column) : null;
+    const carrierRows: number[] = [];
 
-    return carrierRow === undefined ? null : this.hot.toVisualRow(carrierRow);
+    if (physicalColumn === null) {
+      // A data accessor function does not name a column here, so every block that starts in the row counts.
+      this.#blockOrigins.forEach((carrierRow, key) => {
+        if (key.startsWith(`${physicalRow}:`)) {
+          carrierRows.push(carrierRow);
+        }
+      });
+
+    } else {
+      const carrierRow = this.#blockOrigins.get(`${physicalRow}:${physicalColumn}`);
+
+      if (carrierRow !== undefined) {
+        carrierRows.push(carrierRow);
+      }
+    }
+
+    return carrierRows.flatMap((carrierRow) => {
+      const visualRow = this.hot.toVisualRow(carrierRow);
+
+      return visualRow === null ? [] : [visualRow];
+    });
   }
 
   /**

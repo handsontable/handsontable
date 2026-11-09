@@ -283,6 +283,33 @@ describe('AutoRowSize heights of the rows a merged block is drawn on', () => {
     hot.destroy();
   });
 
+  it('should find the row of a block whose top-left cell is read through a data accessor function', () => {
+    // The change names the column by the function, not by an index.
+    const accessor = (rowData: string[], value?: string) => {
+      if (value === undefined) {
+        return rowData[4];
+      }
+
+      rowData[4] = value;
+
+      return undefined;
+    };
+    const columns = Array.from({ length: 10 }, (_, index) => ({ data: index === 4 ? accessor : index }));
+    const hot = buildGrid({ hiddenRows: { rows: [1] }, columns });
+    const { rowHeightsMap } = hot.getPlugin('autoRowSize');
+
+    rowHeightsMap.setValueAtIndex(2, STALE);
+    hot.setDataAtCell(5, 0, 'x');
+
+    expect(rowHeightsMap.getValueAtIndex(2)).toBe(STALE);
+
+    hot.setDataAtCell(1, 4, 'a new text of the block');
+
+    expect(rowHeightsMap.getValueAtIndex(2)).not.toBe(STALE);
+
+    hot.destroy();
+  });
+
   it('should leave the row a block was drawn on unmeasured while it is hidden, and measure it once shown', () => {
     const hot = buildGrid({ hiddenRows: { rows: [1] } });
     const { rowHeightsMap } = hot.getPlugin('autoRowSize');
