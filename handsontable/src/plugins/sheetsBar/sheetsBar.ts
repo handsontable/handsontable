@@ -1100,6 +1100,13 @@ export class SheetsBar extends BasePlugin {
    */
   #detachedDataSheet: { engine: unknown, sheetName: string } | null = null;
   /**
+   * Whether the workbook gave the top-level `data` no tab, because the grid-level `formulas.sheetName` names an
+   * engine sheet another grid is bound to. The build warned about it, so a later `data` is ignored silently.
+   *
+   * @type {boolean}
+   */
+  #topLevelDataIgnored = false;
+  /**
    * The top-level `data` arrays already reported as not applied (`REMOVED_DATA_OWNER_WARNING`), so a wrapper
    * sending the same array on every render warns once.
    *
@@ -2298,6 +2305,7 @@ export class SheetsBar extends BasePlugin {
   #forgetTopLevelData() {
     this.#receivedTopLevelData = null;
     this.#topLevelDataOwnerId = null;
+    this.#topLevelDataIgnored = false;
     this.#unappliedTopLevelData = new WeakSet<unknown[]>();
   }
 
@@ -3405,7 +3413,7 @@ export class SheetsBar extends BasePlugin {
    * Builds the initial workbook from the `sheets` setting; without one, from the sheets of the grid-level
    * formula engine instance (`#planEngineSheets`), or else wraps the grid's current data as `Sheet1`.
    * Returns the id of the sheet the top-level `data` belongs to: the opening sheet, unless an engine
-   * workbook names another data tab.
+   * workbook names another data tab or gives the data no tab (`null`, `#topLevelDataIgnored`).
    *
    * @returns {number|null}
    */
@@ -3425,6 +3433,11 @@ export class SheetsBar extends BasePlugin {
 
     if (enginePlan !== null) {
       this.#buildSheetsWorkbook(enginePlan.entries, false, enginePlan.openingIndex);
+      this.#topLevelDataIgnored = enginePlan.ignoresData;
+
+      if (enginePlan.ignoresData) {
+        return null;
+      }
 
       return enginePlan.dataIndex === null
         ? ((this.#model as SheetModel).getActiveSheet()?.id ?? null)
@@ -3451,13 +3464,14 @@ export class SheetsBar extends BasePlugin {
    * grid later are not followed. A `sheetName` the engine lacks, with no grid `data`, is reported, and no
    * engine sheet is made for it. Engine sheets other grids are bound to are left out, and a `sheetName` that
    * names one is reported. `dataIndex` is the position of the data tab when it is not the opening one (see
-   * `#detachedDataTab`), else `null`.
+   * `#detachedDataTab`), else `null`. `ignoresData` tells that the grid's `data` gets no tab, because its
+   * `sheetName` is bound to another grid.
    *
    * @param {object|null} detachedDataSheet The engine sheet a `sheetsBar: false` teardown left the data in.
    * @returns {object|null}
    */
   #planEngineSheets(detachedDataSheet: { engine: unknown, sheetName: string } | null): {
-    entries: SheetsBarSheetConfig[], openingIndex: number, dataIndex: number | null,
+    entries: SheetsBarSheetConfig[], openingIndex: number, dataIndex: number | null, ignoresData: boolean,
   } | null {
     const { formulas, data } = this.hot.getSettings();
 
@@ -3498,9 +3512,13 @@ export class SheetsBar extends BasePlugin {
         'first sheet instead.');
     }
 
+    const ignoresData = plan.boundElsewhereSheetName !== null && Array.isArray(data) && detachedTab === null;
+
     if (plan.boundElsewhereSheetName !== null) {
       warn(`The formula engine sheet "${plan.boundElsewhereSheetName}" is bound to another grid, so the sheets ` +
-        'bar does not list it and opens its first sheet instead.');
+        `bar does not list it and opens its first sheet instead${ignoresData
+          ? '. The grid\'s `data` gets no tab, and a later `data` is not applied.'
+          : '.'}`);
     }
 
     const dataIndex = detachedTab === null
@@ -3514,6 +3532,7 @@ export class SheetsBar extends BasePlugin {
       })),
       openingIndex: plan.openingIndex,
       dataIndex: dataIndex === -1 ? null : dataIndex,
+      ignoresData,
     };
   }
 
@@ -6519,18 +6538,23 @@ export class SheetsBar extends BasePlugin {
    * `data`, so without this check every workbook whose active sheet declares a `dataProvider`
    * would warn on every load. The redirect to the active sheet's array still applies — the
    * placeholder must not overwrite it — only the warning is skipped.
+   *
+   * An engine workbook that gave the top-level `data` no tab (`#topLevelDataIgnored`) redirects the initial
+   * load the same way, without this warning: the build already warned, and loaded, the `data` would replace
+   * the opening engine sheet's content.
    */
   #onBeforeLoadData = (sourceData: unknown[][], initialLoad: boolean) => {
     const activeId = this.#model?.getActiveSheet()?.id ?? null;
     const activeSheet = activeId === null ? null : this.#model?.getSheetById(activeId);
+    const ownsInitialLoad = this.#declaredEntries.size > 0 || this.#topLevelDataIgnored;
 
-    if (!initialLoad || !activeSheet || this.#declaredEntries.size === 0 || sourceData === activeSheet.data) {
+    if (!initialLoad || !activeSheet || !ownsInitialLoad || sourceData === activeSheet.data) {
       return;
     }
 
     const isExternalDataSourcePlaceholder = this.hot.runHooks('hasExternalDataSource') === true;
 
-    if (!isExternalDataSourcePlaceholder && !this.#warnedAboutTopLevelData) {
+    if (!isExternalDataSourcePlaceholder && !this.#topLevelDataIgnored && !this.#warnedAboutTopLevelData) {
       this.#warnedAboutTopLevelData = true;
       warn(TOP_LEVEL_DATA_WARNING);
     }
@@ -6679,7 +6703,7 @@ export class SheetsBar extends BasePlugin {
     const owner = ownerId === null ? null : this.#model?.getSheetById(ownerId) ?? null;
 
     if (owner === null) {
-      if (!this.#unappliedTopLevelData.has(sourceData)) {
+      if (!this.#topLevelDataIgnored && !this.#unappliedTopLevelData.has(sourceData)) {
         this.#unappliedTopLevelData.add(sourceData);
         warn(REMOVED_DATA_OWNER_WARNING);
       }

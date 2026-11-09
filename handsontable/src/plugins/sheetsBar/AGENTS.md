@@ -649,6 +649,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `boundElsewhereSheetName`, the first tab opens, and `#planEngineSheets` warns that the sheet is bound to another
   grid. Matched against the filtered names, it read as missing: with `data` the data tab was bound to the other
   grid's sheet (removing the tab deleted it), and without `data` the warning said the engine had no such sheet.
+  With `data`, the grid's `data` gets no tab at all (`ignoresData`, `#topLevelDataIgnored`): the warning says so,
+  the owner is `null`, `#onBeforeLoadData` redirects the init load to the opening tab's array (loaded, `data`
+  replaced the first engine sheet's content), and a later `data` is ignored without `REMOVED_DATA_OWNER_WARNING`,
+  whose "was removed" would be wrong here.
   (6) **On a live grid (an enable after init, or `false` then `true`) without a grid-level `sheetName`, the sheet
   the Formulas plugin is bound to opens in place** (`#withBoundSheetName`, when that plugin is on and holds the
   same engine): the grid's rows already sit there, so that sheet opens under its own name and no new engine sheet

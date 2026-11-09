@@ -409,6 +409,37 @@ describe('SheetsBar tabs from a formula engine', () => {
       expect(engine.getSheetSerialized(engine.getSheetId('Rates'))).toEqual([[7]]);
       expect(otherHot.getData()).toEqual([[7]]);
     });
+
+    it('ignores later grid data whose `sheetName` the other grid is bound to, with one accurate warning', () => {
+      const engine = buildEngine({
+        Data: [[1, 2], [3, 4]],
+        Rates: [[7]],
+        Report: [['=SUM(Data!A1:B2)']],
+      });
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      otherHot = new Handsontable(otherContainer, {
+        data: [[7]],
+        formulas: { engine, sheetName: 'Rates' },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+      hot = build({ data: [[9]], formulas: { engine, sheetName: 'Rates' } });
+      hot.updateSettings({ data: [['NEW']] });
+
+      const warnings = warnSpy.mock.calls.map(call => String(call[0]));
+
+      expect(engine.getSheetNames()).toEqual(['Data', 'Rates', 'Report']);
+      expect(engine.getSheetSerialized(engine.getSheetId('Data'))).toEqual([[1, 2], [3, 4]]);
+      expect(engine.getSheetSerialized(engine.getSheetId('Rates'))).toEqual([[7]]);
+      expect(engine.getSheetSerialized(engine.getSheetId('Report'))).toEqual([['=SUM(Data!A1:B2)']]);
+      expect(otherHot.getData()).toEqual([[7]]);
+      expect(hot.getData()).toEqual([[1, 2], [3, 4]]);
+      expect(tabNames()).toEqual(['Data', 'Report']);
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('another grid');
+      expect(warnings[0]).toContain('`data`');
+      expect(warnings[0]).not.toContain('was removed');
+    });
   });
 
   describe('enabled on a live grid', () => {
