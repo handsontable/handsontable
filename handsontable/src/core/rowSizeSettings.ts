@@ -74,6 +74,16 @@ export class RowSizeSettings {
    * `null` for an insert anywhere else.
    */
   #appendFrom: Map<RowSizeOption, number> | null = null;
+  /**
+   * The data array the grid works on, as the last data load passed it.
+   */
+  #data: unknown = null;
+  /**
+   * The origins each data array had when the grid loaded another one, by option, with the array they were
+   * declared for. The sheets bar reloads a sheet's own data array when the sheet is shown again, so its heights
+   * come back on the rows they were on.
+   */
+  #kept = new WeakMap<object, Map<RowSizeOption, { declared: unknown[]; values: unknown[] }>>();
 
   /**
    * Follows the settings, which decide whether a map is needed, and the index mapper's inserts.
@@ -104,6 +114,10 @@ export class RowSizeSettings {
     // that, the way enabling a plugin does it.
     hot.addHook('beforeInit', this.#onSettingsChange);
     hot.addHook('afterUpdateSettings', this.#onSettingsChange);
+    hot.addHook('beforeLoadData', this.#keepAll);
+    hot.addHook('beforeUpdateData', this.#keepAll);
+    hot.addHook('afterLoadData', this.#onDataLoaded);
+    hot.addHook('afterUpdateData', this.#onDataLoaded);
   }
 
   /**
@@ -201,11 +215,74 @@ export class RowSizeSettings {
 
       if (Array.isArray(value)) {
         this.#follow(option, value);
+        this.#restore(option);
       } else {
         this.#unfollow(option);
       }
     });
   };
+
+  /**
+   * Keeps the origins of the data array the grid is about to leave. A load declares every row at its own
+   * index again.
+   */
+  #keepAll = (): void => {
+    this.#maps.forEach((_, option) => this.#keep(option));
+  };
+
+  /**
+   * Keeps the origins of one option for the current data array.
+   *
+   * @param {string} option The option.
+   */
+  #keep(option: RowSizeOption): void {
+    const map = this.#maps.get(option);
+    const declared = this.#declared.get(option);
+    const data = this.#data;
+
+    if (map === undefined || declared === undefined || typeof data !== 'object' || data === null) {
+      return;
+    }
+
+    let kept = this.#kept.get(data);
+
+    if (kept === undefined) {
+      kept = new Map();
+      this.#kept.set(data, kept);
+    }
+
+    kept.set(option, { declared, values: map.getValues().slice() });
+  }
+
+  /**
+   * Follows the data array a load passed, and puts back the origins it had when it was last shown.
+   *
+   * @param {Array} data The loaded data.
+   */
+  #onDataLoaded = (data: unknown): void => {
+    this.#data = data;
+    this.#maps.forEach((_, option) => this.#restore(option));
+  };
+
+  /**
+   * Puts back the origins of one option kept for the current data array, when they were kept for the array the
+   * option holds now and the data still has as many rows.
+   *
+   * @param {string} option The option.
+   */
+  #restore(option: RowSizeOption): void {
+    const map = this.#maps.get(option);
+    const data = this.#data;
+    const kept = typeof data === 'object' && data !== null ? this.#kept.get(data)?.get(option) : undefined;
+
+    if (map === undefined || kept === undefined || kept.declared !== this.#declared.get(option)) {
+      return;
+    }
+
+    if (kept.values.length === map.getLength()) {
+      map.setValues(kept.values);
+    }
+  }
 
   /**
    * Starts following an array, or resets the origin map when a new array replaced the previous one.
@@ -252,6 +329,7 @@ export class RowSizeSettings {
       return;
     }
 
+    this.#keep(option);
     this.#hot.rowIndexMapper.unregisterMap(toMapName(option));
     this.#maps.delete(option);
     this.#declared.delete(option);
