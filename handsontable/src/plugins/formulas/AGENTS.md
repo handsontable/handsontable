@@ -851,7 +851,8 @@ sheets bar's switch): kept on the instance, a sheet that passes the class wrote 
 engine. Pinned by `__tests__/sheetNameSetting.unit.js`
 and the engine binding cases of `../sheetsBar/__tests__/formulaSheets.unit.js`.
 
-**A sheet bound by loading sets the sync endpoint before the load, and sends no order when a load follows**
+**A sheet bound by loading sets the sync endpoint before the load, and sends no order when a load
+follows**
 (`#loadSheet()` calls `setupSyncEndpoint(engine, sheetId, !loadsData)` right after
 `#updateSheetNameAndSheetId()` and before `loadData()`; this covers `switchSheet()`, a grid built from an
 engine sheet without `data`, and the plugin's own reloads). Before DEV-3760 it set no endpoint, with three
@@ -860,9 +861,11 @@ measured effects: (1) a grid built without `data` had no engine on its syncer, s
 initial `manualRowMove` never reached the engine, so formula results were wrong with no error; (3) a
 `switchSheet()` on a data-built grid with a manual row move sent the re-applied move to the sheet it left
 (old sheet rotated twice, new sheet never reordered). The endpoint has to exist BEFORE the load because
-ManualRowMove/ManualColumnMove re-apply their arrays through `syncMoves` during it. `syncOrder` is `!loadsData`:
-`false` when a load follows (the grid sends its order itself when none does, an empty sheet): the load resets the grid's index maps, and the move plugins re-apply against identity,
-so sending the pre-load order as well reordered the sheet twice (a plain `setupSyncEndpoint()` before the load measured 1, 2 and 2 order calls where the tests pin 0, 1 and 1).
+ManualRowMove/ManualColumnMove re-apply their arrays through `syncMoves` during it. `syncOrder` is
+`!loadsData`: `false` when a load follows (an empty sheet has none, so the grid sends its order itself).
+The load resets the grid's index maps, and the move plugins re-apply against identity, so sending the
+pre-load order as well reordered the sheet twice (a plain `setupSyncEndpoint()` before the load measured
+1, 2 and 2 order calls where the tests pin 0, 1 and 1).
 `AxisSyncer#syncOrderWithEngine` returns early on a null engine. Pinned by
 `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
 
