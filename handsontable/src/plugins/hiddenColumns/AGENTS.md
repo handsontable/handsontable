@@ -38,9 +38,11 @@ calls a viewport getter there must not throw: the 12 Core viewport getters (`get
 the rest, built on `readViewportIndex()` in `core.ts`) answer `null` without a view, and the
 `getFirstVisibleColumn()`/`getLastVisibleColumn()` of AutoColumnSize and the row ones of AutoRowSize turn that
 into `-1`. The data getters and `getCoords()` work there too, because `_createCellCoords()` and
-`_createCellRange()` build the object themselves when there is no view. **That is all that is guarded.** Other
-reads of `hot.view` (`selectCell()`, `scrollViewportTo()`, `AutoColumnSize#onScreenColumns`) still assume it
-exists, and `countRenderedRows()` and its siblings use their own `-1` answer. A new Core method that reads
+`_createCellRange()` build the object themselves when there is no view. `getCell()`, `scrollViewportTo()`,
+`selectCell()`, `selectCells()`, `selectRows()`, `selectColumns()` and `selectAll()` answer `null`, `false` or
+nothing, and select nothing. **That is all that is guarded.** Other reads of `hot.view`
+(`AutoColumnSize#onScreenColumns`) still assume it exists, and `countRenderedRows()` and its siblings use their
+own `-1` answer. A new Core method that reads
 `hot.view` and can run inside an init-time hook (`afterHideColumns`, `afterHideRows`, `afterLoadData`) needs
 its own guard. `../hiddenRows/` has the same hook. Pinned by `src/__tests__/core/viewGettersBeforeView.unit.js`.
 

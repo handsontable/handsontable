@@ -126,9 +126,6 @@ import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
 /**
- * The part of a sorting plugin that core reads and calls.
- */
-/**
  * The `TableView` getters behind the Core viewport getters that answer `null` while the view does not exist.
  */
 type ViewportGetterName =
@@ -139,6 +136,9 @@ type ViewportGetterName =
   | 'getFirstPartiallyVisibleRow' | 'getLastPartiallyVisibleRow'
   | 'getFirstPartiallyVisibleColumn' | 'getLastPartiallyVisibleColumn';
 
+/**
+ * The part of a sorting plugin that core reads and calls.
+ */
 interface SortingPluginLike {
   isSorted(): boolean;
   clearSort(): void;
@@ -7658,7 +7658,8 @@ export default function Core(
 
   /**
    * Returns a TD element for the given `row` and `column` arguments, if it is rendered on screen.
-   * Returns `null` if the TD is not rendered on screen (probably because that part of the table is not visible).
+   * Returns `null` if the TD is not rendered on screen (probably because that part of the table is not visible),
+   * or if the grid has no view yet, as inside a hook that fires during initialization.
    *
    * @memberof Core#
    * @function getCell
@@ -7669,6 +7670,10 @@ export default function Core(
    * @returns {HTMLTableCellElement|null} The cell's TD element.
    */
   this.getCell = function(row: number, column: number, topmost = false) {
+    if (!instance.view) {
+      return null;
+    }
+
     let renderableColumnIndex: number | null = column; // Handling also column headers.
     let renderableRowIndex: number | null = row; // Handling also row headers.
 
@@ -9907,7 +9912,7 @@ export default function Core(
    * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
    * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
    * focus, it remains focused after the call.
-   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
+   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed, or the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.selectCell = function(
     row: number, column: number, endRow: number, endColumn: number, scrollToCell = true, changeListener = true
@@ -9989,11 +9994,15 @@ export default function Core(
    * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
    * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
    * focus, it remains focused after the call.
-   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
+   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed, or the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.selectCells = function(
     coords: Array<Array<number | undefined>> = [[]], scrollToCell = true, changeListener = true
   ) {
+    if (!instance.view) {
+      return false;
+    }
+
     if (scrollToCell === false) {
       viewportScroller.suspend();
     }
@@ -10082,7 +10091,7 @@ export default function Core(
    * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
    * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
    * still loses focus to the highlighted cell.
-   * @returns {boolean} `true` if selection was successful, `false` otherwise.
+   * @returns {boolean} `true` if selection was successful, `false` otherwise, including when the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.selectColumns = function(
     startColumn: number,
@@ -10090,6 +10099,10 @@ export default function Core(
     focusPosition?: number | {row?: number, col?: number},
     changeListener = true
   ) {
+    if (!instance.view) {
+      return false;
+    }
+
     return selectWithChangeListener(
       changeListener,
       () => selection.selectColumns(startColumn, endColumn, focusPosition)
@@ -10129,7 +10142,7 @@ export default function Core(
    * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
    * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
    * still loses focus to the highlighted cell.
-   * @returns {boolean} `true` if selection was successful, `false` otherwise.
+   * @returns {boolean} `true` if selection was successful, `false` otherwise, including when the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.selectRows = function(
     startRow: number,
@@ -10137,6 +10150,10 @@ export default function Core(
     focusPosition?: number | {row?: number, col?: number},
     changeListener = true
   ) {
+    if (!instance.view) {
+      return false;
+    }
+
     return selectWithChangeListener(
       changeListener,
       () => selection.selectRows(startRow, endRow, focusPosition)
@@ -10212,6 +10229,10 @@ export default function Core(
     options?: SelectAllOptions,
     changeListener = true
   ) {
+    if (!instance.view) {
+      return;
+    }
+
     viewportScroller.skipNextScrollCycle();
     selectWithChangeListener(changeListener, () => {
       selection.selectAll(includeRowHeaders, includeColumnHeaders, options);
@@ -10295,13 +10316,17 @@ export default function Core(
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @param {Function} [callback] The callback function to call after the viewport is scrolled.
-   * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
+   * @returns {boolean} `true` if viewport was scrolled, `false` otherwise, including when the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.scrollViewportTo = function(
     options: {row?: number, col?: number, horizontalSnap?: string, verticalSnap?: string,
       considerHiddenIndexes?: boolean},
     callback: Function
   ) {
+    if (!instance.view) {
+      return false;
+    }
+
     // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
     if (typeof options === 'number') {
       /* eslint-disable prefer-rest-params, @typescript-eslint/no-unsafe-assignment */

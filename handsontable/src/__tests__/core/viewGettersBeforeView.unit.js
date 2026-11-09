@@ -105,8 +105,55 @@ describe('Getters before the view exists', () => {
     });
   });
 
+  describe('selection methods', () => {
+    it.each([
+      ['selectCell', instance => instance.selectCell(0, 0)],
+      ['selectCells', instance => instance.selectCells([[0, 0, 1, 1]])],
+      ['selectRows', instance => instance.selectRows(0)],
+      ['selectColumns', instance => instance.selectColumns(0)],
+      ['selectAll', instance => instance.selectAll()],
+    ])('should select nothing and not throw from `%s` inside the initial `afterLoadData`', (_, select) => {
+      const afterSelection = jest.fn();
+      const results = [];
+
+      hot = createGrid({
+        afterSelection,
+        afterLoadData(sourceData, initialLoad) {
+          if (initialLoad === true) {
+            results.push(select(this));
+          }
+        },
+      });
+
+      expect(results).toHaveLength(1);
+      expect(afterSelection).not.toHaveBeenCalled();
+      expect(hot.getSelected()).toBeUndefined();
+    });
+
+    it('should answer `null` from `getCell` and `false` from `scrollViewportTo` inside the initial `afterLoadData`', () => {
+      const results = [];
+
+      hot = createGrid({
+        afterLoadData(sourceData, initialLoad) {
+          if (initialLoad === true) {
+            results.push([this.getCell(0, 0), this.scrollViewportTo({ row: 0, col: 0 })]);
+          }
+        },
+      });
+
+      expect(results).toEqual([[null, false]]);
+    });
+
+    it('should select as before once the grid is built', () => {
+      hot = createGrid();
+
+      expect(hot.selectCell(1, 1)).toBe(true);
+      expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+  });
+
   describe('data getters and coordinates', () => {
-    it('should not throw inside `afterHideColumns` fired at init (the data is not loaded yet)', () => {
+    it('should answer inside `afterHideColumns` fired at init: the source reads see the data, the grid reads see no rows yet', () => {
       const results = [];
 
       hot = createGrid({
@@ -124,8 +171,15 @@ describe('Getters before the view exists', () => {
         },
       });
 
-      expect(results).toHaveLength(1);
-      expect(results[0][6]).toBeNull();
+      expect(results).toEqual([[
+        [], // getDataAtCol
+        [], // getDataAtRow
+        [], // getDataAtProp
+        [['A1', 'B1'], ['A2', 'B2']], // getSourceData
+        [['A1', 'B1'], ['A2', 'B2']], // getSourceDataArray
+        [], // getData
+        null, // getCoords
+      ]]);
     });
 
     it('should answer inside the `afterLoadData` of the initial load', () => {
