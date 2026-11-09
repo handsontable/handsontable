@@ -585,6 +585,57 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     warnings.mockRestore();
   });
 
+  it('does not write a deferred change into a sheet the engine refused to hold in its window', async() => {
+    const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 2 });
+
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [3, 'c']],
+      columns: REJECTING_COLUMNS,
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell(0, 0, '=1+1');
+    hot.updateSettings({});
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 0)).toBe('=1+1');
+    expect(engine.getSheetSerialized(sheet)).toEqual([]);
+
+    warnings.mockRestore();
+  });
+
+  it('writes a deferred change when a full write filled the sheet again after a refused one', async() => {
+    const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 2 });
+
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [3, 'c']],
+      columns: REJECTING_COLUMNS,
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell(0, 0, '=1+1');
+    hot.updateSettings({});
+    // Two rows fit, so this full write is accepted after the refused one.
+    hot.updateSettings({ data: [[1, 'a'], [2, 'b']] });
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 0)).toBe('=1+1');
+    expect(engine.getCellFormula({ sheet, row: 0, col: 0 })).toBe('=1+1');
+    expect(hot.getDataAtCell(0, 0)).toBe(2);
+
+    warnings.mockRestore();
+  });
+
   it('does not write a change the validator rejected back into the engine', async() => {
     const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']], {
       columns: [{ validator: (value, callback) => callback(value !== 'bad'), allowInvalid: false }, {}],

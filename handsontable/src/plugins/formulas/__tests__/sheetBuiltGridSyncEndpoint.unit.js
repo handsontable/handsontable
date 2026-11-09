@@ -146,4 +146,27 @@ describe('Formulas sync endpoint of a grid built from an engine sheet', () => {
     expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a']);
     expect(hot.getDataAtCol(2)).toEqual([6, 4, 2]);
   });
+
+  // TODO: known limit "A sheet-built grid with an array manual move rotates on `updateSettings()`" in
+  // `../AGENTS.md`. The order should stay `[c, b, a]` across the updates; this pins the current rotation, so
+  // a fix flips it.
+  it('rotates the manual row order of a sheet-built grid on every updateSettings() (known limit)', () => {
+    const engine = buildEngine();
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      manualRowMove: [2, 0, 1],
+      licenseKey: LICENSE_KEY,
+    });
+
+    expect(hot.getData()).toEqual([['c', 3, 6], ['b', 2, 4], ['a', 1, 2]]);
+
+    hot.updateSettings({});
+
+    expect(hot.getData()).toEqual([['a', 1, 2], ['c', 3, 6], ['b', 2, 4]]);
+
+    hot.updateSettings({});
+
+    expect(hot.getData()).toEqual([['b', 2, 4], ['a', 1, 2], ['c', 3, 6]]);
+  });
 });

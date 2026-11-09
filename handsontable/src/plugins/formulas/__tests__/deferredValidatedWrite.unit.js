@@ -575,4 +575,80 @@ describe('Formulas writes a validated change when the Core applies it', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(1);
     expect(hot.getCellMeta(0, 1).flagged).toBeUndefined();
   });
+
+  it('does not throw or keep the probe in the engine when the engine keeps one undo entry', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', undoLimit: 1 });
+
+    hot = new Handsontable(container, {
+      data: [[2, 3]],
+      columns: [
+        { validator: (value, callback) => callback(false), allowInvalid: false },
+        { validator: (value, callback) => callback(true), allowInvalid: false },
+      ],
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    // The formula reads B1, a plain value of the same set, so the probe would need two batches.
+    expect(() => hot.setDataAtCell([[0, 0, '=B1*10'], [0, 1, 5]])).not.toThrow();
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 0)).toBe(2);
+    expect(engine.getCellFormula({ sheet, row: 0, col: 0 })).toBeUndefined();
+    expect(hot.getDataAtCell(0, 0)).toBe(2);
+    expect(hot.getDataAtCell(0, 1)).toBe(5);
+  });
+
+  it('fires no afterFormulasValuesUpdate in another grid on the engine for the probe of a rejected edit', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const container2 = document.createElement('div');
+    const readerUpdates = jest.fn();
+
+    document.body.appendChild(container2);
+
+    hot = new Handsontable(container, {
+      data: [[2], [31]],
+      columns: [{ validator: heldValidator, allowInvalid: false }],
+      formulas: { engine, sheetName: 'A' },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const reader = new Handsontable(container2, {
+      data: [['=A!A2*2']],
+      formulas: { engine, sheetName: 'B' },
+      afterFormulasValuesUpdate: readerUpdates,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    try {
+      readerUpdates.mockClear();
+      hot.setDataAtCell(1, 0, '=A1-100');
+
+      expect(held.map(({ value }) => value)).toEqual([]);
+      await waitForValidation();
+
+      expect(held.map(({ value }) => value)).toEqual([-98]);
+      expect(readerUpdates).not.toHaveBeenCalled();
+
+      await releaseAll();
+
+      expect(readerUpdates).not.toHaveBeenCalled();
+      expect(reader.getDataAtCell(0, 0)).toBe(62);
+    } finally {
+      reader.destroy();
+      container2.remove();
+    }
+  });
+
+  it('validates each change of a set that writes one cell twice by its own value', async() => {
+    buildGrid();
+
+    hot.setDataAtCell([[1, 0, '=A1*3'], [1, 0, '=A1*4']]);
+    await waitForValidation();
+
+    expect(held.map(({ value }) => value).sort()).toEqual([6, 8]);
+  });
 });

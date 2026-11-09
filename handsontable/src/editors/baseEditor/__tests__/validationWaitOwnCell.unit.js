@@ -405,6 +405,40 @@ describe('BaseEditor validation wait', () => {
     expect(core.getDataAtCell(1, 0)).toBe(18);
   });
 
+  it('waits for the first answer, as before, when an editor\'s saveValue() writes asynchronously', async() => {
+    class DeferredSaveEditor extends TextEditor {
+      saveValue(value) {
+        const { row, col } = this;
+
+        // eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- an async save, driven by fake timers
+        setTimeout(() => this.hot.setDataAtCell(row, col, value[0][0]), 50);
+      }
+    }
+
+    core = createHot(container, {
+      data: createData(3),
+      columns: [{ editor: DeferredSaveEditor, validator: asyncNonNegative, allowInvalid: false }],
+    });
+
+    core.selectCell(1, 0);
+    core.getActiveEditor().beginEditing();
+    core.getActiveEditor().setValue('-5');
+    core.getActiveEditor().finishEditing();
+    await flush();
+
+    // Nothing was validated during the save, so the editor keeps waiting instead of closing with `true`.
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(50); // the save writes
+    await flush();
+    jest.advanceTimersByTime(600); // its rejection
+    await flush();
+
+    expect(core.getActiveEditor().isOpened()).toBe(true);
+    expect(core.getActiveEditor().getValue()).toBe('-5');
+    expect(core.getDataAtCell(1, 0)).toBe(18);
+  });
+
   it('ignores a later validation of the cell once the wait was canceled', async() => {
     let vetoes = 1;
 
