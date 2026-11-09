@@ -85,6 +85,10 @@ Two shipped bugs came from ignoring this. Both `.replace()`-based: #7427 (an arr
 
 Match alignment classes by exact token (`classNames.includes('htRight')`), as `../../plugins/exportFile/types/xlsx/cell-style.ts` already does — never `indexOf`/`includes` on the raw string.
 
+## `filterSeparators()` drops separators only, never an item for sharing a label (DEV-868)
+
+`filterSeparators()` (`menu/utils.ts`) runs on every menu build and trims leading and trailing separators and collapses runs of them. Its last step used to compare `name` between every item and the one kept before it, so two neighbors with the same STRING `name` collapsed into one row, in object form and array form alike, with distinct keys. A function `name` survived only because two function references never compare equal, which is why the report read "a string name has to be unique". `removeDuplicatedSeparators()` now skips an item only when it and the previously kept item both carry the separator name. Items with no `name` at all are kept too. The test is `name === separator`, an exact match, while the renderer's `isItemSeparator()` is an unanchored regex: two neighbors carrying the same non-canonical dashed name (`'----------'`) used to collapse by the equal-name rule and now both render as separator rows. Use the exported `SEPARATOR`. Never compare display names in this file: a label is not an identity, and a menu may repeat one. Pinned by `menu/__tests__/filterSeparators.unit.js` and `tests/e2e/menu-duplicate-names.spec.ts`.
+
 ## Hovering a sub-menu is a timer, and both directions use it
 
 Opening a sub-menu on hover was always debounced 300ms. Closing one was instant, and that asymmetry
