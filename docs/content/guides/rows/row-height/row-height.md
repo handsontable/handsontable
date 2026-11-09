@@ -106,7 +106,7 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 In this example, the height is only set for the first rows. Each additional row would be automatically adjusted to the content.
 
-The `rowHeights` and `minRowHeights` arrays and functions address rows by their physical index, so a height stays with its row when rows are moved, sorted, filtered, or collapsed with [`NestedRows`](@/api/nestedRows.md). The physical index doesn't change in any of those cases. To read the physical index of a row on the screen, use [`toPhysicalRow()`](@/api/core.md#tophysicalrow).
+The `rowHeights` and `minRowHeights` arrays and functions address rows by their physical index, so a height stays with its row when rows are moved, sorted, filtered, or collapsed with [`NestedRows`](@/api/nestedRows.md). The physical index doesn't change in any of those cases. When you insert or remove rows, each height stays with its row: a row inserted between others has no height of its own, and a row added after the last one takes the next entry. Handsontable never changes the array you pass. To read the physical index of a row on the screen, use [`toPhysicalRow()`](@/api/core.md#tophysicalrow).
 
 ::: only-for javascript
 
