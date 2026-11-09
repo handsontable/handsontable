@@ -38,6 +38,14 @@ async function expectRejectionReopensEditor(grid: EditorValidationWaitPage): Pro
   await expect(grid.editorInput()).toHaveValue('-7');
   await expect(grid.cell(1, 1)).toHaveText('18');
   expect(await grid.dataAt(1, 1)).toBe(18);
+
+  // The engine got -7 before B's validator answered; the rejection puts 18 back, so C2 reads
+  // `=B2*2` from it again, before and after the user gives up the edit.
+  await expect(grid.cell(1, 2)).toHaveText('36');
+  await grid.page.keyboard.press('Escape');
+  await expect.poll(() => grid.editorOpened()).toBe(false);
+  await expect(grid.cell(1, 2)).toHaveText('36');
+  expect(await grid.dataAt(1, 2)).toBe(36);
 }
 
 /**
