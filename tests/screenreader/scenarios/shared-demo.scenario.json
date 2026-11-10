@@ -25,7 +25,7 @@
     {
       "id": "sort-ascending",
       "action": {"press": "Enter"},
-      "expect": [["ascending"]],
+      "expect": [["ascending", "sort up"]],
       "note": "Enter on a header sorts by its column (multiColumnSorting), ascending; the header's `aria-sort` becomes `ascending` and the focus stays on it. Required: the new sort state."
     },
     {
@@ -37,14 +37,14 @@
     {
       "id": "add-to-sort",
       "action": {"press": "Shift+Enter"},
-      "expect": [["ascending"], ["2"]],
+      "expect": [["ascending", "sort up"], ["2"]],
       "severity": {"2": "moderate"},
       "note": "Shift+Enter adds the column to the sort, second after Sell date; the header draws the order, `2`, beside its arrow. Required: the sort state, and the order. The order is moderate: the state is right, and the order is what tells two sorted columns apart."
     },
     {
       "id": "left-to-first-sort",
       "action": {"press": "ArrowLeft"},
-      "expect": [["sell date"], ["ascending"], ["1"]],
+      "expect": [["sell date"], ["ascending", "sort up"], ["1"]],
       "severity": {"1": "moderate"},
       "note": "Back on Sell date, still sorted ascending and first in the order, `1`. Required: its name, state and order."
     }

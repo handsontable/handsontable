@@ -4,19 +4,20 @@
   "surface": "A read-only grid: its cells' read-only state, and Enter, typing and Delete changing nothing.",
   "group": "structure",
   "page": "read-only",
+  "start": "page",
   "criteria": ["1.3.1", "4.1.2"],
   "setup": [{"selectCell": [0, 0]}],
   "steps": [
     {
       "id": "arrow-right-read-only",
       "action": {"press": "ArrowRight"},
-      "expect": [["b1"], ["read only"]],
-      "note": "The page holds three grids; the setup selects A1 of the second, which sets `readOnly: true` and its default dimmed styling. ArrowRight moves to B1. Every cell carries `aria-readonly`. Required: the value and the read-only state."
+      "expect": [["b1", "b 1"], ["read only"]],
+      "note": "The page holds three grids; the setup selects A1 of the second, which sets `readOnly: true` and its default dimmed styling. ArrowRight moves to B1. Every cell carries `aria-readonly`. Required: the value (NVDA says `B 1`) and the read-only state. The page's first item is a heading over the first grid, so the reader starts on the page (`start: page`): with `start: grid` VoiceOver entered on that heading and, with Chromium, never followed the focus into the second grid."
     },
     {
       "id": "enter-on-read-only",
       "action": {"press": "Enter"},
-      "expect": [["b2"]],
+      "expect": [["b2", "b 2"]],
       "note": "Enter opens no editor on a read-only cell and moves the selection down (enterMoves), to B2."
     },
     {
@@ -34,13 +35,13 @@
     {
       "id": "arrow-down-read-only",
       "action": {"press": "ArrowDown"},
-      "expect": [["b3"], ["read only"]],
+      "expect": [["b3", "b 3"], ["read only"]],
       "note": "B3, read-only like every cell of the grid."
     },
     {
       "id": "arrow-up-unchanged",
       "action": {"press": "ArrowUp"},
-      "expect": [["b2"]],
+      "expect": [["b2", "b 2"]],
       "note": "Back on B2, which still holds `B2`: the typing and Delete changed nothing."
     }
   ]
