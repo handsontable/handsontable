@@ -90,6 +90,23 @@ describe('Formulas enabled on a live grid', () => {
     return reference;
   }
 
+  /**
+   * Builds a grid that had Formulas from the start, in the given order through the initial `manualRowMove` and
+   * `manualColumnMove` arrays: the order reaches its engine as one order at init, the way an enable on a live
+   * grid sends the order the grid already has (cross-row references follow the engine's own rewrite).
+   *
+   * @param {Array[]} data The data.
+   * @param {Handsontable} grid The grid whose current order the reference takes.
+   * @returns {Handsontable}
+   */
+  function buildReferenceInOrderOf(data, grid) {
+    return buildReference({
+      data: copy(data),
+      manualRowMove: grid.rowIndexMapper.getIndexesSequence(),
+      manualColumnMove: grid.columnIndexMapper.getIndexesSequence(),
+    }, () => {});
+  }
+
   describe('through updateSettings()', () => {
     it('sorts the formula column with an engine class (the reported case)', () => {
       hot = new Handsontable(container, { data: copy(OWN_ROW_CONTENT), columnSorting: true, licenseKey: LICENSE_KEY });
@@ -228,75 +245,58 @@ describe('Formulas enabled on a live grid', () => {
       expect(engineValues(hot)).toEqual(hot.getData());
     });
 
-    it('sends the sort of a grid sorted before the enable as one order, as the sort itself does', () => {
-      const settings = { data: copy(CROSS_ROW_CONTENT), columnSorting: true };
-
-      buildReference(settings, grid => grid.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' }));
-      hot = new Handsontable(container, { ...settings, data: copy(CROSS_ROW_CONTENT), licenseKey: LICENSE_KEY });
+    it('sends the order of a grid sorted before the enable as a grid built in that order gets it', () => {
+      hot = new Handsontable(container, {
+        data: copy(CROSS_ROW_CONTENT), columnSorting: true, licenseKey: LICENSE_KEY,
+      });
 
       hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
       hot.updateSettings({ formulas: { engine: HyperFormula } });
+      buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
 
+      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'c', 'd']);
       expect(hot.getData()).toEqual(reference.getData());
       expect(engineValues(hot)).toEqual(hot.getData());
     });
 
-    it('sends the moves of a grid moved before the enable as moves, as the drag itself does', () => {
-      const settings = { data: copy(CROSS_ROW_CONTENT), manualRowMove: true };
-
-      buildReference(settings, grid => grid.getPlugin('manualRowMove').moveRows([3], 0));
-      hot = new Handsontable(container, { ...settings, data: copy(CROSS_ROW_CONTENT), licenseKey: LICENSE_KEY });
+    it('sends the order of a grid moved before the enable as a grid built in that order gets it', () => {
+      hot = new Handsontable(container, {
+        data: copy(CROSS_ROW_CONTENT), manualRowMove: true, licenseKey: LICENSE_KEY,
+      });
 
       hot.getPlugin('manualRowMove').moveRows([3], 0);
       hot.updateSettings({ formulas: { engine: HyperFormula } });
+      buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
 
-      expect(hot.getData()).toEqual(reference.getData());
-      expect(hot.getData()).toEqual([['c', 3, 20], ['b', 2, 10], ['a', 1, 40], ['d', 4, 30]]);
-      expect(engineValues(hot)).toEqual(hot.getData());
-    });
-
-    it('moves a row from the top to the bottom before the enable with one engine move', () => {
-      const settings = { data: copy(CROSS_ROW_CONTENT), manualRowMove: true };
-      const engine = buildEngine();
-      const moveRows = jest.spyOn(engine, 'moveRows');
-      const setRowOrder = jest.spyOn(engine, 'setRowOrder');
-
-      buildReference(settings, grid => grid.getPlugin('manualRowMove').moveRows([0], 3));
-      hot = new Handsontable(container, { ...settings, data: copy(CROSS_ROW_CONTENT), licenseKey: LICENSE_KEY });
-
-      hot.getPlugin('manualRowMove').moveRows([0], 3);
-      hot.updateSettings({ formulas: { engine } });
-
-      expect(moveRows).toHaveBeenCalledTimes(1);
-      expect(setRowOrder).not.toHaveBeenCalled();
+      expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a', 'd']);
       expect(hot.getData()).toEqual(reference.getData());
       expect(engineValues(hot)).toEqual(hot.getData());
     });
 
-    it('sends a grid moved and then sorted before the enable as the moves and then the sort', () => {
-      const settings = { data: copy(CROSS_ROW_CONTENT), manualRowMove: true, columnSorting: true };
-      const act = (grid) => {
-        grid.getPlugin('manualRowMove').moveRows([3], 0);
-        grid.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-      };
+    it('sends the order of a grid moved and then sorted before the enable as a grid built in that order gets it', () => {
+      hot = new Handsontable(container, {
+        data: copy(CROSS_ROW_CONTENT),
+        manualRowMove: true,
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
 
-      buildReference(settings, act);
-      hot = new Handsontable(container, { ...settings, data: copy(CROSS_ROW_CONTENT), licenseKey: LICENSE_KEY });
-
-      act(hot);
+      hot.getPlugin('manualRowMove').moveRows([3], 0);
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
       hot.updateSettings({ formulas: { engine: HyperFormula } });
+      buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
 
+      expect(hot.getDataAtCol(0)).toEqual(['d', 'c', 'b', 'a']);
       expect(hot.getData()).toEqual(reference.getData());
       expect(engineValues(hot)).toEqual(hot.getData());
 
       hot.getPlugin('columnSorting').clearSort();
-      reference.getPlugin('columnSorting').clearSort();
 
-      expect(hot.getData()).toEqual(reference.getData());
+      expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a', 'd']);
       expect(engineValues(hot)).toEqual(hot.getData());
     });
 
-    it('does not throw when an array formula keeps a moved row from moving in the engine', () => {
+    it('does not throw when an array formula keeps the engine from taking the order of a grid moved before the enable', () => {
       hot = new Handsontable(container, {
         data: [[1, 2, '=TRANSPOSE(A1:B1)'], [3, 4, null], [5, 6, null]],
         manualRowMove: true,
@@ -308,25 +308,23 @@ describe('Formulas enabled on a live grid', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       expect(() => hot.updateSettings({ formulas: { engine: HyperFormula } })).not.toThrow();
-      // The engine refuses the move and the order sent after it, and the order warning names it.
+      // The engine refuses the order, and the order warning names it.
       expect(warnSpy.mock.calls.map(([message]) => message).join('\n'))
         .toMatch(/cannot reorder the rows an array formula spans/);
 
       warnSpy.mockRestore();
     });
 
-    it('sends the columns of a grid moved before the enable as moves', () => {
+    it('sends the column order of a grid moved before the enable as a grid built in that order gets it', () => {
       const data = [[1, '=A1+10', 100], [2, '=A2+10', 200]];
-      const settings = { data: copy(data), manualColumnMove: true };
 
-      buildReference(settings, grid => grid.getPlugin('manualColumnMove').moveColumns([2], 0));
-      hot = new Handsontable(container, { ...settings, data: copy(data), licenseKey: LICENSE_KEY });
+      hot = new Handsontable(container, { data: copy(data), manualColumnMove: true, licenseKey: LICENSE_KEY });
 
       hot.getPlugin('manualColumnMove').moveColumns([2], 0);
       hot.updateSettings({ formulas: { engine: HyperFormula } });
+      buildReferenceInOrderOf(data, hot);
 
       expect(hot.getData()).toEqual(reference.getData());
-      expect(hot.getData()).toEqual([[100, 1, 11], [200, 2, 12]]);
       expect(engineValues(hot)).toEqual(hot.getData());
     });
   });
@@ -385,50 +383,22 @@ describe('Formulas enabled on a live grid', () => {
     });
 
     it('brings the engine to the order a grid took while the plugin was off', () => {
-      const settings = { data: copy(CROSS_ROW_CONTENT), manualRowMove: true, columnSorting: true };
-      const act = (grid) => {
-        grid.getPlugin('manualRowMove').moveRows([3], 0);
-        grid.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-      };
-
-      buildReference(settings, act);
       hot = new Handsontable(container, {
-        ...settings,
         data: copy(CROSS_ROW_CONTENT),
+        manualRowMove: true,
+        columnSorting: true,
         formulas: { engine: HyperFormula },
         licenseKey: LICENSE_KEY,
       });
 
       hot.updateSettings({ formulas: false });
-      act(hot);
+      hot.getPlugin('manualRowMove').moveRows([3], 0);
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
       hot.updateSettings({ formulas: { engine: HyperFormula } });
+      buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
 
       expect(hot.getData()).toEqual(reference.getData());
       expect(engineValues(hot)).toEqual(hot.getData());
-    });
-  });
-
-  describe('on a full write of a live grid', () => {
-    it('keeps the references of a dragged grid through a settings update that rewrites the sheet', () => {
-      hot = new Handsontable(container, {
-        data: copy(CROSS_ROW_CONTENT),
-        manualRowMove: true,
-        formulas: { engine: HyperFormula },
-        licenseKey: LICENSE_KEY,
-      });
-
-      hot.getPlugin('manualRowMove').moveRows([3], 0);
-      hot.render();
-
-      const dragged = hot.getData();
-
-      // The update rewrites the sheet from the source data and sends the grid's order again. Sent as one order,
-      // the order turned the reference that crossed the moved row into `#REF!`.
-      hot.updateSettings({ colHeaders: true });
-
-      expect(dragged).toEqual([['c', 3, 20], ['b', 2, 10], ['a', 1, 40], ['d', 4, 30]]);
-      expect(hot.getData()).toEqual(dragged);
-      expect(engineValues(hot)).toEqual(dragged);
     });
   });
 

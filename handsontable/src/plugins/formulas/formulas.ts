@@ -1431,7 +1431,7 @@ export class Formulas extends BasePlugin {
     }
 
     if (filledSheet) {
-      this.#setupSyncEndpointInGridOrder();
+      this.#setupSyncEndpointForFilledSheet();
     }
 
     this.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
@@ -1678,7 +1678,7 @@ export class Formulas extends BasePlugin {
 
         if (typeof addedSheetName === 'string') {
           this.#updateSheetNameAndSheetId(addedSheetName);
-          this.#setupSyncEndpointInGridOrder();
+          this.#setupSyncEndpointForFilledSheet();
         }
 
         sheetPaintErrors = paintErrors;
@@ -2128,53 +2128,18 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Points the order syncers at the bound sheet right after it was filled from the grid's source data, which
-   * holds the rows in physical order. At construction (no view yet) the grid's order is sent as one order, as it
-   * always was (`__tests__/plugins/initialManualColumnMove.spec.js` pins that rewrite). On a live grid the grid
-   * can have been moved or sorted already, before the plugin was enabled or since the last full write, and the
-   * order is sent the way the grid reached it (`#setupSyncEndpointInGridOrder()`).
-   */
-  #setupSyncEndpointAfterFill(): void {
-    if (this.hot.view) {
-      this.#setupSyncEndpointInGridOrder();
-
-    } else {
-      this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-    }
-  }
-
-  /**
    * Points the order syncers at the bound sheet, which a live grid has just filled from its source data, and
-   * brings the sheet to the grid's order: the moves as moves, which keep every reference on its cell as a drag
-   * does, then the sort of the rows as one order, as the sort itself does (DEV-917). Every path that fills or
-   * binds a sheet on a live grid has to come through here or through `#loadSheet()`: an enable left without an
+   * sends the grid's current order to it as one order, as every other load does. Every path that fills or binds
+   * a sheet on a live grid has to come through here or through `#loadSheet()`: an enable left without an
    * endpoint sent no order to the engine at all, so a sort reordered the grid and left the formula results
    * where they were.
    */
-  #setupSyncEndpointInGridOrder(): void {
+  #setupSyncEndpointForFilledSheet(): void {
     if (this.engine === null || this.sheetId === null) {
       return;
     }
 
-    this.indexSyncer!.setupSyncEndpointInGridOrder(this.engine, this.sheetId, this.#readPresortRowOrder());
-  }
-
-  /**
-   * Returns the row order a sort of ColumnSorting or MultiColumnSorting started from while one is applied, or
-   * `null`. The grid's moves made that order; the sort made the rest.
-   *
-   * @returns {number[]|null}
-   */
-  #readPresortRowOrder(): number[] | null {
-    for (const pluginKey of ['multiColumnSorting', 'columnSorting'] as const) {
-      const sorting = this.hot.getPlugin(pluginKey);
-
-      if (sorting?.isSorted() && sorting.indexesSequenceCache !== null) {
-        return sorting.indexesSequenceCache.getValues();
-      }
-    }
-
-    return null;
+    this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId);
   }
 
   /**
@@ -4749,7 +4714,7 @@ export class Formulas extends BasePlugin {
       dependentCells = this.#writeOwnSheet(this.engine!, () => {
         const changes = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
-        this.#setupSyncEndpointAfterFill();
+        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
 
         return changes;
       });

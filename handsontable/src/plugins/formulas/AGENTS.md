@@ -343,8 +343,7 @@ engine is fed from `afterCellMetaReset`.
 carries a configured order on a later `loadData()`.** Init is untouched: those plugins apply their arrays in
 `enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
 `setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder` on both develop and this
-branch (construction only: a live grid's full write sends the moves as moves, see "Every path that binds or fills
-a sheet on a live grid") (measured with the engine methods spied; the reference rewrite that
+branch (measured with the engine methods spied; the reference rewrite that
 `__tests__/plugins/initialManualColumnMove.spec.js` pins at init is unchanged). On a `loadData()` after
 init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
 and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
@@ -1014,18 +1013,14 @@ pre-load order as well reordered the sheet twice (a plain `setupSyncEndpoint()` 
 1, 2 and 2 order calls where the tests pin 0, 1 and 1).
 Pinned by `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
 
-**Every path that binds or fills a sheet on a live grid sets the sync endpoint up, in the grid's order**
-(DEV-3760). The invariant: no order change reaches the axis syncers while they point at no engine sheet. The
-paths, and what each one does:
+**Every path that binds or fills a sheet on a live grid sets the sync endpoint up** (DEV-3760). The invariant: no
+order change reaches the axis syncers while they point at no engine sheet. The paths, and what each one does:
 
-- `#loadSheet()` (above), `#adoptEngineSheet()` (adopts a stored order) and `#clearRejectedSheet()` (an empty
-  sheet) set it up themselves.
-- `#writeSheet()` (a load, a resync, the re-enable of a shared engine that still holds the sheet, an undo
-  restore from the source) goes through `#setupSyncEndpointAfterFill()`: at construction (no `hot.view`) the
-  grid's order is sent as one order, as it always was (`__tests__/plugins/initialManualColumnMove.spec.js` pins
-  that rewrite); on a live grid through `#setupSyncEndpointInGridOrder()`.
+- `#loadSheet()` (above), `#adoptEngineSheet()` (adopts a stored order), `#clearRejectedSheet()` (an empty sheet)
+  and `#writeSheet()` (a load, a resync, the re-enable of a shared engine that still holds the sheet, an undo
+  restore from the source) set it up themselves.
 - The `enablePlugin()` branch that adds a sheet under the kept `sheetName` from the grid's data, and the
-  `updatePlugin()` branch that adds one when nothing is bound, call `#setupSyncEndpointInGridOrder()` (the
+  `updatePlugin()` branch that adds one when nothing is bound, call `#setupSyncEndpointForFilledSheet()` (the
   enable once its syncers exist). Before DEV-3760 neither set an endpoint: `updateSettings({ formulas })` on a
   live grid, a re-enable with an engine class, and `disablePlugin(); enablePlugin()` all left the syncers with no
   engine, so develop threw `Cannot read properties of null (reading 'getSheetDimensions')` on the first sort,
@@ -1037,21 +1032,11 @@ paths, and what each one does:
   enabled, its `afterLoadData` bound one, so the branch's `sheetName === null` keeps it out.
 - `#followEngineChange()` runs only while a load is pending, and that load fills and sets up the sheet.
 
-**A live grid's order is sent the way the grid reached it** (`IndexSyncer#setupSyncEndpointInGridOrder()`,
-`AxisSyncer#syncOrderAsReached()`). The sheet a live grid just filled holds its rows in physical order, and the
-grid can already be moved or sorted (before the plugin was enabled, while it was off, or since the last full
-write). The moves go as `moveRows` / `moveColumns`, which keep every reference on its cell as a drag does; the
-sort of the rows (the order ColumnSorting or MultiColumnSorting started from, `indexesSequenceCache`, while
-`isSorted()`) then goes as one `setRowOrder`, as a sort does (DEV-917). Sending the whole order as one order
-turned the reference that crossed a moved row into `#REF!`: a dragged data-built grid lost it on its next
-`updateSettings()`, since every settings update rewrites the sheet and set the endpoint up again (fixed by the
-same path). One move per line outside the longest increasing run (`planMovesToOrder()`), so a line moved from
-one end to the other costs one move; no move, no batch (an empty batch is an engine undo entry, which
-`pushes exactly one engine undo entry per settings update` counts); inside a suspended evaluation (an undo
-restore's batch) the moves are made without a batch of their own. A move the engine refuses (an array formula)
-ends the moves, and the order sent after them warns as any refused order does. **Known limits:** a grid moved
-after it was sorted is replayed as moves to the pre-sort order and then the sort, not in the order it happened;
-rows left sorted under emptied sort states (`setSortConfig([])`) are replayed as moves. Pinned by
+The setup sends the grid's current order as one order (`setRowOrder` / `setColumnOrder`), as every other load
+does, so a grid sorted or moved before the enable ends as a grid built with Formulas in that order: values are
+right for formulas that read their own row, and a cross-row reference can turn into `#REF!` after the reorder,
+the existing behavior ("Sorting does not remap formula addresses" below). How an order reaches the engine on a
+load is DEV-3972's subject; do not add a second mechanism here. Pinned by
 `__tests__/enableOnLiveGridSyncEndpoint.unit.js` and `tests/e2e/formulas-enable-on-live-grid.spec.ts`.
 
 **The null-engine guard in `AxisSyncer#syncOrderWithEngine` warns once and returns.** No known path reaches it
