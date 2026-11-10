@@ -447,6 +447,16 @@ export class MergeCells extends BasePlugin {
   #drawnFromBeforeMove: Set<number> | null = null;
 
   /**
+   * The physical cells the merges covered right before a row move, a column move or a column freeze while a row is
+   * trimmed, the cells the top-left included. The cells that no merge covers after the move still hold the
+   * `hidden` and `copyable` flags the merge stored on them, and {@link MergeCells#settleMergesAfterAxisMove}
+   * cleans them.
+   *
+   * @type {Set<number> | null}
+   */
+  #coveredBeforeMove: Set<number> | null = null;
+
+  /**
    * Whether the clipboard block of the paste currently being processed is a single cell. A single
    * pasted value carries no structure, so it leaves the merge it lands on intact and only writes
    * the merge's top-left cell; a multi-cell block cannot fit inside a merge, so the merge is
@@ -551,6 +561,7 @@ export class MergeCells extends BasePlugin {
     this.#foreignRowsBeforeCacheUpdate = null;
     this.#drawnFromBeforeCacheUpdate = null;
     this.#drawnFromBeforeMove = null;
+    this.#coveredBeforeMove = null;
     this.clearCollections();
     this.#appliedMergeKeys.clear();
     this.#appliedAreas.clear();
@@ -576,6 +587,7 @@ export class MergeCells extends BasePlugin {
     this.#foreignRowsBeforeCacheUpdate = null;
     this.#drawnFromBeforeCacheUpdate = null;
     this.#drawnFromBeforeMove = null;
+    this.#coveredBeforeMove = null;
     this.#resetPasteState();
     super.destroy();
   }
@@ -3071,14 +3083,20 @@ export class MergeCells extends BasePlugin {
     axis: 'column' | 'row'
   ) {
     const drawnFromBeforeMove = this.#drawnFromBeforeMove;
+    const coveredBeforeMove = this.#coveredBeforeMove;
 
     this.#drawnFromBeforeMove = null;
+    this.#coveredBeforeMove = null;
 
     if (this.#isRowTrimmingActive()) {
       this.#reanchorMergesToVisibleRows();
 
       if (drawnFromBeforeMove) {
         this.#clearSpanKeysOfCellsNoLongerDrawnFrom(drawnFromBeforeMove);
+      }
+
+      if (coveredBeforeMove) {
+        this.#clearCoveredFlagsOfCellsNoLongerCovered(coveredBeforeMove);
       }
 
       return;
@@ -3269,6 +3287,60 @@ export class MergeCells extends BasePlugin {
     });
 
     return cells;
+  }
+
+  /**
+   * Collects the physical cells the merges cover now, the top-left cells included. A merge covers the
+   * physical rows of its anchor, trimmed ones too, in the physical columns under its visual columns.
+   *
+   * @returns {Set<number>} The cells, packed like {@link MergeCells#snapshotDrawnFromCells}.
+   */
+  #snapshotCoveredCells(): Set<number> {
+    const cells = new Set<number>();
+
+    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+      const anchor = this.#mergeAnchors.get(merge);
+
+      if (!anchor || this.#purgedMerges.has(merge)) {
+        return;
+      }
+
+      rangeEach(merge.col, merge.col + merge.colspan - 1, (visualColumn) => {
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+        if (physicalColumn !== null) {
+          anchor.physicalRows.forEach((physicalRow) => {
+            cells.add((physicalRow * DRAWN_CELL_COLUMN_STRIDE) + physicalColumn);
+          });
+        }
+      });
+    });
+
+    return cells;
+  }
+
+  /**
+   * Removes `hidden` and `copyable` from the cells the merges covered before a move and do not cover now. The
+   * untrimmed path walks the footprint the move released (`#cleanReleasedCells`); while a row is trimmed that
+   * footprint cannot be rebuilt from the visual coordinates, so the cells covered before and after are compared.
+   *
+   * @param {Set<number>} before The cells the merges covered before the move.
+   */
+  #clearCoveredFlagsOfCellsNoLongerCovered(before: Set<number>) {
+    if (before.size === 0) {
+      return;
+    }
+
+    const after = this.#snapshotCoveredCells();
+
+    before.forEach((key) => {
+      if (!after.has(key)) {
+        this.#clearCoveredFlagsOfTopLeftCell(
+          Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE),
+          key % DRAWN_CELL_COLUMN_STRIDE
+        );
+      }
+    });
   }
 
   /**
@@ -3785,6 +3857,7 @@ export class MergeCells extends BasePlugin {
     if (!movePossible || !this.#initialized) {
       this.#columnMoveSnapshot = null;
       this.#drawnFromBeforeMove = null;
+      this.#coveredBeforeMove = null;
 
       return;
     }
@@ -3799,7 +3872,10 @@ export class MergeCells extends BasePlugin {
    * cleans the cells the move released from the move snapshot, and the walk is not made.
    */
   #captureDrawnFromBeforeMove() {
-    this.#drawnFromBeforeMove = this.#isRowTrimmingActive() ? this.#snapshotDrawnFromCells() : null;
+    const isTrimmed = this.#isRowTrimmingActive();
+
+    this.#drawnFromBeforeMove = isTrimmed ? this.#snapshotDrawnFromCells() : null;
+    this.#coveredBeforeMove = isTrimmed ? this.#snapshotCoveredCells() : null;
   }
 
   /**
@@ -3822,6 +3898,7 @@ export class MergeCells extends BasePlugin {
 
     if (!orderChanged || !snapshot) {
       this.#drawnFromBeforeMove = null;
+      this.#coveredBeforeMove = null;
 
       return;
     }
@@ -3850,6 +3927,7 @@ export class MergeCells extends BasePlugin {
     if (!movePossible || !this.#initialized) {
       this.#rowMoveSnapshot = null;
       this.#drawnFromBeforeMove = null;
+      this.#coveredBeforeMove = null;
 
       return;
     }
@@ -3888,6 +3966,7 @@ export class MergeCells extends BasePlugin {
 
     if (!orderChanged || !snapshot) {
       this.#drawnFromBeforeMove = null;
+      this.#coveredBeforeMove = null;
 
       return;
     }
@@ -3922,6 +4001,7 @@ export class MergeCells extends BasePlugin {
     if (!performed || !this.#initialized) {
       this.#columnMoveSnapshot = null;
       this.#drawnFromBeforeMove = null;
+      this.#coveredBeforeMove = null;
 
       return;
     }
@@ -3943,6 +4023,7 @@ export class MergeCells extends BasePlugin {
 
     if (!performed || !snapshot) {
       this.#drawnFromBeforeMove = null;
+      this.#coveredBeforeMove = null;
 
       return;
     }

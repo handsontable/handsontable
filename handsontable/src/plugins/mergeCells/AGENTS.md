@@ -294,7 +294,11 @@ hooks). Six rules keep it narrow:
   from the move snapshot (the moved axis) and the merge's own span on the other axis, which a move does not
   change, and cleans the cells the lookup matrix no longer holds a merge for. A merge replaced by one block of
   the same size is skipped: it covers the same cells and its top-left is handled by the pass above. It runs only
-  while no row is trimmed.
+  while no row is trimmed. While a row is trimmed the footprint cannot be rebuilt from the visual coordinates,
+  so `#settleMergesAfterAxisMove` compares the cells every merge covers before and after the move
+  (`#coveredBeforeMove`, `#snapshotCoveredCells()`: the anchor's physical rows, trimmed ones too, in the
+  physical columns under the merge's visual columns) and removes `hidden` and `copyable` from the cells that
+  no merge covers any more (`#clearCoveredFlagsOfCellsNoLongerCovered()`). Undo and redo do not run it.
 - **The cell a merge is no longer drawn from loses its span keys.** `afterGetCellMeta` stores `spanned`,
   `rowspan` and `colspan` on whichever cell is the top-left, and nothing took them off when a move or a freeze
   made another cell the top-left, so `getCellMeta()` reported a span nothing backs (DEV-3990). The same pass

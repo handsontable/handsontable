@@ -851,6 +851,89 @@ describe('MergeCells re-anchored top-left cell meta', () => {
       });
     });
 
+    describe('when a move takes a cell out of every merge while a row is trimmed', () => {
+      const TEXT = 'released';
+
+      function expectNoCoveredFlags(physicalRow, physicalColumn) {
+        expect(hasStoredFlag(physicalRow, physicalColumn, 'hidden')).toBe(false);
+        expect(hasStoredFlag(physicalRow, physicalColumn, 'copyable')).toBe(false);
+      }
+
+      it('should clear the covered flags from a cell a row move takes out of a merge', () => {
+        createGrid({
+          trimRows: true,
+          manualRowMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+        });
+
+        trimRowEight();
+
+        expect(hasStoredFlag(2, 4, 'hidden')).toBe(true);
+
+        hot.getPlugin('manualRowMove').moveRow(2, 7);
+
+        const visualRow = hot.toVisualRow(2);
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.get(visualRow, 4)).toBe(false);
+        expectNoCoveredFlags(2, 4);
+
+        hot.setSourceDataAtCell(2, 4, TEXT);
+
+        expect(hot.getCopyableText(visualRow, 4, visualRow, 4)).toBe(TEXT);
+      });
+
+      it('should clear the covered flags from a cell a column move takes out of a merge', () => {
+        createGrid({
+          trimRows: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        trimRowEight();
+
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+
+        hot.getPlugin('manualColumnMove').moveColumn(5, 8);
+
+        const visualColumn = hot.toVisualColumn(5);
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.get(1, visualColumn)).toBe(false);
+        expectNoCoveredFlags(1, 5);
+      });
+
+      it('should clear the covered flags from a cell a column freeze takes out of a merge', () => {
+        createGrid({
+          trimRows: true,
+          manualColumnFreeze: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        hot.getCellMeta(1, 6);
+        trimRowEight();
+
+        expect(hasStoredFlag(1, 6, 'hidden')).toBe(true);
+
+        hot.getPlugin('manualColumnFreeze').freezeColumn(6);
+
+        expect(hot.toPhysicalColumn(0)).toBe(6);
+        expectNoCoveredFlags(1, 6);
+      });
+
+      it('should keep the covered flags on the cells the merge still covers', () => {
+        createGrid({
+          trimRows: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        trimRowEight();
+        hot.getPlugin('manualColumnMove').moveColumn(0, 1);
+
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+        expect(hasStoredFlag(1, 5, 'copyable')).toBe(true);
+      });
+    });
+
     describe('when a move is undone or redone', () => {
       it('should clear the span keys from the former top-left after the undo and the redo of `moveColumn()`', () => {
         createGrid({ undo: true, manualColumnMove: true });
