@@ -172,9 +172,38 @@ export class FormulasMoveCellsPage {
     }, [rows, dropIndex] as [number[], number]);
   }
 
-  /** Resend the settings through `updateSettings({})`, as a React or Vue re-render does. */
+  /**
+   * Resend the settings through `updateSettings({})`, as a React or Vue re-render does.
+   */
   async rerender(): Promise<void> {
     await this.page.evaluate(() => window.hot.updateSettings({}));
+  }
+
+  /**
+   * Build a second grid on the grid's own engine, on a sheet of its own, whose one cell reads the given
+   * cell of the grid's sheet (for example `A1`). It is kept in `window.readerHot` and destroyed with the
+   * page.
+   */
+  async addReaderGrid(cellAddress: string): Promise<void> {
+    await this.page.evaluate((address) => {
+      const win = window as any;
+      const plugin = win.hot.getPlugin('formulas');
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+      win.readerHot = new win.Handsontable(container, {
+        data: [[`='${plugin.sheetName}'!${address}`]],
+        formulas: { engine: plugin.engine, sheetName: 'Reader' },
+        licenseKey: window.htTestLicenseKey,
+      });
+    }, cellAddress);
+  }
+
+  /**
+   * The value the second grid's cell shows (`getDataAtCell`).
+   */
+  async readerValue(): Promise<CellValue> {
+    return this.page.evaluate(() => (window as any).readerHot.getDataAtCell(0, 0));
   }
 
   /** Veto the next move through the public beforeMoveCells hook. */

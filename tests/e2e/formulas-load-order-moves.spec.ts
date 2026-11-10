@@ -52,4 +52,21 @@ test.describe('Formulas: an order reached by moves keeps formula references', { 
     await grid.expectCell(1, 0, '5');
     await expectEveryRowReadsItsRecord();
   });
+
+  test('keeps what a second grid reads from the sheet when the grid re-renders after a drag', async() => {
+    await grid.initGrid(CROSS_ROW_DATA, { manualRowMove: true });
+    await grid.addReaderGrid('A1');
+
+    expect(await grid.readerValue()).toBe(1);
+
+    // The first row goes to the end; the engine keeps the reference on its record.
+    expect(await grid.dragRows([0], 5)).toBe(true);
+    expect(await grid.readerValue()).toBe(1);
+
+    await grid.rerender();
+    await grid.rerender();
+
+    expect(await grid.readerValue()).toBe(1);
+    await expectEveryRowReadsItsRecord();
+  });
 });
