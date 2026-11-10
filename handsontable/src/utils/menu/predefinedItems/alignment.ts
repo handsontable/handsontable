@@ -1,6 +1,7 @@
 import {
   align,
   getAlignmentClasses,
+  getAlignmentClassNames,
 } from '../utils';
 import { KEY as SEPARATOR } from './separator';
 import * as C from '../../../i18n/constants';
@@ -35,11 +36,16 @@ function getUserClassNameDescriptor(hot: HotInstance, row: number, col: number) 
 function applyAlignment(hot: HotInstance, type: string, alignment: string) {
   hot.runOperation('cell_alignment', () => {
     const selectedRange = hot.getSelectedRange() ?? [];
+    // The snapshot holds the alignment class names only. A custom class is not part of the alignment state.
     const stateBefore = getAlignmentClasses(selectedRange,
-      (row: number, col: number) => getUserClassNameDescriptor(hot, row, col).className as string);
+      (row: number, col: number) => getAlignmentClassNames(
+        getUserClassNameDescriptor(hot, row, col).className as string | string[] | undefined));
 
-    // The undo step holds plain copies: the ranges are the selection's own and change with it.
-    hot._getOperationScope().describe({ stateBefore, range: deepClone(selectedRange), type, alignment });
+    // The undo step holds plain copies: the ranges are the selection's own and change with it, and a hook
+    // listener may edit the `stateBefore` it receives.
+    hot._getOperationScope().describe({
+      stateBefore: deepClone(stateBefore), range: deepClone(selectedRange), type, alignment,
+    });
     hot.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
     align(selectedRange, type, alignment, (row: number, col: number) => getUserClassNameDescriptor(hot, row, col),
       (row: number, col: number, key: string, value: string) => hot.setCellMeta(row, col, key, value));
