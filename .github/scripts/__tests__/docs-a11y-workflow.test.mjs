@@ -39,7 +39,7 @@ test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by a d
   assert.deepEqual([...paths.matchAll(/- '([^']+)'/g)].map(([, file]) => file),
     ['.github/workflows/docs-a11y.yml', 'tests/a11y/docs/**', 'tests/a11y/axe-scan.ts', 'tests/playwright.a11y-docs.config.ts',
       'tests/reporters/a11y.ts', 'tests/lib/a11y-baseline.*', 'tests/lib/a11y-findings.*', 'tests/lib/a11y-report.*',
-      'tests/lib/a11y-suites.*', 'docs/tests/paths.js'],
+      'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/scripts/a11y-check-run.mjs', 'docs/tests/paths.js'],
     `${DOCS}: a pull request runs the scan only when it changes the scan's own code; a full scan is too long for every docs pull request. ${DOC}`);
   // Every module the spec and its reporter import is in the list, so a change to the scan's code runs the scan.
   const spec = read('tests/a11y/docs/docs-axe.spec.ts') + read('tests/reporters/a11y.ts') + read('tests/lib/a11y-suites.mjs');

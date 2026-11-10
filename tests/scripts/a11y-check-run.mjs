@@ -24,7 +24,7 @@
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DOCS_SCAN, PRODUCT_SCAN, baselineLines, buildCheckRun, pageLines } from '../lib/a11y-check-run.mjs';
+import { DOCS_SCAN, PRODUCT_SCAN, baselineLines, buildCheckRun, docsPageLines, pageLines } from '../lib/a11y-check-run.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
@@ -46,9 +46,15 @@ const runUrl = env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_
   : undefined;
 const { scope, tracked, externalId, notes } = verdictInputs({ env, testsRoot: TESTS_ROOT });
 const comparison = existsSync(COMPARISON) ? JSON.parse(readFileSync(COMPARISON, 'utf8')) : null;
+const pagesSource = readFileSync(fromTests(scan.pagesFile), 'utf8');
+// The docs guide pages have no entry of their own (`guidePages()` builds them), so they are annotated on the function
+// that does. The page list is loaded for the docs only: it reads the docs visual list and every guide's source.
+const pages = scan === DOCS_SCAN
+  ? docsPageLines(pagesSource, (await import('../a11y/docs/pages.mjs')).DOCS_PAGES.map(page => page.id))
+  : pageLines(pagesSource);
 const payload = buildCheckRun({
   comparison: comparison && { ...comparison, notes: [...(comparison.notes ?? []), ...notes] },
-  pages: pageLines(readFileSync(fromTests(scan.pagesFile), 'utf8')),
+  pages,
   baseline: baselineLines(readFileSync(fromTests(scan.baselineFile), 'utf8')),
   reportUrl: env.A11Y_REPORT_URL || undefined,
   runUrl,

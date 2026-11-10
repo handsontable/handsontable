@@ -30,11 +30,11 @@ const PAGES_FILE = 'tests/a11y/pages.mjs';
  * `tests/a11y/issues.json`.
  */
 export const PRODUCT_SCAN = Object.freeze({
-  name: CHECK_RUN_NAME, job: 'axe job', comparison: 'test-results/a11y/comparison.json', pagesFile: PAGES_FILE,
+  name: CHECK_RUN_NAME, title: 'A11y / axe', job: 'axe job', comparison: 'test-results/a11y/comparison.json', pagesFile: PAGES_FILE,
   baselineFile: `tests/${BASELINE_FILE}`, source: 'axe', check: 'axe',
 });
 export const DOCS_SCAN = Object.freeze({
-  name: 'A11y / docs-axe report', job: 'docs axe job', comparison: 'test-results/a11y-docs/comparison.json',
+  name: 'A11y / docs-axe report', title: 'A11y / docs axe', job: 'docs axe job', comparison: 'test-results/a11y-docs/comparison.json',
   pagesFile: 'tests/a11y/docs/pages.mjs', baselineFile: 'tests/a11y/docs/docs-baseline.json', source: 'docs', check: 'docs-axe',
 });
 
@@ -54,6 +54,28 @@ export function pageLines(source) {
       lines.set(match[1], index + 1);
     }
   });
+
+  return lines;
+}
+
+/**
+ * The line of each docs page in `tests/a11y/docs/pages.mjs`, by page id. An entry of `EXTRA_PAGES` sits on its
+ * own line, as a product page does; a guide page has no entry, because `guidePages()` builds it from the docs
+ * visual list, so it sits on the line that declares that function.
+ *
+ * @param {string} source The file's text.
+ * @param {string[]} ids Every page id (`DOCS_PAGES`).
+ * @returns {Map<string, number>} The 1-based lines.
+ */
+export function docsPageLines(source, ids) {
+  const lines = pageLines(source);
+  const generator = source.split('\n').findIndex(line => /^export function guidePages\(/.test(line)) + 1;
+
+  if (generator > 0) {
+    for (const id of ids.filter(page => !lines.has(page))) {
+      lines.set(id, generator);
+    }
+  }
 
   return lines;
 }
@@ -130,7 +152,7 @@ export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, 
     omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more are in the job summary and the HTML report.` : '',
     ...notes.map(note => `> ${note}`),
   ].filter(Boolean).join('\n\n');
-  let summary = `${lead}\n\n${renderSummary(comparison, { reportUrl })}`;
+  let summary = `${lead}\n\n${renderSummary(comparison, { reportUrl, title: scan.title })}`;
 
   if (summary.length > SUMMARY_LIMIT) {
     summary = `${summary.slice(0, SUMMARY_LIMIT)}\n\n… cut at ${SUMMARY_LIMIT} characters; the HTML report and the job summary hold the rest.`;

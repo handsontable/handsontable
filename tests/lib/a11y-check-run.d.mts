@@ -19,9 +19,11 @@ export interface CheckRunPayload {
 }
 
 export function pageLines(source: string): Map<string, number>;
+export function docsPageLines(source: string, ids: string[]): Map<string, number>;
 export function baselineLines(source: string): Map<string, number>;
 export interface ScanReport {
   name: string;
+  title: string;
   job: string;
   comparison: string;
   pagesFile: string;

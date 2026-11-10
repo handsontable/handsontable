@@ -295,6 +295,25 @@ test('catalogFinding reads a check run\'s finding the way the ledger does, so a 
   });
 });
 
+test('catalogFinding reads a docs scan finding as the ledger does: the axe shape under the docs source and check', () => {
+  const item = { page: 'js-introduction', theme: 'dark', rule: 'aria-required-children', target: 'div.ht-wrapper[role="treegrid"]',
+    wcag: ['1.3.1'], suggestedIssue: 'example-grid-roles' };
+
+  assert.deepEqual(catalogFinding('docs', DOCS_SCAN_CHECK, item), {
+    source: 'docs', check: DOCS_SCAN_CHECK, kind: AXE_SCAN_KIND, rule: 'aria-required-children', cause: null, criteria: ['1.3.1'],
+    page: 'js-introduction', theme: 'dark', where: 'div.ht-wrapper[role="treegrid"]', issue: 'example-grid-roles',
+  });
+
+  const catalog = compileIssuesCatalog(catalogOf(
+    ['product-grid', [{ source: 'axe', rules: ['aria-required-children'] }], { tracker: 'TASK-1' }],
+    ['docs-grid', [{ source: 'docs', axeIssues: ['example-grid-roles'] }]],
+  ));
+
+  assert.equal(clusterOf(catalogFinding('docs', DOCS_SCAN_CHECK, item), catalog).id, 'docs-grid');
+  assert.equal(trackedBy(catalog)('docs', DOCS_SCAN_CHECK, item), false, 'a docs finding never borrows a product cluster\'s tracker');
+  assert.equal(trackedBy(catalog)('axe', AXE_SCAN_CHECK, item), true, 'the same item read as the product scan\'s would');
+});
+
 test('trackedBy says whether a finding\'s cluster has a tracker, and tracks nothing without a catalog', () => {
   const catalog = compileIssuesCatalog(catalogOf(
     ['one', [{ source: 'checks', kinds: ['focus-not-returned'] }], { tracker: 'TASK-1' }],
