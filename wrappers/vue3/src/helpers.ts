@@ -184,9 +184,120 @@ export function getPassedHookKeys(props: HotTableProps): string[] {
 }
 
 /**
- * What the wrapper last knew about a setting: the prop value it synced and the value the grid held right after.
+ * What the wrapper last knew about a setting: the prop value it synced, a copy of its content, and the value the
+ * grid held right after. The copy is needed because core edits an array it was given in place (`alter()` splices
+ * `colHeaders`), so the prop itself no longer shows what was synced.
  */
-export type SettingBaseline = { prop: unknown, live: unknown };
+export type SettingBaseline = { prop: unknown, copy: unknown, live: unknown };
+
+/**
+ * Check if a value is a plain object, one made by an object literal or with no prototype. A class instance is not.
+ *
+ * @param {unknown} value The value to check.
+ * @returns {boolean}
+ */
+function isLiteralObject(value: unknown): value is Record<string, unknown> {
+  if (Object.prototype.toString.call(value) !== '[object Object]') {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+}
+
+/**
+ * Copy the plain objects and arrays of a settings value, and keep every other value (functions, class instances)
+ * by reference. The copy is what the next change is compared with, so a value the app edits in place reads as
+ * changed. Reactive proxies are unwrapped, and a value with a cycle is copied with the same cycle.
+ *
+ * @param {unknown} value The value to copy.
+ * @param {WeakMap<object, unknown>} [copies] The copies made so far, by original.
+ * @returns {unknown} The copy.
+ */
+function copySettingsValue(value: unknown, copies: WeakMap<object, unknown> = new WeakMap()): unknown {
+  const raw = toRaw(value);
+
+  if (!Array.isArray(raw) && !isLiteralObject(raw)) {
+    return raw;
+  }
+
+  if (copies.has(raw)) {
+    return copies.get(raw);
+  }
+
+  if (Array.isArray(raw)) {
+    const arrayCopy: unknown[] = [];
+
+    copies.set(raw, arrayCopy);
+    raw.forEach((item) => {
+      arrayCopy.push(copySettingsValue(item, copies));
+    });
+
+    return arrayCopy;
+  }
+
+  const objectCopy: Record<string, unknown> = {};
+
+  copies.set(raw, objectCopy);
+  Object.keys(raw).forEach((key) => {
+    objectCopy[key] = copySettingsValue(raw[key], copies);
+  });
+
+  return objectCopy;
+}
+
+/**
+ * Compare a copy made by `copySettingsValue()` with a value: plain objects and arrays by content, a `RegExp` by
+ * its source and flags, anything else by reference. A pair already being compared higher up reads as equal,
+ * so a value with a cycle ends.
+ *
+ * @param {unknown} copied The copy.
+ * @param {unknown} value The value to compare it with.
+ * @param {WeakMap<object, WeakSet<object>>} [visited] The object pairs on the current comparison path.
+ * @returns {boolean} `true` if they hold the same content.
+ */
+function isSameAsCopy(
+  copied: unknown,
+  value: unknown,
+  visited: WeakMap<object, WeakSet<object>> = new WeakMap()
+): boolean {
+  const raw = toRaw(value);
+
+  if (copied === raw) {
+    return true;
+  }
+
+  if (copied instanceof RegExp || raw instanceof RegExp) {
+    return copied instanceof RegExp && raw instanceof RegExp &&
+      copied.source === raw.source && copied.flags === raw.flags;
+  }
+
+  const bothArrays = Array.isArray(copied) && Array.isArray(raw);
+
+  if (!bothArrays && !(isLiteralObject(copied) && isLiteralObject(raw))) {
+    return false;
+  }
+
+  const copiedObject = copied as Record<string, unknown>;
+  const rawObject = raw as Record<string, unknown>;
+  const comparedWith = visited.get(copiedObject);
+
+  if (comparedWith?.has(rawObject)) {
+    return true;
+  }
+
+  if (comparedWith) {
+    comparedWith.add(rawObject);
+  } else {
+    visited.set(copiedObject, new WeakSet([rawObject]));
+  }
+
+  const keys = Object.keys(copiedObject);
+
+  return keys.length === Object.keys(rawObject).length &&
+    keys.every(key => hasOwnProperty(rawObject, key) && isSameAsCopy(copiedObject[key], rawObject[key], visited));
+}
 
 /**
  * The settings by name, as `SettingBaseline`s. `HotTable` keeps one per instance.
@@ -198,7 +309,7 @@ export type SettingBaselines = Record<string, SettingBaseline>;
  * because the user can change them by dragging and the prop re-declares them (the React wrapper does the
  * same). `data` has its own path in `HotTable`, and a baseline would keep the previous array alive.
  */
-const BASELINE_EXEMPT_KEYS = ['data', 'colWidths', 'rowHeights', 'minRowHeights'];
+const BASELINE_EXEMPT_KEYS = ['data', 'colWidths', 'rowHeights', 'minRowHeights', 'themeName'];
 
 /**
  * Check if the app replaced the value of a setting through the instance (`hot.updateSettings()`) since the
@@ -220,7 +331,8 @@ function isOverriddenByApp(
   const baseline = baselines?.[key];
 
   return !!currentSettings && !!baseline && !BASELINE_EXEMPT_KEYS.includes(key) &&
-    isSameReference(baseline.prop, propValue) && !Object.is(currentSettings[key], baseline.live);
+    (isSameReference(baseline.prop, propValue) || isSameAsCopy(baseline.copy, propValue)) &&
+    !Object.is(currentSettings[key], baseline.live);
 }
 
 /**
@@ -249,7 +361,11 @@ export function recordSettingBaselines(
 
   Object.keys(passedProps).forEach((key) => {
     if (!overriddenKeys.includes(key) && !BASELINE_EXEMPT_KEYS.includes(key)) {
-      baselines[key] = { prop: toRaw(passedProps[key]), live: currentSettings[key] };
+      baselines[key] = {
+        prop: toRaw(passedProps[key]),
+        copy: copySettingsValue(passedProps[key]),
+        live: currentSettings[key],
+      };
     }
   });
 }

@@ -154,12 +154,14 @@ const HotTable = defineComponent({
       newSettings.columns = this.columnSettings ? this.columnSettings : newSettings.columns;
 
       this.hotInstance = markRaw<Handsontable>(new Handsontable.Core(this.$el, newSettings));
+
+      // Recorded before `init()`, so a value the app sets in `afterInit` counts as an override of the prop.
+      recordSettingBaselines(this.miscCache.baselines, this.$props, this.hotInstance.getSettings());
+
       this.hotInstance.init();
 
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       this.miscCache.hookKeys = getPassedHookKeys(this.$props);
-
-      recordSettingBaselines(this.miscCache.baselines, this.$props, this.hotInstance.getSettings());
     },
 
     matchHotMappersSize(): void {

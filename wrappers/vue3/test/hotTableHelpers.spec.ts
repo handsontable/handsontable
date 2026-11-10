@@ -263,6 +263,55 @@ describe('prepareSettings', () => {
       expect(overriddenKeys).toEqual(['colHeaders']);
     });
 
+    it('should leave out a new array with the content the wrapper synced', () => {
+      const baselines: SettingBaselines = {};
+
+      recordSettingBaselines(baselines, { colHeaders: syncedHeaders } as GridSettings, { colHeaders: syncedHeaders });
+
+      const preparedSettings = prepareSettings(
+        { colHeaders: ['A', 'B'] } as GridSettings,
+        { colHeaders: ['X', 'Y'] } as GridSettings,
+        [],
+        baselines
+      );
+
+      expect(preparedSettings.colHeaders).toBe(undefined);
+    });
+
+    it('should leave out a prop the grid edited in place, as `alter()` does, when the app replaced it', () => {
+      const baselines: SettingBaselines = {};
+      const headers = ['A', 'B'];
+
+      recordSettingBaselines(baselines, { colHeaders: headers } as GridSettings, { colHeaders: headers });
+
+      headers.splice(2, 0, undefined as unknown as string);
+
+      const preparedSettings = prepareSettings(
+        { colHeaders: headers } as GridSettings,
+        { colHeaders: ['A', 'B', 'Test'] } as GridSettings,
+        [],
+        baselines
+      );
+
+      expect(preparedSettings.colHeaders).toBe(undefined);
+    });
+
+    it('should send a new array whose content differs from what the wrapper synced', () => {
+      const baselines: SettingBaselines = {};
+
+      recordSettingBaselines(baselines, { colHeaders: syncedHeaders } as GridSettings, { colHeaders: syncedHeaders });
+
+      const newHeaders = ['A', 'C'];
+      const preparedSettings = prepareSettings(
+        { colHeaders: newHeaders } as GridSettings,
+        { colHeaders: ['X', 'Y'] } as GridSettings,
+        [],
+        baselines
+      );
+
+      expect(preparedSettings.colHeaders).toBe(newHeaders);
+    });
+
     it('should send a prop whose value changed since the wrapper synced it', () => {
       const baselines: SettingBaselines = {};
 
@@ -304,8 +353,8 @@ describe('prepareSettings', () => {
       recordSettingBaselines(baselines, props, { colHeaders: syncedHeaders, rowHeaders: true });
       recordSettingBaselines(baselines, props, { colHeaders: ['X', 'Y'], rowHeaders: false }, ['colHeaders']);
 
-      expect(baselines.colHeaders).toEqual({ prop: syncedHeaders, live: syncedHeaders });
-      expect(baselines.rowHeaders).toEqual({ prop: true, live: false });
+      expect(baselines.colHeaders).toEqual({ prop: syncedHeaders, copy: ['A', 'B'], live: syncedHeaders });
+      expect(baselines.rowHeaders).toEqual({ prop: true, copy: true, live: false });
     });
 
     it('should drop the baseline of a prop that is no longer passed', () => {
@@ -328,7 +377,7 @@ describe('prepareSettings', () => {
         expect(baselines[key]).toBe(undefined);
 
         // A baseline written by hand shows the rule itself skips these keys, not only the recording.
-        baselines[key] = { prop: value, live: value };
+        baselines[key] = { prop: value, copy: [...value], live: value };
 
         const preparedSettings = prepareSettings(
           { [key]: value } as GridSettings,

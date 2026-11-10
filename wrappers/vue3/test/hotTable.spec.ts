@@ -871,6 +871,101 @@ describe('Settings the app changes through the instance', () => {
     testWrapper.unmount();
   });
 
+  it('should not send an in-place edit of a prop array made after the app overrode it (known limit)', async() => {
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :licenseKey="testLicenseKey"
+        :data="gridData"
+        :colHeaders="headers"
+      ></HotTable>`, { headers: ['A', 'B'] });
+
+    hotInstance.updateSettings({ colHeaders: ['X', 'Y'] });
+    testWrapper.vm.gridData[0][0] = 'changed';
+    await nextTick();
+
+    expect(hotInstance.getColHeader()).toEqual(['X', 'Y']);
+
+    testWrapper.vm.headers.push('C');
+    await nextTick();
+
+    expect(hotInstance.getSettings().colHeaders).toEqual(['X', 'Y']);
+
+    // A new array is a new value, so the prop wins again.
+    testWrapper.vm.headers = ['A', 'B', 'C'];
+    await nextTick();
+
+    expect(hotInstance.getSettings().colHeaders).toEqual(['A', 'B', 'C']);
+
+    testWrapper.unmount();
+  });
+
+  it('should not send an in-place edit of a value inside the `settings` prop made after the app overrode it (known limit)', async() => {
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :data="gridData"
+        :settings="settings"
+      ></HotTable>`, { settings: { licenseKey: TEST_LICENSE_KEY, columns: [{ data: 0 }, { data: 1 }] } });
+
+    hotInstance.updateSettings({ columns: [{ data: 0, readOnly: false }, { data: 1, readOnly: false }] });
+    testWrapper.vm.gridData[0][0] = 'changed';
+    await nextTick();
+
+    expect(hotInstance.getCellMeta(0, 0).readOnly).toBe(false);
+
+    testWrapper.vm.settings.columns[0].readOnly = true;
+    await nextTick();
+
+    expect(hotInstance.getCellMeta(0, 0).readOnly).toBe(false);
+
+    testWrapper.unmount();
+  });
+
+  it('should keep the override when the parent passes an equal inline array on every render', async() => {
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :licenseKey="testLicenseKey"
+        :data="gridData"
+        :colHeaders="['A', 'B']"
+        :rowHeaders="rowHeaders"
+      ></HotTable>`, { rowHeaders: false });
+
+    hotInstance.updateSettings({ colHeaders: ['X', 'Y'] });
+    testWrapper.vm.rowHeaders = true;
+    await nextTick();
+
+    expect(hotInstance.getSettings().rowHeaders).toBe(true);
+    expect(hotInstance.getColHeader()).toEqual(['X', 'Y']);
+
+    testWrapper.unmount();
+  });
+
+  it('should keep a value the app set in `afterInit` over a prop that did not change', async() => {
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :licenseKey="testLicenseKey"
+        :data="gridData"
+        :colHeaders="headers"
+        :rowHeaders="rowHeaders"
+        :afterInit="afterInit"
+      ></HotTable>`, {
+      headers: ['A', 'B'],
+      rowHeaders: false,
+      afterInit() {
+        this.updateSettings({ colHeaders: ['X', 'Y'] });
+      },
+    });
+
+    expect(hotInstance.getColHeader()).toEqual(['X', 'Y']);
+
+    testWrapper.vm.rowHeaders = true;
+    await nextTick();
+
+    expect(hotInstance.getSettings().rowHeaders).toBe(true);
+    expect(hotInstance.getColHeader()).toEqual(['X', 'Y']);
+
+    testWrapper.unmount();
+  });
+
   it('should still re-apply the `colWidths` prop after the app changed the widths through the instance', async() => {
     const { testWrapper, hotInstance } = mountApp(`
       <HotTable
