@@ -72,7 +72,11 @@ const HotTable = defineComponent({
 
         // A new array replaces the grid's data: `updateSettings()` runs core's `updateData()`, which
         // resets the index mappers and keeps sorting, filters and hidden rows.
-        if (settings.data && !isNewData) {
+        if (hasData && !isNewData && incomingData === null) {
+          // The prop was already cleared: sending `null` again would reset the grid on every later change.
+          delete settings.data;
+
+        } else if (settings.data && !isNewData) {
           if (
             this.hotInstance.isColumnModificationAllowed() ||
             (

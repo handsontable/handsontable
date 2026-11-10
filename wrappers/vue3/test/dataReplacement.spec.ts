@@ -242,6 +242,30 @@ describe('Replacing `data` and editing it afterwards', () => {
     testWrapper.unmount();
   });
 
+  it('should not send a cleared `data` again on a later unrelated prop change', async() => {
+    const data = ref<unknown[] | null>(createSampleData(2, 2));
+    const rowHeaders = ref(false);
+    const App = {
+      components: { HotTable },
+      template: '<HotTable :licenseKey="licenseKey" :data="data" :rowHeaders="rowHeaders"></HotTable>',
+      setup: () => ({ data, rowHeaders, licenseKey: TEST_LICENSE_KEY }),
+    };
+    const testWrapper = mount(App, { attachTo: document.getElementById('app') });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+
+    data.value = null;
+    await nextTick();
+
+    hotInstance.loadData([['loaded', 'by', 'the', 'app']]);
+
+    rowHeaders.value = true;
+    await nextTick();
+
+    expect(hotInstance.getData()).toEqual([['loaded', 'by', 'the', 'app']]);
+
+    testWrapper.unmount();
+  });
+
   it('should give the direct `data` prop priority over `settings.data` when the array is replaced', async() => {
     const data = ref<unknown[]>(createSampleData(2, 2));
     const settings = ref({ data: createSampleData(5, 5) });
