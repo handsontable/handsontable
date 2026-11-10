@@ -1195,9 +1195,13 @@ class Border {
     const isCornerOverlay = overlayName === 'top_inline_start_corner';
     const isBottomOverlay = overlayName === 'bottom';
     const isBottomCornerOverlay = overlayName === 'bottom_inline_start_corner';
+    // The end corners paint over the `top` and `bottom` overlays' slice of a row-freeze edge on the
+    // `fixedColumnsEnd` columns, so they draw that slice themselves.
+    const isTopEndCornerOverlay = overlayName === 'top_inline_end_corner';
+    const isBottomEndCornerOverlay = overlayName === 'bottom_inline_end_corner';
 
     if (!isTopOverlay && !isInlineStartOverlay && !isCornerOverlay &&
-        !isBottomOverlay && !isBottomCornerOverlay) {
+        !isBottomOverlay && !isBottomCornerOverlay && !isTopEndCornerOverlay && !isBottomEndCornerOverlay) {
       return false;
     }
 
@@ -1226,8 +1230,9 @@ class Border {
     // The row-freeze edge straddles the freeze line: the master draws its lower half (below the seam)
     // and the frozen overlay its upper half (above the seam, on top of the opaque pane), so together
     // they show the full thickness in both selection and edit modes. Split between the `top` overlay
-    // (non-frozen columns) and the corner overlay (frozen columns), each clamped to its rendered range.
-    if (rowEdgeOwned && (isTopOverlay || isCornerOverlay)) {
+    // (non-frozen columns) and the corner overlays (frozen start and end columns), each clamped to its
+    // rendered range.
+    if (rowEdgeOwned && (isTopOverlay || isCornerOverlay || isTopEndCornerOverlay)) {
       const firstColumn = Math.max(fromColumn, wtTable.getFirstRenderedColumn());
       const lastColumn = Math.min(toColumn, wtTable.getLastRenderedColumn());
 
@@ -1251,9 +1256,9 @@ class Border {
     }
 
     // The bottom-freeze edge is split between the `bottom` overlay (non-frozen columns) and the bottom
-    // corner overlay (frozen columns), mirroring the row-freeze branch on the bottom axis. The bottom
-    // overlay occludes the master's edge on the freeze line, so re-draw it here.
-    if (bottomRowEdgeOwned && (isBottomOverlay || isBottomCornerOverlay)) {
+    // corner overlays (frozen start and end columns), mirroring the row-freeze branch on the bottom
+    // axis. The bottom overlay occludes the master's edge on the freeze line, so re-draw it here.
+    if (bottomRowEdgeOwned && (isBottomOverlay || isBottomCornerOverlay || isBottomEndCornerOverlay)) {
       const firstColumn = Math.max(fromColumn, wtTable.getFirstRenderedColumn());
       const lastColumn = Math.min(toColumn, wtTable.getLastRenderedColumn());
 
@@ -2256,7 +2261,7 @@ class Border {
 
     // A selection flush against a frozen-pane boundary has its top/inline-start edge rendered by the
     // master on the freeze line, where the frozen overlay occludes it. Re-draw it inside the frozen
-    // overlay so it stays visible; no-op unless `fixedRowsTop`/`fixedColumnsStart` is used.
+    // overlay so it stays visible; no-op without frozen rows or columns.
     //
     // When it draws, we return early and intentionally skip the rest: in these overlays the
     // selection's cell isn't rendered here, only the seam edge slice is.
