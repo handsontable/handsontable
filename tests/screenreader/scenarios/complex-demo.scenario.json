@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "id": "complex-demo",
+  "surface": "Every feature at once: rows on both sides of a hidden row, a frozen top row under four nested header levels, and the collapsible group headers above a column.",
+  "group": "structure",
+  "page": "complex-demo",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [
+    {"updateSettings": {"hiddenRows": {"rows": [2], "indicators": true}}},
+    {"selectCell": [1, 1]}
+  ],
+  "steps": [
+    {
+      "id": "down-past-hidden-row",
+      "action": {"press": "ArrowDown"},
+      "expect": [["emily wilson"]],
+      "note": "The setup hides Robert Johnson's row (the hiddenRows plugin, with indicators) and selects Jane Smith's Name. ArrowDown skips the hidden row to Emily Wilson. The ARIA row index stays contiguous: Emily Wilson is row 7, after the four header rows, as if the hidden row did not exist. Required: the value."
+    },
+    {
+      "id": "up-past-hidden-row",
+      "action": {"press": "ArrowUp"},
+      "expect": [["jane smith"]],
+      "note": "ArrowUp skips the hidden row back to Jane Smith, whose cell holds a comment."
+    },
+    {
+      "id": "up-to-frozen-row",
+      "action": {"press": "ArrowUp"},
+      "expect": [["john doe"]],
+      "note": "John Doe's row is frozen at the top (fixedRowsTop) and drawn in its own overlay."
+    },
+    {
+      "id": "up-to-header",
+      "action": {"press": "ArrowUp"},
+      "expect": [["name"]],
+      "note": "ArrowUp moves to the column's own header, the lowest of four levels (navigableHeaders)."
+    },
+    {
+      "id": "up-to-group-i",
+      "action": {"press": "ArrowUp"},
+      "expect": [["i"], ["expanded"]],
+      "note": "The third level: group I, over two columns, which collapses (collapsibleColumns, `aria-expanded` true). Required: its label and its state."
+    },
+    {
+      "id": "up-to-group-e",
+      "action": {"press": "ArrowUp"},
+      "expect": [["e"], ["expanded"]],
+      "note": "The second level: group E, over four columns."
+    },
+    {
+      "id": "up-to-group-b",
+      "action": {"press": "ArrowUp"},
+      "expect": [["b"], ["expanded"]],
+      "note": "The top level: group B, over eight columns."
+    }
+  ]
+}

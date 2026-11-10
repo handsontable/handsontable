@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "id": "shared-demo",
+  "surface": "The demo-shaped grid with a hidden column and a sort on two columns: the column after the hidden one, Enter sorting a header, Shift+Enter adding a second, and each header's sort state and order.",
+  "group": "structure",
+  "page": "shared-demo",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [
+    {"updateSettings": {"hiddenColumns": {"columns": [1], "indicators": true}}},
+    {"selectCell": [0, 0]}
+  ],
+  "steps": [
+    {
+      "id": "arrow-right-past-hidden",
+      "action": {"press": "ArrowRight"},
+      "expect": [["1/1/20", "1 slash 1 slash 20"], ["sell date"]],
+      "note": "The setup hides the Name column (the hiddenColumns plugin, with indicators) and selects Tagcat 1. ArrowRight skips the hidden column to Sell date, `1/1/20`. The ARIA column index stays contiguous: Sell date is column 3, counting the row headers, as if Name did not exist. Required: the value and the column's name."
+    },
+    {
+      "id": "up-to-header",
+      "action": {"press": "ArrowUp"},
+      "expect": [["sell date"]],
+      "note": "ArrowUp moves to the Sell date header (navigableHeaders), not sorted yet (`aria-sort` none)."
+    },
+    {
+      "id": "sort-ascending",
+      "action": {"press": "Enter"},
+      "expect": [["ascending"]],
+      "note": "Enter on a header sorts by its column (multiColumnSorting), ascending; the header's `aria-sort` becomes `ascending` and the focus stays on it. Required: the new sort state."
+    },
+    {
+      "id": "right-to-in-stock",
+      "action": {"press": "ArrowRight"},
+      "expect": [["in stock"]],
+      "note": "ArrowRight moves to the In stock header."
+    },
+    {
+      "id": "add-to-sort",
+      "action": {"press": "Shift+Enter"},
+      "expect": [["ascending"], ["2"]],
+      "severity": {"2": "moderate"},
+      "note": "Shift+Enter adds the column to the sort, second after Sell date; the header draws the order, `2`, beside its arrow. Required: the sort state, and the order. The order is moderate: the state is right, and the order is what tells two sorted columns apart."
+    },
+    {
+      "id": "left-to-first-sort",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["sell date"], ["ascending"], ["1"]],
+      "severity": {"1": "moderate"},
+      "note": "Back on Sell date, still sorted ascending and first in the order, `1`. Required: its name, state and order."
+    }
+  ]
+}
