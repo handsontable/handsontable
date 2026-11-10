@@ -33,6 +33,27 @@ function nextUnusedEntry(values: unknown[]): number {
 }
 
 /**
+ * Tells whether two lists of origins hold the same entry index for every column.
+ *
+ * @param {Array} current The origins the map holds.
+ * @param {Array} kept The origins kept for the data array.
+ * @returns {boolean}
+ */
+function hasSameOrigins(current: unknown[], kept: unknown[]): boolean {
+  if (current.length !== kept.length) {
+    return false;
+  }
+
+  for (let index = 0; index < current.length; index += 1) {
+    if (current[index] !== kept[index]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Tells whether a column the index mapper just inserted comes after every other column on screen. The mapper puts
  * the new indexes into its sequence before the maps take their slots, so the sequence already shows where the
  * column sits. A column appended at the physical end after the columns were moved can sit between others on screen.
@@ -146,11 +167,14 @@ export class ColumnSizeSettings {
    * Returns the index of the array entry a physical column was declared at.
    *
    * @param {number} physicalColumn The physical column index.
-   * @returns {number|null} The entry index, or `null` when the column has no entry. Without the origin map
-   * (`colWidths` is not an array) the physical index is returned unchanged.
+   * @param {Array} array The `colWidths` array being read.
+   * @returns {number|null} The entry index, or `null` when the column has no entry. For any other array than
+   * the one the origin map was built for, the physical index is returned unchanged: one `updateSettings()`
+   * call that carries `data` and a new `colWidths` array holds the new array in the settings before the map
+   * follows it.
    */
-  getDeclaredIndex(physicalColumn: number): number | null {
-    if (this.#map === null) {
+  getDeclaredIndex(physicalColumn: number, array: unknown[]): number | null {
+    if (this.#map === null || array !== this.#declared) {
       return physicalColumn;
     }
 
@@ -163,13 +187,7 @@ export class ColumnSizeSettings {
    * Registers, replaces, or unregisters the origin map so it follows the current value of `colWidths`.
    */
   #onSettingsChange = (): void => {
-    const value = (this.#hot.getSettings() as Record<string, unknown>).colWidths;
-
-    if (Array.isArray(value)) {
-      this.#follow(value);
-    } else {
-      this.#unfollow();
-    }
+    this.#followSettings();
   };
 
   /**
@@ -177,6 +195,15 @@ export class ColumnSizeSettings {
    */
   #onBeforeDataLoad = (): void => {
     this.#loading = true;
+    // A load runs synchronously, so a load that throws before `afterLoadData` cannot leave the flag on for the
+    // column changes that follow it.
+    this.#hot._registerMicrotask(this.#onLoadSettled);
+
+    // One `updateSettings()` call that carries `data` and a new `colWidths` array merges the array into the
+    // settings before this load and fires `afterUpdateSettings` after it. Following the array here keeps the
+    // origins of the previous array for the data shown until now, and the restore after the load looks them up
+    // for the array the grid holds.
+    this.#followSettings();
 
     if (this.#departing !== null) {
       this.#keep(this.#departing.declared, this.#departing.values);
@@ -186,6 +213,14 @@ export class ColumnSizeSettings {
     if (this.#map !== null && this.#declared !== null) {
       this.#keep(this.#declared, this.#map.getValues().slice());
     }
+  };
+
+  /**
+   * Clears the loading flag once the task that started the load ends, which also covers a load that threw
+   * before `afterLoadData`.
+   */
+  #onLoadSettled = (): void => {
+    this.#loading = false;
   };
 
   /**
@@ -247,10 +282,25 @@ export class ColumnSizeSettings {
 
     const values = byDeclared.get(declared);
 
-    if (values !== undefined && values.length === map.getLength()) {
+    // A framework wrapper loads the same data array on every render. Writing the same origins back would fire
+    // the map change and drop the column width cache each time.
+    if (values !== undefined && values.length === map.getLength() && !hasSameOrigins(map.getValues(), values)) {
       map.setValues(values);
     }
   };
+
+  /**
+   * Registers, replaces, or unregisters the origin map so it follows the current value of `colWidths`.
+   */
+  #followSettings(): void {
+    const value = (this.#hot.getSettings() as Record<string, unknown>).colWidths;
+
+    if (Array.isArray(value)) {
+      this.#follow(value);
+    } else {
+      this.#unfollow();
+    }
+  }
 
   /**
    * Starts following an array, or replaces the origin map when a new array replaced the previous one.
@@ -281,8 +331,12 @@ export class ColumnSizeSettings {
       if (ordinal === 0) {
         // An `'end'` insert past the last column is called with one index more than the slot it takes.
         const slot = Math.min(index, map.getLength());
-        const appends = index >= map.getLength() &&
-          endsScreenOrder(this.#hot.columnIndexMapper.getIndexesSequence(), slot);
+        const { columnIndexMapper } = this.#hot;
+        // A sequence nobody reordered ends with the new column, so it is not copied and scanned.
+        const appends = index >= map.getLength() && (
+          columnIndexMapper.indexesSequence.isIdentity() ||
+          endsScreenOrder(columnIndexMapper.getIndexesSequence(), slot)
+        );
 
         this.#appendFrom = appends ? nextUnusedEntry(map.getValues()) : null;
       }

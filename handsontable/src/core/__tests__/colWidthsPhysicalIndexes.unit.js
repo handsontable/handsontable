@@ -73,20 +73,25 @@ describe('colWidths addressed by physical column index', () => {
     expect(hot.getColWidth(2)).toBe(100);
   });
 
-  it('should not read the array or call the function for a header or a column outside the grid', () => {
-    // a fourth entry, so a read at the visual index would find a value
+  it('should read the array and call the function at the given index for a header or a column outside the grid', () => {
+    // a fourth entry, read for the column past the three the grid has
     createGrid({ colWidths: [100, 120, 140, 160] });
 
     expect(hot._getColWidthFromSettings(-1)).toBeUndefined();
-    expect(hot._getColWidthFromSettings(3)).toBeUndefined();
+    expect(hot._getColWidthFromSettings(3)).toBe(160);
 
     const colWidths = jasmine.createSpy('colWidths').and.returnValue(70);
 
     hot.updateSettings({ colWidths });
     colWidths.calls.reset();
 
-    expect(hot._getColWidthFromSettings(3)).toBeUndefined();
-    expect(colWidths).not.toHaveBeenCalled();
+    expect(hot._getColWidthFromSettings(3)).toBe(70);
+    expect(colWidths).toHaveBeenCalledWith(3);
+
+    colWidths.calls.reset();
+
+    expect(hot._getColWidthFromSettings(-1)).toBe(70);
+    expect(colWidths).toHaveBeenCalledWith(-1);
   });
 
   it('should keep the widths with their columns when a column is appended after a move', () => {
@@ -385,5 +390,68 @@ describe('colWidths addressed by physical column index', () => {
     hot.loadData(first);
 
     expect(widths()).toEqual([10, 20, 30, 40]);
+  });
+
+  it('should keep each data array on its own widths when one update call carries both `data` and `colWidths`', () => {
+    const first = [['a', 'b', 'c']];
+    const second = [['x', 'y', 'z']];
+    const firstWidths = [10, 20, 30];
+    const secondWidths = [1, 2, 3];
+
+    createGrid({ data: first, colWidths: firstWidths });
+    hot.alter('insert_col_start', 1);
+
+    expect(widths()).toEqual([10, 50, 20, 30]);
+
+    // the way a framework wrapper sends both props when both changed
+    hot.updateSettings({ data: second, colWidths: secondWidths });
+
+    expect(widths()).toEqual([1, 2, 3]);
+
+    hot.updateSettings({ data: first, colWidths: firstWidths });
+
+    expect(hot.getDataAtRow(0)).toEqual(['a', null, 'b', 'c']);
+    expect(widths()).toEqual([10, 50, 20, 30]);
+
+    // nothing was inserted in `second`, so no origins of `first` may come back with it
+    hot.loadData(second);
+
+    expect(widths()).toEqual([10, 20, 30]);
+  });
+
+  it('should read a new array at its declared entries in the data hooks of the update call that passed it', () => {
+    createGrid({ colWidths: [10, 20, 30] });
+    hot.alter('insert_col_start', 1);
+
+    const beforeLoad = [];
+    const afterLoad = [];
+
+    // before the map follows the new array, and after
+    hot.addHookOnce('beforeUpdateData', () => {
+      beforeLoad.push(widths());
+    }, -1);
+    hot.addHookOnce('afterUpdateData', () => {
+      afterLoad.push(widths());
+    });
+    hot.updateSettings({ data: [['p', 'q', 'r', 's']], colWidths: [1, 2, 3, 4] });
+
+    expect(beforeLoad).toEqual([[1, 2, 3, 4]]);
+    expect(afterLoad).toEqual([[1, 2, 3, 4]]);
+    expect(widths()).toEqual([1, 2, 3, 4]);
+  });
+
+  it('should not drop the column width cache when the same data array is loaded again with the same widths', () => {
+    const first = [['a', 'b', 'c']];
+
+    createGrid({ data: first, colWidths: [10, 20, 30] });
+    hot.alter('insert_col_start', 1);
+
+    const invalidate = spyOn(hot.view, 'invalidateColumnWidthCache').and.callThrough();
+
+    // a React re-render sends the same `data` with every update
+    hot.updateSettings({ data: first });
+
+    expect(widths()).toEqual([10, 50, 20, 30]);
+    expect(invalidate).not.toHaveBeenCalled();
   });
 });

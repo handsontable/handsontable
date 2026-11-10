@@ -9557,23 +9557,20 @@ export default function Core(
 
           const physicalColumn = instance.toPhysicalColumn(col);
           // The grid-level array is read through the entry each column was declared at, which the column keeps
-          // when columns are inserted or removed. A column inserted between others has none, and a column outside
-          // the index mapper gets no width from the array.
-          let entry: number | null = physicalColumn;
-
-          if (physicalColumn !== null && width === tableMeta.colWidths) {
-            entry = columnSizeSettings.getDeclaredIndex(physicalColumn);
-          }
+          // when columns are inserted or removed. A column inserted between others has none. A column outside
+          // the index mapper has no physical index and keeps the index it was given.
+          const entry = physicalColumn === null ?
+            col : columnSizeSettings.getDeclaredIndex(physicalColumn, width as unknown[]);
 
           width = entry === null ? undefined : (width as Record<number, unknown>)[entry];
           break;
         }
 
         case 'function': { // called with the physical column index
-          const physicalColumn = col >= 0 ? instance.toPhysicalColumn(col) : col;
+          // A header, and a column outside the index mapper, keep the index they were given.
+          const physicalColumn = (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
 
-          // A column outside the index mapper has no physical index, so the function is not asked for it.
-          width = physicalColumn === null ? undefined : (width as (col: number) => unknown)(physicalColumn);
+          width = (width as (col: number) => unknown)(physicalColumn);
           break;
         }
         default:
