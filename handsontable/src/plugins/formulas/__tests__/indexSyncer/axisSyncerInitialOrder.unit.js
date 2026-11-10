@@ -3,13 +3,20 @@ import { createMockEngine } from './helpers/mockEngine';
 
 function createMockIndexMapper(indexesSequence, notTrimmedIndexes = indexesSequence) {
   const state = { indexesSequence, notTrimmedIndexes };
+  const localHooks = new Map();
 
   return {
     state,
     getIndexesSequence: () => state.indexesSequence,
     getNotTrimmedIndexes: () => state.notTrimmedIndexes,
     getNumberOfIndexes: () => state.indexesSequence.length,
-    addLocalHook: () => {},
+    addLocalHook: (key, callback) => {
+      localHooks.set(key, [...(localHooks.get(key) ?? []), callback]);
+    },
+    // Runs the local hooks the way the index mapper does after an insert or a removal.
+    runLocalHooks: (key, ...args) => {
+      (localHooks.get(key) ?? []).forEach(callback => callback(...args));
+    },
   };
 }
 
@@ -274,6 +281,30 @@ describe('AxisSyncer initial order sync', () => {
       engine.dimensions.height = 6;
       indexMapper.state.indexesSequence = [5, 4, 3, 2, 1, 0];
       axisSyncer.getIndexesChangeSyncMethod()('insert');
+      axisSyncer.init();
+
+      expect(engine.calls.moveRows.length).toBe(1);
+      expect(engine.calls.setRowOrder.length).toBe(2);
+    });
+
+    it('should send one order on a reload when an insert and a removal kept the number of lines', () => {
+      const engine = createMockEngine({ width: 2, height: 5 });
+      const indexMapper = createMockIndexMapper([2, 3, 4, 0, 1]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+      const syncMethod = axisSyncer.getIndexesChangeSyncMethod();
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [4, 3, 2, 1, 0];
+      syncMethod('update');
+
+      // A line inserted at physical 0 and the last one removed: the base still has as many lines as the
+      // sequence, but the moves it recorded no longer lead to it.
+      indexMapper.runLocalHooks('indexesInserted', [0]);
+      indexMapper.state.indexesSequence = [5, 0, 4, 3, 2, 1];
+      syncMethod('insert');
+      indexMapper.runLocalHooks('indexesRemoved', [5]);
+      indexMapper.state.indexesSequence = [0, 4, 3, 2, 1];
+      syncMethod('remove');
       axisSyncer.init();
 
       expect(engine.calls.moveRows.length).toBe(1);
