@@ -42,12 +42,12 @@ describe('MultipleSelectionHandles', () => {
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
       expect(topSelectionHandle.css('z-index')).toBe('9999');
       expect(bottomSelectionHandle.css('z-index')).toBe('9999');
-      expect(topSelectionHandle.offset()).toEqual({
+      expectOffsetNear(topSelectionHandle.offset(), {
         top: cellOffset.top - topSelectionHandleSize,
         left: cellOffset.left - topSelectionHandleSize,
       });
       // -1 as the bottom handler is positioned starting from the most bottom-right pixel
-      expect(bottomSelectionHandle.offset()).toEqual({
+      expectOffsetNear(bottomSelectionHandle.offset(), {
         top: cellOffset.top + cellHeight - 1,
         left: cellOffset.left + cellWidth - 1,
       });
@@ -88,12 +88,12 @@ describe('MultipleSelectionHandles', () => {
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
       expect(topSelectionHandle.css('z-index')).toBe('9999');
       expect(bottomSelectionHandle.css('z-index')).toBe('9999');
-      expect(topSelectionHandle.offset()).toEqual({
+      expectOffsetNear(topSelectionHandle.offset(), {
         top: cellFromOffset.top - topSelectionHandleSize,
         left: cellFromOffset.left - topSelectionHandleSize,
       });
       // -1 as the bottom handler is positioned starting from the most bottom-right pixel
-      expect(bottomSelectionHandle.offset()).toEqual({
+      expectOffsetNear(bottomSelectionHandle.offset(), {
         top: cellToOffset.top + cellToHeight - 1,
         left: cellToOffset.left + cellToWidth - 1,
       });
@@ -135,12 +135,12 @@ describe('MultipleSelectionHandles', () => {
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
       expect(topSelectionHandle.css('z-index')).toBe('9999');
       expect(bottomSelectionHandle.css('z-index')).toBe('9999');
-      expect(topSelectionHandle.offset()).toEqual({
+      expectOffsetNear(topSelectionHandle.offset(), {
         top: cellFromOffset.top - topSelectionHandleSize,
         left: cellFromOffset.left - topSelectionHandleSize,
       });
       // -1 as the bottom handler is positioned starting from the most bottom-right pixel
-      expect(bottomSelectionHandle.offset()).toEqual({
+      expectOffsetNear(bottomSelectionHandle.offset(), {
         top: cellToOffset.top + cellToHeight - 1,
         left: cellToOffset.left + cellToWidth - 1,
       });

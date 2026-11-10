@@ -59,6 +59,14 @@ The `touchend` **target** is the element captured at `touchstart`, so a release 
 
 `#onAfterScroll` re-extends the selection at the last known finger position after each scroll, because a finger held still past the edge emits no further `touchmove`. It does not run away: the target is resolved against the *current* viewport and then de-duplicated on coordinates, so it reaches a fixed point after one step — measured with `dragToScroll: false`, where nothing suppresses the scroll-into-view, it stops after one row and stays there.
 
+## The legacy mobile Jasmine suite is manual, and handle positions are whole pixels
+
+`__tests__/mobile/` runs only when someone builds it (`npm --prefix handsontable run test:mobile.dump`) and opens `test/MobileRunner.html` on a device; no CI job runs it. `Border#measure` builds each handle's position from the integer layout values `offsetTop`, `offsetLeft`, `offsetWidth` and `offsetHeight` (through the geometry reader), so the handle sits on integer coordinates. The specs derive the expected position from jQuery's `cell.offset()`, `outerWidth()` and `outerHeight()`, which are fractional on a fractional layout. An exact `toEqual` therefore fails by a fraction of a pixel on such a device and passes on an integer layout (DEV-601). The `parseInt` calls in `updateMultipleSelectionHandlesPosition` are not the cause: their inputs are already integers.
+
+The `positioning.spec.js` files compare through the global `expectOffsetNear()` (`test/helpers/common.js`), which accepts a miss under 1px. The bound is strict on purpose: the specs pin one-pixel constants in the handle math, and an inclusive 1px tolerance would let one of them be dropped. The sub-pixel bound is empirical (the reported misses were at most 0.52px), not derived, so a device with a larger rounding spread, in RTL especially, may still need a look. The cause on the reporting devices was not pinned down: the report ties it to Android 13, and stock Chromium emulation at DPR 2 and 2.625 does not reproduce it. To see a sub-pixel miss without a device, add `.handsontable { zoom: 1.0005 }` to the runner page and set the helper's tolerance to 0. A zoom of 1.0238 misses by 1.5 to 2.5px, which the helper rightly still reports.
+
+Do not "fix" this by rounding the handles to fractions in `border.ts`.
+
 ## Where to look next
 
 - The auto-scroller this plugin arms: `../dragToScroll/AGENTS.md`.
