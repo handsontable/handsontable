@@ -2139,7 +2139,9 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   the check that had not run yet written by hand and said so) and fails on an ambiguous one, on a cluster
   or a rule that matches nothing in the sample (a cluster leaves the catalog with its last finding, like a
   baseline issue), and on a triage count other than `triageLimit`, exactly: lowered when a shape is sorted
-  into a cluster, raised only visibly, in the change that adds one. The sample is frozen, so the test also
+  into a cluster, raised only visibly, in the change that adds one. A shape left in the queue is there for a
+  reason, written in the test's `TRIAGE_REASONS` (why it is neither a known cause nor the reader's own
+  behavior yet), and the test fails on a queued shape without one. The sample is frozen, so the test also
   checks every id a rule names against its live source: `criteria` against `WCAG_CRITERIA`, `themes` against
   the scan's themes, `axeIssues` against `a11y/axe-baseline.json`, a reader rule's `checks` against the
   projects of `playwright.screenreader.config.ts`, and a check rule's `kinds` against the kinds the checks'

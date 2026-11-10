@@ -36,6 +36,30 @@ const AXE_ISSUES = JSON.parse(readFileSync(path.join(TESTS_ROOT, 'a11y/axe-basel
 const DOCS_ISSUES = JSON.parse(readFileSync(path.join(TESTS_ROOT, 'a11y/docs/docs-baseline.json'), 'utf8')).issues.map(issue => issue.id);
 const READER_PROJECTS = [...readFileSync(path.join(TESTS_ROOT, 'playwright.screenreader.config.ts'), 'utf8')
   .matchAll(/\{ name: '([a-z0-9-]+)', use:/g)].map(([, name]) => name);
+/**
+ * Every sampled finding shape (`findingShape()`) the catalog leaves in needs-triage, and why it is not sorted
+ * yet. A shape that joins the queue joins this list, with its reason, in the change that raises `triageLimit`;
+ * one sorted into a cluster leaves it.
+ */
+const TRIAGE_REASONS = {
+  'reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid': 'NVDA with Firefox names the grid by the sheet\'s old name, '
+    + 'where both Chromium readers say the new one: a stale name kept by Firefox or a name the grid sets on another element, not told apart yet.',
+  'reader|vo-chromium|token-missing|||dropdown-menu|arrow-down-read-only': 'VoiceOver reads the Read only item, a menuitemcheckbox with '
+    + 'aria-checked false, as a menu item with no state: macOS speaks no state for an unchecked menu item, so it may be the reader\'s own '
+    + 'convention; a control menu decides.',
+  'reader|vo-webkit|token-missing|||dropdown-menu|arrow-down-read-only': 'As on VoiceOver with Chromium: an unchecked menuitemcheckbox is '
+    + 'read with no state, the grid\'s or the reader\'s convention, not told apart yet.',
+  'reader|vo-webkit|token-missing|||collapsible-headers|enter-expand': 'VoiceOver with WebKit reads aria-expanded turning false on the '
+    + 'header and says nothing when the same header turns it true, where the other three readers say expanded: not told apart from WebKit '
+    + 'dropping the change yet.',
+  'reader|vo-webkit|token-missing|||password-editor|commit-secret': 'VoiceOver with WebKit says nothing when Enter commits the password '
+    + 'and the focus moves to the next cell, in every run, where VoiceOver with Chromium reads that cell: not explained yet.',
+  'reader|vo-webkit|token-missing|||select-editor|arrow-down-first': 'VoiceOver with WebKit says nothing when ArrowDown changes the select '
+    + 'editor\'s option, where NVDA and VoiceOver with Chromium read it: the editor sets selectedIndex itself and stops the key, and whether '
+    + 'WebKit then reports no value change is not known.',
+  'reader|vo-webkit|token-missing|||select-editor|arrow-down-second': 'As arrow-down-first: VoiceOver with WebKit is silent on the select '
+    + 'editor\'s scripted option change.',
+};
 
 /**
  * Every kebab-case string literal in the checks' code: the kinds a check can emit are among them.
@@ -383,11 +407,12 @@ test('every rule of every cluster matches a sampled finding', () => {
 });
 
 test('every sampled finding maps to one cluster or to needs-triage, and the triage count is exact', () => {
-  // The sample is one row per distinct finding shape (source, check, kind, rule, cause, page, where) of two
-  // real nights (fixtures/a11y-findings-sample.json says which). A rule that matches two clusters is refused
+  // The sample is one row per distinct finding shape (source, check, kind, rule, cause, page, where) of a
+  // real audit (fixtures/a11y-findings-sample.json says which runs). A rule that matches two clusters is refused
   // here, not sorted at collection time, and the needs-triage count is pinned exactly: a change to the
   // catalog or to a check that moves it changes `triageLimit` in tests/a11y/issues.json in the same change:
-  // lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one.
+  // lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one. Every
+  // shape left in the queue has its reason in TRIAGE_REASONS.
   const doc = readCatalog();
   const catalog = compileIssuesCatalog(doc);
   const sample = readSample();
@@ -396,7 +421,7 @@ test('every sampled finding maps to one cluster or to needs-triage, and the tria
   const triage = [];
   const matched = new Map(catalog.clusters.map(cluster => [cluster.id, 0]));
 
-  assert.ok(sample.findings.length > 100, 'the sample holds the two nights');
+  assert.ok(sample.findings.length > 100, 'the sample holds a night');
   assert.equal(new Set(sample.findings.map(findingShape)).size, sample.findings.length, 'one row per finding shape');
 
   for (const item of sample.findings) {
@@ -421,4 +446,6 @@ test('every sampled finding maps to one cluster or to needs-triage, and the tria
     + `(tests/a11y/issues.json) instead of raising the limit:\n${triage.slice(0, 20).map(item => `  ${item.check} ${item.kind} ${item.rule ?? ''} ${item.page} ${item.where}`).join('\n')}`);
   assert.equal(triage.length, A11Y_TRIAGE_LIMIT,
     `${triage.length} findings need triage against a limit of ${A11Y_TRIAGE_LIMIT}: lower triageLimit in tests/a11y/issues.json to match`);
+  assert.deepEqual(triage.map(findingShape).sort(), Object.keys(TRIAGE_REASONS).sort(),
+    'every shape left in needs-triage has its reason in TRIAGE_REASONS, and every reason names a shape still there');
 });
