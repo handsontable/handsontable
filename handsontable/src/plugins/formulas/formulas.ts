@@ -1353,6 +1353,9 @@ export class Formulas extends BasePlugin {
     let sheetPaintErrors: unknown[] = [];
     // Set when this enable fills a new sheet from the grid's data; the sync endpoint is set up once the syncers exist.
     let filledSheet = false;
+    // Set when this enable binds a sheet the engine still holds and owes it a resync; the endpoint is set up once
+    // the syncers exist, without an order, which the resync's `#writeSheet()` sends.
+    let boundHeldSheet = false;
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName) && this.isDataLoadPending()) {
@@ -1377,6 +1380,7 @@ export class Formulas extends BasePlugin {
       && !this.isDataLoadPending()) {
       this.#updateSheetNameAndSheetId(this.sheetName);
       this.#sheetResyncPending = true;
+      boundHeldSheet = true;
     }
 
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
@@ -1432,6 +1436,12 @@ export class Formulas extends BasePlugin {
 
     if (filledSheet) {
       this.#setupSyncEndpointForFilledSheet();
+
+    } else if (boundHeldSheet && this.sheetId !== null) {
+      // An order change before the resync drains (a sort or a move with rendering suspended, or right after a
+      // direct `enablePlugin()`) reaches this sheet instead of no engine. The resync rewrites the sheet from the
+      // source data and sends the grid's order then, so no order is sent here.
+      this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId, false);
     }
 
     this.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());

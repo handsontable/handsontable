@@ -61,6 +61,7 @@ describe('Formulas enabled on a live grid', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     hot?.destroy();
     hot = null;
     reference?.destroy();
@@ -364,6 +365,96 @@ describe('Formulas enabled on a live grid', () => {
       expect(engineValues(hot)).toEqual(OWN_ROW_SORTED);
     });
 
+    describe('with a shared engine that still holds the sheet, before anything reads or renders', () => {
+      /**
+       * Builds a grid on a shared engine sheet `S` with cross-row formulas and turns Formulas off. The enable that
+       * follows binds the sheet the engine still holds and owes a resync, which the next read or render drains.
+       *
+       * @returns {HyperFormula}
+       */
+      function buildOnSharedEngine() {
+        const engine = buildEngine();
+
+        hot = new Handsontable(container, {
+          data: copy(CROSS_ROW_CONTENT),
+          manualRowMove: true,
+          formulas: { engine, sheetName: 'S' },
+          licenseKey: LICENSE_KEY,
+        });
+
+        return engine;
+      }
+
+      it('sends the order of a re-enabled sorted grid once, from the resync', () => {
+        const engine = buildOnSharedEngine();
+
+        hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+        hot.updateSettings({ formulas: false });
+
+        const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+
+        hot.updateSettings({ formulas: { engine, sheetName: 'S' } });
+        hot.render();
+
+        expect(setRowOrder).toHaveBeenCalledTimes(1);
+        expect(engineValues(hot)).toEqual(hot.getData());
+      });
+
+      it('takes a sequence change made right after an updateSettings() re-enable, with no warning', () => {
+        const engine = buildOnSharedEngine();
+        const warnSpy = jest.spyOn(console, 'warn');
+
+        hot.suspendRender();
+        hot.updateSettings({ formulas: false });
+        hot.updateSettings({ formulas: { engine, sheetName: 'S' } });
+        hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+        hot.resumeRender();
+        buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
+
+        expect(warnSpy).not.toHaveBeenCalled();
+        expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a', 'd']);
+        expect(hot.getData()).toEqual(reference.getData());
+        expect(engineValues(hot)).toEqual(hot.getData());
+
+        warnSpy.mockRestore();
+      });
+
+      it('takes a row move made right after an updateSettings() re-enable, with no warning', () => {
+        const engine = buildOnSharedEngine();
+        const warnSpy = jest.spyOn(console, 'warn');
+
+        hot.suspendRender();
+        hot.updateSettings({ formulas: false });
+        hot.updateSettings({ formulas: { engine, sheetName: 'S' } });
+        hot.getPlugin('manualRowMove').moveRows([3], 0);
+        hot.resumeRender();
+
+        expect(warnSpy).not.toHaveBeenCalled();
+        expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a', 'd']);
+        expect(engineValues(hot)).toEqual(hot.getData());
+
+        warnSpy.mockRestore();
+      });
+
+      it('takes a sequence change made right after disablePlugin() and enablePlugin(), with no warning', () => {
+        buildOnSharedEngine();
+
+        const plugin = hot.getPlugin('formulas');
+        const warnSpy = jest.spyOn(console, 'warn');
+
+        plugin.disablePlugin();
+        plugin.enablePlugin();
+        hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+        buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
+
+        expect(warnSpy).not.toHaveBeenCalled();
+        expect(hot.getData()).toEqual(reference.getData());
+        expect(engineValues(hot)).toEqual(hot.getData());
+
+        warnSpy.mockRestore();
+      });
+    });
+
     it('sorts after disablePlugin() and enablePlugin() called directly', () => {
       hot = new Handsontable(container, {
         data: copy(OWN_ROW_CONTENT),
@@ -411,7 +502,8 @@ describe('Formulas enabled on a live grid', () => {
 
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // No path of the plugin leaves the syncers without an endpoint; the control unbinds them by hand.
+    // No path of the plugin leaves the syncers without an endpoint (the shared-engine re-enable cases above pin the
+    // last one), so the contract is checked on syncers unbound by hand.
     hot.getPlugin('formulas').indexSyncer.setupSyncEndpoint(null, null, false);
 
     expect(() => {

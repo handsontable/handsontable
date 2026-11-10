@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed formulas showing a rejected or pending value, the editor closing on another cell's validation, a header sort running before a pending edit landed, and sorting, move order, a pending edit, and sort state on grids built from a HyperFormula sheet.",
+  "title": "Fixed formulas showing a rejected or pending value, the editor closing on another cell's validation, a header sort running before a pending edit landed, sorting, move order, a pending edit, and sort state on grids built from a HyperFormula sheet, a sort after enabling formulas on a live grid throwing or leaving formula results on the wrong rows, and `updateSettings({ data, formulas })` showing formulas as text.",
   "type": "fixed",
   "issueOrPR": 14243,
   "breaking": false,

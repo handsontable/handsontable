@@ -1017,8 +1017,14 @@ Pinned by `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas
 order change reaches the axis syncers while they point at no engine sheet. The paths, and what each one does:
 
 - `#loadSheet()` (above), `#adoptEngineSheet()` (adopts a stored order), `#clearRejectedSheet()` (an empty sheet)
-  and `#writeSheet()` (a load, a resync, the re-enable of a shared engine that still holds the sheet, an undo
-  restore from the source) set it up themselves.
+  and `#writeSheet()` (a load, a resync, an undo restore from the source) set it up themselves.
+- The `enablePlugin()` branch that binds a sheet a shared engine still holds owes a resync, which runs at the
+  next read or render. It sets the endpoint up as soon as its syncers exist, without an order
+  (`setupSyncEndpoint(engine, sheetId, false)`); the resync's `#writeSheet()` rewrites the sheet and sends the
+  grid's order once. Without it, an order change in that window (a sort or a move with rendering suspended, or
+  right after a direct `enablePlugin()`) reached no engine: the drain put the order right, but a move was dropped
+  until then and the guard below warned. An order change in the window still reaches the stale sheet, which the
+  resync then replaces, so such an enable can send one order more than it ends with.
 - The `enablePlugin()` branch that adds a sheet under the kept `sheetName` from the grid's data, and the
   `updatePlugin()` branch that adds one when nothing is bound, call `#setupSyncEndpointForFilledSheet()` (the
   enable once its syncers exist). Before DEV-3760 neither set an endpoint: `updateSettings({ formulas })` on a
@@ -1039,11 +1045,19 @@ the existing behavior ("Sorting does not remap formula addresses" below). How an
 load is DEV-3972's subject; do not add a second mechanism here. Pinned by
 `__tests__/enableOnLiveGridSyncEndpoint.unit.js` and `tests/e2e/formulas-enable-on-live-grid.spec.ts`.
 
-**The null-engine guard in `AxisSyncer#syncOrderWithEngine` warns once and returns.** No known path reaches it
-(instrumented across the formulas, sheetsBar, sorting, move, undoRedo, formulaBuilder and nestedRows unit suites:
-no hit). It stays as a guard because a throw there ends the user's sort or move half-done; the `warnOnce` names
-the lost order. Pinned by `warns once, and does not throw, when an order reaches a syncer that is bound to no
-engine sheet`.
+**The null-engine guard in `AxisSyncer#syncOrderWithEngine` warns once and returns.** No known path reaches it.
+The formulas, sheetsBar, sorting, move, undoRedo, formulaBuilder and nestedRows unit suites were instrumented and
+never hit it. A review then found one window, the shared-engine re-enable above, and it is now closed and pinned by
+the `with a shared engine that still holds the sheet, before anything reads or renders` cases (no warning, the
+engine follows the order). It stays as a guard because a throw there ends the user's sort or move half-done; the
+`warnOnce` names the lost order. The no-throw, warn-once contract is pinned on syncers unbound by hand (`warns once,
+and does not throw, when an order reaches a syncer that is bound to no engine sheet`).
+
+**Known limit: an enabled grid whose sheet the engine refused to add retries on every wrapper re-render.** The
+`updatePlugin()` branch that adds a sheet runs whenever nothing is bound (`sheetName === null`), now also for a
+call carrying `data`. If `#addSheet()` returned no name (the engine refused the sheet), a React or Vue re-render,
+which always sends `data`, retries the add and its full source scan on every commit, where it used to retry on
+settings-only calls alone. No path is known to reach that state short of an engine refusal.
 
 **A reload of the sheet the syncers are synced with keeps the grid's order, and its state** (`#reloadInPlace()`,
 or `#reloadKeepingOrder()` when anything but this grid changed the sheet). A grid built from an engine sheet without `data`
