@@ -561,14 +561,16 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 ::: only-for vue
 
 Pass a new array to replace the data. Assigning `data.value = newArray`, passing a new `data` prop, or setting a new
-`settings.data` loads the new array into the grid. The grid keeps the sorted row order, the trimmed rows, and the
-cell and column states, as the [`updateData()`](@/api/core.md#updatedata) method does.
+`settings.data` loads the new array into the grid, as the [`updateData()`](@/api/core.md#updatedata) method does.
+The grid keeps the sorted row order, the trimmed rows, and the cell and column states. It places the new values
+through the row order of the sort and doesn't sort them again.
 
-An edit of the same array (`push()`, `splice()`, or a cell write) needs no replacement: the grid reads the array by
-reference.
+After you replace the array, edits of the new array (`push()`, `splice()`, or a cell write) show up in the grid
+without another replacement. To change values from outside the grid, use the API methods below.
 
-Don't write the array inline in the template (`:data="[[1, 2], [3, 4]]"`). Vue builds a new array on every render of
-the parent component, so the grid reloads its data each time. Keep the array in a `ref()`, or in a constant.
+Don't build the array in the template (`:data="rows.map(...)"`, or a literal that holds reactive values). Vue builds
+a new array on every render of the parent component, so the grid reloads its data each time, and edits made in the
+grid are lost. Keep the array in a `ref()`, or in a constant.
 
 :::
 

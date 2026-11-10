@@ -148,10 +148,12 @@ describe('Replacing the whole `data` array', () => {
 
     // `updateData()` keeps the row order of the sort and does not sort the new values again.
     // `loadData()` would show the rows as they come: 9, 7, 8.
-    data.value = [[9], [7], [8]];
+    // `updateData()` puts the new values through the row order the sort left, and does not sort them again.
+    // The rows below read 9, 7, 8 under an ascending sort. `loadData()` would show them as they come: 8, 9, 7.
+    data.value = [[8], [9], [7]];
     await nextTick();
 
-    expect(hotInstance.getData()).toEqual([[7], [8], [9]]);
+    expect(hotInstance.getData()).toEqual([[9], [7], [8]]);
     expect(hotInstance.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
 
     testWrapper.unmount();
@@ -173,6 +175,94 @@ describe('Replacing the whole `data` array', () => {
     await nextTick();
 
     expect(hotInstance.getDataAtCell(0, 0)).toBe(5);
+
+    testWrapper.unmount();
+  });
+});
+
+describe('Replacing `data` and editing it afterwards', () => {
+  it('should treat edits of the new array as in-place edits', async() => {
+    const data = ref<string[][]>(createSampleData(2, 2));
+    const updateSettingsCalls: unknown[] = [];
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          :licenseKey="licenseKey"
+          :data="data"
+          :afterUpdateSettings="(settings) => { updateSettingsCalls.push(settings) }"
+        ></HotTable>`,
+      setup: () => ({ data, licenseKey: TEST_LICENSE_KEY, updateSettingsCalls }),
+    };
+    const testWrapper = mount(App, { attachTo: document.getElementById('app') });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+
+    data.value = createSampleData(3, 2);
+    await nextTick();
+
+    expect(updateSettingsCalls.length).toBe(1);
+
+    data.value.push(['x', 'y']);
+    await nextTick();
+    data.value.splice(0, 1);
+    await nextTick();
+    data.value[0][0] = 'changed';
+    await nextTick();
+
+    expect(hotInstance.countRows()).toBe(3);
+    expect(hotInstance.getDataAtCell(0, 0)).toBe('changed');
+    expect(updateSettingsCalls.length).toBe(1);
+
+    testWrapper.unmount();
+  });
+
+  it('should load the same array again after `data` was cleared', async() => {
+    const rows = createSampleData(3, 2);
+    const data = ref<unknown[] | null>(rows);
+    const App = {
+      components: { HotTable },
+      template: '<HotTable :licenseKey="licenseKey" :data="data"></HotTable>',
+      setup: () => ({ data, licenseKey: TEST_LICENSE_KEY }),
+    };
+    const testWrapper = mount(App, { attachTo: document.getElementById('app') });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+
+    data.value = null;
+    await nextTick();
+
+    expect(hotInstance.getSourceData()).not.toBe(rows);
+
+    data.value = rows;
+    await nextTick();
+
+    expect(hotInstance.countRows()).toBe(3);
+    expect(hotInstance.countCols()).toBe(2);
+    expect(hotInstance.getDataAtCell(2, 1)).toBe('2-1');
+
+    testWrapper.unmount();
+  });
+
+  it('should give the direct `data` prop priority over `settings.data` when the array is replaced', async() => {
+    const data = ref<unknown[]>(createSampleData(2, 2));
+    const settings = ref({ data: createSampleData(5, 5) });
+    const App = {
+      components: { HotTable },
+      template: '<HotTable :licenseKey="licenseKey" :settings="settings" :data="data"></HotTable>',
+      setup: () => ({ data, settings, licenseKey: TEST_LICENSE_KEY }),
+    };
+    const testWrapper = mount(App, { attachTo: document.getElementById('app') });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+
+    settings.value.data = createSampleData(6, 6);
+    await nextTick();
+
+    expect(hotInstance.countRows()).toBe(2);
+
+    data.value = createSampleData(4, 3);
+    await nextTick();
+
+    expect(hotInstance.countRows()).toBe(4);
+    expect(hotInstance.countCols()).toBe(3);
 
     testWrapper.unmount();
   });

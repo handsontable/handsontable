@@ -66,8 +66,9 @@ const HotTable = defineComponent({
 
         this.miscCache.hookKeys = getPassedHookKeys(props);
 
-        const incomingData = settings.data ? toRaw(settings.data) : null;
-        const isNewData = incomingData !== null && incomingData !== this.miscCache.lastData.value;
+        const hasData = settings.data !== undefined;
+        const incomingData = hasData ? toRaw(settings.data) : undefined;
+        const isNewData = hasData && incomingData !== this.miscCache.lastData.value;
 
         // A new array replaces the grid's data: `updateSettings()` runs core's `updateData()`, which
         // resets the index mappers and keeps sorting, filters and hidden rows.
@@ -97,7 +98,7 @@ const HotTable = defineComponent({
 
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
 
-        if (incomingData) {
+        if (hasData) {
           this.miscCache.lastData.value = incomingData;
         }
 
@@ -120,7 +121,7 @@ const HotTable = defineComponent({
         baselines: markRaw({}) as SettingBaselines,
         // The `data` array the grid was last given by the props, compared by identity to tell a new array
         // from an in-place edit. Wrapped in a raw holder so Vue does not proxy the app's array.
-        lastData: markRaw({ value: null as unknown[] | null }),
+        lastData: markRaw({ value: undefined as unknown }),
       },
       columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
@@ -174,7 +175,7 @@ const HotTable = defineComponent({
 
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       this.miscCache.hookKeys = getPassedHookKeys(this.$props);
-      this.miscCache.lastData.value = newSettings.data ? toRaw(newSettings.data) : null;
+      this.miscCache.lastData.value = toRaw(newSettings.data);
     },
 
     matchHotMappersSize(): void {
