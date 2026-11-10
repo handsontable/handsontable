@@ -40,6 +40,8 @@
       row 1  'htBlue htCenter'        custom class beside an alignment class
       row 2  ['htBlue', 'htTop']      array form of className
       row 3  (none)                   control: no class at all
+    Row 4, column 1 is a numeric cell: `numericRenderer` adds `htRight` to its `className` and the cell
+    shows right-aligned, but that class is the renderer's, not the user's.
     `window.alignmentLog` and `window.undoLog` collect the `stateBefore` each hook saw, as
     `[row, [value-or-null, ...]]` pairs, `null` standing for `undefined`.
   -->
@@ -56,9 +58,17 @@
     container.className = `ht-theme-${window.htTheme}`;
     window.alignmentLog = [];
     window.undoLog = [];
+    window.mutateStateBefore = false;
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // A numeric cell gets `numericRenderer` from its type, which would drop the test id the shared renderer
+    // stamps, so this one runs the numeric renderer first and stamps the id after it.
+    const numericTestIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.NumericRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
@@ -71,20 +81,26 @@
     // has not rendered yet. The message is stamped on the container and the page object rethrows it.
     try {
       window.hot = new Handsontable(container, {
-        data: Array.from({ length: 4 }, (_, row) => [`A${row}`, `B${row}`, `C${row}`]),
+        data: Array.from({ length: 5 }, (_, row) => [`A${row}`, row === 4 ? 42 : `B${row}`, `C${row}`]),
         renderer: testIdRenderer,
         rowHeaders: true,
         colHeaders: true,
         width: 400,
-        height: 220,
+        height: 300,
         contextMenu: true,
         cell: [
           { row: 0, col: 0, className: 'htBlue' },
           { row: 1, col: 0, className: 'htBlue htCenter' },
           { row: 2, col: 0, className: ['htBlue', 'htTop'] },
+          { row: 4, col: 1, type: 'numeric', renderer: numericTestIdRenderer },
         ],
         beforeCellAlignment(stateBefore) {
           window.alignmentLog.push(serializeState(stateBefore));
+
+          // A listener that edits the snapshot it receives, switched on by the page object.
+          if (window.mutateStateBefore) {
+            Object.keys(stateBefore).forEach((row) => { delete stateBefore[row]; });
+          }
         },
         afterUndo(action) {
           if (action.actionType === 'cell_alignment') {

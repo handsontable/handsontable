@@ -41,8 +41,11 @@ function applyAlignment(hot: HotInstance, type: string, alignment: string) {
       (row: number, col: number) => getAlignmentClassNames(
         getUserClassNameDescriptor(hot, row, col).className as string | string[] | undefined));
 
-    // The undo step holds plain copies: the ranges are the selection's own and change with it.
-    hot._getOperationScope().describe({ stateBefore, range: deepClone(selectedRange), type, alignment });
+    // The undo step holds plain copies: the ranges are the selection's own and change with it, and a hook
+    // listener may edit the `stateBefore` it receives.
+    hot._getOperationScope().describe({
+      stateBefore: deepClone(stateBefore), range: deepClone(selectedRange), type, alignment,
+    });
     hot.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
     align(selectedRange, type, alignment, (row: number, col: number) => getUserClassNameDescriptor(hot, row, col),
       (row: number, col: number, key: string, value: string) => hot.setCellMeta(row, col, key, value));

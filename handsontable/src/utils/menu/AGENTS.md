@@ -85,7 +85,7 @@ Two shipped bugs came from ignoring this. Both `.replace()`-based: #7427 (an arr
 
 Match alignment classes by exact token (`classNames.includes('htRight')`), as `../../plugins/exportFile/types/xlsx/cell-style.ts` already does — never `indexOf`/`includes` on the raw string.
 
-The `stateBefore` snapshot that `beforeCellAlignment` and the undo step's description receive holds the alignment tokens only (`getAlignmentClassNames()`, `menu/utils.ts`), and `undefined` for a cell with none (DEV-857). It used to carry the cell's whole user `className`, so a custom class such as `htBlue` showed up as alignment state. Narrow the snapshot, never the write: `align()` still keeps the custom classes, and undo replays the cell meta journal, not `stateBefore`. Pinned by `menu/__tests__/utils.unit.js` and `tests/e2e/context-menu-alignment-state-before.spec.ts`.
+The `stateBefore` snapshot that `beforeCellAlignment` and the undo step's description receive holds the alignment tokens only (`getAlignmentClassNames()`, `utils.ts`), and `undefined` for a cell with none (DEV-857). It used to carry the cell's whole user `className`, so a custom class such as `htBlue` showed up as alignment state. Narrow the snapshot, never the write: `align()` still keeps the custom classes, and undo replays the cell meta journal, not `stateBefore`. Pinned by `__tests__/utils.unit.js` and `tests/e2e/context-menu-alignment-state-before.spec.ts`.
 
 ## `filterSeparators()` drops separators only, never an item for sharing a label (DEV-868)
 

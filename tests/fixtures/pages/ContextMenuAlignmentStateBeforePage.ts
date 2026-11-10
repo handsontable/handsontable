@@ -83,6 +83,16 @@ export class ContextMenuAlignmentStateBeforePage {
   }
 
   /**
+   * Make the fixture's `beforeCellAlignment` listener delete every entry of the `stateBefore` it
+   * receives, after it has logged it.
+   */
+  async mutateStateBeforeInHook(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { mutateStateBefore: boolean }).mutateStateBefore = true;
+    });
+  }
+
+  /**
    * Undo the last step with the keyboard, as a user does, and wait for `afterUndo` to have run.
    */
   async undo(): Promise<void> {

@@ -51,6 +51,27 @@ test.describe('stateBefore of the beforeCellAlignment hook', () => {
     expect(await grid.alignmentLog()).toEqual([[[3, [null]]]]);
   });
 
+  test('leaves out the alignment class a renderer adds', async () => {
+    // The precondition: the numeric cell shows right-aligned through the renderer's class alone.
+    await expect(grid.cell(4, 1)).toHaveClass(/htRight/);
+
+    await grid.selectCells([4, 1]);
+    await grid.alignThroughMenu([4, 1], 'Left');
+
+    expect(await grid.alignmentLog()).toEqual([[[4, [null, null]]]]);
+  });
+
+  test('keeps the undo step intact when a hook listener edits stateBefore', async () => {
+    await grid.mutateStateBeforeInHook();
+    await grid.selectCells([1, 0]);
+    await grid.alignThroughMenu([1, 0], 'Left');
+    await grid.undo();
+
+    // The listener emptied the object it was given. The undo listeners must still see the snapshot.
+    expect(await grid.alignmentLog()).toEqual([[[1, ['htCenter']]]]);
+    expect(await grid.undoLog()).toEqual([[[1, ['htCenter']]]]);
+  });
+
   test('reports every cell of a multi-row selection', async () => {
     await grid.selectCells([0, 0], [3, 0]);
     await grid.alignThroughMenu([3, 0], 'Right');
