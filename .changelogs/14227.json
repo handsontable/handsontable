@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where row headers were shorter than their rows after a trim, a filter, or the removal of its first row re-anchored a merged cell with `autoRowSize` enabled.",
+  "type": "fixed",
+  "issueOrPR": 14227,
+  "breaking": false,
+  "framework": "none"
+}

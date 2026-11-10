@@ -2218,7 +2218,22 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   `top_inline_end_corner` and `bottom_inline_end_corner` draw their own slice, clamped to their rendered
   columns like the start corners. Without them the edge stopped short of the end band. A hit test is the
   only test that sees it, because the `top` or `bottom` clone's slice is still in the DOM, just covered
-  (`tests/e2e/frozen-seam-edge-end-corners.spec.ts`).
+  (`tests/e2e/frozen-seam-edge-end-corners.spec.ts`). Which overlay draws which line is read from
+  `getOverlaySegment`, never from a list of overlay names: a hand-written list is how the end corners were
+  left out.
+- **The end corners start a row-freeze edge on their first cell when that cell draws the freeze line.**
+  `drawHorizontalFreezeEdge` starts an edge one pixel before its first cell, onto the border the previous
+  column draws. That holds in the end corners only while the band stands on the last scrollable column
+  (scrolled to the end). Scrolled partway, the band's first cell draws the end freeze line itself, and the
+  corner's holder does not clip, so the shifted edge showed a 1px stub outside the selection.
+  `Border#getFreezeEdgeStartShift` asks `InlineEndOverlay#isFreezeLineShared()` there, which reads the
+  current scroll position, and only for an edge that starts on the band's first column: an edge that starts
+  on a later column of the band keeps the shift, onto the gridline the column before it draws. Do not read the cell's computed border instead: `htFreezeLineShared` is toggled
+  only after the clones draw, so the border describes the previous scroll position (a scroll from the end
+  to partway kept the stub until the next render), and an RTL numeric or time cell (`dir="ltr"`) carries
+  its inline-start border on the left. The spec measures the signed offset of the corner's edges against
+  the band's first cell, with the side taken from the grid's direction: a hit test half a pixel off the
+  band's edge returns the corner's cell either way.
 - **Known limitation: a selection that crosses the freeze line shows a seam line, on both sides.** An area
   that spans the last scrollable column and the first end column is drawn once by the master and once by the
   end clone, each clamped to what it renders, so the clone draws an edge on its own start boundary inside the
