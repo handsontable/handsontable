@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a merged cell drawn from a formerly covered cell that kept stale hidden and non-copyable flags after a row or column move, which left its text unmeasured by AutoRowSize and empty on copy.",
+  "title": "Fixed a merged cell whose text was not measured by AutoRowSize and copied as empty after a row move, a column move, or a column freeze.",
   "type": "fixed",
   "issueOrPR": 14245,
   "breaking": false,

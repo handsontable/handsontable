@@ -287,13 +287,22 @@ hooks). Five rules keep it narrow:
   `row`/`col` (authoritative while nothing is trimmed). It does not call the re-anchor on the untrimmed path:
   that pass is kept off it on purpose (see "`translateAfterAxisMove` re-adds purged merges"), and it can relocate
   merges on a sorted grid.
+- **A move also releases cells from a merge, and those are cleaned too.** A merge a move breaks into single cells
+  (`translateAfterAxisMove` drops every 1x1 fragment) or a row or column that leaves a merge covers cells no merge
+  covers afterwards, and nothing else would ever clean their stored `hidden` and `copyable: false`.
+  `#clearCoveredFlagsOfReleasedCells` walks the pre-move footprint of every merge the move split or dropped, built
+  from the move snapshot (the moved axis) and the merge's own span on the other axis, which a move does not
+  change, and cleans the cells the lookup matrix no longer holds a merge for. A merge replaced by one block of
+  the same size is skipped: it covers the same cells and its top-left is handled by the pass above. It runs only
+  while no row is trimmed. **Known limit:** the span keys (`spanned`, `rowspan`, `colspan`) of a former top-left
+  that no merge is drawn from any more stay on the cell, so `getCellMeta()` reports a span nothing backs.
 - **It does not live in `afterGetCellMeta`.** That hook runs on every meta read; clearing there would delete a
   user's `copyable` on every read and pay for the check on every cell.
 - **It costs one meta manager lookup per merge per re-anchor and per axis move**, next to the pass over the merge's anchor rows
   that the re-anchor makes already, and no lookup in the merge collection, so the counts pinned by
   `__tests__/mergeCountScaling.unit.js` stay flat.
 
-Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` (the move and freeze cases are in its `after a move or a freeze that splits the merge` block) and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
+Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` (the move, freeze and released-cell cases are in its `after a move or a freeze that splits the merge` block) and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
 
 **While rows are trimmed, `updatePlugin()` keeps the merge of an area it cannot place.** Settings describe
 visual positions. An area that fits the rows on screen is applied to them, exactly as before and as the

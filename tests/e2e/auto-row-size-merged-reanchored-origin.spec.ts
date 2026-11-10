@@ -36,8 +36,8 @@ test.describe('row headers beside a merge that a trim or a filter drew from anot
    * Builds the control grid: the block the trim leaves, made in place with nothing hidden, and the text in
    * its first cell. Returns the height of the tallest row once it has settled.
    */
-  async function controlTallestRow(settings: GridSettings, row: number): Promise<number> {
-    await grid.build(settings, { row, col: 4, value: LINES });
+  async function controlTallestRow(settings: GridSettings, row: number, col = 4): Promise<number> {
+    await grid.build(settings, { row, col, value: LINES });
     await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
     await expect.poll(() => grid.misalignedRows()).toEqual([]);
 
@@ -128,6 +128,21 @@ test.describe('row headers beside a merge that a trim or a filter drew from anot
     await expect.poll(tallestRow).toBe(control);
     // A copy quotes a value that holds line breaks.
     expect(await grid.copyableText(1, 4)).toBe(`"${LINES}"`);
+  });
+
+  test('freezing the second column of the merge, then writing the text', async() => {
+    // The freeze takes column 5 to the first position and splits the merge into two blocks of one column.
+    const control = await controlTallestRow({ mergeCells: [{ row: 1, col: 0, rowspan: 3, colspan: 1 }] }, 1, 0);
+
+    await grid.buildWithoutText({ mergeCells: TALL_MERGE, manualColumnFreeze: true });
+    await grid.callPlugin('manualColumnFreeze', 'freezeColumn', 5);
+    await grid.setDataAtCell(1, 0, LINES);
+
+    await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
+    await expect.poll(() => grid.misalignedRows()).toEqual([]);
+    await expect.poll(tallestRow).toBe(control);
+    // A copy quotes a value that holds line breaks.
+    expect(await grid.copyableText(1, 0)).toBe(`"${LINES}"`);
   });
 
   // A guard, not a repro of the bug: the untrim makes the original cell the top-left again, and that cell never

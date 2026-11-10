@@ -13,6 +13,7 @@ export interface GridSettings {
   filters?: boolean;
   manualRowMove?: boolean;
   manualColumnMove?: boolean;
+  manualColumnFreeze?: boolean;
   height?: number;
   dataRows?: number;
 }
@@ -26,7 +27,8 @@ export type PluginCall =
   | ['hiddenColumns', 'showColumns' | 'hideColumns', number[]]
   | ['trimRows', 'trimRows' | 'untrimRows', number[]]
   | ['manualRowMove', 'moveRow', number, number]
-  | ['manualColumnMove', 'moveColumn', number, number];
+  | ['manualColumnMove', 'moveColumn', number, number]
+  | ['manualColumnFreeze', 'freezeColumn', number];
 
 /**
  * A row whose row header is not as tall as the row beside it.
