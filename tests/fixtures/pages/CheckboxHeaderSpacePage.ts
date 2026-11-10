@@ -6,6 +6,9 @@ import { awaitBundle } from '../bundle';
 interface FixtureWindow {
   hot: {
     getData(): unknown[][];
+    getShortcutManager(): {
+      getContext(name: string): { addShortcut(shortcut: Record<string, unknown>): void } | undefined,
+    };
     getSelectedRangeActive(): { highlight: { row: number, col: number } } | undefined;
     getSelectedRange(): unknown[] | undefined;
     addHook(name: string, callback: (...args: unknown[]) => void): void;
@@ -80,6 +83,32 @@ export class CheckboxHeaderSpacePage {
         }
       });
     });
+  }
+
+  /**
+   * Registers a grid Space shortcut of its own and counts its calls in `window.spaceCalls`. The key reaches it
+   * only when the checkbox shortcut lets the key through.
+   */
+  async countSpaceShortcutCalls(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as FixtureWindow & { spaceCalls: number };
+
+      win.spaceCalls = 0;
+      win.hot.getShortcutManager().getContext('grid')?.addShortcut({
+        keys: [['Space']],
+        callback: () => {
+          win.spaceCalls += 1;
+        },
+        group: 'spaceProbe',
+      });
+    });
+  }
+
+  /**
+   * Returns how many times the shortcut of `countSpaceShortcutCalls()` ran.
+   */
+  async spaceShortcutCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { spaceCalls: number }).spaceCalls);
   }
 
   /**

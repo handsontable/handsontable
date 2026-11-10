@@ -72,7 +72,7 @@ test.describe('Space on a selected header with navigableHeaders', () => {
     ]);
   });
 
-  test('toggles every checkbox of the grid from the selected corner', async({ page, theme, bundle }) => {
+  test('toggles every checkbox of the grid after a corner click', async({ page, theme, bundle }) => {
     const grid = new CheckboxHeaderSpacePage(page, theme, bundle);
 
     await grid.goto();
@@ -106,28 +106,32 @@ test.describe('Space on a selected header with navigableHeaders', () => {
     ]);
   });
 
-  test('leaves the cell under a leftover header-cell layer alone', async({ page, theme, bundle }) => {
-    const grid = new CheckboxHeaderSpacePage(page, theme, bundle);
+  for (const key of ['Space', 'Delete']) {
+    test(`leaves the cell under a leftover header-cell layer alone on ${key}`, async({ page, theme, bundle }) => {
+      const grid = new CheckboxHeaderSpacePage(page, theme, bundle);
 
-    await grid.goto();
-    // The first layer is the header cell above the checkbox column, reached with the keyboard.
-    await grid.cell(1, 0).click();
-    await page.keyboard.press('ArrowUp');
-    await page.keyboard.press('ArrowUp');
-    await page.keyboard.press('ArrowRight');
+      await grid.goto();
+      // The first layer is the header cell above the checkbox column, reached with the keyboard.
+      await grid.cell(1, 0).click();
+      await page.keyboard.press('ArrowUp');
+      await page.keyboard.press('ArrowUp');
+      await page.keyboard.press('ArrowRight');
 
-    expect(await grid.focus()).toEqual({ row: -1, col: 1, layers: 1 });
+      expect(await grid.focus()).toEqual({ row: -1, col: 1, layers: 1 });
 
-    // The second layer, and the focus, is a text cell.
-    await grid.cell(2, 0).click({ modifiers: ['ControlOrMeta'] });
-    await grid.countChanges();
-    await page.keyboard.press('Space');
+      // The second layer, and the focus, is a text cell.
+      await grid.cell(2, 0).click({ modifiers: ['ControlOrMeta'] });
+      await grid.countChanges();
+      await grid.countSpaceShortcutCalls();
+      await page.keyboard.press(key);
 
-    // Nothing in the selection holds a checkbox, so the key writes nothing; before, it flipped the
-    // checkbox under the header cell.
-    expect(await grid.changeCount()).toBe(0);
-    expect(await grid.data()).toEqual(INITIAL);
-  });
+      // The selection holds no checkbox, so the key writes nothing to one: the header cell's layer is not a cell.
+      expect(await grid.data()).toEqual(key === 'Space' ? INITIAL : INITIAL.map(row => row.map((value, col) => (
+        row[0] === 'c' && col === 0 ? null : value))));
+      // Space is not consumed, so a shortcut registered after the checkbox one still receives it.
+      expect(await grid.spaceShortcutCalls()).toBe(key === 'Space' ? 1 : 0);
+    });
+  }
 
   test('leaves a header-selected text column alone and opens no editor', async({ page, theme, bundle }) => {
     const grid = new CheckboxHeaderSpacePage(page, theme, bundle);

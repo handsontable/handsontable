@@ -305,32 +305,17 @@ export function checkboxRenderer(
   }
 
   /**
-   * Whether the active selection layer holds cells the toggle can write. That is a layer whose focus is on
-   * a cell, or one made through a column or row header, or the corner, where `navigableHeaders` parks the
-   * focus on the header although the range covers the cells under it. A lone header cell holds no cell.
+   * Whether the active selection layer holds cells the toggle can write. A layer made through a column
+   * or row header, or the corner, does, although `navigableHeaders` parks the focus on the header. A layer
+   * that is a lone header cell does not.
    *
    * @private
    * @returns {boolean}
    */
   function isCellContentSelected(): boolean {
-    const { selection } = hotInstance;
-    const highlight = hotInstance.getSelectedRangeActive()?.highlight;
+    const range = hotInstance.getSelectedRangeActive();
 
-    if (!highlight) {
-      return false;
-    }
-
-    if (highlight.isCell()) {
-      return true;
-    }
-
-    // The header flags are kept per layer, and the highlight belongs to the active one. The corner flag
-    // is read from the last layer only, so it counts when that layer is the active one.
-    const layer = selection.getActiveSelectionLayerIndex();
-
-    return highlight.isHeader() && (
-      selection.isSelectedByColumnHeader(layer) || selection.isSelectedByRowHeader(layer) ||
-      (layer === selection.getLayerLevel() && selection.isSelectedByCorner()));
+    return !!range && !range.isHeader();
   }
 
   /**
@@ -359,12 +344,10 @@ export function checkboxRenderer(
       const { row: startRow, col: startColumn } = selRange[key].getTopStartCorner();
       const { row: endRow, col: endColumn } = selRange[key].getBottomEndCorner();
 
-      // A layer made of a header cell alone holds no cell: its corners read as row or column 0, which
-      // would toggle the cell under the header. Delete and Backspace keep their layers as they were.
-      const isHeaderOnlyLayer = !uncheckCheckbox && selRange[key].isHeader();
-
+      // A layer made of header cells alone holds no cell: its corners read as row or column 0, which
+      // would toggle the cell under the header.
       if (startRow === null || startColumn === null || endRow === null || endColumn === null ||
-        isHeaderOnlyLayer) {
+        selRange[key].isHeader()) {
         continue;
       }
 
@@ -516,7 +499,8 @@ export function checkboxRenderer(
       const topLeft = selRange[key].getTopStartCorner();
       const bottomRight = selRange[key].getBottomEndCorner();
 
-      if (topLeft.row === null || topLeft.col === null || bottomRight.row === null || bottomRight.col === null) {
+      if (topLeft.row === null || topLeft.col === null || bottomRight.row === null || bottomRight.col === null ||
+        selRange[key].isHeader()) {
         continue;
       }
 
