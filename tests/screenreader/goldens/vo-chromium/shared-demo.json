@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "shared-demo",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T14:42:10.740Z"
+  },
+  "steps": {
+    "arrow-right-past-hidden": "sell date 1 1 20 column 2 row tagcat 1 1 1 20 unchecked 10 0 1 00 1000000 united kingdom",
+    "up-to-header": "sell date menu pop up column 3 row select whole grid company name sell date in stock qty progress rating order id country",
+    "sort-ascending": "",
+    "right-to-in-stock": "in stock menu pop up column 4 row select whole grid company name sell date in stock qty progress rating order id country",
+    "add-to-sort": "",
+    "left-to-first-sort": "sell date 1 menu pop upsort up column 3 row select whole grid company name sell date 1 in stock 2 qty progress rating order id country"
+  }
+}

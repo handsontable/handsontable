@@ -14,7 +14,7 @@
       "id": "down-past-hidden-row",
       "action": {"press": "ArrowDown"},
       "expect": [["emily wilson"]],
-      "note": "The setup hides Robert Johnson's row (the hiddenRows plugin, with indicators) and selects Jane Smith's Name. ArrowDown skips the hidden row to Emily Wilson. The ARIA row index stays contiguous: Emily Wilson is row 7, after the four header rows, as if the hidden row did not exist. Required: the value."
+      "note": "The setup hides Robert Johnson's row (the hiddenRows plugin, with indicators) and selects Jane Smith's Name. ArrowDown skips the hidden row to Emily Wilson. The ARIA row index stays contiguous: Emily Wilson is row 7, after the four header rows, as if the hidden row did not exist. Required: the value. Every reader reads this scenario's groups; NVDA with Chromium names wrong rows and headers for the frozen row and the header levels (`row 30`, `B E I`), the overlay clones' known finding."
     },
     {
       "id": "up-past-hidden-row",

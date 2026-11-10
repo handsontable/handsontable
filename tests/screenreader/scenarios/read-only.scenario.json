@@ -12,7 +12,7 @@
       "id": "arrow-right-read-only",
       "action": {"press": "ArrowRight"},
       "expect": [["b1", "b 1"], ["read only"]],
-      "note": "The page holds three grids; the setup selects A1 of the second, which sets `readOnly: true` and its default dimmed styling. ArrowRight moves to B1. Every cell carries `aria-readonly`. Required: the value (NVDA says `B 1`) and the read-only state. The page's first item is a heading over the first grid, so the reader starts on the page (`start: page`): with `start: grid` VoiceOver entered on that heading and, with Chromium, never followed the focus into the second grid."
+      "note": "The page holds three grids; the setup selects A1 of the second, which sets `readOnly: true` and its default dimmed styling. ArrowRight moves to B1. Every cell carries `aria-readonly`. Required: the value (NVDA says `B 1`) and the read-only state. The page's first item is a heading over the first grid, so the reader starts on the page (`start: page`): with `start: grid` VoiceOver entered on that heading and, with Chromium, never followed the focus into the second grid. Finding: no reader says read only, on any step; VoiceOver with WebKit says nothing on this first key."
     },
     {
       "id": "enter-on-read-only",

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "complex-demo",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T14:38:31.333Z"
+  },
+  "steps": {
+    "down-past-hidden-row": "name emily wilson column 2 row checked true emily wilson 27 home decor ipad pro australia sydney 09 02 2023 12 00 pm",
+    "up-past-hidden-row": "name jane smith column 2 row unchecked false jane smith 28 fashion canada toronto 09 01 2023 02 15 pm",
+    "up-to-frozen-row": "name john doe column 3 row 1 checked true john doe 30 electronics iphone 13 pro usa new york 08 25 2023 08 30 am",
+    "up-to-header": "name menu pop up column 3 row select whole grid active name password age interest favorite product country city last login date last login time",
+    "up-to-group-i": "i expanded column 3 row select whole grid h i j k l m",
+    "up-to-group-e": "e expanded column 3 row select whole grid d e f g",
+    "up-to-group-b": "b expanded column 3 row select whole grid a b c"
+  }
+}

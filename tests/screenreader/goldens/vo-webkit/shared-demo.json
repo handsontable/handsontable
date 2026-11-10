@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "shared-demo",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T14:42:10.453Z"
+  },
+  "steps": {
+    "arrow-right-past-hidden": "",
+    "up-to-header": "sell date menu pop up",
+    "sort-ascending": "sell date menu pop upsort up",
+    "right-to-in-stock": "in stock menu pop up",
+    "add-to-sort": "in stock 2 menu pop upsort up",
+    "left-to-first-sort": "sell date 1 menu pop upsort up"
+  }
+}
