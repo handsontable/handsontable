@@ -3006,7 +3006,8 @@ export class MergeCells extends BasePlugin {
    *
    * The flags are removed only where `hidden` is stored on the cell itself: that is the mark of a cell a
    * merge covered, and the hook wrote `copyable` next to it. A `copyable` the user stored on the cell through
-   * `setCellMeta()` or the `cell` option stays, because the hook writes its flag without recording it.
+   * `setCellMeta()` or the `cell` option stays, because the hook writes its flag without recording it. Only a
+   * recorded `false` is still the user's value: the hook overwrote a recorded `true` while the merge covered the cell.
    * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
    * The check costs one meta lookup per merge and no lookup in the merge collection.
    *
@@ -3024,7 +3025,7 @@ export class MergeCells extends BasePlugin {
     metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
 
     // The merge stores `hidden` through `setCellMeta()`, but the hook writes `copyable` straight onto the stored
-    // object and never records it. A `copyable` that is recorded is the user's, so it stays.
+    // object and never records it. A recorded `copyable` is left alone (a recorded `true` was already overwritten by the hook).
     if (!metaManager.getCellMetaKeyState(physicalRow, physicalColumn, 'copyable').hadOwn) {
       metaManager.removeCellMeta(physicalRow, physicalColumn, 'copyable');
     }

@@ -271,8 +271,9 @@ hooks). Four rules keep it narrow:
   because a relocation also happens when only the span changes (the last row of the merge trimmed). On a cell that
   was covered, `hidden` goes always (the merge stored it through `setCellMeta()`), and `copyable` goes only when the
   meta manager has no record of it (`getCellMetaKeyState(…).hadOwn` is `false`): the hook writes `copyable` straight
-  onto the stored object, so a recorded one was set by the user through `setCellMeta()` or the `cell` option and
-  stays.
+  onto the stored object, so a recorded one was set by the user through `setCellMeta()` or the `cell` option. Only a
+  recorded `false` survives as the user's value: while the merge covered the cell the hook overwrote a recorded `true`
+  with `false` (as on `develop`), and that stays too.
 - **It is not gated on a relocation.** A new top-left can leave the merge's derived geometry as it was: swap the
   trimmed row in one cache update (the visual row and the span stay), or remove the merge's first row with
   `alter('remove_row')` (the physical rows renumber). Neither queues a relocation, and both left `hidden` on the
