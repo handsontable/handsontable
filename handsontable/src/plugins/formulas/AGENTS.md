@@ -446,7 +446,9 @@ rules:
     | 10,000 x 20, 30 drags to top | 9,001 | 1.2 to 2.2 s | 1.7 to 3.9 s | 30 moves, 459 to 470 ms |
 
     A reorder the choice sends as one order records its shifts like a sort. Known limit: such an order keeps the
-    old `#REF!` behavior.
+    old `#REF!` behavior. That includes five or more separate short drags on a tall grid (1,000 or 10,000 rows):
+    past the four moves that always go, each short move is priced against an order of a few lines, so the reload
+    sends one order, as develop does.
 - **The hold's release follows the reload rule** (`AxisSyncer#setOrderHeld(false)`). The engine fed its content
   again inside `runWithEngineOrderHeld()` (`#reloadedWhileHeld`, set by `#applyInitialOrder()` while held) holds it
   in physical order, so the release sends an order reached by moves as moves, unless an order change other than a
