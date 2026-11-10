@@ -13,7 +13,7 @@
       "id": "open-editor",
       "action": {"press": "Enter"},
       "expect": [["formula editor"]],
-      "note": "Enter opens the formula editor on C1, which holds `=A1+B1`."
+      "note": "Enter opens the formula editor on C1, which holds `=A1+B1`. VoiceOver with WebKit says nothing on this first key after it enters the page, as on other pages."
     },
     {
       "id": "select-all",
@@ -25,7 +25,7 @@
       "id": "type-su",
       "action": {"type": "=SU"},
       "expect": [["substitute"]],
-      "note": "Typing `=SU` opens the suggestions list (`listbox`, `Formula suggestions`) with its first function, SUBSTITUTE, highlighted through `aria-activedescendant`. Required: the highlighted function."
+      "note": "Typing `=SU` opens the suggestions list (`listbox`, `Formula suggestions`) with its first function, SUBSTITUTE, highlighted through `aria-activedescendant`. Required: the highlighted function (NVDA `Formula suggestions, list. SUBSTITUTE, 1 of 14`; VoiceOver with Chromium reads the options as menu items). Finding: VoiceOver with WebKit reads only the typed text, `=SU`, and not the list or the highlighted function; it reads the next two."
     },
     {
       "id": "down-to-subtotal",
@@ -43,7 +43,7 @@
       "id": "accept-sum",
       "action": {"press": "Tab"},
       "expect": [["sum"]],
-      "note": "Tab inserts `SUM(` and closes the list; the editor now describes the function (`SUM(any, ...)`). Required: the inserted function."
+      "note": "Tab inserts `SUM(` and closes the list; the editor now describes the function (`SUM(any, ...)`). Required: the inserted function (`equals SUM()`, `=SUM()`: the editor closes the parenthesis)."
     },
     {
       "id": "close-help",

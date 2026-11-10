@@ -14,13 +14,13 @@
       "action": {"press": "ArrowRight"},
       "expect": [["3"], ["formula"]],
       "severity": {"formula": "moderate"},
-      "note": "ArrowRight selects C1, which holds `=A1+B1` and shows its result, `3`. Required: the value, and that the cell holds a formula. The second group is moderate: the value a reader says is right, and a spreadsheet's screen reader support says a cell has a formula, which the grid exposes nowhere."
+      "note": "ArrowRight selects C1, which holds `=A1+B1` and shows its result, `3`. Required: the value, and that the cell holds a formula. The second group is moderate: the value a reader says is right, and a spreadsheet's screen reader support says a cell has a formula, which the grid exposes nowhere. Finding: no reader says it; each reads `3` as a typed value would read (VoiceOver with WebKit says nothing)."
     },
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
       "expect": [["formula editor"], ["a1", "a 1"]],
-      "note": "Enter opens the formula editor in the cell (`combobox`, `Formula editor`), holding `=A1+B1`. Required: the editor's name and the formula, here its first reference."
+      "note": "Enter opens the formula editor in the cell (`combobox`, `Formula editor`), holding `=A1+B1`. Required: the editor's name and the formula, here its first reference (NVDA `equals A 1 plus B 1`, VoiceOver `=A1+B1`)."
     },
     {
       "id": "cancel-edit",
@@ -38,13 +38,13 @@
       "id": "shift-tab-to-bar",
       "action": {"press": "Shift+Tab"},
       "expect": [["formula editor"]],
-      "note": "Shift+Tab moves the focus to the formula bar's editor, which opens an edit of the cell the grid focused last. Required: the editor's name."
+      "note": "Shift+Tab moves the focus to the formula bar's editor, which opens an edit of the cell the grid focused last, A1. Required: the editor's name; every reader says it, with A1's value."
     },
     {
       "id": "shift-tab-to-address",
       "action": {"press": "Shift+Tab"},
       "expect": [["cell address"]],
-      "note": "Shift+Tab again moves to the address box, `Cell address`; the bar's edit closes and the cell keeps its value. Required: the box's name."
+      "note": "Shift+Tab again moves to the address box, `Cell address`; the bar's edit closes and the cell keeps its value. Required: the box's name; every reader says it, with the address, `A1`."
     },
     {
       "id": "tab-to-bar",
