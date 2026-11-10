@@ -13,8 +13,9 @@ type RowHeaderWidthValue = number | Array<number | null | undefined> | null | un
  *
  * The hook gets the `rowHeaderWidth` setting as it is, a per-level number or a per-level array, and
  * never a total of the levels. Its answer is read by the same rule: a number is the width of each
- * level, an array gives each level its own entry. A level the answer does not cover, or covers with
- * something that is not a finite number, gets the default column width.
+ * level, an array gives each level its own entry. No answer (`null` or `undefined`, which is also
+ * what an unset `onModifyRowHeaderWidth` setting gives) keeps the setting. A level the answer does
+ * not cover, or covers with something that is not a finite number, gets the default column width.
  *
  * @param {object} wtSettings The Walkontable settings.
  * @returns {number[]} One width per rendered row header level.
@@ -27,7 +28,7 @@ export function resolveRowHeaderWidths(wtSettings: Pick<SettingsPort, 'getSettin
   }
 
   const setting = wtSettings.getSetting<RowHeaderWidthValue>('rowHeaderWidth');
-  const answer = wtSettings.getSetting<RowHeaderWidthValue>('onModifyRowHeaderWidth', setting);
+  const answer = wtSettings.getSetting<RowHeaderWidthValue>('onModifyRowHeaderWidth', setting) ?? setting;
   const defaultColumnWidth = wtSettings.getSetting<number>('defaultColumnWidth');
   const widths = new Array<number>(levels);
 

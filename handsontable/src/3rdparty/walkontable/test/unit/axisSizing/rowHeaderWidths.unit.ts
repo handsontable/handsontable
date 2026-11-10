@@ -15,16 +15,19 @@ type HeaderWidth = number | Array<number | null | undefined> | null | undefined;
  * @param {*} options.rowHeaderWidth The `rowHeaderWidth` setting.
  * @param {number} options.levels How many row header levels are rendered.
  * @param {Function} [options.onModify] The `onModifyRowHeaderWidth` setting.
+ * @param {boolean} [options.hookUnset] Leaves `onModifyRowHeaderWidth` at the Walkontable default (`null`).
  * @returns {object}
  */
 function createSettings({
   rowHeaderWidth,
   levels,
   onModify,
+  hookUnset = false,
 }: {
   rowHeaderWidth: HeaderWidth,
   levels: number,
   onModify?: (width: HeaderWidth) => HeaderWidth,
+  hookUnset?: boolean,
 }) {
   const rowHeaders = Array.from({ length: levels }, () => () => {});
 
@@ -38,6 +41,10 @@ function createSettings({
         case 'defaultColumnWidth':
           return DEFAULT_WIDTH;
         case 'onModifyRowHeaderWidth':
+          if (hookUnset) {
+            return null;
+          }
+
           return onModify ? onModify(param1 as HeaderWidth) : param1;
         default:
           return undefined;
@@ -116,10 +123,22 @@ describe('resolveRowHeaderWidths', () => {
       .toEqual([80, DEFAULT_WIDTH]);
   });
 
+  it('should keep the configured width when no hook is set', () => {
+    expect(resolveRowHeaderWidths(createSettings({ rowHeaderWidth: 80, levels: 2, hookUnset: true })))
+      .toEqual([80, 80]);
+    expect(resolveRowHeaderWidths(createSettings({ rowHeaderWidth: [60, 40], levels: 2, hookUnset: true })))
+      .toEqual([60, 40]);
+  });
+
+  it('should keep the configured width when the hook gives no answer', () => {
+    expect(resolveRowHeaderWidths(createSettings({ rowHeaderWidth: 80, levels: 2, onModify: () => null })))
+      .toEqual([80, 80]);
+    expect(resolveRowHeaderWidths(createSettings({ rowHeaderWidth: 80, levels: 2, onModify: () => undefined })))
+      .toEqual([80, 80]);
+  });
+
   it('should fall back to the default column width when the answer is not a usable width', () => {
-    expect(resolveRowHeaderWidths(createSettings({ rowHeaderWidth: 50, levels: 2, onModify: () => null })))
-      .toEqual([DEFAULT_WIDTH, DEFAULT_WIDTH]);
-    expect(resolveRowHeaderWidths(createSettings({ rowHeaderWidth: 50, levels: 2, onModify: () => NaN })))
+    expect(resolveRowHeaderWidths(createSettings({ rowHeaderWidth: 80, levels: 2, onModify: () => NaN })))
       .toEqual([DEFAULT_WIDTH, DEFAULT_WIDTH]);
   });
 
