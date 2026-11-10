@@ -1311,6 +1311,9 @@ class AxisSyncer {
       // the stored order takes the grid's new sequence, which names every line the engine can gain, so
       // `#fillSequence` has nothing to add. The padded elements stay, as the mapper renumbers them (see the
       // constructor); any other change starts over.
+      const engineHeldGridOrder = this.isEngineOrderPhysical()
+        && newSequence.every((physicalIndex, position) => physicalIndex === position);
+
       this.#indexesSequence = newSequence;
       this.#fillSequence = null;
       // The moves recorded under an order no longer lead to the grid's order once it changes again.
@@ -1320,9 +1323,13 @@ class AxisSyncer {
         this.#paddedElements = new Set<number>();
         this.#orderShifts = new Map<number, number>();
         this.#orderBase = null;
+
         // The grid's order was reset (`initIndexMappers()`, a `columns` update without `data`) and no engine
         // call followed it, so the engine still holds the order it had, and the order stored above is not it.
-        this.#indexSyncer.onOrderReset?.();
+        // An engine already in physical order holds the reset order, so nothing needs writing again.
+        if (!engineHeldGridOrder) {
+          this.#indexSyncer.onOrderReset?.();
+        }
       }
 
       this.#clearOrderShiftsWhenPhysical();

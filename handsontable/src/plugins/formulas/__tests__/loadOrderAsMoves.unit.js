@@ -571,6 +571,19 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       expectEveryRowReadsItsRecord(hot);
     });
 
+    it('writes nothing when a columns update without data resets an order the engine already holds', () => {
+      const engine = createEngine();
+      const hot = createGrid({ formulas: { engine } });
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+
+      // A Vue re-render sends `columns` without `data` whenever the columns change.
+      hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }, { data: 2 }] });
+      hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }, { data: 2 }] });
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expectEveryRowReadsItsRecord(hot);
+    });
+
     it('writes the sheet when a columns update without data resets the column order the user dragged', () => {
       const engine = createEngine();
       const hot = createGrid({
