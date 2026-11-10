@@ -264,7 +264,7 @@ moment ago, so its stored meta still holds `hidden` once it is the top-left. Aut
 `hidden`, so the text written into that cell was never measured and the row headers came out shorter than their
 rows (DEV-3971). `#reanchorMergesToVisibleRows` calls `#clearCoveredFlagsOfTopLeftCell` for every merge that has
 a visible top-left, and it removes `hidden` and `copyable` there through the meta manager (by physical index, no
-hooks). Four rules keep it narrow:
+hooks). Five rules keep it narrow:
 
 - **It acts only where `hidden` is an own stored key.** `hidden` marks a cell a merge covered, and the hook wrote
   `copyable` beside it. A top-left that was never covered keeps a `copyable: false` the user set, which matters
@@ -279,13 +279,21 @@ hooks). Four rules keep it narrow:
   `alter('remove_row')` (the physical rows renumber). Neither queues a relocation, and both left `hidden` on the
   new top-left while the gate was there. `alter('remove_col')` on the merge's first column reaches the re-anchor
   too (through `#onAfterRemoveCol`) and makes the next column's cell the top-left, so it is cleaned the same way.
+- **A row move, a column move and a column freeze clean it too.** A move that splits a merge draws a fragment
+  from a cell the merge covered before, and no re-anchor sees the split anchors while no row is trimmed
+  (DEV-3987). `#settleMergesAfterAxisMove` ends `#onAfterRowMove`, `#onAfterColumnMove` and
+  `#onAfterColumnFreeze`: with a row trimmed it runs the re-anchor as before, and without one it calls
+  `#clearCoveredFlagsOfTopLeftCell` for the cell each merge is drawn from, resolved from the merge's visual
+  `row`/`col` (authoritative while nothing is trimmed). It does not call the re-anchor on the untrimmed path:
+  that pass is kept off it on purpose (see "`translateAfterAxisMove` re-adds purged merges"), and it can relocate
+  merges on a sorted grid.
 - **It does not live in `afterGetCellMeta`.** That hook runs on every meta read; clearing there would delete a
   user's `copyable` on every read and pay for the check on every cell.
-- **It costs one meta manager lookup per merge per re-anchor**, next to the pass over the merge's anchor rows
+- **It costs one meta manager lookup per merge per re-anchor and per axis move**, next to the pass over the merge's anchor rows
   that the re-anchor makes already, and no lookup in the merge collection, so the counts pinned by
   `__tests__/mergeCountScaling.unit.js` stay flat.
 
-Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
+Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` (the move and freeze cases are in its `after a move or a freeze that splits the merge` block) and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
 
 **While rows are trimmed, `updatePlugin()` keeps the merge of an area it cannot place.** Settings describe
 visual positions. An area that fits the rows on screen is applied to them, exactly as before and as the
@@ -432,8 +440,8 @@ trimmed comes back into the matrix at its stale visual coordinates, over whateve
 there, and the replacement is a new object that `#purgedMerges` (a `WeakSet` keyed on identity) knows
 nothing about. On the row axis the mapper's `cacheUpdated` re-anchor ran *before* `afterRowMove`, so it
 could not see the replacements; on the column axis it never runs at all. Every axis-move handler therefore
-calls `#reanchorMergesToVisibleRows()` once more after `#captureMergeAnchors()`, gated on
-`#isRowTrimmingActive()`: fully trimmed merges are purged and flagged again, and the visible ones are left
+calls `#reanchorMergesToVisibleRows()` once more after `#captureMergeAnchors()`, through
+`#settleMergesAfterAxisMove()`, gated on `#isRowTrimmingActive()`: fully trimmed merges are purged and flagged again, and the visible ones are left
 alone because their replacements already sit where the re-anchor would put them. The gate keeps the pass
 off the untrimmed column-move path, where nothing can be purged. Two shapes reach this: a merge trimmed in
 one go keeps `rowspan >= 2` and drew a phantom multi-row merge over foreign rows (pre-existing on both

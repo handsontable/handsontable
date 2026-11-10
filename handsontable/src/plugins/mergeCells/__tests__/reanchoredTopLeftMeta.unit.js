@@ -240,4 +240,153 @@ describe('MergeCells re-anchored top-left cell meta', () => {
     expect(hot.getCellMeta(1, 4).hidden).toBeUndefined();
     expect(hot.getCellMeta(2, 4).hidden).toBe(true);
   });
+
+  describe('after a move or a freeze that splits the merge', () => {
+    const TEXT = 'new top-left text';
+
+    /**
+     * Asserts that no merge is drawn from a cell that still holds the flags it stored while covered.
+     * Reads the stored meta only, so the `afterGetCellMeta` hook cannot write the flags back first.
+     */
+    function expectEveryTopLeftWithoutCoveredFlags() {
+      const { mergedCells } = hot.getPlugin('mergeCells').mergedCellsCollection;
+
+      expect(mergedCells.length).toBeGreaterThan(0);
+
+      mergedCells.forEach(({ row, col }) => {
+        const physicalRow = hot.toPhysicalRow(row);
+        const physicalColumn = hot.toPhysicalColumn(col);
+
+        expect(hasStoredFlag(physicalRow, physicalColumn, 'hidden')).toBe(false);
+        expect(hasStoredFlag(physicalRow, physicalColumn, 'copyable')).toBe(false);
+      });
+    }
+
+    it('should clear the covered flags from the top-left of a fragment after `moveRow(1, 6)`', () => {
+      createGrid({ manualRowMove: true, autoRowSize: true });
+
+      // Precondition: the cell the fragment is drawn from stores the flags while the merge covers it.
+      expect(hasStoredFlag(2, 4, 'hidden')).toBe(true);
+
+      hot.getPlugin('manualRowMove').moveRow(1, 6);
+      hot.setSourceDataAtCell(2, 4, TEXT);
+
+      // The 2x2 fragment is drawn at visual (1, 4) from physical (2, 4).
+      expect(hot.toPhysicalRow(1)).toBe(2);
+      expect(hot.getCellMeta(1, 4).rowspan).toBe(2);
+      expect(hasStoredFlag(2, 4, 'hidden')).toBe(false);
+      expect(hasStoredFlag(2, 4, 'copyable')).toBe(false);
+      expectEveryTopLeftWithoutCoveredFlags();
+      expect(hot.getCellMeta(1, 4).hidden).toBeUndefined();
+      expect(hot.getCopyableText(1, 4, 1, 4)).toBe(TEXT);
+    });
+
+    it('should clear the covered flags from the top-left of a fragment after `moveRow(2, 0)`', () => {
+      createGrid({ manualRowMove: true, autoRowSize: true });
+
+      expect(hasStoredFlag(2, 4, 'hidden')).toBe(true);
+
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
+      hot.setSourceDataAtCell(2, 4, TEXT);
+
+      // Physical row 2 is the first visual row now, and the merge was split around it.
+      expect(hot.toPhysicalRow(0)).toBe(2);
+      expect(hasStoredFlag(2, 4, 'hidden')).toBe(false);
+      expectEveryTopLeftWithoutCoveredFlags();
+      expect(hot.getCellMeta(hot.toVisualRow(2), 4).hidden).toBeUndefined();
+      expect(hot.getCopyableText(hot.toVisualRow(2), 4, hot.toVisualRow(2), 4)).toBe(TEXT);
+    });
+
+    it('should clear the covered flags from the top-left of a fragment after `moveColumn(4, 8)`', () => {
+      createGrid({ manualColumnMove: true, autoRowSize: true });
+
+      expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 8);
+      hot.setSourceDataAtCell(1, 5, TEXT);
+
+      // The 3x1 fragment is drawn at visual (1, 4) from physical (1, 5).
+      expect(hot.toPhysicalColumn(4)).toBe(5);
+      expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+      expect(hasStoredFlag(1, 5, 'hidden')).toBe(false);
+      expect(hasStoredFlag(1, 5, 'copyable')).toBe(false);
+      expectEveryTopLeftWithoutCoveredFlags();
+      expect(hot.getCellMeta(1, 4).hidden).toBeUndefined();
+      expect(hot.getCopyableText(1, 4, 1, 4)).toBe(TEXT);
+    });
+
+    it('should clear the covered flags from the top-left of a fragment after a column freeze', () => {
+      createGrid({ manualColumnFreeze: true, autoRowSize: true });
+
+      hot.getPlugin('manualColumnFreeze').freezeColumn(5);
+      hot.setSourceDataAtCell(1, 5, TEXT);
+
+      // Physical column 5 is the first visual column now, and the merge was split between it and column 4.
+      expect(hot.toPhysicalColumn(0)).toBe(5);
+      expectEveryTopLeftWithoutCoveredFlags();
+      expect(hot.getCellMeta(1, 0).hidden).toBeUndefined();
+      expect(hot.getCopyableText(1, 0, 1, 0)).toBe(TEXT);
+    });
+
+    it('should clear the covered flags from the top-left of a fragment after a column unfreeze', () => {
+      // Columns 0-4 are frozen. Unfreezing column 0 puts it behind the frozen band, between the merge's two columns.
+      createGrid({ manualColumnFreeze: true, autoRowSize: true, fixedColumnsStart: 5 });
+
+      expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+
+      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
+      hot.setSourceDataAtCell(1, 5, TEXT);
+
+      // Physical column 0 sits at visual column 4 now, and the merge's columns 4 and 5 are two blocks apart.
+      expect(hot.toPhysicalColumn(4)).toBe(0);
+      expect(hot.getCellMeta(1, 5).rowspan).toBe(3);
+      expect(hasStoredFlag(1, 5, 'hidden')).toBe(false);
+      expect(hasStoredFlag(1, 5, 'copyable')).toBe(false);
+      expectEveryTopLeftWithoutCoveredFlags();
+      expect(hot.getCopyableText(1, hot.toVisualColumn(5), 1, hot.toVisualColumn(5))).toBe(TEXT);
+    });
+
+    it('should keep the covered flags on the cells the fragment still covers', () => {
+      createGrid({ manualRowMove: true });
+
+      hot.getPlugin('manualRowMove').moveRow(1, 6);
+
+      expect(hot.getCellMeta(1, 5).hidden).toBe(true);
+      expect(hot.getCellMeta(1, 5).copyable).toBe(false);
+      expect(hot.getCellMeta(2, 4).hidden).toBe(true);
+      expect(hot.getCellMeta(2, 5).hidden).toBe(true);
+    });
+
+    it('should keep a `copyable: false` the user set on a covered cell that a move makes the top-left', () => {
+      createGrid({ manualRowMove: true });
+
+      hot.setCellMeta(2, 4, 'copyable', false);
+      hot.getCellMeta(2, 4);
+
+      hot.getPlugin('manualRowMove').moveRow(1, 6);
+
+      expect(hot.toPhysicalRow(1)).toBe(2);
+      expect(hasStoredFlag(2, 4, 'hidden')).toBe(false);
+      expect(hot.getCellMeta(1, 4).hidden).toBeUndefined();
+      expect(hot.getCellMeta(1, 4).copyable).toBe(false);
+    });
+
+    it('should keep a `copyable: false` the user set on a top-left that was never covered', () => {
+      createGrid({ manualRowMove: true });
+
+      hot.setCellMeta(1, 4, 'copyable', false);
+
+      // The move leaves the merge alone: its top-left is the cell it always was.
+      hot.getPlugin('manualRowMove').moveRow(7, 8);
+
+      expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+      expect(hot.getCellMeta(1, 4).copyable).toBe(false);
+    });
+
+    it('should do nothing on a move when the grid has no merge', () => {
+      createGrid({ manualRowMove: true, mergeCells: true });
+
+      expect(() => hot.getPlugin('manualRowMove').moveRow(1, 6)).not.toThrow();
+    });
+  });
 });

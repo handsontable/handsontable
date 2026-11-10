@@ -3000,6 +3000,34 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Finishes the merges' bookkeeping after a row move, a column move or a column freeze, once the anchors
+   * are carried over.
+   *
+   * While a row is trimmed, `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup
+   * matrix; see the re-anchor's note on why nothing else takes it out again after a reorder. The re-anchor
+   * also clears the covered flags of every top-left.
+   *
+   * Without trimming there is nothing to re-anchor, but a split can still draw a fragment from a cell the
+   * merge covered before, so the flags are cleared from the top-left of every merge on its own.
+   */
+  #settleMergesAfterAxisMove() {
+    if (this.#isRowTrimmingActive()) {
+      this.#reanchorMergesToVisibleRows();
+
+      return;
+    }
+
+    this.mergedCellsCollection.mergedCells.forEach(({ row, col }) => {
+      const physicalRow = this.hot.toPhysicalRow(row);
+      const physicalColumn = this.hot.toPhysicalColumn(col);
+
+      if (physicalRow !== null && physicalColumn !== null) {
+        this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn);
+      }
+    });
+  }
+
+  /**
    * Removes `hidden` and `copyable` from the cell a merge is drawn from, when a merge covered it before.
    * While one did, `afterGetCellMeta` stored both on the cell. They do not describe the top-left any more,
    * and `hidden` makes AutoRowSize skip the cell, so the text of the merge was never measured.
@@ -3522,11 +3550,7 @@ export class MergeCells extends BasePlugin {
         'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
     this.#captureMergeAnchors();
 
-    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
-    // re-anchor's note on why nothing else takes it out again after a reorder.
-    if (this.#isRowTrimmingActive()) {
-      this.#reanchorMergesToVisibleRows();
-    }
+    this.#settleMergesAfterAxisMove();
 
     this.hot.render();
   };
@@ -3594,11 +3618,7 @@ export class MergeCells extends BasePlugin {
       this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers), 'row', plan?.context);
     this.#captureMergeAnchors();
 
-    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
-    // re-anchor's note on why nothing else takes it out again after a reorder.
-    if (this.#isRowTrimmingActive()) {
-      this.#reanchorMergesToVisibleRows();
-    }
+    this.#settleMergesAfterAxisMove();
 
     this.hot.render();
   };
@@ -3641,11 +3661,7 @@ export class MergeCells extends BasePlugin {
         'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
     this.#captureMergeAnchors();
 
-    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
-    // re-anchor's note on why nothing else takes it out again after a reorder.
-    if (this.#isRowTrimmingActive()) {
-      this.#reanchorMergesToVisibleRows();
-    }
+    this.#settleMergesAfterAxisMove();
 
     this.hot.render();
   };

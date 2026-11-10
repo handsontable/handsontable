@@ -6,9 +6,10 @@ import {
 
 /**
  * With AutoRowSize on, a merge whose first rows are trimmed or filtered out is drawn from the next visible
- * row. That cell was covered by the merge before, so MergeCells had stored `hidden` on it, and the sampler
- * skipped it: the text written into it afterwards was never measured. The master grew to the text and the
- * row headers kept the default height.
+ * row. A row or column move that splits a merge can draw a fragment from another cell the same way. That cell
+ * was covered by the merge before, so MergeCells had stored `hidden` on it, and the sampler skipped it: the text
+ * written into it afterwards was never measured. The master grew to the text and the row headers kept the
+ * default height.
  *
  * Every case builds the merge `{ row: 1, col: 4, rowspan: 3, colspan: 2 }` over 10 x 10 spreadsheet data,
  * hides or removes the merge's first row or rows, and then writes text into the cell the merge is drawn from. It expects
@@ -97,6 +98,36 @@ test.describe('row headers beside a merge that a trim or a filter drew from anot
     await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
     await expect.poll(() => grid.misalignedRows()).toEqual([]);
     await expect.poll(tallestRow).toBe(control);
+  });
+
+  test('moving the first row of the merge down, then writing the text', async() => {
+    // The move splits the merge: two of its rows stay together, drawn from the row that followed the moved one.
+    const control = await controlTallestRow({ mergeCells: [{ row: 1, col: 4, rowspan: 2, colspan: 2 }] }, 1);
+
+    await grid.buildWithoutText({ mergeCells: TALL_MERGE, manualRowMove: true });
+    await grid.callPlugin('manualRowMove', 'moveRow', 1, 6);
+    await grid.setDataAtCell(1, 4, LINES);
+
+    await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
+    await expect.poll(() => grid.misalignedRows()).toEqual([]);
+    await expect.poll(tallestRow).toBe(control);
+    // A copy quotes a value that holds line breaks.
+    expect(await grid.copyableText(1, 4)).toBe(`"${LINES}"`);
+  });
+
+  test('moving the first column of the merge away, then writing the text', async() => {
+    // The move leaves the merge's second column alone: a block of one column and three rows.
+    const control = await controlTallestRow({ mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }] }, 1);
+
+    await grid.buildWithoutText({ mergeCells: TALL_MERGE, manualColumnMove: true });
+    await grid.callPlugin('manualColumnMove', 'moveColumn', 4, 8);
+    await grid.setDataAtCell(1, 4, LINES);
+
+    await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
+    await expect.poll(() => grid.misalignedRows()).toEqual([]);
+    await expect.poll(tallestRow).toBe(control);
+    // A copy quotes a value that holds line breaks.
+    expect(await grid.copyableText(1, 4)).toBe(`"${LINES}"`);
   });
 
   // A guard, not a repro of the bug: the untrim makes the original cell the top-left again, and that cell never
