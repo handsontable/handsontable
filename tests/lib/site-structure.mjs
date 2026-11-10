@@ -401,8 +401,11 @@ export function consistencyFindings(page, reference, normalizeHref = href => hre
   const referenceNames = new Map();
 
   // One control is a target inside one landmark: the framework switcher's tab and the header's section link can both
-  // point at the section a page is in and still be two controls.
-  for (const link of reference.chromeLinks) {
+  // point at the section a page is in and still be two controls. A link to the page it is on (the current framework's
+  // tab, the current breadcrumb) points somewhere else on every page, so it identifies nothing across pages.
+  const self = (link, url) => normalizeHref(link.href, url) === normalizeHref(url, url);
+
+  for (const link of reference.chromeLinks.filter(item => !self(item, reference.url))) {
     const target = `${link.region ?? ''}|${normalizeHref(link.href, reference.url)}`;
 
     referenceNames.set(target, [...(referenceNames.get(target) ?? []), textKey(link.name)]);
@@ -410,7 +413,7 @@ export function consistencyFindings(page, reference, normalizeHref = href => hre
 
   const reported = new Set();
 
-  for (const link of page.chromeLinks) {
+  for (const link of page.chromeLinks.filter(item => !self(item, page.url))) {
     const key = `${link.region ?? ''}|${normalizeHref(link.href, page.url)}`;
     const target = normalizeHref(link.href, page.url);
     const expected = referenceNames.get(key);

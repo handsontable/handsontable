@@ -37,12 +37,14 @@ export const STATE_SIGNATURE = ['background-color', 'color', 'border-top-color',
  * @param {{width: number, scrollWidth: number}} input.viewport The viewport and the page's scroll width.
  * @param {Array<{selector: string, right: number}>} input.offenders The outermost elements that reach past the
  *   viewport's right edge outside every scroll container, widest first.
+ * @param {number} [input.exempt] How many elements past the edge are content 1.4.10 exempts (a data table, preformatted
+ *   code): a page they alone push wider passes, and one that scrolls with neither is named by `html`.
  * @returns {object[]} The findings.
  */
-export function pageReflowFindings({ condition, viewport, offenders }) {
+export function pageReflowFindings({ condition, viewport, offenders, exempt = 0 }) {
   const { criteria, label } = CONDITIONS[condition];
 
-  if (!criteria.includes('1.4.10') || viewport.scrollWidth <= viewport.width + TOLERANCE) {
+  if (!criteria.includes('1.4.10') || viewport.scrollWidth <= viewport.width + TOLERANCE || (offenders.length === 0 && exempt > 0)) {
     return [];
   }
 

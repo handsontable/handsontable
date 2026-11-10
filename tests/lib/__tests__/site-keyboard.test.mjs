@@ -124,6 +124,10 @@ test('1.4.10: a page wider than 320 px names its widest offender; at 200% a side
   assert.deepEqual(finding.measured, { scrollWidth: 330, width: 320, offenders: 'a "Contact" | a.status' });
   assert.deepEqual(pageReflowFindings({ condition: 'reflow-320', viewport: { width: 320, scrollWidth: 321 }, offenders }), [], 'a pixel of rounding');
   assert.deepEqual(pageReflowFindings({ condition: 'zoom-200', viewport: { width: 640, scrollWidth: 900 }, offenders }), []);
+  assert.deepEqual(pageReflowFindings({ condition: 'reflow-320', viewport: { width: 320, scrollWidth: 616 }, offenders: [], exempt: 1 }), [],
+    'a data table alone may scroll the page sideways');
+  assert.equal(pageReflowFindings({ condition: 'reflow-320', viewport: { width: 320, scrollWidth: 616 }, offenders: [] })[0].selector, 'html',
+    'a sideways scroll nothing measured explains is named by the page');
 });
 
 test('1.3.4: the main content missing in one orientation', () => {

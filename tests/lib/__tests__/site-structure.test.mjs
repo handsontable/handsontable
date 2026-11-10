@@ -148,6 +148,12 @@ test('3.2.4: a target under a name the reference never gives it; a page in anoth
 
   assert.deepEqual(consistencyFindings(switcher, chrome({ chromeLinks: [{ name: 'Guides', href: 'https://docs.test/docs/javascript-data-grid/', region: 'nav "Main navigation"' }] }), normalize), [],
     'two controls in two landmarks may point at one place under two names');
+
+  const recipes = chrome({ url: 'https://docs.test/docs/javascript-data-grid/recipes/',
+    chromeLinks: [{ name: 'Switch to JavaScript', href: 'https://docs.test/docs/javascript-data-grid/recipes/', region: 'banner' }] });
+
+  assert.deepEqual(consistencyFindings(recipes, chrome({ chromeLinks: [{ name: 'Recipes', href: 'https://docs.test/docs/javascript-data-grid/recipes/', region: 'banner' }] }), normalize), [],
+    'a link to the page it is on identifies nothing across pages');
 });
 
 test('3.2.6: the help controls in another order is a finding; one the page lacks is advisory', () => {

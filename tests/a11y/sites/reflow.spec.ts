@@ -32,6 +32,7 @@ const ORDER = ['reflow-320', 'zoom-200', 'text-spacing'] as const;
 interface Layout {
   viewport: { width: number; height: number; scrollX: number; scrollY: number; scrollWidth: number; scrollHeight: number };
   offenders: Array<{ selector: string; right: number }>;
+  exempt: number;
   texts: Array<Record<string, unknown> & { selector: string }>;
   controls: Array<{ id: number; selector: string; left: number; top: number; right: number; bottom: number; within: number[]; layer: number }>;
   surfaces: Array<{ selector: string; surface: string; left: number; right: number; top: number; bottom: number; fixed: boolean }>;
@@ -75,12 +76,12 @@ test.describe(CHECK, () => {
         const surfaces = nameApart(layout.surfaces) as Layout['surfaces'];
 
         findings.push(...aggregate([
-          ...pageReflowFindings({ condition, viewport: layout.viewport, offenders: layout.offenders }) as EvidenceFinding[],
+          ...pageReflowFindings({ condition, viewport: layout.viewport, offenders: layout.offenders, exempt: layout.exempt }) as EvidenceFinding[],
           ...clippingFindings({ condition, boxes: layout.texts }) as EvidenceFinding[],
           ...overlapFindings({ condition, controls: layout.controls }) as EvidenceFinding[],
           ...viewportFindings({ condition, viewport: { ...layout.viewport, scrollWidth: layout.viewport.width }, surfaces }) as EvidenceFinding[],
         ]));
-        detail[condition] = { viewport: layout.viewport, offenders: layout.offenders.slice(0, 10), clipped: layout.texts.length,
+        detail[condition] = { viewport: layout.viewport, offenders: layout.offenders.slice(0, 10), exempt: layout.exempt, clipped: layout.texts.length,
           controls: layout.controls.length, surfaces: surfaces.length };
       }
 
@@ -197,8 +198,10 @@ async function measure(page: Page, grid: string): Promise<Layout> {
       return false;
     };
     // A data table and preformatted code are the two-dimensional content 1.4.10 exempts, wherever they sit.
-    const wide = all.filter(element => !inGrid(element) && shown(element) && element.getBoundingClientRect().right > width + 1
-      && !scrollsItself(element) && !inFixed(element) && !element.closest('table, pre'));
+    const pastEdge = all.filter(element => !inGrid(element) && shown(element) && element.getBoundingClientRect().right > width + 1
+      && !scrollsItself(element) && !inFixed(element));
+    const wide = pastEdge.filter(element => !element.closest('table, pre'));
+    const exempt = pastEdge.length - wide.length;
     const offenders = wide.filter(element => !wide.some(other => other !== element && other.contains(element)))
       .map(element => ({ selector: shapeOf(element), right: Math.round(element.getBoundingClientRect().right) }))
       .sort((a, b) => b.right - a.right);
@@ -350,6 +353,7 @@ async function measure(page: Page, grid: string): Promise<Layout> {
     return {
       viewport: { width, height, scrollX, scrollY, scrollWidth: scroller.scrollWidth, scrollHeight: scroller.scrollHeight },
       offenders,
+      exempt,
       texts,
       controls,
       surfaces,
