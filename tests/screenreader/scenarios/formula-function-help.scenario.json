@@ -25,7 +25,7 @@
       "id": "type-sum",
       "action": {"type": "=SUM("},
       "expect": [["sum function help"]],
-      "note": "Typing `=SUM(` opens the function help (`dialog`, `SUM function help`), and the editor names it as its description. Required: that description, the help's name (NVDA `SUM function help`, VoiceOver with Chromium `Formula editor SUM function help`). The editor closes the parenthesis (`=SUM()`). Finding: VoiceOver with WebKit reads only the typed text; NVDA with Firefox first reads the page's title, and in one run of two NVDA with Chromium did too, as if the focus left the editor while the help opened."
+      "note": "Typing `=SUM(` opens the function help (`dialog`, `SUM function help`), and the editor names it as its description. Required: that description, the help's name (NVDA `SUM function help`, VoiceOver with Chromium `Formula editor SUM function help`). The editor closes the parenthesis (`=SUM()`). Finding: VoiceOver with WebKit never reads the help: it reads the typed text, or, in one run, an empty list with no name (`dimmed (null) 0 items`); VoiceOver with Chromium read it in one run of two. NVDA with Firefox first reads the page's title in every run, and NVDA with Chromium in two runs of three, as if the focus left the editor while the help opened."
     },
     {
       "id": "type-range",
@@ -49,7 +49,7 @@
       "id": "commit-formula",
       "action": {"press": "Enter"},
       "expect": [["7"]],
-      "note": "Enter commits `=SUM(A1:A3,B1)` and moves the selection one row down (enterMoves), to C2, which shows `7`. Required: that cell's value. The row is not required: VoiceOver with Chromium reads a row by its cells (`row 3 4 7`), whose first value would pass a `row 3` group, and the editor scenarios read the move."
+      "note": "Enter commits `=SUM(A1:A3,B1)` and moves the selection one row down (enterMoves), to C2, which shows `7`. Required: that cell's value. The row is not required: VoiceOver with Chromium reads a row by its cells (`row 3 4 7`), whose first value would pass a `row 3` group, and the editor scenarios read the move. NVDA with Firefox said nothing in one run of two."
     },
     {
       "id": "back-to-committed",

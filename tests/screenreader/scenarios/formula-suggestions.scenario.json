@@ -25,7 +25,7 @@
       "id": "type-su",
       "action": {"type": "=SU"},
       "expect": [["substitute"]],
-      "note": "Typing `=SU` opens the suggestions list (`listbox`, `Formula suggestions`) with its first function, SUBSTITUTE, highlighted through `aria-activedescendant`. Required: the highlighted function (NVDA `Formula suggestions, list. SUBSTITUTE, 1 of 14`; VoiceOver with Chromium reads the options as menu items). Finding: VoiceOver with WebKit reads only the typed text, `=SU`, and not the list or the highlighted function; it reads the next two."
+      "note": "Typing `=SU` opens the suggestions list (`listbox`, `Formula suggestions`) with its first function, SUBSTITUTE, highlighted through `aria-activedescendant`. Required: the highlighted function (NVDA `Formula suggestions, list. SUBSTITUTE, 1 of 14`; VoiceOver with Chromium reads the options as menu items). Finding: VoiceOver with WebKit reads only the typed text, `=SU`, and not the list or the highlighted function, and VoiceOver with Chromium did the same in one run of two; both read the next two."
     },
     {
       "id": "down-to-subtotal",
