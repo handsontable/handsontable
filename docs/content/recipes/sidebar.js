@@ -34,6 +34,7 @@ const dataManagementItems = [
   { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/server-side-supabase/server-side-supabase', title: 'Server-side data with Supabase', onlyFor: ['react'] },
   { path: 'data-management/server-side-symfony/server-side-symfony', title: 'Server-side data with Symfony', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'data-management/duckdb-wasm/duckdb-wasm', title: 'A million rows in the browser with DuckDB-Wasm', onlyFor: ['react'] },
 ];
 
 const cellTypesItems = [
