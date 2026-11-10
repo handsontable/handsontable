@@ -176,7 +176,7 @@ const browser = await puppeteer.launch({
   headless: false,
   // Puppeteer by default hide the scrollbars in headless mode (https://github.com/GoogleChrome/puppeteer/blob/master/lib/Launcher.js#L86).
   // To prevent this the custom arguments are provided. Do not add `--hide-scrollbars`: the Walkontable
-  // specs measure a 15px scrollbar (see `spec/scrollbar.spec.js` in the Walkontable tests).
+  // specs measure a 15px scrollbar (see the "Test page scrollbar" specs in `overlay.spec.js` of the Walkontable tests).
   args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--mute-audio'],
 });
 

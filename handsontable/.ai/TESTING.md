@@ -582,7 +582,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Unit tests (`test/unit/`): Jest tests that the core `npm run test:unit` runs, not `test:walkontable`
 - Location: `src/3rdparty/walkontable/test/`
 - Do not mix the specs with main E2E tests
-- The runner page sizes its scrollbars to a fixed 15px (`::-webkit-scrollbar` in `css/walkontable.test.css`), so the geometry of a theme-less holder does not depend on the OS scrollbar setting. A holder that a theme styles with `scrollbar-width` or `scrollbar-color` ignores the rule. Never add `--hide-scrollbars` to `test/scripts/run-puppeteer.mjs`: it zeroes the width, and about 60 specs fail (measured on Chrome 156, macOS; `spec/scrollbar.spec.js` guards it). The Handsontable E2E page does not size them; its grids take the theme's scrollbar styles.
+- The runner page sizes its scrollbars to a fixed 15px (`::-webkit-scrollbar` in `css/walkontable.test.css`), so the geometry of a theme-less holder does not depend on the OS scrollbar setting. A holder that a theme styles with `scrollbar-width` or `scrollbar-color` ignores the rule. Never add `--hide-scrollbars` to `test/scripts/run-puppeteer.mjs`: it zeroes the width, and about 60 specs fail (measured on Chrome 156, macOS; the "Test page scrollbar" block of `spec/overlay.spec.js` guards it). The Handsontable E2E page does not size them; its grids take the theme's scrollbar styles.
 
 **Visual Regression Tests:**
 - Framework: Playwright
