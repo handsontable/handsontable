@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-10T14:11:10.453Z",
+  "generatedAt": "2026-11-10T14:58:44.753Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1656,7 +1656,7 @@
       "file": "e2e/walkontable/window-scroll-pinned-overlays.spec.ts",
       "line": 172,
       "title": "walkontable window-scroll pinned overlays › scrolling the page up and down › frozen rows and both corners stay pinned on every painted frame",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
