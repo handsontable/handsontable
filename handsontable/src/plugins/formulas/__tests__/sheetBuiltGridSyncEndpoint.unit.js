@@ -718,7 +718,7 @@ describe('Formulas reload of a moved sheet-built grid', () => {
   it.each([
     ['a grid without a move', {}],
     ['a moved grid whose engine sheet covers it', { manualRowMove: [3, 1, 0, 2], manualColumnMove: [2, 0] }],
-  ])('does not read the grid\'s source rows on a reload of %s', (_, settings) => {
+  ])('does not read the grid\'s source rows on a re-render of %s after another', (_, settings) => {
     const engine = buildCrossRowEngine();
 
     hot = new Handsontable(container, {
@@ -727,13 +727,18 @@ describe('Formulas reload of a moved sheet-built grid', () => {
       ...settings,
     });
 
+    // A move the grid sent the engine after its load is a plugin write, so the first reload reads the rows once to
+    // tell it from a host change (`#doesEngineHoldSourceRows()`); every re-render after it finds the sheet as the
+    // last load read it.
+    hot.updateSettings({});
+
     const before = hot.getData();
     const getSourceDataAtRow = jest.spyOn(hot, 'getSourceDataAtRow');
 
     hot.updateSettings({});
 
     // The rows are read only to tell a sheet the host shrank from a blank line the move put last, which needs
-    // an axis out of physical order with lines the engine left out.
+    // an axis out of physical order with lines the engine left out, or after a write to the engine.
     expect(getSourceDataAtRow).not.toHaveBeenCalled();
     expect(hot.getData()).toEqual(before);
   });

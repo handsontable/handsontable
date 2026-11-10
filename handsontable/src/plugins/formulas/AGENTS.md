@@ -1015,7 +1015,7 @@ pre-load order as well reordered the sheet twice (a plain `setupSyncEndpoint()` 
 `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
 
 **A reload of the sheet the syncers are synced with keeps the grid's order, and its state** (`#reloadInPlace()`,
-or `#reloadKeepingOrder()` when the host shrank the sheet). A grid built from an engine sheet without `data`
+or `#reloadKeepingOrder()` when anything but this grid changed the sheet). A grid built from an engine sheet without `data`
 reloads that sheet on every `updateSettings()` (`#onAfterCellMetaReset`, the `#hotWasInitializedWithEmptyData`
 branch, through `#loadSheet()`), and React and Vue call `updateSettings()` on every re-render. The engine holds the
 sheet in the grid's order. A `loadData()` resets the grid's order, and ManualRowMove/ManualColumnMove re-apply
@@ -1034,9 +1034,11 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
   lines that hold nothing, and a blank line the order put last is one of them, so read as it is the line in
   front of it took its place. An axis in physical order is read as before, so a line emptied there still drops
   on a reload (DEV-1143) and a sheet the host replaced by a smaller one still shrinks the grid.
-- **loads it with `updateData()`** (`#reloadInPlace()`), not `loadData()`, when every physical index still names
-  the record it named, which is every re-render the host did not change the sheet's line count for.
-  `updateData()` keeps the index maps, so the order, a sort, moves, hidden lines and manual sizes stay; ManualRowMove/ManualColumnMove listen to `afterLoadData` only, so nothing is re-applied and nothing
+- **loads it with `updateData()`** (`#reloadInPlace()`), not `loadData()`, **only when nothing but this grid
+  changed the engine sheet since the grid last loaded it** (`#canReloadInPlace()`); then every physical index
+  still names the record it named. `updateData()` keeps the index maps, so the order, a sort, moves, hidden
+  lines and manual sizes stay; ManualRowMove/ManualColumnMove listen to `afterLoadData` only, so nothing is
+  re-applied and nothing
   is sent to the engine (0 order calls per update); ColumnSorting and MultiColumnSorting keep their config, the
   indicator, the order `clearSort()` goes back to, and a header-click sort that waits for the edited cell's
   validator (`#awaitingHeaderSorts`, dropped on `afterLoadData` only); and the Core keeps a change waiting for its
@@ -1044,12 +1046,32 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
   is kept. Nothing of the old hold/adopt machinery runs on this path: the syncers' record is never reset
   (`setupSyncEndpoint()` is not called), so there is nothing to adopt or put back. A user's drag survives the
   update too, as on a grid built with `data`.
-- **falls back to `loadData()` (`#reloadKeepingOrder()`) when the host inserted or removed lines** through the
-  engine API (`#planReloadAxis()`, `resized`). `fitToLength()` cuts or appends the LAST physical index while the
-  host shifted the records in the middle, so on `updateData()` the cell meta (`readOnly` included), a hidden row,
-  a Filters condition and a waiting edit stayed on the index and landed on another record (the waiting edit was
-  written into a record the user never touched, and reached the engine). The load drops all of them instead, as
-  before this path existed. An axis counts as resized when the engine holds more lines than the grid and than
+- **falls back to `loadData()` (`#reloadKeepingOrder()`) on any change someone else made**: the host through the
+  engine API (`setCellContents()`, `setSheetContent()`, `addRows()`, `removeRows()`, `moveRows()`,
+  `setRowOrder()`, and the column twins), or another grid bound to the same sheet. Such a change can move or
+  replace the records under the grid's physical indexes (`fitToLength()` only cuts or appends the LAST index),
+  so on `updateData()` the cell meta (`readOnly` included), a hidden row, a Filters condition and a waiting edit
+  stayed on the index and landed on another record (the waiting edit was written into a record the user never
+  touched, and reached the engine). The load drops all of them instead, as before this path existed. **How a
+  foreign change is told** (`#canReloadInPlace()`), measured on HyperFormula 3.3.0: the engine emits no event at
+  all for a host `addRows()`, `removeRows()` or `moveRows()` that changes no value (removing a row whose
+  formulas' results do not change included), so `valuesUpdated` cannot tell; the content is compared instead:
+  1. an axis that is `resized` or `stale` (below) never reloads in place;
+  2. when no plugin wrote the engine since the last load (`countPluginEngineWrites()` in
+     `indexSyncer/pluginEngineWrite.ts`, which counts every `withPluginEngineWrite()` of any grid, so every write
+     of this plugin since that is a scoped one) and `getSheetSerialized()` returns what that load read
+     (`#loadedSheetContent`, `areSheetContentsEqual()`), nothing changed the sheet: in place, no source row read;
+  3. otherwise the sheet, read back in physical order, must hold the grid's source rows cell by cell
+     (`#doesEngineHoldSourceRows()`, `isSameCellContent()`): both empty, both a formula whatever its text (the
+     engine rewrites a moved formula's references), or the same text (`7` and `'7'`). Every change this grid
+     made reached its source data, so a mismatch is someone else's change. A cell a change set still waiting for
+     its validator wrote into the engine early (`#changesAwaitingApply`, read through core's
+     `_getWaitingChangeSets()`) is skipped: the Core writes it into the source when it applies the set.
+  The plugin-write gate in (2) is needed: a grid with `manualRowMove: [2, 0, 1]` sends its order after the load,
+  and a host `moveRows()` that turns the engine back into the loaded order left the content equal to the
+  snapshot while the records had moved. Conservative by design, so a false "foreign" only costs the old
+  behavior: a key/value dropdown cell (the source holds the object, the engine its label), a date the engine
+  holds in another format, or object rows always mismatch and reload with `loadData()`. An axis counts as resized when the engine holds more lines than the grid and than
   the last load read (`#loadedSheetShape`: an insert in the middle cannot be told from an append without reading
   content, and the shape keeps a grid whose settings cap the columns from counting the columns it does not show),
   or, on an axis in physical order, when a line the engine left out holds content in the grid. A blank line past
@@ -1071,10 +1093,12 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
   (the blank line would drop again). Lines the engine gained are read through the record (`listEngineElements()`
   names them after the recorded ones), and the order put back names them after the grid's lines, so the grid
   shows them where the engine has them.
-  The grid's rows are read only for an axis whose engine sheet left lines out, so a reload of a grid whose sheet
-  covers it (every React or Vue re-render of one the host did not shrink) reads no source row (pinned by `does
-  not read the grid's source rows on a reload of ...` and `keeps the state of a grid with blank spare rows past
-  the sheet, reading only those rows`).
+  **Cost.** A re-render after no plugin write reads no source row (only the blank spare rows of the `resized`
+  check); the first re-render after a write (an edit, a sort, a move) reads every source row once and compares
+  it with the engine sheet, O(cells), still below the `loadData()` plus AutoColumnSize sweep it replaces. The
+  plugin keeps the last read sheet array alive (`#loadedSheetContent`, dropped on `disablePlugin()`). Pinned by
+  `does not read the grid's source rows on a re-render of ... after another` and `keeps the state of a grid with
+  blank spare rows past the sheet, reading only those rows`.
 - sets `#sourceHasStaleFormulas` when the engine order is not physical and the sheet holds a formula: the
   engine's text names lines in the engine's order, now stored in physical rows, so a step that brings the
   order back to physical and then restructures must undo from the engine sheet, not from that text.
@@ -1092,13 +1116,13 @@ the docs name them:
   `afterChange(null, 'loadData')`. It now fires `beforeUpdateData`/`afterUpdateData('Formulas.switchSheet')` and
   `afterChange(null, 'updateData')`. A host that rebuilt its own state in `afterLoadData`, or keyed an
   `afterChange` listener on `'loadData'`, no longer gets the call on a re-render. A reload that falls back to
-  `loadData()` (lines inserted or removed, a stale record) still fires the load events.
+  `loadData()` (any change someone else made) still fires the load events.
 - **AutoColumnSize.** The load ran a full `recalculateAllColumnsWidth()` sweep on every re-render; `updateData()`
-  runs none. A value the host writes into the engine sheet still refits its column after the re-render, longer and
-  then shorter again (measured in a browser, pinned by `fits a column to a value the host wrote into the engine
-  sheet after a re-render` in `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`): the engine reports the written
-  cell in `valuesUpdated`, and AutoColumnSize queues it from `afterFormulasValuesUpdate`. So no sweep is asked for
-  here. A write the engine reports no change for (none known) would not refit.
+  runs none. A value the host writes into the engine sheet is a foreign change, so that re-render takes
+  `loadData()` and its sweep, as before. Measured before the foreign-change gate existed, the in-place path also
+  refit it from `afterFormulasValuesUpdate` (the engine reports the written cell). Pinned by `fits a column to a
+  value the host wrote into the engine sheet after a re-render` in `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`
+  (longer, then shorter again).
 - **The state.** The cell meta stays (a `setCellMeta()` value and the invalid marks survive a re-render, where the
   load dropped them), runtime hiding and trimming stay, Filters keeps its conditions and re-reads its states
   (`afterUpdateData`), FormulaBuilder's `afterUpdateData` drops its remembered focus as its `afterLoadData` did,
@@ -1117,13 +1141,16 @@ the old `loadData()` path, so the initial counts above (0, 1, 1) hold. A grid bu
 sheet only through `switchSheet(<the sheet it is bound to>)`, which is a same-sheet reload and takes this path
 too: it now keeps its order and state there, where it rotated before (develop included).
 
-Three limits:
+Four limits:
 
-- **A host that reorders the engine sheet, or writes it with the same shape, is read through the record.** The
-  grid shows the engine's lines where the engine has them (the record maps engine line `i` to the grid's
-  position `i`), but the physical identity of the records drifts, so meta keyed by physical row follows the
-  wrong record. Two grids that reorder one sheet were already broken before this. A change waiting for its
-  validator then lands on the record now at its coordinates.
+- **On the `loadData()` path, a host that reorders the engine sheet, or writes it with the same shape, is read
+  through the record.** The grid shows the engine's lines where the engine has them (the record maps engine line
+  `i` to the grid's position `i`), but the physical identity of the records drifts. The load drops the state
+  keyed by physical indexes, so nothing lands on the wrong record; the identity of the rows themselves still
+  drifts. Two grids that reorder one sheet were already broken before this.
+- **A foreign change that leaves every cell's content the same is not seen** (two identical rows swapped, a cell
+  written with the value it holds, a formula's text rewritten to another formula with no other change). The
+  records under the indexes hold the same content then, so the state follows content that looks the same.
 - **A host that removes only lines that are blank in the grid is not detected.** The check needs a line the
   engine left out that holds content in the grid, so after the host removes the blank row a move put last
   (`removeRows()` on rows `[a], [null], [c]` with `manualRowMove: [2, 0]`), the grid keeps that blank row
@@ -1132,8 +1159,7 @@ Three limits:
   of it. On that path the cell meta, the hidden lines, the Filters conditions, the waiting edits and the sort
   state are dropped as before (on a moved axis the rows keep the order put back), because the grid's physical
   indexes no longer name the records they named. The host changed the sheet behind the grid, so the records under
-  that state are not the ones it was set on anyway. A host that inserts and removes the same number of lines is
-  the same-shape case above.
+  that state are not the ones it was set on anyway. The same holds for any other foreign change.
 
 Pinned by the `Formulas reload of a moved sheet-built grid` block in
 `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and by `__tests__/sheetBuiltGridReloadState.unit.js`. They cover:
@@ -1144,8 +1170,11 @@ Pinned by the `Formulas reload of a moved sheet-built grid` block in
 - a blank line the move put last, and the trailing blank lines of the sheet;
 - a host that shrinks the sheet by `removeRows`, by a smaller `setSheetContent()`, or by `removeColumns`;
 - a host that adds a row at the end or in the middle;
-- a host that removes or inserts rows or columns on a grid without a move: the cell meta, a hidden line, a Filters
-  condition and a waiting edit are dropped, not moved onto another record; blank spare rows do not count;
+- a host that removes or inserts rows or columns on a grid without a move, and a host that removes one row and
+  inserts another, rewrites a cell or moves a row (with and without a move): the cell meta, a hidden line, a
+  Filters condition and a waiting edit are dropped, not moved onto another record; blank spare rows do not count;
+- the grid's own edits (a number typed as text, a formula), a hidden row, a cell meta value and a sort survive the
+  re-render that follows them;
 - sorting, the sort config and indicator across reloads and `clearSort()` back to the manual order (both
   sorting plugins, with and without a move);
 - a change waiting for its validator across a reload, accepted and rejected, without a move, with a move and

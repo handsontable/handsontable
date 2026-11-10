@@ -12,6 +12,7 @@ interface EngineWrite {
 }
 
 const writesByEngine = new WeakMap<object, EngineWrite>();
+const writeCountsByEngine = new WeakMap<object, number>();
 const heldPaintsByEngine = new WeakMap<object, Set<() => void>>();
 
 /**
@@ -31,6 +32,8 @@ export function withPluginEngineWrite<T>(engine: object | null | undefined, fn: 
   if (engine === null || engine === undefined) {
     return fn();
   }
+
+  writeCountsByEngine.set(engine, (writeCountsByEngine.get(engine) ?? 0) + 1);
 
   let write = writesByEngine.get(engine);
 
@@ -167,4 +170,15 @@ export function withPluginEngineProbe<T>(engine: object, fn: () => T): T {
  */
 export function isPluginEngineProbe(engine: object | null | undefined): boolean {
   return engine !== null && engine !== undefined && probesByEngine.has(engine);
+}
+
+/**
+ * Returns how many plugin writes (`withPluginEngineWrite()`, by any grid) started on the engine so far. A caller
+ * that recorded the number can tell whether a plugin wrote the engine since.
+ *
+ * @param {object|null|undefined} engine The engine.
+ * @returns {number}
+ */
+export function countPluginEngineWrites(engine: object | null | undefined): number {
+  return engine === null || engine === undefined ? 0 : writeCountsByEngine.get(engine) ?? 0;
 }

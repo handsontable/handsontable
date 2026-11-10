@@ -17,6 +17,8 @@ import {
   padRowsToWidestRow,
   widestRowLength,
   hasContentPast,
+  areSheetContentsEqual,
+  isSameCellContent,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -361,6 +363,31 @@ describe('Formulas utils', () => {
       expect(hasContentPast(0, 3, () => false)).toBe(false);
       expect(hasContentPast(3, 3, () => true)).toBe(false);
       expect(hasContentPast(4, 2, () => true)).toBe(false);
+    });
+  });
+
+  describe('areSheetContentsEqual', () => {
+    it('should compare the sheets cell by cell', () => {
+      expect(areSheetContentsEqual([['a', 1], []], [['a', 1], []])).toBe(true);
+      expect(areSheetContentsEqual([['a', 1]], [['a', '1']])).toBe(false);
+      expect(areSheetContentsEqual([['a', 1]], [['a', 1, null]])).toBe(false);
+      expect(areSheetContentsEqual([['a']], [['a'], []])).toBe(false);
+    });
+  });
+
+  describe('isSameCellContent', () => {
+    it('should match two empty cells, two formulas, and two values with the same text', () => {
+      expect(isSameCellContent(null, undefined)).toBe(true);
+      expect(isSameCellContent('', null)).toBe(true);
+      expect(isSameCellContent('=A1*2', '=B3*2')).toBe(true);
+      expect(isSameCellContent(7, '7')).toBe(true);
+    });
+
+    it('should tell an empty cell, a formula, and another value apart', () => {
+      expect(isSameCellContent(null, 'a')).toBe(false);
+      expect(isSameCellContent(0, null)).toBe(false);
+      expect(isSameCellContent('=A1', 'a')).toBe(false);
+      expect(isSameCellContent('a', 'b')).toBe(false);
     });
   });
 });

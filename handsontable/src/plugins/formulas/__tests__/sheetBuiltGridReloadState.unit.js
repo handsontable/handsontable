@@ -397,6 +397,8 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     expect(hot.countRows()).toBe(5);
 
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    // The sort wrote the engine, so the first reload after it reads the rows to tell it from a host change.
+    hot.updateSettings({});
 
     const getSourceDataAtRow = jest.spyOn(hot, 'getSourceDataAtRow');
 
@@ -407,5 +409,79 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
     expect(hot.countRows()).toBe(5);
     expect(hot.getDataAtCol(0).slice(0, 3)).toEqual(['c', 'b', 'a']);
+  });
+
+  // A host change through the engine API that keeps the line count (a removal and an insert, a rewritten cell, a
+  // moved row) can shift or replace the records under the grid's physical indexes too. Only a sheet nothing but
+  // this grid changed since it loaded it is reloaded in place; any other change takes `loadData()`, which drops
+  // the state keyed by physical indexes, as before.
+  describe.each([
+    ['removes a row and inserts another', (engine, sheet) => {
+      engine.removeRows(sheet, [0, 1]);
+      engine.addRows(sheet, [1, 1]);
+    }],
+    ['rewrites a cell', (engine, sheet) => engine.setCellContents({ sheet, row: 0, col: 0 }, [['z']])],
+    ['moves a row', (engine, sheet) => engine.moveRows(sheet, 0, 1, 3)],
+  ])('a host that %s through the engine API', (_, change) => {
+    it.each([
+      ['without a move', {}],
+      ['with a manualRowMove', { manualRowMove: [2, 0, 1] }],
+    ])('drops the cell meta, the hidden row, the filter and the waiting edit, %s', async(__, settings) => {
+      const engine = buildEngine();
+      const sheet = engine.getSheetId('S1');
+
+      buildGrid(engine, { hiddenRows: true, filters: true, ...settings });
+
+      const target = hot.toVisualRow(0);
+
+      hot.setCellMeta(target, 0, 'className', 'marked');
+      hot.getPlugin('hiddenRows').hideRow(target);
+      hot.getPlugin('filters').addCondition(0, 'by_value', [['b', 'c']]);
+      hot.getPlugin('filters').filter();
+      hot.setDataAtCell(hot.toVisualRow(0), 1, 50);
+      await flush();
+
+      expect(held.length).toBe(1);
+
+      change(engine, sheet);
+      hot.updateSettings({});
+      await answerAll(true);
+
+      expect(hot.countRows()).toBe(3);
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+      expect(hot.getData().flat()).not.toContain(50);
+      expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+      expect(isAnyCellMarked()).toBe(false);
+    });
+  });
+
+  it.each([
+    ['without a move', {}],
+    ['with a manualRowMove', { manualRowMove: [2, 0, 1] }],
+  ])('keeps the state across a re-render after the grid\'s own edits, %s', (_, settings) => {
+    buildGrid(buildEngine(), { hiddenRows: true, columnSorting: true, ...settings });
+
+    hot.setCellMeta(0, 0, 'className', 'marked');
+    hot.getPlugin('hiddenRows').hideRow(2);
+    // The engine reads the text `7` as the number 7, and keeps a formula in its own text.
+    hot.setDataAtCell(0, 0, '7');
+    hot.setDataAtCell(1, 2, '=B1+1');
+    hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+    const sorted = hot.getData();
+    const hidden = hot.getPlugin('hiddenRows').getHiddenRows();
+
+    expect(hidden.length).toBe(1);
+
+    hot.updateSettings({});
+
+    // The engine holds the text `7` as the number 7.
+    const asText = rows => rows.map(row => row.map(String));
+
+    expect(hot.getData()).toEqual(sorted);
+    expect(asText(readEngineThroughGrid())).toEqual(asText(hot.getData()));
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+    expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual(hidden);
+    expect(isAnyCellMarked()).toBe(true);
   });
 });

@@ -7,6 +7,7 @@ import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
+  areSheetContentsEqual,
   coalesceIndexesToSpans,
   escapeTextValue,
   getDateFromExcelDate,
@@ -19,6 +20,7 @@ import {
   isEngineEscapedValue,
   isFormula,
   isPreservedText,
+  isSameCellContent,
   normalizeValueForFormulaEngine,
   padRowsToWidestRow,
   trimTrailingEmptyCells,
@@ -47,6 +49,7 @@ import { quoteUnreadableSheetNames, canReadSheetNameUnquoted } from '../../utils
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import {
+  countPluginEngineWrites,
   deferPaintToPluginEngineWrite,
   holdPluginEngineWritePaints,
   isPluginEngineProbe,
@@ -909,6 +912,20 @@ export class Formulas extends BasePlugin {
   #loadedSheetShape: { rows: number; columns: number } | null = null;
 
   /**
+   * The bound sheet as `getSheetSerialized()` returned it at the last load of it into the grid (`#loadSheet()`),
+   * or `null` before one. A reload that finds the engine sheet unchanged since knows nothing but this grid can
+   * have touched it, and reads no source row to tell (`#canReloadInPlace()`).
+   */
+  #loadedSheetContent: unknown[][] | null = null;
+
+  /**
+   * `countPluginEngineWrites()` when `#loadedSheetContent` was recorded. A plugin write since (this grid's own
+   * edit, sort or move, or another grid's) can have changed the sheet and a host change undone it, so the
+   * unchanged content then proves nothing.
+   */
+  #pluginWritesAtLoad = 0;
+
+  /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
    * held until the restore is done – see `restoreState()`.
    */
@@ -1510,6 +1527,9 @@ export class Formulas extends BasePlugin {
     this.#sourceRowCountAtLastSync = null;
     this.#sheetIdAtLastSync = null;
     this.#sheetResyncPending = false;
+    // The next load of a sheet starts the comparison over (and the content is not kept alive meanwhile).
+    this.#loadedSheetContent = null;
+    this.#loadedSheetShape = null;
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -2009,9 +2029,9 @@ export class Formulas extends BasePlugin {
 
     this.#updateSheetNameAndSheetId(sheetName);
 
-    const unescaped = this.#unescapeEngineSheetArray(
-      this.#readableSheet(this.engine.getSheetSerialized(this.sheetId)), isSameSheetReload
-    );
+    const sheetContent = this.engine.getSheetSerialized(this.sheetId);
+    const previousContent = this.#loadedSheetContent;
+    const unescaped = this.#unescapeEngineSheetArray(this.#readableSheet(sheetContent), isSameSheetReload);
     // The engine holds the sheet in its own order; a reload that keeps the grid's order reads it back in
     // physical order.
     const reload = keepsOrder ? this.#planReload(unescaped) : null;
@@ -2026,20 +2046,25 @@ export class Formulas extends BasePlugin {
       ? trimTrailingEmptyCells(physical) : padded;
     const loadsData = serialized.length > 0;
 
-    if (loadsData) {
-      this.#loadedSheetShape = { rows: serialized.length, columns: widestRowLength(serialized) };
-    }
-
     if (reload !== null && loadsData) {
-      // A grid whose physical indexes no longer name the records they named (the host inserted or removed lines,
-      // or the record no longer describes the sheet) takes `loadData()`, which drops the state keyed by them.
-      if (reload.row.stale || reload.column.stale || reload.row.resized || reload.column.resized) {
-        this.#reloadKeepingOrder(serialized, reload);
-      } else {
+      // Only a sheet nothing but this grid changed since the grid loaded it is reloaded in place. Any other change
+      // can have moved or replaced the records under the grid's physical indexes, so it takes `loadData()`, which
+      // drops the state keyed by them.
+      const inPlace = this.#canReloadInPlace(reload, sheetContent, previousContent, physical);
+
+      this.#recordLoadedSheet(sheetContent, serialized);
+
+      if (inPlace) {
         this.#reloadInPlace(serialized);
+      } else {
+        this.#reloadKeepingOrder(serialized, reload);
       }
 
       return;
+    }
+
+    if (loadsData) {
+      this.#recordLoadedSheet(sheetContent, serialized);
     }
 
     // The order syncers are pointed at the bound sheet BEFORE the load: the load's `afterLoadData` re-applies
@@ -2056,9 +2081,97 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Records what a load of the bound sheet read, for the next reload to compare against.
+   *
+   * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returned it.
+   * @param {Array<Array<*>>} loaded The rows the grid loads.
+   */
+  #recordLoadedSheet(sheetContent: unknown[][], loaded: unknown[][]): void {
+    this.#loadedSheetContent = sheetContent;
+    this.#pluginWritesAtLoad = countPluginEngineWrites(this.engine);
+    this.#loadedSheetShape = { rows: loaded.length, columns: widestRowLength(loaded) };
+  }
+
+  /**
+   * Tells whether a reload of the sheet the syncers are synced with can keep the grid's state (`#reloadInPlace()`):
+   * nothing but this grid changed the engine sheet since the grid last loaded it. The engine reports no event for
+   * a host's `addRows()`, `removeRows()` or `moveRows()` that changes no value, so the content is compared:
+   *
+   * - No plugin wrote the engine since the last load (`countPluginEngineWrites()`), and the engine sheet is the
+   *   one that load read: nothing changed it, and no source row is read. With a plugin write in between, a host
+   *   change could have undone it (a move the host turned back), so the content alone proves nothing.
+   * - Otherwise this grid, the host, or another grid on the sheet changed it. Every change this grid made reached
+   *   its source data too, so the engine sheet, read back in physical order, holds the grid's source rows
+   *   (`#doesEngineHoldSourceRows()`). Anything else is a change of someone else's.
+   *
+   * An axis whose line count changed (`resized`) or whose record no longer describes the sheet (`stale`) never
+   * reloads in place.
+   *
+   * @param {object} reload The plan of both axes (`#planReload()`).
+   * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returns it now.
+   * @param {Array<Array<*>>|null} previousContent The sheet the last load read, or `null`.
+   * @param {Array<Array<*>>} physical The sheet read back in physical order.
+   * @returns {boolean}
+   */
+  #canReloadInPlace(
+    reload: { row: ReloadAxis; column: ReloadAxis },
+    sheetContent: unknown[][],
+    previousContent: unknown[][] | null,
+    physical: unknown[][],
+  ): boolean {
+    if (reload.row.stale || reload.column.stale || reload.row.resized || reload.column.resized) {
+      return false;
+    }
+
+    if (previousContent !== null && this.#pluginWritesAtLoad === countPluginEngineWrites(this.engine)
+      && areSheetContentsEqual(sheetContent, previousContent)) {
+      return true;
+    }
+
+    return this.#doesEngineHoldSourceRows(physical);
+  }
+
+  /**
+   * Tells whether the engine sheet, read back in physical order, holds the grid's source rows, cell by cell. Both
+   * empty (`null`, `undefined` or `''`) is a match, so is a formula on both sides whatever its text (the engine
+   * rewrites a moved formula's references, and the source keeps the text it loaded), and so are two values with
+   * the same text (the engine reads the text `7` as the number 7). A cell a change set still waiting for its
+   * validator wrote into the engine early is skipped: the Core writes it into the source data once it is applied.
+   *
+   * @param {Array<Array<*>>} physical The sheet read back in physical order.
+   * @returns {boolean}
+   */
+  #doesEngineHoldSourceRows(physical: unknown[][]): boolean {
+    const sourceRows = this.#readOwnSourceRows();
+    const pendingCells = new Set<string>();
+
+    this.hot._getWaitingChangeSets().forEach(({ changes }) => {
+      this.#changesAwaitingApply.get(changes)?.writtenCells.forEach(({ physicalRow, physicalColumn }) => {
+        pendingCells.add(`${physicalRow},${physicalColumn}`);
+      });
+    });
+
+    const height = Math.max(physical.length, sourceRows.length);
+
+    for (let row = 0; row < height; row += 1) {
+      const engineRow = physical[row] ?? [];
+      const sourceRow = sourceRows[row] ?? [];
+      const width = Math.max(engineRow.length, sourceRow.length);
+
+      for (let column = 0; column < width; column += 1) {
+        if (!pendingCells.has(`${row},${column}`) && !isSameCellContent(engineRow[column], sourceRow[column])) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Reloads the sheet the order syncers are synced with through `updateData()`, which keeps the grid's state:
    * the index maps (row and column order, a sort, moves, hidden lines, manual sizes; `fitToLength()` drops only
-   * blank lines past the sheet, since a sheet whose line count the host changed takes `#reloadKeepingOrder()`),
+   * blank lines past the sheet, since a sheet anything but this grid changed takes `#reloadKeepingOrder()`),
    * the sort plugins' state, the cell meta, and every change still waiting for
    * its validator, which the Core then writes at its coordinates of the reloaded rows. The rows come in physical
    * order (`#toPhysicalOrder()`, done by the caller) and the grid keeps its order, so the syncers' engine order
@@ -2085,10 +2198,10 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Reloads the sheet the order syncers are synced with, keeping the grid's row and column order, when the host
-   * inserted or removed lines of the engine sheet, or the recorded order of an axis no longer describes it
-   * (`#planReloadAxis()`): the load drops the state keyed by physical indexes, which no longer name the same
-   * records. A grid
+   * Reloads the sheet the order syncers are synced with, keeping the grid's row and column order, when anything
+   * but this grid changed the engine sheet since the grid loaded it (`#canReloadInPlace()`), or the recorded order
+   * of an axis no longer describes it (`#planReloadAxis()`): the load drops the state keyed by physical indexes,
+   * which may no longer name the same records. A grid
    * built from an engine sheet without `data` reloads it on every `updateSettings()`. The engine holds the
    * sheet in the grid's order, and the load resets the grid's order, after which ManualRowMove and
    * ManualColumnMove re-apply their arrays in `afterLoadData`. Read as the engine holds it and taken as
