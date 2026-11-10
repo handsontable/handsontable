@@ -1051,8 +1051,9 @@ class DataManager {
 
       this.rewriteCache();
 
-      this.plugin.disableCoreAPIModifiers();
-
+      // The plugin's modifiers stay on: `parentIndex` is a flattened row, and with them off the write
+      // would address the top-level array by that number and hand the parent's `__children` to an
+      // unrelated top-level row.
       this.hot.setSourceDataAtCell(
         parentIndex,
         '__children',
@@ -1061,8 +1062,6 @@ class DataManager {
       );
 
       this.hot.rowIndexMapper.insertIndexes(finalChildIndex, 1);
-
-      this.plugin.enableCoreAPIModifiers();
 
       // Read the real index instead of reusing `finalChildIndex`: that one assumes every preceding
       // sibling is a leaf, so a sibling with descendants would splice the meta above the new row.

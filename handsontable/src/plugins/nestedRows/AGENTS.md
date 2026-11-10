@@ -197,7 +197,8 @@ They are written in different places and can drift. Keep this in mind:
   `addChildAtIndex()` build the insert by hand — splice, `rewriteCache()`,
   `rowIndexMapper.insertIndexes()`, `shiftCellsMeta()` (physical), then the hooks. Three things come
   with that. `disableCoreAPIModifiers()` around such an insert is not a safety measure but the thing
-  that **hid** the mistake: with the modifiers off, `Core#countSourceRows()` reports the top-level
+  that **hid** the mistake (the parent branch no longer wraps its write; see the next bullet): with the
+  modifiers off, `Core#countSourceRows()` reports the top-level
   count, so a grid-row index above it is silently clamped instead of failing. The `beforeAlter` and
   `beforeDataSplice` hooks no longer fire for a top-level insert, which neither the parent branch nor
   `addChild()` ever fired either. And `beforeCreateRow`'s **veto has to keep being honored** in any
@@ -209,6 +210,23 @@ They are written in different places and can drift. Keep this in mind:
   which `#onAfterAddChild` already tolerates) to close that stash. **The parent branch and
   `addChild()` still ignore that veto** — pre-existing, and a separate behavior change to fix, because
   a cancel there would start actually cancelling. (DEV-2625, following #7727 / DEV-2605.)
+- **A source write addressed by a flattened row index must run with the plugin's modifiers ON.**
+  `disableCoreAPIModifiers()` turns off `modifyRowData` and `modifySourceLength`, so the source data is
+  the top-level array alone and `setSourceDataAtCell(parentIndex, '__children', …)` addresses a
+  TOP-LEVEL position by a flattened number. The parent branch of `addChildAtIndex()` did exactly that
+  around its write: for a parent whose flattened row was a valid top-level position too (a nested parent
+  at row 2 of a three-row tree) it handed the parent's `__children` to an unrelated top-level row, so
+  the same row objects sat in the tree twice, undo left the grid a row short, and a following
+  `detachFromParent()` duplicated rows. A flattened row at or past the top-level count made the write a
+  silent no-op, which is why the defect hid. The write runs with the modifiers on now, so it resolves
+  `parentIndex` through the flattened tree to the parent itself: it assigns the list the parent already
+  holds, and the payload's old value is that same array, where it used to be another row's list or
+  nothing. This is the parent branch only. `syncRowWithRawSource()` addresses a TOP-LEVEL position
+  (`getRowIndexWithinParent()` of the upmost parent) and correctly keeps the modifiers off, so do not
+  generalize this to "always on". The `?? 0` fallback for a parent the cache does not know still sends
+  the write to flattened row 0. A test of this needs a parent whose flattened row is below the top-level
+  count, or the write is dropped and the test passes on the broken code. Pinned by
+  `__tests__/addChildAtIndexNestedParent.unit.js` and `tests/e2e/nested-rows-undo.spec.ts`.
 - **Only the top-level branch translates its index for `insertIndexes()`.** `insertIndexes()` takes a
   **visual** index and resolves it through `getNotTrimmedIndexes()[arg]`, but the parent branch passes
   `finalChildIndex` and `addChild()` passes `getRowIndex(childElement)` — both **physical**. With a
