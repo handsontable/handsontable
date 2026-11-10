@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "id": "formula-function-help",
+  "surface": "The formula editor's function help: typing a function and its opening parenthesis, its arguments, the closing parenthesis, and Enter committing the formula and the result it shows.",
+  "group": "formulas",
+  "page": "formula-builder-function-help",
+  "state": "formula-function-help",
+  "criteria": ["1.3.1", "3.3.5", "4.1.2"],
+  "setup": [{"selectCell": [0, 2]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["formula editor"]],
+      "note": "Enter opens the formula editor on C1, which holds `=A1+B1`."
+    },
+    {
+      "id": "select-all",
+      "action": {"press": "ControlOrMeta+a"},
+      "expect": [],
+      "note": "Selects the editor's text, so the typed text replaces the formula. Nothing is required."
+    },
+    {
+      "id": "type-sum",
+      "action": {"type": "=SUM("},
+      "expect": [["repeatable", "any"]],
+      "note": "Typing `=SUM(` opens the function help (`dialog`, `SUM function help`), and the editor carries it as its description: `SUM(any, ...)any... - repeatable`. Required: the help, by its words."
+    },
+    {
+      "id": "type-range",
+      "action": {"type": "A1:A3"},
+      "expect": [],
+      "note": "The first argument. Nothing is required."
+    },
+    {
+      "id": "type-comma",
+      "action": {"type": ","},
+      "expect": [],
+      "note": "The comma moves the help to the next argument. Nothing is required."
+    },
+    {
+      "id": "type-close",
+      "action": {"type": "B1)"},
+      "expect": [],
+      "note": "The second argument and the closing parenthesis close the help. Nothing is required."
+    },
+    {
+      "id": "commit-formula",
+      "action": {"press": "Enter"},
+      "expect": [["7"], ["row 3"]],
+      "note": "Enter commits `=SUM(A1:A3,B1)` and moves the selection one row down (enterMoves), to C2, which shows `7`. Required: that cell's value and its row."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["11"]],
+      "note": "ArrowUp moves to C1, which now shows the new formula's result, `11`."
+    }
+  ]
+}

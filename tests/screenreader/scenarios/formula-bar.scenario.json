@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "id": "formula-bar",
+  "surface": "A cell that shows a formula's result, its formula in the in-cell formula editor, and the formula bar reached from the grid with Shift+Tab: the bar's formula editor, the address box, and Tab back into the grid.",
+  "group": "formulas",
+  "page": "formula-builder",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "2.4.3", "4.1.2"],
+  "setup": [{"selectCell": [0, 1]}],
+  "steps": [
+    {
+      "id": "arrow-to-formula-cell",
+      "action": {"press": "ArrowRight"},
+      "expect": [["3"], ["formula"]],
+      "severity": {"formula": "moderate"},
+      "note": "ArrowRight selects C1, which holds `=A1+B1` and shows its result, `3`. Required: the value, and that the cell holds a formula. The second group is moderate: the value a reader says is right, and a spreadsheet's screen reader support says a cell has a formula, which the grid exposes nowhere."
+    },
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["formula editor"], ["a1", "a 1"]],
+      "note": "Enter opens the formula editor in the cell (`combobox`, `Formula editor`), holding `=A1+B1`. Required: the editor's name and the formula, here its first reference."
+    },
+    {
+      "id": "cancel-edit",
+      "action": {"press": "Escape"},
+      "expect": [["3"]],
+      "note": "Escape closes the editor without a change and the focus returns to C1."
+    },
+    {
+      "id": "home-to-first-column",
+      "action": {"press": "Home"},
+      "expect": [["1"]],
+      "note": "Home moves to A1 (`1`): Shift+Tab leaves the grid for the formula bar from the first column only."
+    },
+    {
+      "id": "shift-tab-to-bar",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["formula editor"]],
+      "note": "Shift+Tab moves the focus to the formula bar's editor, which opens an edit of the cell the grid focused last. Required: the editor's name."
+    },
+    {
+      "id": "shift-tab-to-address",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["cell address"]],
+      "note": "Shift+Tab again moves to the address box, `Cell address`; the bar's edit closes and the cell keeps its value. Required: the box's name."
+    },
+    {
+      "id": "tab-to-bar",
+      "action": {"press": "Tab"},
+      "expect": [["formula editor"]],
+      "note": "Tab moves back to the bar's formula editor."
+    },
+    {
+      "id": "tab-to-grid",
+      "action": {"press": "Tab"},
+      "expect": [["1"]],
+      "note": "Tab leaves the bar for the grid, on A1, the cell the focus left from. There is no keyboard trap."
+    }
+  ]
+}

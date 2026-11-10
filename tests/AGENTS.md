@@ -2200,7 +2200,7 @@ release run the full set. The CI mechanics are in `.ai/CI.md`; this section is t
   job expects those check runs only). `gh workflow run screenreader-nightly.yml --ref <branch>
   -f projects=<project>[,<project>] -f groups=<group>[,<group>]` runs the named reader projects
   (`nvda-chromium`, `nvda-firefox`, `vo-webkit`, `vo-chromium`) and scenario groups (`keyboard`,
-  `reading`, `menus`, `editors`, `selection`, `structure`, `status`): a lane job none of whose projects is named skips itself,
+  `reading`, `menus`, `editors`, `selection`, `structure`, `status`, `formulas`): a lane job none of whose projects is named skips itself,
   its matrix drops the other browser and the groups not named, the check runs keep their
   `Screen reader / <project> <group> report` names, and the `verdict` job expects the named lanes only.
   An entry is a whole name, comma-separated, no spaces: the lane matches it as `,<name>,`, which cannot
@@ -2491,7 +2491,8 @@ screen readers (`docs/AGENTS.md` 2.20).
   draws, `editors` for the cell editors and the checkbox cell, `selection` for row selection and the
   check all header, `structure` for nested and collapsible headers, merged cells and the freeze bars,
   `status` for the status messages and the bars around the grid: pagination, the sheets bar, a dialog, a
-  notification, the loading and empty data overlays, and a value that resolves later), each group is a
+  notification, the loading and empty data overlays, and a value that resolves later, `formulas` for the
+  formula bar, its suggestions and function help, and a cell that shows a formula's result), each group is a
   matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)

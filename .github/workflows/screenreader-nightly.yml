@@ -44,7 +44,7 @@ on:
         type: boolean
         default: false
       groups:
-        description: "The scenario groups to run, comma-separated, no spaces (keyboard,reading,menus,editors,selection,structure,status). Empty runs every group."
+        description: "The scenario groups to run, comma-separated, no spaces (keyboard,reading,menus,editors,selection,structure,status,formulas). Empty runs every group."
         type: string
         default: ''
       projects:
@@ -166,6 +166,7 @@ jobs:
           --expect "Screen reader / nvda-chromium selection report"
           --expect "Screen reader / nvda-chromium structure report"
           --expect "Screen reader / nvda-chromium status report"
+          --expect "Screen reader / nvda-chromium formulas report"
           --expect "Screen reader / nvda-firefox keyboard report"
           --expect "Screen reader / nvda-firefox reading report"
           --expect "Screen reader / nvda-firefox menus report"
@@ -173,6 +174,7 @@ jobs:
           --expect "Screen reader / nvda-firefox selection report"
           --expect "Screen reader / nvda-firefox structure report"
           --expect "Screen reader / nvda-firefox status report"
+          --expect "Screen reader / nvda-firefox formulas report"
           --expect "Screen reader / vo-webkit keyboard report"
           --expect "Screen reader / vo-webkit reading report"
           --expect "Screen reader / vo-webkit menus report"
@@ -180,6 +182,7 @@ jobs:
           --expect "Screen reader / vo-webkit selection report"
           --expect "Screen reader / vo-webkit structure report"
           --expect "Screen reader / vo-webkit status report"
+          --expect "Screen reader / vo-webkit formulas report"
           --expect "Screen reader / vo-chromium keyboard report"
           --expect "Screen reader / vo-chromium reading report"
           --expect "Screen reader / vo-chromium menus report"
@@ -187,6 +190,7 @@ jobs:
           --expect "Screen reader / vo-chromium selection report"
           --expect "Screen reader / vo-chromium structure report"
           --expect "Screen reader / vo-chromium status report"
+          --expect "Screen reader / vo-chromium formulas report"
 
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
   # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on
