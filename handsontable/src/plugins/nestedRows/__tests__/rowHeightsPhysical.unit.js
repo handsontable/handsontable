@@ -99,6 +99,24 @@ describe('NestedRows with rowHeights addressed by physical row index', () => {
     expect(heightsByName()).toEqual({ P: 100, C0: undefined, C1: 50, C2: 40, Q: 70 });
   });
 
+  it('should give no entry to a child added with `addChildAtIndex()` past the child count', () => {
+    // entries past the rows, so a child that took the next entry would read 60
+    buildGrid({ rowHeights: [100, 50, 40, 70, 60, 30] });
+
+    const dataManager = hot.getPlugin('nestedRows').dataManager;
+
+    // past the child count, the index mapper reads the insert as an append, while the row lands after C2
+    dataManager.addChildAtIndex(dataManager.getDataObject(0), 99, { name: 'C3' });
+
+    expect(hot.getDataAtCol(0)).toEqual(['P', 'C1', 'C2', 'C3', 'Q']);
+    expect(heightsByName()).toEqual({ P: 100, C1: 50, C2: 40, C3: undefined, Q: 70 });
+
+    // the next real append still takes the entry after the highest one in use
+    hot.alter('insert_row_below', hot.countRows() - 1);
+
+    expect(hot.getRowHeight(5)).toBe(60);
+  });
+
   it('should keep the heights with their rows when a sibling is added below a nested child', () => {
     buildGrid({
       data: [

@@ -51,15 +51,43 @@ describe('UndoRedo with an array rowHeights', () => {
     expect(heights(hot)).toEqual([80, 60, 70]);
   });
 
-  it('should keep heights set after a step that did not change them', () => {
-    const hot = create({ data: spreadsheet(3, 1), rowHeights: [100, 50, 40], autoRowSize: false });
+  it('should drop the history when a new array replaces the previous one, rather than undo into its rows', () => {
+    const hot = create({ data: spreadsheet(3, 1), rowHeights: [10, 20, 30], autoRowSize: false });
+    const undoRedo = hot.getPlugin('undoRedo');
 
-    hot.setDataAtCell(0, 0, 'edited');
-    hot.updateSettings({ rowHeights: [30, 31, 32] });
-    hot.getPlugin('undoRedo').undo();
+    hot.alter('insert_row_above', 1);
+    hot.updateSettings({ rowHeights: [70, 80, 90, 95] });
 
-    expect(hot.getDataAtCell(0, 0)).toBe('A1');
-    expect(heights(hot)).toEqual([30, 31, 32]);
+    expect(undoRedo.isUndoAvailable()).toBe(false);
+
+    undoRedo.undo();
+
+    expect(heights(hot)).toEqual([70, 80, 90, 95]);
+  });
+
+  it('should drop the history for a new array after a row removal too', () => {
+    const hot = create({ data: spreadsheet(3, 1), rowHeights: [10, 20, 30], autoRowSize: false });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.alter('remove_row', 0);
+    hot.updateSettings({ rowHeights: [50, 60] });
+    undoRedo.undo();
+
+    expect(hot.getDataAtCol(0)).toEqual(['A2', 'A3']);
+    expect(heights(hot)).toEqual([50, 60]);
+  });
+
+  it('should keep the history when the same array is passed again', () => {
+    const rowHeights = [100, 50, 40];
+    const hot = create({ data: spreadsheet(3, 1), rowHeights, autoRowSize: false });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.alter('remove_row', 0);
+    hot.updateSettings({ rowHeights });
+    undoRedo.undo();
+
+    expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
+    expect(heights(hot)).toEqual([100, 50, 40]);
   });
 
   it('should drop the history when `rowHeights` becomes an array, rather than undo into other heights', () => {

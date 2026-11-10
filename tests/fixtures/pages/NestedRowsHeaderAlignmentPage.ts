@@ -10,6 +10,10 @@ export interface HeaderAlignment {
   buttonTop: number;
   /** The button's vertical center minus the center of the label's first line. */
   buttonToLabel: number;
+  /** The button's vertical center minus the center of the whole label, every line of it. */
+  buttonToLabelBlock: number;
+  /** The number of lines the label takes. */
+  labelLines: number;
 }
 
 /**
@@ -30,9 +34,9 @@ export class NestedRowsHeaderAlignmentPage {
    * Navigate to the fixture and wait for the grid to render. `mode` picks whether `rowHeights` is an
    * exact height (AutoRowSize off) or a minimum (AutoRowSize on).
    */
-  async goto(mode: 'exact' | 'minimum'): Promise<void> {
-    await this.page.goto(
-      `/tests/fixtures/demo/nested-rows-header-alignment.html?theme=${this.theme}&bundle=${this.bundle}&mode=${mode}`);
+  async goto(mode: 'exact' | 'minimum', labels: 'short' | 'long' = 'short'): Promise<void> {
+    await this.page.goto('/tests/fixtures/demo/nested-rows-header-alignment.html' +
+      `?theme=${this.theme}&bundle=${this.bundle}&mode=${mode}&labels=${labels}`);
     await awaitBundle(this.page);
     await expect(this.page.locator('.ht_clone_inline_start .ht_nestingButton').first()).toBeVisible();
   }
@@ -51,15 +55,20 @@ export class NestedRowsHeaderAlignmentPage {
 
       range.selectNodeContents(label);
 
-      const firstLine = range.getClientRects()[0];
+      const lines = Array.from(range.getClientRects());
+      const firstLine = lines[0];
+      const lastLine = lines[lines.length - 1];
       const header = th.getBoundingClientRect();
       const box = button.getBoundingClientRect();
+      const buttonCenter = (box.top + box.bottom) / 2;
 
       return {
         rowHeight: header.height,
         labelTop: firstLine.top - header.top,
         buttonTop: box.top - header.top,
-        buttonToLabel: ((box.top + box.bottom) / 2) - ((firstLine.top + firstLine.bottom) / 2),
+        buttonToLabel: buttonCenter - ((firstLine.top + firstLine.bottom) / 2),
+        buttonToLabelBlock: buttonCenter - ((firstLine.top + lastLine.bottom) / 2),
+        labelLines: new Set(lines.map(line => Math.round(line.top))).size,
       };
     }, row);
   }

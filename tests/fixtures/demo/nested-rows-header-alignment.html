@@ -43,6 +43,7 @@
     (physical): 0 a parent with an exact 100px height (`rowHeights`, AutoRowSize off), 1 its child,
     2 a parent whose wrapped text grows it, 3 its child, 4 a parent at the default height, 5 its child.
     ?mode=minimum turns AutoRowSize on, so `rowHeights` is a minimum and no row is exact.
+    ?labels=long gives the rows two-line labels.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -57,6 +58,8 @@
     // Fail loud like ?theme= and ?bundle=: a mistyped mode must not quietly test the exact layout.
     const minimum = htPick({ exact: false, minimum: true }, new URLSearchParams(location.search).get('mode'),
       'exact', 'mode');
+    const longLabels = htPick({ short: false, long: true }, new URLSearchParams(location.search).get('labels'),
+      'short', 'labels');
 
     window.hot = new Handsontable(container, {
       data: [
@@ -68,7 +71,7 @@
       rowHeights: [100],
       autoRowSize: minimum,
       wordWrap: true,
-      rowHeaders: true,
+      rowHeaders: longLabels ? row => `Group<br>${row + 1}` : true,
       colHeaders: ['Department'],
       nestedRows: true,
       width: 400,

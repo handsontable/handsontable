@@ -9,14 +9,14 @@ export const ROW_SIZE_OPTIONS = ['rowHeights', 'minRowHeights'] as const;
 export type RowSizeOption = typeof ROW_SIZE_OPTIONS[number];
 
 /**
- * Builds the name an origin map is registered under in the row index mapper.
- *
- * @param {string} option The option the map follows.
- * @returns {string}
+ * The origins an option had for one data array, by the array of the option they were declared for.
  */
-function toMapName(option: RowSizeOption): string {
-  return `${option}.declaredIndex`;
-}
+type KeptOrigins = Map<RowSizeOption, Map<unknown[], unknown[]>>;
+
+/**
+ * Stops an observer of an origin map.
+ */
+type DisposeObserver = () => void;
 
 /**
  * Returns the entry index after the highest one in use, which the next row appended after the last one takes,
@@ -44,9 +44,8 @@ function nextUnusedEntry(values: unknown[]): number {
  *
  * Each array is read through a physical row index map (one per option, registered only while the option is an
  * array). The map holds, for every physical row, the index of the array entry the row was declared at, or `null`
- * for a row created after the declaration. The index mapper keeps the map aligned when rows are inserted or
- * removed (through `alter()`, a data load, or the NestedRows plugin's own inserts), and UndoRedo puts it back
- * with the other index maps, so a height stays with its row.
+ * for a row inserted between others after the declaration. The index mapper keeps the map aligned when rows are
+ * inserted or removed, and UndoRedo puts it back with the other index maps, so a height stays with its row.
  *
  * The arrays themselves are never changed: `getSettings()` keeps returning the value the user passed, so
  * `updateSettings()` re-declares it and the framework wrappers, which compare their props with that value, see
@@ -62,13 +61,27 @@ export class RowSizeSettings {
    */
   #maps = new Map<RowSizeOption, PhysicalIndexToValueMap>();
   /**
-   * The array each origin map was filled for, by option. A new array resets the map, the same one keeps it.
+   * The name each origin map is registered under, by option. A new array registers a new map under a new name,
+   * so UndoRedo, which compares the names, drops the steps recorded with the origins of the previous array.
+   */
+  #names = new Map<RowSizeOption, string>();
+  /**
+   * The number of origin maps registered so far, which makes each name unique.
+   */
+  #registrations = 0;
+  /**
+   * The disposers of the observers that drop the row height cache when an origin map changes, by option.
+   */
+  #disposeObservers = new Map<RowSizeOption, DisposeObserver>();
+  /**
+   * The array each origin map was filled for, by option. A new array replaces the map, the same one keeps it.
    */
   #declared = new Map<RowSizeOption, unknown[]>();
   /**
-   * The physical index the row index mapper inserted its last block at, until `alignInsertedRows()` reads it.
+   * The physical index at which the maps took the slots of the index mapper's last insert, until
+   * `alignInsertedRows()` reads it.
    */
-  #lastInsertedAt: number | null = null;
+  #lastSlot: number | null = null;
   /**
    * For an insert in progress at the end of the rows, the first entry index each map hands out, by option;
    * `null` for an insert anywhere else.
@@ -79,11 +92,11 @@ export class RowSizeSettings {
    */
   #data: unknown = null;
   /**
-   * The origins each data array had when the grid loaded another one, by option, with the array they were
-   * declared for. The sheets bar reloads a sheet's own data array when the sheet is shown again, so its heights
-   * come back on the rows they were on.
+   * The origins each data array had when the grid loaded another one, by option and by the array they were
+   * declared for. A `loadData()` declares every row at its own index again, and the sheets bar loads a sheet's own
+   * data array each time the sheet is shown, so its heights come back on the rows they were on.
    */
-  #kept = new WeakMap<object, Map<RowSizeOption, { declared: unknown[]; values: unknown[] }>>();
+  #kept = new WeakMap<object, KeptOrigins>();
 
   /**
    * Follows the settings, which decide whether a map is needed, and the index mapper's inserts.
@@ -94,20 +107,7 @@ export class RowSizeSettings {
     this.#hot = hot;
 
     // Runs before the maps insert their slots, so their length is still the one before the insert.
-    hot.rowIndexMapper.addLocalHook('indexesInserted', (insertedIndexes: number[]) => {
-      this.#lastInsertedAt = insertedIndexes.length > 0 ? insertedIndexes[0]! : null;
-      this.#appendFrom = null;
-
-      if (this.#lastInsertedAt !== null) {
-        this.#appendFrom = new Map();
-        this.#maps.forEach((map, option) => {
-          // Only a block appended after the last row takes the next entries.
-          if (this.#lastInsertedAt! >= map.getLength()) {
-            this.#appendFrom!.set(option, nextUnusedEntry(map.getValues()));
-          }
-        });
-      }
-    });
+    hot.rowIndexMapper.addLocalHook('indexesInserted', this.#onIndexesInserted);
 
     // Registered before the first data load and after every settings update, never lazily on a lookup: UndoRedo
     // drops its history when the set of index map names changes, and a settings update is where a user expects
@@ -141,33 +141,33 @@ export class RowSizeSettings {
   }
 
   /**
-   * Moves the slots of the rows `alter()` just created to the physical index the rows really took. A row
-   * inserted below another is spliced into the data one index further than the index mapper inserts it,
-   * so without this the row above would lose its height to the new row (the index mapper's maps share
-   * that defect, the ManualRowResize heights among them).
+   * Moves the slots of the row a hand-built insert just created (the NestedRows plugin) to the physical index the
+   * row really took. Such an insert hands the index mapper a position, not always the row's physical index (a
+   * position inside the parent, or one past the last row for a child added to the last parent), so the maps take
+   * the slots elsewhere. A row that ends the rows takes the next entries, any other row none.
    *
    * @param {number} physicalRow The physical index of the first created row.
    * @param {number} amount The number of created rows.
    */
   alignInsertedRows(physicalRow: number, amount: number): void {
-    const insertedAt = this.#lastInsertedAt;
+    const slot = this.#lastSlot;
 
-    this.#lastInsertedAt = null;
+    this.#lastSlot = null;
 
-    if (insertedAt === null || insertedAt === physicalRow || amount <= 0) {
+    if (slot === null || slot === physicalRow || amount <= 0) {
       return;
     }
 
     this.#maps.forEach((map) => {
       const values = map.getValues();
-      const rest = values.slice(0, insertedAt).concat(values.slice(insertedAt + amount));
-      let block = values.slice(insertedAt, insertedAt + amount);
+      const from = Math.min(slot, values.length - amount);
+      const rest = values.slice(0, from).concat(values.slice(from + amount));
+      const endsRows = physicalRow + amount >= values.length;
+      const next = endsRows ? nextUnusedEntry(rest) : 0;
+      const block = new Array<number | null>(amount);
 
-      // A row inserted below the last one is an append too, so it takes the next entries.
-      if (physicalRow + amount >= values.length) {
-        const from = nextUnusedEntry(rest);
-
-        block = block.map((_, ordinal) => from + ordinal);
+      for (let ordinal = 0; ordinal < amount; ordinal += 1) {
+        block[ordinal] = endsRows ? next + ordinal : null;
       }
 
       // `concat`, not a spread: an insert can create many rows at once.
@@ -205,7 +205,33 @@ export class RowSizeSettings {
   }
 
   /**
-   * Registers, resets, or unregisters each origin map so it follows the current value of its option.
+   * Records where the maps take the slots of an insert, and which entries a block appended after the last row
+   * takes.
+   *
+   * @param {number[]} insertedIndexes The inserted physical indexes.
+   * @param {string} [mode] `end` when the maps take the slots one index after `insertedIndexes`.
+   */
+  #onIndexesInserted = (insertedIndexes: number[], mode?: 'start' | 'end'): void => {
+    this.#lastSlot = insertedIndexes.length > 0 ? insertedIndexes[0]! + (mode === 'end' ? 1 : 0) : null;
+    this.#appendFrom = null;
+
+    if (this.#lastSlot === null) {
+      return;
+    }
+
+    const slot = this.#lastSlot;
+
+    this.#appendFrom = new Map();
+    this.#maps.forEach((map, option) => {
+      // Only a block appended after the last row takes the next entries.
+      if (slot >= map.getLength()) {
+        this.#appendFrom!.set(option, nextUnusedEntry(map.getValues()));
+      }
+    });
+  };
+
+  /**
+   * Registers, replaces, or unregisters each origin map so it follows the current value of its option.
    */
   #onSettingsChange = (): void => {
     const settings = this.#hot.getSettings() as Record<string, unknown>;
@@ -215,7 +241,6 @@ export class RowSizeSettings {
 
       if (Array.isArray(value)) {
         this.#follow(option, value);
-        this.#restore(option);
       } else {
         this.#unfollow(option);
       }
@@ -223,15 +248,26 @@ export class RowSizeSettings {
   };
 
   /**
-   * Keeps the origins of the data array the grid is about to leave. A load declares every row at its own
-   * index again.
+   * Keeps the origins of the data array the grid is about to leave.
    */
   #keepAll = (): void => {
     this.#maps.forEach((_, option) => this.#keep(option));
   };
 
   /**
-   * Keeps the origins of one option for the current data array.
+   * Follows the data array a load passed, and puts back the origins it had for the arrays the options hold now,
+   * once: a later settings update or load of the same data does not bring them back again.
+   *
+   * @param {Array} data The loaded data.
+   */
+  #onDataLoaded = (data: unknown): void => {
+    this.#data = data;
+    this.#maps.forEach((_, option) => this.#restore(option));
+  };
+
+  /**
+   * Keeps the origins of one option for the current data array, under the array of the option they were declared
+   * for, so origins kept for another array never replace them.
    *
    * @param {string} option The option.
    */
@@ -251,103 +287,104 @@ export class RowSizeSettings {
       this.#kept.set(data, kept);
     }
 
-    kept.set(option, { declared, values: map.getValues().slice() });
+    let byDeclared = kept.get(option);
+
+    if (byDeclared === undefined) {
+      byDeclared = new Map();
+      kept.set(option, byDeclared);
+    }
+
+    byDeclared.set(declared, map.getValues().slice());
   }
 
   /**
-   * Follows the data array a load passed, and puts back the origins it had when it was last shown.
-   *
-   * @param {Array} data The loaded data.
-   */
-  #onDataLoaded = (data: unknown): void => {
-    this.#data = data;
-    this.#maps.forEach((_, option) => this.#restore(option));
-  };
-
-  /**
-   * Puts back the origins of one option kept for the current data array, when they were kept for the array the
-   * option holds now and the data still has as many rows.
+   * Puts back, and forgets, the origins of one option kept for the current data array and the array the option
+   * holds now, when the data still has as many rows.
    *
    * @param {string} option The option.
    */
   #restore(option: RowSizeOption): void {
     const map = this.#maps.get(option);
+    const declared = this.#declared.get(option);
     const data = this.#data;
-    const kept = typeof data === 'object' && data !== null ? this.#kept.get(data)?.get(option) : undefined;
+    const byDeclared = typeof data === 'object' && data !== null ? this.#kept.get(data)?.get(option) : undefined;
 
-    if (map === undefined || kept === undefined || kept.declared !== this.#declared.get(option)) {
+    if (map === undefined || declared === undefined || byDeclared === undefined) {
       return;
     }
 
-    if (kept.values.length === map.getLength()) {
-      map.setValues(kept.values);
+    const values = byDeclared.get(declared);
+
+    byDeclared.delete(declared);
+
+    if (values !== undefined && values.length === map.getLength()) {
+      map.setValues(values);
     }
   }
 
   /**
-   * Starts following an array, or resets the origin map when a new array replaced the previous one.
+   * Starts following an array, or replaces the origin map when a new array replaced the previous one.
    *
    * @param {string} option The option.
    * @param {Array} value The array.
    */
   #follow(option: RowSizeOption, value: unknown[]): void {
-    const map = this.#maps.get(option);
+    const declared = this.#declared.get(option);
 
-    if (map === undefined) {
-      // A load declares every row at its own index (called with the index alone); an inserted row takes the next
-      // unused entry when it is appended after the last row (called with the ordinal too), and none otherwise.
-      const created = new PhysicalIndexToValueMap((index: number, ordinal?: number) => {
-        if (ordinal === undefined) {
-          return index;
-        }
-
-        const from = this.#appendFrom?.get(option);
-
-        return from === undefined ? null : from + ordinal;
-      });
-
-      this.#maps.set(option, created);
-      this.#declared.set(option, value);
-      this.#hot.rowIndexMapper.registerMap(toMapName(option), created);
-
+    if (declared === value) {
       return;
     }
 
-    if (this.#declared.get(option) !== value) {
-      this.#declared.set(option, value);
-      this.#resetOrigins(map);
+    if (declared !== undefined) {
+      // The origins of the previous array stay kept for the data shown now (a sheet switch applies the arriving
+      // sheet's settings before it loads its data), and a new map declares every row at its own index for the new
+      // array, under a new name.
+      this.#unfollow(option);
     }
+
+    // A load declares every row at its own index (called with the index alone); an inserted row takes the next
+    // unused entry when it is appended after the last row (called with the ordinal too), and none otherwise.
+    const map = new PhysicalIndexToValueMap((index: number, ordinal?: number) => {
+      if (ordinal === undefined) {
+        return index;
+      }
+
+      const from = this.#appendFrom?.get(option);
+
+      return from === undefined ? null : from + ordinal;
+    });
+    const name = `${option}.declaredIndex.${this.#registrations}`;
+
+    this.#registrations += 1;
+    this.#maps.set(option, map);
+    this.#names.set(option, name);
+    this.#declared.set(option, value);
+    this.#hot.rowIndexMapper.registerMap(name, map);
+    // A NestedRows drag or detach moves an entry to another row while the row count and the index order stay
+    // the same, which the row height cache does not notice on its own.
+    this.#disposeObservers.set(option, this.#hot.rowIndexMapper.observeMapChange(map, () => {
+      this.#hot.view?.invalidateRowHeightCache();
+    }));
   }
 
   /**
-   * Stops following an option that is no longer an array.
+   * Stops following an option that is no longer an array, or whose array was replaced.
    *
    * @param {string} option The option.
    */
   #unfollow(option: RowSizeOption): void {
-    if (!this.#maps.has(option)) {
+    const name = this.#names.get(option);
+
+    if (name === undefined) {
       return;
     }
 
     this.#keep(option);
-    this.#hot.rowIndexMapper.unregisterMap(toMapName(option));
+    this.#disposeObservers.get(option)?.();
+    this.#hot.rowIndexMapper.unregisterMap(name);
     this.#maps.delete(option);
+    this.#names.delete(option);
+    this.#disposeObservers.delete(option);
     this.#declared.delete(option);
-  }
-
-  /**
-   * Declares every row at its own physical index, as a load does.
-   *
-   * @param {PhysicalIndexToValueMap} map The origin map.
-   */
-  #resetOrigins(map: PhysicalIndexToValueMap): void {
-    const length = map.getLength();
-    const values = new Array<number>(length);
-
-    for (let index = 0; index < length; index += 1) {
-      values[index] = index;
-    }
-
-    map.setValues(values);
   }
 }

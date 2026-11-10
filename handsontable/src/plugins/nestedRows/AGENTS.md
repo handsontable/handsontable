@@ -116,15 +116,17 @@ They are written in different places and can drift. Keep this in mind:
   `ht_nestingLevel_empty` spacers come before it). Scope any new rule there the same way. Pinned by
   `tests/e2e/icon-elements.spec.ts` ("renderer markup inside the nested rows button gets no row-header
   label padding").
-- **The row header's label and button are aligned to the TOP, never centered.** The header's inner
-  `.relative` is a flex row with `align-items: flex-start`, and the button's top margin
-  (`(--ht-line-height - --ht-icon-button-hit-area-size) / 2`) centers the 24px button on the label's
-  first line. It was `align-items: center` until the exact row-height mode (DEV-2791) made a row with
-  an exact `rowHeights` height stretch the `.rowHeader` span to the whole row (`.htExactRow`, so a long
-  label clips instead of growing the row): the label's text moved to the top while the button stayed
-  in the middle, 30px and more apart. Top alignment matches the cells, which are top-aligned too, in
-  every row mode. Plain `flex-start` is not enough: the button's negative margins (meant for centering)
-  then lift it above the label, 3.5px on `classic`, out of the row. Pinned by
+- **In a row with an exact height, the row header's label and button are aligned to the TOP; every
+  other row keeps them centered.** The header's inner `.relative` is a flex row with
+  `align-items: center`. A row with an exact `rowHeights` height (`tr.htExactRow`, DEV-2791) stretches
+  the `.rowHeader` span to the whole row so a long label clips instead of growing the row, and its text
+  then starts at the top, like the cells: centered, the button stayed in the middle, 30px and more
+  below the label. So `tr.htExactRow > th.ht_nestingLevels` switches to `align-items: flex-start` and
+  gives the button a top margin (`(--ht-line-height - --ht-icon-button-hit-area-size) / 2`) that
+  centers the 24px button on the label's first line. Plain `flex-start` is not enough: the button's
+  negative margins (meant for centering) then lift it above the label, 3.5px on `classic`, out of the
+  row. The rule is scoped to exact rows so a row that grows with its content keeps the 18.1 layout (a
+  label that wraps keeps the button centered on it). Pinned by
   `tests/e2e/nested-rows-header-alignment.spec.ts` on every theme.
 - **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
   The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
@@ -265,10 +267,11 @@ They are written in different places and can drift. Keep this in mind:
   user saw as top-level. Every other insert with no index - `minSpareRows`/`minRows` (`auto`), a paste
   or an edit past the last row, a host's bare `alter('insert_row_below')` - still appends a top-level
   row, because an app may rely on that to add a new parent. (2) **Autofill must keep passing no index.**
-  An explicit `alter('insert_row_below', X)` makes the Core move row X's index map values (a hidden
-  flag, a manual row height) onto the new row - a Core defect on every grid, measured in 18.1.2 - so
-  the fill handle passing the last row's index would have regressed every grid whose last row is hidden
-  or resized. The source string is the contract; the Autofill `AGENTS.md` says the same from its side.
+  An explicit `alter('insert_row_below', X)` used to make the Core move row X's index map values (a
+  hidden flag, a manual row height) onto the new row - a Core defect on every grid in 18.1.2, fixed in
+  19.0 by `DataMap#createRow()` passing the insert mode to the index mapper (DEV-508) - so the fill
+  handle passing the last row's index would have regressed every grid whose last row is hidden or
+  resized. The source string is still the contract; the Autofill `AGENTS.md` says the same from its side.
   (3) **The anchor is honored only when the splice is a pure append AND the last row of the flattened
   tree is the anchor or one of its descendants** (`#endsWithSubtreeOf()`). That is exactly when every
   level lands at the flattened end, where the Core already put the index maps and the cell meta. A last
@@ -293,8 +296,10 @@ They are written in different places and can drift. Keep this in mind:
   index map (`core/rowSizeSettings.ts`, DEV-508), which `insertIndexes()` and `removeIndexes()` keep
   aligned on their own, so a parent removal needs nothing here. An insert almost does: the parent branch of
   `addChildAtIndex()` hands `insertIndexes()` a position inside the parent, so its slot lands rows above the
-  data (the context menu's "Insert row above/below" on a nested child), and `shiftCellsMeta()`, which has
-  the real physical index, calls `Core#_alignInsertedRowSizes()` to move it there. A detach and a row move
+  data (the context menu's "Insert row above/below" on a nested child), or one past the last row for an
+  index past the child count, which the maps read as an append, and `shiftCellsMeta()`, which has the real
+  physical index, calls `Core#_alignInsertedRowSizes()` to move it there, with no entry unless the row ends
+  the rows. A detach and a row move
   renumber rows without the index mapper, so both wrap the tree rewrite in
   `dataManager.captureRowSizeOrigins()`: it records each row OBJECT's declared entry before the rewrite
   and writes it back at the object's new physical index after `rewriteCache()`. Keyed by object, never

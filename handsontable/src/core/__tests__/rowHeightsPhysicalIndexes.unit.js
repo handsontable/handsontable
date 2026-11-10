@@ -45,6 +45,15 @@ describe('rowHeights addressed by physical row index', () => {
     }, true);
   }
 
+  /**
+   * Reads the height of every row.
+   *
+   * @returns {Array}
+   */
+  function heights() {
+    return Array.from({ length: hot.countRows() }, (_, row) => hot.getRowHeight(row));
+  }
+
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -98,11 +107,20 @@ describe('rowHeights addressed by physical row index', () => {
     expect(hot.getRowHeight(1)).toBeUndefined();
   });
 
-  it('should not read the array for a header or a row outside the grid', () => {
-    createGrid({ rowHeights: [100, 50, 40] });
+  it('should not read the array or call the function for a header or a row outside the grid', () => {
+    // a fourth entry, so a read at the visual index would find a value
+    createGrid({ rowHeights: [100, 50, 40, 30] });
 
     expect(hot._getRowHeightFromSettings(-1)).toBeUndefined();
     expect(hot._getRowHeightFromSettings(3)).toBeUndefined();
+
+    const rowHeights = jasmine.createSpy('rowHeights').and.returnValue(70);
+
+    hot.updateSettings({ rowHeights });
+    rowHeights.calls.reset();
+
+    expect(hot._getRowHeightFromSettings(3)).toBeUndefined();
+    expect(rowHeights).not.toHaveBeenCalled();
   });
 
   it('should leave the height untouched when no row is moved or trimmed', () => {
@@ -135,8 +153,9 @@ describe('rowHeights addressed by physical row index', () => {
     expect(hot.getRowHeight(2)).toBe(50);
   });
 
-  it('should keep the heights with their rows when a row is appended after a move', () => {
-    createGrid({ rowHeights: [100, 50, 40] });
+  it('should give a row inserted below the last row on screen, in the middle physically, no height', () => {
+    // a fourth entry, so the row taking the next entry would read 30
+    createGrid({ rowHeights: [100, 50, 40, 30] });
 
     hot.rowIndexMapper.moveIndexes([0], 2);
     // appended after the last visible row, which takes a physical index in the middle
@@ -147,6 +166,38 @@ describe('rowHeights addressed by physical row index', () => {
     expect(hot.getRowHeight(1)).toBe(40);
     expect(hot.getRowHeight(2)).toBe(100);
     expect(hot.getRowHeight(3)).toBeUndefined();
+  });
+
+  it('should keep the heights on their rows when an `afterCreateRow` listener inserts a row', () => {
+    let inserted = false;
+
+    createGrid({
+      rowHeights: [10, 20, 30],
+      afterCreateRow() {
+        if (!inserted) {
+          inserted = true;
+          this.alter('insert_row_above', 0);
+        }
+      },
+    });
+
+    hot.alter('insert_row_below', 1);
+
+    expect(hot.getDataAtCol(0)).toEqual([null, 'a', 'b', null, 'c']);
+    expect(heights()).toEqual([undefined, 10, 20, undefined, 30]);
+  });
+
+  it('should keep the other row index maps on their rows for an insert below a row', () => {
+    createGrid({ rowHeights: [10, 20, 30] });
+
+    const map = hot.rowIndexMapper.createAndRegisterIndexMap('insertBelowProbe', 'physicalIndexToValue', null);
+
+    map.setValueAtIndex(1, 'b');
+    hot.alter('insert_row_below', 1);
+
+    expect(hot.getDataAtCol(0)).toEqual(['a', 'b', null, 'c']);
+    expect(map.getValues()).toEqual([null, 'b', null, null]);
+    expect(heights()).toEqual([10, 20, undefined, 30]);
   });
 
   it('should give the rows appended at the end the next entries, whichever way they are created', () => {
@@ -326,5 +377,18 @@ describe('rowHeights addressed by physical row index', () => {
     hot.updateSettings({ rowHeights: '90px' });
 
     expect(hot.getRowHeight(1)).toBe(90);
+  });
+
+  it('should drop the row height cache when the origins of the rows change', () => {
+    createGrid({ rowHeights: [10, 20, 30] });
+
+    const invalidate = spyOn(hot.view, 'invalidateRowHeightCache').and.callThrough();
+    const origins = hot._readRowSizeOrigins();
+
+    origins.set('rowHeights', [2, 1, 0]);
+    hot._writeRowSizeOrigins(origins);
+
+    expect(invalidate).toHaveBeenCalled();
+    expect(heights()).toEqual([30, 20, 10]);
   });
 });

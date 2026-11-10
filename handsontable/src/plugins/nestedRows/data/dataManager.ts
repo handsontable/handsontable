@@ -950,7 +950,8 @@ class DataManager {
     });
     this.hot._getMetaManager().createRow(physicalRow, 1);
     // The index-mapper insert before this one is not always at the row's physical index (the parent branch of
-    // `addChildAtIndex()` passes a position inside the parent), so the declared row heights are moved to it.
+    // `addChildAtIndex()` passes a position inside the parent, or one past the last row), so the declared row
+    // heights are moved to it, and a row that does not end the rows gets no entry.
     this.hot._alignInsertedRowSizes(physicalRow, 1);
   }
 
@@ -1256,11 +1257,14 @@ class DataManager {
     // condition, free to drift away from the one the data operation is gated on.
     let hasMovedTheRow = false;
 
+    // Captured only for a detach that moves the row, which is the only one the restore below runs for.
+    let restoreRowSizeOrigins: (() => void) | null = null;
+
     this.hot.runHooks('beforeDetachChild', parent, element, source);
 
-    const restoreRowSizeOrigins = this.captureRowSizeOrigins();
-
     if (indexWithinParent !== null && indexWithinParent !== undefined) {
+      restoreRowSizeOrigins = this.captureRowSizeOrigins();
+
       const removedRowIndexes = Array.from(
         new Array(childRowIndex + childCount + 1).keys()
       ).splice(-1 * (childCount + 1));

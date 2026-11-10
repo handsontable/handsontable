@@ -74,4 +74,60 @@ describe('SheetsBar with an array rowHeights or minRowHeights', () => {
       expect(declared).toEqual([40, 60, 80]);
     });
   });
+
+  describe.each(['rowHeights', 'minRowHeights'])('%s, with a different array on each side', (option) => {
+    it.each([
+      ['both sheets declare their own array', false],
+      ['the grid declares one array and sheet A overrides it', true],
+    ])('should keep the heights on their rows after a round trip when %s', (_name, gridLevel) => {
+      const sheetA = { name: 'A', data: [['a'], ['b'], ['c']], settings: { [option]: [100, 50, 40] } };
+      const sheetB = { name: 'B', data: [['x'], ['y'], ['z']], settings: gridLevel ? {} : { [option]: [7, 8, 9] } };
+
+      hot = new Handsontable(container, {
+        ...(gridLevel ? { [option]: [10, 20, 30] } : {}),
+        autoRowSize: false,
+        sheetsBar: { sheets: [sheetA, sheetB] },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      hot.alter('remove_row', 0);
+
+      expect(heights()).toEqual([50, 40]);
+
+      hot.getPlugin('sheetsBar').setActiveSheet('B');
+
+      expect(heights()).toEqual(gridLevel ? [10, 20, 30] : [7, 8, 9]);
+
+      hot.getPlugin('sheetsBar').setActiveSheet('A');
+
+      expect(heights()).toEqual([50, 40]);
+
+      hot.alter('insert_row_above', 1);
+      hot.getPlugin('sheetsBar').setActiveSheet('B');
+      hot.getPlugin('sheetsBar').setActiveSheet('A');
+
+      expect(heights()).toEqual([50, undefined, 40]);
+    });
+  });
+
+  it('should not bring back the alignment of an earlier visit on a later settings update', () => {
+    hot = new Handsontable(container, {
+      rowHeights: [100, 50, 40],
+      autoRowSize: false,
+      sheetsBar: { sheets: [{ name: 'A', data: [['a'], ['b'], ['c']] }, { name: 'B', data: [['x']] }] },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.getPlugin('sheetsBar').setActiveSheet('B');
+    hot.getPlugin('sheetsBar').setActiveSheet('A');
+    // as many rows as when the sheet was left, on other rows
+    hot.alter('insert_row_above', 0);
+    hot.alter('remove_row', 3);
+
+    expect(heights()).toEqual([undefined, 100, 50]);
+
+    hot.updateSettings({ readOnly: false });
+
+    expect(heights()).toEqual([undefined, 100, 50]);
+  });
 });

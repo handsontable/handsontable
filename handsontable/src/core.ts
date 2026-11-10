@@ -1925,10 +1925,6 @@ export default function Core(
               startPhysicalIndex: startRowPhysicalIndex,
             } = datamap.createRow(rowIndex, amount, { source, mode: insertRowMode });
 
-            if (rowDelta) {
-              rowSizeSettings.alignInsertedRows(startRowPhysicalIndex!, rowDelta as number);
-            }
-
             selection.shiftRows(instance.toVisualRow(startRowPhysicalIndex!), rowDelta as number);
             break;
 
@@ -9605,8 +9601,8 @@ export default function Core(
    * with the physical row index, and the array is read at the entry the row was declared at (the physical
    * index at the time of the declaration, kept by `RowSizeSettings` across row inserts and removals), so a
    * height stays with its row when rows are moved, sorted, trimmed, filtered, collapsed, inserted, or
-   * removed. Headers (negative indexes) and rows outside the index mapper have no physical index, so they
-   * keep the index they were given. A number and a string apply to every row, so they skip the translation.
+   * removed. Headers (negative indexes) have no physical index, so they keep the index they were given, and a row
+   * outside the index mapper gets no value. A number and a string apply to every row, so they skip the translation.
    *
    * @param {string} option `rowHeights` or `minRowHeights`.
    * @param {number} row Visual row index.
@@ -9619,10 +9615,15 @@ export default function Core(
       return resolveRowHeightSetting(setting, row);
     }
 
-    const physicalRow = row >= 0 ? instance.toPhysicalRow(row) : null;
-
-    if (physicalRow === null) {
+    if (row < 0) {
       return resolveRowHeightSetting(setting, row);
+    }
+
+    const physicalRow = instance.toPhysicalRow(row);
+
+    // A row outside the index mapper has no physical index, so no entry of the array or the function applies.
+    if (physicalRow === null) {
+      return undefined;
     }
 
     if (!Array.isArray(setting)) {

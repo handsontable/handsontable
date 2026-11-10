@@ -7393,9 +7393,10 @@ export default (): Record<string, unknown> => {
      * {@link NestedRows} plugin). The physical index doesn't change in any of those cases. An array entry
      * also stays with the row it was declared for when you insert or remove rows: a row inserted between
      * others has no height of its own, a row added after the last one takes the next entry, and the array
-     * you passed is never changed. To declare the heights again, pass a
-     * new array to [`updateSettings()`](@/api/core.md#updatesettings). [`colWidths`](#colWidths) addresses
-     * columns by the physical index too.
+     * you passed is never changed. A function is called with the physical index the row has now. To declare
+     * the heights again, pass a new array to [`updateSettings()`](@/api/core.md#updatesettings), which also
+     * clears the undo history, the way enabling a plugin does. [`colWidths`](#colWidths) addresses columns by
+     * the physical index too.
      *
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
      * row still grows to fit its content, and the clipping described above does not apply. The

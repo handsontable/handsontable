@@ -4,21 +4,10 @@
   .handsontable {
     th {
       &.ht_nestingLevels {
-        // The label and the button start at the top of the row, like the cell text. Centered, they
-        // drifted apart in a row with an exact `rowHeights` height, where the label is stretched to the
-        // full row (`.htExactRow`) while the button stayed in the middle.
         > .relative {
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           gap: 5px;
-        }
-
-        // The button is taller than a line of text, so it is centered on the label's first line.
-        > .relative > .ht_nestingButton {
-          // The fallbacks keep the declaration valid on a theme that does not define the tokens: this rule
-          // is more specific than the shared button margin, so an invalid `calc()` would leave the button
-          // with no top margin at all.
-          margin-top: calc((var(--ht-line-height, 20px) - var(--ht-icon-button-hit-area-size, 24px)) / 2);
         }
 
         // Lines a leaf row's label up with the labels of rows that have a button. Direct children
@@ -47,6 +36,23 @@
           cursor: pointer;
           order: -1;
         }
+      }
+    }
+
+    // In a row with an exact `rowHeights` height (`.htExactRow`) the label is stretched to the full row and its
+    // text starts at the top, like the cell text, so the button starts there too. Centered, it stayed in the
+    // middle of the row, 30px and more below the label. Every other row keeps the centered layout.
+    tr.htExactRow > th.ht_nestingLevels {
+      > .relative {
+        align-items: flex-start;
+      }
+
+      // The button is taller than a line of text, so it is centered on the label's first line.
+      > .relative > .ht_nestingButton {
+        // The fallbacks keep the declaration valid on a theme that does not define the tokens: this rule
+        // is more specific than the shared button margin, so an invalid `calc()` would leave the button
+        // with no top margin at all.
+        margin-top: calc((var(--ht-line-height, 20px) - var(--ht-icon-button-hit-area-size, 24px)) / 2);
       }
     }
   }
