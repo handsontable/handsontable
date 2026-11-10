@@ -108,6 +108,13 @@ export class ColumnSizeSettings {
    */
   #kept = new WeakMap<object, Map<unknown[], unknown[]>>();
   /**
+   * The origins of an array replaced while the data shown now stays, kept here until the next data load: a sheet
+   * switch applies the arriving sheet's settings before it loads its data, so they belong to the departing sheet.
+   * A later replacement overwrites them, so an app that builds a new array on each render keeps one copy, not one
+   * per array.
+   */
+  #departing: { declared: unknown[], values: unknown[] } | null = null;
+  /**
    * `true` between the start and the end of a data load, whose column changes come from the new data.
    */
   #loading = false;
@@ -170,7 +177,15 @@ export class ColumnSizeSettings {
    */
   #onBeforeDataLoad = (): void => {
     this.#loading = true;
-    this.#keep();
+
+    if (this.#departing !== null) {
+      this.#keep(this.#departing.declared, this.#departing.values);
+      this.#departing = null;
+    }
+
+    if (this.#map !== null && this.#declared !== null) {
+      this.#keep(this.#declared, this.#map.getValues().slice());
+    }
   };
 
   /**
@@ -179,19 +194,21 @@ export class ColumnSizeSettings {
   #onColumnsChanged = (): void => {
     if (!this.#loading && typeof this.#data === 'object' && this.#data !== null) {
       this.#kept.delete(this.#data);
+      this.#departing = null;
     }
   };
 
   /**
    * Keeps the origins of the data array shown now, under the array of `colWidths` they were declared for, so
    * origins kept for another array never replace them.
+   *
+   * @param {Array} declared The array of `colWidths` the origins were declared for.
+   * @param {Array} values The origins.
    */
-  #keep(): void {
-    const map = this.#map;
-    const declared = this.#declared;
+  #keep(declared: unknown[], values: unknown[]): void {
     const data = this.#data;
 
-    if (map === null || declared === null || typeof data !== 'object' || data === null) {
+    if (typeof data !== 'object' || data === null) {
       return;
     }
 
@@ -202,12 +219,13 @@ export class ColumnSizeSettings {
       this.#kept.set(data, byDeclared);
     }
 
-    byDeclared.set(declared, map.getValues().slice());
+    byDeclared.set(declared, values);
   }
 
   /**
    * Follows the data array a load passed, and puts back, once, the origins it had for the array `colWidths` holds
-   * now. A settings update never puts them back: the columns may have changed since they were kept.
+   * now. Everything kept for that data is dropped then, since its columns now live in the map. A settings update
+   * never puts them back: the columns may have changed since they were kept.
    *
    * @param {Array} data The loaded data.
    */
@@ -219,13 +237,15 @@ export class ColumnSizeSettings {
     const declared = this.#declared;
     const byDeclared = typeof data === 'object' && data !== null ? this.#kept.get(data) : undefined;
 
+    if (byDeclared !== undefined) {
+      this.#kept.delete(data as object);
+    }
+
     if (map === null || declared === null || byDeclared === undefined) {
       return;
     }
 
     const values = byDeclared.get(declared);
-
-    byDeclared.delete(declared);
 
     if (values !== undefined && values.length === map.getLength()) {
       map.setValues(values);
@@ -243,8 +263,8 @@ export class ColumnSizeSettings {
     }
 
     if (this.#declared !== null) {
-      // The origins of the previous array stay kept for the data shown now (a sheet switch applies the arriving
-      // sheet's settings before it loads its data), and a new map declares every column at its own index for the
+      // The origins of the previous array wait in `#departing` for the next data load (a sheet switch applies the
+      // arriving sheet's settings before it loads its data), and a new map declares every column at its own index for the
       // new array, under a new name.
       this.#unfollow();
     }
@@ -291,7 +311,10 @@ export class ColumnSizeSettings {
       return;
     }
 
-    this.#keep();
+    if (this.#map !== null && this.#declared !== null) {
+      this.#departing = { declared: this.#declared, values: this.#map.getValues().slice() };
+    }
+
     this.#disposeObserver?.();
     this.#hot.columnIndexMapper.unregisterMap(this.#name);
     this.#map = null;

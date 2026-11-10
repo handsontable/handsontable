@@ -351,4 +351,39 @@ describe('colWidths addressed by physical column index', () => {
 
     expect(widths()).toEqual([10, 20, 30, 50]);
   });
+
+  it('should give a data array shown earlier back the alignment it had, when it is loaded again', () => {
+    const first = [['a', 'b', 'c']];
+    const second = [['x', 'y', 'z']];
+
+    createGrid({ data: first, colWidths: [10, 20, 30] });
+
+    hot.alter('insert_col_start', 1);
+    hot.loadData(second);
+
+    expect(widths()).toEqual([10, 20, 30]);
+
+    // `first` holds the inserted column, so its widths stay on their columns
+    hot.loadData(first);
+
+    expect(hot.getDataAtRow(0)).toEqual(['a', null, 'b', 'c']);
+    expect(widths()).toEqual([10, 50, 20, 30]);
+  });
+
+  it('should keep only the alignment of the last array replaced while the data stays', () => {
+    const first = [['a', 'b', 'c']];
+    const declared = [10, 20, 30, 40];
+
+    createGrid({ data: first, colWidths: declared });
+
+    hot.alter('insert_col_start', 1);
+    // each new array replaces what the previous one kept
+    hot.updateSettings({ colWidths: [1, 2, 3, 4] });
+    hot.updateSettings({ colWidths: [5, 6, 7, 8] });
+    hot.loadData([['x', 'y', 'z', 'w']]);
+    hot.updateSettings({ colWidths: declared });
+    hot.loadData(first);
+
+    expect(widths()).toEqual([10, 20, 30, 40]);
+  });
 });
