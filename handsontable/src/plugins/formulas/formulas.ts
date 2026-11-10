@@ -409,6 +409,48 @@ const HYPERLINK_SETTINGS_WARN_KEY = 'formulas-hyperlinks-settings';
 type SyncedColumnSpace = 'physical' | 'visual' | Array<number | null>;
 
 /**
+ * Tells whether a value is a `Date`, also one from another window.
+ *
+ * @param {*} value The value.
+ * @returns {boolean}
+ */
+function isDateObject(value: unknown): value is Date {
+  return Object.prototype.toString.call(value) === '[object Date]';
+}
+
+/**
+ * Returns the value a record of what the engine was fed keeps for a cell. A `Date` is copied: the host can change
+ * the one it holds in place (`setFullYear()`), and a record that kept the same object would change with it.
+ *
+ * @param {*} value The value the engine got.
+ * @returns {*}
+ */
+function toSyncedValue(value: unknown): unknown {
+  return isDateObject(value) ? new Date(value.getTime()) : value;
+}
+
+/**
+ * Tells whether a recorded cell holds the value read now. A missing cell reads as `null`, the way the engine
+ * reads it. `NaN` equals itself (`Object.is()`), a `Date` equals one of the same time, and any other object
+ * counts as changed, because the host can change it in place.
+ *
+ * @param {*} recorded The recorded value.
+ * @param {*} value The value read now.
+ * @returns {boolean}
+ */
+function areSyncedValuesEqual(recorded: unknown, value: unknown): boolean {
+  if (isDateObject(recorded) && isDateObject(value)) {
+    return Object.is(recorded.getTime(), value.getTime());
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return false;
+  }
+
+  return Object.is(recorded ?? null, value ?? null);
+}
+
+/**
  * Tells whether two rows of a source data array hold the same values. A missing cell reads as `null`, the way
  * the engine reads it, so a row the grid created (`[]`) equals a row of `null` values.
  *
@@ -421,12 +463,31 @@ function areSyncedRowsEqual(recorded: unknown[] | undefined, row: unknown[]): bo
   const length = Math.max(recordedRow.length, row.length);
 
   for (let column = 0; column < length; column += 1) {
-    if ((recordedRow[column] ?? null) !== (row[column] ?? null)) {
+    if (!areSyncedValuesEqual(recordedRow[column], row[column])) {
       return false;
     }
   }
 
   return true;
+}
+
+/**
+ * Copies every `Date` of a source data array the engine was fed in place (`toSyncedValue()`), so the array can
+ * be kept as the record of what the engine holds.
+ *
+ * @param {Array<Array<*>>} rows The array.
+ * @returns {Array<Array<*>>}
+ */
+function toSyncedRows(rows: unknown[][]): unknown[][] {
+  rows.forEach((row) => {
+    for (let column = 0; column < row.length; column += 1) {
+      if (typeof row[column] === 'object' && row[column] !== null) {
+        row[column] = toSyncedValue(row[column]);
+      }
+    }
+  });
+
+  return rows;
 }
 
 /**
@@ -4015,7 +4076,7 @@ export class Formulas extends BasePlugin {
     this.#syncedContent = {
       engine: this.engine!,
       sheetId: this.sheetId,
-      rows: sourceDataArray,
+      rows: toSyncedRows(sourceDataArray),
       columnSpace,
     };
     this.#recordSyncedLayout();
@@ -4072,7 +4133,7 @@ export class Formulas extends BasePlugin {
       synced.rows.push([]);
     }
 
-    synced.rows[physicalRow][column] = value;
+    synced.rows[physicalRow][column] = toSyncedValue(value);
   }
 
   /**

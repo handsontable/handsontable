@@ -588,6 +588,41 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
 
       expect(hot.getData()).toEqual([[1, 11, 100], [2, 12, 200]]);
     });
+
+    it('writes a Date the host changed in place', () => {
+      const day = new Date(2024, 0, 15);
+      const data = [[day, '=YEAR(A1)']];
+      const engine = createEngine();
+      const hot = createGrid({ data, formulas: { engine } });
+
+      hot.updateSettings({});
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+
+      day.setFullYear(2020);
+      hot.updateSettings({});
+
+      expect(setSheetContent).toHaveBeenCalledTimes(1);
+      expect(hot.getDataAtCell(0, 1)).toBe(2020);
+    });
+
+    it('skips the write of a sheet that holds NaN when nothing changed', () => {
+      const engine = createEngine();
+      const hot = createGrid({ data: [[NaN, '=A2+1'], [1, null]], formulas: { engine } });
+
+      hot.updateSettings({});
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expect(hot.getDataAtCell(0, 1)).toBe(2);
+    });
   });
 
   describe('the moves a reload still sends', () => {
