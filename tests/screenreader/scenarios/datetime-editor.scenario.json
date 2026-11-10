@@ -11,38 +11,38 @@
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["date", "month stepper", "time"]],
-      "note": "Enter opens the editor on the Datetime cell (`06/10/2024, 09:30:00`) and focuses its native `datetime-local` input, which holds 2024-06-10T09:30:00. Required: the control, in the reader's words."
+      "expect": [["date", "month stepper"]],
+      "note": "Enter opens the editor on the Datetime cell (`06/10/2024, 09:30:00`) and focuses its native `datetime-local` input, which holds 2024-06-10T09:30:00. Required: the control, in the reader's words (NVDA `date edit`, with Firefox `date edit, multi line`; VoiceOver `Month stepper`). `time` is not a synonym, because the Time column's name would satisfy it. Finding: VoiceOver says nothing when the editor opens, on both browsers, and reads the stepper only when it opens a second time (the reopen step), as for the date and time editors."
     },
     {
       "id": "type-date",
       "action": {"type": "0101"},
       "expect": [],
-      "note": "Four digits fill the month and the day of the input; the year and the time keep their values, so the new value is 2024-01-01T09:30:00. Nothing is required here: a reader speaks a segment's new value in its own words."
+      "note": "Four digits fill the month and the day of the input in Chromium and Firefox; the year and the time keep their values, so the new value is 2024-01-01T09:30:00. WebKit's input does not move to the next segment, so both pairs land in the month and the commit gives 01/10/2024: on VoiceOver with WebKit the groups of the next steps that name the typed date fail for the input, not for the reading. Nothing is required here: a reader speaks a segment's new value in its own words."
     },
     {
       "id": "commit-datetime",
       "action": {"press": "Enter"},
-      "expect": [["01/05/2024"], ["row 3"]],
-      "note": "Enter commits the value and moves the selection one row down (enterMoves), to the next row's Datetime, drawn as `01/05/2024, 10:15:00`. Required: that cell's date and its row."
+      "expect": [["01/05/2024", "01 slash 05 slash 2024"], ["row 3"]],
+      "note": "Enter commits the value and moves the selection one row down (enterMoves), to the next row's Datetime, drawn as `01/05/2024, 10:15:00`. Required: that cell's date and its row. NVDA says a date as `01 slash 05 slash 2024`, the synonym. Finding: the focus stays on the closed input, so no reader reads the cell: NVDA with Chromium reads the year segment, NVDA with Firefox says nothing, and VoiceOver reads a stepper of the hidden input (`1 month stepper` with WebKit, `2024 Year stepper` with Chromium)."
     },
     {
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
-      "expect": [["01/01/2024"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2024, 09:30:00`."
+      "expect": [["01/01/2024", "01 slash 01 slash 2024"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2024, 09:30:00` (`01/10/2024` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell."
     },
     {
       "id": "reopen-editor",
       "action": {"press": "Enter"},
-      "expect": [["date", "month stepper", "time"]],
-      "note": "The editor opens again, on the new value."
+      "expect": [["date", "month stepper"]],
+      "note": "The editor opens again, on the new value, and every reader names the control this time."
     },
     {
       "id": "cancel-edit",
       "action": {"press": "Escape"},
-      "expect": [["01/01/2024"]],
-      "note": "Escape closes the editor without a change."
+      "expect": [["01/01/2024", "01 slash 01 slash 2024"]],
+      "note": "Escape closes the editor without a change. Finding: no reader says anything, on any browser, and the focus stays on the closed input, as the commit leaves it."
     }
   ]
 }

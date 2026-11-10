@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "intl-date-editor",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:10:13.338Z"
+  },
+  "steps": {
+    "arrive-on-date": "06 10 2024 column 1 row 06 10 2024 two 09 30 am 06 month stepper",
+    "open-editor": "06 month stepper",
+    "type-date": "2020",
+    "commit-date": "2024 year stepper",
+    "back-to-committed": "01 month stepper"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "time-editor",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T12:11:15.735Z"
+  },
+  "steps": {
+    "open-editor": "hours spin button 09",
+    "type-time": "01 am slash pm edit has auto complete am",
+    "commit-time": "",
+    "back-to-committed": "11 45 am time row 2 column 6",
+    "reopen-editor": "hours spin button 11",
+    "cancel-edit": ""
+  }
+}

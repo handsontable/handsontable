@@ -14,32 +14,32 @@
     {
       "id": "arrive-on-time",
       "action": {"press": "ArrowRight"},
-      "expect": [["9:30"]],
-      "note": "ArrowRight selects the time cell, drawn as `9:30 AM`. With `imeFastEdit`, the focus moves to the editor's hidden time input soon after the selection. Required: the selected cell's value."
+      "expect": [["09:30"]],
+      "note": "The setup gives the fixture's grid dates and times to show. ArrowRight selects the time cell, drawn as `09:30 AM`. With `imeFastEdit` the grid first focuses the cell, then moves the focus to the editor's hidden time input. Required: the selected cell's value. NVDA reads the cell and then the hidden input (`Hours, spin button, 09`). Finding: VoiceOver says nothing, on both browsers."
     },
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["time", "hour", "hours"]],
-      "note": "Enter opens the editor on that cell: the native time input the focus already sat in, now shown, holding 09:30. Required: the control, in the reader's words."
+      "expect": [["hour", "hours"]],
+      "note": "Enter opens the editor on that cell: the native time input the focus already sat in, now shown, holding 09:30. Required: the control, in the reader's words (NVDA `Hours, spin button`, VoiceOver `hour stepper` or `Hours stepper`). Finding: NVDA with Firefox says nothing, because the focus does not move."
     },
     {
       "id": "type-time",
       "action": {"type": "1145"},
       "expect": [],
-      "note": "Four digits fill the hour and the minute; the AM or PM segment keeps its value. Nothing is required here."
+      "note": "Four digits fill the hour and the minute; the AM or PM segment keeps its value. WebKit's input does not move to the next segment (the time editor scenario says more). Nothing is required here."
     },
     {
       "id": "commit-time",
       "action": {"press": "Enter"},
       "expect": [["10:15"], ["row 2"]],
-      "note": "Enter commits the time and moves the selection one row down (enterMoves), to the next row's time, drawn as `10:15 AM`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row."
+      "note": "Enter commits the time and moves the selection one row down (enterMoves), to the next row's time, drawn as `10:15 AM`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row. Finding: no reader reads the cell; the focus stays in the input, and the readers read a segment of it (`AM slash PM, spin button`, `10 hour stepper`), or nothing."
     },
     {
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["11:45"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `11:45 AM`."
+      "note": "ArrowUp moves to the edited cell, drawn as `11:45 AM`; NVDA and VoiceOver with Chromium read it. Finding: VoiceOver with WebKit reads only the input's hour segment (`12 hour stepper`), never the cell, and its typed time differs (the typing step)."
     }
   ]
 }

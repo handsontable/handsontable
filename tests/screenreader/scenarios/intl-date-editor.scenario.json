@@ -14,32 +14,32 @@
     {
       "id": "arrive-on-date",
       "action": {"press": "ArrowLeft"},
-      "expect": [["06/10/2024"]],
-      "note": "ArrowLeft selects the date cell, drawn as `06/10/2024`. With `imeFastEdit`, the focus moves to the editor's hidden date input soon after the selection, so an IME can start composing. Required: the selected cell's value."
+      "expect": [["06/10/2024", "06 slash 10 slash 2024"]],
+      "note": "The setup gives the fixture's grid dates and times to show (its own values are not dates). ArrowLeft selects the date cell, drawn as `06/10/2024`. With `imeFastEdit` the grid first focuses the cell, then moves the focus to the editor's hidden date input, so an IME can start composing. Required: the selected cell's value. NVDA and VoiceOver with Chromium read the cell and then the hidden input (NVDA `date edit. Month, spin button, 06`, VoiceOver `06 Month stepper`), so a user who only moves hears an editor's control on every date cell. Finding: VoiceOver with WebKit says nothing."
     },
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["date", "month stepper"]],
-      "note": "Enter opens the editor on that cell: the native date input the focus already sat in, now shown, holding 2024-06-10. Required: the control, in the reader's words."
+      "expect": [["date", "month stepper", "month spin button"]],
+      "note": "Enter opens the editor on that cell: the native date input the focus already sat in, now shown, holding 2024-06-10. Required: the control, in the reader's words. NVDA said `date edit` when the focus arrived, so here it reads only the segment, `Month, spin button`, a synonym. Finding: NVDA with Firefox says nothing, because the focus does not move."
     },
     {
       "id": "type-date",
       "action": {"type": "01012020"},
       "expect": [],
-      "note": "Eight digits fill the segments of the input (01/01/2020). Nothing is required here: a reader speaks a segment's new value in its own words."
+      "note": "Eight digits fill the segments of the input (01/01/2020) in Chromium and Firefox; WebKit's input does not move to the next segment (the date editor scenario says more). Nothing is required here."
     },
     {
       "id": "commit-date",
       "action": {"press": "Enter"},
-      "expect": [["01/05/2024"], ["row 2"]],
-      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's date, drawn as `01/05/2024`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row."
+      "expect": [["01/05/2024", "01 slash 05 slash 2024"], ["row 2"]],
+      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's date, drawn as `01/05/2024`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row. Finding: no reader reads the cell; the focus stays in the input, and NVDA and VoiceOver read a segment of it (`Year, spin button, 2024`, `1 month stepper`), or nothing."
     },
     {
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
-      "expect": [["01/01/2020"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2020`."
+      "expect": [["01/01/2020", "01 slash 01 slash 2020"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2020`. NVDA reads the cell, then the hidden input again. Finding: VoiceOver reads only the input's month segment (`01 Month stepper` with Chromium, `12 month stepper` with WebKit), never the cell, because the focus returns to the input before VoiceOver speaks."
     }
   ]
 }
