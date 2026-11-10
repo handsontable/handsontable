@@ -53,6 +53,22 @@ test.describe('Formulas: an order reached by moves keeps formula references', { 
     await expectEveryRowReadsItsRecord();
   });
 
+  test('writes nothing into the engine when the grid re-renders with the same data after a drag', async() => {
+    await grid.initGrid(CROSS_ROW_DATA, { manualRowMove: true });
+
+    expect(await grid.dragRows([3, 4], 0)).toBe(true);
+    await grid.countEngineWrites();
+
+    // A React re-render sends the same `data` array with every update.
+    await grid.rerenderWithSameData();
+    await grid.rerenderWithSameData();
+
+    expect(await grid.engineWriteCount()).toBe(0);
+    await grid.expectCell(0, 0, '4');
+    await grid.expectCell(1, 0, '5');
+    await expectEveryRowReadsItsRecord();
+  });
+
   test('keeps what a second grid reads from the sheet when the grid re-renders after a drag', async() => {
     await grid.initGrid(CROSS_ROW_DATA, { manualRowMove: true });
     await grid.addReaderGrid('A1');

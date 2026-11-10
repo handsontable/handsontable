@@ -180,6 +180,41 @@ export class FormulasMoveCellsPage {
   }
 
   /**
+   * Resend the grid's own `data` array through `updateSettings({ data })`, as a React re-render does: the
+   * wrapper forwards `data` with every update.
+   */
+  async rerenderWithSameData(): Promise<void> {
+    await this.page.evaluate(() => window.hot.updateSettings({ data: window.hot.getSettings().data }));
+  }
+
+  /**
+   * Start counting the calls that write the grid's engine sheet or send it an order: `setSheetContent`,
+   * `moveRows` and `setRowOrder`. Read the count with `engineWriteCount()`.
+   */
+  async countEngineWrites(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as any;
+      const engine = win.hot.getPlugin('formulas').engine;
+
+      win.engineWrites = 0;
+      ['setSheetContent', 'moveRows', 'setRowOrder'].forEach((name) => {
+        const original = engine[name].bind(engine);
+
+        engine[name] = (...args: unknown[]) => {
+          win.engineWrites += 1;
+
+          return original(...args);
+        };
+      });
+    });
+  }
+
+  /** The number of calls `countEngineWrites()` counted so far. */
+  async engineWriteCount(): Promise<number> {
+    return this.page.evaluate(() => (window as any).engineWrites);
+  }
+
+  /**
    * Build a second grid on the grid's own engine, on a sheet of its own, whose one cell reads the given
    * cell of the grid's sheet (for example `A1`). It is kept in `window.readerHot` and destroyed with the
    * page.

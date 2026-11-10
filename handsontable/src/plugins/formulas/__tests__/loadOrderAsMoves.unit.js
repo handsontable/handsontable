@@ -648,6 +648,35 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       expect(setSheetContent).toHaveBeenCalledTimes(1);
       expect(engine.getSheetValues(hot.getPlugin('formulas').sheetId).map(([id]) => id)).toContain(50);
     });
+
+    it('neither rewrites the sheet nor replays the order when the same data array is sent again', () => {
+      const data = crossRowData();
+      const engine = createEngine();
+      const hot = createGrid({ data, manualRowMove: true, formulas: { engine } });
+
+      hot.getPlugin('manualRowMove').moveRows([3, 4], 0);
+      hot.render();
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+      const moveRows = jest.spyOn(engine, 'moveRows');
+      const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+
+      // A React re-render sends `data` with every update.
+      hot.updateSettings({ data });
+      hot.updateSettings({ data });
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expect(moveRows).not.toHaveBeenCalled();
+      expect(setRowOrder).not.toHaveBeenCalled();
+      expect(hot.getDataAtCol(0)).toEqual([4, 5, 1, 2, 3]);
+      expectEveryRowReadsItsRecord(hot);
+
+      data[0][0] = 50;
+      hot.updateSettings({ data });
+
+      expect(setSheetContent).toHaveBeenCalledTimes(1);
+      expect(hot.getDataAtCell(hot.toVisualRow(3), 1)).toBe(1050);
+    });
   });
 
   describe('the moves a reload still sends', () => {
