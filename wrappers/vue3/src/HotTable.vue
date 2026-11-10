@@ -70,8 +70,8 @@ const HotTable = defineComponent({
         const incomingData = hasData ? toRaw(settings.data) : undefined;
         const isNewData = hasData && incomingData !== this.miscCache.lastData.value;
 
-        // A new array replaces the grid's data: `updateSettings()` runs core's `updateData()`, which
-        // resets the index mappers and keeps sorting, filters and hidden rows.
+        // A new array replaces the grid's data: `updateSettings()` runs core's `updateData()`, which fits the
+        // index mappers to the new length and keeps their state, unless the same payload changes the column layout.
         if (hasData && !isNewData && incomingData === null) {
           // The prop was already cleared: sending `null` again would reset the grid on every later change.
           delete settings.data;
@@ -92,6 +92,12 @@ const HotTable = defineComponent({
           }
         }
 
+        // Recorded before the update: core holds the array as soon as `updateSettings()` starts, so a hook that
+        // throws must not leave the old one here, or every later in-place edit would reload the data.
+        if (hasData) {
+          this.miscCache.lastData.value = incomingData;
+        }
+
         // If there are another options changed, update the HOT settings, render the table otherwise.
         if (Object.keys(settings).length) {
           this.hotInstance.updateSettings(settings);
@@ -101,10 +107,6 @@ const HotTable = defineComponent({
         }
 
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
-
-        if (hasData) {
-          this.miscCache.lastData.value = incomingData;
-        }
 
         recordSettingBaselines(this.miscCache.baselines, props, this.hotInstance.getSettings(), overriddenKeys);
       },

@@ -563,7 +563,13 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 Pass a new array to replace the data. Assigning `data.value = newArray`, passing a new `data` prop, or setting a new
 `settings.data` loads the new array into the grid, as the [`updateData()`](@/api/core.md#updatedata) method does.
 The grid keeps the sorted row order, the trimmed rows, and the cell and column states. It places the new values
-through the row order of the sort and doesn't sort them again.
+through the row order of the sort and doesn't sort them again. When you also change the
+[`columns`](@/api/options.md#columns) in the same update and the column layout changes, the grid clears the sort and
+the filters and starts the column state over.
+
+Each replacement fires the [`afterChange`](@/api/hooks.md#afterchange) hook with `null` as `changes` and
+`"updateData"` as `source`. If an `afterChange` handler writes the grid's data back to your ref, check `source`
+first, or the replacement triggers another one. A handler that reads `changes` needs to skip a `null` value.
 
 After you replace the array, edits of the new array (`push()`, `splice()`, or a cell write) show up in the grid
 without another replacement. To change values from outside the grid, use the API methods below.

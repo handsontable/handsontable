@@ -146,8 +146,6 @@ describe('Replacing the whole `data` array', () => {
     hotInstance.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
     expect(hotInstance.getData()).toEqual([[1], [2], [3]]);
 
-    // `updateData()` keeps the row order of the sort and does not sort the new values again.
-    // `loadData()` would show the rows as they come: 9, 7, 8.
     // `updateData()` puts the new values through the row order the sort left, and does not sort them again.
     // The rows below read 9, 7, 8 under an ascending sort. `loadData()` would show them as they come: 8, 9, 7.
     data.value = [[8], [9], [7]];
@@ -216,6 +214,53 @@ describe('Replacing `data` and editing it afterwards', () => {
     testWrapper.unmount();
   });
 
+  it('should treat later edits as in-place edits when a hook throws during the replacement', async() => {
+    const data = ref<string[][]>(createSampleData(2, 2));
+    const updateSettingsCalls: unknown[] = [];
+    let throwOnce = true;
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          :licenseKey="licenseKey"
+          :data="data"
+          :afterUpdateData="afterUpdateData"
+          :afterUpdateSettings="(settings) => { updateSettingsCalls.push(settings) }"
+        ></HotTable>`,
+      setup: () => ({
+        data,
+        licenseKey: TEST_LICENSE_KEY,
+        updateSettingsCalls,
+        afterUpdateData() {
+          if (throwOnce) {
+            throwOnce = false;
+            throw new Error('listener failed');
+          }
+        },
+      }),
+    };
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app'),
+      global: { config: { errorHandler: jest.fn() } },
+    });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+
+    data.value = createSampleData(3, 2);
+    await nextTick();
+
+    expect(throwOnce).toBe(false);
+
+    const callsAfterReplacement = updateSettingsCalls.length;
+
+    data.value[0][0] = 'changed';
+    await nextTick();
+
+    expect(hotInstance.getDataAtCell(0, 0)).toBe('changed');
+    expect(updateSettingsCalls.length).toBe(callsAfterReplacement);
+
+    testWrapper.unmount();
+  });
+
   it('should load the same array again after `data` was cleared', async() => {
     const rows = createSampleData(3, 2);
     const data = ref<unknown[] | null>(rows);
@@ -230,7 +275,7 @@ describe('Replacing `data` and editing it afterwards', () => {
     data.value = null;
     await nextTick();
 
-    expect(hotInstance.getSourceData()).not.toBe(rows);
+    expect(hotInstance.getDataAtCell(2, 1)).toBeNull();
 
     data.value = rows;
     await nextTick();
