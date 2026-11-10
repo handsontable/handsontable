@@ -19,6 +19,7 @@ import {
   getDateInHfFormat,
   getDateInHotFormat,
   getTimeFromHfTimeFraction,
+  insertEmptyRows,
   isDate,
   isDateValid,
   isEngineEscapedValue,
@@ -5576,7 +5577,7 @@ export class Formulas extends BasePlugin {
         return false;
       }
 
-      rows.splice(physicalRow, 0, ...Array.from({ length: amount }, () => []));
+      insertEmptyRows(rows, physicalRow, amount);
 
       return true;
     });
