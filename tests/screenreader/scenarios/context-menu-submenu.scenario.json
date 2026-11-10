@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "id": "context-menu-submenu",
+  "surface": "The Alignment submenu of the context menu: its parent item, ArrowRight into the submenu, an item of it, and ArrowLeft and Escape back out.",
+  "group": "menus",
+  "page": "context-menu-submenu",
+  "state": "context-menu-submenu",
+  "criteria": ["1.3.1", "2.1.1", "2.4.3", "4.1.2"],
+  "setup": [
+    {"selectCell": [0, 0]},
+    {"press": "Shift+F10"},
+    {"press": "ArrowDown"},
+    {"press": "ArrowDown"},
+    {"press": "ArrowDown"},
+    {"press": "ArrowDown"},
+    {"press": "ArrowDown"},
+    {"press": "ArrowDown"}
+  ],
+  "steps": [
+    {
+      "id": "down-to-alignment",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alignment"], ["submenu", "sub menu", "collapsed"]],
+      "note": "The setup opens the context menu on A1 and moves the highlight to Read only; ArrowDown highlights Alignment, the parent of a submenu (aria-haspopup, aria-expanded false). Required: its label, and that it opens a submenu."
+    },
+    {
+      "id": "open-submenu",
+      "action": {"press": "ArrowRight"},
+      "expect": [["left"]],
+      "note": "ArrowRight opens the submenu with its first item, Left, highlighted."
+    },
+    {
+      "id": "down-to-center",
+      "action": {"press": "ArrowDown"},
+      "expect": [["center"]]
+    },
+    {
+      "id": "close-submenu",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["alignment"]],
+      "note": "ArrowLeft closes the submenu, and the highlight should return to its parent item, Alignment."
+    },
+    {
+      "id": "close-menu",
+      "action": {"press": "Escape"},
+      "after": {"hidden": ".htContextMenu .ht_master .htCore tbody td"},
+      "expect": [["a1"]],
+      "note": "Escape closes the context menu, and the focus should return to the grid's A1."
+    }
+  ]
+}

@@ -45,8 +45,8 @@ export const SR_PAGE_COVERAGE = {
   'license-bar': { gap: 'the license notice under an unlicensed grid is page text a reader meets, read by no scenario' },
   'license-powered-by': { gap: 'the Powered by badge under a grid with a sponsored key is a link a reader meets, read by no scenario' },
   'license-missing-features': { gap: 'the notice naming the features a license key leaves out, and its link, are read by no scenario' },
-  'context-menu': { gap: 'checkable menu items and separators are read by no scenario; grid-core reads a context menu without them, on its own fixture' },
-  'context-menu-submenu': { gap: 'a submenu opened from the context menu, and the way back, are read by no scenario' },
+  'context-menu': { scenarios: ['context-menu-checkable'] },
+  'context-menu-submenu': { scenarios: ['context-menu-submenu'] },
   'dropdown-menu': { scenarios: ['dropdown-menu', 'filters-by-value'] },
   'filters-conditions': { scenarios: ['filters-by-condition'] },
   'text-editor': { scenarios: ['grid-core', 'grid-core-horizon'] },
@@ -76,7 +76,7 @@ export const SR_PAGE_COVERAGE = {
   'dark-dropdown-menu': { none: 'the dark color scheme changes colors, never an element, a role or a name: a reader reads the dropdown menu page\'s tree' },
   'dark-dialog': { none: 'the dark color scheme changes colors, never an element, a role or a name: a reader reads the dialog page\'s tree' },
   'rtl-grid': { scenarios: ['reading-mode-traversal-rtl'] },
-  'rtl-dropdown-menu': { gap: 'the dropdown menu of a right-to-left grid is read by no scenario' },
+  'rtl-dropdown-menu': { scenarios: ['rtl-dropdown-menu'] },
 };
 
 /**
@@ -159,4 +159,4 @@ export const SR_FEATURE_COVERAGE = {
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 19;
+export const SR_GAP_LIMIT = 16;
