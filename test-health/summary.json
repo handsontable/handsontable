@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-10T13:38:15.053Z",
+  "generatedAt": "2026-11-10T13:59:29.023Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 435,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2261
+    "entries": 2262
   },
   "rows": [
     {
@@ -1582,6 +1582,41 @@
       "needsTicket": false
     },
     {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor disallow html mode should strip html from strings provided in source (sync mode)",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor disallow html mode should strip html from strings provided in source (sync mode)",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-10T13:58:36Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42814476859/attempts/2",
+        "branch": "feature/DEV-508_rowHeights-physical-row-index",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected $.length = 3 to equal 2.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/walkontable/window-scroll-pinned-overlays.spec.ts|walkontable window-scroll pinned overlays › scrolling the page up and down › frozen rows and both corners stay pinned on every painted frame",
       "tier": "playwright",
       "file": "e2e/walkontable/window-scroll-pinned-overlays.spec.ts",
@@ -1782,41 +1817,6 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor disallow html mode should strip html from strings provided in source (sync mode)",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
-      "line": null,
-      "title": "AutocompleteEditor disallow html mode should strip html from strings provided in source (sync mode)",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-10T13:37:34Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42814476859",
-        "branch": "feature/DEV-508_rowHeights-physical-row-index",
-        "leg": "UMD (theme: main)",
-        "status": "failed",
-        "error": "Expected $.length = 3 to equal 2.",
         "source": "ci"
       },
       "needsTicket": false
