@@ -2,6 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import { rangeEach } from '../../../helpers/number';
 import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
+import { warnOnce } from '../../../helpers/console';
 import type { NestedRows } from '../nestedRows';
 import { recordMetaRowsShift } from '../../../dataMap/dataJournal';
 
@@ -1025,6 +1026,19 @@ class DataManager {
   }
 
   /**
+   * Tells the developer that `addChildAtIndex()` was given a parent row object the grid no longer
+   * holds, once per grid, because nothing else in the call shows it.
+   */
+  #warnStaleParent() {
+    warnOnce(
+      this.hot.rootElement,
+      'nestedRows.addChildAtIndex.staleParent',
+      'The parent row object passed to `addChildAtIndex()` is not in the grid (for example, it was kept '
+      + 'across a data load), so no row was added. Read the parent again with `getDataObject()`.'
+    );
+  }
+
+  /**
    * The body of `addChildAtIndex()`, run inside its operation.
    *
    * @param {object} parent Parent node.
@@ -1035,14 +1049,35 @@ class DataManager {
     let childElement = element;
     let flattenedIndex: number;
 
+    // A parent object the cache does not know (one an app kept across a data load) has no row to
+    // insert under. Falling back to row 0 wrote its children onto the first top-level row and left an
+    // index slot with no data behind it.
+    if (parent && this.getRowIndex(parent) === null) {
+      this.#warnStaleParent();
+
+      return;
+    }
+
     if (!childElement) {
       childElement = this.mockNode();
     }
 
     this.hot.runHooks('beforeAddChild', parent, childElement, index);
 
-    if (parent) {
-      const parentIndex = this.getRowIndex(parent) ?? 0;
+    // Read after the hook: a listener may have moved the parent (removed a row above it, detached
+    // it), and a row number taken earlier would address whatever row holds that position now.
+    const parentIndex = parent ? this.getRowIndex(parent) : null;
+
+    // A listener removed the parent itself. `beforeAddChild` has opened the collapsed-rows stash,
+    // and only `afterAddChild` closes it, so the hook still fires, as it does for a cancelled insert.
+    if (parent && parentIndex === null) {
+      this.#warnStaleParent();
+      this.hot.runHooks('afterAddChild', parent, null, index);
+
+      return;
+    }
+
+    if (parent && parentIndex !== null) {
       const finalChildIndex = parentIndex + index + 1;
 
       this.hot.runHooks('beforeCreateRow', finalChildIndex, 1);
@@ -1051,8 +1086,9 @@ class DataManager {
 
       this.rewriteCache();
 
-      this.plugin.disableCoreAPIModifiers();
-
+      // The plugin's modifiers stay on: `parentIndex` is a flattened row, and with them off the write
+      // would address the top-level array by that number and hand the parent's `__children` to an
+      // unrelated top-level row.
       this.hot.setSourceDataAtCell(
         parentIndex,
         '__children',
@@ -1061,8 +1097,6 @@ class DataManager {
       );
 
       this.hot.rowIndexMapper.insertIndexes(finalChildIndex, 1);
-
-      this.plugin.enableCoreAPIModifiers();
 
       // Read the real index instead of reusing `finalChildIndex`: that one assumes every preceding
       // sibling is a leaf, so a sibling with descendants would splice the meta above the new row.
