@@ -17,7 +17,17 @@ export interface InventoryRow {
   updatedAt: string;
 }
 
-export type StockRecord = Omit<InventoryRow, 'available'>;
+// A row as the bridge sends it. settingsRevision is the Kafka offset of the SKU's latest
+// reorder point record.
+export type StockRecord = Omit<InventoryRow, 'available'> & { settingsRevision: number };
+
+interface PendingEdit {
+  value: number;
+  // Tells this edit apart from a later edit of the same SKU.
+  generation: number;
+  // The Kafka offset of the edit's record, known once the bridge accepts it.
+  revision?: number;
+}
 
 const LIVE_PROPS = ['onHand', 'reserved', 'available', 'reorderPoint', 'updatedAt'] as const;
 const FLASH_MS = 800;
@@ -30,20 +40,28 @@ let rows: InventoryRow[] = [];
 const indexBySku = new Map<string, number>();
 // When each SKU's cells last changed, for the highlight.
 const changedAt = new Map<string, number>();
-// Edits sent to Kafka that haven't come back through the stream yet.
-const pendingEdits = new Map<string, number>();
+// The latest reorder point Kafka has confirmed for each SKU, and its offset.
+const confirmed = new Map<string, { reorderPoint: number; revision: number }>();
+// The user's latest edit for each SKU, until Kafka confirms it or a newer edit.
+const pendingEdits = new Map<string, PendingEdit>();
+let nextGeneration = 0;
 
 // Builds a grid row from a Kafka record. A reorder point the user edited keeps showing until
-// Kafka sends it back, so a record that was already in flight can't briefly undo the edit.
+// a record at least as new as the edit arrives, so a record that was already in flight can't
+// briefly undo it. The check compares offsets, not values: when another user edits the same
+// SKU first, the bridge sends only the latest value, and that value wins.
 function toRow(record: StockRecord): InventoryRow {
-  const row = { ...record, available: record.onHand - record.reserved };
+  const { settingsRevision, ...fields } = record;
+  const row = { ...fields, available: fields.onHand - fields.reserved };
   const pending = pendingEdits.get(row.sku);
 
-  if (pending !== undefined) {
-    if (row.reorderPoint === pending) {
+  confirmed.set(row.sku, { reorderPoint: row.reorderPoint, revision: settingsRevision });
+
+  if (pending) {
+    if (pending.revision !== undefined && settingsRevision >= pending.revision) {
       pendingEdits.delete(row.sku);
     } else {
-      row.reorderPoint = pending;
+      row.reorderPoint = pending.value;
     }
   }
 
@@ -123,6 +141,7 @@ export function createGrid(container: HTMLElement) {
   }
 
   function applySnapshot(records: StockRecord[]) {
+    confirmed.clear();
     rows = records.map(toRow);
     reindex();
     hot.updateData(rows, 'kafka');
@@ -161,6 +180,10 @@ export function createGrid(container: HTMLElement) {
     if (structural) {
       const removed = new Set(deletes);
 
+      deletes.forEach((sku) => {
+        confirmed.delete(sku);
+        pendingEdits.delete(sku);
+      });
       rows = rows.filter((row) => !removed.has(row.sku));
       reindex();
       hot.updateData(rows, 'kafka');
@@ -168,8 +191,19 @@ export function createGrid(container: HTMLElement) {
     }
   }
 
-  // Sends a user's edit to the bridge, which writes it to Kafka. If that fails, put the
-  // old value back and say why.
+  // Shows the reorder point Kafka last confirmed, once no edit of this SKU is pending.
+  function showConfirmed(sku: string) {
+    const index = indexBySku.get(sku);
+    const server = confirmed.get(sku);
+
+    // setSourceDataAtCell doesn't fire afterChange, so the value isn't sent again.
+    if (index !== undefined && server && rows[index].reorderPoint !== server.reorderPoint) {
+      hot.setSourceDataAtCell(index, 'reorderPoint', server.reorderPoint, 'kafka');
+    }
+  }
+
+  // Sends a user's edit to the bridge, which writes it to Kafka. Each edit gets a generation,
+  // so the response to an older request can't confirm or undo a newer edit of the same SKU.
   hot.addHook('afterChange', (changes: CellChange[] | null, source: ChangeSource) => {
     if (!changes || IGNORED_SOURCES.has(source)) {
       return;
@@ -181,8 +215,10 @@ export function createGrid(container: HTMLElement) {
       }
 
       const sku = rows[hot.toPhysicalRow(visualRow)].sku;
+      const generation = ++nextGeneration;
+      const isCurrent = () => pendingEdits.get(sku)?.generation === generation;
 
-      pendingEdits.set(sku, newValue as number);
+      pendingEdits.set(sku, { value: newValue as number, generation });
 
       fetch(`/api/settings/${encodeURIComponent(sku)}`, {
         method: 'POST',
@@ -190,18 +226,29 @@ export function createGrid(container: HTMLElement) {
         body: JSON.stringify({ reorderPoint: newValue }),
       })
         .then(async (response) => {
+          const body = await response.json().catch(() => null);
+
           if (!response.ok) {
-            throw new Error((await response.json().catch(() => null))?.message ?? `HTTP ${response.status}`);
+            throw new Error(body?.message ?? `HTTP ${response.status}`);
+          }
+
+          if (!isCurrent()) {
+            return;
+          }
+
+          // The stream may already have delivered the record, or a newer one.
+          if ((confirmed.get(sku)?.revision ?? -1) >= body.revision) {
+            pendingEdits.delete(sku);
+            showConfirmed(sku);
+          } else {
+            pendingEdits.get(sku)!.revision = body.revision;
           }
         })
         .catch((error: Error) => {
-          pendingEdits.delete(sku);
-
-          const index = indexBySku.get(sku);
-
-          // setSourceDataAtCell doesn't fire afterChange, so the revert isn't sent again.
-          if (index !== undefined) {
-            hot.setSourceDataAtCell(index, 'reorderPoint', oldValue, 'kafka');
+          // Only the latest edit decides what the cell shows. If it failed, show Kafka's value.
+          if (isCurrent()) {
+            pendingEdits.delete(sku);
+            showConfirmed(sku);
           }
 
           hot.getPlugin('notification').showMessage({

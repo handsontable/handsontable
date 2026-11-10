@@ -14,12 +14,17 @@ const settings = new Map();
 const changed = new Set();
 const clients = new Set();
 
+// settingsRevision is the Kafka offset of the SKU's latest settings record (-1 for none).
+// One key always lands in one partition, so a higher offset means a later edit, and a grid
+// can tell that its own edit was applied even when a later edit replaced the value.
 function toRow(sku) {
   const record = stock.get(sku);
+  const setting = settings.get(sku);
 
   return record && {
     ...record,
-    reorderPoint: settings.get(sku)?.reorderPoint ?? DEFAULT_REORDER_POINT,
+    reorderPoint: setting?.reorderPoint ?? DEFAULT_REORDER_POINT,
+    settingsRevision: setting?.revision ?? -1,
   };
 }
 
@@ -75,6 +80,8 @@ await consumer.run({
 
     if (value === null) {
       target.delete(sku);
+    } else if (topic === SETTINGS_TOPIC) {
+      target.set(sku, { ...value, revision: Number(message.offset) });
     } else {
       target.set(sku, value);
     }
@@ -147,11 +154,14 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      await producer.send({
+      const [{ baseOffset }] = await producer.send({
         topic: SETTINGS_TOPIC,
         messages: [{ key: sku, value: JSON.stringify({ reorderPoint }) }],
       });
-      res.writeHead(202).end();
+
+      // The record's offset is its revision: the grid waits for a row at least this new.
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ revision: Number(baseOffset) }));
     } catch (error) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ message: error.message }));
