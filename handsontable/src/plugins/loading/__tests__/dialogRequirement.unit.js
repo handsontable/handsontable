@@ -146,6 +146,21 @@ describe('Loading requires the Dialog plugin without writing the `dialog` option
     expect(hot.getSettings().dialog).toBe(false);
   });
 
+  it('shows the loading screen without the `dialog` options that were turned off before', () => {
+    createGrid({ dialog: { closable: true, animation: false } });
+
+    hot.updateSettings({ dialog: false });
+    hot.updateSettings({ loading: true });
+
+    const dialog = hot.getPlugin('dialog');
+
+    hot.getPlugin('loading').show();
+
+    expect(dialog.isVisible()).toBe(true);
+    expect(dialog.getSetting('closable')).toBe(false);
+    expect(dialog.getSetting('animation')).toBe(true);
+  });
+
   it('stops requiring Dialog when the Loading plugin is destroyed ahead of the grid', () => {
     createGrid({ loading: true });
 

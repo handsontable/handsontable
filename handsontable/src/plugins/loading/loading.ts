@@ -14,6 +14,7 @@ interface DialogPlugin {
   isEnabled(): boolean;
   enablePlugin(): void;
   disablePlugin(): void;
+  updatePluginSettings(settings: unknown): unknown;
   isVisible(): boolean;
   hide(): void;
   focus(): void;
@@ -265,6 +266,7 @@ export class Loading extends BasePlugin {
     this.hot._requirePlugin('dialog', this);
 
     if (this.#dialogPlugin && !this.#dialogPlugin.enabled) {
+      this.#dialogPlugin.updatePluginSettings(this.hot.getSettings().dialog);
       this.#dialogPlugin.enablePlugin();
     }
 
