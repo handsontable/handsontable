@@ -73,11 +73,20 @@ describe('colWidths addressed by physical column index', () => {
     expect(hot.getColWidth(2)).toBe(100);
   });
 
-  it('should not read the array for a header or a column outside the grid', () => {
-    createGrid({ colWidths: [100, 120, 140] });
+  it('should not read the array or call the function for a header or a column outside the grid', () => {
+    // a fourth entry, so a read at the visual index would find a value
+    createGrid({ colWidths: [100, 120, 140, 160] });
 
     expect(hot._getColWidthFromSettings(-1)).toBeUndefined();
     expect(hot._getColWidthFromSettings(3)).toBeUndefined();
+
+    const colWidths = jasmine.createSpy('colWidths').and.returnValue(70);
+
+    hot.updateSettings({ colWidths });
+    colWidths.calls.reset();
+
+    expect(hot._getColWidthFromSettings(3)).toBeUndefined();
+    expect(colWidths).not.toHaveBeenCalled();
   });
 
   it('should keep the widths with their columns when a column is appended after a move', () => {
@@ -217,8 +226,18 @@ describe('colWidths addressed by physical column index', () => {
     hot.alter('remove_col', 1);
     hot.alter('insert_col_end', 1);
 
-    // the removed entry (150) is not handed out again
+    // the entry after the highest one in use, so the removed entry (150) is not handed out again
     expect(widths()).toEqual([100, 200, 250]);
+  });
+
+  it('should give a column appended after the last column was removed the entry after the highest one in use', () => {
+    createGrid({ colWidths: [100, 150, 200] });
+
+    hot.alter('remove_col', 2);
+    hot.alter('insert_col_end', 1);
+
+    // no column holds entry 2 any more, so the appended column takes it, as a row does with `rowHeights`
+    expect(widths()).toEqual([100, 150, 200]);
   });
 
   it('should give a column inserted to the right of another no width of its own', () => {
@@ -256,16 +275,37 @@ describe('colWidths addressed by physical column index', () => {
     expect(widths()).toEqual([50, 100, 150]);
   });
 
-  it('should put the widths back when the same array is set again after a non-array value', () => {
+  it('should declare the widths again when the same array is set after a non-array value', () => {
     const colWidths = [100, 150, 200];
 
     createGrid({ colWidths });
 
     hot.alter('insert_col_start', 0);
     hot.updateSettings({ colWidths: 70 });
+    // the columns change while the array is not followed
+    hot.alter('remove_col', 3);
+    hot.alter('insert_col_end', 2);
     hot.updateSettings({ colWidths });
 
-    expect(widths()).toEqual([50, 100, 150, 200]);
+    // declared again from the first column, never with the origins from before the changes
+    expect(widths()).toEqual([100, 150, 200, 50]);
+  });
+
+  it('should keep the widths on their columns when `updateData()` brings back a data array with as many columns', () => {
+    const first = [['a', 'b', 'c']];
+
+    createGrid({ data: first, colWidths: [100, 150, 200] });
+    hot.alter('insert_col_start', 1);
+    hot.loadData([['d', 'e', 'f', 'g']]);
+
+    expect(widths()).toEqual([100, 150, 200, 50]);
+
+    const invalidate = spyOn(hot.view, 'invalidateColumnWidthCache').and.callThrough();
+
+    hot.updateData(first);
+
+    expect(widths()).toEqual([100, 50, 150, 200]);
+    expect(invalidate).toHaveBeenCalled();
   });
 
   it('should stop reading through the map once colWidths is no longer an array', () => {
@@ -279,5 +319,36 @@ describe('colWidths addressed by physical column index', () => {
     hot.updateSettings({ colWidths: [10, 20, 30, 40] });
 
     expect(widths()).toEqual([10, 20, 30, 40]);
+  });
+
+  it('should give no width to a column appended at the physical end that sits between others on screen', () => {
+    createGrid({ colWidths: [10, 20, 30, 40] });
+
+    hot.columnIndexMapper.setIndexesSequence([2, 0, 1]);
+    // to the right of the column at visual 0 (physical 2, the last physical column), so before `a` on screen
+    hot.alter('insert_col_end', 0);
+
+    expect(hot.getDataAtRow(0)).toEqual(['c', null, 'a', 'b']);
+    expect(widths()).toEqual([30, 50, 10, 20]);
+  });
+
+  it('should not bring back origins kept before the columns changed, when the data is loaded again', () => {
+    const data = [['a', 'b', 'c']];
+    const colWidths = [10, 20, 30];
+
+    createGrid({ data, colWidths });
+
+    hot.alter('insert_col_start', 1);
+    hot.updateSettings({ colWidths: 50 });
+    // as many columns as before, on other columns, while the array is not followed
+    hot.alter('remove_col', 1);
+    hot.alter('insert_col_start', 3);
+    hot.updateSettings({ colWidths });
+
+    expect(widths()).toEqual([10, 20, 30, 50]);
+
+    hot.loadData(data);
+
+    expect(widths()).toEqual([10, 20, 30, 50]);
   });
 });

@@ -51,15 +51,31 @@ describe('UndoRedo with an array colWidths', () => {
     expect(widths(hot)).toEqual([80, 60, 70]);
   });
 
-  it('should keep widths set after a step that did not change them', () => {
+  it('should drop the history when a new array replaces the previous one, rather than undo into its columns', () => {
     const hot = create({ data: spreadsheet(1, 3), colWidths: [100, 150, 200], autoColumnSize: false });
+    const undoRedo = hot.getPlugin('undoRedo');
 
-    hot.setDataAtCell(0, 0, 'edited');
-    hot.updateSettings({ colWidths: [30, 31, 32] });
-    hot.getPlugin('undoRedo').undo();
+    hot.alter('insert_col_start', 0);
+    hot.updateSettings({ colWidths: [10, 20, 30, 40] });
 
-    expect(hot.getDataAtCell(0, 0)).toBe('A1');
-    expect(widths(hot)).toEqual([30, 31, 32]);
+    expect(undoRedo.isUndoAvailable()).toBe(false);
+
+    undoRedo.undo();
+
+    expect(widths(hot)).toEqual([10, 20, 30, 40]);
+  });
+
+  it('should keep the history when the same array is passed again', () => {
+    const colWidths = [100, 150, 200];
+    const hot = create({ data: spreadsheet(1, 3), colWidths, autoColumnSize: false });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.alter('remove_col', 0);
+    hot.updateSettings({ colWidths });
+    undoRedo.undo();
+
+    expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1']);
+    expect(widths(hot)).toEqual([100, 150, 200]);
   });
 
   it('should drop the history when `colWidths` becomes an array, rather than undo into other widths', () => {

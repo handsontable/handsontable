@@ -2,13 +2,18 @@ import type { HotInstance } from './types';
 import { PhysicalIndexToValueMap } from '../translations/maps/physicalIndexToValueMap';
 
 /**
- * The name the origin map is registered under in the column index mapper.
+ * The prefix of the name the origin map is registered under in the column index mapper.
  */
 const MAP_NAME = 'colWidths.declaredIndex';
 
 /**
+ * Stops an observer of the origin map.
+ */
+type DisposeObserver = () => void;
+
+/**
  * Returns the entry index after the highest one in use, which the next column appended after the last one takes,
- * so a column added at the end gets the next width listed, and an entry is never handed out twice.
+ * so a column added at the end gets the next width listed after the columns that have one.
  *
  * @param {Array} values The entry index of each physical column (`null` for a column with none).
  * @returns {number}
@@ -25,6 +30,28 @@ function nextUnusedEntry(values: unknown[]): number {
   }
 
   return next;
+}
+
+/**
+ * Tells whether a column the index mapper just inserted comes after every other column on screen. The mapper puts
+ * the new indexes into its sequence before the maps take their slots, so the sequence already shows where the
+ * column sits. A column appended at the physical end after the columns were moved can sit between others on screen.
+ *
+ * @param {number[]} sequence The index mapper's sequence of physical indexes, in screen order.
+ * @param {number} physicalColumn The physical index of the first inserted column.
+ * @returns {boolean}
+ */
+function endsScreenOrder(sequence: number[], physicalColumn: number): boolean {
+  const position = sequence.indexOf(physicalColumn);
+
+  for (let index = position + 1; index < sequence.length; index += 1) {
+    // Only the other inserted columns, which take the indexes after the first one, may follow it.
+    if (sequence[index]! < physicalColumn) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -49,11 +76,25 @@ export class ColumnSizeSettings {
    */
   #map: PhysicalIndexToValueMap | null = null;
   /**
-   * The array the origin map was filled for. A new array resets the map, the same one keeps it.
+   * The name the origin map is registered under. A new array registers a new map under a new name, so UndoRedo,
+   * which compares the names, drops the steps recorded with the origins of the previous array.
+   */
+  #name: string | null = null;
+  /**
+   * The number of origin maps registered so far, which makes each name unique.
+   */
+  #registrations = 0;
+  /**
+   * The disposer of the observer that drops the column width cache when the origin map changes.
+   */
+  #disposeObserver: DisposeObserver | null = null;
+  /**
+   * The array the origin map was filled for. A new array replaces the map, the same one keeps it.
    */
   #declared: unknown[] | null = null;
   /**
-   * For an insert in progress after the last column, the first entry index the map hands out; `null` otherwise.
+   * The first entry index the columns of the insert in progress take, when the insert appends after the last
+   * column; `null` otherwise. Read by the map's init function, which the index mapper calls once per column.
    */
   #appendFrom: number | null = null;
   /**
@@ -61,37 +102,37 @@ export class ColumnSizeSettings {
    */
   #data: unknown = null;
   /**
-   * The origins each data array had when the grid loaded another one, with the array they were declared for.
-   * The sheets bar reloads a sheet's own data array when the sheet is shown again, so its widths come back on
-   * the columns they were on.
+   * The origins each data array had when the grid loaded another one, by the array of `colWidths` they were
+   * declared for. A `loadData()` declares every column at its own index again, and the sheets bar loads a
+   * sheet's own data array each time the sheet is shown, so its widths come back on the columns they were on.
    */
-  #kept = new WeakMap<object, { declared: unknown[]; values: unknown[] }>();
+  #kept = new WeakMap<object, Map<unknown[], unknown[]>>();
+  /**
+   * `true` between the start and the end of a data load, whose column changes come from the new data.
+   */
+  #loading = false;
 
   /**
-   * Follows the settings, which decide whether the map is needed, and the index mapper's inserts.
+   * Follows the settings, which decide whether the map is needed, and the data loads.
    *
    * @param {HotInstance} hot The Handsontable instance.
    */
   constructor(hot: HotInstance) {
     this.#hot = hot;
 
-    // Runs before the maps insert their slots, so the map's length is still the one before the insert.
-    hot.columnIndexMapper.addLocalHook('indexesInserted', (insertedIndexes: number[]) => {
-      const map = this.#map;
-
-      this.#appendFrom = map !== null && insertedIndexes.length > 0 && insertedIndexes[0]! >= map.getLength() ?
-        nextUnusedEntry(map.getValues()) : null;
-    });
-
     // Registered before the first data load and after every settings update, never lazily on a lookup: UndoRedo
     // drops its history when the set of index map names changes, and a settings update is where a user expects
     // that, the way enabling a plugin does it.
     hot.addHook('beforeInit', this.#onSettingsChange);
     hot.addHook('afterUpdateSettings', this.#onSettingsChange);
-    hot.addHook('beforeLoadData', this.#keep);
-    hot.addHook('beforeUpdateData', this.#keep);
+    hot.addHook('beforeLoadData', this.#onBeforeDataLoad);
+    hot.addHook('beforeUpdateData', this.#onBeforeDataLoad);
     hot.addHook('afterLoadData', this.#onDataLoaded);
     hot.addHook('afterUpdateData', this.#onDataLoaded);
+    // Origins kept for the data shown now describe its columns as they were: a column inserted or removed since
+    // then, while `colWidths` was not followed, makes them stale.
+    hot.columnIndexMapper.addLocalHook('indexesInserted', this.#onColumnsChanged);
+    hot.columnIndexMapper.addLocalHook('indexesRemoved', this.#onColumnsChanged);
   }
 
   /**
@@ -112,154 +153,150 @@ export class ColumnSizeSettings {
   }
 
   /**
-   * Gives the columns `alter()` just created after the last one the next entries. The index mapper reports
-   * `insert_col_end` on the last column at the index of that column, so the map sees an insert between
-   * columns, while the created columns end the grid.
-   *
-   * @param {number} physicalColumn The physical index of the first created column.
-   * @param {number} amount The number of created columns.
-   */
-  alignInsertedColumns(physicalColumn: number, amount: number): void {
-    const map = this.#map;
-
-    if (map === null || amount <= 0) {
-      return;
-    }
-
-    const values = map.getValues();
-
-    if (physicalColumn + amount < values.length) {
-      return;
-    }
-
-    const block = values.slice(physicalColumn, physicalColumn + amount);
-
-    if (block.some(value => value !== null)) {
-      return;
-    }
-
-    const from = nextUnusedEntry(values.slice(0, physicalColumn));
-
-    map.setValues(values.slice(0, physicalColumn).concat(block.map((_, ordinal) => from + ordinal)));
-  }
-
-  /**
-   * Registers, resets, or unregisters the origin map so it follows the current value of `colWidths`.
+   * Registers, replaces, or unregisters the origin map so it follows the current value of `colWidths`.
    */
   #onSettingsChange = (): void => {
     const value = (this.#hot.getSettings() as Record<string, unknown>).colWidths;
 
     if (Array.isArray(value)) {
-      // Only a map this update created or reset starts from the declared order, so only that one takes the
-      // kept origins back. A map the update kept holds the current origins: the kept ones were taken when the
-      // data was last left, and putting them back after a later insert and removal gave a removed column's
-      // width to another column.
-      if (this.#follow(value)) {
-        this.#restore();
-      }
+      this.#follow(value);
     } else {
       this.#unfollow();
     }
   };
 
   /**
-   * Keeps the origins of the data array the grid is about to leave. A load declares every column at its own
-   * index again.
+   * Keeps the origins of the data array the grid is about to leave.
    */
-  #keep = (): void => {
-    if (this.#map !== null && this.#declared !== null && typeof this.#data === 'object' && this.#data !== null) {
-      this.#kept.set(this.#data, { declared: this.#declared, values: this.#map.getValues().slice() });
+  #onBeforeDataLoad = (): void => {
+    this.#loading = true;
+    this.#keep();
+  };
+
+  /**
+   * Drops the origins kept for the data shown now when its columns change outside a data load.
+   */
+  #onColumnsChanged = (): void => {
+    if (!this.#loading && typeof this.#data === 'object' && this.#data !== null) {
+      this.#kept.delete(this.#data);
     }
   };
 
   /**
-   * Follows the data array a load passed, and puts back the origins it had when it was last shown.
+   * Keeps the origins of the data array shown now, under the array of `colWidths` they were declared for, so
+   * origins kept for another array never replace them.
+   */
+  #keep(): void {
+    const map = this.#map;
+    const declared = this.#declared;
+    const data = this.#data;
+
+    if (map === null || declared === null || typeof data !== 'object' || data === null) {
+      return;
+    }
+
+    let byDeclared = this.#kept.get(data);
+
+    if (byDeclared === undefined) {
+      byDeclared = new Map();
+      this.#kept.set(data, byDeclared);
+    }
+
+    byDeclared.set(declared, map.getValues().slice());
+  }
+
+  /**
+   * Follows the data array a load passed, and puts back, once, the origins it had for the array `colWidths` holds
+   * now. A settings update never puts them back: the columns may have changed since they were kept.
    *
    * @param {Array} data The loaded data.
    */
   #onDataLoaded = (data: unknown): void => {
+    this.#loading = false;
     this.#data = data;
-    this.#restore();
-  };
 
-  /**
-   * Puts back the origins kept for the current data array, when they were kept for the array `colWidths` holds
-   * now and the data still has as many columns.
-   */
-  #restore(): void {
     const map = this.#map;
-    const kept = typeof this.#data === 'object' && this.#data !== null ? this.#kept.get(this.#data) : undefined;
+    const declared = this.#declared;
+    const byDeclared = typeof data === 'object' && data !== null ? this.#kept.get(data) : undefined;
 
-    if (map === null || kept === undefined || kept.declared !== this.#declared) {
+    if (map === null || declared === null || byDeclared === undefined) {
       return;
     }
 
-    if (kept.values.length === map.getLength()) {
-      map.setValues(kept.values);
+    const values = byDeclared.get(declared);
+
+    byDeclared.delete(declared);
+
+    if (values !== undefined && values.length === map.getLength()) {
+      map.setValues(values);
     }
-  }
+  };
 
   /**
-   * Starts following an array, or resets the origin map when a new array replaced the previous one.
+   * Starts following an array, or replaces the origin map when a new array replaced the previous one.
    *
    * @param {Array} value The array.
-   * @returns {boolean} `true` when the map was created or reset, `false` when it was kept as it is.
    */
-  #follow(value: unknown[]): boolean {
-    if (this.#map === null) {
-      // A load declares every column at its own index (called with the index alone); an inserted column takes
-      // the next unused entry when it is appended after the last column (called with the ordinal too), and none
-      // otherwise.
-      this.#map = new PhysicalIndexToValueMap((index: number, ordinal?: number) => {
-        if (ordinal === undefined) {
-          return index;
-        }
-
-        return this.#appendFrom === null ? null : this.#appendFrom + ordinal;
-      });
-      this.#declared = value;
-      this.#hot.columnIndexMapper.registerMap(MAP_NAME, this.#map);
-
-      return true;
+  #follow(value: unknown[]): void {
+    if (this.#declared === value) {
+      return;
     }
 
-    if (this.#declared !== value) {
-      this.#declared = value;
-      this.#resetOrigins(this.#map);
-
-      return true;
+    if (this.#declared !== null) {
+      // The origins of the previous array stay kept for the data shown now (a sheet switch applies the arriving
+      // sheet's settings before it loads its data), and a new map declares every column at its own index for the
+      // new array, under a new name.
+      this.#unfollow();
     }
 
-    return false;
+    // A load declares every column at its own index (called with the index alone). An inserted column is called
+    // with the index it takes, and its ordinal in the insert: while the map still has its length from before the
+    // insert, an index past it that also ends the screen order is an append (`insert_col_end` on the last column
+    // included), which takes the next unused entries, and any other insert takes none.
+    const map = new PhysicalIndexToValueMap((index: number, ordinal?: number) => {
+      if (ordinal === undefined) {
+        return index;
+      }
+
+      if (ordinal === 0) {
+        // An `'end'` insert past the last column is called with one index more than the slot it takes.
+        const slot = Math.min(index, map.getLength());
+        const appends = index >= map.getLength() &&
+          endsScreenOrder(this.#hot.columnIndexMapper.getIndexesSequence(), slot);
+
+        this.#appendFrom = appends ? nextUnusedEntry(map.getValues()) : null;
+      }
+
+      return this.#appendFrom === null ? null : this.#appendFrom + ordinal;
+    });
+    const name = `${MAP_NAME}.${this.#registrations}`;
+
+    this.#registrations += 1;
+    this.#map = map;
+    this.#name = name;
+    this.#declared = value;
+    this.#hot.columnIndexMapper.registerMap(name, map);
+    // A restore after a data load that keeps the column count changes the widths without changing the count, which
+    // the column width cache does not notice on its own.
+    this.#disposeObserver = this.#hot.columnIndexMapper.observeMapChange(map, () => {
+      this.#hot.view?.invalidateColumnWidthCache();
+    });
   }
 
   /**
-   * Stops following `colWidths` once it is no longer an array.
+   * Stops following `colWidths` once it is no longer an array, or its array was replaced.
    */
   #unfollow(): void {
-    if (this.#map === null) {
+    if (this.#name === null) {
       return;
     }
 
     this.#keep();
-    this.#hot.columnIndexMapper.unregisterMap(MAP_NAME);
+    this.#disposeObserver?.();
+    this.#hot.columnIndexMapper.unregisterMap(this.#name);
     this.#map = null;
+    this.#name = null;
+    this.#disposeObserver = null;
     this.#declared = null;
-  }
-
-  /**
-   * Declares every column at its own physical index, as a load does.
-   *
-   * @param {PhysicalIndexToValueMap} map The origin map.
-   */
-  #resetOrigins(map: PhysicalIndexToValueMap): void {
-    const length = map.getLength();
-    const values = new Array<number>(length);
-
-    for (let index = 0; index < length; index += 1) {
-      values[index] = index;
-    }
-
-    map.setValues(values);
   }
 }
