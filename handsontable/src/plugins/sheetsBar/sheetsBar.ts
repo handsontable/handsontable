@@ -1947,9 +1947,14 @@ export class SheetsBar extends BasePlugin {
     }
 
     const restored: Record<string, unknown> = {};
+    const initOnlyOptions = this.#initOnlyOptions();
 
     this.#settingsBaseline.forEach((value, key) => {
-      if ((key !== 'dataProvider' || this.#rebuildGridDataProvider === null) && !keptImportedKeys?.has(key)) {
+      if (
+        (key !== 'dataProvider' || this.#rebuildGridDataProvider === null) &&
+        !keptImportedKeys?.has(key) &&
+        !initOnlyOptions.includes(key)
+      ) {
         restored[key] = restoredBaselineValue(key, value);
       }
     });
@@ -4407,9 +4412,12 @@ export class SheetsBar extends BasePlugin {
     });
 
     const restored: Record<string, unknown> = {};
+    const initOnlyOptions = this.#initOnlyOptions();
 
     this.#settingsBaseline.forEach((value, key) => {
-      if (!(settings && key in settings)) {
+      // An init-only option the opening sheet set is in the baseline, and the grid holds it for good.
+      // Writing it back would be an update, which the grid refuses.
+      if (!(settings && key in settings) && !initOnlyOptions.includes(key)) {
         // `undefined` reads as "not provided" to `updateSettings()`, which skips the key rather
         // than resetting it — `columns: undefined` leaves the previous sheet's column meta in
         // place, so its cell types keep describing data that is no longer there. `null` is the
@@ -4429,6 +4437,21 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Lists the init-only options (`layoutDirection`, `renderAllRows`, `renderAllColumns`, `ariaTags`) the grid
+   * refuses to update. The list is empty while the grid is still being built, because the opening sheet
+   * may set them then.
+   *
+   * @returns {string[]}
+   */
+  #initOnlyOptions(): string[] {
+    if (!this.hot._getMetaManager().isInitialized()) {
+      return [];
+    }
+
+    return ((this.hot.getSettings() as Record<string, unknown>)._initOnlySettings ?? []) as string[];
+  }
+
+  /**
    * Takes the init-only options (`layoutDirection`, `renderAllRows`, `renderAllColumns`, `ariaTags`) out of
    * the settings of a sheet once the grid is initialized, and warns once per option. The grid refuses an
    * update of those options, so a sheet that declared one would make its first tab switch throw. The opening
@@ -4438,12 +4461,7 @@ export class SheetsBar extends BasePlugin {
    * @returns {object} `settings`, or a copy without the init-only options.
    */
   #withoutInitOnlyKeys(settings: Record<string, unknown>): Record<string, unknown> {
-    if (!this.hot._getMetaManager().isInitialized()) {
-      return settings;
-    }
-
-    const initOnlyOptions = ((this.hot.getSettings() as Record<string, unknown>)._initOnlySettings ?? []) as string[];
-    const declared = initOnlyOptions.filter(option => option in settings);
+    const declared = this.#initOnlyOptions().filter(option => option in settings);
 
     if (declared.length === 0) {
       return settings;

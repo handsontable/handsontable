@@ -1919,10 +1919,42 @@ describe('SheetsBar plugin', () => {
   it('builds a grid whose opening sheet sets an init-only option, as the grid is still being built', () => {
     expect(() => {
       hot = new Handsontable(container, {
-        sheetsBar: { sheets: [{ name: 'A', data: [['a']], settings: { renderAllRows: true } }] },
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a']], settings: { renderAllRows: true } },
+            { name: 'B', data: [['b']] },
+          ],
+        },
         licenseKey: TEST_LICENSE_KEY,
       });
     }).not.toThrow();
+    expect(hot.getSettings().renderAllRows).toBe(true);
+  });
+
+  it('switches away from and back to an opening sheet that set an init-only option', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a']], settings: { renderAllRows: true } },
+          { name: 'B', data: [['b']] },
+        ],
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+    const plugin = hot.getPlugin('sheetsBar');
+
+    expect(() => plugin.setActiveSheet('B')).not.toThrow();
+    expect(() => plugin.setActiveSheet('A')).not.toThrow();
+    expect(hot.getSettings().renderAllRows).toBe(true);
+  });
+
+  it('turns the bar off after an opening sheet set an init-only option, and keeps the option', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']], settings: { renderAllRows: true } }] },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    expect(() => hot.updateSettings({ sheetsBar: false })).not.toThrow();
     expect(hot.getSettings().renderAllRows).toBe(true);
   });
 
