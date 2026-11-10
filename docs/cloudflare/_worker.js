@@ -21,6 +21,7 @@
  *   1. /docs/next/:splat                   → /docs/:splat
  *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
  *  1b. /docs/{LATEST_VERSION}/:splat       → /docs/:splat
+ *  1c. /docs/... ending in invisible characters → the same path without them
  *   2. /{/}                                → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
@@ -32,7 +33,7 @@
  *   5. Exact versioned HTML redirects      → framework-specific pages
  *   6. Cross-framework page fixes (angular/react wrong-prefix pages)
  *   7. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
- *  7a. Vue 3 and Vue 2 legacy page redirects → /docs/vue-data-grid/*
+ *  7a. Vue 3 and Vue 2 legacy page redirects, prefixed or not → /docs/vue-data-grid/*
  *  7b. Versioned Vue 3 legacy pages        → /docs/:ver/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
  *   9. Flat /docs/react-data-grid/row-sorting etc.
@@ -42,11 +43,12 @@
  * 12a. Legacy hostname (GET/HEAD)          → same path on handsontable.com (301)
  * 12b. /docs/:ver older than 9.0 (any form) → current framework page or home (cookie, 302)
  *      /docs/:major.:minor.:patch from 9.0 → /docs/:major.:minor (301)
- * 12c. /docs/pro[/:ver][/:page.html]      → current framework page or home (cookie, 302)
+ * 12c. /docs/(pro|latest)[/:ver][/:page.html] → current framework page or home (cookie, 302)
  *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
  *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
  *  15. /docs/(page).html                   → flat framework page (cookie, 302)
- *  16. /docs/(page){/}                     → flat framework page (cookie, 302)
+ *  16. /docs/(page){/}                     → flat framework page (cookie, 302),
+ *      including a rule 6 slug without its framework prefix
  *  17. /docs{/}                            → /docs/(framework)/ (cookie, 302)
  *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
  * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
@@ -412,7 +414,16 @@ const FLAT_HTML_MAP = {
   'tutorial-migration-guide': 'migration-from-7.4-to-8.0',
   'tutorial-known-limitations': '/third-party-licenses/',
   'tutorial-changelog': '/changelog/',
+  'tutorial-callbacks': 'events-and-hooks',
+  'tutorial-features': '',
+  'tutorial-contributing': '',
   'demo-using-callbacks': '/events-and-hooks/',
+  'demo-merge-cells': 'merge-cells',
+  'demo-search-for-values': 'searching-values',
+  'demo-custom-borders': 'formatting-cells',
+  'demo-sorting-data': 'rows-sorting',
+  'demo-moving-rows-and-columns': 'row-moving',
+  'demo-mobiles-and-tablets': '',
   'demo-react-simple-examples': 'binding-to-data',
   'demo-scrolling': 'row-virtualization',
   'demo-fixing': 'column-freezing',
@@ -597,13 +608,13 @@ const FLAT_PAGES_REMAP = {
   'vue-setting-up-a-language': '/vue-setting-up-a-translation/',
   'vue3-simple-example': '/vue3-basic-example/',
   'vue3-setting-up-a-language': '/vue3-setting-up-a-translation/',
-  latest: '/',
   'internationalization-i18n': '/language/',
   'keyboard-navigation': '/keyboard-shortcuts/',
   'disabled-cells': '/read-only-cells/',
   building: '/custom-builds/',
   plugins: '/custom-plugins/',
   'file-structure': '/folder-structure/',
+  'migration-from-13.1.0-to-14.0': '/migration-from-13.1-to-14.0/',
 };
 
 // Sitemap-derived slugs that pass through as-is (slug → same slug under framework).
@@ -779,6 +790,9 @@ function isFlatPageKey(page) {
   return Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page) || SITEMAP_PASSTHROUGH_SLUGS.has(page);
 }
 
+// U+200B-U+200D, U+2060 and U+FEFF, percent-encoded as `url.pathname` holds them.
+const TRAILING_INVISIBLE_CHARS = /(?:%E2%80%8[BCD]|%E2%81%A0|%EF%BB%BF)+$/i;
+
 // A slug the rule 19 retry never looks up under a framework: a framework
 // prefix, a version, or a file.
 const NOT_A_PAGE_SLUG = /^(?:(?:javascript|react|angular|vue)-data-grid|\d+\.\d+)(?:\/|$)|\.(?:html?|m?js|css|json|xml|txt|md|map|png|jpe?g|gif|svg|webp|avif|ico|pdf|woff2?|ttf)$/i;
@@ -874,7 +888,7 @@ const FLAT_REACT_PAGES = {
 // never got the 'custom-id-class-style' unification from rule 6, so
 // 'vue3-custom-id-class-style' still belongs here for that case. Rule 7a
 // (unversioned, framework-prefixed) never reaches this entry for that one
-// page - the crossFramework map (rule 6) matches it first, since that page's
+// page - CROSS_FRAMEWORK_PAGES (rule 6) matches it first, since that page's
 // *current* docs were unified into an all-framework 'custom-id-class-style'
 // page.
 const VUE3_LEGACY_PAGES = {
@@ -894,7 +908,8 @@ const VUE3_LEGACY_PAGES = {
 };
 
 // Older names of the pages above: the Vue 2 wrapper's slugs and two Vue 3
-// renames. Read by rule 7a only. `vue-hot-column`, `vue-instance-reference`,
+// renames. Read by rule 7a only, with or without a framework prefix.
+// `vue-hot-column`, `vue-instance-reference`,
 // `vue-nuxt`, `vue-pinia` and `vue-vuex` are live pages, so none is listed.
 const VUE_LEGACY_ALIASES = {
   'vue-installation': 'vue3-installation',
@@ -912,6 +927,46 @@ const VUE_LEGACY_ALIASES = {
   'vue-vuex-example': 'vue3-vuex-example',
   'vue3-simple-example': 'vue3-basic-example',
   'vue3-setting-up-a-language': 'vue3-setting-up-a-translation',
+};
+
+// Exact framework-prefixed pages that moved: a page filed under the wrong
+// framework, or a renamed slug. Read by rule 6, and by rule 16 for the same
+// slug without a framework prefix.
+const CROSS_FRAMEWORK_PAGES = {
+  '/docs/react-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
+  '/docs/react-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
+  '/docs/react-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',
+  '/docs/react-data-grid/angular-custom-id/': '/docs/angular-data-grid/api/options/',
+  '/docs/react-data-grid/angular-setting-up-a-translation/': '/docs/react-data-grid/locale/',
+  '/docs/react-data-grid/angular-custom-context-menu-example/': '/docs/react-data-grid/context-menu/',
+  '/docs/react-data-grid/angular-custom-editor-example/': '/docs/angular-data-grid/cell-editor/',
+  '/docs/react-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
+  '/docs/react-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
+  '/docs/react-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
+  '/docs/javascript-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
+  '/docs/javascript-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
+  '/docs/javascript-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',
+  '/docs/javascript-data-grid/angular-custom-id/': '/docs/angular-data-grid/api/options/',
+  '/docs/javascript-data-grid/angular-setting-up-a-translation/': '/docs/javascript-data-grid/locale/',
+  '/docs/javascript-data-grid/angular-custom-context-menu-example/': '/docs/javascript-data-grid/context-menu/',
+  '/docs/javascript-data-grid/angular-custom-editor-example/': '/docs/angular-data-grid/cell-editor/',
+  '/docs/javascript-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
+  '/docs/javascript-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
+  '/docs/javascript-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
+  // Custom ID, class, and style: Vue-only page unified into an all-framework
+  // page (permalink renamed vue-custom-id-class-style → custom-id-class-style).
+  '/docs/javascript-data-grid/vue-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+  '/docs/react-data-grid/vue-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+  '/docs/angular-data-grid/vue-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+  '/docs/vue-data-grid/vue-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+  '/docs/javascript-data-grid/vue3-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+  '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+  '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+  '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+  '/docs/javascript-data-grid/disabled-cells/': '/docs/javascript-data-grid/read-only-cells/',
+  '/docs/react-data-grid/disabled-cells/': '/docs/react-data-grid/read-only-cells/',
+  '/docs/angular-data-grid/disabled-cells/': '/docs/angular-data-grid/read-only-cells/',
+  '/docs/vue-data-grid/disabled-cells/': '/docs/vue-data-grid/read-only-cells/',
 };
 
 // ---------------------------------------------------------------------------
@@ -1357,6 +1412,16 @@ async function route(request, env, ctx) {
       return redirect301(abs(dest, url));
     }
 
+    // -- 1c. /docs/... ending in invisible characters → the same path without them --
+    // A link copied from a chat or a document can carry a zero-width space.
+    {
+      const cleaned = path.replace(TRAILING_INVISIBLE_CHARS, '');
+
+      if (cleaned !== path && path.startsWith('/docs')) {
+        return redirect301(abs(`${cleaned}${url.search}`, url));
+      }
+    }
+
     // -- 2. Root / → /docs ---------------------------------------------------
     if (path === '/' || path === '') {
       return redirect301(abs('/docs', url));
@@ -1450,47 +1515,11 @@ async function route(request, env, ctx) {
 
     // -- 6. Cross-framework page fixes (react-data-grid wrongly containing angular pages, etc.) --
     {
-      const crossFramework = {
-        '/docs/react-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
-        '/docs/react-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
-        '/docs/react-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',
-        '/docs/react-data-grid/angular-custom-id/': '/docs/angular-data-grid/api/options/',
-        '/docs/react-data-grid/angular-setting-up-a-translation/': '/docs/react-data-grid/locale/',
-        '/docs/react-data-grid/angular-custom-context-menu-example/': '/docs/react-data-grid/context-menu/',
-        '/docs/react-data-grid/angular-custom-editor-example/': '/docs/angular-data-grid/cell-editor/',
-        '/docs/react-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
-        '/docs/react-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
-        '/docs/react-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
-        '/docs/javascript-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
-        '/docs/javascript-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
-        '/docs/javascript-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',
-        '/docs/javascript-data-grid/angular-custom-id/': '/docs/angular-data-grid/api/options/',
-        '/docs/javascript-data-grid/angular-setting-up-a-translation/': '/docs/javascript-data-grid/locale/',
-        '/docs/javascript-data-grid/angular-custom-context-menu-example/': '/docs/javascript-data-grid/context-menu/',
-        '/docs/javascript-data-grid/angular-custom-editor-example/': '/docs/angular-data-grid/cell-editor/',
-        '/docs/javascript-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
-        '/docs/javascript-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
-        '/docs/javascript-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
-        // Custom ID, class, and style: Vue-only page unified into an all-framework
-        // page (permalink renamed vue-custom-id-class-style → custom-id-class-style).
-        '/docs/javascript-data-grid/vue-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
-        '/docs/react-data-grid/vue-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
-        '/docs/angular-data-grid/vue-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
-        '/docs/vue-data-grid/vue-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
-        '/docs/javascript-data-grid/vue3-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
-        '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
-        '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
-        '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
-        '/docs/javascript-data-grid/disabled-cells/': '/docs/javascript-data-grid/read-only-cells/',
-        '/docs/react-data-grid/disabled-cells/': '/docs/react-data-grid/read-only-cells/',
-        '/docs/angular-data-grid/disabled-cells/': '/docs/angular-data-grid/read-only-cells/',
-        '/docs/vue-data-grid/disabled-cells/': '/docs/vue-data-grid/read-only-cells/',
-      };
       // Also normalise without trailing slash.
       const normalised = path.endsWith('/') ? path : `${path}/`;
 
-      if (Object.prototype.hasOwnProperty.call(crossFramework, normalised)) {
-        return redirect301(abs(crossFramework[normalised], url));
+      if (Object.prototype.hasOwnProperty.call(CROSS_FRAMEWORK_PAGES, normalised)) {
+        return redirect301(abs(CROSS_FRAMEWORK_PAGES[normalised], url));
       }
     }
 
@@ -1509,10 +1538,10 @@ async function route(request, env, ctx) {
 
     // -- 7a. Vue 3 and Vue 2 legacy pages -----------------------------------
     {
-      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3?-[^/]+)\/?$/);
+      const m = path.match(/^\/docs\/(?:(?:javascript|react|angular|vue)-data-grid\/)?(vue3?-[^/]+)\/?$/);
 
       if (m) {
-        const page = VUE_LEGACY_ALIASES[m[2]] ?? m[2];
+        const page = VUE_LEGACY_ALIASES[m[1]] ?? m[1];
 
         if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
           return redirect301(abs(VUE3_LEGACY_PAGES[page], url));
@@ -1694,12 +1723,12 @@ async function route(request, env, ctx) {
       }
     }
 
-    // -- 12c. /docs/pro[/{ver}][/{page}.html] → the old Pro docs ---------------
-    // The Handsontable Pro docs are not deployed at all. Like rule 12b, a
-    // known page goes to the current docs (cookie, 302), anything else to the
-    // framework home.
+    // -- 12c. /docs/(pro|latest)[/{ver}][/{page}.html] → old docs that are not deployed --
+    // The Handsontable Pro docs and the old `latest` alias are not deployed
+    // at all. Like rule 12b, a known page goes to the current docs (cookie,
+    // 302), anything else to the framework home.
     {
-      const m = path.match(/^\/docs\/pro(?:\/(.*))?$/);
+      const m = path.match(/^\/docs\/(?:pro|latest)(?:\/(.*))?$/);
 
       if (m) {
         const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
@@ -1806,6 +1835,20 @@ async function route(request, env, ctx) {
         // A link at the end of a sentence can carry its punctuation in.
         const trimmed = m[1].replace(/[.,;:!'")\]]+$/, '');
         const page = isFlatPageKey(m[1]) || !isFlatPageKey(trimmed) ? m[1] : trimmed;
+
+        // A slug that rule 6 moves, here without a framework prefix: the
+        // cookie framework first, JavaScript second.
+        if (!page.includes('/')) {
+          const preferred = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+
+          for (const framework of new Set([preferred, 'javascript-data-grid'])) {
+            const key = `/docs/${framework}/${page}/`;
+
+            if (Object.prototype.hasOwnProperty.call(CROSS_FRAMEWORK_PAGES, key)) {
+              return redirect302(abs(CROSS_FRAMEWORK_PAGES[key], url));
+            }
+          }
+        }
 
         // Check special remaps first.
         if (Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page)) {
