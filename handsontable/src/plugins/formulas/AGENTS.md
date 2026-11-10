@@ -362,7 +362,9 @@ the write and the replay when the escaped array reads the same as `#syncedConten
   every in-flight change) and leaves `#sourceHasStaleFormulas` as it was (the engine still holds the rewritten
   text). The scan itself stays: a resync reads and escapes the source as before, and only the `setSheetContent()`
   and the order replay are saved.
-- **Cost:** a second array of the grid's size is kept, and every resync compares it cell by cell. It is kept from
+- **Cost:** a second array of the grid's size is kept (arrays of pointers, the values shared: 4.4 MB for a 200,000-cell
+  sheet whose grid and engine took 481 MB in Jest), and every resync compares it cell by cell (the strict check comes
+  first: a type tag read per cell took the comparison of 10,000 x 50 from 3 ms to 44 ms). It is kept from
   the first write, not from the first resync: started on the first resync, the first re-render after a drag would
   write in full and replay the order by the planned path, the very case the record exists for.
 - **Known limits:** a host that writes into the grid's engine sheet directly (`engine.setCellContents()`) is not
