@@ -106,6 +106,19 @@ describe('planOrderMoves', () => {
     const lineAtPlace = Array.from({ length: size }, (_, place) => (place * 7) % size);
 
     expect(planOrderMoves(toEngineOrder(lineAtPlace))).toBeNull();
-    expect(planOrderMoves(toEngineOrder(lineAtPlace), Infinity).length).toBeGreaterThan(ORDER_MOVES_BUDGET / size);
+    expect(planOrderMoves(toEngineOrder(lineAtPlace), 1, Infinity).length).toBeGreaterThan(ORDER_MOVES_BUDGET / size);
+  });
+
+  it('weighs the lines of the other axis into the cost of a move', () => {
+    const size = 10000;
+    // Two drags: a block to the top, a line to the middle.
+    let lineAtPlace = applyMoves(size, [{ start: 9000, count: 3, target: 0 }]);
+
+    lineAtPlace = lineAtPlace.filter(line => line !== 42);
+    lineAtPlace.splice(5000, 0, 42);
+
+    expect(planOrderMoves(toEngineOrder(lineAtPlace), 1)).not.toBeNull();
+    // Twenty columns make each move cost the whole budget.
+    expect(planOrderMoves(toEngineOrder(lineAtPlace), 20)).toBeNull();
   });
 });

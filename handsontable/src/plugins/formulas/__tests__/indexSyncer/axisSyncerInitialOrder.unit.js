@@ -193,6 +193,44 @@ describe('AxisSyncer initial order sync', () => {
     });
   });
 
+  describe('an order a sort set', () => {
+    it('should send a sorted order as one order from a syncer with no history of the sort', () => {
+      const engine = createMockEngine({ width: 2, height: 4 });
+      const indexSyncer = { ...createMockIndexSyncer(engine), isOrderSorted: () => true };
+      const axisSyncer = new AxisSyncer('row', createMockIndexMapper([3, 2, 1, 0]), indexSyncer);
+
+      axisSyncer.init();
+
+      expect(engine.calls.moveRows).toEqual([]);
+      expect(engine.calls.setRowOrder).toEqual([{ sheetId: 0, transformation: [3, 2, 1, 0] }]);
+    });
+
+    it('should send a sorted order as one order when the sync was postponed', () => {
+      const engine = createMockEngine({ width: 2, height: 4 });
+      const indexMapper = createMockIndexMapper([0, 1, 2, 3]);
+      const postponedCallbacks = [];
+      let sheetId = 0;
+      const indexSyncer = {
+        ...createMockIndexSyncer(engine),
+        getSheetId: () => sheetId,
+        getPostponeAction: () => callback => postponedCallbacks.push(callback),
+      };
+      const axisSyncer = new AxisSyncer('row', indexMapper, indexSyncer);
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [3, 2, 1, 0];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
+
+      sheetId = null;
+      axisSyncer.init();
+      sheetId = 0;
+      postponedCallbacks.forEach(callback => callback());
+
+      expect(engine.calls.moveRows).toEqual([]);
+      expect(engine.calls.setRowOrder.length).toBe(2);
+    });
+  });
+
   describe('postponed actions', () => {
     it('should postpone the sync when the sheet id is null', () => {
       const engine = createMockEngine();

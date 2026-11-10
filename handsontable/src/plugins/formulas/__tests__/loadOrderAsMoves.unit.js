@@ -38,15 +38,22 @@ function expectEveryRowReadsItsRecord(hot) {
 }
 
 describe('Formulas: an order reached by moves reaches a (re)loaded engine as moves', () => {
-  let container;
+  let containers;
+  let grids;
+  let engines;
 
   beforeEach(() => {
-    container = document.createElement('div');
-    document.body.appendChild(container);
+    containers = [];
+    grids = [];
+    engines = [];
   });
 
+  // Cleaned up here rather than at the end of each test, so a failing expectation does not leave a grid
+  // registered on an engine for the next test.
   afterEach(() => {
-    container.remove();
+    grids.forEach(hot => !hot.isDestroyed && hot.destroy());
+    engines.forEach(engine => engine.destroy());
+    containers.forEach(container => container.remove());
   });
 
   /**
@@ -54,12 +61,33 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
    * @returns {Handsontable}
    */
   function createGrid(settings) {
-    return new Handsontable(container, {
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+    containers.push(container);
+
+    const hot = new Handsontable(container, {
       data: crossRowData(),
       formulas: { engine: HyperFormula },
       licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
+
+    grids.push(hot);
+
+    return hot;
+  }
+
+  /**
+   * @param {object} [config] Extra engine configuration.
+   * @returns {HyperFormula}
+   */
+  function createEngine(config = {}) {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', ...config });
+
+    engines.push(engine);
+
+    return engine;
   }
 
   it('keeps every reference on its record with a manualRowMove array at init', () => {
@@ -67,7 +95,6 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
 
     expect(hot.getDataAtCol(0)).toEqual([3, 4, 5, 1, 2]);
     expectEveryRowReadsItsRecord(hot);
-    hot.destroy();
   });
 
   it('keeps every reference on its record when updateSettings() follows a drag', () => {
@@ -84,7 +111,6 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
 
     expect(hot.getDataAtCol(0)).toEqual([4, 5, 1, 2, 3]);
     expectEveryRowReadsItsRecord(hot);
-    hot.destroy();
   });
 
   it('keeps every reference on its record with a manualColumnMove array at init', () => {
@@ -101,7 +127,6 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       [1, 100, 11, 1000],
       [2, 200, 12, 2000],
     ]);
-    hot.destroy();
   });
 
   it('shows the same values at init as after a loadData() with the same move array', () => {
@@ -111,11 +136,10 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
     atInit.loadData(crossRowData());
 
     expect(atInit.getData()).toEqual(initValues);
-    atInit.destroy();
   });
 
   it('sends the order as moves, not as one engine order, at init', () => {
-    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const engine = createEngine();
     const setRowOrder = jest.spyOn(engine, 'setRowOrder');
     const moveRows = jest.spyOn(engine, 'moveRows');
     const hot = createGrid({ manualRowMove: [2, 3, 4, 0, 1], formulas: { engine } });
@@ -124,12 +148,12 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
     // `[2, 3, 4]` is one block: one move takes it to the top.
     expect(moveRows).toHaveBeenCalledTimes(1);
     expectEveryRowReadsItsRecord(hot);
-    hot.destroy();
   });
 
   it('keeps the sort order as an engine order after updateSettings() (DEV-917 known limitation)', () => {
-    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
-    const hot = createGrid({ columnSorting: true, formulas: { engine } });
+    const engine = createEngine();
+    const data = crossRowData();
+    const hot = createGrid({ data, columnSorting: true, formulas: { engine } });
 
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
 
@@ -137,13 +161,21 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
     const setRowOrder = jest.spyOn(engine, 'setRowOrder');
     const moveRows = jest.spyOn(engine, 'moveRows');
 
+    // An unchanged re-render leaves the engine as the sort left it.
     hot.updateSettings({});
 
-    // The reload reproduces what the sort showed: the same values, through the same kind of engine call.
     expect(hot.getData()).toEqual(sorted);
+    expect(setRowOrder).not.toHaveBeenCalled();
+    expect(moveRows).not.toHaveBeenCalled();
+
+    // A changed one feeds the data again, and the sort reaches the engine as an order again, as it did when
+    // the user sorted: the same values, through the same kind of engine call.
+    data[0][2] = 'note';
+    hot.updateSettings({});
+
+    expect(hot.getData().map(row => row[1])).toEqual(sorted.map(row => row[1]));
     expect(setRowOrder).toHaveBeenCalledTimes(1);
     expect(moveRows).not.toHaveBeenCalled();
-    hot.destroy();
   });
 
   it('keeps every reference on its record on the column axis when updateSettings() follows a drag', () => {
@@ -168,6 +200,220 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       [200, 2, 12, 2000],
     ]);
     expect(hot.getData()).toEqual(afterDrag);
-    hot.destroy();
+  });
+
+  describe('a re-render that leaves the data unchanged', () => {
+    it('neither rewrites the sheet nor replays the order after a drag', () => {
+      const engine = createEngine();
+      const hot = createGrid({ manualRowMove: true, formulas: { engine } });
+
+      hot.getPlugin('manualRowMove').moveRows([3, 4], 0);
+      hot.render();
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+      const moveRows = jest.spyOn(engine, 'moveRows');
+      const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+
+      hot.updateSettings({});
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expect(moveRows).not.toHaveBeenCalled();
+      expect(setRowOrder).not.toHaveBeenCalled();
+      expectEveryRowReadsItsRecord(hot);
+    });
+
+    it('neither rewrites the sheet nor replays the order after a drag and an edit', () => {
+      const engine = createEngine();
+      const hot = createGrid({ manualRowMove: true, formulas: { engine } });
+
+      hot.getPlugin('manualRowMove').moveRows([3, 4], 0);
+      hot.render();
+      // Visual row 2 holds ID 1, which visual row 0 (ID 4, `=A1+1000`) reads.
+      hot.setDataAtCell(2, 0, 7);
+      hot.setSourceDataAtCell(2, 2, 'note');
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expect(hot.getDataAtCell(0, 1)).toBe(1007);
+      expect(hot.getDataAtCell(2, 1)).toBe(1003);
+    });
+
+    it('keeps the values a range showed after a drag on every re-render', () => {
+      const hot = createGrid({
+        data: [[1, null], [2, null], [4, null], [8, null], [16, '=SUM(A1:A3)']],
+        manualRowMove: true,
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([0], 4);
+      hot.render();
+
+      expect(hot.getDataAtCell(3, 1)).toBe(6);
+
+      hot.updateSettings({});
+      hot.updateSettings({});
+
+      expect(hot.getDataAtCell(3, 1)).toBe(6);
+    });
+
+    it('keeps what other sheets and named expressions read from the sheet after a drag', () => {
+      const engine = createEngine();
+      const hot = createGrid({
+        data: [[1], [2], [4], [8], [16]],
+        manualRowMove: true,
+        formulas: { engine, sheetName: 'Sheet1' },
+      });
+
+      engine.addNamedExpression('N', '=Sheet1!$A$1');
+      engine.addSheet('Sheet2');
+      engine.setSheetContent(engine.getSheetId('Sheet2'), [['=Sheet1!A1'], ['=SUM(Sheet1!A1:A3)']]);
+
+      const sheet2 = engine.getSheetId('Sheet2');
+      const read = () => [
+        engine.getCellValue({ sheet: sheet2, row: 0, col: 0 }),
+        engine.getCellValue({ sheet: sheet2, row: 1, col: 0 }),
+        engine.getNamedExpressionValue('N'),
+      ];
+
+      hot.getPlugin('manualRowMove').moveRows([0], 4);
+      hot.render();
+
+      const afterDrag = read();
+
+      expect(afterDrag).toEqual([1, 6, 1]);
+
+      hot.updateSettings({});
+
+      expect(read()).toEqual(afterDrag);
+
+      hot.updateSettings({});
+
+      expect(read()).toEqual(afterDrag);
+    });
+
+    it('keeps what a second grid on the engine reads after a drag on every re-render', () => {
+      const engine = createEngine();
+      const hot1 = createGrid({
+        data: [['a'], ['b'], ['c']],
+        manualRowMove: true,
+        formulas: { engine, sheetName: 'Sheet1' },
+      });
+      const hot2 = createGrid({ data: [['=Sheet1!A1']], formulas: { engine, sheetName: 'Sheet2' } });
+
+      hot1.getPlugin('manualRowMove').moveRows([0], 2);
+      hot1.render();
+
+      expect(hot2.getDataAtCell(0, 0)).toBe('a');
+
+      hot1.updateSettings({});
+
+      expect(hot2.getDataAtCell(0, 0)).toBe('a');
+
+      hot1.updateSettings({});
+
+      expect(hot2.getDataAtCell(0, 0)).toBe('a');
+    });
+
+    it('still writes a value the host changed in place into the engine', () => {
+      const data = crossRowData();
+      const hot = createGrid({ data, manualRowMove: true });
+
+      hot.getPlugin('manualRowMove').moveRows([3, 4], 0);
+      hot.render();
+      // Physical row 0 holds ID 1, which physical row 3 (`=A1+1000`) reads.
+      data[0][0] = 50;
+      hot.updateSettings({});
+
+      expect(hot.getDataAtCell(hot.toVisualRow(3), 1)).toBe(1050);
+    });
+
+    it('still writes a value the host changed in place over a cell the user edited', () => {
+      const data = crossRowData();
+      const hot = createGrid({ data, manualRowMove: true });
+
+      hot.setDataAtCell(0, 0, 7);
+      data[0][0] = 1;
+      hot.updateSettings({});
+
+      expect(hot.getDataAtCell(3, 1)).toBe(1001);
+    });
+  });
+
+  describe('the moves a reload still sends', () => {
+    it('falls back to one order when a move would pass an array formula at init', () => {
+      let hot;
+
+      expect(() => {
+        hot = createGrid({
+          data: [['x', 1, 2], ['=ARRAYFORMULA(B1:C1*10)', null, null], ['z', 3, 4]],
+          manualRowMove: [2, 1, 0],
+        });
+      }).not.toThrow();
+
+      expect(hot.getDataAtCol(0)[0]).toBe('z');
+      expect(hot.getDataAtCol(0)[2]).toBe('x');
+    });
+
+    it('does not throw on a re-render after drags around an array formula', () => {
+      const hot = createGrid({
+        data: [['x', 1, 2], ['=ARRAYFORMULA(B1:C1*10)', null, null], ['z', 3, 4]],
+        manualRowMove: true,
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([2], 0);
+      hot.getPlugin('manualRowMove').moveRows([1], 3);
+      hot.render();
+
+      const afterDrags = hot.getData();
+
+      expect(() => hot.updateSettings({})).not.toThrow();
+      expect(hot.getData()).toEqual(afterDrags);
+    });
+
+    it('falls back to one order when a move would not fit the engine\'s maxRows', () => {
+      const engine = createEngine({ maxRows: 3 });
+      let hot;
+
+      expect(() => {
+        hot = createGrid({ data: [[1], [2], [3]], manualRowMove: [2, 0, 1], formulas: { engine } });
+      }).not.toThrow();
+
+      expect(hot.getDataAtCol(0)).toEqual([3, 1, 2]);
+      expect(() => hot.updateSettings({ data: [[4], [5], [6]] })).not.toThrow();
+    });
+
+    it('sends one order at init when another sheet reads the sheet', () => {
+      const engine = createEngine();
+
+      createGrid({ data: [['=Sheet1!A1']], formulas: { engine, sheetName: 'Sheet2' } });
+
+      const moveRows = jest.spyOn(engine, 'moveRows');
+
+      createGrid({
+        data: [['a'], ['b'], ['c']],
+        manualRowMove: [1, 2, 0],
+        formulas: { engine, sheetName: 'Sheet1' },
+      });
+
+      expect(moveRows).not.toHaveBeenCalled();
+    });
+
+    it('sends the order the grid reached by drags as moves when a hold ends over a rewritten sheet', () => {
+      const data = crossRowData().map(row => [...row, 'note']);
+      const hot = createGrid({ data, manualRowMove: true });
+      const plugin = hot.getPlugin('formulas');
+
+      hot.getPlugin('manualRowMove').moveRows([3, 4], 0);
+      hot.render();
+
+      plugin.runWithEngineOrderHeld(() => {
+        data[0][3] = 'changed';
+        hot.updateSettings({});
+      });
+
+      expectEveryRowReadsItsRecord(hot);
+    });
   });
 });

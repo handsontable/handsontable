@@ -43,6 +43,13 @@ class IndexSyncer {
    */
   readonly #ownEngineWrite: OwnEngineWrite;
   /**
+   * Tells whether the grid's row order is a sort's.
+   *
+   * @private
+   * @type {Function}
+   */
+  readonly #isOrderSorted: () => boolean;
+  /**
    * The HF's engine instance which will be synced.
    *
    * @private
@@ -64,12 +71,14 @@ class IndexSyncer {
     rowIndexMapper: IndexMapper,
     columnIndexMapper: IndexMapper,
     postponeAction: Function,
-    ownEngineWrite: OwnEngineWrite
+    ownEngineWrite: OwnEngineWrite,
+    isOrderSorted: () => boolean = () => false,
   ) {
     this.#rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
     this.#columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);
     this.#postponeAction = postponeAction;
     this.#ownEngineWrite = ownEngineWrite;
+    this.#isOrderSorted = isOrderSorted;
   }
 
   /**
@@ -121,6 +130,16 @@ class IndexSyncer {
    */
   getOwnEngineWrite(): OwnEngineWrite {
     return this.#ownEngineWrite;
+  }
+
+  /**
+   * Tells whether the grid's row order is a sort's (ColumnSorting or MultiColumnSorting), which reaches the
+   * engine as one order, never as moves.
+   *
+   * @returns {boolean}
+   */
+  isOrderSorted(): boolean {
+    return this.#isOrderSorted();
   }
 
   /**

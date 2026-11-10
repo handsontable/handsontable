@@ -130,6 +130,9 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
     getSheetDimensions: () => ({ ...dimensions }),
     // The syncer asks for the name to tell a sheet the host removed from the engine; this one exists.
     getSheetName: () => 'Sheet1',
+    getSheetNames: () => ['Sheet1'],
+    listNamedExpressions: () => [],
+    getConfig: () => ({ maxRows: Infinity, maxColumns: Infinity }),
     batch: callback => callback(),
   };
 }

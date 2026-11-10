@@ -49,6 +49,7 @@ interface ParentIndexSyncer {
   getSheetId(): number | null;
   getPostponeAction(callback?: Function): Function;
   getOwnEngineWrite(): <T>(engine: HyperFormulaEngine, fn: () => T) => T;
+  isOrderSorted?(): boolean;
 }
 
 /**
@@ -161,6 +162,21 @@ class AxisSyncer {
    * @type {boolean}
    */
   #adoptedWhileHeld = false;
+  /**
+   * Whether the engine was fed its content again while the order is held, so it holds the content in physical
+   * order and the hold's release sends the whole grid order as a reload would (see `#syncOrderWithGrid()`).
+   * `null` when no reload happened in the hold, otherwise whether that order was reached by moves alone.
+   *
+   * @type {boolean|null}
+   */
+  #reloadedWhileHeld: boolean | null = null;
+  /**
+   * Whether an order change other than a move (a sort, `setIndexesSequence()`) was held back while the order
+   * is held. The release then sends the order as one order, as that change would have reached the engine.
+   *
+   * @type {boolean}
+   */
+  #orderChangedWhileHeld = false;
 
   /**
    * Initializes the axis syncer for the given axis with the corresponding index mapper and parent index syncer references.
@@ -272,25 +288,47 @@ class AxisSyncer {
       return;
     }
 
+    const reloadedByMoves = this.#reloadedWhileHeld === true && !this.#orderChangedWhileHeld
+      && !this.#isOrderSorted();
+
     this.#orderHeld = held;
     this.#adoptedWhileHeld = false;
+    this.#reloadedWhileHeld = null;
+    this.#orderChangedWhileHeld = false;
     this.#translationCache = null;
 
     if (!held && syncOnRelease) {
-      this.#syncOrderWithGrid();
+      this.#syncOrderWithGrid(reloadedByMoves);
     }
   }
 
   /**
    * Sends the grid's current order to the engine, when there is a sheet to send it to.
+   *
+   * The release of a hold in which the engine was fed its content again follows the reload's rule: the
+   * engine holds that content in physical order, so an order the grid reached by moves alone goes as moves,
+   * as `#syncInitialOrder()` would have sent it outside the hold. Any other release (an adopted engine order,
+   * a sort or a sequence set in the hold, an order taken over by `adoptEngineOrder()`) sends one order.
+   *
+   * @param {boolean} [asMoves=false] Whether the order is sent as moves.
    */
-  #syncOrderWithGrid() {
+  #syncOrderWithGrid(asMoves: boolean = false) {
     const sequence = this.#indexMapper.getIndexesSequence();
 
     if (this.#indexSyncer.getEngine() !== null && this.#indexSyncer.getSheetId() !== null
       && sequence.length > 0 && !this.#isSheetRemoved()) {
-      this.#syncOrderWithEngine(sequence);
+      this.#syncOrderWithEngine(sequence, asMoves);
     }
+  }
+
+  /**
+   * Tells whether the grid's order on this axis is a sort's (ColumnSorting or MultiColumnSorting). A syncer
+   * built after the sort has no record of it in `#orderShifts`, so the grid answers.
+   *
+   * @returns {boolean}
+   */
+  #isOrderSorted(): boolean {
+    return this.#axis === 'row' && this.#indexSyncer.isOrderSorted?.() === true;
   }
 
   /**
@@ -302,6 +340,24 @@ class AxisSyncer {
   isEngineOrderPhysical() {
     return this.#fillSequence === null
       && this.#indexesSequence.every((physicalIndex, engineIndex) => physicalIndex === engineIndex);
+  }
+
+  /**
+   * Tells whether the engine holds its lines in the grid's current order, as far as the syncer knows: the
+   * order is not held, and the lines the engine holds, followed by the ones it gains, are the grid's sequence.
+   * A grid whose order changed without reaching the engine (a data load reset it) answers `false`.
+   *
+   * @returns {boolean}
+   */
+  holdsGridOrder(): boolean {
+    if (this.#orderHeld) {
+      return false;
+    }
+
+    const gridSequence = this.#indexMapper.getIndexesSequence();
+    const engineSequence = this.#getHeldEngineSequence(gridSequence);
+
+    return engineSequence.every((physicalIndex, position) => physicalIndex === gridSequence[position]);
   }
 
   /**
@@ -372,6 +428,7 @@ class AxisSyncer {
     this.#indexesSequence = order.sequence.slice();
     this.#fillSequence = order.fillSequence === null ? null : order.fillSequence.slice();
     this.#adoptedWhileHeld = this.#orderHeld;
+    this.#reloadedWhileHeld = null;
 
     const held = new Set<number>(order.sequence);
 
@@ -865,8 +922,9 @@ class AxisSyncer {
         return false;
       }
 
-      // Moves past the budget would take seconds on a long sheet, so such an order goes as one order.
-      const moves = asMoves ? planOrderMoves(engineOrder) : null;
+      const moves = asMoves
+        ? this.#planSafeMoves(engine, sheetId, engineOrder, sizeForAxis, sizeForOtherAxis)
+        : null;
 
       sentAsMoves = moves !== null;
 
@@ -917,17 +975,104 @@ class AxisSyncer {
    */
   #sendMoves(engine: HyperFormulaEngine, sheetId: number, moves: OrderMove[]) {
     const moveMethod = `move${toUpperCaseFirst(this.#axis)}s`;
-    const moveAll = () => {
+
+    this.#runBatched(engine, () => {
       moves.forEach(({ start, count, target }) => {
         engine[moveMethod](sheetId, start, count, target);
       });
-    };
+    });
+  }
 
+  /**
+   * Runs several engine calls as one step. Outside a batch of the host's own, they go in one
+   * `engine.batch()`: one change list and one undo entry. A batch of the host's (or a `suspendEvaluation()`)
+   * is already open otherwise, and `engine.batch()` would end it: it resumes the evaluation the host
+   * suspended and commits a batch mode the host's own commit then finds closed, so the calls are made
+   * directly and the host's batch folds them.
+   *
+   * @param {HyperFormulaEngine} engine The engine.
+   * @param {Function} calls The engine calls.
+   */
+  #runBatched(engine: HyperFormulaEngine, calls: () => void) {
     if (engine.isEvaluationSuspended()) {
-      moveAll();
+      calls();
     } else {
-      engine.batch(moveAll);
+      engine.batch(calls);
     }
+  }
+
+  /**
+   * Plans the moves that bring the engine to `engineOrder`, or returns `null` when the order has to go as one
+   * order: the moves would cost more than `ORDER_MOVES_BUDGET` (`planOrderMoves()`), or the engine could not
+   * take them, or they would change what is read from outside this sheet. Checked before anything is sent,
+   * because a batch of moves is not rolled back when one of them throws.
+   *
+   * - **Array formulas.** A move throws `SourceLocationHasArrayError` for any line it displaces that an array
+   *   spans, not only for the lines the order moves (`#isOrderAllowed()` asks about those). Every move of the
+   *   plan displaces lines between its `target` and its block's end only, and the targets grow, so the lines
+   *   ever displaced are among the lines from the first target to the last block end, read before the moves.
+   * - **Size limits.** A move adds `count` lines before it moves them, so it throws
+   *   `SheetSizeLimitExceededError` when the sheet plus the block would pass the engine's `maxRows` or
+   *   `maxColumns`.
+   * - **Readers outside the sheet.** A reload replaces only this sheet's content, so the references other
+   *   sheets and named expressions hold into it already follow the order; a move would move them again. An
+   *   engine with another sheet or with a named expression therefore gets one order, which leaves them alone.
+   *
+   * @param {HyperFormulaEngine} engine The engine.
+   * @param {number} sheetId The sheet the axis is synced with.
+   * @param {number[]} engineOrder The order to send, possibly longer than the sheet.
+   * @param {number} sizeForAxis Size of the engine's sheet along the synchronized axis.
+   * @param {number} sizeForOtherAxis Size of the sheet along the other axis.
+   * @returns {OrderMove[]|null}
+   */
+  #planSafeMoves(
+    engine: HyperFormulaEngine,
+    sheetId: number,
+    engineOrder: number[],
+    sizeForAxis: number,
+    sizeForOtherAxis: number,
+  ): OrderMove[] | null {
+    if (engine.getSheetNames().length > 1 || engine.listNamedExpressions().length > 0
+      || engine.listNamedExpressions(sheetId).length > 0) {
+      return null;
+    }
+
+    const moves = planOrderMoves(engineOrder, sizeForOtherAxis);
+
+    if (moves === null || moves.length === 0) {
+      return moves;
+    }
+
+    const limit = engine.getConfig()[this.#axis === 'row' ? 'maxRows' : 'maxColumns'];
+    let largestBlock = 0;
+    let firstLine = Infinity;
+    let lastLine = -1;
+
+    moves.forEach(({ start, count, target }) => {
+      largestBlock = Math.max(largestBlock, count);
+      firstLine = Math.min(firstLine, target);
+      lastLine = Math.max(lastLine, start + count - 1);
+    });
+
+    if (typeof limit === 'number' && engineOrder.length + largestBlock > limit) {
+      return null;
+    }
+
+    lastLine = Math.min(lastLine, sizeForAxis - 1);
+
+    for (let line = firstLine; line <= lastLine; line += 1) {
+      for (let other = 0; other < sizeForOtherAxis; other += 1) {
+        const address = this.#axis === 'row'
+          ? { sheet: sheetId, row: line, col: other }
+          : { sheet: sheetId, row: other, col: line };
+
+        if (engine.isCellPartOfArray(address)) {
+          return null;
+        }
+      }
+    }
+
+    return moves;
   }
 
   /**
@@ -1041,17 +1186,11 @@ class AxisSyncer {
       return false;
     }
 
-    const extendAndSetOrder = () => {
+    this.#runBatched(engine, () => {
       engine.setCellContents(lastCell, 0);
       engine.setCellContents(lastCell, null);
       setOrder();
-    };
-
-    if (engine.isEvaluationSuspended()) {
-      extendAndSetOrder();
-    } else {
-      engine.batch(extendAndSetOrder);
-    }
+    });
 
     return true;
   }
@@ -1085,6 +1224,8 @@ class AxisSyncer {
         // A sheet the host removed from the engine has no order to follow: asking its size throws.
         if (!this.#orderHeld && !this.#isSheetRemoved()) {
           this.#syncOrderWithEngine(newSequence);
+        } else if (this.#orderHeld) {
+          this.#orderChangedWhileHeld = true;
         }
 
         return;
@@ -1136,7 +1277,7 @@ class AxisSyncer {
     const sheetId = this.#indexSyncer.getSheetId();
 
     if (engine === null || sheetId === null) {
-      this.#indexSyncer.getPostponeAction()(() => this.#applyInitialOrder());
+      this.#indexSyncer.getPostponeAction()(() => this.#applyInitialOrder(reachedByMoves));
 
       return false;
     }
@@ -1149,12 +1290,15 @@ class AxisSyncer {
    * engine holds its content in physical order until an order reaches it, and that identity is what the
    * next transformation has to be measured against.
    *
+   * An order the engine took as an order left shifts behind, while moves left none, so the kind is read
+   * before the reset. A syncer built after a sort (Formulas got its engine later, or followed a new one) has
+   * no shifts to read, so the grid's sort state answers for it. A postponed call carries the kind read when
+   * it was postponed, because by then the shifts are reset.
+   *
    * @private
+   * @param {boolean} [reachedByMoves] Whether the grid's order was reached by moves alone.
    */
-  #applyInitialOrder() {
-    // Read before the reset: an order the engine took as an order left shifts behind, moves left none.
-    const reachedByMoves = this.#orderShifts.size === 0;
-
+  #applyInitialOrder(reachedByMoves: boolean = this.#orderShifts.size === 0 && !this.#isOrderSorted()) {
     // The engine holds the sheet it was just fed, in physical order, whatever order the previous sheet was
     // left in — so the stored order starts empty, which reads back as that physical order, rather than
     // carrying over what the engine used to hold.
@@ -1163,6 +1307,10 @@ class AxisSyncer {
     this.#paddedElements = new Set<number>();
     this.#orderShifts = new Map<number, number>();
     this.#translationCache = null;
+
+    if (this.#orderHeld) {
+      this.#reloadedWhileHeld = reachedByMoves;
+    }
 
     this.#syncInitialOrder(reachedByMoves);
   }
