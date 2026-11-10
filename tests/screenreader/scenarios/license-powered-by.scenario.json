@@ -12,7 +12,7 @@
       "id": "tab-to-badge",
       "action": {"press": "Tab"},
       "expect": [["powered by handsontable"], ["link"]],
-      "note": "The page's key is a sponsored one with the badge flag (the catalog fixture), so a `Powered by Handsontable DataGrid` link shows under the grid. The page's first item is a text field, so the reader starts on the page (`start: page`). Tab from C1, the last column, leaves the grid for the link. Required: its name and role."
+      "note": "The page's key is a sponsored one with the badge flag (the catalog fixture), so a `Powered by Handsontable DataGrid` link shows under the grid. The page's first item is a text field, so the reader starts on the page (`start: page`). Tab from C1, the last column, leaves the grid for the link. Required: its name and role (NVDA `Powered by Handsontable Data Grid, link`). VoiceOver with WebKit says nothing on this first key after it enters the page, and reads the link the second time."
     },
     {
       "id": "shift-tab-to-grid",

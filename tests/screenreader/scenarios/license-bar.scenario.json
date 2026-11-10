@@ -12,13 +12,13 @@
       "id": "tab-to-renew",
       "action": {"press": "Tab"},
       "expect": [["renew"], ["link"]],
-      "note": "The page's grid has an expired license key on purpose (the catalog fixture), so the license notice shows in the bar under it. Tab from B1, the last column, leaves the grid for the notice's first link, Renew. Required: the link's name and role. The reader starts on the page (`start: page`): entered on the grid, VoiceOver kept its cursor inside the grid after Tab moved the focus to the link, so its reading steps read cells, not the notice."
+      "note": "The page's grid has an expired license key on purpose (the catalog fixture), so the license notice shows in the bar under it. Tab from B1, the last column, leaves the grid for the notice's first link, Renew. Required: the link's name and role. The reader starts on the page (`start: page`): entered on the grid, VoiceOver kept its cursor inside the grid after Tab moved the focus to the link, so its reading steps read cells, not the notice. Finding: VoiceOver with WebKit does not follow the focus out of the grid to the notice: it says nothing here, its cursor stays in the grid for the reading step, and it reads each link a key late (the sales link on the step that returns to Renew)."
     },
     {
       "id": "read-notice",
       "action": {"read": "previous"},
       "expect": [["expired"]],
-      "note": "The reader's own cursor moves back from the link to the notice's text, which says the key expired and is not valid for the installed version. Required: that it expired."
+      "note": "The reader's own cursor moves back from the link to the notice's text, which says the key expired and is not valid for the installed version. Required: that it expired. NVDA and VoiceOver with Chromium read the whole sentence."
     },
     {
       "id": "tab-to-sales",

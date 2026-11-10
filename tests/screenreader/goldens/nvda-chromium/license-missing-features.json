@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "scenario": "license-missing-features",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T15:23:15.450Z"
+  },
+  "steps": {
+    "tab-to-sales": "sales at handsontable dot com link",
+    "read-notice": "the license key for handsontable does not include these features filters they are turned off to",
+    "read-back-to-link": "add them contact link sales at handsontable dot com dot",
+    "shift-tab-to-grid": "table 10 value row 2 name column 3"
+  }
+}

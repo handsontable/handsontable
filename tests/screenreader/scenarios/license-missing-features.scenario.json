@@ -12,13 +12,13 @@
       "id": "tab-to-sales",
       "action": {"press": "Tab"},
       "expect": [["sales"], ["link"]],
-      "note": "The page's grid turns on Filters with a key that lists its features and leaves Filters out (the catalog fixture), so the notice under the grid names it. Tab from the last column leaves the grid for the notice's link, the sales e-mail address. Required: the link's name and role. The reader starts on the page (`start: page`), for the reason the license-bar scenario gives."
+      "note": "The page's grid turns on Filters with a key that lists its features and leaves Filters out (the catalog fixture), so the notice under the grid names it. Tab from the last column leaves the grid for the notice's link, the sales e-mail address. Required: the link's name and role. The reader starts on the page (`start: page`), for the reason the license-bar scenario gives. Finding: VoiceOver with WebKit does not follow the focus out of the grid to the notice's link: it says nothing here, its cursor stays in the grid for the reading steps, and it says nothing when Shift+Tab returns to the grid."
     },
     {
       "id": "read-notice",
       "action": {"read": "previous"},
       "expect": [["filters"]],
-      "note": "The reader's own cursor moves back from the link to the notice's text. Required: the feature it names, Filters."
+      "note": "The reader's own cursor moves back from the link to the notice's text. Required: the feature it names, Filters. NVDA and VoiceOver with Chromium read the sentence (`does not include these features: Filters`)."
     },
     {
       "id": "read-back-to-link",

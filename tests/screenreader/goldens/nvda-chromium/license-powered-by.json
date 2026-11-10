@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "scenario": "license-powered-by",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T15:15:00.014Z"
+  },
+  "steps": {
+    "tab-to-badge": "powered by handsontable data grid link",
+    "shift-tab-to-grid": "table c 1 c row 2 b column 4",
+    "tab-to-badge-again": "powered by handsontable data grid link"
+  }
+}
