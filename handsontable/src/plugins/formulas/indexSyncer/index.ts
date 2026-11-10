@@ -50,6 +50,13 @@ class IndexSyncer {
    */
   readonly #isOrderSorted: () => boolean;
   /**
+   * Called whenever an axis sends one order (`setRowOrder()`/`setColumnOrder()`) to the engine.
+   *
+   * @private
+   * @type {Function}
+   */
+  readonly #onOrderSent: () => void;
+  /**
    * The HF's engine instance which will be synced.
    *
    * @private
@@ -73,12 +80,14 @@ class IndexSyncer {
     postponeAction: Function,
     ownEngineWrite: OwnEngineWrite,
     isOrderSorted: () => boolean = () => false,
+    onOrderSent: () => void = () => {},
   ) {
     this.#rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
     this.#columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);
     this.#postponeAction = postponeAction;
     this.#ownEngineWrite = ownEngineWrite;
     this.#isOrderSorted = isOrderSorted;
+    this.#onOrderSent = onOrderSent;
   }
 
   /**
@@ -140,6 +149,15 @@ class IndexSyncer {
    */
   isOrderSorted(): boolean {
     return this.#isOrderSorted();
+  }
+
+  /**
+   * Reports that an axis sent one order to the engine (a sort, a cleared sort, `setIndexesSequence()`, an
+   * order the move guards or the budget sent as one). Such an order keeps each moved formula's relative
+   * offsets, so the engine's formula text no longer follows the data.
+   */
+  onOrderSent() {
+    this.#onOrderSent();
   }
 
   /**

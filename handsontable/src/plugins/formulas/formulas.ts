@@ -401,6 +401,13 @@ const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
 const HYPERLINK_SETTINGS_WARN_KEY = 'formulas-hyperlinks-settings';
 
 /**
+ * The column space of the source data array the engine was fed (see `Formulas#readSyncedColumnSpace`):
+ * physical columns, visual columns, or, for array rows a `columns` list projects, the array index of each
+ * visual column (`null` for one bound to no source index).
+ */
+type SyncedColumnSpace = 'physical' | 'visual' | Array<number | null>;
+
+/**
  * Tells whether two rows of a source data array hold the same values. A missing cell reads as `null`, the way
  * the engine reads it, so a row the grid created (`[]`) equals a row of `null` values.
  *
@@ -766,7 +773,7 @@ export class Formulas extends BasePlugin {
     engine: HyperFormulaEngine;
     sheetId: number | null;
     rows: unknown[][];
-    columnSpace: 'physical' | 'visual' | 'projected';
+    columnSpace: SyncedColumnSpace;
   } | null = null;
 
   /**
@@ -1230,7 +1237,12 @@ export class Formulas extends BasePlugin {
         // Nothing is postponed: the axis syncers postpone the initial order only while no sheet is bound, and
         // the plugin sets the sync endpoint up with a bound sheet only. Each setup sends the order itself.
       }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn),
-      () => this.#isRowOrderSorted());
+      () => this.#isRowOrderSorted(),
+      // The engine's references then depend on the order (DEV-917), and only a write of the data repairs them
+      // once the order is gone: a cleared sort is itself an order sent, so the next resync writes.
+      () => {
+        this.#syncedContent = null;
+      });
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
     this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
@@ -4062,27 +4074,44 @@ export class Formulas extends BasePlugin {
   /**
    * Reads the column space of the source data array `#getProcessedSourceDataArray()` builds: physical columns
    * for plain array rows, visual columns for object rows (built in visual order), and for array rows a
-   * `columns` list projects, the visible columns bound to a source index. Read when the array is written,
-   * because the read goes through the data hooks, which a write inside an engine batch must not run.
+   * `columns` list projects, the place of each visual column among the visible columns bound to a source
+   * index, built once here so a recorded cell is a lookup. Read when the array is written, because the read
+   * goes through the data hooks, which a write inside an engine batch must not run.
    *
-   * @returns {string}
+   * @returns {string|Array}
    */
-  #readSyncedColumnSpace(): 'physical' | 'visual' | 'projected' {
+  #readSyncedColumnSpace(): SyncedColumnSpace {
     if (this.#doesEngineHoldPhysicalColumns()) {
       return 'physical';
     }
 
-    return this.#isSourceDataArrayOfArrays() ? 'projected' : 'visual';
+    if (!this.#isSourceDataArrayOfArrays()) {
+      return 'visual';
+    }
+
+    const projectedIndexes: Array<number | null> = [];
+    let index = 0;
+
+    for (let column = 0; column < this.hot.countCols(); column += 1) {
+      if (typeof this.hot.colToProp(column) === 'number') {
+        projectedIndexes.push(index);
+        index += 1;
+      } else {
+        projectedIndexes.push(null);
+      }
+    }
+
+    return projectedIndexes;
   }
 
   /**
    * Returns the index of a visual column in the source data array, in the column space it was recorded in.
    *
-   * @param {string} columnSpace The column space (`#readSyncedColumnSpace()`).
+   * @param {string|Array} columnSpace The column space (`#readSyncedColumnSpace()`).
    * @param {number} visualColumn The visual column.
    * @returns {number|null}
    */
-  #syncedColumnIndex(columnSpace: 'physical' | 'visual' | 'projected', visualColumn: number): number | null {
+  #syncedColumnIndex(columnSpace: SyncedColumnSpace, visualColumn: number): number | null {
     if (columnSpace === 'physical') {
       return this.hot.toPhysicalColumn(visualColumn);
     }
@@ -4091,19 +4120,7 @@ export class Formulas extends BasePlugin {
       return visualColumn;
     }
 
-    if (typeof this.hot.colToProp(visualColumn) !== 'number') {
-      return null;
-    }
-
-    let index = 0;
-
-    for (let column = 0; column < visualColumn; column += 1) {
-      if (typeof this.hot.colToProp(column) === 'number') {
-        index += 1;
-      }
-    }
-
-    return index;
+    return columnSpace[visualColumn] ?? null;
   }
 
   /**

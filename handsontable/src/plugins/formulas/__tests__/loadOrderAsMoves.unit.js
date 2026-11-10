@@ -152,8 +152,7 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
 
   it('keeps the sort order as an engine order after updateSettings() (DEV-917 known limitation)', () => {
     const engine = createEngine();
-    const data = crossRowData();
-    const hot = createGrid({ data, columnSorting: true, formulas: { engine } });
+    const hot = createGrid({ columnSorting: true, formulas: { engine } });
 
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
 
@@ -161,21 +160,54 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
     const setRowOrder = jest.spyOn(engine, 'setRowOrder');
     const moveRows = jest.spyOn(engine, 'moveRows');
 
-    // An unchanged re-render leaves the engine as the sort left it.
+    // The engine took the sort as an order, so the re-render writes the data again and replays the sort the
+    // same way, as on develop: the same values, through the same kind of engine call.
     hot.updateSettings({});
 
     expect(hot.getData()).toEqual(sorted);
-    expect(setRowOrder).not.toHaveBeenCalled();
-    expect(moveRows).not.toHaveBeenCalled();
-
-    // A changed one feeds the data again, and the sort reaches the engine as an order again, as it did when
-    // the user sorted: the same values, through the same kind of engine call.
-    data[0][2] = 'note';
-    hot.updateSettings({});
-
-    expect(hot.getData().map(row => row[1])).toEqual(sorted.map(row => row[1]));
     expect(setRowOrder).toHaveBeenCalledTimes(1);
     expect(moveRows).not.toHaveBeenCalled();
+  });
+
+  describe('a re-render after a sort is cleared', () => {
+    /**
+     * @returns {Array[]} Formulas that a sort by the third column moves across the cells they read.
+     */
+    function sortDamagedData() {
+      return [[1, '=A2*10', 'x'], [2, '=A3*10', 'y'], [3, '=SUM(A1:A3)', 'z'], [4, '=A1+A4', 'w']];
+    }
+
+    it.each([
+      ['columnSorting', { columnSorting: true }],
+      ['multiColumnSorting', { multiColumnSorting: true }],
+    ])('repairs the formulas the sort rewrote, with %s', (pluginName, settings) => {
+      const data = sortDamagedData();
+      const hot = createGrid({ data, ...settings });
+
+      hot.getPlugin(pluginName).sort({ column: 2, sortOrder: 'asc' });
+      hot.updateSettings({});
+      hot.getPlugin(pluginName).clearSort();
+      hot.updateSettings({});
+
+      expect(hot.getDataAtCol(1)).toEqual([20, 30, 6, 5]);
+      expect(hot.getSourceData().map(row => row[1])).toEqual(['=A2*10', '=A3*10', '=SUM(A1:A3)', '=A1+A4']);
+      expect(data.map(row => row[1])).toEqual(['=A2*10', '=A3*10', '=SUM(A1:A3)', '=A1+A4']);
+    });
+
+    it('repairs the formulas when an edit came between the sort and the clear', () => {
+      const data = sortDamagedData();
+      const hot = createGrid({ data, columnSorting: true });
+
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
+      hot.setDataAtCell(0, 0, 40);
+      hot.updateSettings({});
+      hot.getPlugin('columnSorting').clearSort();
+      hot.updateSettings({});
+
+      expect(hot.getDataAtCell(2, 1)).toBe(hot.getDataAtCol(0).slice(0, 3).reduce((sum, id) => sum + id, 0));
+      expect(hot.getSourceData()[2][1]).toBe('=SUM(A1:A3)');
+      expect(data[2][1]).toBe('=SUM(A1:A3)');
+    });
   });
 
   it('keeps every reference on its record on the column axis when updateSettings() follows a drag', () => {
@@ -314,6 +346,32 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       hot1.updateSettings({});
 
       expect(hot2.getDataAtCell(0, 0)).toBe('a');
+    });
+
+    it('follows an edit in a grid whose columns list skips a source column', () => {
+      const engine = createEngine();
+      const data = [[1, 'skipped', 10, '=A1+B1'], [2, 'skipped', 20, '=A2+B2']];
+      const hot = createGrid({
+        data,
+        columns: [{ data: 0 }, { data: 2 }, { data: 3 }],
+        formulas: { engine },
+      });
+
+      hot.setDataAtCell(0, 1, 15);
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expect(hot.getDataAtCol(2)).toEqual([16, 22]);
+
+      // The record holds the edit at the edited cell's place, so a host change elsewhere still reads as one.
+      data[1][2] = 30;
+      hot.updateSettings({});
+
+      expect(setSheetContent).toHaveBeenCalledTimes(1);
+      expect(hot.getDataAtCol(2)).toEqual([16, 32]);
     });
 
     it('still writes a value the host changed in place into the engine', () => {

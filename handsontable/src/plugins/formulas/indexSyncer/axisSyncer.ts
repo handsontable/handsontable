@@ -50,6 +50,7 @@ interface ParentIndexSyncer {
   getPostponeAction(callback?: Function): Function;
   getOwnEngineWrite(): <T>(engine: HyperFormulaEngine, fn: () => T) => T;
   isOrderSorted?(): boolean;
+  onOrderSent?(): void;
 }
 
 /**
@@ -932,6 +933,9 @@ class AxisSyncer {
         ? () => this.#sendMoves(engine, sheetId, moves)
         : () => {
           engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
+          // An order keeps the moved formulas' relative offsets, so the engine's text no longer follows the
+          // data's: whoever skips writing the data again has to know.
+          this.#indexSyncer.onOrderSent?.();
         };
 
       // The pad and the order are one write of this grid's own, so the grids sharing the engine paint once.

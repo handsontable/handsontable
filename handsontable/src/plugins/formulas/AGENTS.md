@@ -314,8 +314,7 @@ source data on every `updateSettings()` (`#resyncSheet()`, every React or Vue re
 content in physical order and then replays the grid's order, and no replay ends where the user's own moves left
 the engine: the references other sheets and named expressions hold into the sheet already followed each drag
 and a replay moves them again on every re-render; a range on the sheet ends on other cells when the replay
-takes another path than the drags (`=SUM(A1:A3)` became `=SUM(A5:A5)`); and a sort plus drags replays wrong
-either way. So `#writeSheet(array, true)`, the resync's write, skips the write and the replay when the escaped
+takes another path than the drags (`=SUM(A1:A3)` became `=SUM(A5:A5)`). So `#writeSheet(array, true)`, the resync's write, skips the write and the replay when the escaped
 array reads the same as `#syncedContent`:
 
 - **`#syncedContent`** is the escaped array the last full write fed the engine, in physical row order, kept in
@@ -331,6 +330,17 @@ array reads the same as `#syncedContent`:
 - **Equal is not enough**: the engine and the sheet id must be the recorded ones, and both axis syncers must hold
   the grid's order (`AxisSyncer#holdsGridOrder()`: not held, and the engine's order as the syncer knows it is the
   grid's sequence), so a load that reset the grid's order still writes.
+- **An order sent as one order drops the record** (`IndexSyncer#onOrderSent()`, called by the axis syncer after
+  every `setRowOrder()`/`setColumnOrder()`: a sort, a cleared sort, `setIndexesSequence()`, an order the move
+  guards or the budget sent as one, a hold's release). Such an order keeps each moved formula's relative offsets
+  (DEV-917), so the engine's text stops following the data, and only a write of the data repairs it once the
+  order is gone. Skipping it made the damage permanent: sort, re-render, `clearSort()`, re-render showed `#REF!`
+  where develop showed the value, and `getSourceData()` returned the engine's `=#REF!+A4`. The next resync
+  therefore writes in full and replays the order as develop does; a write inside it that sends an order (a
+  sorted grid's replay) records the content after it, because a second write of the same data and order would
+  reproduce the same engine. So a sorted grid pays one full write per sort change and skips after that, and a
+  cleared sort is repaired on the next re-render. Pinned by the `a re-render after a sort is cleared` cases
+  (ColumnSorting, MultiColumnSorting, an edit between) in `__tests__/loadOrderAsMoves.unit.js`.
 - **What still writes:** a value the host changed in place (`data[0][0] = 50; updateSettings({})`), a row count or
   layout change (DEV-2978, NestedRows toggled), a meta change that changes what the engine reads (a cell type,
   a `valueGetter`, the date and preserved-text escaping, since the comparison runs on the escaped array). A
@@ -339,10 +349,13 @@ array reads the same as `#syncedContent`:
   rewritten text). The scan itself stays: a resync reads and escapes the source as before, and only the
   `setSheetContent()` and the order replay are saved (measured below).
 - **Cost:** a second array of the grid's size is kept, and every resync compares it cell by cell.
-- **Known limits:** a host that writes into the grid's engine sheet directly is not overwritten by a re-render
-  that leaves the data unchanged (develop's resync replaced it with the source data); a host that mutates in
-  place a cell of a row the grid then writes is still seen (cell-precise records); an object-rows grid whose
-  columns were moved, and a grid after an undo, write in full on the next re-render.
+- **Known limits:** a host that writes into the grid's engine sheet directly (`engine.setCellContents()`) is not
+  overwritten by a re-render that leaves the data unchanged: develop's resync replaced it with the source data on
+  the wrapper path (vanilla JavaScript kept it until some rewrite there too). A host that mutates in place a cell
+  of a row the grid then writes is still seen (cell-precise records). An object-rows grid whose columns were
+  moved, and a grid after an undo, write in full on the next re-render. For array rows a `columns` list projects,
+  the place of each visual column is computed once per write (`#readSyncedColumnSpace()`), so a recorded cell is
+  a lookup.
 
 **A reload that does write takes an order reached by moves as moves.** Every full write (init, a resync whose
 data changed, a sheet switch) feeds the engine its content in physical order and then runs `setupSyncEndpoint()`,
@@ -359,8 +372,11 @@ kept it (the move path). The rules:
   the grid answers too: `IndexSyncer#isOrderSorted()` asks ColumnSorting and MultiColumnSorting (through
   `hot.getPlugin()`, `#isRowOrderSorted()` in the plugin), and a sorted row order goes as one order. A postponed
   `#applyInitialOrder()` carries the kind read when it was postponed, because by then the shifts are reset.
-  **A sort keeps the DEV-917 behavior on a reload.** An initial `columnSorting.initialConfig` sorts after the
-  engine is set up, so it reaches the engine as an order. A sort followed by a drag still replays as one order.
+  **A sort keeps the DEV-917 behavior on a reload that writes**, and a sort always makes the next resync write
+  (an order sent drops the record, above), so a re-render of a sorted grid replays the sort as one order exactly as
+  develop does, and a re-render after the sort is cleared repairs what the sort rewrote. An initial
+  `columnSorting.initialConfig` sorts after the engine is set up, so it reaches the engine as an order. A sort
+  followed by a drag still replays as one order.
 - **Moves are planned as blocks** (`planOrderMoves()` in `indexSyncer/orderMoves.ts`), and sent through
   `#runBatched()`, the one place that keeps a nested `engine.batch()` out of a host's open batch (the pad
   `#extendAndSetOrder()` uses it too).
@@ -390,7 +406,12 @@ kept it (the move path). The rules:
   in the hold, or with an engine order adopted (`adoptEngineOrder()` clears the flag), still sends one order: the
   engine there holds the order an earlier step left, not a fresh physical one.
 - **Known limit:** a reload that writes (the data changed) after drags replays the order by the planned path, not
-  by the drags' own moves, so a range on the sheet can still end on other cells than the drags left it on.
+  by the drags' own moves, so a range on the sheet can end on other cells than the drags left it on, and where
+  develop's one order showed `#REF!` this can show a plausible wrong number (row 0 dragged to the end of
+  `[1, 2, 4, 8, 16]` with `=SUM(A1:A3)`, another cell changed in place, `updateSettings({})`: 1, where 204 is
+  right and develop showed `#REF!`). An `ARRAYFORMULA` row moved by drags can likewise read another row after a
+  data-changing re-render, as develop's does on any re-render. Replaying the recorded drag moves when no insert
+  or removal happened since is the follow-up that would close it.
 - Pinned by `__tests__/loadOrderAsMoves.unit.js` (the skip on a re-render after a drag, an edit, a range, other
   sheets and named expressions, a second grid; the host's in-place change; the array-formula, `maxRows` and
   other-sheet fallbacks; the hold release; init, both axes, the sort control),
