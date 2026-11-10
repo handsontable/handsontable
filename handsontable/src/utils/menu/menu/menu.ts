@@ -213,6 +213,23 @@ export class Menu {
    */
   #anchorRectProvider: MenuAnchorRectProvider | null = null;
   /**
+   * The arguments of the last `setPosition()` call, kept so that the menu can be placed again when a
+   * change of its content changes the height the viewport cap leaves it. `null` until the menu is
+   * placed, and again once it closes.
+   *
+   * @type {object|null}
+   */
+  #lastPosition: {
+    coords: Event | DOMRect | Record<string, unknown>;
+    anchorRectProvider: MenuAnchorRectProvider | null;
+  } | null = null;
+  /**
+   * The height the viewport cap gave the menu's holder, or `null` while the menu is not capped.
+   *
+   * @type {number|null}
+   */
+  #cappedHolderHeight: number | null = null;
+  /**
    * Position baseline captured when the menu is positioned: the offset between the
    * menu's document coordinates and its anchor (or the grid root when no anchor
    * provider is available). Used to keep the menu attached while outside elements scroll.
@@ -835,6 +852,8 @@ export class Menu {
     // the old grid's DOM behind, and the next open would build a second grid on top of it.
     empty(this.container);
     this.#anchorRectProvider = null;
+    this.#lastPosition = null;
+    this.#cappedHolderHeight = null;
     this.#scrollFollowBaseline = null;
     this.#clearScrollListeners();
 
@@ -1234,6 +1253,7 @@ export class Menu {
       .updatePosition(coords);
 
     this.#anchorRectProvider = anchorRectProvider ?? null;
+    this.#lastPosition = { coords, anchorRectProvider: this.#anchorRectProvider };
     this.#captureScrollFollowBaseline();
   }
 
@@ -1257,7 +1277,9 @@ export class Menu {
   /**
    * Updates the dimensions of the menu based on its content.
    * This method calculates the real height of the menu by summing up the heights of its items,
-   * and adjusts the width and height of the menu's holder and hider elements accordingly.
+   * and adjusts the width and height of the menu's holder and hider elements accordingly. A menu taller
+   * than the viewport is capped to it and scrolls in itself. The Filters plugin calls the method again
+   * once the menu is open, when its content grows or shrinks, so a change of the cap places the menu again.
    */
   updateMenuDimensions() {
     const { wtTable } = this.hotMenu!.view._wt;
@@ -1277,8 +1299,66 @@ export class Menu {
 
     holderStyle.width = `${currentHiderWidth}px`;
     holderStyle.height = `${realHeight}px`;
+    // A cap from an earlier call is dropped here, so a menu that fits again carries no overflow style.
+    holderStyle.overflowX = '';
+    holderStyle.overflowY = '';
 
     hiderStyle.height = holderStyle.height;
+
+    const cappedHeight = this.#capHeightToViewport(realHeight);
+    const capChanged = cappedHeight !== this.#cappedHolderHeight;
+
+    this.#cappedHolderHeight = cappedHeight;
+
+    // The menu was placed for the height it had then. A different cap needs a new place (the vertical
+    // clamp keeps the top edge, so a menu that grew would otherwise run past the bottom).
+    if (capChanged && this.#lastPosition !== null) {
+      this.setPosition(this.#lastPosition.coords, this.#lastPosition.anchorRectProvider ?? undefined);
+    }
+  }
+
+  /**
+   * Caps the holder of a menu taller than the viewport to the viewport's height and lets it scroll in
+   * itself. Without the cap the part of the menu below the viewport can be reached only by scrolling the
+   * window, which a page that does not scroll (an app shell, a frame the size of its content) never does.
+   * The hider keeps the height of the whole content, so the holder's scroll range covers every item. A
+   * menu that fits is left as it was: no height change and no overflow style.
+   *
+   * On the first call it runs before `setPosition()`, which places the menu from the height this leaves. Only a
+   * touch device gets the cap.
+   *
+   * @param {number} contentHeight The summed height of the menu items.
+   * @returns {number|null} The height given to the holder, or `null` when the menu fits and is not capped.
+   */
+  #capHeightToViewport(contentHeight: number): number | null {
+    // A desktop browser reveals the rest of a tall menu by scrolling the window, and the keyboard shortcuts of
+    // the menu rely on it. A touch device is where that scroll fails, so only it gets the cap. A menu the
+    // positioner does not keep in the viewport (the Filters condition list, which opens under its select) is
+    // placed where its anchor puts it, so a viewport-sized cap would still leave its end outside.
+    if (!isMobileOrIpadOS() || !this.options.keepInViewport) {
+      return null;
+    }
+
+    const { holder } = this.hotMenu!.view._wt.wtTable;
+    const holderStyle = holder.style;
+    const viewportHeight = this.container.ownerDocument.documentElement.clientHeight;
+    // The border and the vertical padding of the menu box around the holder, measured so that every theme's
+    // tokens count.
+    const chromeHeight = this.container.offsetHeight - contentHeight;
+    const maxHolderHeight = viewportHeight - chromeHeight;
+
+    // A viewport that reports no height (a hidden frame) has no room to measure against.
+    if (viewportHeight <= 0 || maxHolderHeight <= 0 || contentHeight <= maxHolderHeight) {
+      return null;
+    }
+
+    holderStyle.height = `${maxHolderHeight}px`;
+    holderStyle.overflowY = 'auto';
+    holderStyle.overflowX = 'hidden';
+    // A scrollbar that takes room from the content must not clip the items' right edge.
+    holderStyle.width = `${parseInt(holderStyle.width, 10) + (holder.offsetWidth - holder.clientWidth)}px`;
+
+    return maxHolderHeight;
   }
 
   /**

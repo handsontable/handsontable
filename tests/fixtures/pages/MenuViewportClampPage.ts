@@ -2,8 +2,8 @@ import { type Locator, type Page, expect } from '@playwright/test';
 import { awaitBundle, type Bundle } from '../bundle';
 
 /**
- * Which menu to look at: the context menu, the dropdown menu of a column header, or the "Alignment"
- * submenu of the context menu.
+ * Which menu to look at: the context menu, the dropdown menu of a column header, or the "Alignment" submenu of
+ * the context menu.
  */
 export type MenuKind = 'context' | 'dropdown' | 'submenu';
 
@@ -20,6 +20,16 @@ export interface MenuGeometry {
   height: number;
   viewportWidth: number;
   viewportHeight: number;
+}
+
+/**
+ * The scroll container of a menu: how tall it shows, how tall its content is, and where it is scrolled to.
+ */
+export interface MenuScroll {
+  clientHeight: number;
+  scrollHeight: number;
+  scrollTop: number;
+  overflowY: string;
 }
 
 // A submenu container carries its parent menu's class as well, and the grid keeps a ghost table of
@@ -40,7 +50,7 @@ export class MenuViewportClampPage {
   readonly theme: string;
   readonly bundle: Bundle;
   readonly dir: 'ltr' | 'rtl';
-  readonly pageWidth: 'fit' | 'wide';
+  readonly pageWidth: 'fit' | 'wide' | 'locked';
   readonly inset: 'none' | 'start';
   readonly grid: Locator;
 
@@ -51,13 +61,13 @@ export class MenuViewportClampPage {
    * @param {string} theme The active theme.
    * @param {Bundle} bundle The active bundle.
    * @param {'ltr' | 'rtl'} dir The document's direction, which the grid follows.
-   * @param {'fit' | 'wide'} pageWidth `wide` puts the grid 1000px in from the inline start and the top of a
-   * 3000px page, so the window can scroll to it on both axes.
+   * @param {'fit' | 'wide' | 'locked'} pageWidth `wide` puts the grid 1000px in from the inline start and the top of a
+   * 3000px page, so the window can scroll to it on both axes. `locked` stops the window from scrolling at all.
    * @param {'none' | 'start'} inset `start` shifts the grid 16px in from the inline start, so its edges are
    * not the viewport's.
    */
   constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', dir: 'ltr' | 'rtl' = 'ltr',
-    pageWidth: 'fit' | 'wide' = 'fit', inset: 'none' | 'start' = 'none') {
+    pageWidth: 'fit' | 'wide' | 'locked' = 'fit', inset: 'none' | 'start' = 'none') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
@@ -147,6 +157,179 @@ export class MenuViewportClampPage {
   async openAlignmentSubmenu(): Promise<void> {
     await this.menu('context').getByText('Alignment', { exact: true }).hover();
     await expect(this.menu('submenu')).toBeVisible();
+  }
+
+  /**
+   * Reads how much of the menu's content its own scroll container shows, and where it is scrolled to.
+   * The container is the menu grid's holder, the element that scrolls once the menu is capped to the
+   * viewport.
+   *
+   * @param {MenuKind} kind The menu.
+   * @returns {Promise<MenuScroll>} The holder's client height, content height, scroll offset, and the `overflow-y`
+   * written on it inline, which is empty until the menu is capped (the computed value is `auto` on some menus
+   * whatever the cap does).
+   */
+  async scrollState(kind: MenuKind): Promise<MenuScroll> {
+    return this.page.evaluate((selector) => {
+      const holder = document.querySelector<HTMLElement>(`${selector} .ht_master .wtHolder`);
+
+      if (!holder) {
+        throw new Error(`No menu holder matches ${selector}`);
+      }
+
+      return {
+        clientHeight: holder.clientHeight,
+        scrollHeight: holder.scrollHeight,
+        scrollTop: holder.scrollTop,
+        overflowY: holder.style.overflowY,
+      };
+    }, MENU_SELECTOR[kind]);
+  }
+
+  /**
+   * Reads the box of the menu's last item, in viewport coordinates.
+   *
+   * @param {MenuKind} kind The menu.
+   * @returns {Promise<{ top: number, bottom: number }>} The last item's vertical edges.
+   */
+  async lastItemBox(kind: MenuKind): Promise<{ top: number; bottom: number }> {
+    return this.page.evaluate((selector) => {
+      const items = document.querySelectorAll(`${selector} .ht_master tbody td[role="menuitem"]`);
+      const { top, bottom } = items[items.length - 1].getBoundingClientRect();
+
+      return { top, bottom };
+    }, MENU_SELECTOR[kind]);
+  }
+
+  /**
+   * Scrolls the menu with the mouse wheel while the pointer is over it, the way a trackpad or a wheel does.
+   *
+   * @param {MenuKind} kind The menu.
+   * @param {number} deltaY The wheel's vertical delta.
+   */
+  async wheelOverMenu(kind: MenuKind, deltaY: number): Promise<void> {
+    const box = await this.menu(kind).boundingBox();
+
+    if (!box) {
+      throw new Error(`The ${kind} menu has no box`);
+    }
+
+    await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await this.page.mouse.wheel(0, deltaY);
+  }
+
+  /**
+   * Drags a finger up the menu through the browser's touch scrolling, which is a gesture of the
+   * compositor and not a series of DOM events. Chromium only.
+   *
+   * @param {MenuKind} kind The menu.
+   * @param {number} distance How far the finger moves, in pixels.
+   */
+  async swipeUpOverMenu(kind: MenuKind, distance: number): Promise<void> {
+    const box = await this.menu(kind).boundingBox();
+
+    if (!box) {
+      throw new Error(`The ${kind} menu has no box`);
+    }
+
+    const session = await this.page.context().newCDPSession(this.page);
+
+    await session.send('Input.synthesizeScrollGesture', {
+      x: Math.round(box.x + box.width / 2),
+      y: Math.round(box.y + box.height / 2),
+      yDistance: -distance,
+      gestureSourceType: 'touch',
+      speed: 800,
+    });
+    await session.detach();
+  }
+
+  /**
+   * Shrinks the viewport to just taller than the open menu, so the menu fits it by a margin that any
+   * content added later exceeds. The size of a menu depends on the theme, so a fixed viewport height
+   * would cap it on one theme and not on another.
+   *
+   * @param {MenuKind} kind The menu.
+   * @param {number} margin How far the viewport stays taller than the menu, in pixels.
+   */
+  async shrinkViewportAroundMenu(kind: MenuKind, margin = 8): Promise<void> {
+    const { height } = await this.geometry(kind);
+    const size = this.page.viewportSize()!;
+
+    await this.page.setViewportSize({ width: size.width, height: Math.ceil(height) + margin });
+    await expect.poll(() => this.page.evaluate(() => document.documentElement.clientHeight))
+      .toBe(Math.ceil(height) + margin);
+  }
+
+  /**
+   * Moves the selection of the open context menu to its last item, as the End key does. A touch device gives
+   * the menu no keyboard focus, so the key itself cannot be pressed there.
+   */
+  async selectLastContextMenuItem(): Promise<void> {
+    await this.page.evaluate(() => {
+      // `menu` is the plugin's own, not part of its public typings.
+      const plugin = window.hot.getPlugin('contextMenu') as unknown as {
+        menu: { hotMenu: { countRows(): number; selectCell(row: number, column: number): boolean } };
+      };
+      const { hotMenu } = plugin.menu;
+
+      hotMenu.selectCell(hotMenu.countRows() - 1, 0);
+    });
+  }
+
+  /**
+   * Reads the text of the menu's last item.
+   *
+   * @param {MenuKind} kind The menu.
+   * @returns {Promise<string>} The item's text.
+   */
+  async lastItemText(kind: MenuKind): Promise<string> {
+    return this.page.evaluate((selector) => {
+      const items = document.querySelectorAll(`${selector} .ht_master tbody td[role="menuitem"]`);
+
+      return items[items.length - 1].textContent ?? '';
+    }, MENU_SELECTOR[kind]);
+  }
+
+  /**
+   * Measures the open dropdown menu again, as the Filters plugin does when its content changes.
+   */
+  async refreshMenuDimensions(): Promise<void> {
+    await this.page.evaluate(() => {
+      // `menu` is the plugin's own, not part of its public typings.
+      const plugin = window.hot.getPlugin('dropdownMenu') as unknown as { menu: { updateMenuDimensions(): void } };
+
+      plugin.menu.updateMenuDimensions();
+    });
+  }
+
+  /**
+   * Closes the open menu with Escape and waits until it is gone.
+   *
+   * @param {MenuKind} kind The menu.
+   */
+  async closeMenu(kind: MenuKind): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await expect(this.menu(kind)).toBeHidden();
+  }
+
+  /**
+   * Reads the box of the "OK" button of the open dropdown menu, in viewport coordinates.
+   *
+   * @returns {Promise<{ top: number, bottom: number }>} The button's vertical edges.
+   */
+  async okButtonBox(): Promise<{ top: number; bottom: number }> {
+    return this.page.evaluate((selector) => {
+      const button = document.querySelector(`${selector} .htUIButtonOK`);
+
+      if (!button) {
+        throw new Error('The dropdown menu has no OK button');
+      }
+
+      const { top, bottom } = button.getBoundingClientRect();
+
+      return { top, bottom };
+    }, MENU_SELECTOR.dropdown);
   }
 
   /**
