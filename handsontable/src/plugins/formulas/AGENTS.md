@@ -325,10 +325,10 @@ the write and the replay when the escaped array reads the same as `#syncedConten
   or removal follows it by physical index (an empty row reads as `null`s, so a `minSpareRows` row matches; the rows
   go in with a loop, `insertEmptyRows()`, because a spread into `splice()` overflows the stack on a large insert,
   and a removal compacts the array in one pass, because a splice per row or per span is quadratic on a large or
-  scattered removal: 50,000 of 100,000 rows took 5.1 s per row and 2.6 s per span for every other row, 3 ms in one
-  pass); a column insert or removal, a `moveCells` move, a NestedRows detach (and any row change while NestedRows
-  is on), an undo or redo restore that reloads the sheet, an adopted or loaded engine sheet, a rejected sheet, a
-  sheet built from the engine, a column move on object rows or a projected `columns` list (read in visual order),
+  scattered removal: 50,000 of 100,000 rows took about 5.1 s per row, and per span for every other row 147 ms to
+  2.6 s (large run-to-run noise), 3 ms in one pass); a column insert or removal, a `moveCells` move, a NestedRows
+  detach (and any row change while NestedRows is on), an undo or redo restore that reloads the sheet, an adopted
+  or loaded engine sheet, a rejected sheet, a sheet built from the engine, a column move on object rows or a projected `columns` list (read in visual order),
   and a reset of the grid's order (`IndexSyncer#onOrderReset()`, below) drop it, and the next resync writes in
   full. The array's column space, and for a projected `columns` list the place of each visual column, is
   read once when it is written (`#readSyncedColumnSpace()`), because a write can run inside an engine batch, where
@@ -339,7 +339,9 @@ the write and the replay when the escaped array reads the same as `#syncedConten
   `columns` update without `data` runs `initIndexMappers()`, a sequence change with the `init` source) makes the
   axis syncer store the reset order as the engine's, so `holdsGridOrder()` cannot see it: the syncer reports it
   (`IndexSyncer#onOrderReset()`) and the record is dropped. Skipped, the engine kept the dragged rows while the
-  grid showed them in physical order, and every row read another row's values.
+  grid showed them in physical order, and every row read another row's values. A reset to the order the engine
+  already holds (physical, as on a grid never dragged) reports nothing: Vue sends `columns` without `data` on every
+  column change, and dropping the record there wrote the sheet in full each time where the base wrote nothing.
 - **Cells compare with `Object.is()`, a `Date` by its time, any other object as changed** (`areSyncedValuesEqual()`).
   `!==` kept a sheet holding `NaN` from ever skipping, and took a `Date` the host changed in place
   (`setFullYear()`) for the same value, since the record held the same object. The record keeps a copy of each
@@ -365,8 +367,12 @@ the write and the replay when the escaped array reads the same as `#syncedConten
 - **Cost:** a second array of the grid's size is kept (arrays of pointers, the values shared: 4.4 MB for a 200,000-cell
   sheet whose grid and engine took 481 MB in Jest), and every resync compares it cell by cell (the strict check comes
   first: a type tag read per cell took the comparison of 10,000 x 50 from 3 ms to 44 ms). It is kept from
-  the first write, not from the first resync: started on the first resync, the first re-render after a drag would
-  write in full and replay the order by the planned path, the very case the record exists for.
+  the first write, not from the first resync: started on the first resync, the first re-render after two or more
+  drags would write in full and replay the order by the planned path, so a range can land on other rows (the
+  reviewer's two-drag data: `SUM` rows 46 and 38 became 12 and 4; `moveRows([0], 4)` then `moveRows([0], 2)` took
+  `=SUM(A1:A3)` from 4 to 2). One drag still replays to the same place, and the other-sheet and named-expression
+  references stay right on that path, because a reload with them sends one order. Pinned by the `after two drags on
+  the first re-render` cases.
 - **Known limits:** a host that writes into the grid's engine sheet directly (`engine.setCellContents()`) is not
   overwritten by a re-render that leaves the data unchanged: develop's resync replaced it with the source data on
   the wrapper path (vanilla JavaScript kept it until some rewrite there too). A host that mutates in place a cell
@@ -497,10 +503,10 @@ rules:
   sort and the drag the values stay as shown.
 - Pinned by `__tests__/loadOrderAsMoves.unit.js` (the skip on a re-render after a drag, an edit, a range, other
   sheets and named expressions, a second grid, an edit and its undo, the same `data` array sent again, a removal of
-  scattered rows; the write after an undo that changed the rows, after a `columns` update without `data` on both
-  axes; `NaN` and a `Date` changed in place; the host's in-place change; the array-formula, `maxRows` and
-  other-sheet fallbacks; the hold release; the moves under an initial sort, also after a reload in a hold; a few
-  moves on a tall grid; init, both axes, the sort control), `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js`
+  scattered rows, two drags on the first re-render, a `columns` update without `data` on a grid never dragged; the
+  write after an undo that changed the rows, after a `columns` update without `data` on both axes; `NaN` and a `Date`
+  changed in place; the host's in-place change; the array-formula, `maxRows` and other-sheet fallbacks; the hold
+  release; the moves under an initial sort, also after a reload in a hold; a few moves on a tall grid; init, both axes, the sort control), `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js`
   (moves on the mock engine, the cost fallback, a sort replayed as an order, the moves under an order replayed as
   moves, one order after an insert and after an insert and a removal that keep the length, one warning for a
   refused order, a sorted order from a new syncer and from a postponed sync),
