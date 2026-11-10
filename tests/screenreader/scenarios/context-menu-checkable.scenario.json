@@ -47,8 +47,8 @@
     {
       "id": "up-to-read-only-comment",
       "action": {"press": "ArrowUp"},
-      "expect": [["read-only comment"], ["checked"]],
-      "note": "ArrowUp skips a separator and highlights Read-only comment, a checkable item (`menuitemcheckbox`) that is checked, because the setup made A1's comment read-only. Required: its label and its state. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state; the golden pins the words."
+      "expect": [["read-only comment"], ["read-only comment checked"]],
+      "note": "ArrowUp skips a separator and highlights Read-only comment, a checkable item (`menuitemcheckbox`) that is checked, because the setup made A1's comment read-only. Required: its label, and its state read right after it: every reader says the label and then `checked`. A bare `checked` group would also match `not checked`, which NVDA says for a checkable item that has lost its `aria-checked`, so the state group is the label and the state together."
     }
   ]
 }
