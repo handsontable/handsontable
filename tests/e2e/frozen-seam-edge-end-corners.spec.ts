@@ -11,7 +11,14 @@ import { FrozenSeamEdgeEndCornersPage } from '../fixtures/pages/FrozenSeamEdgeEn
  * `fixedRowsBottom` row is 99, and the last `fixedRowsTop` row is 0. A hit test, because the edge of an
  * overlay below the end corner is there but covered. Column 97 is the control: the `top` or `bottom` overlay
  * draws its slice, unchanged.
+ *
+ * Two scroll states: scrolled to the end, where the end band stands on the last scrollable column and
+ * that column's border is the freeze line, and scrolled partway (column 40), where the end band's first
+ * cell draws the freeze line itself. Partway, an edge started one pixel before the band stuck out past the
+ * freeze line, outside the selection.
  */
+const PARTWAY_COLUMN = 40;
+
 [false, true].forEach((rtl) => {
   test.describe(`selection edge on a row freeze line, end corners (${rtl ? 'RTL' : 'LTR'})`, { tag: THEMES_TAG }, () => {
     let grid: FrozenSeamEdgeEndCornersPage;
@@ -43,11 +50,46 @@ import { FrozenSeamEdgeEndCornersPage } from '../fixtures/pages/FrozenSeamEdgeEn
         .toMatch(/^ht_clone_top_inline_end_corner\/div\.wtBorder area/);
     });
 
+    test('closes the focus border of a single end-column cell on the freeze line', async () => {
+      await grid.scrollTo(98, 98);
+      await grid.selectCells(98, 99, 98, 99);
+
+      await expect.poll(() => grid.elementOnFreezeLine('bottom', 99))
+        .toMatch(/^ht_clone_bottom_inline_end_corner\/div\.wtBorder current/);
+    });
+
+    [
+      { name: 'a range that crosses into the end column', from: 95 },
+      { name: 'a range that starts in the end column', from: 99 },
+    ].forEach(({ name, from }) => {
+      test(`draws the bottom edge inside the freeze line, scrolled partway, for ${name}`, async () => {
+        await grid.selectCells(92, from, 98, 99, { scrollToCell: false });
+        await grid.scrollTo(98, PARTWAY_COLUMN);
+
+        // A range that starts in the end column has its focus cell on the line, so its 2px border shows.
+        await expect.poll(() => grid.elementOnFreezeLine('bottom', 99))
+          .toMatch(/^ht_clone_bottom_inline_end_corner\/div\.wtBorder (area|current)/);
+        // Outside the end band no selection is drawn, so no edge may reach past its first cell.
+        await expect.poll(() => grid.endCornerEdgeOverhang('bottom', 99)).toBe(0);
+      });
+
+      test(`draws the top edge inside the freeze line, scrolled partway, for ${name}`, async () => {
+        await grid.selectCells(1, from, 5, 99, { scrollToCell: false });
+        await grid.scrollTo(1, PARTWAY_COLUMN);
+
+        await expect.poll(() => grid.elementOnFreezeLine('top', 99))
+          .toMatch(/^ht_clone_top_inline_end_corner\/div\.wtBorder (area|current)/);
+        await expect.poll(() => grid.endCornerEdgeOverhang('top', 99)).toBe(0);
+      });
+    });
+
     test('draws no edge in the end corners for a selection away from the freeze lines', async () => {
       await grid.scrollTo(98, 98);
       // Rows 92 to 97: the bottom edge lies a row above the freeze line, so the corner has nothing to draw.
       await grid.selectCells(92, 95, 97, 99);
 
+      // The positive control: the bottom edge is drawn, on row 97 of the end column.
+      await expect.poll(() => grid.elementOnCellBottomEdge(97, 99)).toMatch(/\/div\.wtBorder area/);
       await expect.poll(() => grid.elementOnFreezeLine('bottom', 99))
         .toMatch(/^ht_clone_bottom_inline_end_corner\/td/);
     });

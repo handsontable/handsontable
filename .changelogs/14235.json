@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a selection border that stopped short of the frozen end column on the fixedRowsTop or fixedRowsBottom freeze line.",
+  "title": "Fixed a selection border on the `fixedRowsTop` or `fixedRowsBottom` freeze line that stopped short of the `fixedColumnsEnd` columns.",
   "type": "fixed",
   "issueOrPR": 14235,
   "breaking": false,

@@ -4,9 +4,8 @@ import { awaitBundle, awaitFixtureBuilt } from '../bundle';
 type HotWindow = {
   hot: {
     countRows(): number;
-    countCols(): number;
     scrollViewportTo(options: { row: number; col: number }): boolean;
-    selectCell(row: number, column: number, endRow: number, endColumn: number): boolean;
+    selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): boolean;
     getCell(row: number, column: number, topmost?: boolean): HTMLElement | null;
   };
 };
@@ -69,17 +68,22 @@ export class FrozenSeamEdgeEndCornersPage {
   }
 
   /**
-   * Selects a range through the API.
+   * Selects a range through the API. With `scrollToCell: false` the viewport stays where it is, so a test
+   * can select first and scroll to any column afterwards.
    *
    * @param {number} row The start row.
    * @param {number} col The start column.
    * @param {number} endRow The end row.
    * @param {number} endCol The end column.
+   * @param {object} [options] The options.
+   * @param {boolean} [options.scrollToCell] Whether the viewport scrolls to the selection (the default).
    */
-  async selectCells(row: number, col: number, endRow: number, endCol: number): Promise<void> {
-    await this.page.evaluate(([r, c, r2, c2]) => {
-      (window as unknown as HotWindow).hot.selectCell(r, c, r2, c2);
-    }, [row, col, endRow, endCol]);
+  async selectCells(
+    row: number, col: number, endRow: number, endCol: number, { scrollToCell = true } = {}
+  ): Promise<void> {
+    await this.page.evaluate(([r, c, r2, c2, scroll]) => {
+      (window as unknown as HotWindow).hot.selectCell(r, c, r2, c2, scroll);
+    }, [row, col, endRow, endCol, scrollToCell] as const);
   }
 
   /**
@@ -109,5 +113,69 @@ export class FrozenSeamEdgeEndCornersPage {
 
       return element ? `${overlay ?? 'none'}/${element.tagName.toLowerCase()}.${element.className}` : 'nothing';
     }, [line, col] as const);
+  }
+
+  /**
+   * Measures how far, in pixels, the end corner's selection edges on a freeze line reach past the end
+   * band's inline-start boundary (the left edge of the band's first cell, the right one in RTL). The corner's
+   * holder does not clip, so a positive value is a stub the user sees outside the band. A box read rather
+   * than a hit test: a point half a pixel off the boundary can resolve to the cell on either side of it.
+   *
+   * @param {RowFreezeLine} line The freeze line, which picks the corner (`top` or `bottom` inline-end).
+   * @param {number} col The first column of the end band.
+   * @returns {Promise<number>} The largest overhang, `0` when nothing reaches past the boundary.
+   */
+  async endCornerEdgeOverhang(line: RowFreezeLine, col: number): Promise<number> {
+    return this.page.evaluate(([freezeLine, c]) => {
+      const { hot } = window as unknown as HotWindow;
+      const row = freezeLine === 'bottom' ? hot.countRows() - 1 : 0;
+      const cell = hot.getCell(row, c as number, true);
+      const corner = cell?.closest('.handsontable');
+
+      if (!cell || !corner) {
+        return -1;
+      }
+
+      const cellRect = cell.getBoundingClientRect();
+      const isRtl = getComputedStyle(cell).direction === 'rtl';
+      let overhang = 0;
+
+      corner.querySelectorAll('.wtBorder').forEach((edge) => {
+        const rect = edge.getBoundingClientRect();
+
+        // Horizontal edges only: the freeze-line edge, not the vertical sides of a box.
+        if (getComputedStyle(edge).display === 'none' || rect.width <= rect.height) {
+          return;
+        }
+        overhang = Math.max(overhang, isRtl ? rect.right - cellRect.right : cellRect.left - rect.left);
+      });
+
+      return overhang;
+    }, [line, col] as const);
+  }
+
+  /**
+   * Names the element a user sees on the last pixel row of a cell, in the middle of its column: where a 1px
+   * selection edge that ends at that row is drawn. Read from the topmost copy of the cell. Same naming as
+   * {@link elementOnFreezeLine}.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<string>}
+   */
+  async elementOnCellBottomEdge(row: number, col: number): Promise<string> {
+    return this.page.evaluate(([r, c]) => {
+      const cell = (window as unknown as HotWindow).hot.getCell(r, c, true);
+
+      if (!cell) {
+        return 'no cell';
+      }
+
+      const rect = cell.getBoundingClientRect();
+      const element = document.elementFromPoint(rect.left + (rect.width / 2), rect.bottom - 0.5);
+      const overlay = element?.closest('.handsontable')?.className.match(/ht_(clone_[a-z_]+|master)/)?.[0];
+
+      return element ? `${overlay ?? 'none'}/${element.tagName.toLowerCase()}.${element.className}` : 'nothing';
+    }, [row, col]);
   }
 }
