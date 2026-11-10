@@ -1200,8 +1200,10 @@ Six limits:
   next re-render; it would hide a foreign change only if a host change exactly undid it.
 - **A cell write takes in a host change to non-formula content of a cell it recalculates.** A spilled value is
   plain data in the serialized sheet, so a host write of a plain value into a cell that the grid's own edit then
-  spills over is taken in with the spill. The cell holds what the engine and the grid both hold then. A formula is
-  never taken in this way (see the cell write above).
+  spills over is taken in with the spill. So is a host value a spill now runs into (the anchor shows `#SPILL!` and
+  the host value stays, `=SEQUENCE()` grown over a cell the host wrote): the engine reports that cell, and neither
+  side holds a formula there. In both cases the cell holds what the engine and the grid both hold, and no record
+  moves. A formula is never taken in this way (see the cell write above).
 - **A host that removes only lines that are blank in the grid is not detected.** The check needs a line the
   engine left out that holds content in the grid, so after the host removes the blank row a move put last
   (`removeRows()` on rows `[a], [null], [c]` with `manualRowMove: [2, 0]`), the grid keeps that blank row
