@@ -521,25 +521,6 @@ export function getDefaultRowHeaderWidth() {
 }
 
 /**
- * Asserts that a selection handle sits within `tolerance` pixels (exclusive) of the expected offset on both
- * axes. The engine places a handle from integer layout values (`offsetTop`, `offsetHeight`, ...), while jQuery's
- * `offset()` of a cell is fractional on a fractional layout, so the two differ by less than a pixel there. The
- * bound is strict so that a dropped or added one-pixel constant in the handle math still fails. The sub-pixel
- * bound is empirical (the reported misses were at most 0.52px), not derived.
- *
- * @param {{ top: number, left: number }} actual The measured handle offset.
- * @param {{ top: number, left: number }} expected The offset derived from the cell.
- * @param {number} [tolerance=1] The exclusive upper bound of the allowed difference, in pixels.
- */
-export function expectOffsetNear(actual, expected, tolerance = 1) {
-  ['top', 'left'].forEach((axis) => {
-    expect(Math.abs(actual[axis] - expected[axis]))
-      .withContext(`${axis}: expected ${expected[axis]}, got ${actual[axis]}`)
-      .toBeLessThan(tolerance);
-  });
-}
-
-/**
  * Compute the number of fully visible data rows for a given container height.
  * Use this instead of hardcoding row counts in assertions -- works for any theme.
  *

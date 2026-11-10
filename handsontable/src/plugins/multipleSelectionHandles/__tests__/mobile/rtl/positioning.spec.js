@@ -1,3 +1,6 @@
+// Both the cell and the handle are read through `Handsontable.dom.offset()`, the integer `offsetTop` and
+// `offsetLeft` chain the engine places handles from. jQuery's `offset()` comes from `getBoundingClientRect()`,
+// which is fractional on a fractional layout, so an exact comparison of it fails by a fraction of a pixel.
 describe('MultipleSelectionHandles (RTL mode)', () => {
   using('configuration object', [
     { htmlDir: 'rtl', layoutDirection: 'inherit' },
@@ -35,7 +38,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
         .find('.ht_master .htBorders div:first-child .bottomSelectionHandle');
       const bottomSelectionHandleSize = bottomSelectionHandle.outerWidth();
       const cell = $(getCell(1, 1));
-      const cellOffset = cell.offset();
+      const cellOffset = Handsontable.dom.offset(cell[0]);
       const cellWidth = cell.outerWidth();
       const cellHeight = cell.outerHeight();
 
@@ -43,12 +46,12 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
       expect(topSelectionHandle.css('z-index')).toBe('9999');
       expect(bottomSelectionHandle.css('z-index')).toBe('9999');
-      expectOffsetNear(topSelectionHandle.offset(), {
+      expect(Handsontable.dom.offset(topSelectionHandle[0])).toEqual({
         top: cellOffset.top - topSelectionHandleSize,
         left: cellOffset.left + cellWidth,
       });
       // -/+1 as the bottom handler is positioned ending in the most bottom-left pixel
-      expectOffsetNear(bottomSelectionHandle.offset(), {
+      expect(Handsontable.dom.offset(bottomSelectionHandle[0])).toEqual({
         top: cellOffset.top + cellHeight - 1,
         left: cellOffset.left - bottomSelectionHandleSize + 1,
       });
@@ -67,7 +70,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
 
       const cellFrom = $(getCell(1, 1));
       const cellTo = spec().$container.find('tbody tr:eq(1) td:eq(3)');
-      const cellToOffset = cellTo.offset();
+      const cellToOffset = Handsontable.dom.offset(cellTo[0]);
       const cellToHeight = cellFrom.outerHeight();
 
       await triggerTouchEvent('touchstart', spec().$container.find('.htBorders .bottomSelectionHandle-HitArea')[0]);
@@ -83,19 +86,19 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       const bottomSelectionHandle = spec().$container
         .find('.ht_master .htBorders div:last-child .bottomSelectionHandle');
       const bottomSelectionHandleSize = bottomSelectionHandle.outerWidth();
-      const cellFromOffset = cellFrom.offset();
+      const cellFromOffset = Handsontable.dom.offset(cellFrom[0]);
       const cellFromWidth = cellFrom.outerWidth();
 
       expect(topSelectionHandle.is(':visible')).toBe(true);
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
       expect(topSelectionHandle.css('z-index')).toBe('9999');
       expect(bottomSelectionHandle.css('z-index')).toBe('9999');
-      expectOffsetNear(topSelectionHandle.offset(), {
+      expect(Handsontable.dom.offset(topSelectionHandle[0])).toEqual({
         top: cellFromOffset.top - topSelectionHandleSize,
         left: cellFromOffset.left + cellFromWidth,
       });
       // -/+1 as the bottom handler is positioned ending in the most bottom-left pixel
-      expectOffsetNear(bottomSelectionHandle.offset(), {
+      expect(Handsontable.dom.offset(bottomSelectionHandle[0])).toEqual({
         top: cellToOffset.top + cellToHeight - 1,
         left: cellToOffset.left - bottomSelectionHandleSize + 1,
       });
@@ -115,7 +118,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
 
       const cellFrom = $(getCell(1, 1));
       const cellTo = spec().$container.find('tbody tr:eq(3) td:eq(1)');
-      const cellToOffset = cellTo.offset();
+      const cellToOffset = Handsontable.dom.offset(cellTo[0]);
       const cellToHeight = cellFrom.outerHeight();
 
       await triggerTouchEvent('touchstart', spec().$container.find('.htBorders .bottomSelectionHandle-HitArea')[0]);
@@ -131,19 +134,19 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       const bottomSelectionHandle = spec().$container
         .find('.ht_master .htBorders div:last-child .bottomSelectionHandle');
       const bottomSelectionHandleSize = bottomSelectionHandle.outerWidth();
-      const cellFromOffset = cellFrom.offset();
+      const cellFromOffset = Handsontable.dom.offset(cellFrom[0]);
       const cellFromWidth = cellFrom.outerWidth();
 
       expect(topSelectionHandle.is(':visible')).toBe(true);
       expect(bottomSelectionHandle.is(':visible')).toBe(true);
       expect(topSelectionHandle.css('z-index')).toBe('9999');
       expect(bottomSelectionHandle.css('z-index')).toBe('9999');
-      expectOffsetNear(topSelectionHandle.offset(), {
+      expect(Handsontable.dom.offset(topSelectionHandle[0])).toEqual({
         top: cellFromOffset.top - topSelectionHandleSize,
         left: cellFromOffset.left + cellFromWidth,
       });
       // -/+1 as the bottom handler is positioned ending in the most bottom-left pixel
-      expectOffsetNear(bottomSelectionHandle.offset(), {
+      expect(Handsontable.dom.offset(bottomSelectionHandle[0])).toEqual({
         top: cellToOffset.top + cellToHeight - 1,
         left: cellToOffset.left - bottomSelectionHandleSize + 1,
       });
