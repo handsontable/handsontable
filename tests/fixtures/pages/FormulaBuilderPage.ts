@@ -403,8 +403,7 @@ export class FormulaBuilderPage {
 
   /**
    * The color the grid paints the selected cell's border with: the background of a drawn edge of
-   * the master's `current` border. `null` while no edge is drawn. It reads Walkontable's
-   * `.wtBorder.current` elements, so a change to how the selection border is drawn changes this read.
+   * the master's `current` border. `null` while no edge is drawn.
    *
    * @returns {Promise<string | null>}
    */
@@ -428,7 +427,7 @@ export class FormulaBuilderPage {
     return this.page.evaluate(() => {
       const probe = document.createElement('div');
 
-      probe.style.color = 'var(--ht-accent-color)';
+      probe.style.color = 'var(--ht-accent-color, transparent)';
       (window as unknown as FixtureWindow).hot.rootElement.appendChild(probe);
 
       const color = getComputedStyle(probe).color;

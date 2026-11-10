@@ -423,16 +423,21 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   the grid goes address box, formula editor (the same remembered cell), then back into the grid. There is no keyboard trap, so the bar
   registers no focus scope; the package owns the keys inside it. Pinned by the keyboard spec under
   `tests/e2e/`.
-- **The error colors are mixed for text.** The theme's notification error accent measures 3.4:1 on white,
-  enough for the error triangle but not for 4.5:1 text, so `_formula-builder.scss` mixes 35% of the
-  foreground color into every text-level error token. Measure against the DARKEST background the text
-  gets, not white: a selected range tints the cell (`td.area::before`), and 30% left main at 4.46:1
-  there. The same holds for `--hfe-token-sheet` (named expressions in the suggestions, sheet names): the
-  package default `#64748b` measured 4.12:1 on classic's active suggestion row, so the plugin sets it to
-  the secondary text color with 20% of the foreground. Both are pinned by "formulaBuilder text
-  contrast" in `tests/e2e/formula-builder-popups.spec.ts`, which composites the `::before` tint. The reference palette is the package's own: its
-  defaults clear 4.5:1 on the editor backgrounds and stay apart from each other, so the plugin does not
-  restate `--hfe-ref-1` to `--hfe-ref-8` (an application can, on the theme class). Neither does it
+- **The colors are the design's, contrast gaps included.** Every `--hfe-*` color the plugin sets equals
+  the FormulaBuilder design in its Handsontable mode. Where the design keeps the package's own value (the
+  token colors, the error color, the named expression and sheet color, the comment color, and the
+  highlight of the active suggestion row), `_formula-builder.scss` sets nothing, and the package's `:root`
+  `light-dark()` default applies, dark side included. Do not restate one of them on the theme block: a
+  `var(--hfe-color-foreground)` there would resolve to the cell editor's foreground, not the design's
+  `#1c1d20`. Mapped to theme tokens: the editor and menu surfaces, the accent text, the active argument
+  chip and the paren match (`--ht-accent-color`), and the keyboard row's frame (`--ht-border-color`).
+  The design's colors fail WCAG 1.4.3 in places, accepted for now: the error text `#fa4d56` measures
+  3.35:1 on white, an unknown function name `#ea580c` 3.56:1, a comment `#8a8f99` 3.25:1, a named
+  expression `#64748b` 4.45:1 on the active row `#f7f7f9`, and the accent text 2.45:1 on horizon and
+  3.08:1 on classic. The axe baseline lists those findings. Pinned by "formulaBuilder design colors" in
+  `tests/e2e/formula-builder-popups.spec.ts`. The reference palette is the design's, not the package's: the
+  package's light values are darker, so the plugin restates `--hfe-ref-1` to `--hfe-ref-8` (light and dark
+  from the design; an application can still override them on the theme class). The plugin does not
   override the error cell's font or `color-scheme`: the package reads `--hfe-font-family`, which the plugin
   sets, for the error value and the error popup title alike, and sets `color-scheme` only on its roots,
   where the theme class wins.
@@ -491,18 +496,18 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
   editor shim does not have, and giving it a hidden one would not help: the composition would start in that
   element and could not move into the package's input when the editor opens. It needs a `hyperformula-ui`
   input that is mounted and focusable before the edit opens.
-- **The bar's focus rings and the accent colors map to theme tokens; the theme owns their contrast.** The
-  rings (`--hfe-formula-bar-input-focus-ring`) read `--ht-cell-selection-border-color`, so a focused bar
-  reads like the selected cell. The accent text (matched letters, the active parameter name), the active
-  argument chip and the paren match read `--ht-accent-color`, like every other grid surface that draws the
-  accent. Do not mix a darker plugin-local color to fix their contrast: that was tried, and the bar looked
-  like a different control next to the cell. Where the theme accent misses a contrast threshold (horizon,
-  classic), the fix belongs in the theme token, and it then reaches the formula builder with no change here.
-  The bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
-  of the ring width (the idle overlay too, so the text does not shift on focus); drawing the ring outward
-  instead is clipped by the top slot. Pinned by "the bar editor's focus ring", "the address box's focus
-  ring" and "the matched letters, the active argument chip and the paren match use the theme accent" in
-  `tests/e2e/formula-builder-popups.spec.ts`.
+- The horizon theme's accent focus ring measures below 3:1 (2.45:1 on white); it is the theme token every
+  grid surface uses. The formula bar's own rings (the address box and the bar-hosted editor) use it too:
+  `--hfe-formula-bar-input-focus-ring` is `--ht-cell-selection-border-color`, so a focused bar reads like
+  the selected cell. A darker text-accent mix was tried and looked like a different control next to the
+  cell. Raising horizon's contrast belongs in the theme token, not in a bar override. The accent text
+  (matched letters, the active parameter name), the active argument chip, and the paren match read the
+  theme accent too, as the design does, so on horizon they measure 2.45:1 and on classic 3.08:1 on
+  white; the design accepts it. The bar editor's ring is inset, so the bar's `.hfe-overlay` and
+  `.hfe-editor__input` carry inline padding of the ring width (the idle overlay too, so the text does not
+  shift on focus); drawing the ring outward instead is clipped by the top slot. Pinned by "the bar
+  editor's focus ring", "the address box's focus ring" and "the matched letters, the active argument chip
+  and the paren match use the theme accent" in `tests/e2e/formula-builder-popups.spec.ts`.
 - `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
   exact version because the 0.x line may break in a minor.
 
