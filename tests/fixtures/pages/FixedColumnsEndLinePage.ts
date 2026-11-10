@@ -124,6 +124,113 @@ export class FixedColumnsEndLinePage {
   }
 
   /**
+   * Scroll so that a visual column ends exactly on the end band's inline-start edge (the place a selection or
+   * a keyboard move snaps a column to), and wait until the column is drawn and the clones followed the scroll.
+   *
+   * @param {number} column The visual column to align.
+   */
+  async scrollColumnToBandEdge(column: number): Promise<void> {
+    await this.page.evaluate((col) => {
+      (window as unknown as { hot: { scrollViewportTo(options: object): boolean } }).hot
+        .scrollViewportTo({ col, horizontalSnap: 'end' });
+    }, column);
+    await expect(this.master.locator(`td[data-testid="cell-1-${column}"]`)).toBeAttached();
+    await this.page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+  }
+
+  /**
+   * Where the freeze line is and how much room the band's first column has, in one read: the distance from
+   * the master's inline-end edge to the inline-start edge of the clone's first cell, and the content width
+   * (`clientWidth`) of the clone's first and second cells.
+   *
+   * @param {FreezeLineSite} site The clone to measure.
+   */
+  async endLineGeometry(site: FreezeLineSite): Promise<{ fromGridEnd: number; first: number; second: number }> {
+    const { clone, row } = SITES[site];
+
+    return this.page.evaluate(([cloneSelector, rowSelector]) => {
+      const rtl = getComputedStyle(document.documentElement).direction === 'rtl';
+      const cells = document.querySelectorAll(`${cloneSelector} ${rowSelector} > :is(td, th)`);
+      const grid = (document.querySelector('.ht_master') as HTMLElement).getBoundingClientRect();
+
+      if (cells.length < 2) {
+        throw new Error(`Fewer than two cells in ${cloneSelector} ${rowSelector}`);
+      }
+
+      const rect = cells[0].getBoundingClientRect();
+
+      return {
+        fromGridEnd: rtl ? rect.right - grid.left : grid.right - rect.left,
+        first: cells[0].clientWidth,
+        second: cells[1].clientWidth,
+      };
+    }, [clone, row] as const);
+  }
+
+  /**
+   * Whether a master column ends at the freeze line: its inline-end edge on the clone's first pixel or right
+   * beside it. That is the junction where two borders can meet, whichever of the two draws the line.
+   */
+  async masterColumnEndsAtLine(): Promise<boolean> {
+    const { clone, row, neighbours } = SITES.body;
+
+    return this.page.evaluate(([cloneSelector, rowSelector, neighbourSelector]) => {
+      const rtl = getComputedStyle(document.documentElement).direction === 'rtl';
+      const cell = document.querySelector(`${cloneSelector} ${rowSelector} > :is(td, th):first-child`);
+
+      if (!cell) {
+        throw new Error(`No first cell for ${cloneSelector} ${rowSelector}`);
+      }
+
+      const rect = cell.getBoundingClientRect();
+      const edge = rtl ? rect.right : rect.left;
+      const inward = rtl ? -1 : 1;
+
+      return Array.from(document.querySelectorAll(neighbourSelector)).some((candidate) => {
+        const candidateRect = candidate.getBoundingClientRect();
+        const end = rtl ? candidateRect.left : candidateRect.right;
+
+        return candidateRect.width > 0 && (Math.abs(end - edge) < 0.5 || Math.abs(end - (edge + inward)) < 0.5);
+      });
+    }, [clone, row, neighbours] as const);
+  }
+
+  /**
+   * Opens the editor of a cell with the keyboard and waits until it is open.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   */
+  async openEditor(row: number, column: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      (window as unknown as { hot: { selectCell(row: number, col: number): void } }).hot.selectCell(r, c);
+    }, [row, column] as const);
+    await this.page.keyboard.press('Enter');
+    await expect.poll(() => this.page.evaluate(() => (
+      window as unknown as { hot: { getActiveEditor(): { isOpened(): boolean } } }
+    ).hot.getActiveEditor().isOpened())).toBe(true);
+  }
+
+  /**
+   * The distance from the open editor's inline-end edge to the freeze line (the inline-start edge of the end
+   * clone's first body cell), in one read: `0` when the editor ends right before the line, negative when it
+   * reaches under it.
+   */
+  async editorGapToLine(): Promise<number> {
+    return this.page.evaluate(() => {
+      const rtl = getComputedStyle(document.documentElement).direction === 'rtl';
+      const editor = document.querySelector('textarea.handsontableInput') as HTMLElement;
+      const cell = document.querySelector('.ht_clone_inline_end tbody tr > :is(td, th):first-child') as HTMLElement;
+      const editorRect = editor.getBoundingClientRect();
+      const cellRect = cell.getBoundingClientRect();
+
+      return rtl ? editorRect.left - cellRect.right : cellRect.left - editorRect.right;
+    });
+  }
+
+  /**
    * Whether each end clone root carries the freeze-line state class.
    */
   async sharedStateOfClones(): Promise<Record<string, boolean>> {
@@ -145,7 +252,8 @@ export class FixedColumnsEndLinePage {
 
   /**
    * The freeze line at the inline-start edge of an end clone: the clone's own border, and the border of the
-   * neighbouring cell when that cell ends exactly at the clone's edge.
+   * neighbouring cell when that cell ends exactly at the clone's edge, beside it. A neighbour that ends inside
+   * the clone's first pixel has its border under the clone's and is not counted.
    *
    * @param {FreezeLineSite} site The clone to measure.
    */

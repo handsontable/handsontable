@@ -2226,24 +2226,40 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   freeze line). It is one border wide and has been so since before `fixedColumnsEnd`. The same goes for an
   area that crosses the `fixedRowsTop` or `fixedRowsBottom` line inside the end columns, where the end clone
   and the end corner each draw their own clamped slice and the corner's slice sits above the clone's.
-- **The end freeze line is drawn by the clone mid-scroll and by the master at the junction; a state class
-  chooses.** The line at an end clone's inline-start edge must be exactly 1px in every scroll state, as the start
-  side is. Mid-scroll the clone's edge cuts through a master column (the master's last scrolling column is
-  virtualized away or sits under the clone), so no master border stands there and the clone's own first-cell
-  inline-start border (the generic `td:first-child` / `th:first-child` rule in `_base.scss`) is the line. At the
-  junction, where the clone's first column stands on the boundary of the column before it (scrolled to the end, or
-  no horizontal scroll so the clone rests against the last column), that column's inline-end border is already
-  the line and a second border made it 2px. `Overlays#syncInlineEndFreezeLine` toggles `htFreezeLineShared`
-  (`INLINE_END_FREEZE_LINE_SHARED_CLASS`) on the three end clone roots from `InlineEndOverlay#isFreezeLineShared`,
-  and only the SCSS rule under that class zeroes the first cell's `border-inline-start-width`. It runs from
-  `afterDraw` and from `syncScrollPositions` (a sub-band scroll draws nothing), reads through the geometry reader,
-  and writes a root only when its state changes. Do not make the reset unconditional again: the end band then has
-  no line in the usual mid-scroll case. The class is off when nothing precedes the band (no column before it and
-  no row headers), so the clone's border stays the grid's outer frame line. Alignment is judged at the two
-  junction states only; a mid-scroll offset that happens to put the clone's edge on a master column boundary still
-  draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR, and in RTL the two
-  junction states and the switch between the classes (the direction moves where the clone sits, not when the
-  line is shared).
+- **The end freeze line is the clone's own border, on one pixel in every scroll state, because the clone's first
+  column reaches 1px over the column before it.** The line at an end clone's inline-start edge must be exactly 1px
+  and must not move as the grid scrolls, as the start side's does not. Cell borders sit on the inline-end side, so
+  the column before the band draws its border on the pixel right before the band. `ColGroupRenderer` therefore
+  renders the band's first column 1px wider in the three end tables (`TableRenderer#getFreezeLineOverlap`: 1 while
+  a column precedes the band, 0 in every other table and when the band covers every column). The clone root and
+  its `.wtHolder` follow the table width, and they are anchored at the inline end, so the clone starts on that
+  pixel. Its first cell keeps its own 1px inline-start border (the generic `td:first-child` / `th:first-child`
+  rule in `_base.scss`) at every scroll offset. The content box of that cell is as wide as any other cell of its
+  width. Five consequences:
+  - The line no longer moves at the end of the scroll range (DEV-3636). It used to be the clone's border
+    mid-scroll and the master's at the junction, one pixel further, so the column looked 1px wider there. In
+    `horizon`, where the scrolling cells draw no visible inline-end border, the line vanished at the junction.
+  - A scrolling column that ends exactly on the band's edge mid-scroll (a column snapped to the end by a
+    selection or a keyboard move) has its border under the clone's. Before, that drew a 2px line. An offset one
+    pixel further, which only a free scroll reaches, still puts a master border right beside the line and draws
+    2px; the start side has the same limit.
+  - A selection's inline-start edge on the band's first column lands on the line pixel inside the clone's holder,
+    because the cell owns an inline-start border (`Border#appear` shifts the edge onto the cell's boundary). It
+    used to be clipped at the junction, where the cell had no border and the edge went to `left: -1`.
+  - The pointer on the line pixel hits the end clone's first cell, not the column before it.
+  - An open editor on the column before the band ends right before the line, because
+    `BaseEditor#getEditedCellRect` keeps the overlap out of its `maxWidth`; reaching 1px under the clone hid half
+    of its 2px end border. The resize gesture subtracts the overlap from the first end header's size and puts the
+    handle of the edge before the band on the line (`utils/manualResize/AGENTS.md`).
+
+  `getBandWidth()` and `getColumnWidth()` stay logical (no overlap): a column scrolled to `viewport - band` ends
+  with its border under the clone's line, which is the intent. `htFreezeLineShared` (`INLINE_END_FREEZE_LINE_SHARED_CLASS`)
+  is now set from the settings alone (`InlineEndOverlay#isFreezeLineShared`): only when the band covers every
+  column and the grid has row headers, where the row header's border is the line and the clone adds none.
+  `Overlays#syncInlineEndFreezeLine` runs after every draw and writes a root only when its state changes. With no
+  column and no row header before the band, the clone's border is the grid's outer frame line.
+  `tests/e2e/fixed-columns-end-line.spec.ts` measures the line in every scroll state, the band-edge junction mid-scroll,
+  its position and the first cell's width, in LTR and RTL.
 - **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
   `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
   which is the inline-start margin. That margin is the one on the right in RTL, which

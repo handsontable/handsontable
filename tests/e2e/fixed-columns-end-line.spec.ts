@@ -2,11 +2,11 @@ import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndLinePage, type FreezeLineSite } from '../fixtures/pages/FixedColumnsEndLinePage';
 
 /**
- * The freeze line at the inline-start edge of the end clones is one border wide in EVERY scroll state:
- * the clone's own first-cell border draws it while the clone's edge cuts through a master column, and the
- * master's border draws it (the clone adds none) at the junction, where the clone rests against the last
- * scrolling column. Measured as computed border widths and box geometry on every theme leg: the shared state
- * (maximum scroll, no scroll) and the switch between the two states in LTR and RTL, the other states in LTR.
+ * The freeze line at the inline-start edge of the end clones is one border wide and on the same pixel in EVERY
+ * scroll state: the clone's own first-cell border draws it, and the clone's first column reaches 1px over the
+ * column before the band, so the border of a scrolling column that ends at the band's edge lies under it.
+ * Measured as computed border widths and box geometry on every theme leg, in LTR and RTL. Only when the band
+ * covers every column does the row header draw the line instead.
  */
 const COLS = 30;
 const COL_WIDTH = 72;
@@ -40,13 +40,57 @@ for (const rtl of [false, true]) {
       });
     }
 
-    test('is one border wide at the maximum scroll, drawn by the last scrolling column', async () => {
+    test('is one border wide at the maximum scroll, drawn by the clone over the last scrolling column', async () => {
       await open();
       await grid.scrollTo(await grid.maxScroll(), COLS - 1, rtl);
 
       for (const site of SITE_LIST) {
-        expect(await grid.endLine(site), site).toEqual({ own: 0, neighbour: 1, total: 1 });
+        expect(await grid.endLine(site), site).toEqual({ own: 1, neighbour: 0, total: 1 });
       }
+    });
+
+    test('is one border wide where a scrolling column ends exactly on the band edge mid-scroll', async () => {
+      await open();
+      await grid.scrollColumnToBandEdge(12);
+
+      // Precondition: a master column really ends at the line, so two borders could meet there.
+      expect(await grid.masterColumnEndsAtLine()).toBe(true);
+
+      for (const site of SITE_LIST) {
+        expect(await grid.endLine(site), site).toEqual({ own: 1, neighbour: 0, total: 1 });
+      }
+    });
+
+    test('keeps the line on the same pixel and the first end column at its width in every scroll state', async () => {
+      await open();
+      await grid.scrollTo(0, 3, rtl);
+
+      const atStart = await grid.endLineGeometry('body');
+
+      // Every column is COL_WIDTH wide: the first end cell has as much room as the one after it.
+      expect(atStart.first).toBe(atStart.second);
+
+      await grid.scrollTo(Math.round((await grid.maxScroll()) / 2), 15, rtl);
+      expect(await grid.endLineGeometry('body')).toEqual(atStart);
+
+      await grid.scrollTo(await grid.maxScroll(), COLS - 1, rtl);
+      expect(await grid.endLineGeometry('body')).toEqual(atStart);
+
+      for (const site of ['header', 'bottom'] as const) {
+        const geometry = await grid.endLineGeometry(site);
+
+        expect(geometry.fromGridEnd, site).toBe(atStart.fromGridEnd);
+        expect(geometry.first, site).toBe(geometry.second);
+      }
+    });
+
+    test('keeps the editor of the last scrolling column clear of the freeze line at the maximum scroll', async () => {
+      await open();
+      await grid.scrollTo(await grid.maxScroll(), COLS - 1, rtl);
+      await grid.openEditor(1, COLS - END - 1);
+
+      // The editor's end border ends right before the line, so the end clone paints none of it.
+      expect(await grid.editorGapToLine()).toBe(0);
     });
 
     test('is one border wide without a horizontal scroll, where the clone rests against the last column', async () => {
@@ -56,7 +100,7 @@ for (const rtl of [false, true]) {
       await grid.scrollTo(0, 5, rtl);
 
       for (const site of SITE_LIST) {
-        expect(await grid.endLine(site), site).toEqual({ own: 0, neighbour: 1, total: 1 });
+        expect(await grid.endLine(site), site).toEqual({ own: 1, neighbour: 0, total: 1 });
       }
     });
 
@@ -80,21 +124,19 @@ for (const rtl of [false, true]) {
       });
     }
 
-    test('toggles the state class on all three end clones together and leaves it again', async () => {
-      await open();
-      await grid.scrollTo(await grid.maxScroll(), COLS - 1, rtl);
-      expect(await grid.sharedStateOfClones()).toEqual({
-        ht_clone_inline_end: true,
-        ht_clone_top_inline_end_corner: true,
-        ht_clone_bottom_inline_end_corner: true,
-      });
-
-      await grid.scrollTo(0, 3, rtl);
-      expect(await grid.sharedStateOfClones()).toEqual({
+    test('keeps the state class off on all three end clones in every scroll state', async () => {
+      const off = {
         ht_clone_inline_end: false,
         ht_clone_top_inline_end_corner: false,
         ht_clone_bottom_inline_end_corner: false,
-      });
+      };
+
+      await open();
+      await grid.scrollTo(await grid.maxScroll(), COLS - 1, rtl);
+      expect(await grid.sharedStateOfClones()).toEqual(off);
+
+      await grid.scrollTo(0, 3, rtl);
+      expect(await grid.sharedStateOfClones()).toEqual(off);
     });
 
     // LTR only: this branch of `isFreezeLineShared()` reads column counts, not positions.
