@@ -55,7 +55,7 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    const activeSheetParam = htParams.get('activeSheet');
+    const activeSheetParam = new URLSearchParams(location.search).get('activeSheet');
     const activeSheet = activeSheetParam === null ? undefined : ({ 'out-of-range': 9 })[activeSheetParam];
 
     if (activeSheetParam !== null && activeSheet === undefined) {
