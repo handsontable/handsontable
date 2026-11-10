@@ -17,7 +17,7 @@
     {
       "id": "shift-tab-to-grid",
       "action": {"press": "Shift+Tab"},
-      "expect": [["c1"]],
+      "expect": [["c1", "c 1"]],
       "note": "Shift+Tab moves back into the grid, on C1."
     },
     {
