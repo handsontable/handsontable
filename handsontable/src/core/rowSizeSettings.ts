@@ -40,6 +40,28 @@ function nextUnusedEntry(values: unknown[]): number {
 }
 
 /**
+ * Tells whether a row the index mapper just inserted comes after every other row on screen. The mapper puts the
+ * new indexes into its sequence before the maps take their slots, so the sequence already shows where the row
+ * sits. A row appended at the physical end after the rows were moved can sit between others on screen.
+ *
+ * @param {number[]} sequence The index mapper's sequence of physical indexes, in screen order.
+ * @param {number} physicalRow The physical index of the first inserted row.
+ * @returns {boolean}
+ */
+function endsScreenOrder(sequence: number[], physicalRow: number): boolean {
+  const position = sequence.indexOf(physicalRow);
+
+  for (let index = position + 1; index < sequence.length; index += 1) {
+    // Only the other inserted rows, which take the indexes after the first one, may follow it.
+    if (sequence[index]! < physicalRow) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Keeps the `rowHeights` and `minRowHeights` arrays on the rows they were declared for.
  *
  * Each array is read through a physical row index map (one per option, registered only while the option is an
@@ -97,6 +119,10 @@ export class RowSizeSettings {
    * data array each time the sheet is shown, so its heights come back on the rows they were on.
    */
   #kept = new WeakMap<object, KeptOrigins>();
+  /**
+   * `true` between the start and the end of a data load, whose row changes come from the new data.
+   */
+  #loading = false;
 
   /**
    * Follows the settings, which decide whether a map is needed, and the index mapper's inserts.
@@ -108,14 +134,15 @@ export class RowSizeSettings {
 
     // Runs before the maps insert their slots, so their length is still the one before the insert.
     hot.rowIndexMapper.addLocalHook('indexesInserted', this.#onIndexesInserted);
+    hot.rowIndexMapper.addLocalHook('indexesRemoved', this.#onRowsChanged);
 
     // Registered before the first data load and after every settings update, never lazily on a lookup: UndoRedo
     // drops its history when the set of index map names changes, and a settings update is where a user expects
     // that, the way enabling a plugin does it.
     hot.addHook('beforeInit', this.#onSettingsChange);
     hot.addHook('afterUpdateSettings', this.#onSettingsChange);
-    hot.addHook('beforeLoadData', this.#keepAll);
-    hot.addHook('beforeUpdateData', this.#keepAll);
+    hot.addHook('beforeLoadData', this.#onBeforeDataLoad);
+    hot.addHook('beforeUpdateData', this.#onBeforeDataLoad);
     hot.addHook('afterLoadData', this.#onDataLoaded);
     hot.addHook('afterUpdateData', this.#onDataLoaded);
   }
@@ -212,22 +239,45 @@ export class RowSizeSettings {
    * @param {string} [mode] `end` when the maps take the slots one index after `insertedIndexes`.
    */
   #onIndexesInserted = (insertedIndexes: number[], mode?: 'start' | 'end'): void => {
-    this.#lastSlot = insertedIndexes.length > 0 ? insertedIndexes[0]! + (mode === 'end' ? 1 : 0) : null;
+    this.#onRowsChanged();
+    this.#lastSlot = null;
     this.#appendFrom = null;
 
-    if (this.#lastSlot === null) {
+    if (insertedIndexes.length === 0) {
       return;
     }
 
-    const slot = this.#lastSlot;
+    const length = this.#hot.rowIndexMapper.getNumberOfIndexes() - insertedIndexes.length;
+    // An `'end'` insert takes its slots one index after `insertedIndexes`; past the last row, that is the end.
+    const slot = Math.min(insertedIndexes[0]! + (mode === 'end' ? 1 : 0), length);
+    // Only a block appended after the last row on screen takes the next entries.
+    const appends = slot >= length && endsScreenOrder(this.#hot.rowIndexMapper.getIndexesSequence(), slot);
 
+    this.#lastSlot = slot;
     this.#appendFrom = new Map();
     this.#maps.forEach((map, option) => {
-      // Only a block appended after the last row takes the next entries.
-      if (slot >= map.getLength()) {
+      if (appends) {
         this.#appendFrom!.set(option, nextUnusedEntry(map.getValues()));
       }
     });
+  };
+
+  /**
+   * Drops the origins kept for the data shown now when its rows change outside a data load: they describe the
+   * rows as they were.
+   */
+  #onRowsChanged = (): void => {
+    if (!this.#loading && typeof this.#data === 'object' && this.#data !== null) {
+      this.#kept.delete(this.#data);
+    }
+  };
+
+  /**
+   * Keeps the origins of the data array the grid is about to leave.
+   */
+  #onBeforeDataLoad = (): void => {
+    this.#loading = true;
+    this.#keepAll();
   };
 
   /**
@@ -248,11 +298,11 @@ export class RowSizeSettings {
   };
 
   /**
-   * Keeps the origins of the data array the grid is about to leave.
+   * Keeps the origins of every option for the data array shown now.
    */
-  #keepAll = (): void => {
+  #keepAll(): void {
     this.#maps.forEach((_, option) => this.#keep(option));
-  };
+  }
 
   /**
    * Follows the data array a load passed, and puts back the origins it had for the arrays the options hold now,
@@ -261,6 +311,7 @@ export class RowSizeSettings {
    * @param {Array} data The loaded data.
    */
   #onDataLoaded = (data: unknown): void => {
+    this.#loading = false;
     this.#data = data;
     this.#maps.forEach((_, option) => this.#restore(option));
   };

@@ -7394,8 +7394,8 @@ export default (): Record<string, unknown> => {
      * also stays with the row it was declared for when you insert or remove rows: a row inserted between
      * others has no height of its own, a row added after the last one takes the next entry, and the array
      * you passed is never changed. A function is called with the physical index the row has now. To declare
-     * the heights again, pass a new array to [`updateSettings()`](@/api/core.md#updatesettings), which also
-     * clears the undo history, the way enabling a plugin does. [`colWidths`](#colWidths) addresses columns by
+     * the heights again, pass a new array to [`updateSettings()`](@/api/core.md#updatesettings). Switching the
+     * option to or from an array, or passing a new array, clears the undo history, the way enabling a plugin does. [`colWidths`](#colWidths) addresses columns by
      * the physical index too.
      *
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a

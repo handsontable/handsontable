@@ -391,4 +391,35 @@ describe('rowHeights addressed by physical row index', () => {
     expect(invalidate).toHaveBeenCalled();
     expect(heights()).toEqual([30, 20, 10]);
   });
+
+  it('should give no height to a row appended at the physical end that sits between others on screen', () => {
+    createGrid({ rowHeights: [10, 20, 30, 40] });
+
+    hot.rowIndexMapper.setIndexesSequence([2, 0, 1]);
+    // below the row at visual 0 (physical 2, the last physical row), so above `a` on screen
+    hot.alter('insert_row_below', 0);
+
+    expect(hot.getDataAtCol(0)).toEqual(['c', null, 'a', 'b']);
+    expect(heights()).toEqual([30, undefined, 10, 20]);
+  });
+
+  it('should not bring back origins kept before the rows changed, when the data is loaded again', () => {
+    const data = [['a'], ['b'], ['c']];
+    const rowHeights = [10, 20, 30];
+
+    createGrid({ data, rowHeights });
+
+    hot.alter('insert_row_above', 1);
+    hot.updateSettings({ rowHeights: 50 });
+    // as many rows as before, on other rows, while the array is not followed
+    hot.alter('remove_row', 1);
+    hot.alter('insert_row_above', 3);
+    hot.updateSettings({ rowHeights });
+
+    expect(heights()).toEqual([10, 20, 30, undefined]);
+
+    hot.loadData(data);
+
+    expect(heights()).toEqual([10, 20, 30, undefined]);
+  });
 });
