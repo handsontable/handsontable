@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "intl-date-editor",
+  "surface": "The intl-date editor with `imeFastEdit` on, where the browser focus sits in the editor's input while a cell is only selected: arriving on a date cell, opening the editor, typing a date, and Enter committing it.",
+  "group": "editors",
+  "page": "intl-date-editor",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [
+    {"updateSettings": {"data": [["2024-06-10", "two", "09:30"], ["2024-01-05", "four", "10:15"]]}},
+    {"selectCell": [0, 1]}
+  ],
+  "steps": [
+    {
+      "id": "arrive-on-date",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["06/10/2024"]],
+      "note": "ArrowLeft selects the date cell, drawn as `06/10/2024`. With `imeFastEdit`, the focus moves to the editor's hidden date input soon after the selection, so an IME can start composing. Required: the selected cell's value."
+    },
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["date", "month stepper"]],
+      "note": "Enter opens the editor on that cell: the native date input the focus already sat in, now shown, holding 2024-06-10. Required: the control, in the reader's words."
+    },
+    {
+      "id": "type-date",
+      "action": {"type": "01012020"},
+      "expect": [],
+      "note": "Eight digits fill the segments of the input (01/01/2020). Nothing is required here: a reader speaks a segment's new value in its own words."
+    },
+    {
+      "id": "commit-date",
+      "action": {"press": "Enter"},
+      "expect": [["01/05/2024"], ["row 2"]],
+      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's date, drawn as `01/05/2024`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["01/01/2020"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2020`."
+    }
+  ]
+}

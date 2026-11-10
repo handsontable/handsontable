@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "datetime-editor",
+  "surface": "The intl-datetime editor, a native date and time input over the cell: opening it, typing a new date, Enter committing it, and Escape cancelling a second edit.",
+  "group": "editors",
+  "page": "datetime-editor",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [0, 5]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["date", "month stepper", "time"]],
+      "note": "Enter opens the editor on the Datetime cell (`06/10/2024, 09:30:00`) and focuses its native `datetime-local` input, which holds 2024-06-10T09:30:00. Required: the control, in the reader's words."
+    },
+    {
+      "id": "type-date",
+      "action": {"type": "0101"},
+      "expect": [],
+      "note": "Four digits fill the month and the day of the input; the year and the time keep their values, so the new value is 2024-01-01T09:30:00. Nothing is required here: a reader speaks a segment's new value in its own words."
+    },
+    {
+      "id": "commit-datetime",
+      "action": {"press": "Enter"},
+      "expect": [["01/05/2024"], ["row 3"]],
+      "note": "Enter commits the value and moves the selection one row down (enterMoves), to the next row's Datetime, drawn as `01/05/2024, 10:15:00`. Required: that cell's date and its row."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["01/01/2024"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2024, 09:30:00`."
+    },
+    {
+      "id": "reopen-editor",
+      "action": {"press": "Enter"},
+      "expect": [["date", "month stepper", "time"]],
+      "note": "The editor opens again, on the new value."
+    },
+    {
+      "id": "cancel-edit",
+      "action": {"press": "Escape"},
+      "expect": [["01/01/2024"]],
+      "note": "Escape closes the editor without a change."
+    }
+  ]
+}

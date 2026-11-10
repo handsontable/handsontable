@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "intl-time-editor",
+  "surface": "The intl-time editor with `imeFastEdit` on, where the browser focus sits in the editor's input while a cell is only selected: arriving on a time cell, opening the editor, typing a time, and Enter committing it.",
+  "group": "editors",
+  "page": "intl-time-editor",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [
+    {"updateSettings": {"data": [["2024-06-10", "two", "09:30"], ["2024-01-05", "four", "10:15"]]}},
+    {"selectCell": [0, 1]}
+  ],
+  "steps": [
+    {
+      "id": "arrive-on-time",
+      "action": {"press": "ArrowRight"},
+      "expect": [["9:30"]],
+      "note": "ArrowRight selects the time cell, drawn as `9:30 AM`. With `imeFastEdit`, the focus moves to the editor's hidden time input soon after the selection. Required: the selected cell's value."
+    },
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["time", "hour", "hours"]],
+      "note": "Enter opens the editor on that cell: the native time input the focus already sat in, now shown, holding 09:30. Required: the control, in the reader's words."
+    },
+    {
+      "id": "type-time",
+      "action": {"type": "1145"},
+      "expect": [],
+      "note": "Four digits fill the hour and the minute; the AM or PM segment keeps its value. Nothing is required here."
+    },
+    {
+      "id": "commit-time",
+      "action": {"press": "Enter"},
+      "expect": [["10:15"], ["row 2"]],
+      "note": "Enter commits the time and moves the selection one row down (enterMoves), to the next row's time, drawn as `10:15 AM`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["11:45"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `11:45 AM`."
+    }
+  ]
+}
