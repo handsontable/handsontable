@@ -19,6 +19,7 @@ import type { FocusGridManager as FocusManagerInstance } from '../focusManager/g
 import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusManager/scopeManager';
 import type { LayoutManager } from './layout';
 import type { MinimumSizes } from './minimumSizes';
+import type { TrackedRecordHandle } from './waitingRecords';
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { default as DataSourceInstance } from '../dataMap/dataSource';
 import type { default as MetaManagerInstance } from '../dataMap/metaManager';
@@ -352,6 +353,8 @@ export interface HotInstance {
   _releasePlugin(pluginKey: string, requirer: object): void;
   _isPluginRequired(pluginKey: string): boolean;
   _getWaitingChangeSets(): Array<{ changes: CellChange[], source: string | undefined }>;
+  _getChangePhysicalRow(change: readonly unknown[]): number | null;
+  _trackRecord(visualRow: number): TrackedRecordHandle | null;
   _addDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   ): void;

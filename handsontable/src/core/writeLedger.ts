@@ -60,17 +60,20 @@ const accessorIds = new WeakMap<object, number>();
 let accessorCount = 0;
 
 /**
- * Builds the key a write to a cell is ordered by. It names the cell the write lands on: the visual
- * row, which `applyChanges()` writes through, and the property. A data accessor function is the
- * property of its column, so the function itself names the column and survives a column move. An
- * unbound column has no property, so the visual column stands in for it.
+ * Builds the key a write to a cell is ordered by. It names the cell the write lands on: the record,
+ * which `applyChanges()` writes to (the id of the record core tracks for the change, or the visual row of a
+ * row the write creates), and the property. A data accessor function is the property of its column, so the
+ * function itself names the column and survives a column move. An unbound column has no property, so the
+ * visual column stands in for it.
  *
- * @param row The visual row of the change.
+ * @param row The key of the record the change writes to.
  * @param prop The property of the change.
  * @param visualColumn The visual column of the change.
  * @returns {string}
  */
-export function getCellWriteKey(row: number, prop: CellChange[1] | null, visualColumn: CellChange[1] | null): string {
+export function getCellWriteKey(
+  row: string | number, prop: CellChange[1] | null, visualColumn: CellChange[1] | null,
+): string {
   if (typeof prop === 'string' || typeof prop === 'number') {
     return `${row}:p${prop}`;
   }

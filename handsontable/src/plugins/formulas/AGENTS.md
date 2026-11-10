@@ -832,6 +832,12 @@ again. The rules:
 
 - **`beforeChangeRender`, not `afterChange`.** The Core renders between the two, so writing back from
   `afterChange` painted the raw formula text until the next render (negative control in the test below).
+- **The write-back reads the row core resolved, and a `null` row by its record.** Core writes a waiting change to
+  its record and hands `beforeChangeRender` the record's current visual row, so a sort or a move in the window is
+  already in `change[0]`. A record a filter or a collapse trimmed meanwhile arrives with a `null` row:
+  `#writeTrimmedRecordChange()` addresses it by physical row (`_getChangePhysicalRow()`), which the engine still
+  holds. A record removed meanwhile is dropped by core and reaches `#onChangesDropped` in a new array, which
+  matches no awaiting set.
 - **`#clearRejectedSheet` does not bump the count.** Writing one change back into a sheet the engine
   refused to hold would leave it holding that one cell.
 - **A sheet switch in the window drops the change, and the plugin takes its first write back.** Every

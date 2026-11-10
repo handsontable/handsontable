@@ -385,7 +385,8 @@ class AutofillCalculations {
   }
 
   /**
-   * Get the drag range from the changes made.
+   * Get the drag range from the changes made. A change whose row is `null` (a record trimmed out of the visual
+   * space while the change waited for its validator) is outside every visible range and is skipped.
    *
    * @private
    * @param {Array} changes The changes made.
@@ -399,6 +400,11 @@ class AutofillCalculations {
 
     arrayEach(changes, (change) => {
       const changeArr = change as unknown[];
+
+      if (changeArr[0] === null) {
+        return;
+      }
+
       const rowIndex = changeArr[0] as number;
       // Falls back to the prop. Skipping the change instead would drop its row from the bounds
       // too, shrinking the range vertically and moving merged areas over the wrong rows.

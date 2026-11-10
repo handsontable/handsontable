@@ -141,6 +141,13 @@ export const REGISTERED_HOOKS = [
    * triggers another `afterChange` call with the `"updateData"` source. Check the `source` argument
    * to prevent an infinite loop.
    *
+   * A change to a cell with a [`validator`](@/api/options.md#validator) is written when the validator answers,
+   * which is always at least one microtask after the change was made. The change is written to the record it was
+   * made on, even when a sort, a row move, a filter, or a row insert or removal moved that record in the meantime,
+   * and `row` is the visual row the record has when the value lands. When a filter or another trimming feature
+   * took the record out of the visual space in the meantime, `row` is `null`. When the record was removed in the
+   * meantime, the change is not written, and this hook does not report it.
+   *
    * @event Hooks#afterChange
    * @param {Array[]|null} changes 2D array containing information about each of the edited cells
    *                               `[[row, prop, oldVal, newVal], ...]`, or `null` for the `"loadData"`
@@ -1878,6 +1885,10 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired right before rendering the changes.
+   *
+   * `row` is a visual row index. For a change that waited for a [`validator`](@/api/options.md#validator), it is
+   * the visual row the changed record has when the value lands, or `null` when a filter or another trimming feature
+   * took the record out of the visual space while the change waited (see {@link Hooks#afterChange}).
    *
    * @event Hooks#beforeChangeRender
    * @param {Array[]} changes Array in form of `[row, prop, oldValue, newValue]`.

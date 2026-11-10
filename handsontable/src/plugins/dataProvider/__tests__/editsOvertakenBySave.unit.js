@@ -716,4 +716,78 @@ describe('DataProvider -> an edit the refetch that follows a save drops while it
     expect(hot.getDataAtCol(1)).toEqual(['Ann', 'Bob 2', 'Cid 2']);
     expect(server.savedNames()).toEqual([[3, 'Cid 2'], [2, 'Bob 2']]);
   });
+
+  it('should write the edit into its record when the rows are moved locally while it waits', async() => {
+    const server = createServer();
+
+    await createGrid(server);
+    await saveFirstEdit();
+
+    server.gate('Bob 2');
+    hot.setDataAtCell(1, 1, 'Bob 2', 'edit');
+    await settle();
+    hot.rowIndexMapper.moveIndexes([0], 2);
+
+    expect(hot.getDataAtRowProp(1, 'id')).toBe(3);
+
+    await server.releaseFetches();
+    await server.answer('Bob 2');
+
+    expect(server.savedNames()).toEqual([[1, 'Ann 2'], [2, 'Bob 2']]);
+    expect(hot.getDataAtRowProp(hot.getVisualRowById(2), 'name')).toBe('Bob 2');
+    expect(hot.getDataAtRowProp(hot.getVisualRowById(3), 'name')).toBe('Cid');
+  });
+
+  it('should save an edit queued behind another save to its record when that save\'s refetch moves the rows',
+    async() => {
+      const server = createServer();
+      const validatedIds = [];
+      let finishFirstSave = null;
+
+      server.config.onRowsUpdate.mockImplementationOnce(rows => new Promise((resolve) => {
+        finishFirstSave = () => {
+          rows.forEach(({ id, changes }) => {
+            Object.assign(server.records.find(record => record.id === id), changes);
+          });
+          resolve();
+        };
+      }));
+      await createGrid(server, {
+        validator(value, callback) {
+          if (value === 'Bob 2') {
+            validatedIds.push(hot.getDataAtRowProp(this.visualRow, 'id'));
+          }
+
+          callback(true);
+        },
+      });
+
+      hot.setDataAtCell(0, 1, 'Ann 2', 'edit');
+      await settle();
+      hot.setDataAtCell(1, 1, 'Bob 2', 'edit');
+      await settle();
+
+      expect(server.config.onRowsUpdate).toHaveBeenCalledTimes(1);
+
+      server.records.splice(0, 0, { id: 4, name: 'Dee' });
+      finishFirstSave();
+      await settle();
+      await server.releaseFetches();
+
+      expect(server.config.onRowsUpdate).toHaveBeenCalledTimes(2);
+      expect(server.config.onRowsUpdate.mock.calls[1][0]).toEqual([
+        { id: 2, changes: { name: 'Bob 2' }, rowData: { id: 2, name: 'Bob 2' } },
+      ]);
+      expect(validatedIds.length).toBeGreaterThan(1);
+      expect(validatedIds.every(id => id === 2)).toBe(true);
+
+      await server.releaseFetches();
+
+      expect(server.records).toEqual([
+        { id: 4, name: 'Dee' },
+        { id: 1, name: 'Ann 2' },
+        { id: 2, name: 'Bob 2' },
+        { id: 3, name: 'Cid' },
+      ]);
+    });
 });

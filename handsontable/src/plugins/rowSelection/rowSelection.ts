@@ -3019,15 +3019,17 @@ export class RowSelection extends BasePlugin {
    * `beforeChange`, where the data still holds it; there the changes that would select a row
    * `isRowSelectable` rejects are marked too. `null` after the change, where the change's own old value
    * is used.
-   * @param {Function} [toPhysicalRow] Resolves a change's row to a physical row. Defaults to the visual
-   * to physical translation; source-data changes already carry physical rows.
+   * @param {Function} [toPhysicalRow] Resolves a change to a physical row. Defaults to the row of the change's
+   * record (`_getChangePhysicalRow()`, which also answers for a record a filter took out of the visual space while
+   * the change waited for its validator); source-data changes already carry physical rows.
    * @returns {object|null} The physical rows that get selected and deselected, the indexes of those
    * changes, and the indexes of the changes that would select a row `isRowSelectable` rejects.
    */
   #collectBoundFlips(
     changes: Array<unknown[] | null>,
     checksBeforeChange: RowChecks | null,
-    toPhysicalRow: (row: number) => number | null = row => this.hot.toPhysicalRow(row),
+    toPhysicalRow: (row: number, change: unknown[]) => number | null = (row, change) => this.hot
+      ._getChangePhysicalRow(change),
   ) {
     const boundColumn = this.getBoundColumn();
 
@@ -3046,7 +3048,7 @@ export class RowSelection extends BasePlugin {
         return;
       }
 
-      const physicalRow = toPhysicalRow(change[0] as number);
+      const physicalRow = toPhysicalRow(change[0] as number, change);
 
       if (physicalRow === null) {
         return;

@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { TrackedRecordHandle } from '../../core/waitingRecords';
 import type { CellProperties } from '../../settings';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { stringify } from '../../helpers/mixed';
@@ -169,6 +170,17 @@ export class BaseEditor {
    * wait ended early by `_endValidationWait()` cannot reopen the editor when its validator answers.
    */
   #validationWait: object | null = null;
+  /**
+   * The record the editor saved its value to, followed while the editor waits for the validator (core's
+   * `_trackRecord()`), so a sort, a move, a filter, or an insert or removal made meanwhile cannot make a rejected
+   * value reopen the editor on another record.
+   */
+  #waitRecord: TrackedRecordHandle | null = null;
+  /**
+   * The visual row the waited-on record had when the validator answered: a number, `null` when the record is
+   * gone or not rendered, or `undefined` when no answer was recorded. Read once by `discardEditor()`.
+   */
+  #answeredRow: number | null | undefined = undefined;
 
   /**
    * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on its
@@ -644,14 +656,61 @@ export class BaseEditor {
 
       this.#validationWait = null;
       this.#validationWaitListener = null;
+      this.#answeredRow = this.#readWaitRecordRow();
+      this.#releaseWaitRecord();
       this.state = EDITOR_STATE.FINISHED;
       onAnswer(result);
     };
 
     this.#removeValidationWaitListener();
+    this.#releaseWaitRecord();
+    this.#answeredRow = undefined;
+    this.#waitRecord = this.row === null ? null : this.hot._trackRecord(this.row);
     this.#validationWait = wait;
     this.#validationWaitListener = onPostAfterValidate;
     this.hot.addHook('postAfterValidate', onPostAfterValidate);
+  }
+
+  /**
+   * Reads the visual row the waited-on record has now: `null` when the record is gone, trimmed out of the visual
+   * space, or hidden (not rendered), and `undefined` when no record is followed.
+   *
+   * @returns {number|null|undefined}
+   */
+  #readWaitRecordRow(): number | null | undefined {
+    if (this.#waitRecord === null) {
+      return undefined;
+    }
+
+    const row = this.#waitRecord.getVisualRow();
+
+    return row === null || this.hot.rowIndexMapper.getRenderableFromVisualIndex(row) === null ? null : row;
+  }
+
+  /**
+   * Points the open editor at the row its record moved to while it waited for the validator, so the next confirm
+   * writes to that record. The value the editor holds stays; the cell, its meta and its position are read again.
+   *
+   * @param {number} row The visual row the record has now.
+   * @param {number} col The visual column of the edited cell.
+   */
+  #moveToRow(row: number, col: number): void {
+    const td = this.hot.getCell(row, col, true);
+
+    this.prepare(row, col, this.prop!, td ?? this.TD!, this.originalValue,
+      this.hot.getCellMeta(row, col));
+
+    if ('refreshDimensions' in this && typeof this.refreshDimensions === 'function') {
+      this.refreshDimensions();
+    }
+  }
+
+  /**
+   * Stops following the waited-on record.
+   */
+  #releaseWaitRecord(): void {
+    this.#waitRecord?.release();
+    this.#waitRecord = null;
   }
 
   /**
@@ -687,6 +746,7 @@ export class BaseEditor {
     this._closeCallback = null;
     this.#validationWait = null;
     this.#removeValidationWaitListener();
+    this.#releaseWaitRecord();
     this.cancelChanges();
 
     return closeCallback ? () => closeCallback(false) : null;
@@ -703,6 +763,11 @@ export class BaseEditor {
   /**
    * Verifies result of validation or closes editor if user's canceled changes.
    *
+   * A value the validator rejected under `allowInvalid: false` reopens the editor on the record the value was
+   * typed into, at the visual row that record has when the validator answers (a sort, a move, a filter, or an
+   * insert or removal can move it while the editor waits). When the record is gone, trimmed out of the visual
+   * space, or hidden, the editor closes instead: nothing was written, and no cell of that record is on screen.
+   *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
    */
@@ -711,13 +776,23 @@ export class BaseEditor {
       return;
     }
 
+    const answeredRow = this.#answeredRow;
+
+    this.#answeredRow = undefined;
+
     // validator was defined and failed
-    if (result === false && this.cellProperties.allowInvalid !== true) {
-      if (this.row === null || this.col === null) {
+    if (result === false && this.cellProperties.allowInvalid !== true && answeredRow !== null) {
+      const row = answeredRow ?? this.row;
+
+      if (row === null || this.col === null) {
         return;
       }
 
-      this.hot.selectCell(this.row, this.col);
+      if (row !== this.row) {
+        this.#moveToRow(row, this.col);
+      }
+
+      this.hot.selectCell(row, this.col);
       this.focus();
       this.state = EDITOR_STATE.EDITING;
       this._fireCallbacks(false);

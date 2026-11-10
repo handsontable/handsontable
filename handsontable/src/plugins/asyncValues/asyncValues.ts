@@ -3522,7 +3522,7 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
-    this.#onCellsChanged(changes.map(change => [this.hot.toPhysicalRow(change[0]), change[1], change]), source);
+    this.#onCellsChanged(changes.map(change => [this.hot._getChangePhysicalRow(change), change[1], change]), source);
   };
 
   /**

@@ -1291,12 +1291,29 @@ class DataMap {
    * @param {string} value The value to set.
    */
   set(row: number, prop: string | number | DataAccessorFn | null, value: unknown) {
+    this.setAtPhysicalRow(this.hot!.toPhysicalRow(row), prop, value, row);
+  }
+
+  /**
+   * Saves single value to the data array, at a physical row. A change that waited for its validator is
+   * written this way, to the record it was made on, which a trimming map may have taken out of the visual
+   * space meanwhile.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
+   *   function, or `null` when the caller's column index named no column (see `colToProp()`).
+   * @param {string} value The value to set.
+   * @param {number|null} row The visual row index the `modifyData` hook receives (`null` for a row the visual
+   *   space does not hold).
+   */
+  setAtPhysicalRow(
+    physicalRow: number, prop: string | number | DataAccessorFn | null, value: unknown, row: number | null,
+  ) {
     // No column, nothing to write. Falling through would add a literal `"null"` key to the row.
     if (this.#namesNoColumn(prop)) {
       return;
     }
 
-    const physicalRow = this.hot!.toPhysicalRow(row);
     let newValue = value;
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
     // TODO: To remove, use 'modifyData' hook instead (see below)

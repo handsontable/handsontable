@@ -123,8 +123,9 @@ Everything about that machinery is load-bearing:
   tell the same records from other ones, so an `updateData()` with other records keeps them too and they sort
   those records, the same way core still writes the waiting edit into them. The wait still resolves on
   the next `postAfterValidate` of any cell, so an unrelated validation that answers first sorts the rows before
-  the edit lands, and the edit is written by visual row onto another record. That is a core defect, and once
-  core keeps a waiting change on its record this wait can go.
+  the edit lands. Core keeps a waiting change on its record, so the edit still lands on the right record then;
+  the wait stays because ColumnSorting never sorts again after an edit, and a sort made before the value lands
+  orders the rows by the old value.
 
 `applyHeaderClickSort(press)` is the extension seam: MultiColumnSorting overrides it to build a different
 sort config for the same gesture without repeating any of the click-versus-drag handling.

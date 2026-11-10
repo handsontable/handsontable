@@ -1401,12 +1401,17 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Queues the visual row indexes affected by the incoming changes so their heights are
-   * recalculated on the next render.
+   * recalculated on the next render. A change whose row is `null` landed on a record a trimming map took out
+   * of the visual space while the change waited for its validator, so it has no row to measure.
    */
   #onBeforeChange = (changes: unknown[][]) => {
     const changedRows = new Set<number>();
 
     changes.forEach(([row, prop]: unknown[]) => {
+      if (row === null) {
+        return;
+      }
+
       changedRows.add(Number(row));
 
       // A block drawn on a covered cell takes its text from its top-left cell, so a change there is a change
