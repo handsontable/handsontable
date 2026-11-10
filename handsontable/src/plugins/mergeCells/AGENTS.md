@@ -257,6 +257,31 @@ value again. A value set through the `cells` or `columns` option survives, becau
 the cell's own key. Restoring the user's value would mean remembering it before that overwrite, which runs
 on every meta read — not done.
 
+**The cell a merge is drawn from is cleaned of covered flags at every re-anchor.** `afterGetCellMeta` writes
+`hidden`/`copyable: false` on a covered cell and `rowspan`/`colspan`/`spanned` on the top-left, and it only ever
+sets. When a trim or a filter removes the first rows of a merge, the first row that stays visible was covered a
+moment ago, so its stored meta still holds `hidden` once it is the top-left. AutoRowSize skips every cell with
+`hidden`, so the text written into that cell was never measured and the row headers came out shorter than their
+rows (DEV-3971). `#reanchorMergesToVisibleRows` calls `#clearCoveredFlagsOfTopLeftCell` for every merge that has
+a visible top-left, and it removes `hidden` and `copyable` there through the meta manager (by physical index, no
+hooks). Four rules keep it narrow:
+
+- **It acts only where `hidden` is an own stored key.** `hidden` marks a cell a merge covered, and the hook wrote
+  `copyable` beside it. A top-left that was never covered keeps a `copyable: false` the user set, which matters
+  because a relocation also happens when only the span changes (the last row of the merge trimmed). One that was
+  covered loses its `copyable`, as in the cleanup above: the hook had overwritten it already.
+- **It is not gated on a relocation.** A new top-left can leave the merge's derived geometry as it was: swap the
+  trimmed row in one cache update (the visual row and the span stay), or remove the merge's first row with
+  `alter('remove_row')` (the physical rows renumber). Neither queues a relocation, and both left `hidden` on the
+  new top-left while the gate was there.
+- **It does not live in `afterGetCellMeta`.** That hook runs on every meta read; clearing there would delete a
+  user's `copyable` on every read and pay for the check on every cell.
+- **It costs one meta manager lookup per merge per re-anchor**, next to the pass over the merge's anchor rows
+  that the re-anchor makes already, and no lookup in the merge collection, so the counts pinned by
+  `__tests__/mergeCountScaling.unit.js` stay flat.
+
+Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
+
 **While rows are trimmed, `updatePlugin()` keeps the merge of an area it cannot place.** Settings describe
 visual positions. An area that fits the rows on screen is applied to them, exactly as before and as the
 guide documents (values a filter brought under it are cleared) — an application that computes its merges

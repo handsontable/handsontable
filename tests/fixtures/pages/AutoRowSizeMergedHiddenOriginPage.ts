@@ -10,6 +10,7 @@ export interface GridSettings {
   hiddenColumns?: { columns: number[] } | boolean;
   colWidths?: number | number[];
   trimRows?: boolean;
+  filters?: boolean;
   height?: number;
   dataRows?: number;
 }
@@ -82,6 +83,32 @@ export class AutoRowSizeMergedHiddenOriginPage {
       fixtureWindow.hot.setDataAtCell(row, col, value);
     }, [settings, mergeText] as const);
     await expect(this.page.getByTestId('grid').locator('.ht_master td').first()).toBeVisible();
+  }
+
+  /**
+   * Rebuilds the grid with the given settings and writes no text, for a case that hides or filters rows
+   * first and writes the text after.
+   */
+  async buildWithoutText(settings: GridSettings): Promise<void> {
+    await this.page.evaluate((gridSettings) => {
+      (window as unknown as FixtureWindow).buildGrid(gridSettings);
+    }, settings);
+    await expect(this.page.getByTestId('grid').locator('.ht_master td').first()).toBeVisible();
+  }
+
+  /**
+   * Filters out the rows of a column that hold the given value (`neq`), then renders. Needs the grid built
+   * with `filters: true`.
+   */
+  async filterOutValue(column: number, value: string): Promise<void> {
+    await this.page.evaluate(([col, val]) => {
+      const { hot } = window as unknown as FixtureWindow;
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(col as number, 'neq', [val as string]);
+      filters.filter();
+      hot.render();
+    }, [column, value] as const);
   }
 
   /**
