@@ -2925,13 +2925,15 @@ export class SheetsBar extends BasePlugin {
    * Returns the rows a sheet added without data starts with: empty object rows (`createEmptyObjectRows()`)
    * while the sheet would show with NestedRows on, which takes an array of objects only and turns itself off
    * for the rest of the session on an array of arrays, else the blank grid of `createEmptySheetData()`. When
-   * neither `columns` nor `dataSchema` names the columns, the rows get the keys of the first row the grid
-   * shows: the grid reads the columns of object rows from them, and empty objects gave a sheet no columns.
+   * neither `columns` nor `dataSchema` names the columns, the rows get the keys of `templateRow`, or of the
+   * first row the grid shows when that is not an object: the grid reads the columns of object rows from them,
+   * and empty objects gave a sheet no columns.
    *
    * @param {object} [settings] The new sheet's own settings.
+   * @param {*} [templateRow] The row to take the keys from before the grid shows any sheet's rows.
    * @returns {Array|undefined} The object rows, or `undefined` for the model's blank grid.
    */
-  #blankSheetData(settings?: Record<string, unknown>): unknown[] | undefined {
+  #blankSheetData(settings?: Record<string, unknown>, templateRow?: unknown): unknown[] | undefined {
     const own = settings ?? {};
     const valueOf = (key: string) => (Object.prototype.hasOwnProperty.call(own, key)
       ? own[key]
@@ -2943,9 +2945,11 @@ export class SheetsBar extends BasePlugin {
 
     const namesColumns = valueOf('columns') !== undefined && valueOf('columns') !== null
       || valueOf('dataSchema') !== undefined && valueOf('dataSchema') !== null;
-    const firstRow = namesColumns ? undefined : this.#getLiveSourceData()?.[0];
+    const firstRow = namesColumns
+      ? undefined
+      : [templateRow, this.#getLiveSourceData()?.[0]].find(row => isPlainObject(row));
 
-    return createEmptyObjectRows(undefined, isPlainObject(firstRow) ? firstRow as Record<string, unknown> : undefined);
+    return createEmptyObjectRows(undefined, firstRow as Record<string, unknown> | undefined);
   }
 
   /**
@@ -3540,10 +3544,7 @@ export class SheetsBar extends BasePlugin {
       : plan.entries.findIndex(entry => isSameSheetName(entry.name, detachedTab));
 
     return {
-      entries: plan.entries.map(entry => ({
-        ...entry,
-        data: entry.data ?? this.#blankSheetData(entry.settings),
-      })),
+      entries: plan.entries,
       openingIndex: plan.openingIndex,
       dataIndex: dataIndex === -1 ? null : dataIndex,
       ignoresData,
@@ -3608,7 +3609,10 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Builds a workbook from sheet entries: the host's `sheets` array (`declared`, so the bar writes into it),
-   * or the tabs read from a formula engine. `activeIndex` is the opening sheet's position in the entries.
+   * or the tabs read from a formula engine. `activeIndex` is the opening sheet's position in the entries. An
+   * entry without `data` starts with the rows `addSheet()` gives a new sheet (`#blankSheetData()`), keyed
+   * like the opening sheet's rows, the ones the grid shows first (the first entry's when `activeIndex` names
+   * no entry, as the opening sheet falls back to it).
    *
    * @param {Array} entries The sheet entries.
    * @param {boolean} declared Whether the entries are the host's `sheets` array.
@@ -3620,8 +3624,11 @@ export class SheetsBar extends BasePlugin {
     this.#declaredEntries = new Map();
     this.#physicalOrder = [];
 
+    const openingRow = (entries[activeIndex] ?? entries[0])?.data?.[0];
+
     entries.forEach((entry) => {
-      const sheet = model.addSheet(entry.name ?? null, entry.data ?? undefined, entry.settings);
+      const data = entry.data ?? this.#blankSheetData(entry.settings, openingRow);
+      const sheet = model.addSheet(entry.name ?? null, data, entry.settings);
 
       if (declared) {
         this.#declaredEntries.set(sheet.id, entry);
