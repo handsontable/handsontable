@@ -145,7 +145,7 @@ test('direct links to the legacy angular-data-grid path still collapse to the un
 // Keep in sync with VUE3_LEGACY_PAGES in _worker.js.
 // 'vue3-custom-id-class-style' is deliberately omitted here and exercised
 // separately below: its *unversioned* form is intercepted by the
-// crossFramework map (rule 6) ahead of this map, since the current docs
+// CROSS_FRAMEWORK_PAGES map (rule 6) ahead of this map, since the current docs
 // unified it into an all-framework 'custom-id-class-style' page. Its
 // *versioned* form still needs the entry in VUE3_LEGACY_PAGES, because frozen
 // historical doc versions never received that rename.
