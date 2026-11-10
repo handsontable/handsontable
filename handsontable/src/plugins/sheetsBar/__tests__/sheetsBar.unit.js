@@ -1948,6 +1948,24 @@ describe('SheetsBar plugin', () => {
     expect(hot.getSettings().renderAllRows).toBe(true);
   });
 
+  it('switches sheets from an `afterInit` listener when the opening sheet set an init-only option', () => {
+    expect(() => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a']], settings: { renderAllRows: true } },
+            { name: 'B', data: [['b']] },
+          ],
+        },
+        afterInit() {
+          this.getPlugin('sheetsBar').setActiveSheet('B');
+        },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+    }).not.toThrow();
+    expect(hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive).name).toBe('B');
+  });
+
   it('turns the bar off after an opening sheet set an init-only option, and keeps the option', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']], settings: { renderAllRows: true } }] },

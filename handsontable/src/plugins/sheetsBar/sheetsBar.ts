@@ -1947,7 +1947,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     const restored: Record<string, unknown> = {};
-    const initOnlyOptions = this.#initOnlyOptions();
+    const initOnlyOptions = this.#initOnlyOptionNames();
 
     this.#settingsBaseline.forEach((value, key) => {
       if (
@@ -4412,7 +4412,7 @@ export class SheetsBar extends BasePlugin {
     });
 
     const restored: Record<string, unknown> = {};
-    const initOnlyOptions = this.#initOnlyOptions();
+    const initOnlyOptions = this.#initOnlyOptionNames();
 
     this.#settingsBaseline.forEach((value, key) => {
       // An init-only option the opening sheet set is in the baseline, and the grid holds it for good.
@@ -4444,10 +4444,17 @@ export class SheetsBar extends BasePlugin {
    * @returns {string[]}
    */
   #initOnlyOptions(): string[] {
-    if (!this.hot._getMetaManager().isInitialized()) {
-      return [];
-    }
+    return this.hot._getMetaManager().isInitialized() ? this.#initOnlyOptionNames() : [];
+  }
 
+  /**
+   * Lists the names of the init-only options, whether or not the grid has finished initializing. The
+   * settings baseline skips them at any time: the grid never changes them after the opening sheet applied
+   * its own, so there is nothing to restore, even for a switch made from an `afterInit` listener.
+   *
+   * @returns {string[]}
+   */
+  #initOnlyOptionNames(): string[] {
     return ((this.hot.getSettings() as Record<string, unknown>)._initOnlySettings ?? []) as string[];
   }
 
