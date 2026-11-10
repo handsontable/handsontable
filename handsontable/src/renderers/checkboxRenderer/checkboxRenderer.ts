@@ -274,8 +274,7 @@ export function checkboxRenderer(
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
-        !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
+      runOnlyIf: (): boolean => canAccessCellContent(hotInstance) && isCellContentSelected(),
     }, {
       keys: [['enter']],
       callback: () => {
@@ -303,6 +302,34 @@ export function checkboxRenderer(
       runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
         !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
     }], config);
+  }
+
+  /**
+   * Whether the active selection layer holds cells the toggle can write. That is a layer whose focus is on
+   * a cell, or one made through a column or row header, or the corner, where `navigableHeaders` parks the
+   * focus on the header although the range covers the cells under it. A lone header cell holds no cell.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  function isCellContentSelected(): boolean {
+    const { selection } = hotInstance;
+    const highlight = hotInstance.getSelectedRangeActive()?.highlight;
+
+    if (!highlight) {
+      return false;
+    }
+
+    if (highlight.isCell()) {
+      return true;
+    }
+
+    // The header flags are kept per layer, and the highlight belongs to the active one.
+    const layer = selection.getActiveSelectionLayerIndex();
+
+    return highlight.isHeader() && (
+      selection.isSelectedByColumnHeader(layer) || selection.isSelectedByRowHeader(layer) ||
+      selection.isSelectedByCorner());
   }
 
   /**
