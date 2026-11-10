@@ -93,12 +93,18 @@ describe('Core: init-only options in the first `updateSettings()` call', () => {
     expect(() => {
       createGrid({ columns: [{ data: 0, ariaTags: false }, { data: 1 }, { data: 2 }] });
     }).not.toThrow();
+
+    expect(hot.getCellMeta(0, 0).ariaTags).toBe(false);
+    expect(hot.getCellMeta(0, 1).ariaTags).toBe(true);
   });
 
   it('should accept an init-only option in the `cell` option while the grid is created', () => {
     expect(() => {
       createGrid({ cell: [{ row: 0, col: 0, ariaTags: false }] });
     }).not.toThrow();
+
+    expect(hot.getCellMeta(0, 0).ariaTags).toBe(false);
+    expect(hot.getCellMeta(0, 1).ariaTags).toBe(true);
   });
 
   it('should accept an update from a `beforeInit` listener, because the grid is still being built', () => {
@@ -109,6 +115,8 @@ describe('Core: init-only options in the first `updateSettings()` call', () => {
         },
       });
     }).not.toThrow();
+
+    expect(hot.getSettings().renderAllRows).toBe(true);
   });
 
   it('should still accept the value the grid was created with', () => {
