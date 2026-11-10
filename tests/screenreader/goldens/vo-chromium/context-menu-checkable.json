@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "context-menu-checkable",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:56:16.643Z"
+  },
+  "steps": {
+    "open-menu": "insert row above menu item group table",
+    "read-next-item": "",
+    "read-next-separator": "",
+    "end-to-borders": "borders collapsed menu item group table",
+    "up-to-cut": "cut menu item group table",
+    "up-to-copy": "copy menu item group table",
+    "up-to-read-only-comment": "read only comment checked menu item group table"
+  }
+}

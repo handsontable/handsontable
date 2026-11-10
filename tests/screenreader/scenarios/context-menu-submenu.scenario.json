@@ -21,13 +21,13 @@
       "id": "down-to-alignment",
       "action": {"press": "ArrowDown"},
       "expect": [["alignment"], ["submenu", "sub menu", "collapsed"]],
-      "note": "The setup opens the context menu on A1 and moves the highlight to Read only; ArrowDown highlights Alignment, the parent of a submenu (aria-haspopup, aria-expanded false). Required: its label, and that it opens a submenu."
+      "note": "The setup opens the context menu on A1 and moves the highlight to Read only; ArrowDown highlights Alignment, the parent of a submenu (aria-haspopup, aria-expanded false). Required: its label, and that it opens a submenu: every reader says `collapsed`."
     },
     {
       "id": "open-submenu",
       "action": {"press": "ArrowRight"},
       "expect": [["left"]],
-      "note": "ArrowRight opens the submenu with its first item, Left, highlighted."
+      "note": "ArrowRight opens the submenu with its first item, Left, highlighted; NVDA reads `table. Left`. Finding: VoiceOver reads the parent item again, `Alignment expanded menu item`, and not the item the focus moved to, on both browsers."
     },
     {
       "id": "down-to-center",
@@ -38,14 +38,14 @@
       "id": "close-submenu",
       "action": {"press": "ArrowLeft"},
       "expect": [["alignment"]],
-      "note": "ArrowLeft closes the submenu, and the highlight should return to its parent item, Alignment."
+      "note": "ArrowLeft closes the submenu, and the highlight should return to its parent item, Alignment. Finding: the focus falls to the document. The parent menu takes the keys again (`listen()`), but nothing focuses its Alignment item, so every reader reads the page's title as a document (`Context menu checked items e2e fixture, document`)."
     },
     {
       "id": "close-menu",
       "action": {"press": "Escape"},
       "after": {"hidden": ".htContextMenu .ht_master .htCore tbody td"},
       "expect": [["a1"]],
-      "note": "Escape closes the context menu, and the focus should return to the grid's A1."
+      "note": "Escape closes the context menu, and the focus should return to the grid's A1. Finding: no reader says anything: the focus is still on the document the previous step left it on."
     }
   ]
 }
