@@ -7,9 +7,14 @@ It is a **shared surface an application legitimately uses**, and that shapes eve
 
 ## Root instances only
 
-`isEnabled()` is `isRootInstance(this.hot) && !!getSettings()[PLUGIN_KEY]`. A nested grid (the
-`handsontable` cell type) never gets a dialog. `../emptyDataState/`, `../notification/` and `../loading/`
-all gate the same way.
+`isEnabled()` is `isRootInstance(this.hot) && (!!getSettings()[PLUGIN_KEY] || hot._isPluginRequired(PLUGIN_KEY))`.
+A nested grid (the `handsontable` cell type) never gets a dialog. `../emptyDataState/`, `../notification/` and
+`../loading/` all gate the same way.
+
+- **`isEnabled()` also answers `true` while another plugin requires Dialog** (core's `_isPluginRequired('dialog')`,
+  see "A plugin that needs another plugin running" in `../base/AGENTS.md`). Loading requires it while enabled, so
+  `getSettings().dialog` can be `false` on an enabled Dialog. Code that asks whether Dialog runs reads
+  `plugin.enabled`, never the option. Dialog does not know who requires it; keep it that way.
 
 ## It lives in `ht-overlay`, not in a layout slot
 
