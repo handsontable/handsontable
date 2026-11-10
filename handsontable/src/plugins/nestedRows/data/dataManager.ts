@@ -950,6 +950,50 @@ class DataManager {
       atAxisEnd: physicalRow === this.hot.rowIndexMapper.getNumberOfIndexes() - 1,
     });
     this.hot._getMetaManager().createRow(physicalRow, 1);
+    // The index-mapper insert before this one is not always at the row's physical index (the parent branch of
+    // `addChildAtIndex()` passes a position inside the parent, or one past the last row), so the declared row
+    // heights are moved to it, and a row that does not end the rows gets no entry.
+    this.hot._alignInsertedRowSizes(physicalRow, 1);
+  }
+
+  /**
+   * Captures, by row object, which entry of an array `rowHeights` or `minRowHeights` each row was declared
+   * at, for a hand-built change that renumbers rows without the index mapper (a detach, a row move). The
+   * index mapper keeps those entries on their rows for an insert or a removal, but a rewrite of the tree
+   * moves the data under fixed physical indexes, so the entries have to follow the row objects.
+   *
+   * @returns {Function|null} Puts each row's entry back at the row's new physical index; `null` when neither
+   * option is an array.
+   */
+  captureRowSizeOrigins(): (() => void) | null {
+    const origins = this.hot._readRowSizeOrigins();
+
+    if (origins === null) {
+      return null;
+    }
+
+    // The cache lists every row object by its physical index, so a copy of it needs no walk of the tree.
+    const rows: (RowObject | null)[] = this.cache.rows.slice();
+
+    return () => {
+      const moved = new Map<'rowHeights' | 'minRowHeights', unknown[]>();
+
+      origins.forEach((values, option) => {
+        const next: unknown[] = new Array(values.length).fill(null);
+
+        rows.forEach((row, physicalRow) => {
+          const newPhysicalRow = row === null ? null : this.getRowIndex(row);
+
+          if (newPhysicalRow !== null && newPhysicalRow < next.length) {
+            next[newPhysicalRow] = values[physicalRow] ?? null;
+          }
+        });
+
+        moved.set(option, next);
+      });
+
+      this.hot._writeRowSizeOrigins(moved);
+    };
   }
 
   /**
@@ -1243,9 +1287,14 @@ class DataManager {
     // condition, free to drift away from the one the data operation is gated on.
     let hasMovedTheRow = false;
 
+    // Captured only for a detach that moves the row, which is the only one the restore below runs for.
+    let restoreRowSizeOrigins: (() => void) | null = null;
+
     this.hot.runHooks('beforeDetachChild', parent, element, source);
 
     if (indexWithinParent !== null && indexWithinParent !== undefined) {
+      restoreRowSizeOrigins = this.captureRowSizeOrigins();
+
       const removedRowIndexes = Array.from(
         new Array(childRowIndex + childCount + 1).keys()
       ).splice(-1 * (childCount + 1));
@@ -1297,6 +1346,7 @@ class DataManager {
       // arithmetically from the grandparent position, and a sibling that owns descendants breaks
       // the formula.
       this.moveCellsMeta(childPhysicalIndex, this.getRowIndex(element), childCount + 1);
+      restoreRowSizeOrigins?.();
     }
 
     this.hot.runHooks('afterCreateRow', movedElementRowIndex! - 2, childCount + 1, source);
