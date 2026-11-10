@@ -426,7 +426,14 @@ describe('Formulas enabled on a live grid', () => {
         hot.suspendRender();
         hot.updateSettings({ formulas: false });
         hot.updateSettings({ formulas: { engine, sheetName: 'S' } });
+
+        const moveRowsSpy = jest.spyOn(engine, 'moveRows');
+
         hot.getPlugin('manualRowMove').moveRows([3], 0);
+
+        // Only a syncer that points at the sheet sends the move; without the endpoint it was dropped.
+        expect(moveRowsSpy).toHaveBeenCalledTimes(1);
+
         hot.resumeRender();
 
         expect(warnSpy).not.toHaveBeenCalled();
