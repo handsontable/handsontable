@@ -690,10 +690,10 @@ describe('Formulas reload of a moved sheet-built grid', () => {
     }
   });
 
-  // Known limit, pinned (see "A reload of the sheet the syncers are synced with keeps the grid's order" in
-  // `../AGENTS.md`): the reload resets ColumnSorting's state, so the rows stay in the sorted order with no
-  // sort config, and `clearSort()` cannot bring the manual order back. A grid built with `data` keeps its sort.
-  it('keeps the sorted rows but drops the sort state of a moved sheet-built grid on a reload (known limit)', () => {
+  // A reload keeps ColumnSorting's state, as a grid built with `data` does: the sort config, and the manual order
+  // `clearSort()` goes back to (see "A reload of the sheet the syncers are synced with keeps the grid's order" in
+  // `../AGENTS.md`). It used to drop the config and keep the rows sorted.
+  it('keeps the sort state of a moved sheet-built grid on a reload, and clears back to the manual order', () => {
     const engine = buildEngine();
 
     hot = new Handsontable(container, {
@@ -706,13 +706,13 @@ describe('Formulas reload of a moved sheet-built grid', () => {
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
     hot.updateSettings({});
 
-    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
     expect(hot.getData()).toEqual([['a', 1, 2], ['b', 2, 4], ['c', 3, 6]]);
 
     hot.getPlugin('columnSorting').clearSort();
 
-    // A grid built with `data` goes back to the manual order `c, b, a` here.
-    expect(hot.getData()).toEqual([['a', 1, 2], ['b', 2, 4], ['c', 3, 6]]);
+    expect(hot.getData()).toEqual([['c', 3, 6], ['b', 2, 4], ['a', 1, 2]]);
+    expect(readEngineThroughGrid()).toEqual(hot.getData());
   });
 
   it.each([

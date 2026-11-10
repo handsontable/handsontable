@@ -441,6 +441,11 @@ interface ReloadAxis {
    * The grid's order to put back after the load; empty for the identity.
    */
   previousSequence: number[];
+  /**
+   * Whether the recorded order no longer describes the engine sheet, so the axis is read as the engine holds
+   * it and the grid shows it in that order.
+   */
+  stale: boolean;
 }
 
 interface EngineSheetSnapshot {
@@ -2008,7 +2013,11 @@ export class Formulas extends BasePlugin {
     const loadsData = serialized.length > 0;
 
     if (reload !== null && loadsData) {
-      this.#reloadKeepingOrder(serialized, reload);
+      if (reload.row.stale || reload.column.stale) {
+        this.#reloadKeepingOrder(serialized, reload);
+      } else {
+        this.#reloadInPlace(serialized);
+      }
 
       return;
     }
@@ -2027,7 +2036,36 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Reloads the sheet the order syncers are synced with, keeping the grid's row and column order. A grid
+   * Reloads the sheet the order syncers are synced with through `updateData()`, which keeps the grid's state:
+   * the index maps (row and column order, a sort, moves, hidden lines, manual sizes, with `fitToLength()` for
+   * lines the sheet gained or lost), the sort plugins' state, the cell meta, and every change still waiting for
+   * its validator, which the Core then writes at its coordinates of the reloaded rows. The rows come in physical
+   * order (`#toPhysicalOrder()`, done by the caller) and the grid keeps its order, so the syncers' engine order
+   * still describes the engine sheet and nothing is sent to the engine. ManualRowMove and ManualColumnMove
+   * re-apply their arrays on `afterLoadData` only, so they do not move the rows again. A `loadData()` here
+   * dropped a waiting edit and reset the sort state while the order put back kept the rows sorted.
+   *
+   * The engine's formula text is in the engine's order, so with the order not physical the loaded source data
+   * holds text the engine would write differently in physical order: `#sourceHasStaleFormulas` records it.
+   *
+   * @param {Array<Array<*>>} data The sheet content, in physical order.
+   */
+  #reloadInPlace(data: unknown[][]): void {
+    this.hot.updateData(data, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+
+    // A listener can have destroyed the grid or turned the plugin off during the update.
+    if (!this.enabled || this.hot.isDestroyed) {
+      return;
+    }
+
+    if (!this.rowAxisSyncer!.isEngineOrderPhysical() || !this.columnAxisSyncer!.isEngineOrderPhysical()) {
+      this.#sourceHasStaleFormulas = this.#sourceHasStaleFormulas || this.#engineHoldsFormula();
+    }
+  }
+
+  /**
+   * Reloads the sheet the order syncers are synced with, keeping the grid's row and column order, when the
+   * recorded order of an axis no longer describes the engine sheet (`#planReloadAxis()`). A grid
    * built from an engine sheet without `data` reloads it on every `updateSettings()`. The engine holds the
    * sheet in the grid's order, and the load resets the grid's order, after which ManualRowMove and
    * ManualColumnMove re-apply their arrays in `afterLoadData`. Read as the engine holds it and taken as
@@ -2154,7 +2192,7 @@ export class Formulas extends BasePlugin {
     const previousSequence = indexMapper.getIndexesSequence();
 
     if (syncer.isEngineOrderPhysical()) {
-      return { order, elements: null, previousSequence };
+      return { order, elements: null, previousSequence, stale: false };
     }
 
     const gridLength = indexMapper.getNumberOfIndexes();
@@ -2166,11 +2204,12 @@ export class Formulas extends BasePlugin {
           order: { sequence: [], fillSequence: null, paddedElements: [], orderShifts: [] },
           elements: null,
           previousSequence: [],
+          stale: true,
         };
       }
     }
 
-    return { order, elements, previousSequence };
+    return { order, elements, previousSequence, stale: false };
   }
 
   /**

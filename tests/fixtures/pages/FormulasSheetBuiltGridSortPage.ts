@@ -22,11 +22,12 @@ export class FormulasSheetBuiltGridSortPage {
    * Open the fixture and wait for the bundle.
    *
    * @param rowMove `'array'` builds the grid with `manualRowMove: [2, 0, 1]`.
+   * @param validator `'held'` gives column B a validator that holds its callback until `answerValidations()`.
    */
-  async goto(rowMove: 'none' | 'array' = 'none'): Promise<void> {
+  async goto(rowMove: 'none' | 'array' = 'none', validator: 'none' | 'held' = 'none'): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/formulas-sheet-built-grid-sort.html?theme=${this.theme}&bundle=${this.bundle}`
-        + `&rowMove=${rowMove}`
+        + `&rowMove=${rowMove}&validator=${validator}`
     );
     await awaitBundle(this.page);
   }
@@ -51,6 +52,40 @@ export class FormulasSheetBuiltGridSortPage {
    */
   async updateSettingsWithNothing(): Promise<void> {
     await this.page.evaluate(() => window.hot.updateSettings({}));
+  }
+
+  /**
+   * How many validator calls of column B wait for their answer.
+   */
+  async heldValidationCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { heldValidations: unknown[] }).heldValidations.length);
+  }
+
+  /**
+   * Answers every validator call of column B that waits.
+   *
+   * @param valid The answer.
+   */
+  async answerValidations(valid: boolean): Promise<void> {
+    await this.page.evaluate((answer) => {
+      const held = (window as unknown as { heldValidations: Array<(value: boolean) => void> }).heldValidations;
+
+      held.splice(0).forEach(callback => callback(answer));
+    }, valid);
+  }
+
+  /**
+   * `getSortConfig()` of the ColumnSorting plugin, read in the page.
+   */
+  async sortConfig(): Promise<unknown> {
+    return this.page.evaluate(() => window.hot.getPlugin('columnSorting').getSortConfig());
+  }
+
+  /**
+   * `clearSort()` of the ColumnSorting plugin, run in the page.
+   */
+  async clearSort(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('columnSorting').clearSort());
   }
 
   /** `getDataAtCol()`, read in the page. */

@@ -20,11 +20,12 @@ Consequence: a grid configured with an array reverts a row the user had since dr
 runs again. The manual *resize* plugins hit the same class of problem and document it in detail —
 `../../utils/manualResize/AGENTS.md`.
 
-One loader cancels the replay on purpose: Formulas reloading the engine sheet a grid built without `data` is
-bound to (every `updateSettings()`). The rows it loads already stand in the moved order, so it holds the replay
-from the engine and puts the grid's previous order back after the load (`../formulas/AGENTS.md`, "A reload of
-the sheet the syncers are synced with keeps the grid's order"). It reads this plugin's state through nothing
-but the index mapper; the same holds for ManualColumnMove.
+Formulas reloading the engine sheet a grid built without `data` is bound to (every `updateSettings()`) does
+not trigger the replay: it reloads through `updateData()`, which keeps the index maps and fires no
+`afterLoadData`. Only when the host shrank the sheet behind the grid's back does it fall back to `loadData()`,
+and then it holds the replay from the engine and puts the grid's previous order back after the load
+(`../formulas/AGENTS.md`, "A reload of the sheet the syncers are synced with keeps the grid's order"). It reads
+this plugin's state through nothing but the index mapper; the same holds for ManualColumnMove.
 
 ## A press another listener claimed arms no move
 

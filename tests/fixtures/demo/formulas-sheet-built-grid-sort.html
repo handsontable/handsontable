@@ -31,6 +31,12 @@
     if (window.htRowMove === undefined) {
       throw new Error('Unknown ?rowMove= value: ' + JSON.stringify(htParams.get('rowMove')));
     }
+    // An optional validator on column B that holds its callback until the spec answers it, same rule.
+    window.htHeldValidator = ({ none: false, held: true })[htParams.get('validator') ?? 'none'];
+    if (window.htHeldValidator === undefined) {
+      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
+    }
+    window.heldValidations = [];
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
@@ -74,6 +80,13 @@
       formulas: { engine, sheetName },
       columnSorting: true,
       manualRowMove: window.htRowMove,
+      // `allowInvalid: false`: a change to B waits for the answer before it lands.
+      cells: (row, col) => (window.htHeldValidator && col === 1 ? {
+        allowInvalid: false,
+        validator(value, callback) {
+          window.heldValidations.push(callback);
+        },
+      } : {}),
       width: 400,
       height: 160,
       rowHeaders: true,
