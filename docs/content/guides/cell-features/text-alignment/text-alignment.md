@@ -99,7 +99,7 @@ Select one or more cells, right-click to open the context menu, and choose an op
 - Horizontal: **Left**, **Center**, **Right**, **Justify**
 - Vertical: **Top**, **Middle**, **Bottom**
 
-Each option sets the matching CSS class name (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`) on the selected cells, and fires the [`beforeCellAlignment`](@/api/hooks.md#beforecellalignment) hook before applying the change.
+Each option sets the matching CSS class name (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`) on the selected cells, and fires the [`beforeCellAlignment`](@/api/hooks.md#beforecellalignment) hook before applying the change. The hook's `stateBefore` argument holds the alignment class names each cell had, and leaves out the cell's other class names.
 
 ### Undo and redo alignment changes
 

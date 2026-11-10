@@ -87,10 +87,8 @@ Four rules, all visible in `#onAfterGetCellMeta`:
   `getUserDefinedMetas()` re-reads `className` at `updateSettings` time. Compare-before-assign cannot catch
   either, because an array is always `!==` its joined form. This was deliberately declined on PR #13235 and
   taken in DEV-2618, once `contextMenu`'s alignment *helpers* stopped casting `className` to a string in
-  #13266 — leaving arrays in cell meta is safe because nothing in `src/` string-operates the value. Two
-  caveats that go with that. `predefinedItems/alignment.ts` still casts `as string` at seven call sites, so
-  an array now reaches the public `beforeCellAlignment` payload on a hiding-plugin grid (it always did on a
-  grid without one). And **the two unconditional writes in `numericRenderer` and `search` are still there** —
+  #13266 — leaving arrays in cell meta is safe because nothing in `src/` string-operates the value. One
+  caveat goes with that. **The two unconditional writes in `numericRenderer` and `search` are still there** —
   both predate this and are tracked in DEV-2803.
 - **Match a marker class by token, not substring.** `indexOf` on the joined string treats a user class named
   `afterHiddenColumnHighlight` as the marker already being present, so the real marker never gets added.
