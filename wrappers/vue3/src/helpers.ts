@@ -184,20 +184,98 @@ export function getPassedHookKeys(props: HotTableProps): string[] {
 }
 
 /**
+ * What the wrapper last knew about a setting: the prop value it synced and the value the grid held right after.
+ */
+export type SettingBaseline = { prop: unknown, live: unknown };
+
+/**
+ * The settings by name, as `SettingBaseline`s. `HotTable` keeps one per instance.
+ */
+export type SettingBaselines = Record<string, SettingBaseline>;
+
+/**
+ * Settings the baseline rule leaves alone. The sizes are re-sent whenever they differ from the grid's value,
+ * because the user can change them by dragging and the prop re-declares them (the React wrapper does the
+ * same). `data` has its own path in `HotTable`, and a baseline would keep the previous array alive.
+ */
+const BASELINE_EXEMPT_KEYS = ['data', 'colWidths', 'rowHeights', 'minRowHeights'];
+
+/**
+ * Check if the app replaced the value of a setting through the instance (`hot.updateSettings()`) since the
+ * wrapper last synced the prop, while the prop itself stayed the same. Such a prop is not sent again: it did
+ * not change, and sending it would take back what the app set.
+ *
+ * @param {string} key The setting name.
+ * @param {unknown} propValue The value passed through the props.
+ * @param {Handsontable.GridSettings} currentSettings The grid's current settings.
+ * @param {SettingBaselines} [baselines] What the wrapper last synced.
+ * @returns {boolean} `true` if the app overrode the setting.
+ */
+function isOverriddenByApp(
+  key: string,
+  propValue: unknown,
+  currentSettings?: Handsontable.GridSettings,
+  baselines?: SettingBaselines
+): boolean {
+  const baseline = baselines?.[key];
+
+  return !!currentSettings && !!baseline && !BASELINE_EXEMPT_KEYS.includes(key) &&
+    isSameReference(baseline.prop, propValue) && !Object.is(currentSettings[key], baseline.live);
+}
+
+/**
+ * Record the props the wrapper has just synced with the grid, for the next change to compare with. A setting the
+ * app overrode (`overriddenKeys`) keeps its previous baseline, so the override outlives the next changes and
+ * is given up only when the prop itself changes.
+ *
+ * @param {SettingBaselines} baselines What the wrapper last synced. It is updated in place.
+ * @param {HotTableProps} props The props passed to the component.
+ * @param {Handsontable.GridSettings} currentSettings The grid's current settings.
+ * @param {string[]} [overriddenKeys] The settings `prepareSettings()` left out because the app overrode them.
+ */
+export function recordSettingBaselines(
+  baselines: SettingBaselines,
+  props: HotTableProps,
+  currentSettings: Handsontable.GridSettings,
+  overriddenKeys: string[] = []
+): void {
+  const passedProps: VueProps<HotTableProps> = filterPassedProps(props);
+
+  Object.keys(baselines).forEach((key) => {
+    if (!hasOwnProperty(passedProps, key)) {
+      delete baselines[key];
+    }
+  });
+
+  Object.keys(passedProps).forEach((key) => {
+    if (!overriddenKeys.includes(key) && !BASELINE_EXEMPT_KEYS.includes(key)) {
+      baselines[key] = { prop: toRaw(passedProps[key]), live: currentSettings[key] };
+    }
+  });
+}
+
+/**
  * Prepare the settings object to be used as the settings for Handsontable, based on the props provided to the component.
  *
  * A hook listed in `previousHookKeys` that the props no longer pass a callback for (the prop is removed or
  * `undefined`) is sent as `null`, which removes the callback the props registered.
  *
+ * A prop that is the same value the wrapper last synced (`baselines`) is left out when the grid's value for it
+ * was replaced since, through `hot.updateSettings()`: the app's value stays until the prop changes.
+ *
  * @param {HotTableProps} props The props passed to the component.
  * @param {Handsontable.GridSettings} currentSettings The current Handsontable settings.
  * @param {string[]} previousHookKeys The hooks the previous props passed a callback for.
+ * @param {SettingBaselines} [baselines] What the wrapper last synced.
+ * @param {string[]} [overriddenKeys] Receives the names of the props left out because the app overrode them.
  * @returns {Handsontable.GridSettings} An object containing the properties, ready to be used within Handsontable.
  */
 export function prepareSettings(
   props: HotTableProps,
   currentSettings?: Handsontable.GridSettings,
-  previousHookKeys: string[] = []
+  previousHookKeys: string[] = [],
+  baselines?: SettingBaselines,
+  overriddenKeys: string[] = []
 ): HotTableProps {
   const assignedProps: VueProps<HotTableProps> = filterPassedProps(props);
   const hotSettingsInProps: Handsontable.GridSettings = props.settings ? props.settings : assignedProps;
@@ -205,6 +283,17 @@ export function prepareSettings(
   const initOnlySettingKeys: string[] =
     (currentSettings as any)?._initOnlySettings || [];
   const newSettings: Handsontable.GridSettings = {};
+  const isOverridden = (key: string, value: unknown): boolean => {
+    // A direct prop wins over the same key in the `settings` prop, and the baseline holds the winner.
+    const effectiveValue = hasOwnProperty(assignedProps, key) ? assignedProps[key] : value;
+    const overridden = isOverriddenByApp(key, effectiveValue, currentSettings, baselines);
+
+    if (overridden && !overriddenKeys.includes(key)) {
+      overriddenKeys.push(key);
+    }
+
+    return overridden;
+  };
 
   // eslint-disable-next-line no-restricted-syntax
   for (const key in hotSettingsInProps) {
@@ -212,6 +301,7 @@ export function prepareSettings(
       hasOwnProperty(hotSettingsInProps, key) &&
       hotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
+      !isOverridden(key, hotSettingsInProps[key]) &&
       ((currentSettings && key !== 'data')
         ? !isEqualSetting(key, currentSettings[key], hotSettingsInProps[key], currentSettings) : true)
     ) {
@@ -227,6 +317,7 @@ export function prepareSettings(
       key !== 'settings' &&
       additionalHotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
+      !isOverridden(key, additionalHotSettingsInProps[key]) &&
       ((currentSettings && key !== 'data')
         ? !isEqualSetting(key, currentSettings[key], additionalHotSettingsInProps[key], currentSettings) : true)
     ) {
