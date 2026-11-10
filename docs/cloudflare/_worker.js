@@ -21,6 +21,7 @@
  *   1. /docs/next/:splat                   → /docs/:splat
  *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
  *  1b. /docs/{LATEST_VERSION}/:splat       → /docs/:splat
+ *  1c. /docs/... ending in invisible characters → the same path without them
  *   2. /{/}                                → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
@@ -32,7 +33,7 @@
  *   5. Exact versioned HTML redirects      → framework-specific pages
  *   6. Cross-framework page fixes (angular/react wrong-prefix pages)
  *   7. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
- *  7a. Vue 3 and Vue 2 legacy page redirects → /docs/vue-data-grid/*
+ *  7a. Vue 3 and Vue 2 legacy page redirects, prefixed or not → /docs/vue-data-grid/*
  *  7b. Versioned Vue 3 legacy pages        → /docs/:ver/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
  *   9. Flat /docs/react-data-grid/row-sorting etc.
@@ -42,11 +43,13 @@
  * 12a. Legacy hostname (GET/HEAD)          → same path on handsontable.com (301)
  * 12b. /docs/:ver older than 9.0 (any form) → current framework page or home (cookie, 302)
  *      /docs/:major.:minor.:patch from 9.0 → /docs/:major.:minor (301)
- * 12c. /docs/pro[/:ver][/:page.html]      → current framework page or home (cookie, 302)
+ * 12c. /docs/(pro|latest)[/:ver][/:page.html] → current framework page or home (cookie, 302)
+ *      /docs/latest/:fw-data-grid/*        → /docs/:fw-data-grid/* (301)
  *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
  *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
  *  15. /docs/(page).html                   → flat framework page (cookie, 302)
- *  16. /docs/(page){/}                     → flat framework page (cookie, 302)
+ *  16. /docs/(page){/}                     → flat framework page (cookie, 302),
+ *      including a rule 6 slug without its framework prefix
  *  17. /docs{/}                            → /docs/(framework)/ (cookie, 302)
  *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
  * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
@@ -412,7 +415,16 @@ const FLAT_HTML_MAP = {
   'tutorial-migration-guide': 'migration-from-7.4-to-8.0',
   'tutorial-known-limitations': '/third-party-licenses/',
   'tutorial-changelog': '/changelog/',
+  'tutorial-callbacks': 'events-and-hooks',
+  'tutorial-features': '',
+  'tutorial-contributing': '',
   'demo-using-callbacks': '/events-and-hooks/',
+  'demo-merge-cells': 'merge-cells',
+  'demo-search-for-values': 'searching-values',
+  'demo-custom-borders': 'formatting-cells',
+  'demo-sorting-data': 'rows-sorting',
+  'demo-moving-rows-and-columns': 'row-moving',
+  'demo-mobiles-and-tablets': '',
   'demo-react-simple-examples': 'binding-to-data',
   'demo-scrolling': 'row-virtualization',
   'demo-fixing': 'column-freezing',
@@ -597,13 +609,13 @@ const FLAT_PAGES_REMAP = {
   'vue-setting-up-a-language': '/vue-setting-up-a-translation/',
   'vue3-simple-example': '/vue3-basic-example/',
   'vue3-setting-up-a-language': '/vue3-setting-up-a-translation/',
-  latest: '/',
   'internationalization-i18n': '/language/',
   'keyboard-navigation': '/keyboard-shortcuts/',
   'disabled-cells': '/read-only-cells/',
   building: '/custom-builds/',
   plugins: '/custom-plugins/',
   'file-structure': '/folder-structure/',
+  'migration-from-13.1.0-to-14.0': '/migration-from-13.1-to-14.0/',
 };
 
 // Sitemap-derived slugs that pass through as-is (slug → same slug under framework).
@@ -779,6 +791,10 @@ function isFlatPageKey(page) {
   return Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page) || SITEMAP_PASSTHROUGH_SLUGS.has(page);
 }
 
+// U+200B-U+200D, U+2060 and U+FEFF, percent-encoded as `url.pathname` holds
+// them, at the end of the path or before its final slash.
+const TRAILING_INVISIBLE_CHARS = /(?:%E2%80%8[BCD]|%E2%81%A0|%EF%BB%BF)+(\/?)$/i;
+
 // A slug the rule 19 retry never looks up under a framework: a framework
 // prefix, a version, or a file.
 const NOT_A_PAGE_SLUG = /^(?:(?:javascript|react|angular|vue)-data-grid|\d+\.\d+)(?:\/|$)|\.(?:html?|m?js|css|json|xml|txt|md|map|png|jpe?g|gif|svg|webp|avif|ico|pdf|woff2?|ttf)$/i;
@@ -874,7 +890,7 @@ const FLAT_REACT_PAGES = {
 // never got the 'custom-id-class-style' unification from rule 6, so
 // 'vue3-custom-id-class-style' still belongs here for that case. Rule 7a
 // (unversioned, framework-prefixed) never reaches this entry for that one
-// page - the crossFramework map (rule 6) matches it first, since that page's
+// page - CROSS_FRAMEWORK_PAGES (rule 6) matches it first, since that page's
 // *current* docs were unified into an all-framework 'custom-id-class-style'
 // page.
 const VUE3_LEGACY_PAGES = {
@@ -894,7 +910,8 @@ const VUE3_LEGACY_PAGES = {
 };
 
 // Older names of the pages above: the Vue 2 wrapper's slugs and two Vue 3
-// renames. Read by rule 7a only. `vue-hot-column`, `vue-instance-reference`,
+// renames. Read by rule 7a only, with or without a framework prefix.
+// `vue-hot-column`, `vue-instance-reference`,
 // `vue-nuxt`, `vue-pinia` and `vue-vuex` are live pages, so none is listed.
 const VUE_LEGACY_ALIASES = {
   'vue-installation': 'vue3-installation',
@@ -914,6 +931,46 @@ const VUE_LEGACY_ALIASES = {
   'vue3-setting-up-a-language': 'vue3-setting-up-a-translation',
 };
 
+// Exact framework-prefixed pages that moved: a page filed under the wrong
+// framework, or a renamed slug. Read by rule 6, and by rule 16 for the same
+// slug without a framework prefix.
+const CROSS_FRAMEWORK_PAGES = {
+  '/docs/react-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
+  '/docs/react-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
+  '/docs/react-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',
+  '/docs/react-data-grid/angular-custom-id/': '/docs/angular-data-grid/api/options/',
+  '/docs/react-data-grid/angular-setting-up-a-translation/': '/docs/react-data-grid/locale/',
+  '/docs/react-data-grid/angular-custom-context-menu-example/': '/docs/react-data-grid/context-menu/',
+  '/docs/react-data-grid/angular-custom-editor-example/': '/docs/angular-data-grid/cell-editor/',
+  '/docs/react-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
+  '/docs/react-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
+  '/docs/react-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
+  '/docs/javascript-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
+  '/docs/javascript-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
+  '/docs/javascript-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',
+  '/docs/javascript-data-grid/angular-custom-id/': '/docs/angular-data-grid/api/options/',
+  '/docs/javascript-data-grid/angular-setting-up-a-translation/': '/docs/javascript-data-grid/locale/',
+  '/docs/javascript-data-grid/angular-custom-context-menu-example/': '/docs/javascript-data-grid/context-menu/',
+  '/docs/javascript-data-grid/angular-custom-editor-example/': '/docs/angular-data-grid/cell-editor/',
+  '/docs/javascript-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
+  '/docs/javascript-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
+  '/docs/javascript-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
+  // Custom ID, class, and style: Vue-only page unified into an all-framework
+  // page (permalink renamed vue-custom-id-class-style → custom-id-class-style).
+  '/docs/javascript-data-grid/vue-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+  '/docs/react-data-grid/vue-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+  '/docs/angular-data-grid/vue-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+  '/docs/vue-data-grid/vue-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+  '/docs/javascript-data-grid/vue3-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+  '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+  '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+  '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+  '/docs/javascript-data-grid/disabled-cells/': '/docs/javascript-data-grid/read-only-cells/',
+  '/docs/react-data-grid/disabled-cells/': '/docs/react-data-grid/read-only-cells/',
+  '/docs/angular-data-grid/disabled-cells/': '/docs/angular-data-grid/read-only-cells/',
+  '/docs/vue-data-grid/disabled-cells/': '/docs/vue-data-grid/read-only-cells/',
+};
+
 // ---------------------------------------------------------------------------
 // Main worker
 // ---------------------------------------------------------------------------
@@ -927,20 +984,19 @@ const VUE_LEGACY_ALIASES = {
 //
 // It is the proven handsontable.com baseline policy plus the docs-only hosts
 // the marketing policy lacks: Algolia DocSearch (https://*.algolia.net and
-// https://*.algolianet.com). The baseline already covers the docs AI assistant
-// (hot-docs-assistant.netlify.app), CodeSandbox embeds, GTM/GA/Hotjar/Sentry/
-// Cookiebot, api.github.com, and *.handsontable.com (which covers
-// status.handsontable.com and the version-switcher data on handsontable.com).
+// https://*.algolianet.com). The baseline already covers CodeSandbox embeds,
+// GTM/GA/Hotjar/Sentry/Cookiebot, api.github.com, and *.handsontable.com (which
+// covers status.handsontable.com, the version-switcher data on handsontable.com
+// and the docs AI assistant backend on docs-assistant.handsontable.com).
 //
-// The docs-assistant backend is migrating from Netlify to a Cloudflare Worker
-// (SU-633). The dev Worker host is added to connect-src alongside the Netlify
-// host so the dev soak can reach it; the Netlify host stays because production
-// still uses it until its own separate cutover.
+// The docs-assistant backend runs on Cloudflare Workers (SU-633). Its
+// workers.dev hosts stay in connect-src for builds that point
+// PUBLIC_CHAT_API_URL at them directly. The old Netlify host is gone.
 //
 // Set here rather than in a Pages `_headers` file because the policy exceeds the
 // 2000-character-per-line `_headers` limit and a CSP cannot be split across
 // multiple Content-Security-Policy lines.
-const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://demos.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/ https://embed.figma.com; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://hot-docs-assistant.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me https://services.odata.org; worker-src 'self' blob:; frame-ancestors 'self';";
+const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://demos.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/ https://embed.figma.com; object-src 'self'; connect-src 'self' https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://hot-docs-assistant.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me https://services.odata.org; worker-src 'self' blob:; frame-ancestors 'self';";
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': CONTENT_SECURITY_POLICY,
@@ -1328,7 +1384,12 @@ async function readDesignSystemDate(env) {
 
 async function route(request, env, ctx) {
     const url = new URL(request.url);
-    const path = url.pathname;
+    // Rule 1c cleans the path here, so rules 1 and 1b redirect the cleaned
+    // path in the same hop.
+    const cleanedPath = url.pathname.replace(TRAILING_INVISIBLE_CHARS, '$1');
+    const hasInvisibleChars = cleanedPath !== url.pathname &&
+      (cleanedPath === '/docs' || cleanedPath.startsWith('/docs/'));
+    const path = hasInvisibleChars ? cleanedPath : url.pathname;
 
     // -- 1. /docs/next/:splat → /docs/:splat ----------------------------------
     if (path.startsWith('/docs/next/') || path === '/docs/next') {
@@ -1355,6 +1416,13 @@ async function route(request, env, ctx) {
       const dest = `/docs${splat}${url.search}`;
 
       return redirect301(abs(dest, url));
+    }
+
+    // -- 1c. /docs/... ending in invisible characters → the same path without them --
+    // A link copied from a chat or a document can carry a zero-width space.
+    // `path` is already cleaned at the top of route().
+    if (hasInvisibleChars) {
+      return redirect301(abs(`${path}${url.search}`, url));
     }
 
     // -- 2. Root / → /docs ---------------------------------------------------
@@ -1450,47 +1518,11 @@ async function route(request, env, ctx) {
 
     // -- 6. Cross-framework page fixes (react-data-grid wrongly containing angular pages, etc.) --
     {
-      const crossFramework = {
-        '/docs/react-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
-        '/docs/react-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
-        '/docs/react-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',
-        '/docs/react-data-grid/angular-custom-id/': '/docs/angular-data-grid/api/options/',
-        '/docs/react-data-grid/angular-setting-up-a-translation/': '/docs/react-data-grid/locale/',
-        '/docs/react-data-grid/angular-custom-context-menu-example/': '/docs/react-data-grid/context-menu/',
-        '/docs/react-data-grid/angular-custom-editor-example/': '/docs/angular-data-grid/cell-editor/',
-        '/docs/react-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
-        '/docs/react-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
-        '/docs/react-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
-        '/docs/javascript-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
-        '/docs/javascript-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
-        '/docs/javascript-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',
-        '/docs/javascript-data-grid/angular-custom-id/': '/docs/angular-data-grid/api/options/',
-        '/docs/javascript-data-grid/angular-setting-up-a-translation/': '/docs/javascript-data-grid/locale/',
-        '/docs/javascript-data-grid/angular-custom-context-menu-example/': '/docs/javascript-data-grid/context-menu/',
-        '/docs/javascript-data-grid/angular-custom-editor-example/': '/docs/angular-data-grid/cell-editor/',
-        '/docs/javascript-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
-        '/docs/javascript-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
-        '/docs/javascript-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
-        // Custom ID, class, and style: Vue-only page unified into an all-framework
-        // page (permalink renamed vue-custom-id-class-style → custom-id-class-style).
-        '/docs/javascript-data-grid/vue-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
-        '/docs/react-data-grid/vue-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
-        '/docs/angular-data-grid/vue-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
-        '/docs/vue-data-grid/vue-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
-        '/docs/javascript-data-grid/vue3-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
-        '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
-        '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
-        '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
-        '/docs/javascript-data-grid/disabled-cells/': '/docs/javascript-data-grid/read-only-cells/',
-        '/docs/react-data-grid/disabled-cells/': '/docs/react-data-grid/read-only-cells/',
-        '/docs/angular-data-grid/disabled-cells/': '/docs/angular-data-grid/read-only-cells/',
-        '/docs/vue-data-grid/disabled-cells/': '/docs/vue-data-grid/read-only-cells/',
-      };
       // Also normalise without trailing slash.
       const normalised = path.endsWith('/') ? path : `${path}/`;
 
-      if (Object.prototype.hasOwnProperty.call(crossFramework, normalised)) {
-        return redirect301(abs(crossFramework[normalised], url));
+      if (Object.prototype.hasOwnProperty.call(CROSS_FRAMEWORK_PAGES, normalised)) {
+        return redirect301(abs(CROSS_FRAMEWORK_PAGES[normalised], url));
       }
     }
 
@@ -1509,9 +1541,13 @@ async function route(request, env, ctx) {
 
     // -- 7a. Vue 3 and Vue 2 legacy pages -----------------------------------
     {
-      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3?-[^/]+)\/?$/);
+      const m = path.match(/^\/docs\/((?:javascript|react|angular|vue)-data-grid\/)?(vue3?-[^/]+)\/?$/);
+      // Rule 16 answers an unprefixed slug that CROSS_FRAMEWORK_PAGES moves,
+      // in one hop and in the reader's framework.
+      const movedByRule16 = m && !m[1] &&
+        Object.prototype.hasOwnProperty.call(CROSS_FRAMEWORK_PAGES, `/docs/javascript-data-grid/${m[2]}/`);
 
-      if (m) {
+      if (m && !movedByRule16) {
         const page = VUE_LEGACY_ALIASES[m[2]] ?? m[2];
 
         if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
@@ -1694,16 +1730,21 @@ async function route(request, env, ctx) {
       }
     }
 
-    // -- 12c. /docs/pro[/{ver}][/{page}.html] → the old Pro docs ---------------
-    // The Handsontable Pro docs are not deployed at all. Like rule 12b, a
-    // known page goes to the current docs (cookie, 302), anything else to the
-    // framework home.
+    // -- 12c. /docs/(pro|latest)[/{ver}][/{page}.html] → old docs that are not deployed --
+    // The Handsontable Pro docs and the old `latest` alias are not deployed
+    // at all. Like rule 12b, a known page goes to the current docs (cookie,
+    // 302), anything else to the framework home. A `latest` URL that names a
+    // framework only drops `latest/` (301), as rule 1b does for the version.
     {
-      const m = path.match(/^\/docs\/pro(?:\/(.*))?$/);
+      const m = path.match(/^\/docs\/(pro|latest)(?:\/(.*))?$/);
+
+      if (m && m[1] === 'latest' && /^(?:javascript|react|angular|vue)-data-grid(?:\/|$)/.test(m[2] ?? '')) {
+        return redirect301(abs(`/docs/${m[2]}${url.search}`, url));
+      }
 
       if (m) {
         const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
-        const rest = (m[1] ?? '').replace(/^\d+\.\d+[^/]*\//, '');
+        const rest = (m[2] ?? '').replace(/^\d+\.\d+[^/]*\//, '');
 
         return redirect302(abs(undeployedDocsDestination(rest, framework), url));
       }
@@ -1806,6 +1847,23 @@ async function route(request, env, ctx) {
         // A link at the end of a sentence can carry its punctuation in.
         const trimmed = m[1].replace(/[.,;:!'")\]]+$/, '');
         const page = isFlatPageKey(m[1]) || !isFlatPageKey(trimmed) ? m[1] : trimmed;
+
+        // A slug that rule 6 moves, here without a framework prefix: the
+        // cookie framework first, JavaScript second. A JavaScript destination
+        // found through the fallback switches to the cookie framework.
+        if (!page.includes('/')) {
+          const preferred = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+
+          for (const framework of new Set([preferred, 'javascript-data-grid'])) {
+            const key = `/docs/${framework}/${page}/`;
+
+            if (Object.prototype.hasOwnProperty.call(CROSS_FRAMEWORK_PAGES, key)) {
+              const dest = CROSS_FRAMEWORK_PAGES[key].replace(`/docs/${framework}/`, `/docs/${preferred}/`);
+
+              return redirect302(abs(dest, url));
+            }
+          }
+        }
 
         // Check special remaps first.
         if (Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page)) {

@@ -159,6 +159,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   refresh in `#onAfterUpdateSettings` read it the same way (`renameFixedColumnsLeft()`; core hands
   `afterUpdateSettings` the caller's own names). Before, the baseline kept the legacy key and a switch sent both names in
   one payload, which throws.
+- **A sheet's `settings` keep the init-only options only while the grid is being built** (DEV-762,
+  `#withoutInitOnlyKeys`, the first step of `#withBaselineFor`). `layoutDirection`, `renderAllRows`,
+  `renderAllColumns` and `ariaTags` are read when the grid initializes, and core refuses every later write
+  (`MetaManager#isInitialized()`). The opening sheet is applied from `beforeInit`, before that point, so it
+  keeps them. Any sheet applied afterwards (a switch, a rebuilt workbook on a live grid) has them taken out of
+  the payload with one `warnOnce` per option, or its first tab click would throw. The settings baseline skips them as well, in `#withBaselineFor` and
+  `#restoreBaselineToGrid`: the opening sheet's value is recorded there at build, and restoring it later would
+  be an update the grid refuses (a switch away from that sheet, or a `sheetsBar: false` teardown). The sheet's own record still
+  holds them. `updateSheetSettings()` on the visible sheet is an explicit `updateSettings()` call and is not
+  filtered, so core refuses the option there.
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`
@@ -681,7 +691,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts` ("NestedRows on the whole grid").
   When neither `columns` nor `dataSchema` names the columns, each blank row gets the keys of the grid's
   first row with `null` values (no `__children`): core reads object rows' columns from the first row, so
-  empty objects gave the new sheet 0 columns and a "no columns" warning.
+  empty objects gave the new sheet 0 columns and a "no columns" warning. A sheet in `sheets` without
+  `data` gets the same rows when the workbook is built (`#buildSheetsWorkbook`), keyed by the opening
+  sheet's first row instead: the grid's own `data` is not that sheet's yet, so reading it gave the sheet
+  0 columns. The opening sheet is the `activeSheet` entry, or the first one when `activeSheet` names no
+  entry, the same fallback the switch uses. Pinned by `tests/e2e/nested-rows-sheet-switch.spec.ts`.
 - **A declared workbook wins the initial data load.** `#onBeforeLoadData` redirects the init
   load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
   init pass loads `data` after the plugin already applied its sheet, and without the redirect

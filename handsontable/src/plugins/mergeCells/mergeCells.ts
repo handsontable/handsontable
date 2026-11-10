@@ -2940,6 +2940,7 @@ export class MergeCells extends BasePlugin {
 
       const visualColumn = this.hot.toVisualColumn(anchor.physicalColumn);
       let visualRow: number | null = null;
+      let topLeftPhysicalRow: number | null = null;
       let visualRowspan = 0;
 
       if (visualColumn !== null) {
@@ -2952,6 +2953,7 @@ export class MergeCells extends BasePlugin {
 
           if (visualRow === null) {
             visualRow = rowIndex;
+            topLeftPhysicalRow = physicalRow;
           }
 
           visualRowspan += 1;
@@ -2963,12 +2965,16 @@ export class MergeCells extends BasePlugin {
       // resolve to this phantom merge. Always re-purge (removing an absent footprint is a cheap no-op)
       // so the entry stays gone even after `shiftCollections` rebuilds the matrix from every merge on a
       // structural edit.
-      if (visualColumn === null || visualRow === null) {
+      if (visualColumn === null || visualRow === null || topLeftPhysicalRow === null) {
         this.#purgedMerges.add(merge);
         purges.push(merge);
 
         return;
       }
+
+      // The cell the merge is drawn from now may be one it covered a moment ago, whether or not the
+      // merge's geometry moved: a swap of the trimmed row keeps both the visual row and the span.
+      this.#clearCoveredFlagsOfTopLeftCell(topLeftPhysicalRow, anchor.physicalColumn);
 
       // Force a relocation for a merge that re-enters the viewport so it is re-added to the matrix even
       // when it lands on the same visual coordinates it had before being purged.
@@ -2990,6 +2996,149 @@ export class MergeCells extends BasePlugin {
 
     if (relocations.length > 0) {
       this.mergedCellsCollection.relocateInMatrix(relocations);
+    }
+  }
+
+  /**
+   * Finishes the merges' bookkeeping after a row move, a column move or a column freeze, once the anchors
+   * are carried over.
+   *
+   * While a row is trimmed, `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup
+   * matrix; see the re-anchor's note on why nothing else takes it out again after a reorder. The re-anchor
+   * also clears the covered flags of every top-left.
+   *
+   * Without trimming there is nothing to re-anchor, but the move can leave a cell with the flags the merge
+   * stored while it covered the cell: the cell a fragment is drawn from, and a cell no merge covers any more.
+   * Both are cleaned here.
+   *
+   * @param {Map<MergedCellCoords, MergedCellCoords[]>} replacements Map of the merge before the move -> the
+   * merges that replaced it.
+   * @param {Map<MergedCellCoords, number[]>} snapshot The physical indexes along `axis` each merge covered
+   * before the move.
+   * @param {'column' | 'row'} axis The moved axis.
+   */
+  #settleMergesAfterAxisMove(
+    replacements: Map<MergedCellCoords, MergedCellCoords[]>,
+    snapshot: Map<MergedCellCoords, number[]>,
+    axis: 'column' | 'row'
+  ) {
+    if (this.#isRowTrimmingActive()) {
+      this.#reanchorMergesToVisibleRows();
+
+      return;
+    }
+
+    this.mergedCellsCollection.mergedCells.forEach(({ row, col }) => {
+      const physicalRow = this.hot.toPhysicalRow(row);
+      const physicalColumn = this.hot.toPhysicalColumn(col);
+
+      if (physicalRow !== null && physicalColumn !== null) {
+        this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn);
+      }
+    });
+
+    this.#clearCoveredFlagsOfReleasedCells(replacements, snapshot, axis);
+  }
+
+  /**
+   * Removes the covered flags from the cells a move took out of every merge: a merge the move broke into
+   * single cells, or a row or column that left it. No merge covers such a cell any more, so nothing else
+   * ever cleans it. Only a merge the move split or dropped is walked: a merge replaced by one block of
+   * the same size covers the same cells, and its top-left is cleaned by the caller.
+   *
+   * @param {Map<MergedCellCoords, MergedCellCoords[]>} replacements Map of the merge before the move -> the
+   * merges that replaced it.
+   * @param {Map<MergedCellCoords, number[]>} snapshot The physical indexes along `axis` each merge covered
+   * before the move.
+   * @param {'column' | 'row'} axis The moved axis.
+   */
+  #clearCoveredFlagsOfReleasedCells(
+    replacements: Map<MergedCellCoords, MergedCellCoords[]>,
+    snapshot: Map<MergedCellCoords, number[]>,
+    axis: 'column' | 'row'
+  ) {
+    const isColumn = axis === 'column';
+
+    replacements.forEach((fragments, merge) => {
+      const movedPhysicals = snapshot.get(merge);
+      const isKeptWhole = fragments.length === 1
+        && fragments[0].rowspan === merge.rowspan && fragments[0].colspan === merge.colspan;
+
+      if (!movedPhysicals || isKeptWhole) {
+        return;
+      }
+
+      // The other axis was not moved, so the merge's visual span on it still names the same physical indexes.
+      const crossStart = isColumn ? merge.row : merge.col;
+      const crossSpan = isColumn ? merge.rowspan : merge.colspan;
+
+      for (let offset = 0; offset < crossSpan; offset++) {
+        const crossPhysical = isColumn
+          ? this.hot.toPhysicalRow(crossStart + offset)
+          : this.hot.toPhysicalColumn(crossStart + offset);
+
+        movedPhysicals.forEach((movedPhysical) => {
+          this.#clearCoveredFlagsIfUncovered(
+            isColumn ? crossPhysical : movedPhysical,
+            isColumn ? movedPhysical : crossPhysical
+          );
+        });
+      }
+    });
+  }
+
+  /**
+   * Clears the covered flags of a cell when no merge covers it.
+   *
+   * @param {number | null} physicalRow The physical row of the cell.
+   * @param {number | null} physicalColumn The physical column of the cell.
+   */
+  #clearCoveredFlagsIfUncovered(physicalRow: number | null, physicalColumn: number | null) {
+    if (physicalRow === null || physicalColumn === null) {
+      return;
+    }
+
+    const visualRow = this.hot.toVisualRow(physicalRow);
+    const visualColumn = this.hot.toVisualColumn(physicalColumn);
+
+    if (visualRow === null || visualColumn === null
+      || this.mergedCellsCollection.get(visualRow, visualColumn) !== false) {
+      return;
+    }
+
+    this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn);
+  }
+
+  /**
+   * Removes `hidden` and `copyable` from a cell that a merge covered before and does not cover now: the cell a
+   * merge is drawn from, or a cell a move took out of every merge.
+   * While one did, `afterGetCellMeta` stored both on the cell. They do not describe the top-left any more,
+   * and `hidden` makes AutoRowSize skip the cell, so the text of the merge was never measured.
+   *
+   * The flags are removed only where `hidden` is stored on the cell itself: that is the mark of a cell a
+   * merge covered, and the hook wrote `copyable` next to it. A `copyable` the user stored on the cell through
+   * `setCellMeta()` or the `cell` option stays, because the hook writes its flag without recording it. Only a
+   * recorded `false` is still the user's value: the hook overwrote a recorded `true` while the merge covered the cell.
+   * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
+   * The check costs one meta lookup per merge and no lookup in the merge collection.
+   *
+   * @param {number} physicalRow The physical row of the cell the merge is drawn from.
+   * @param {number} physicalColumn The physical column of the cell the merge is drawn from.
+   */
+  #clearCoveredFlagsOfTopLeftCell(physicalRow: number, physicalColumn: number) {
+    const metaManager = this.hot._getMetaManager();
+    const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+
+    if (!storedMeta || !hasOwnProperty(storedMeta, 'hidden')) {
+      return;
+    }
+
+    metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+
+    // The merge stores `hidden` through `setCellMeta()`, but the hook writes `copyable` straight onto the stored
+    // object and never records it. A recorded `copyable` is left alone (a recorded `true` was already overwritten by the hook).
+    if (!metaManager.getCellMetaKeyState(physicalRow, physicalColumn, 'copyable').hadOwn) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'copyable');
     }
   }
 
@@ -3479,16 +3628,13 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    this.#transferAnchorsAfterAxisMove(
-      this.mergedCellsCollection.translateAfterAxisMove(
-        'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
+    const replacements = this.mergedCellsCollection.translateAfterAxisMove(
+      'column', snapshot, this.#planColumnMoveRetention(snapshot));
+
+    this.#transferAnchorsAfterAxisMove(replacements, 'column');
     this.#captureMergeAnchors();
 
-    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
-    // re-anchor's note on why nothing else takes it out again after a reorder.
-    if (this.#isRowTrimmingActive()) {
-      this.#reanchorMergesToVisibleRows();
-    }
+    this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
 
     this.hot.render();
   };
@@ -3552,15 +3698,12 @@ export class MergeCells extends BasePlugin {
       ? this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions())
       : null;
 
-    this.#transferAnchorsAfterAxisMove(
-      this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers), 'row', plan?.context);
+    const replacements = this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers);
+
+    this.#transferAnchorsAfterAxisMove(replacements, 'row', plan?.context);
     this.#captureMergeAnchors();
 
-    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
-    // re-anchor's note on why nothing else takes it out again after a reorder.
-    if (this.#isRowTrimmingActive()) {
-      this.#reanchorMergesToVisibleRows();
-    }
+    this.#settleMergesAfterAxisMove(replacements, snapshot, 'row');
 
     this.hot.render();
   };
@@ -3598,16 +3741,13 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    this.#transferAnchorsAfterAxisMove(
-      this.mergedCellsCollection.translateAfterAxisMove(
-        'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
+    const replacements = this.mergedCellsCollection.translateAfterAxisMove(
+      'column', snapshot, this.#planColumnMoveRetention(snapshot));
+
+    this.#transferAnchorsAfterAxisMove(replacements, 'column');
     this.#captureMergeAnchors();
 
-    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
-    // re-anchor's note on why nothing else takes it out again after a reorder.
-    if (this.#isRowTrimmingActive()) {
-      this.#reanchorMergesToVisibleRows();
-    }
+    this.#settleMergesAfterAxisMove(replacements, snapshot, 'column');
 
     this.hot.render();
   };
