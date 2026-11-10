@@ -15,7 +15,7 @@
       "id": "arrive-on-time",
       "action": {"press": "ArrowRight"},
       "expect": [["09:30"]],
-      "note": "The setup gives the fixture's grid dates and times to show. ArrowRight selects the time cell, drawn as `09:30 AM`. With `imeFastEdit` the grid first focuses the cell, then moves the focus to the editor's hidden time input. Required: the selected cell's value. NVDA reads the cell and then the hidden input (`Hours, spin button, 09`). Finding: VoiceOver says nothing, on both browsers."
+      "note": "The setup gives the fixture's grid dates and times to show. ArrowRight selects the time cell, drawn as `09:30 AM`. With `imeFastEdit` the grid first focuses the cell, then moves the focus to the editor's hidden time input. Required: the selected cell's value. NVDA reads the cell and then the hidden input (`Hours, spin button, 09`). Finding: VoiceOver says nothing in one run and reads the cell in another, on both browsers, because it races the grid's delayed move of the focus into the input."
     },
     {
       "id": "open-editor",
@@ -39,7 +39,7 @@
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["11:45"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `11:45 AM`; NVDA and VoiceOver with Chromium read it. Finding: VoiceOver with WebKit reads only the input's hour segment (`12 hour stepper`), never the cell, and its typed time differs (the typing step)."
+      "note": "ArrowUp moves to the edited cell, drawn as `11:45 AM`; NVDA reads it. Finding: VoiceOver reads only the input's hour segment (`12 hour stepper` with WebKit in both runs, where the typed time also differs, see the typing step), or, with Chromium, the cell in one run and the segment in another, for the same race as on arrival."
     }
   ]
 }

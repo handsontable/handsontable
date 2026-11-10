@@ -15,7 +15,7 @@
       "id": "arrive-on-date",
       "action": {"press": "ArrowLeft"},
       "expect": [["06/10/2024", "06 slash 10 slash 2024"]],
-      "note": "The setup gives the fixture's grid dates and times to show (its own values are not dates). ArrowLeft selects the date cell, drawn as `06/10/2024`. With `imeFastEdit` the grid first focuses the cell, then moves the focus to the editor's hidden date input, so an IME can start composing. Required: the selected cell's value. NVDA and VoiceOver with Chromium read the cell and then the hidden input (NVDA `date edit. Month, spin button, 06`, VoiceOver `06 Month stepper`), so a user who only moves hears an editor's control on every date cell. Finding: VoiceOver with WebKit says nothing."
+      "note": "The setup gives the fixture's grid dates and times to show (its own values are not dates). ArrowLeft selects the date cell, drawn as `06/10/2024`. With `imeFastEdit` the grid first focuses the cell, then moves the focus to the editor's hidden date input, so an IME can start composing. Required: the selected cell's value. NVDA reads the cell and then the hidden input (`date edit. Month, spin button, 06`), so a user who only moves hears an editor's control on every date cell. Finding: VoiceOver reads the cell, the input's month segment (`6 month stepper`) or nothing, and which one changes from run to run on both browsers, because it races the grid's delayed move of the focus into the input."
     },
     {
       "id": "open-editor",
@@ -39,7 +39,7 @@
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["01/01/2020", "01 slash 01 slash 2020"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2020`. NVDA reads the cell, then the hidden input again. Finding: VoiceOver reads only the input's month segment (`01 Month stepper` with Chromium, `12 month stepper` with WebKit), never the cell, because the focus returns to the input before VoiceOver speaks."
+      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2020`. NVDA reads the cell, then the hidden input again. Finding: VoiceOver reads the cell in one run and only the input's month segment (`01 Month stepper`), or nothing, in another, for the same race as on arrival."
     }
   ]
 }
