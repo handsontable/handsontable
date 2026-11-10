@@ -218,10 +218,20 @@ not make up for, so the two hit areas overlap by `(hit area - icon) - 4px`: 4px 
 whole strip and the indicator lost part of its target. The visible icons never touch, so the overlap shows
 nowhere but in a pointer hit test.
 
-`_collapsible-columns.scss` fixes it on the indicator alone, with the sibling combinator `.changeType ~
-.collapsibleIndicator` (`:has()` is banned): the indicator goes above the button (`z-index: 2`) and clips half the
-overlap off its facing edge with `clip-path: inset()`, which clips what the pointer reaches as well as what paints.
-The clip is never wider than the padding around the icon, so no pixel changes.
+`_collapsible-columns.scss` fixes it on the indicator alone, with the sibling combinator
+`.relative:not(.has-sort-indicator) > .changeType ~ .collapsibleIndicator` (`:has()` is banned): the indicator goes
+above the button (`z-index: 1`, which wins because it comes later in the DOM) and clips half the overlap off its
+facing edge with `clip-path: inset()`, which clips what the pointer reaches as well as what paints. The clip is never
+wider than the padding around the icon, so no pixel changes.
+
+- **A sorted column turns the rule off.** The sort indicator adds `has-sort-indicator` to `.relative`, and
+  `_column-sorting.scss` then widens the flex gap (20px on `main`, 16px on `classic`): the hit areas no longer touch,
+  and a clip would only take an edge off the indicator. That gap is a `clamp()` over a percentage, which cannot be read
+  from here, so the rule is keyed on the class instead. Below the theme's minimum column width the gap falls back to
+  2px and the overlap returns for a sorted header; that width is the limit there.
+- **`z-index: 1`, not 2.** A header cell is `position: relative` with no z-index of its own, so a higher value would
+  also win over the next header cell's dropdown button when a too narrow column lets the group header overflow.
+  With `1`, that button, later in the DOM, stays on top.
 
 - **The right to left case is `&:dir(rtl)`, never a `[dir="rtl"]` ancestor selector.** `clip-path` has no
   logical keywords, so the facing edge is spelled out per direction. `[dir="rtl"] .handsontable ...` also matches a
@@ -232,18 +242,25 @@ The clip is never wider than the padding around the icon, so no pixel changes.
   `100%` in `_column-sorting.scss`, and a custom property substitutes that `100%` as text, so inside `inset()`
   it would resolve against the indicator's own box instead of the header. A wider real gap only makes the clip a
   little deeper than needed, and it stays inside the icon's padding.
-- **The split trades hit area for no overlap.** On `main` and `horizon` the dropdown button's effective target is
-  22px wide and the indicator's about 22px, against 24px for the button and about 20px for the indicator before.
-  Do not read the overlap as spare room to give back to one button.
+- **The split trades hit area for no overlap.** Effective target widths (the height stays 24px):
+
+  | Theme | Dropdown button before | after | Indicator before | after |
+  |---|---|---|---|---|
+  | `main`, `horizon` | 24px | 22px | 20px | 22px |
+  | `classic` | 24px | 20px | 16px | 20px |
+
+  The axe target size rule reads element boxes, and `clip-path` does not change them, so the scan cannot see this
+  change. Do not read the overlap as spare room to give back to one button. Keeping both at 24px would take moving the
+  icons 4px (`classic`: 8px) apart, which changes the layout and the narrow-header minimum width.
 - Do not change `--ht-icon-button-hit-area-size` (a theme token default), and do not widen the gap instead: that
   moves the icons and the narrow-header minimum width.
 - Columns narrower than the theme's minimum width (a `colWidths` config below it, 20px in the check made) let
-  group header content overflow into the neighbouring cell, where the indicator now wins over that cell's dropdown
-  button. The minimum width is the limit there, not this rule.
+  group header content overflow into the neighbouring cell. The minimum width is the limit there, not this rule.
 
 Pinned by `tests/e2e/collapsible-dropdown-hit-areas.spec.ts`, which finds where a press passes from one button to
 the other and requires it halfway between the two icons, for a left to right grid, a right to left grid, and a
-left to right grid inside a right to left page, in every theme.
+left to right grid inside a right to left page, in every theme. A sorted header must keep the indicator's whole hit
+area.
 
 ## Testing
 

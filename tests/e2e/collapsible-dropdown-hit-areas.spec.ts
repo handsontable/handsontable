@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { CollapsibleDropdownHitAreasPage } from '../fixtures/pages/CollapsibleDropdownHitAreasPage';
 
 /**
@@ -17,20 +17,20 @@ const SETUPS = [
 
 for (const { direction, pageDirection, title } of SETUPS) {
   test.describe(`collapsible indicator and dropdown button in one header cell (${title})`, {
-    tag: THEMES_TAG,
+    tag: [THEMES_TAG, CROSS_BROWSER_TAG],
   }, () => {
     let grid: CollapsibleDropdownHitAreasPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
-      grid = new CollapsibleDropdownHitAreasPage(page, theme, bundle, direction, pageDirection);
+      grid = new CollapsibleDropdownHitAreasPage(page, theme, bundle, { direction, pageDirection });
       await grid.goto();
     });
 
     test('the two buttons share the gap between their icons evenly', async () => {
-      // The press passes from one button to the other halfway between the two icons, to within a pixel.
-      // Before the fix the dropdown button kept the whole strip the hit areas share, so the handover sat
-      // 2px (main, horizon) or 4px (classic) past the middle, inside the indicator's side of the gap.
-      expect(Math.abs(await grid.hitBoundaryOffsetFromGapMiddle())).toBeLessThanOrEqual(1);
+      // The press passes from one button to the other halfway between the two icons. Before the fix the
+      // dropdown button kept the whole strip the hit areas share, so the handover sat 2px (main, horizon)
+      // or 4px (classic) past the middle, inside the indicator's side of the gap. The sweep steps 0.25px.
+      expect(Math.abs(await grid.hitBoundaryOffsetFromGapMiddle())).toBeLessThanOrEqual(0.5);
     });
 
     test('pressing the indicator still collapses and expands the group', async () => {
@@ -47,6 +47,25 @@ for (const { direction, pageDirection, title } of SETUPS) {
       await grid.menuButton().click();
 
       await expect(grid.openMenu()).toBeVisible();
+    });
+  });
+}
+
+// A sorted column draws a sort indicator, which widens the gap between the two buttons: their hit areas
+// no longer touch, so nothing may be taken off either of them.
+for (const direction of ['ltr', 'rtl'] as const) {
+  test.describe(`collapsible indicator beside a sort indicator (${direction} grid)`, {
+    tag: [THEMES_TAG, CROSS_BROWSER_TAG],
+  }, () => {
+    let grid: CollapsibleDropdownHitAreasPage;
+
+    test.beforeEach(async ({ page, theme, bundle }) => {
+      grid = new CollapsibleDropdownHitAreasPage(page, theme, bundle, { direction, sorted: true });
+      await grid.goto();
+    });
+
+    test('the indicator keeps its whole hit area', async () => {
+      expect(await grid.hitAtIndicatorFacingEdge()).toBe('indicator');
     });
   });
 }

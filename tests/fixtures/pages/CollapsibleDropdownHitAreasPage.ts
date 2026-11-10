@@ -1,5 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { assertKnownBundle, awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
+
+type Direction = 'ltr' | 'rtl';
 
 /**
  * Page Object for the collapsible-dropdown-hit-areas fixture: a collapsible group "C" in the last header
@@ -8,32 +10,55 @@ import { awaitBundle } from '../bundle';
 export class CollapsibleDropdownHitAreasPage {
   readonly page: Page;
   readonly theme: string;
-  readonly bundle: string;
-  readonly direction: 'ltr' | 'rtl';
-  readonly pageDirection: 'ltr' | 'rtl';
+  readonly bundle: Bundle;
+  readonly direction: Direction;
+  readonly pageDirection: Direction;
+  readonly sorted: boolean;
 
+  /**
+   * @param {Page} page The page the fixture opens on.
+   * @param {string} theme The theme under test.
+   * @param {Bundle} bundle The bundle under test.
+   * @param {object} [options] What the fixture builds.
+   * @param {Direction} [options.direction] The direction of the grid.
+   * @param {Direction} [options.pageDirection] The direction of the page around it.
+   * @param {boolean} [options.sorted] Whether the first column is sorted, which draws a sort indicator.
+   */
   constructor(
     page: Page,
     theme = 'main',
-    bundle = 'umd',
-    direction: 'ltr' | 'rtl' = 'ltr',
-    pageDirection: 'ltr' | 'rtl' = 'ltr'
+    bundle: Bundle = 'umd',
+    { direction = 'ltr', pageDirection = 'ltr', sorted = false }: {
+      direction?: Direction,
+      pageDirection?: Direction,
+      sorted?: boolean,
+    } = {}
   ) {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.direction = direction;
     this.pageDirection = pageDirection;
+    this.sorted = sorted;
   }
 
   /**
    * Navigate and wait for the group's indicator to render (a real DOM condition, no sleep).
    */
   async goto(): Promise<void> {
-    await this.page.goto(
-      `/tests/fixtures/demo/collapsible-dropdown-hit-areas.html?theme=${this.theme}&bundle=${this.bundle}&dir=${this.direction}&pageDir=${this.pageDirection}`
-    );
+    assertKnownBundle(this.bundle, 'constructor(page, theme, bundle, options)');
+
+    const query = new URLSearchParams({
+      theme: this.theme,
+      bundle: this.bundle,
+      dir: this.direction,
+      pageDir: this.pageDirection,
+      sort: this.sorted ? '1' : '0',
+    });
+
+    await this.page.goto(`/tests/fixtures/demo/collapsible-dropdown-hit-areas.html?${query}`);
     await awaitBundle(this.page);
+    await awaitFixtureBuilt(this.page);
     await expect(this.indicator()).toBeVisible();
   }
 
@@ -75,8 +100,7 @@ export class CollapsibleDropdownHitAreasPage {
    * and never as a passing offset.
    */
   async hitBoundaryOffsetFromGapMiddle(): Promise<number> {
-    return this.page.evaluate(() => {
-      const th = document.querySelectorAll('.ht_clone_top thead tr')[1].querySelector('th') as HTMLElement;
+    return this.groupHeader().evaluate((th) => {
       const indicator = th.querySelector('.collapsibleIndicator') as HTMLElement;
       const menuButton = th.querySelector('.changeType') as HTMLElement;
       const indicatorIcon = indicator.querySelector('.ht-icon') as HTMLElement;
@@ -113,6 +137,25 @@ export class CollapsibleDropdownHitAreasPage {
       }
 
       return (from + takeover * 0.25) - (from + to) / 2;
+    });
+  }
+
+  /**
+   * What a pointer press lands on, one pixel inside the edge of the indicator's hit area that faces the
+   * dropdown button, at mid height. Returns `'indicator'`, or the class name of whatever else is there.
+   */
+  async hitAtIndicatorFacingEdge(): Promise<string> {
+    return this.groupHeader().evaluate((th) => {
+      const indicator = th.querySelector('.collapsibleIndicator') as HTMLElement;
+      const menuButton = th.querySelector('.changeType') as HTMLElement;
+      const own = indicator.getBoundingClientRect();
+      const other = menuButton.getBoundingClientRect();
+      // The facing edge is the one on the side of the dropdown button, which flips in a right to left grid.
+      const otherIsAtEnd = other.left + other.width / 2 > own.left + own.width / 2;
+      const x = otherIsAtEnd ? own.right - 1 : own.left + 1;
+      const hit = document.elementFromPoint(x, own.top + own.height / 2);
+
+      return hit?.closest('.collapsibleIndicator') === indicator ? 'indicator' : (hit?.className || 'nothing');
     });
   }
 

@@ -34,6 +34,11 @@
       throw new Error('Unknown ?pageDir= value: ' + JSON.stringify(htParams.get('pageDir')));
     }
     document.documentElement.dir = window.htPageDirection;
+    // `?sort=1` sorts the first column, which draws the sort indicator in group "C"'s header cell.
+    window.htSorted = ({ 0: false, 1: true })[htParams.get('sort') ?? '0'];
+    if (window.htSorted === undefined) {
+      throw new Error('Unknown ?sort= value: ' + JSON.stringify(htParams.get('sort')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
@@ -42,7 +47,8 @@
   <!--
     E2E fixture for the hit areas of the CollapsibleColumns indicator and the dropdown menu button. The
     groups "C" and "D" sit in the LAST header row, so each of their header cells holds both buttons: the
-    dropdown button of the cell and the indicator of the group.
+    dropdown button of the cell and the indicator of the group. A constructor error lands in
+    `window.htBuildError`, which the page object rethrows.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -54,19 +60,24 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    window.hot = new Handsontable(container, {
-      data: Handsontable.helper.createSpreadsheetData(3, 4),
-      colHeaders: true,
-      colWidths: 120,
-      layoutDirection: window.htDirection,
-      nestedHeaders: [
-        [{ label: 'A', colspan: 4 }],
-        [{ label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }],
-      ],
-      collapsibleColumns: true,
-      dropdownMenu: true,
-      licenseKey: window.htTestLicenseKey,
-    });
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(3, 4),
+        colHeaders: true,
+        colWidths: 120,
+        layoutDirection: window.htDirection,
+        nestedHeaders: [
+          [{ label: 'A', colspan: 4 }],
+          [{ label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }],
+        ],
+        collapsibleColumns: true,
+        dropdownMenu: true,
+        columnSorting: window.htSorted ? { initialConfig: { column: 0, sortOrder: 'asc' } } : false,
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
   </script>
 </body>
 </html>
