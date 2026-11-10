@@ -174,6 +174,8 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
 
 :::
 
+:::: only-for javascript react
+
 ### Build the React package
 
 To build the React package:
@@ -218,6 +220,10 @@ From the React wrapper directory, you can also run individual React `build` task
 
 :::
 
+::::
+
+:::: only-for javascript angular
+
 ### Build the Angular package
 
 To build the Angular package:
@@ -244,6 +250,10 @@ From the `/wrappers/angular-wrapper` directory, You can also run individual Angu
 - Places the output in the `/wrappers/angular-wrapper/dist/hot-table/` directory.
 
 :::
+
+::::
+
+:::: only-for javascript vue
 
 ### Build the Vue package
 
@@ -288,6 +298,8 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
     - `/wrappers/vue3/dist/vue-handsontable.min.js.map`
 
 :::
+
+::::
 
 ## Result
 
