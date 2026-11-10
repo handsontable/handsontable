@@ -88,7 +88,7 @@ test.describe('menu taller than the viewport', { tag: THEMES_TAG }, () => {
     const { x } = (await grid.menu('context').boundingBox())!;
 
     await grid.page.touchscreen.tap(x + 20, (top + bottom) / 2);
-    // The last item is disabled in the fixture, so the tap selects it and the menu stays open.
+    // The last item, Cut, is disabled here (nothing is selected), so the tap selects it and the menu stays open.
     await expect(grid.menu('context').locator('td.current')).toHaveText(lastItem);
   });
 
