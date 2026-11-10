@@ -1231,16 +1231,16 @@ export default defineConfig({
     define: {
       'import.meta.env.PUBLIC_BUILD_MODE': JSON.stringify(buildMode || ''),
       'import.meta.env.PUBLIC_HOT_VERSION': JSON.stringify(HOT_VERSION),
-      // Docs-assistant backend base URL. The backend is migrating from Netlify
-      // to a Cloudflare Worker (SU-633). Dev soaks the new Worker first: non-
-      // production builds (develop apex staging, PR previews, local dev) default
-      // to the dev Worker, while production stays on Netlify until its own
-      // separate cutover. The PUBLIC_CHAT_API_URL env var (wired into the staging
-      // build in SU-589) still takes precedence over this default in either mode.
+      // Docs-assistant backend base URL, used only off the canonical hosts
+      // (handsontable.com and dev.handsontable.com reach the backend through the
+      // same-origin /docs-assistant proxy, see DocsAssistant/constants.ts).
+      // Production builds default to the production Worker's branded host and
+      // non-production builds (PR previews, local dev) to the dev Worker. The
+      // PUBLIC_CHAT_API_URL env var (SU-589) takes precedence in either mode.
       'import.meta.env.PUBLIC_CHAT_API_URL': JSON.stringify(
         process.env.PUBLIC_CHAT_API_URL ||
           (isProduction
-            ? 'https://hot-docs-assistant.netlify.app'
+            ? 'https://docs-assistant.handsontable.com'
             : 'https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev')
       ),
     },
