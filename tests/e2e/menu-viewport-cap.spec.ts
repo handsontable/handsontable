@@ -43,8 +43,31 @@ test.describe('menu taller than the viewport', { tag: THEMES_TAG }, () => {
     expect(scroll.scrollHeight, 'the menu content fits the viewport, so nothing is capped').toBeGreaterThan(viewportHeight);
     expect(scroll.clientHeight).toBeLessThan(scroll.scrollHeight);
     expect(scroll.overflowY).toBe('auto');
+    // The end of the scroll range does not hand a swipe on to the page, which would move the menu off its anchor.
+    expect(scroll.overscrollBehavior).toBe('contain');
     expect(top).toBeGreaterThanOrEqual(-EDGE_TOLERANCE_PX);
     expect(bottom).toBeLessThanOrEqual(viewportHeight + EDGE_TOLERANCE_PX);
+  });
+
+  test('closes an open submenu when the menu scrolls under it', async() => {
+    // Alignment is enabled only for a selected cell.
+    await grid.closeMenu('context');
+    await grid.page.evaluate(([left, top]) => {
+      window.hot.selectCell(0, 0);
+      window.hot.getPlugin('contextMenu').open({ left, top });
+    }, [VIEWPORT.width / 2, 100]);
+    await expect(grid.menu('context')).toBeVisible();
+    await grid.swipeUpOverMenu('context', 1000);
+
+    const submenu = grid.page.locator('[class*="htContextMenuSub_"]:visible');
+
+    await grid.openContextSubmenu('alignment');
+    await expect(submenu).toBeVisible();
+
+    await grid.setMenuScrollTop('context', 0);
+
+    await expect(submenu).toBeHidden();
+    await expect(grid.menu('context')).toBeVisible();
   });
 
   test('reaches its last item with a finger and taps it', async() => {
@@ -111,6 +134,31 @@ test.describe('menu taller than the viewport', { tag: THEMES_TAG }, () => {
     await expect.poll(async() => (await grid.okButtonBox()).bottom).toBeLessThanOrEqual(viewportHeight);
   });
 
+  test('caps a dropdown menu that a picked filter condition makes taller than the viewport', async() => {
+    await grid.closeMenu('context');
+    await grid.openDropdownMenu(0);
+
+    const { height } = await grid.geometry('dropdown');
+
+    // The menu fits as it opens, with room for less than the input a condition adds.
+    await grid.page.setViewportSize({ width: CAPPED_VIEWPORT.width, height: Math.floor(height) + 10 });
+    expect((await grid.scrollState('dropdown')).overflowY).not.toBe('auto');
+
+    // The condition shows an input, the plugin measures the menu again, and the menu is taller than the viewport.
+    await grid.selectFilterCondition('contains', 1);
+
+    const { top, bottom, viewportHeight } = await grid.geometry('dropdown');
+    const scroll = await grid.scrollState('dropdown');
+
+    expect(scroll.overflowY).toBe('auto');
+    expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
+    expect(top).toBeGreaterThanOrEqual(-EDGE_TOLERANCE_PX);
+    expect(bottom).toBeLessThanOrEqual(viewportHeight + EDGE_TOLERANCE_PX);
+
+    await grid.swipeUpOverMenu('dropdown', 500);
+    await expect.poll(async() => (await grid.okButtonBox()).bottom).toBeLessThanOrEqual(viewportHeight);
+  });
+
   test('drops the cap when a measured dropdown menu fits the viewport again', async() => {
     await grid.closeMenu('context');
     await grid.openDropdownMenu(0);
@@ -124,8 +172,39 @@ test.describe('menu taller than the viewport', { tag: THEMES_TAG }, () => {
     await grid.page.setViewportSize({ width: CAPPED_VIEWPORT.width, height: CAPPED_VIEWPORT.height });
     await grid.refreshMenuDimensions();
 
-    expect((await grid.scrollState('dropdown')).overflowY).toBe('');
+    expect((await grid.scrollState('dropdown')).overflowY).not.toBe('auto');
   });
+});
+
+test.describe('menu placed again on a page that scrolls', { tag: THEMES_TAG }, () => {
+  test.use({ viewport: CAPPED_VIEWPORT });
+
+  test('stays under its header button when the window scrolled before the measurement', async({ page, theme, bundle }) => {
+    const grid = new MenuViewportClampPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.openDropdownMenu(0);
+
+    const { height } = await grid.geometry('dropdown');
+    const button = grid.grid.locator('.ht_clone_top .changeType').first();
+    const gapBelowButton = async() => {
+      const buttonBox = (await button.boundingBox())!;
+      const menuBox = (await grid.menu('dropdown').boundingBox())!;
+
+      return menuBox.y - (buttonBox.y + buttonBox.height);
+    };
+    const expectedGap = await gapBelowButton();
+
+    // Taller than the viewport, so the cap applies, then back, so the menu is placed again.
+    await grid.page.setViewportSize({ width: CAPPED_VIEWPORT.width, height: Math.floor(height) - 10 });
+    await grid.refreshMenuDimensions();
+    await grid.scrollWindowDownTo(10);
+    await grid.page.setViewportSize({ width: CAPPED_VIEWPORT.width, height: Math.floor(height) + 200 });
+    await grid.refreshMenuDimensions();
+
+    expect(Math.abs((await gapBelowButton()) - expectedGap)).toBeLessThan(1);
+  });
+
 });
 
 test.describe('menu that fits the viewport', { tag: THEMES_TAG }, () => {
@@ -139,7 +218,8 @@ test.describe('menu that fits the viewport', { tag: THEMES_TAG }, () => {
     const scroll = await grid.scrollState('context');
 
     expect(height, 'the menu does not fit the viewport, so it is capped').toBeLessThan(viewportHeight);
-    expect(scroll.overflowY).toBe('');
+    // Walkontable's own `overflow: visible` stays on the holder of a menu that fits.
+    expect(scroll.overflowY).toBe('visible');
     expect(scroll.scrollHeight).toBe(scroll.clientHeight);
   });
 });

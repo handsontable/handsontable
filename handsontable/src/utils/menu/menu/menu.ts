@@ -71,6 +71,15 @@ function hasName(value: unknown): value is { name: unknown } {
  */
 export type MenuAnchorRectProvider = () => DOMRect | null;
 
+/**
+ * The arguments of a `setPosition()` call and the anchor's rectangle at that time.
+ */
+interface LastMenuPosition {
+  coords: Event | DOMRect | Record<string, unknown>;
+  anchorRectProvider: MenuAnchorRectProvider | null;
+  anchorRect: DOMRect | null;
+}
+
 interface MenuOptions {
   // eslint-disable-next-line no-use-before-define
   parent: Menu | null;
@@ -219,10 +228,7 @@ export class Menu {
    *
    * @type {object|null}
    */
-  #lastPosition: {
-    coords: Event | DOMRect | Record<string, unknown>;
-    anchorRectProvider: MenuAnchorRectProvider | null;
-  } | null = null;
+  #lastPosition: LastMenuPosition | null = null;
   /**
    * The height the viewport cap gave the menu's holder, or `null` while the menu is not capped.
    *
@@ -1253,7 +1259,11 @@ export class Menu {
       .updatePosition(coords);
 
     this.#anchorRectProvider = anchorRectProvider ?? null;
-    this.#lastPosition = { coords, anchorRectProvider: this.#anchorRectProvider };
+    this.#lastPosition = {
+      coords,
+      anchorRectProvider: this.#anchorRectProvider,
+      anchorRect: this.#anchorRectProvider?.() ?? null,
+    };
     this.#captureScrollFollowBaseline();
   }
 
@@ -1299,9 +1309,15 @@ export class Menu {
 
     holderStyle.width = `${currentHiderWidth}px`;
     holderStyle.height = `${realHeight}px`;
-    // A cap from an earlier call is dropped here, so a menu that fits again carries no overflow style.
-    holderStyle.overflowX = '';
-    holderStyle.overflowY = '';
+
+    // A cap from an earlier call is dropped here, so a menu that fits again carries no overflow style. Only a
+    // capped menu is touched: Walkontable writes `overflow: visible` on the holder of an uncapped one, and
+    // clearing it would hand the holder to the stylesheet's `overflow: auto` (scrollbars on a desktop menu).
+    if (this.#cappedHolderHeight !== null) {
+      holderStyle.overflowX = 'visible';
+      holderStyle.overflowY = 'visible';
+      holderStyle.overscrollBehavior = '';
+    }
 
     hiderStyle.height = holderStyle.height;
 
@@ -1313,8 +1329,35 @@ export class Menu {
     // The menu was placed for the height it had then. A different cap needs a new place (the vertical
     // clamp keeps the top edge, so a menu that grew would otherwise run past the bottom).
     if (capChanged && this.#lastPosition !== null) {
-      this.setPosition(this.#lastPosition.coords, this.#lastPosition.anchorRectProvider ?? undefined);
+      this.#placeAgain(this.#lastPosition);
     }
+  }
+
+  /**
+   * Places the menu again from the arguments of its last `setPosition()` call. A literal position is
+   * relative to the viewport and `Cursor` adds the window's scroll offset when it reads it, so a window
+   * that scrolled since the first placement would shift the menu by that scroll. The literal is moved by
+   * the distance the anchor travelled meanwhile, which keeps the menu next to its anchor.
+   *
+   * @param {object} lastPosition The arguments of the last `setPosition()` call and the anchor's rectangle then.
+   */
+  #placeAgain({ coords, anchorRectProvider, anchorRect }: LastMenuPosition) {
+    const currentRect = anchorRectProvider?.() ?? null;
+
+    if (currentRect === null || anchorRect === null || coords instanceof Event) {
+      this.setPosition(coords, anchorRectProvider ?? undefined);
+
+      return;
+    }
+
+    const literal = coords as Record<string, unknown>;
+
+    this.setPosition({
+      top: Number.parseFloat(String(literal.top)) + currentRect.top - anchorRect.top,
+      left: Number.parseFloat(String(literal.left)) + currentRect.left - anchorRect.left,
+      height: literal.height,
+      width: literal.width,
+    }, anchorRectProvider ?? undefined);
   }
 
   /**
@@ -1344,7 +1387,9 @@ export class Menu {
     const viewportHeight = this.container.ownerDocument.documentElement.clientHeight;
     // The border and the vertical padding of the menu box around the holder, measured so that every theme's
     // tokens count.
-    const chromeHeight = this.container.offsetHeight - contentHeight;
+    // The holder's own height is subtracted, not the content's: a stylesheet can cap a holder below its content
+    // (the sheets bar menu has a `max-height`), and the content height would then read as negative chrome.
+    const chromeHeight = this.container.offsetHeight - holder.offsetHeight;
     const maxHolderHeight = viewportHeight - chromeHeight;
 
     // A viewport that reports no height (a hidden frame) has no room to measure against.
@@ -1355,6 +1400,9 @@ export class Menu {
     holderStyle.height = `${maxHolderHeight}px`;
     holderStyle.overflowY = 'auto';
     holderStyle.overflowX = 'hidden';
+    // The end of the menu's scroll range must not hand the swipe on to the page, which would move the
+    // open menu away from its anchor.
+    holderStyle.overscrollBehavior = 'contain';
     // A scrollbar that takes room from the content must not clip the items' right edge.
     holderStyle.width = `${parseInt(holderStyle.width, 10) + (holder.offsetWidth - holder.clientWidth)}px`;
 
@@ -1452,7 +1500,16 @@ export class Menu {
       return;
     }
 
-    if (!isHTMLElement(event.target) || isChildOf(event.target, '.htMenu')) {
+    if (!isHTMLElement(event.target)) {
+      return;
+    }
+
+    if (isChildOf(event.target, '.htMenu')) {
+      // A capped menu scrolls its own rows under an open submenu, which would stay where it was.
+      if (event.target === this.hotMenu?.view._wt.wtTable.holder && !this.isAllSubMenusClosed()) {
+        this.closeAllSubMenus();
+      }
+
       return;
     }
 

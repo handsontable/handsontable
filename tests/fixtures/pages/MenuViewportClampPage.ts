@@ -30,6 +30,7 @@ export interface MenuScroll {
   scrollHeight: number;
   scrollTop: number;
   overflowY: string;
+  overscrollBehavior: string;
 }
 
 // A submenu container carries its parent menu's class as well, and the grid keeps a ghost table of
@@ -166,8 +167,8 @@ export class MenuViewportClampPage {
    *
    * @param {MenuKind} kind The menu.
    * @returns {Promise<MenuScroll>} The holder's client height, content height, scroll offset, and the `overflow-y`
-   * written on it inline, which is empty until the menu is capped (the computed value is `auto` on some menus
-   * whatever the cap does).
+   * written on it inline, which stays what Walkontable wrote (`visible`) until the menu is capped (the computed
+   * value is `auto` on some menus whatever the cap does), and the inline `overscroll-behavior`.
    */
   async scrollState(kind: MenuKind): Promise<MenuScroll> {
     return this.page.evaluate((selector) => {
@@ -182,6 +183,7 @@ export class MenuViewportClampPage {
         scrollHeight: holder.scrollHeight,
         scrollTop: holder.scrollTop,
         overflowY: holder.style.overflowY,
+        overscrollBehavior: holder.style.overscrollBehavior,
       };
     }, MENU_SELECTOR[kind]);
   }
@@ -199,23 +201,6 @@ export class MenuViewportClampPage {
 
       return { top, bottom };
     }, MENU_SELECTOR[kind]);
-  }
-
-  /**
-   * Scrolls the menu with the mouse wheel while the pointer is over it, the way a trackpad or a wheel does.
-   *
-   * @param {MenuKind} kind The menu.
-   * @param {number} deltaY The wheel's vertical delta.
-   */
-  async wheelOverMenu(kind: MenuKind, deltaY: number): Promise<void> {
-    const box = await this.menu(kind).boundingBox();
-
-    if (!box) {
-      throw new Error(`The ${kind} menu has no box`);
-    }
-
-    await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await this.page.mouse.wheel(0, deltaY);
   }
 
   /**
@@ -308,6 +293,73 @@ export class MenuViewportClampPage {
 
       plugin.menu.updateMenuDimensions();
     });
+  }
+
+  /**
+   * Picks a filter condition in the open dropdown menu the way the condition list reports a choice: the select
+   * runs its `select` hook, and the Filters plugin shows the condition's inputs and measures the menu again.
+   * The list itself is not clicked, because it opens under the select and can lie below a short viewport the
+   * window cannot scroll.
+   *
+   * @param {string} key The condition's key, such as `contains`.
+   * @param {number} inputsCount The number of inputs the condition takes.
+   */
+  async selectFilterCondition(key: string, inputsCount: number): Promise<void> {
+    await this.page.evaluate(([conditionKey, inputs]) => {
+      // The component and its select are the plugin's own, not part of its public typings.
+      const filters = window.hot.getPlugin('filters') as unknown as {
+        components: Map<string, {
+          getSelectElement(): { runLocalHooks(name: string, item: unknown): void };
+        }>;
+      };
+
+      filters.components.get('filter_by_condition')!.getSelectElement()
+        .runLocalHooks('select', { key: conditionKey, name: conditionKey, inputsCount: inputs });
+    }, [key, inputsCount] as const);
+  }
+
+  /**
+   * Opens the submenu of a context menu item through the menu's own method, which a hover calls after a delay.
+   * A touch device has no hover, and a tap on the row only selects it.
+   *
+   * @param {string} key The key of the item that has the submenu, such as `alignment`.
+   */
+  async openContextSubmenu(key: string): Promise<void> {
+    await this.page.evaluate((itemKey) => {
+      // `menu` is the plugin's own, not part of its public typings.
+      const { menu } = window.hot.getPlugin('contextMenu') as unknown as {
+        menu: { hotMenu: { getSourceData(): { key?: string }[] }; openSubMenu(row: number): void };
+      };
+      const row = menu.hotMenu.getSourceData().findIndex(item => item.key === itemKey);
+
+      if (row === -1) {
+        throw new Error(`The context menu has no ${itemKey} item`);
+      }
+
+      menu.openSubMenu(row);
+    }, key);
+  }
+
+  /**
+   * Sets the scroll offset of the menu's holder from the script, as a scrolled finger or a wheel would.
+   *
+   * @param {MenuKind} kind The menu.
+   * @param {number} scrollTop The offset.
+   */
+  async setMenuScrollTop(kind: MenuKind, scrollTop: number): Promise<void> {
+    await this.page.evaluate(([selector, top]) => {
+      document.querySelector<HTMLElement>(`${selector} .ht_master .wtHolder`)!.scrollTop = top as number;
+    }, [MENU_SELECTOR[kind], scrollTop] as const);
+  }
+
+  /**
+   * Scrolls the window down from the script, keeping its horizontal offset, and waits until it got there.
+   *
+   * @param {number} top The window's new vertical offset.
+   */
+  async scrollWindowDownTo(top: number): Promise<void> {
+    await this.page.evaluate((y) => window.scrollTo(window.scrollX, y), top);
+    await expect.poll(() => this.page.evaluate(() => window.scrollY)).toBe(top);
   }
 
   /**
