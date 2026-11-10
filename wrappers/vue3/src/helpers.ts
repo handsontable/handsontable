@@ -312,6 +312,12 @@ export type SettingBaselines = Record<string, SettingBaseline>;
 const BASELINE_EXEMPT_KEYS = ['data', 'colWidths', 'rowHeights', 'minRowHeights', 'themeName'];
 
 /**
+ * Settings whose baseline holds the reference only, with no copy of the content. `sheetsBar` carries every sheet's
+ * `data`, which a copy on each reactive change would walk again (`isEqualSetting()` avoids the same walk).
+ */
+const REFERENCE_ONLY_KEYS = ['sheetsBar'];
+
+/**
  * Check if the app replaced the value of a setting through the instance (`hot.updateSettings()`) since the
  * wrapper last synced the prop, while the prop itself stayed the same. Such a prop is not sent again: it did
  * not change, and sending it would take back what the app set.
@@ -330,9 +336,11 @@ function isOverriddenByApp(
 ): boolean {
   const baseline = baselines?.[key];
 
+  // The cheap check goes first: the content compare runs only for a setting the app replaced.
   return !!currentSettings && !!baseline && !BASELINE_EXEMPT_KEYS.includes(key) &&
-    (isSameReference(baseline.prop, propValue) || isSameAsCopy(baseline.copy, propValue)) &&
-    !Object.is(currentSettings[key], baseline.live);
+    !Object.is(currentSettings[key], baseline.live) &&
+    (isSameReference(baseline.prop, propValue) ||
+      (!REFERENCE_ONLY_KEYS.includes(key) && isSameAsCopy(baseline.copy, propValue)));
 }
 
 /**
@@ -363,7 +371,7 @@ export function recordSettingBaselines(
     if (!overriddenKeys.includes(key) && !BASELINE_EXEMPT_KEYS.includes(key)) {
       baselines[key] = {
         prop: toRaw(passedProps[key]),
-        copy: copySettingsValue(passedProps[key]),
+        copy: REFERENCE_ONLY_KEYS.includes(key) ? undefined : copySettingsValue(passedProps[key]),
         live: currentSettings[key],
       };
     }

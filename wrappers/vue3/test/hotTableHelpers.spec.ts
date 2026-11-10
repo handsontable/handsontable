@@ -296,6 +296,24 @@ describe('prepareSettings', () => {
       expect(preparedSettings.colHeaders).toBe(undefined);
     });
 
+    it('should compare `sheetsBar` by reference only, with no copy of its sheets', () => {
+      const baselines: SettingBaselines = {};
+      const sheetsBar = { sheets: [{ name: 'One', data: [[1]] }] };
+
+      recordSettingBaselines(baselines, { sheetsBar } as GridSettings, { sheetsBar });
+
+      expect(baselines.sheetsBar.copy).toBe(undefined);
+
+      const preparedSettings = prepareSettings(
+        { sheetsBar: { sheets: [{ name: 'One', data: [[1]] }] } } as GridSettings,
+        { sheetsBar: { sheets: [] } } as GridSettings,
+        [],
+        baselines
+      );
+
+      expect(preparedSettings.sheetsBar).toBeDefined();
+    });
+
     it('should send a new array whose content differs from what the wrapper synced', () => {
       const baselines: SettingBaselines = {};
 
