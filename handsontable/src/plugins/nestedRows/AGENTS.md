@@ -224,9 +224,14 @@ They are written in different places and can drift. Keep this in mind:
   nothing. This is the parent branch only. `syncRowWithRawSource()` addresses a TOP-LEVEL position
   (`getRowIndexWithinParent()` of the upmost parent) and correctly keeps the modifiers off, so do not
   generalize this to "always on". A parent object the cache does not know (one an app kept across
-  a data load) makes `addChildAtIndex()` return before any hook: the old `?? 0` fallback wrote its
-  children onto the first top-level row and left an index slot with no data row behind it. A test of this needs a parent whose flattened row is below the top-level
-  count, or the write is dropped and the test passes on the broken code. Pinned by
+  a data load) makes `addChildAtIndex()` warn once per grid and return before any hook: the old `?? 0`
+  fallback wrote its children onto the first top-level row and left an index slot with no data row
+  behind it. **The parent's row is read AFTER `beforeAddChild`**, not before: a listener may move the
+  parent (add or remove a row above it), and a number read earlier would aim the write, `insertIndexes()`
+  and `afterCreateRow` at whatever row holds that position now. If a listener removed the parent
+  itself, `afterAddChild` still fires with a `null` element, because `beforeAddChild` opened the
+  collapsed-rows stash and only that hook closes it. A test of the write needs a parent whose flattened
+  row is below the top-level count, or the write is dropped and the test passes on the broken code. Pinned by
   `__tests__/addChildAtIndexNestedParent.unit.js` and `tests/e2e/nested-rows-undo.spec.ts`.
 - **Only the top-level branch translates its index for `insertIndexes()`.** `insertIndexes()` takes a
   **visual** index and resolves it through `getNotTrimmedIndexes()[arg]`, but the parent branch passes

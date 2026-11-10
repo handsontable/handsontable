@@ -218,9 +218,10 @@ describe('NestedRows – addChildAtIndex() on a nested parent', () => {
     expect(hot.countRows()).toBe(9);
   });
 
-  it('does nothing for a parent object the grid no longer holds', () => {
+  it('does nothing, and warns once, for a parent object the grid no longer holds', () => {
     const beforeAddChild = jest.fn();
     const afterAddChild = jest.fn();
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     createGrid({ beforeAddChild, afterAddChild });
 
@@ -232,6 +233,7 @@ describe('NestedRows – addChildAtIndex() on a nested parent', () => {
     hot.loadData([{ name: 'X', __children: [{ name: 'X1' }] }, { name: 'Y' }]);
 
     dm.addChildAtIndex(staleParent, 0, { name: 'NEW' });
+    dm.addChildAtIndex(staleParent, 0, { name: 'NEW' });
 
     // The first top-level row keeps its own children, and the grid and its index maps stay in step.
     expect(tree()).toEqual(['X(X1)', 'Y']);
@@ -239,5 +241,60 @@ describe('NestedRows – addChildAtIndex() on a nested parent', () => {
     expect(hot.rowIndexMapper.getNumberOfIndexes()).toBe(3);
     expect(beforeAddChild).not.toHaveBeenCalled();
     expect(afterAddChild).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toContain('addChildAtIndex()');
+
+    warnSpy.mockRestore();
+  });
+
+  it('reads the parent\'s row after beforeAddChild, so a listener that moves the parent does not misaim the write', () => {
+    let addedTopRow = false;
+
+    createGrid({
+      beforeAddChild: () => {
+        if (!addedTopRow) {
+          addedTopRow = true;
+          // Pushes every row, the parent included, one row down before the insert is placed.
+          dataManager().addChildAtIndex(null, 0, { name: 'TOP' });
+        }
+      },
+    });
+
+    const dm = dataManager();
+
+    dm.addChildAtIndex(dm.getDataObject(6), 0, { name: 'NEW' });
+
+    expect(tree()).toEqual([
+      'TOP',
+      'A(A1(A1a(A1a-i),A1b),A2)',
+      'B(NEW,B1(B1a))',
+      'C',
+    ]);
+    expect(renderedNames()).toEqual(['TOP', 'A', 'A1', 'A1a', 'A1a-i', 'A1b', 'A2', 'B', 'NEW', 'B1', 'B1a', 'C']);
+    expect(hot.rowIndexMapper.getNumberOfIndexes()).toBe(12);
+  });
+
+  it('still fires afterAddChild when a beforeAddChild listener removes the parent', () => {
+    const afterAddChild = jest.fn();
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    createGrid({
+      beforeAddChild: () => {
+        hot.alter('remove_row', 6);
+      },
+      afterAddChild,
+    });
+
+    const dm = dataManager();
+
+    dm.addChildAtIndex(dm.getDataObject(6), 0, { name: 'NEW' });
+
+    expect(tree()).toEqual(['A(A1(A1a(A1a-i),A1b),A2)', 'C']);
+    expect(hot.countRows()).toBe(7);
+    expect(hot.rowIndexMapper.getNumberOfIndexes()).toBe(7);
+    expect(afterAddChild).toHaveBeenCalledTimes(1);
+    expect(afterAddChild.mock.calls[0][1]).toBeNull();
+
+    warnSpy.mockRestore();
   });
 });
