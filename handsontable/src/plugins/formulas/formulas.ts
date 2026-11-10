@@ -5701,9 +5701,19 @@ export class Formulas extends BasePlugin {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
     this.#followSyncedRows((rows) => {
-      Array.from(new Set(physicalRows)).sort((a, b) => b - a).forEach((physicalRow) => {
-        rows.splice(physicalRow, 1);
-      });
+      // One pass that moves every kept row up once: a splice per removed row (or per span, when the removed
+      // rows are scattered) shifts the rest of the array each time, which is quadratic on a large removal.
+      const removed = new Set(physicalRows);
+      let kept = 0;
+
+      for (let physicalRow = 0; physicalRow < rows.length; physicalRow += 1) {
+        if (!removed.has(physicalRow)) {
+          rows[kept] = rows[physicalRow];
+          kept += 1;
+        }
+      }
+
+      rows.length = kept;
 
       return true;
     });

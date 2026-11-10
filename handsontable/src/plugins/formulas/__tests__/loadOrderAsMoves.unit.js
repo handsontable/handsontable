@@ -623,6 +623,31 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       expect(setSheetContent).not.toHaveBeenCalled();
       expect(hot.getDataAtCell(0, 1)).toBe(2);
     });
+
+    it('follows a removal of rows that are several spans in physical order', () => {
+      const data = Array.from({ length: 10 }, (_, index) => [index, `=A${index + 1}*2`]);
+      const engine = createEngine();
+      const hot = createGrid({ data, manualRowMove: true, formulas: { engine } });
+
+      hot.getPlugin('manualRowMove').moveRows([8, 9], 0);
+      hot.render();
+      // Visual rows 1 to 3 are physical rows 9, 0 and 1: two spans in one removal.
+      hot.alter('remove_row', 1, 3);
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expect(hot.getData()).toEqual([[8, 16], [2, 4], [3, 6], [4, 8], [5, 10], [6, 12], [7, 14]]);
+
+      // The record lines up with the rows that are left, so a host change in the last one is still seen.
+      data[6][0] = 50;
+      hot.updateSettings({});
+
+      expect(setSheetContent).toHaveBeenCalledTimes(1);
+      expect(engine.getSheetValues(hot.getPlugin('formulas').sheetId).map(([id]) => id)).toContain(50);
+    });
   });
 
   describe('the moves a reload still sends', () => {
