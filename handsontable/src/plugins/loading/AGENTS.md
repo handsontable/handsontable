@@ -24,9 +24,10 @@ later `updateSettings({ dialog: false })`. Cases pinned by `__tests__/dialogRequ
   `{ loading: false }` is visible to Dialog's branch 1 in the same pass. Outside a pass (a direct
   `enablePlugin()`/`disablePlugin()` on Loading) Loading calls Dialog's `enablePlugin()`/`disablePlugin()`
   itself; the `isEnabled()` read there is the allowlisted line in `test/__tests__/crossPluginIsEnabled.unit.js`.
-- **The direct enable refreshes Dialog's settings first** (`updatePluginSettings(getSettings().dialog)`), as
-  branch 2 of `onUpdateSettings` does. Without it Dialog kept the options of a `dialog` object that was turned
-  off earlier, and the loading screen came up `closable`.
+- **The direct enable resets Dialog's settings first, but only while the `dialog` option is off.** Without the
+  reset Dialog kept the options of a `dialog` object that was turned off earlier, and the loading screen came
+  up `closable`. A set option is Dialog's own to read (its `init()`, or its settings pass later in the same
+  call); reading it here too logged every validation warning twice.
 - **`destroy()` releases only, never disables Dialog.** Core drops the data source before it destroys plugins,
   and Dialog's `hide()` then threw from the selection import. The next settings update turns Dialog off.
 - `show()`, `hide()` and `update()` keep their `#dialogPlugin?.enabled` guards: the license gate can keep Dialog

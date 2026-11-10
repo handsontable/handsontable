@@ -266,7 +266,12 @@ export class Loading extends BasePlugin {
     this.hot._requirePlugin('dialog', this);
 
     if (this.#dialogPlugin && !this.#dialogPlugin.enabled) {
-      this.#dialogPlugin.updatePluginSettings(this.hot.getSettings().dialog);
+      const dialogSetting = this.hot.getSettings().dialog;
+
+      if (!dialogSetting) {
+        this.#dialogPlugin.updatePluginSettings(dialogSetting);
+      }
+
       this.#dialogPlugin.enablePlugin();
     }
 

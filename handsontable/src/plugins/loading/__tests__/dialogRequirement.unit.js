@@ -161,6 +161,25 @@ describe('Loading requires the Dialog plugin without writing the `dialog` option
     expect(dialog.getSetting('animation')).toBe(true);
   });
 
+  it('warns once about an invalid `dialog` option while `loading` is on', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    try {
+      createGrid({ loading: true, dialog: { closable: 'x' } });
+
+      expect(warn.mock.calls.filter(([message]) => String(message).includes('closable'))).toHaveLength(1);
+
+      warn.mockClear();
+      hot.updateSettings({ loading: false, dialog: false });
+      hot.updateSettings({ loading: true, dialog: { closable: 'x' } });
+
+      expect(warn.mock.calls.filter(([message]) => String(message).includes('closable'))).toHaveLength(1);
+      expect(hot.getPlugin('dialog').enabled).toBe(true);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it('stops requiring Dialog when the Loading plugin is destroyed ahead of the grid', () => {
     createGrid({ loading: true });
 
