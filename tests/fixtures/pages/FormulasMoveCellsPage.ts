@@ -209,7 +209,9 @@ export class FormulasMoveCellsPage {
     });
   }
 
-  /** The number of calls `countEngineWrites()` counted so far. */
+  /**
+   * The number of calls `countEngineWrites()` counted so far.
+   */
   async engineWriteCount(): Promise<number> {
     return this.page.evaluate(() => (window as any).engineWrites);
   }
