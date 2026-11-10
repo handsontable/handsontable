@@ -32,8 +32,9 @@ export function seedOrders(): Promise<void> {
 }
 
 // Replaces the table with a user's Parquet or CSV file. The file never leaves the browser.
-// The casts enforce the demo schema: a file without these columns fails with a clear error
-// and the current table is left as it was.
+// The casts enforce the demo schema, and the grid's edits and deletes match rows by id, so
+// every id must be present and unique. The file loads into a staging table first: a file that
+// fails either check is rejected with a clear error and the current table is left as it was.
 export function loadFile(file: File): Promise<number> {
   const isParquet = file.name.toLowerCase().endsWith('.parquet');
   // A fixed internal name keeps the user's file name out of the SQL text.
@@ -45,19 +46,29 @@ export function loadFile(file: File): Promise<number> {
 
     try {
       await conn.query(`
-        CREATE OR REPLACE TABLE orders AS
+        CREATE OR REPLACE TEMP TABLE orders_upload AS
         SELECT id::INTEGER AS id, order_no::VARCHAR AS order_no, customer::VARCHAR AS customer,
                region::VARCHAR AS region, product::VARCHAR AS product, quantity::INTEGER AS quantity,
                unit_price::DOUBLE AS unit_price, status::VARCHAR AS status, order_date::DATE AS order_date
         FROM ${reader}`);
 
-      const table = await conn.query('SELECT count(*) AS total, coalesce(max(id), 0) AS max_id FROM orders');
-      const { total, max_id: maxId } = table.toArray()[0].toJSON() as { total: number; max_id: number };
+      const check = await conn.query(`
+        SELECT count(*) AS total, count(*) - count(id) AS missing_ids,
+               count(id) - count(DISTINCT id) AS duplicate_ids, coalesce(max(id), 0) AS max_id
+        FROM orders_upload`);
+      const { total, missing_ids: missingIds, duplicate_ids: duplicateIds, max_id: maxId } = check
+        .toArray()[0].toJSON() as { total: number; missing_ids: number; duplicate_ids: number; max_id: number };
 
+      if (missingIds > 0 || duplicateIds > 0) {
+        throw new Error(`every row needs a unique id (${missingIds} missing, ${duplicateIds} duplicated)`);
+      }
+
+      await conn.query('CREATE OR REPLACE TABLE orders AS SELECT * FROM orders_upload');
       await conn.query(`CREATE OR REPLACE SEQUENCE orders_id_seq START ${Math.trunc(maxId) + 1}`);
 
       return total;
     } finally {
+      await conn.query('DROP TABLE IF EXISTS orders_upload');
       await db.dropFile(internalName);
     }
   });

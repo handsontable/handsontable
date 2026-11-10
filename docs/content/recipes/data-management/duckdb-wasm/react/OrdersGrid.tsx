@@ -49,7 +49,8 @@ const OrdersGrid = memo(forwardRef<HotTableRef>((_, ref) => (
     colHeaders={COL_HEADERS}
     columns={COLUMNS}
     hiddenColumns={HIDDEN_COLUMNS}
-    fixedColumnsStart={2}
+    // Counts hidden columns too: id (hidden), order_no and customer.
+    fixedColumnsStart={3}
     pagination={PAGINATION}
     // Single-column, server-driven sort. multiColumnSorting would disable dataProvider.
     columnSorting={true}

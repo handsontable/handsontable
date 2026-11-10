@@ -241,7 +241,7 @@ Create `src/OrdersGrid.tsx`:
 - **Every prop is defined once, outside the component.** The React wrapper passes changed props to `updateSettings()`, and a new `dataProvider` object makes the plugin fetch again. If you write the config inline, every parent render triggers a refetch. In this app, every fetch updates the parent's status bar, so the grid would refetch forever and never leave its loading state. Module-level constants and `memo` keep the grid out of that loop.
 - **`columnSorting`, not `multiColumnSorting`.** The `dataProvider` plugin sends one sort column to `fetchRows`, and it does not enable when `multiColumnSorting` is on.
 - **No filter by value.** In server mode, the **Filter by value** checklist could only list the values on the loaded page, so `dropdownMenu` leaves it out. The condition filters from [Step 4](#map-filter-conditions-to-sql) run against all million rows.
-- **`hiddenColumns` and `fixedColumnsStart` work together.** The `id` column is hidden, so `fixedColumnsStart={2}` freezes the two visible columns, `order_no` and `customer`.
+- **`fixedColumnsStart` counts hidden columns.** The frozen span starts at the hidden `id` column, so `fixedColumnsStart={3}` freezes the two visible columns, `order_no` and `customer`. With `{2}`, only `order_no` would stay in place.
 - **`notification` shows errors as toasts.** A failed fetch or a rejected edit, such as an invalid date, appears as a toast with DuckDB's error message.
 
 ## Step 7: Load and export Parquet or CSV
@@ -257,8 +257,9 @@ Replace `src/App.tsx`:
 **What's happening:**
 
 - **The grid mounts after the data exists.** `App` seeds the table first, then renders `OrdersGrid`, so the first fetch never queries a missing table. `seedOnce` keeps React's development double mount from generating the table twice.
-- **A user's file stays in the browser.** `loadFile` from Step 2 registers the file with DuckDB under a fixed internal name, so the user's file name never appears in SQL. It reads Parquet with `read_parquet` and CSV with `read_csv_auto`, and casts every column to the demo schema. A file without those columns fails with DuckDB's error, and the current table stays as it was. `App` then calls `fetchData({ page: 1 })` on the plugin to show the new data.
+- **A user's file stays in the browser.** `loadFile` from Step 2 registers the file with DuckDB under a fixed internal name, so the user's file name never appears in SQL. It reads Parquet with `read_parquet` and CSV with `read_csv_auto`, and casts every column to the demo schema. The rows land in a temporary table first, and `loadFile` rejects the file if any `id` is missing or repeated, because edits and deletes match rows by `id`: two rows with the same `id` would change or disappear together. A file that fails a check, or lacks a column, shows the error, and the current table stays as it was. `App` then calls `fetchData({ page: 1 })` on the plugin to show the new data.
 - **Export writes the current table.** `exportParquet` runs `COPY orders TO 'orders.parquet'` inside DuckDB's virtual file system and hands the bytes to the browser as a download, edits included.
+- **The file picker is a real button.** A hidden `<input type="file">` is not in the tab order, so a native `<button>` opens it through a ref. Keyboard users can reach and press **Load Parquet or CSV** like any other button.
 - **The status bar reads each fetch.** `onFetchStats` reports the matching row count and the query time. Updating `App` state is safe here because `OrdersGrid` does not re-render with it.
 
 Run `npm run dev` and open the app. Sort a column, filter by region, or page to the end to see the query time for each change.

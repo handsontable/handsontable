@@ -29,6 +29,7 @@ function seedOnce(): Promise<number> {
 
 export default function App() {
   const gridRef = useRef<HotTableRef>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<Status>({ state: 'loading' });
   const [stats, setStats] = useState<FetchStats | null>(null);
   const [message, setMessage] = useState('');
@@ -97,10 +98,11 @@ export default function App() {
               </>
             )}
             <span className="spacer" />
-            <label className="button">
+            {/* A native button stays in the tab order and opens the hidden file input. */}
+            <button type="button" className="button" onClick={() => fileInputRef.current?.click()}>
               Load Parquet or CSV
-              <input type="file" accept=".parquet,.csv" onChange={handleFile} hidden />
-            </label>
+            </button>
+            <input ref={fileInputRef} type="file" accept=".parquet,.csv" onChange={handleFile} hidden />
             <button type="button" className="button" onClick={handleExport}>Export Parquet</button>
           </>
         )}
