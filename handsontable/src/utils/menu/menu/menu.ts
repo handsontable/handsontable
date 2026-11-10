@@ -1385,15 +1385,19 @@ export class Menu {
     const { holder } = this.hotMenu!.view._wt.wtTable;
     const holderStyle = holder.style;
     const viewportHeight = this.container.ownerDocument.documentElement.clientHeight;
-    // The border and the vertical padding of the menu box around the holder, measured so that every theme's
-    // tokens count.
-    // The holder's own height is subtracted, not the content's: a stylesheet can cap a holder below its content
-    // (the sheets bar menu has a `max-height`), and the content height would then read as negative chrome.
-    const chromeHeight = this.container.offsetHeight - holder.offsetHeight;
+    // The border and the vertical padding of the menu box around the holder are measured, so that every theme's
+    // tokens count. The holder's own height is subtracted, not the content's: a stylesheet can cap a holder below its content
+    // (the sheets bar menu has a `max-height`), and the content height would then read as negative chrome. It is
+    // the holder's USED `height` (what `style.height` takes), not its `offsetHeight`: the sheets bar menu gives
+    // the content-box holder block padding, which sits outside `style.height` and so belongs to the chrome.
+    const holderHeight = Number.parseFloat(this.container.ownerDocument.defaultView!.getComputedStyle(holder).height);
+    const chromeHeight = this.container.offsetHeight - holderHeight;
     const maxHolderHeight = viewportHeight - chromeHeight;
 
-    // A viewport that reports no height (a hidden frame) has no room to measure against.
-    if (viewportHeight <= 0 || maxHolderHeight <= 0 || contentHeight <= maxHolderHeight) {
+    // A viewport that reports no height (a hidden frame) has no room to measure against, and a holder with no
+    // used height (`auto` while it is not rendered) has no chrome to measure.
+    if (viewportHeight <= 0 || !Number.isFinite(maxHolderHeight) || maxHolderHeight <= 0 ||
+        contentHeight <= maxHolderHeight) {
       return null;
     }
 
