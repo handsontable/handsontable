@@ -158,6 +158,25 @@ export class FormulasMoveCellsPage {
     await this.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
   }
 
+  /**
+   * Drag rows to a drop index through the ManualRowMove plugin, the call the header drag makes.
+   * Resolves to whether the order changed.
+   */
+  async dragRows(rows: number[], dropIndex: number): Promise<boolean> {
+    return this.page.evaluate(([movedRows, drop]) => {
+      const moved = window.hot.getPlugin('manualRowMove').dragRows(movedRows, drop);
+
+      window.hot.render();
+
+      return moved;
+    }, [rows, dropIndex] as [number[], number]);
+  }
+
+  /** Resend the settings through `updateSettings({})`, as a React or Vue re-render does. */
+  async rerender(): Promise<void> {
+    await this.page.evaluate(() => window.hot.updateSettings({}));
+  }
+
   /** Veto the next move through the public beforeMoveCells hook. */
   async vetoNextMove(): Promise<void> {
     await this.page.evaluate(() => window.hot.addHookOnce('beforeMoveCells', () => false));

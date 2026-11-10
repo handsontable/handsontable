@@ -10,7 +10,7 @@
  * @returns {object} The stub, carrying the recorded calls and its mutable `dimensions`.
  */
 export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
-  const calls = { setRowOrder: [], setColumnOrder: [] };
+  const calls = { setRowOrder: [], setColumnOrder: [], moveRows: [], moveColumns: [] };
   const dimensions = { ...initialDimensions };
 
   const validate = (order, size, axisLabel, sizeLabel) => {
@@ -67,6 +67,25 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
     held[axis] = reordered;
   };
 
+  // Like `moveRows()`/`moveColumns()`: the block of `count` lines from `start` goes in front of the line at
+  // `target` (a position in the sheet before the move), and every position must be inside the sheet.
+  const move = (axis, size, start, count, target) => {
+    if (start < 0 || count < 1 || start + count > size || target < 0 || target > size
+      || (target >= start && target <= start + count)) {
+      throw new Error(`Invalid arguments, the ${axis} move from ${start} (${count}) to ${target} is not possible.`);
+    }
+
+    const current = held[axis];
+
+    if (current.length === size) {
+      const block = current.slice(start, start + count);
+      const rest = current.slice(0, start).concat(current.slice(start + count));
+      const insertAt = target > start ? target - count : target;
+
+      held[axis] = rest.slice(0, insertAt).concat(block, rest.slice(insertAt));
+    }
+  };
+
   return {
     calls,
     dimensions,
@@ -83,6 +102,14 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
       apply('columns', transformation);
 
       calls.setColumnOrder.push({ sheetId, transformation });
+    },
+    moveRows: (sheetId, start, count, target) => {
+      move('rows', dimensions.height, start, count, target);
+      calls.moveRows.push({ sheetId, start, count, target });
+    },
+    moveColumns: (sheetId, start, count, target) => {
+      move('columns', dimensions.width, start, count, target);
+      calls.moveColumns.push({ sheetId, start, count, target });
     },
     // Like the engine, a write past the sheet's content widens the sheet, and an empty write does not.
     setCellContents: ({ row, col }, value) => {

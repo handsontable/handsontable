@@ -35,8 +35,10 @@ describe('AxisSyncer initial order sync', () => {
       expect(engine.calls.setColumnOrder).toEqual([]);
     });
 
-    it('should call setColumnOrder with the correct transformation when initial sequence is non-identity', () => {
+    it('should send a non-identity initial sequence as column moves', () => {
       const engine = createMockEngine();
+
+      engine.held.columns = ['a', 'b', 'c', 'd'];
       // manualColumnMove: [0, 2, 1, 3] -> visual order in physical indexes is [0, 2, 1, 3].
       const indexMapper = createMockIndexMapper([0, 2, 1, 3]);
       const indexSyncer = createMockIndexSyncer(engine);
@@ -44,27 +46,31 @@ describe('AxisSyncer initial order sync', () => {
 
       axisSyncer.init();
 
-      // Transformation: each currently-physical position i moves to the position
-      // newSequence.indexOf(i). For [0, 2, 1, 3] this yields [0, 2, 1, 3].
-      expect(engine.calls.setColumnOrder).toEqual([
-        { sheetId: 0, transformation: [0, 2, 1, 3] },
+      // A move keeps every reference on its cell, where an order would shift the moved formulas' references.
+      expect(engine.calls.setColumnOrder).toEqual([]);
+      expect(engine.calls.moveColumns).toEqual([
+        { sheetId: 0, start: 2, count: 1, target: 1 },
       ]);
+      expect(engine.held.columns).toEqual(['a', 'c', 'b', 'd']);
       expect(engine.calls.setRowOrder).toEqual([]);
+      expect(engine.calls.moveRows).toEqual([]);
     });
 
-    it('should pad the transformation array to match the HF sheet width when HF has extended dimensions', () => {
+    it('should leave the columns the engine holds past the sequence in place when HF has extended dimensions', () => {
       const engine = createMockEngine();
 
       engine.dimensions.width = 6;
+      engine.held.columns = ['a', 'b', 'c', 'd', 'e', 'f'];
       const indexMapper = createMockIndexMapper([0, 2, 1, 3]);
       const indexSyncer = createMockIndexSyncer(engine);
       const axisSyncer = new AxisSyncer('column', indexMapper, indexSyncer);
 
       axisSyncer.init();
 
-      expect(engine.calls.setColumnOrder).toEqual([
-        { sheetId: 0, transformation: [0, 2, 1, 3, 4, 5] },
+      expect(engine.calls.moveColumns).toEqual([
+        { sheetId: 0, start: 2, count: 1, target: 1 },
       ]);
+      expect(engine.held.columns).toEqual(['a', 'c', 'b', 'd', 'e', 'f']);
     });
   });
 
@@ -83,11 +89,13 @@ describe('AxisSyncer initial order sync', () => {
       const indexMapper = createMockIndexMapper([1, 0, 2, 3]);
       const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
 
+      engine.held.columns = ['a', 'b'];
       axisSyncer.init();
 
-      expect(engine.calls.setColumnOrder).toEqual([
-        { sheetId: 0, transformation: [1, 0] },
+      expect(engine.calls.moveColumns).toEqual([
+        { sheetId: 0, start: 1, count: 1, target: 0 },
       ]);
+      expect(engine.held.columns).toEqual(['b', 'a']);
     });
 
     it('should fill a sheet that was empty at init in the order the grid had then', () => {
@@ -115,24 +123,73 @@ describe('AxisSyncer initial order sync', () => {
   });
 
   describe('row axis', () => {
-    it('should call setRowOrder when row sequence is non-identity', () => {
+    it('should send a non-identity initial row sequence as row moves', () => {
       const engine = createMockEngine();
       const indexMapper = createMockIndexMapper([2, 0, 1]);
 
       engine.dimensions.height = 3;
+      engine.held.rows = ['r0', 'r1', 'r2'];
       const indexSyncer = createMockIndexSyncer(engine);
       const axisSyncer = new AxisSyncer('row', indexMapper, indexSyncer);
 
       axisSyncer.init();
 
-      // For [2, 0, 1]: transformation[i] = newSequence.indexOf(i)
-      //   i=0 -> indexOf(0) = 1
-      //   i=1 -> indexOf(1) = 2
-      //   i=2 -> indexOf(2) = 0
-      expect(engine.calls.setRowOrder).toEqual([
-        { sheetId: 0, transformation: [1, 2, 0] },
+      expect(engine.calls.setRowOrder).toEqual([]);
+      expect(engine.calls.moveRows).toEqual([
+        { sheetId: 0, start: 2, count: 1, target: 0 },
       ]);
+      expect(engine.held.rows).toEqual(['r2', 'r0', 'r1']);
       expect(engine.calls.setColumnOrder).toEqual([]);
+    });
+
+    it('should move a block of rows that keeps its order in one move', () => {
+      const engine = createMockEngine({ width: 2, height: 5 });
+      const indexMapper = createMockIndexMapper([2, 3, 4, 0, 1]);
+
+      engine.held.rows = ['r0', 'r1', 'r2', 'r3', 'r4'];
+      new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine)).init();
+
+      expect(engine.calls.moveRows).toEqual([
+        { sheetId: 0, start: 2, count: 3, target: 0 },
+      ]);
+      expect(engine.held.rows).toEqual(['r2', 'r3', 'r4', 'r0', 'r1']);
+    });
+
+    it('should send an initial order too scrambled for the move budget as one order', () => {
+      const size = 2000;
+      const sequence = Array.from({ length: size }, (_, place) => (place * 7) % size);
+      const engine = createMockEngine({ width: 1, height: size });
+      const axisSyncer = new AxisSyncer('row', createMockIndexMapper(sequence), createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+
+      expect(engine.calls.moveRows).toEqual([]);
+      expect(engine.calls.setRowOrder.length).toBe(1);
+      // Sent as an order, it counts as one: the reload replays it the same way.
+      expect(axisSyncer.getOrderShift(7)).toBe(-6);
+    });
+
+    it('should send the order as an order again when a reload follows an order the engine took as one', () => {
+      const engine = createMockEngine({ width: 2, height: 4 });
+      const indexMapper = createMockIndexMapper([0, 1, 2, 3]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+      // A sort reaches the engine as an order, which keeps the moved formulas' relative references.
+      indexMapper.state.indexesSequence = [3, 2, 1, 0];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
+
+      expect(engine.calls.setRowOrder.length).toBe(1);
+
+      // The reload feeds the content in physical order again, and the order is replayed the same way, so
+      // the grid shows what it showed before the reload.
+      axisSyncer.init();
+
+      expect(engine.calls.setRowOrder).toEqual([
+        { sheetId: 0, transformation: [3, 2, 1, 0] },
+        { sheetId: 0, transformation: [3, 2, 1, 0] },
+      ]);
+      expect(engine.calls.moveRows).toEqual([]);
     });
   });
 
@@ -158,8 +215,8 @@ describe('AxisSyncer initial order sync', () => {
       indexSyncer.getSheetId = () => 0;
       postponedCallbacks[0]();
 
-      expect(engine.calls.setColumnOrder).toEqual([
-        { sheetId: 0, transformation: [0, 2, 1, 3] },
+      expect(engine.calls.moveColumns).toEqual([
+        { sheetId: 0, start: 2, count: 1, target: 1 },
       ]);
     });
   });

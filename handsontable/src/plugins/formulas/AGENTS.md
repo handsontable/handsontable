@@ -309,6 +309,41 @@ Two performance rules and one mid-batch guard:
 `removeRows`/`removeColumns` spans are chunked, because an unbounded variadic argument spread could overflow
 the call stack.
 
+**A (re)loaded engine takes an order reached by moves as moves (DEV-3972).** Every load of the sheet
+(init, the `updateSettings()` resync, a sheet switch) feeds the engine its content in physical order and then
+runs `setupSyncEndpoint()`, which sends the grid's current order (`#syncInitialOrder()`). The engine call
+decides what the formulas read afterwards: `moveRows`/`moveColumns` keep every reference on its cell, while
+`setRowOrder`/`setColumnOrder` keep each moved formula's relative offsets, so a reference across the moved
+lines becomes `#REF!` or reads a line past the data. Sent as one order, a `manualRowMove: [2, 3, 4, 0, 1]`
+array showed `#REF!` at init, `manualColumnMove: [0, 2, 1, 3]` turned `=A1+10` into `=B1+10` at init while a
+`loadData()` with the same array kept it (the move path), and a drag followed by `updateSettings({})` (every
+React or Vue re-render) broke formulas the drag had kept. The rules:
+
+- **The kind of order follows how the grid reached it.** `#orderShifts` already records what the engine took
+  as an order (a sort, `setIndexesSequence()`); a move, an insert and a removal leave nothing there. So
+  `#applyInitialOrder()` reads `#orderShifts.size === 0` BEFORE it resets the stored order and passes it as
+  `reachedByMoves`: an order reached by moves alone goes as moves, one with shifts goes as one order again, so
+  a reload reproduces what the grid showed. **A sort keeps the DEV-917 behavior on a reload**: the shifts
+  route it back to `setRowOrder`. An initial `columnSorting.initialConfig` sorts after the engine is set up,
+  so it reaches the engine as an order (one `setRowOrder` at init, measured), never as moves. A sort followed
+  by a drag still replays as one order; the drag's part of it then shifts like a sort's, as before.
+- **Moves are planned as blocks** (`planOrderMoves()` in `indexSyncer/orderMoves.ts`): walking the places from
+  the start, the line due at a place moves up with every line that follows it in both orders, so an order a
+  few drags produced takes about as many moves (a 10,000-row grid with three rows moved: 3 moves; a rotation:
+  1). The moves go inside `#syncOrderWithEngine()` in place of the order call, so the pad, the compression,
+  the array-formula guard (`#isOrderAllowed()`) and the own-engine write scope apply unchanged. They run in
+  one `engine.batch()`, or directly inside a batch already open (the pad's, or the host's).
+- **A scrambled order is still sent as one order.** The engine rewrites the sheet on every move, so a move
+  costs about the sheet's length: 1,991 moves of a 2,000-row sheet took 4.6 s, against milliseconds for one
+  order, and 5,000 rows ran out of memory. Past `ORDER_MOVES_BUDGET` (moves times lines, 500,000) the plan
+  gives up and the order goes as one, which records its shifts like a sort. Known limit: a move array that
+  scrambles a long grid keeps the old `#REF!` behavior.
+- Pinned by `__tests__/loadOrderAsMoves.unit.js` (init, re-render after a drag on both axes, the same values
+  as `loadData()`, the engine calls, the sort control), `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js`
+  (moves on the mock engine, the budget fallback, a sort replayed as an order),
+  `__tests__/indexSyncer/orderMoves.unit.js`, `__tests__/plugins/initialManualColumnMove.spec.js` and
+  `tests/e2e/formulas-load-order-moves.spec.ts`.
+
 **Removed indexes are translated physically** (`AxisSyncer#setRemovedHfIndexes`). The engine holds trimmed
 rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, including a descendant trimmed
 by `trimRows`. A visual translation reported that row as `-1`, and `engine.removeRows()` threw in the middle
@@ -338,11 +373,10 @@ data path is unaffected either way — with `source === 'updateSettings'` this l
 engine is fed from `afterCellMetaReset`.
 
 **The listener also overtakes `manualColumnMove` / `manualRowMove`, and that changed which engine call
-carries a configured order on a later `loadData()`.** Init is untouched: those plugins apply their arrays in
+carries a configured order on a later `loadData()`.** At init those plugins apply their arrays in
 `enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
-`setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder` on both develop and this
-branch (measured with the engine methods spied; the reference rewrite that
-`__tests__/plugins/initialManualColumnMove.spec.js` pins at init is unchanged). On a `loadData()` after
+`setupSyncEndpoint()` → `#syncInitialOrder()` sends it, as moves since DEV-3972 (see "A (re)loaded engine
+takes an order reached by moves as moves" below). On a `loadData()` after
 init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
 and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
 `setColumnOrder` from `#syncInitialOrder()` — a double transform that rewrote `=A1+10` to `=B1+10` (510
