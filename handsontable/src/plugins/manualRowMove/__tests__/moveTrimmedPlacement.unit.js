@@ -147,5 +147,54 @@ describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
       expect(dragFirstRowAndReadVisibleOrder(2)).toEqual(['r1', 'r0', 'r4', 'r5']);
       expect(dragFirstRowAndReadVisibleOrder(4)).toEqual(['r1', 'r0', 'r4', 'r5']);
     });
+
+    it('should keep the literal meaning of a drop index passed to the API', () => {
+      // The caller names the index: 2 points at the first hidden row, 4 at the visible row after the block.
+      createGrid([2, 3], 'hiding').dragRow(0, 2);
+      expect(sequence()).toEqual([1, 0, 2, 3, 4, 5]);
+
+      createGrid([2, 3], 'hiding').dragRow(0, 4);
+      expect(sequence()).toEqual([1, 2, 3, 0, 4, 5]);
+    });
+
+    describe('skipHiddenRowsFrom()', () => {
+      it('should point at the visible row after the hidden block when the drop index starts at a hidden row', () => {
+        const plugin = createGrid([2, 3], 'hiding');
+
+        // The pointer in the lower half of the row above the block resolves to 2.
+        expect(plugin.skipHiddenRowsFrom(2)).toBe(4);
+        expect(plugin.skipHiddenRowsFrom(3)).toBe(4);
+      });
+
+      it('should leave a drop index that points at a visible row', () => {
+        const plugin = createGrid([2, 3], 'hiding');
+
+        expect(plugin.skipHiddenRowsFrom(0)).toBe(0);
+        expect(plugin.skipHiddenRowsFrom(1)).toBe(1);
+        expect(plugin.skipHiddenRowsFrom(4)).toBe(4);
+        expect(plugin.skipHiddenRowsFrom(6)).toBe(6);
+      });
+
+      it('should leave a drop index when the hidden rows run to the end of the grid', () => {
+        const plugin = createGrid([4, 5], 'hiding');
+
+        expect(plugin.skipHiddenRowsFrom(4)).toBe(4);
+      });
+
+      it('should step over hidden rows that sit next to trimmed ones', () => {
+        const plugin = createGrid([1], 'trimming');
+
+        // The visual rows are the physical rows 0, 2, 3, 4, 5. Hiding the physical rows 2 and 3 as well
+        // leaves the visual rows 1 and 2 hidden.
+        const hiding = hot.rowIndexMapper.createAndRegisterIndexMap('test-hide', 'hiding');
+
+        hiding.setValueAtIndex(2, true);
+        hiding.setValueAtIndex(3, true);
+
+        expect(plugin.skipHiddenRowsFrom(1)).toBe(3);
+
+        hot.rowIndexMapper.unregisterMap('test-hide');
+      });
+    });
   });
 });

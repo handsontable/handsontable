@@ -327,6 +327,23 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * Moves a drop index past the hidden rows that start at it, so it points at the next visible row.
+   *
+   * A gap between two visible rows has two drop indexes when hidden rows sit in it: the lower half of the row above
+   * (it points at the first hidden row) and the upper half of the row below (it points at the visible row). The first
+   * one would land the moved rows in front of the hidden block and the second one after it. Stepping over the hidden
+   * rows gives both the same drop index. When the hidden rows run to the end of the grid there is no visible row to
+   * point at, and the drop index stays as it is.
+   *
+   * @private
+   * @param {number} dropIndex Visual row index, being a drop index for the moved rows.
+   * @returns {number} Visual row index of the first visible row at or after the drop index.
+   */
+  skipHiddenRowsFrom(dropIndex: number) {
+    return this.hot.rowIndexMapper.getNearestNotHiddenIndex(dropIndex, 1) ?? dropIndex;
+  }
+
+  /**
    * Gets the sum of the heights of rows in the provided range.
    *
    * @private
@@ -487,7 +504,10 @@ export class ManualRowMove extends BasePlugin {
       // if hover on lower part of TD - the boundary moves to this row's bottom edge, which is its
       // RENDERED height away (no first-row special case: `tdStartPixel` above is already the real
       // top edge, and `tdHeight` is read from the DOM).
-      this.#target.row = coords.row + 1;
+      // A drop on the lower half of a moved row is the gesture of grabbing a row and releasing it in place:
+      // it stays where it is, so the drop index is not moved past the hidden rows that follow.
+      this.#target.row = this.#rowsToMove.includes(coords.row) ?
+        coords.row + 1 : this.skipHiddenRowsFrom(coords.row + 1);
       tdStartPixel += tdHeight;
 
     } else {
