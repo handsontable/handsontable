@@ -111,8 +111,12 @@ Everything about that machinery is load-bearing:
   too, because by then the new selection has opened an editor on the highlighted cell. The wait happens in
   `#resolvePendingSort`, not in `applyHeaderClickSort`, so subclasses overriding that seam still get it.
 - **The wait ends on the editor's own answer, not on any answer** (`#waitForEditor()`). After each
-  `postAfterValidate` it asks the editor captured at press time `isWaiting()`, from a listener at
-  `orderIndex: Number.MAX_SAFE_INTEGER`, so the editor's own listener has already decided. An unrelated
+  `postAfterValidate` it asks the editor captured at press time `isWaiting()`. The listener sits at
+  `orderIndex: Number.MAX_SAFE_INTEGER` as a defensive measure, so an editor listener added after it would
+  still decide first. It is not pinned: in the unit flows measured (a changed and an unchanged edit) the editor
+  is already done before `postAfterValidate` runs (core's `onQueueEmpty` cancels it, or the validation callback
+  finishes it), or its listener was added during the column selection, before the press's, so the order cannot
+  be observed today. An unrelated
   validation that answers first (a Formulas dependent cell, a `validateCells()` batch, the batch's validation
   of the edited cell's old value) leaves the editor `WAITING` and the rows in place. Waiting on the first
   answer of any cell, as before, sorted the rows before the edit landed, and core wrote the edit by visual row

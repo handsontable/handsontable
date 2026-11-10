@@ -118,8 +118,8 @@ export class ColumnSortingWaitingHeaderSortPage {
   }
 
   /**
-   * Starts `validateCells()`, a validation of every cell that is not the edit. The column A validator holds
-   * each call, after the edit's own call, which stays first in the list.
+   * Starts `validateCells()`, which validates every cell of column A, the edited cell's stored value included.
+   * The column A validator holds each call after the edit's own call, which stays first in the list.
    */
   async validateAllCells(): Promise<void> {
     await this.page.evaluate(() => {

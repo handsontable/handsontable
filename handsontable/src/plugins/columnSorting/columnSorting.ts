@@ -1639,9 +1639,11 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Waits until the editor open at press time stops waiting for its validator. The editor decides which
    * answer is its own: the edited cell's, or the first one of any cell when its save validated no cell yet.
-   * So the sort waits for that same answer, read after the editor's own listener has run on it (the highest
-   * `orderIndex`), and an unrelated validation that answers first leaves the editor waiting and the rows
-   * where they are. Matching the cell here instead would restate the editor's rules and drift from them.
+   * So the sort waits for that same answer, and an unrelated validation that answers first leaves the editor
+   * waiting and the rows where they are. The listener's `orderIndex` is the highest as a defensive measure, so
+   * an editor listener added after this one would still decide first: in the flows measured the editor is
+   * already done before `postAfterValidate` runs (core cancels or finishes it from the validation callback),
+   * or its listener was added first, so no test can tell the order apart. Matching the cell here instead would restate the editor's rules and drift from them.
    *
    * @param {HeaderSortPress} press The press that waits.
    * @param {BaseEditor} editor The editor that was open at press time.

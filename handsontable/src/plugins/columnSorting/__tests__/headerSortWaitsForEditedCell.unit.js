@@ -249,6 +249,9 @@ describe.each([
     await flush();
     await answer(call => call.value === 'x');
 
+    // Accepted limit, not proof the edit lands on its record: the save validated no cell yet, so the editor
+    // takes the first answer of any cell as its own, and the sort follows the editor. The rows sort before the
+    // deferred write lands, and that write then goes by visual row onto another record.
     expect(hot.getActiveEditor().isWaiting()).toBe(false);
     expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
   });
@@ -294,6 +297,7 @@ describe.each([
     buildGrid();
 
     const before = countPostAfterValidateListeners();
+    const applyHeaderClickSort = jest.spyOn(hot.getPlugin(pluginKey), 'applyHeaderClickSort');
 
     await editThenClickHeader();
     reset();
@@ -306,6 +310,7 @@ describe.each([
     held.splice(0).forEach(call => call.callback(true));
     await flush();
 
+    expect(applyHeaderClickSort).not.toHaveBeenCalled();
     expect(hot.getPlugin(pluginKey).enabled ? hot.getPlugin(pluginKey).getSortConfig() : []).toEqual([]);
   });
 
