@@ -2211,6 +2211,14 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   `isFrozenBoundaryEdge('column', ...)` rule on the start side. The end edge of a selection that stops at
   the last scrollable column needs nothing: the master draws it inside its own cell, and the end overlay
   starts right after that cell.
+- **A selection edge on a row freeze line is drawn by the end corners over the end columns (DEV-3638).**
+  `Border#drawFrozenBoundaryEdge` splits an edge on the `fixedRowsTop` or `fixedRowsBottom` line by column:
+  the `top` or `bottom` clone draws it over the scrollable columns, and the corners over the frozen ones. The
+  `top` and `bottom` clones render the end columns too, but the end corners paint over that part, so
+  `top_inline_end_corner` and `bottom_inline_end_corner` draw their own slice, clamped to their rendered
+  columns like the start corners. Without them the edge stopped short of the end band. A hit test is the
+  only test that sees it, because the `top` or `bottom` clone's slice is still in the DOM, just covered
+  (`tests/e2e/frozen-seam-edge-end-corners.spec.ts`).
 - **Known limitation: a selection that crosses the freeze line shows a seam line, on both sides.** An area
   that spans the last scrollable column and the first end column is drawn once by the master and once by the
   end clone, each clamped to what it renders, so the clone draws an edge on its own start boundary inside the

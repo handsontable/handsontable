@@ -1039,6 +1039,57 @@ test('a reader night touches only reader rows, and the two sources keep their ow
   assert.deepEqual(stopped.doc.nights[0].reader['vo-webkit']['grid-core'].incomplete, 'close-editor');
 });
 
+test('a subset night, were one recorded, is a night of its subset only: one check resolves nothing of the other checks, one project nothing of the other projects', () => {
+  // The nightlies have no schedule: a dispatch on develop is the audit, and their check-inputs job refuses the
+  // `checks` (A11y nightly) and `projects` and `groups` (Screen reader nightly) subsets there, so a recorded
+  // night is a full one. This pins what the rows would do with a subset night anyway: coverage is per check
+  // document and per project and scenario transcript, so it covers its subset and nothing else. (The page's
+  // "latest" panels and trends would still read it as the latest night, which is why the guard exists.)
+  const full = mergeA11yLedger(null, nightOf(nightlyFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: NOW }).doc;
+  const reader = mergeA11yLedger(full, nightOf(readerFiles()), runContextFromRun(READER_RUN), CATALOG, { now: NOW }).doc;
+  const open = doc => doc.rows.filter(row => row.status !== 'resolved').map(row => row.key).sort();
+
+  // `checks: keyboard-walker`, dispatched: one document, every finding of the walker gone, its targets measured.
+  const walkerOnly = mergeA11yLedger(reader, nightOf(nightlyFiles({
+    [`${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker.json`]: evidenceDoc('keyboard-walker', [],
+      [{ page: 'autocomplete-editor', theme: 'main', status: 'measured' }, { page: 'multiselect-editor', theme: 'main', status: 'measured' }]),
+    [`${A11Y_EVIDENCE_ARTIFACT}/tree-snapshots.json`]: null,
+    [`${A11Y_EVIDENCE_ARTIFACT}/axe-discovery.json`]: null,
+    [`${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker/grid--main.json`]: null,
+    [`${A11Y_EVIDENCE_ARTIFACT}/keyboard-walker-walk-grid-on-main-keyboard-walker/trace.json`]: null,
+  })), runContextFromRun({ ...NIGHTLY, id: 41600000000, event: 'workflow_dispatch', updated_at: night(1) }), CATALOG, { now: new Date(night(1)) });
+
+  assert.deepEqual(walkerOnly.notes, []);
+  assert.deepEqual(walkerOnly.doc.nights[0].coverage.checks, {
+    'keyboard-walker': ['autocomplete-editor|main|', 'multiselect-editor|main|'],
+  }, 'the night covers the one check that ran');
+  assert.deepEqual(walkerOnly.doc.nights[0].coverage.axe, true, 'the axe scan ran with it: a11y.yml always runs the axe job');
+  assert.deepEqual(open(walkerOnly.doc), open(reader).filter(key => !key.startsWith('checks|keyboard-walker|')),
+    'every walker row is resolved, and no row of tree-snapshots, axe-discovery or a reader project moved');
+  assert.equal(walkerOnly.doc.rows.filter(row => row.status === 'resolved').length, WALKER_FINDINGS.length);
+
+  // `projects: nvda-chromium -f groups=keyboard`, dispatched: that project's transcripts of that group only,
+  // every step passing.
+  const nvdaOnly = mergeA11yLedger(walkerOnly.doc, nightOf(readerFiles({
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--grid-core.json`]: transcript('nvda-chromium', 'grid-core',
+      GRID_CORE.map(([id]) => [id, null])),
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`]: transcript('nvda-chromium', 'nested-rows',
+      [['collapse-parent', null], ['down-to-child', null]]),
+    [`${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/screenreader-grid-core-nvda-chromium/attachments/transcript-94f4.json`]: null,
+    [`${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`]: null,
+  })), runContextFromRun({ ...READER_RUN, id: 41600000001, event: 'workflow_dispatch', updated_at: night(1) }), CATALOG, { now: new Date(night(1)) });
+
+  assert.deepEqual(nvdaOnly.notes, []);
+  assert.deepEqual(nvdaOnly.doc.nights[0].coverage.reader, ['nvda-chromium|grid-core', 'nvda-chromium|nested-rows'],
+    'the night covers the one project that ran');
+  assert.deepEqual(open(nvdaOnly.doc), open(walkerOnly.doc).filter(key => !key.startsWith('reader|nvda-chromium|')),
+    'every nvda-chromium row is resolved, and no vo-webkit row and no check row moved');
+  assert.equal(statusOf(nvdaOnly.doc, 'reader|vo-webkit|token-missing|||grid-core||||arrow-right'), 'new');
+  assert.equal(statusOf(nvdaOnly.doc, 'checks|tree-snapshots|headers-after-data|||grid|main|none||the grid in reading order'), 'new');
+  assert.ok(nvdaOnly.doc.nights.every(entry => ['schedule', 'workflow_dispatch'].includes(entry.event)),
+    'a dispatch is a night like a scheduled run was: the ledger reads the event, never the clock');
+});
+
 test('a night is recorded once, in order, and a re-collection or an older night changes nothing', () => {
   const first = mergeA11yLedger(null, nightOf(nightlyFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: NOW });
   const again = mergeA11yLedger(first.doc, nightOf(nightlyFiles()), runContextFromRun({ ...NIGHTLY, run_attempt: 2 }), CATALOG,

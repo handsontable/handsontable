@@ -30,13 +30,16 @@ export const ACCESSIBILITY_DATA_FILE = resolve(__dirname, '../../content/data/ac
 
 /**
  * How a matrix entry was tested, and the label each value renders as. `audit` renders with the
- * auditor and the period from `report.audit`, so its label here is a template.
+ * auditor and the period from `report.audit`, so its label here is a template. `automated-nightly`
+ * keeps its key (the data file and its consumers read it) and renders as an automated run: the screen
+ * reader workflow runs on a dispatch, not a schedule, so the public text claims no nightly
+ * (`tests/AGENTS.md`, "A11y: the audit and the proof runs").
  *
  * @type {Record<string, string>}
  */
 export const HOW_TESTED = {
   audit: 'External audit ({auditor}, {period})',
-  'automated-nightly': 'Automated nightly run',
+  'automated-nightly': 'Automated run',
   'manual-per-major': 'Manual check once per major release',
   'not-tested': 'Not tested',
 };

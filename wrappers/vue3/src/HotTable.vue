@@ -22,6 +22,8 @@ import {
   getPassedHookKeys,
   prepareSettings,
   propFactory,
+  recordSettingBaselines,
+  SettingBaselines,
 } from './helpers';
 import {
   HotTableProps,
@@ -49,10 +51,13 @@ const HotTable = defineComponent({
     },
     $props: {
       handler(props) {
+        const overriddenKeys: string[] = [];
         const settings = prepareSettings(
           props,
           this.hotInstance ? this.hotInstance.getSettings() : undefined,
-          this.miscCache.hookKeys
+          this.miscCache.hookKeys,
+          this.miscCache.baselines,
+          overriddenKeys
         );
 
         if (!this.hotInstance || settings === undefined) {
@@ -86,6 +91,8 @@ const HotTable = defineComponent({
         }
 
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
+
+        recordSettingBaselines(this.miscCache.baselines, props, this.hotInstance.getSettings(), overriddenKeys);
       },
       deep: true,
       immediate: true,
@@ -100,6 +107,8 @@ const HotTable = defineComponent({
         currentSourceColumns: null,
         generatedId: '',
         hookKeys: [] as string[],
+        // Holds the grid's own values, so it must not be wrapped in a proxy: the compare is by identity.
+        baselines: markRaw({}) as SettingBaselines,
       },
       columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
@@ -145,6 +154,10 @@ const HotTable = defineComponent({
       newSettings.columns = this.columnSettings ? this.columnSettings : newSettings.columns;
 
       this.hotInstance = markRaw<Handsontable>(new Handsontable.Core(this.$el, newSettings));
+
+      // Recorded before `init()`, so a value the app sets in `afterInit` counts as an override of the prop.
+      recordSettingBaselines(this.miscCache.baselines, this.$props, this.hotInstance.getSettings());
+
       this.hotInstance.init();
 
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();

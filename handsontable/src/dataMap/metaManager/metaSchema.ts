@@ -623,6 +623,8 @@ export default (): Record<string, unknown> => {
      * moves onto them. The menu styles read `aria-expanded` too, so a menu item keeps its focus outline
      * while its submenu is open.
      *
+     * You can set the `ariaTags` option only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of it after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) throws an error, even when you didn't set the option at initialization.
+     *
      * Read more:
      * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md)
      * - [Accessibility conformance report](@/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md)
@@ -4968,7 +4970,7 @@ export default (): Record<string, unknown> => {
     /**
      * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
      *
-     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) throws an error, even when you didn't set the option at initialization.
      *
      * You can set the `layoutDirection` option only [for the entire grid](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * You can't set it for individual columns, rows, or cells.
@@ -6852,6 +6854,8 @@ export default (): Record<string, unknown> => {
      *
      * Setting `renderAllRows` to `true` overwrites the [`viewportRowRenderingOffset`](#viewportRowRenderingOffset) setting.
      *
+     * You can set the `renderAllRows` option only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of it after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) throws an error, even when you didn't set the option at initialization.
+     *
      * Read more:
      * - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
      *
@@ -6947,6 +6951,8 @@ export default (): Record<string, unknown> => {
      * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)<br>(render all columns of the grid), rendering all columns in the dataset, and ensuring all columns are available regardless of horizontal scrolling. |
      *
      * Setting `renderAllColumns` to `true` overwrites the [`viewportColumnRenderingOffset`](#viewportColumnRenderingOffset) setting.
+     *
+     * You can set the `renderAllColumns` option only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of it after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) throws an error, even when you didn't set the option at initialization.
      *
      * Read more:
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)

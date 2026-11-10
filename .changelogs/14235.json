@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a selection border that stopped short of the frozen end column on the fixedRowsTop or fixedRowsBottom freeze line.",
+  "type": "fixed",
+  "issueOrPR": 14235,
+  "breaking": false,
+  "framework": "none"
+}

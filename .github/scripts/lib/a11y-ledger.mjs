@@ -1,7 +1,7 @@
 /**
  * The accessibility findings ledger: the pure half.
  *
- * Every weeknight the `A11y nightly` leaves one evidence document per check beyond axe
+ * Every audit (a dispatch of the `A11y nightly` on develop) leaves one evidence document per check beyond axe
  * (`a11y-checks-evidence`, `tests/lib/a11y-evidence.mjs`) and the axe scan's findings
  * (`a11y-axe-results`, `tests/lib/a11y-findings.mjs`), and the `Screen reader nightly` leaves one
  * transcript per scenario and project (`screenreader-transcripts-<project>-<group>`,
@@ -137,9 +137,12 @@ export const A11Y_NIGHTLY_WORKFLOW = 'A11y nightly';
 export const READER_NIGHTLY_WORKFLOW = 'Screen reader nightly';
 export const DOCS_A11Y_WORKFLOW = 'Docs a11y';
 /**
- * The events a nightly's run is recorded from: its schedule, and a dispatch (the proof run of a change, and
- * how a missed night is run again; the docs site scan runs by dispatch only). Both nightlies also run on a pull
- * request that touches them, to validate their graph; such a run is never recorded.
+ * The events a run is recorded from: a dispatch (on the two nightlies the audit, on develop with no inputs:
+ * their `check-inputs` job refuses a subset dispatch there, because the page draws the latest night of each
+ * source and a subset night would show what it skipped as gone; the docs site scan runs by dispatch only)
+ * and a schedule, which the two nightlies do not have today and which is kept here for the day a tier
+ * brings a cron back (`.ai/CI.md`). All three workflows also run on a pull request that touches them, to
+ * validate their graph; such a run is never recorded.
  */
 export const A11Y_EVENTS = ['schedule', 'workflow_dispatch'];
 

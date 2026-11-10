@@ -17,6 +17,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { A11Y_PAGES } from '../a11y/pages.mjs';
 import { WCAG_CRITERIA } from './a11y-evidence.mjs';
+import { SCENARIO_GROUPS } from './screenreader-matrix.mjs';
 import { TOKEN_SEVERITIES, describeAction, normalizeAnnouncement } from './screenreader-transcript.mjs';
 
 export const SCENARIO_SCHEMA = 1;
@@ -88,20 +89,11 @@ export const LANE_PRIMITIVES = Object.freeze({
  */
 export const STARTS = ['grid', 'page'];
 /**
- * The scenario groups a lane job runs one of. Guidepup runs one scenario at a time per machine, so a
- * project's scenarios run in series, and they split into groups that each fit the 40-minute run step
- * (`scenarioBudgetMs()` below, summed per group by the workflow test), each a matrix entry of
- * `.github/workflows/screenreader.yml` with its own job, check run and artifacts (`tests/AGENTS.md`,
- * "Screen readers"). `keyboard`: what a keyboard user does in the grid itself. `reading`: the
- * reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the filters inside them,
- * the comment editor, the column summary row and the links autoLink draws. `editors`: the cell editors
- * and the checkbox cell. `selection`: row selection and the check all header. `structure`: nested and
- * collapsible headers, merged cells and the freeze bars. `status`: the status messages and the bars
- * around the grid (pagination, the sheets bar, a dialog, a notification, the loading and empty data
- * overlays, a value that resolves later). A new group joins this list and the workflow's matrix
- * together; the workflow test keeps the two equal.
+ * The scenario groups a lane job runs one of, re-exported from `screenreader-matrix.mjs` (the
+ * dependency-free list the workflows' `check-inputs` and `verdict` jobs read), so a scenario's `group` is
+ * validated here against the same list the matrix is pinned to.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure', 'status'];
+export { SCENARIO_GROUPS };
 /**
  * What a scenario may take on a slow runner: a step costs four to five seconds on VoiceOver and about
  * thirteen when it is silent, and a run on a busy macOS runner took every step 1.7 to 2 times as long, so a

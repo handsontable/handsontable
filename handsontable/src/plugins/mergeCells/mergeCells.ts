@@ -2940,6 +2940,7 @@ export class MergeCells extends BasePlugin {
 
       const visualColumn = this.hot.toVisualColumn(anchor.physicalColumn);
       let visualRow: number | null = null;
+      let topLeftPhysicalRow: number | null = null;
       let visualRowspan = 0;
 
       if (visualColumn !== null) {
@@ -2952,6 +2953,7 @@ export class MergeCells extends BasePlugin {
 
           if (visualRow === null) {
             visualRow = rowIndex;
+            topLeftPhysicalRow = physicalRow;
           }
 
           visualRowspan += 1;
@@ -2963,12 +2965,16 @@ export class MergeCells extends BasePlugin {
       // resolve to this phantom merge. Always re-purge (removing an absent footprint is a cheap no-op)
       // so the entry stays gone even after `shiftCollections` rebuilds the matrix from every merge on a
       // structural edit.
-      if (visualColumn === null || visualRow === null) {
+      if (visualColumn === null || visualRow === null || topLeftPhysicalRow === null) {
         this.#purgedMerges.add(merge);
         purges.push(merge);
 
         return;
       }
+
+      // The cell the merge is drawn from now may be one it covered a moment ago, whether or not the
+      // merge's geometry moved: a swap of the trimmed row keeps both the visual row and the span.
+      this.#clearCoveredFlagsOfTopLeftCell(topLeftPhysicalRow, anchor.physicalColumn);
 
       // Force a relocation for a merge that re-enters the viewport so it is re-added to the matrix even
       // when it lands on the same visual coordinates it had before being purged.
@@ -2990,6 +2996,38 @@ export class MergeCells extends BasePlugin {
 
     if (relocations.length > 0) {
       this.mergedCellsCollection.relocateInMatrix(relocations);
+    }
+  }
+
+  /**
+   * Removes `hidden` and `copyable` from the cell a merge is drawn from, when a merge covered it before.
+   * While one did, `afterGetCellMeta` stored both on the cell. They do not describe the top-left any more,
+   * and `hidden` makes AutoRowSize skip the cell, so the text of the merge was never measured.
+   *
+   * The flags are removed only where `hidden` is stored on the cell itself: that is the mark of a cell a
+   * merge covered, and the hook wrote `copyable` next to it. A `copyable` the user stored on the cell through
+   * `setCellMeta()` or the `cell` option stays, because the hook writes its flag without recording it. Only a
+   * recorded `false` is still the user's value: the hook overwrote a recorded `true` while the merge covered the cell.
+   * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
+   * The check costs one meta lookup per merge and no lookup in the merge collection.
+   *
+   * @param {number} physicalRow The physical row of the cell the merge is drawn from.
+   * @param {number} physicalColumn The physical column of the cell the merge is drawn from.
+   */
+  #clearCoveredFlagsOfTopLeftCell(physicalRow: number, physicalColumn: number) {
+    const metaManager = this.hot._getMetaManager();
+    const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+
+    if (!storedMeta || !hasOwnProperty(storedMeta, 'hidden')) {
+      return;
+    }
+
+    metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+
+    // The merge stores `hidden` through `setCellMeta()`, but the hook writes `copyable` straight onto the stored
+    // object and never records it. A recorded `copyable` is left alone (a recorded `true` was already overwritten by the hook).
+    if (!metaManager.getCellMetaKeyState(physicalRow, physicalColumn, 'copyable').hadOwn) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'copyable');
     }
   }
 

@@ -274,8 +274,7 @@ export function checkboxRenderer(
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
-        !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
+      runOnlyIf: (): boolean => canAccessCellContent(hotInstance) && isCellContentSelected(),
     }, {
       keys: [['enter']],
       callback: () => {
@@ -306,6 +305,20 @@ export function checkboxRenderer(
   }
 
   /**
+   * Whether the active selection layer holds cells the toggle can write. A layer made through a column
+   * or row header, or the corner, does, although `navigableHeaders` parks the focus on the header. A layer
+   * that is a lone header cell does not.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  function isCellContentSelected(): boolean {
+    const range = hotInstance.getSelectedRangeActive();
+
+    return !!range && !range.isHeader();
+  }
+
+  /**
    * Change checkbox checked property.
    *
    * @private
@@ -331,7 +344,10 @@ export function checkboxRenderer(
       const { row: startRow, col: startColumn } = selRange[key].getTopStartCorner();
       const { row: endRow, col: endColumn } = selRange[key].getBottomEndCorner();
 
-      if (startRow === null || startColumn === null || endRow === null || endColumn === null) {
+      // A layer made of header cells alone holds no cell: its corners read as row or column 0, which
+      // would toggle the cell under the header.
+      if (startRow === null || startColumn === null || endRow === null || endColumn === null ||
+        selRange[key].isHeader()) {
         continue;
       }
 
@@ -483,7 +499,8 @@ export function checkboxRenderer(
       const topLeft = selRange[key].getTopStartCorner();
       const bottomRight = selRange[key].getBottomEndCorner();
 
-      if (topLeft.row === null || topLeft.col === null || bottomRight.row === null || bottomRight.col === null) {
+      if (topLeft.row === null || topLeft.col === null || bottomRight.row === null || bottomRight.col === null ||
+        selRange[key].isHeader()) {
         continue;
       }
 
