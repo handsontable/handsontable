@@ -1901,7 +1901,12 @@ describe('SheetsBar plugin', () => {
     expect(tabs[1].getAttribute('aria-expanded')).toBe(null);
     expect(tabs[0].querySelector('.ht-sheets-bar__tab-label').dir).toBe('auto');
 
-    hot.updateSettings({ ariaTags: false, sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] } });
+    hot.destroy();
+    hot = new Handsontable(container, {
+      ariaTags: false,
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
+      licenseKey: TEST_LICENSE_KEY,
+    });
     tabs = hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
 
     expect(tabs[0].getAttribute('role')).toBe(null);

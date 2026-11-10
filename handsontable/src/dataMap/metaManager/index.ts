@@ -20,6 +20,7 @@ interface MetaManagerLocalHooks {
   afterGetCellMeta: (cellMeta: CellProperties) => void;
   extendTransientCellMeta: (cellMeta: CellProperties) => void;
   invalidateMetaExtensions: () => void;
+  afterInitialization: () => void;
 }
 
 /**
@@ -118,6 +119,7 @@ export default class MetaManager {
     (metaMods as Array<new (metaManager: MetaManager) => unknown>).forEach(ModifierClass => new ModifierClass(this));
 
     this.globalMeta.updateMeta(customSettings);
+    this.runLocalHooks('afterInitialization');
   }
 
   /**

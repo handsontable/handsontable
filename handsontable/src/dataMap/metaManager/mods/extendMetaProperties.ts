@@ -19,6 +19,11 @@ export class ExtendMetaPropertiesMod {
    */
   usageTracker = new Set();
   /**
+   * Becomes `true` once the `MetaManager` has applied the initial settings. A write that comes later is
+   * never an initial change, including the first write of an option the initial settings did not define.
+   */
+  #isInitialized = false;
+  /**
    * @type {Map}
    */
   propDescriptors = new Map<string, Record<string, unknown>>([
@@ -59,6 +64,10 @@ export class ExtendMetaPropertiesMod {
     this.metaManager = metaManager;
 
     this.extendMetaProps();
+
+    metaManager.addLocalHook('afterInitialization', () => {
+      this.#isInitialized = true;
+    });
   }
 
   /**
@@ -124,13 +133,14 @@ export class ExtendMetaPropertiesMod {
                                 value: unknown, isInitialChange: boolean) => void) {
     const { usageTracker } = this;
     const boundOnChange = onChange.bind(this);
+    const isInitialized = () => this.#isInitialized;
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName as string, {
       get(): unknown {
         return this[origProp as string];
       },
       set(value: unknown) {
-        const isInitialChange = !usageTracker.has(propName);
+        const isInitialChange = !isInitialized() && !usageTracker.has(propName);
 
         usageTracker.add(propName);
 

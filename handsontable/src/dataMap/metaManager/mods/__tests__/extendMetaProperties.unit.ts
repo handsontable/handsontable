@@ -226,4 +226,60 @@ describe('ExtendMetaPropertiesMod', () => {
       expect(metaManager.getTableMeta().layoutDirection).toBe('rtl');
     });
   });
+
+  describe('init-only options that the initial settings did not define', () => {
+    const initOnlyOptions: Array<[string, unknown]> = [
+      ['layoutDirection', 'rtl'],
+      ['renderAllRows', true],
+      ['renderAllColumns', true],
+      ['ariaTags', false],
+    ];
+
+    beforeEach(() => {
+      Handsontable.mockImplementation(() => {
+        return {
+          colToProp: visualCol => `prop_${visualCol}`,
+          runHooks: () => {},
+          hasHook: () => {},
+          isRtl: () => false,
+        };
+      });
+    });
+
+    it.each(initOnlyOptions)('should throw on the first update of `%s`', (option, value) => {
+      const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+      expect(() => {
+        metaManager.updateGlobalMeta({ [option]: value });
+      }).toThrow(`The \`${option}\` option can not be updated after the Handsontable is initialized.`);
+    });
+
+    it.each(initOnlyOptions)('should keep throwing on the second update of `%s`', (option, value) => {
+      const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+      expect(() => metaManager.updateGlobalMeta({ [option]: value })).toThrow();
+      expect(() => metaManager.updateGlobalMeta({ [option]: value })).toThrow();
+    });
+
+    it('should not throw for an option that the initial settings did define, set in the constructor', () => {
+      expect(() => {
+        const metaManager = new MetaManager(new Handsontable(), {
+          layoutDirection: 'rtl',
+          renderAllRows: true,
+        }, [ExtendMetaPropertiesMod]);
+
+        expect(metaManager.getTableMeta().layoutDirection).toBe('rtl');
+        expect(metaManager.getTableMeta().renderAllRows).toBe(true);
+      }).not.toThrow();
+    });
+
+    it('should not affect an option that is not init-only', () => {
+      const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+      expect(() => {
+        metaManager.updateGlobalMeta({ fixedColumnsStart: 1 });
+        metaManager.updateGlobalMeta({ fixedColumnsStart: 2 });
+      }).not.toThrow();
+    });
+  });
 });
