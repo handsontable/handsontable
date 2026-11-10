@@ -4,6 +4,7 @@
   "surface": "The formula editor's function suggestions: typing a function's first letters, the arrow keys through the list, Tab inserting a function, and Escape out of the list and the edit.",
   "group": "formulas",
   "page": "formula-builder-suggestions",
+  "start": "page",
   "state": "formula-suggestions",
   "criteria": ["1.3.1", "2.1.1", "4.1.2"],
   "setup": [{"selectCell": [0, 2]}],

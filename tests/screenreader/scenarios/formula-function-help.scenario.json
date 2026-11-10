@@ -4,6 +4,7 @@
   "surface": "The formula editor's function help: typing a function and its opening parenthesis, its arguments, the closing parenthesis, and Enter committing the formula and the result it shows.",
   "group": "formulas",
   "page": "formula-builder-function-help",
+  "start": "page",
   "state": "formula-function-help",
   "criteria": ["1.3.1", "3.3.5", "4.1.2"],
   "setup": [{"selectCell": [0, 2]}],
@@ -23,8 +24,8 @@
     {
       "id": "type-sum",
       "action": {"type": "=SUM("},
-      "expect": [["repeatable", "any"]],
-      "note": "Typing `=SUM(` opens the function help (`dialog`, `SUM function help`), and the editor carries it as its description: `SUM(any, ...)any... - repeatable`. Required: the help, by its words."
+      "expect": [["sum function help"]],
+      "note": "Typing `=SUM(` opens the function help (`dialog`, `SUM function help`), and the editor names it as its description. Required: that description, the help's name."
     },
     {
       "id": "type-range",
