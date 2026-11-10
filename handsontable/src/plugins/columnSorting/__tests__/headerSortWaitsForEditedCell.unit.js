@@ -176,6 +176,43 @@ describe.each([
     expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
   });
 
+  it('should not throw when an earlier `postAfterValidate` listener destroys the grid in the same run', async() => {
+    buildGrid();
+
+    const grid = hot;
+
+    // Default order index, so it runs before the sort's own listener in the same `postAfterValidate` run.
+    grid.addHook('postAfterValidate', () => {
+      if (!grid.isDestroyed) {
+        grid.destroy();
+      }
+    });
+    await editThenClickHeader();
+
+    // The sort waits through a listener of its own, after the destroying one.
+    expect(countPostAfterValidateListeners()).toBeGreaterThan(1);
+
+    const [call] = held.splice(0, 1);
+    const errors = [];
+    const onError = (event) => {
+      errors.push(event.error);
+      event.preventDefault();
+    };
+
+    window.addEventListener('error', onError);
+
+    try {
+      expect(() => call.callback(true)).not.toThrow();
+      await flush();
+    } finally {
+      window.removeEventListener('error', onError);
+    }
+
+    expect(errors).toEqual([]);
+    expect(grid.isDestroyed).toBe(true);
+    hot = null;
+  });
+
   it('should sort once the edited cell answers when nothing else validates', async() => {
     buildGrid();
     await editThenClickHeader();
