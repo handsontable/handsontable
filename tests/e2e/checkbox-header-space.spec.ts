@@ -106,6 +106,29 @@ test.describe('Space on a selected header with navigableHeaders', () => {
     ]);
   });
 
+  test('leaves the cell under a leftover header-cell layer alone', async({ page, theme, bundle }) => {
+    const grid = new CheckboxHeaderSpacePage(page, theme, bundle);
+
+    await grid.goto();
+    // The first layer is the header cell above the checkbox column, reached with the keyboard.
+    await grid.cell(1, 0).click();
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowRight');
+
+    expect(await grid.focus()).toEqual({ row: -1, col: 1, layers: 1 });
+
+    // The second layer, and the focus, is a text cell.
+    await grid.cell(2, 0).click({ modifiers: ['ControlOrMeta'] });
+    await grid.countChanges();
+    await page.keyboard.press('Space');
+
+    // Nothing in the selection holds a checkbox, so the key writes nothing; before, it flipped the
+    // checkbox under the header cell.
+    expect(await grid.changeCount()).toBe(0);
+    expect(await grid.data()).toEqual(INITIAL);
+  });
+
   test('leaves a header-selected text column alone and opens no editor', async({ page, theme, bundle }) => {
     const grid = new CheckboxHeaderSpacePage(page, theme, bundle);
 

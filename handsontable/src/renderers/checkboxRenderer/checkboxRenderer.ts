@@ -324,12 +324,13 @@ export function checkboxRenderer(
       return true;
     }
 
-    // The header flags are kept per layer, and the highlight belongs to the active one.
+    // The header flags are kept per layer, and the highlight belongs to the active one. The corner flag
+    // is read from the last layer only, so it counts when that layer is the active one.
     const layer = selection.getActiveSelectionLayerIndex();
 
     return highlight.isHeader() && (
       selection.isSelectedByColumnHeader(layer) || selection.isSelectedByRowHeader(layer) ||
-      selection.isSelectedByCorner());
+      (layer === selection.getLayerLevel() && selection.isSelectedByCorner()));
   }
 
   /**
@@ -358,7 +359,12 @@ export function checkboxRenderer(
       const { row: startRow, col: startColumn } = selRange[key].getTopStartCorner();
       const { row: endRow, col: endColumn } = selRange[key].getBottomEndCorner();
 
-      if (startRow === null || startColumn === null || endRow === null || endColumn === null) {
+      // A layer made of a header cell alone holds no cell: its corners read as row or column 0, which
+      // would toggle the cell under the header. Delete and Backspace keep their layers as they were.
+      const isHeaderOnlyLayer = !uncheckCheckbox && selRange[key].isHeader();
+
+      if (startRow === null || startColumn === null || endRow === null || endColumn === null ||
+        isHeaderOnlyLayer) {
         continue;
       }
 
