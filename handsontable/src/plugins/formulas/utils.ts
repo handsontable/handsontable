@@ -342,3 +342,41 @@ export function areSheetContentsEqual(left: unknown[][], right: unknown[][]): bo
     return row.length === other.length && row.every((value, column) => value === other[column]);
   });
 }
+
+/**
+ * Sets one cell of a sheet array kept in the shape `getSheetSerialized()` returns, and keeps that shape: the rows
+ * and cells it lacks are added (`[]` for a row, `null` for a cell), and the trailing empty cells of the row and the
+ * trailing empty rows of the sheet, which `getSheetSerialized()` leaves out, are dropped. Changes `rows` in place.
+ *
+ * @param {Array<Array<*>>} rows The sheet array.
+ * @param {number} row The row index.
+ * @param {number} column The column index.
+ * @param {*} value The cell's serialized content, `null` or `undefined` for an empty cell.
+ */
+export function setSheetSnapshotCell(rows: unknown[][], row: number, column: number, value: unknown): void {
+  const isEmpty = (cell: unknown) => cell === null || cell === undefined;
+
+  if (isEmpty(value) && (row >= rows.length || column >= rows[row].length)) {
+    return;
+  }
+
+  while (rows.length <= row) {
+    rows.push([]);
+  }
+
+  const cells = rows[row];
+
+  while (cells.length <= column) {
+    cells.push(null);
+  }
+
+  cells[column] = isEmpty(value) ? null : value;
+
+  while (cells.length > 0 && isEmpty(cells[cells.length - 1])) {
+    cells.pop();
+  }
+
+  while (rows.length > 0 && rows[rows.length - 1].length === 0) {
+    rows.pop();
+  }
+}

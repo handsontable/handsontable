@@ -22,6 +22,7 @@ import {
   isPreservedText,
   normalizeValueForFormulaEngine,
   padRowsToWidestRow,
+  setSheetSnapshotCell,
   trimTrailingEmptyCells,
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
@@ -919,6 +920,18 @@ export class Formulas extends BasePlugin {
   #trackedOwnWriteDepth = 0;
 
   /**
+   * Whether the tracked write on the stack changes the sheet's structure or order, so the snapshot is read again
+   * in full when it ends, rather than cell by cell (`#trackOwnEngineWrite()`).
+   */
+  #trackedWriteIsStructural = false;
+
+  /**
+   * The engine addresses on the bound sheet the engine reported changed (`valuesUpdated`) during the tracked
+   * cell write on the stack, refreshed in the snapshot one by one when it ends.
+   */
+  #trackedChangedCells: Array<{ row: number; col: number }> = [];
+
+  /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
    * held until the restore is done – see `restoreState()`.
    */
@@ -1029,6 +1042,10 @@ export class Formulas extends BasePlugin {
     // (see `#probeValidationValues()`), so the round trip changes nothing a listener could act on.
     if (isPluginEngineProbe(this.engine)) {
       return;
+    }
+
+    if (this.#trackedOwnWriteDepth > 0) {
+      this.#collectTrackedChanges(changes);
     }
 
     const exportedChanges = changes.map(change => this.#exportChangeValue(
@@ -2126,28 +2143,53 @@ export class Formulas extends BasePlugin {
 
   /**
    * Runs a write of this grid to the engine and keeps the snapshot of the bound sheet (`#loadedSheetContent`) in
-   * step with it, for a grid built from the sheet. The outermost such write first compares the sheet with the
-   * snapshot: a difference is a change of someone else's made since (`#foreignSheetChange`), which the snapshot
-   * taken after the write would otherwise take in. After the write the sheet is read again. A write that throws
-   * counts as a foreign change, so the next reload loads the sheet. A validation probe takes its own write back
-   * before it ends, so it is not tracked.
+   * step with it, for a grid built from the sheet. Two kinds, so a cell edit costs what it writes, not the sheet:
+   *
+   * - **A cell write** (`writesCellsOnly`: an edit, a paste, a validator's correction, the early write, the write on
+   *   apply, a restore of written cells): each cell of the bound sheet the engine reports changed while it runs
+   *   (`valuesUpdated`, which names every cell whose content is set and every value it recalculated, spilled values
+   *   included) is read again (`getCellSerialized()`) into the snapshot when it ends. A host change made before it
+   *   stays visible: the cells it touched are not read again, unless this write changed them too, and then the
+   *   snapshot holds what the engine and the grid both hold. A host's structural change shifted lines this write
+   *   does not refresh, so it stays visible as well.
+   * - **A structural write** (the default: an order, a move, an insert, a removal, a restore of the whole sheet, a
+   *   load): the snapshot is read again in full when it ends. Read in full, it would take in a host change made
+   *   before the write, so the write first compares the sheet with the snapshot, and a difference sets
+   *   `#foreignSheetChange` until the next load. A structural write nested in a cell write turns the whole write
+   *   structural: the cells collected so far are refreshed first, then the check runs.
+   *
+   * A write that throws counts as a foreign change. A validation probe takes its own write back before it ends,
+   * so it is not tracked.
    *
    * @param {Function} fn The write.
+   * @param {boolean} [writesCellsOnly] Whether `fn` only sets cell contents.
    * @returns {*} What `fn` returns.
    */
-  #trackOwnEngineWrite<T>(fn: () => T): T {
+  #trackOwnEngineWrite<T>(fn: () => T, writesCellsOnly = false): T {
+    if (this.#trackedOwnWriteDepth > 0) {
+      if (!writesCellsOnly && !this.#trackedWriteIsStructural) {
+        this.#refreshTrackedCells();
+        this.#checkSheetAsLeft();
+        this.#trackedWriteIsStructural = true;
+      }
+
+      return fn();
+    }
+
     const sheetId = this.sheetId;
 
-    if (this.#trackedOwnWriteDepth > 0 || !this.#hotWasInitializedWithEmptyData || this.#loadedSheetContent === null
-      || sheetId === null || !this.engine || isPluginEngineProbe(this.engine) || !this.#hasOwnSheet()) {
+    if (!this.#hotWasInitializedWithEmptyData || this.#loadedSheetContent === null || sheetId === null
+      || !this.engine || isPluginEngineProbe(this.engine) || !this.#hasOwnSheet()) {
       return fn();
     }
 
     const engine = this.engine;
 
-    if (!this.#foreignSheetChange
-      && !areSheetContentsEqual(engine.getSheetSerialized(sheetId), this.#loadedSheetContent)) {
-      this.#foreignSheetChange = true;
+    this.#trackedWriteIsStructural = !writesCellsOnly;
+    this.#trackedChangedCells = [];
+
+    if (this.#trackedWriteIsStructural) {
+      this.#checkSheetAsLeft();
     }
 
     this.#trackedOwnWriteDepth += 1;
@@ -2164,13 +2206,59 @@ export class Formulas extends BasePlugin {
       this.#trackedOwnWriteDepth -= 1;
     }
 
-    if (this.engine === engine && this.sheetId === sheetId && this.#hasOwnSheet()) {
+    if (this.engine !== engine || this.sheetId !== sheetId || !this.#hasOwnSheet()) {
+      this.#loadedSheetContent = null;
+    } else if (this.#trackedWriteIsStructural) {
       this.#loadedSheetContent = engine.getSheetSerialized(sheetId);
     } else {
-      this.#loadedSheetContent = null;
+      this.#refreshTrackedCells();
     }
 
+    this.#trackedChangedCells = [];
+
     return result;
+  }
+
+  /**
+   * Sets `#foreignSheetChange` when the engine sheet no longer holds the snapshot (`#loadedSheetContent`).
+   */
+  #checkSheetAsLeft(): void {
+    if (!this.#foreignSheetChange && this.#loadedSheetContent !== null
+      && !areSheetContentsEqual(this.engine!.getSheetSerialized(this.sheetId!), this.#loadedSheetContent)) {
+      this.#foreignSheetChange = true;
+    }
+  }
+
+  /**
+   * Keeps the engine addresses on the bound sheet from a `valuesUpdated` change list, for the tracked write on the
+   * stack.
+   *
+   * @param {Array} changes The engine's change list.
+   */
+  #collectTrackedChanges(changes: unknown[]): void {
+    changes.forEach((change) => {
+      const address = (change as { address?: { sheet: number; row: number; col: number } }).address;
+
+      if (address && address.sheet === this.sheetId) {
+        this.#trackedChangedCells.push({ row: address.row, col: address.col });
+      }
+    });
+  }
+
+  /**
+   * Reads the cells the tracked write changed into the snapshot (`setSheetSnapshotCell()`).
+   */
+  #refreshTrackedCells(): void {
+    const snapshot = this.#loadedSheetContent;
+
+    if (snapshot === null) {
+      return;
+    }
+
+    this.#trackedChangedCells.forEach(({ row, col }) => {
+      setSheetSnapshotCell(snapshot, row, col, this.engine!.getCellSerialized({ sheet: this.sheetId!, row, col }));
+    });
+    this.#trackedChangedCells = [];
   }
 
   /**
@@ -2808,13 +2896,14 @@ export class Formulas extends BasePlugin {
    *
    * @param {object|null|undefined} engine The engine `fn` writes.
    * @param {Function} fn The mutation.
+   * @param {boolean} [writesCellsOnly] Whether `fn` only sets cell contents (`#trackOwnEngineWrite()`).
    * @returns {*} What `fn` returns.
    */
-  #writeOwnSheet<T>(engine: object | null | undefined, fn: () => T): T {
+  #writeOwnSheet<T>(engine: object | null | undefined, fn: () => T, writesCellsOnly = false): T {
     this.#ownWriteDepth += 1;
 
     try {
-      return withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(fn));
+      return withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(fn, writesCellsOnly));
     } finally {
       this.#ownWriteDepth -= 1;
     }
@@ -5554,7 +5643,7 @@ export class Formulas extends BasePlugin {
         });
         changedCells.push({ address });
       });
-    }));
+    }), true);
 
     writtenCells.forEach((cell) => {
       cell.writtenContent = this.#readEngineContent(cell.address);
@@ -5616,7 +5705,7 @@ export class Formulas extends BasePlugin {
         }
 
         return this.#writeChangesToEngine(changesToWrite);
-      });
+      }, true);
     // The dependents the early write left to the apply (see `#splitDependentsOfDeferred()`), also when every
     // deferred change was rejected and nothing is written here.
     const dependentsToValidate = uniqueCellChanges([...dependentCells, ...awaitingApply.heldDependents]);
@@ -5681,7 +5770,7 @@ export class Formulas extends BasePlugin {
 
     if (sheetId !== this.sheetId) {
       withPluginEngineWrite(this.engine, () => this.#trackOwnEngineWrite(
-        () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId),
+        () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId), true,
       ));
 
     } else if (foreignLoadCount === this.#foreignLoadCount) {
@@ -5906,9 +5995,9 @@ export class Formulas extends BasePlugin {
         this.engine!.batch(writeAll).forEach((dependentCell: unknown) => {
           dependentCells.push(dependentCell);
         });
-      }));
+      }, true));
     } else {
-      this.#writeOwnSheet(this.engine!, writeAll);
+      this.#writeOwnSheet(this.engine!, writeAll, true);
     }
 
     this.validateDependentCells(dependentCells, changedCells);

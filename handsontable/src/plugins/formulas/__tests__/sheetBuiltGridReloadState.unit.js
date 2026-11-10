@@ -631,4 +631,63 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
     expect(isAnyCellMarked()).toBe(false);
   });
+
+  it('takes a host change made before the grid\'s own row insert as a change', () => {
+    const engine = buildEngine();
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      hiddenRows: true,
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.setCellMeta(0, 0, 'className', 'marked');
+    hot.getPlugin('hiddenRows').hideRow(0);
+    engine.moveRows(engine.getSheetId('S1'), 0, 1, 3);
+    // A structural write of the grid's own reads the whole sheet again when it ends; it must not take the host's
+    // move in.
+    hot.alter('insert_row_below', 2);
+    hot.updateSettings({});
+
+    expect(readEngineThroughGrid()).toEqual(hot.getData());
+    expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+    expect(isAnyCellMarked()).toBe(false);
+  });
+
+  it('reloads in place after the grid\'s own writes that spill, change a spill, or clear one', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    engine.addSheet('S1');
+    engine.setSheetContent(engine.getSheetId('S1'), [[1, 2], [3, 4], ['=ARRAYFORMULA(TRANSPOSE(A1:B2))']]);
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.setCellMeta(0, 0, 'className', 'marked');
+
+    const loadData = jest.spyOn(hot, 'loadData');
+    const writes = [
+      // A precedent of the array: every value it spills changes.
+      () => hot.setDataAtCell(0, 0, 10),
+      // A formula that spills into three cells of its own.
+      () => hot.setDataAtCell(0, 3, '=SEQUENCE(3)'),
+      // A value written into a spilled cell: the array cannot spill any more.
+      () => hot.setDataAtCell(1, 3, 'x'),
+      () => hot.setDataAtCell(1, 3, null),
+      // The anchor cleared: its spilled values go.
+      () => hot.setDataAtCell(2, 0, null),
+    ];
+
+    writes.forEach((write) => {
+      write();
+      hot.updateSettings({});
+
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+    });
+
+    expect(loadData).not.toHaveBeenCalled();
+    expect(isAnyCellMarked()).toBe(true);
+  });
 });

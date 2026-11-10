@@ -18,6 +18,7 @@ import {
   widestRowLength,
   hasContentPast,
   areSheetContentsEqual,
+  setSheetSnapshotCell,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -371,6 +372,37 @@ describe('Formulas utils', () => {
       expect(areSheetContentsEqual([['a', 1]], [['a', '1']])).toBe(false);
       expect(areSheetContentsEqual([['a', 1]], [['a', 1, null]])).toBe(false);
       expect(areSheetContentsEqual([['a']], [['a'], []])).toBe(false);
+    });
+  });
+
+  describe('setSheetSnapshotCell', () => {
+    it('should set a cell and add the rows and cells it lacks', () => {
+      const rows = [['a']];
+
+      setSheetSnapshotCell(rows, 2, 1, 5);
+
+      expect(rows).toEqual([['a'], [], [null, 5]]);
+    });
+
+    it('should drop the trailing empty cells and rows an emptied cell leaves, as the engine does', () => {
+      const rows = [['a', 'b'], [null, 5]];
+
+      setSheetSnapshotCell(rows, 1, 1, null);
+
+      expect(rows).toEqual([['a', 'b']]);
+
+      setSheetSnapshotCell(rows, 0, 1, undefined);
+
+      expect(rows).toEqual([['a']]);
+    });
+
+    it('should keep an empty cell in the middle of a row, and leave an empty cell past the sheet out', () => {
+      const rows = [['a', 'b', 'c']];
+
+      setSheetSnapshotCell(rows, 0, 1, null);
+      setSheetSnapshotCell(rows, 4, 4, null);
+
+      expect(rows).toEqual([['a', null, 'c']]);
     });
   });
 });

@@ -1056,25 +1056,42 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
   foreign change is told** (`#canReloadInPlace()`): HyperFormula 3.3.0 emits no event at all for a host
   `addRows()`, `removeRows()` or `moveRows()` that changes no value (measured; removing a row whose formulas'
   results do not change included), so `valuesUpdated` cannot tell. The plugin keeps a **snapshot** of the bound
-  sheet, `getSheetSerialized()` copied (`#loadedSheetContent`): taken at every load of the sheet into the grid
-  (`#recordLoadedSheet()`), and, for a grid built from the sheet only, again at the end of every write of this
-  grid to the engine (`#trackOwnEngineWrite()`, run inside `#writeOwnSheet()`, `runEngineWrite()` and the plain
-  `withPluginEngineWrite()` scopes of this file, so the axis syncer's own-write scope, the deferred write on apply,
-  the undo and redo restore and the structural writes are all covered). A reload is in place only when the sheet
-  equals the snapshot **exactly** (`areSheetContentsEqual()`, `===` per cell: formula text, `7` against `'7'`, an
-  empty cell) and no foreign change was found since (`#foreignSheetChange`). Every plugin write runs in a scope
-  (see "External engine changes" below), so any difference is a change someone else made, whatever the order or
-  the stale formula text. Four details carry it:
-  1. **The outermost own write first compares the sheet with the snapshot**, and a difference sets
-     `#foreignSheetChange` until the next load: a host change made before an own edit would otherwise be taken
-     into the snapshot the edit leaves (`takes a host change made before the grid's own edit as a change ...`).
-  2. **The snapshot is a copy.** The rows the grid loads can be the very arrays `getSheetSerialized()` returned,
-     and the grid writes into them, so an uncopied snapshot followed every edit and never matched again.
-  3. A validation probe takes its own write back before it ends (`isPluginEngineProbe()`), so it is not tracked;
-     a write that throws counts as foreign; a write after which the binding moved drops the snapshot.
-  4. A cell a waiting change set wrote early is part of the snapshot, so a host write over it is a change: the
-     load drops the set, and `#onChangesDropped` leaves the host's value, which the engine holds (`leaves the grid
-     and the engine agreeing when the host writes a cell a waiting change wrote early`).
+  sheet in the shape `getSheetSerialized()` returns (`#loadedSheetContent`): taken, copied, at every load of the
+  sheet into the grid (`#recordLoadedSheet()`), and, for a grid built from the sheet only, kept in step with every
+  write of this grid to the engine (`#trackOwnEngineWrite()`, run inside `#writeOwnSheet()`, `runEngineWrite()`
+  and the plain `withPluginEngineWrite()` scopes of this file, so the axis syncer's own-write scope, the deferred
+  write on apply, the undo and redo restore and the structural writes are all covered). A reload is in place only
+  when the sheet equals the snapshot **exactly** (`areSheetContentsEqual()`, `===` per cell: formula text, `7`
+  against `'7'`, an empty cell) and no foreign change was found since (`#foreignSheetChange`). Every plugin write
+  runs in a scope (see "External engine changes" below), so any difference is a change someone else made, whatever
+  the order or the stale formula text. The writes come in two kinds, so an edit costs what it writes:
+  1. **A cell write** (`writesCellsOnly`: `#writeChangesToEngine()`, which carries an edit, a paste, a validator's
+     correction, the early write and the write on apply; the restore of written cells; the switched-away restore)
+     refreshes only the cells of the bound sheet the engine reported changed while it ran (`valuesUpdated`,
+     collected by `#collectTrackedChanges()`, read again with `getCellSerialized()` into the snapshot by
+     `setSheetSnapshotCell()`, which grows the snapshot past its extent and trims the empty tail the way
+     `getSheetSerialized()` does). The engine names every cell whose content is set, and every value it
+     recalculated, so spilled values follow too (measured: `getSheetSerialized()` writes a spilled value as plain
+     data in its cell, and a write to a precedent, a new spilling formula, a value over a spilled cell, and a
+     cleared anchor all report the cells they change; pinned by `reloads in place after the grid's own writes that
+     spill, change a spill, or clear one`). No check runs first: a host change made before the write stays
+     visible because the cells it touched are not read again, unless this write changed them too, and then the
+     snapshot holds what the engine and the grid both hold. A host's structural change shifted lines this write
+     does not refresh, so it stays visible as well (`takes a host change made before the grid's own edit as a
+     change ...`).
+  2. **A structural write** (the default: an order or a move from the axis syncer, an insert, a removal, MoveCells,
+     an undo or redo restore of the sheet, a NestedRows detach, the sheets bar's own writes) reads the snapshot
+     again in full when it ends. Read in full, it would take in a host change made before it, so it first compares
+     the sheet with the snapshot, and a difference sets `#foreignSheetChange` until the next load (`takes a host
+     change made before the grid's own row insert as a change`). A structural write nested in a cell write turns
+     the whole write structural: the cells collected so far are refreshed first, then the check runs.
+  Two more details: **the load's snapshot is a copy**, because the rows the grid loads can be the very arrays
+  `getSheetSerialized()` returned and the grid writes into them (an uncopied snapshot followed every edit and never
+  matched again); and a validation probe takes its own write back before it ends (`isPluginEngineProbe()`), so it
+  is not tracked, a write that throws counts as foreign, and a write after which the binding moved drops the
+  snapshot. A cell a waiting change set wrote early is part of the snapshot, so a host write over it is a change:
+  the load drops the set, and `#onChangesDropped` leaves the host's value, which the engine holds (`leaves the grid
+  and the engine agreeing when the host writes a cell a waiting change wrote early`).
   A grid built with `data` keeps only the load's snapshot, so its writes cost nothing extra; its
   `switchSheet(<its sheet>)` reloads in place only when nothing wrote the sheet since that load, and takes
   `loadData()` after any write, as before this path existed. The source rows are not compared any more: two rows
@@ -1096,14 +1113,15 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
   (the blank line would drop again). Lines the engine gained are read through the record (`listEngineElements()`
   names them after the recorded ones), and the order put back names them after the grid's lines, so the grid
   shows them where the engine has them.
-  **Cost**, measured in jsdom on a 10,000 x 20 sheet-built grid with one formula column (medians): an own edit
-  pays the start comparison and the snapshot after it, two `getSheetSerialized()` reads and a comparison, about
-  15 ms over the 14 ms an edit took before (one serialization is about 8 ms). A re-render reads no source row at
-  all and costs what the reload costs (about 44 ms, against 177 ms for the first re-render after an edit with the
-  source comparison this replaced, and 50 ms for the `loadData()` of `ff330cdc00`). Only a grid built from the
-  sheet pays the per-write cost. The plugin keeps one copy of the sheet's content alive (dropped on
-  `disablePlugin()`). Pinned by `does not read the grid's source rows on a reload of ...` and `keeps the state of a
-  grid with blank spare rows past the sheet, reading no row`.
+  **Cost**, measured in jsdom on a 10,000 x 20 sheet-built grid with one formula column (AutoColumnSize and
+  AutoRowSize off, medians): an edit takes 13.1 ms, the same as on `ff330cdc00` (13.1 ms); a cell write pays one
+  `getCellSerialized()` per changed cell. A re-render reads no source row and costs what the reload costs (about
+  45 ms after an edit and 44 ms without one, against 48 and 47 ms for the `loadData()` of `ff330cdc00`). A
+  structural write of a grid built from the sheet pays two `getSheetSerialized()` reads (about 8 ms each at that
+  size) and a comparison, on top of an engine call that already walks the sheet. Re-reading the whole sheet after
+  every write, as a first version did, made an edit 29.5 ms. The plugin keeps one copy of the sheet's content alive
+  (dropped on `disablePlugin()`). Pinned by `does not read the grid's source rows on a reload of ...` and `keeps the
+  state of a grid with blank spare rows past the sheet, reading no row`.
 - sets `#sourceHasStaleFormulas` when the engine order is not physical and the sheet holds a formula: the
   engine's text names lines in the engine's order, now stored in physical rows, so a step that brings the
   order back to physical and then restructures must undo from the engine sheet, not from that text.
@@ -1146,7 +1164,7 @@ the old `loadData()` path, so the initial counts above (0, 1, 1) hold. A grid bu
 sheet only through `switchSheet(<the sheet it is bound to>)`, which is a same-sheet reload and takes this path
 too: it now keeps its order and state there, where it rotated before (develop included).
 
-Five limits:
+Six limits:
 
 - **On the `loadData()` path, a host that reorders the engine sheet, or writes it with the same shape, is read
   through the record.** The grid shows the engine's lines where the engine has them (the record maps engine line
@@ -1157,8 +1175,14 @@ Five limits:
   a cell written with the content it holds). The records under the indexes hold the same content then, so the
   state follows content that is the same.
 - **A plugin write that bypasses `#trackOwnEngineWrite()` reads as foreign** (none known: every engine mutation
-  of this file runs in one of the tracked scopes). It costs only the old behavior on the next re-render. Such a
-  write would hide a foreign change only if a host change exactly undid it.
+  of this file runs in one of the tracked scopes), and so does a cell write the engine reports no change for while
+  it runs (a write inside a host's `batch()` or `suspendEvaluation()`, whose events come later). It costs only the
+  old behavior on the next re-render. Such a write would hide a foreign change only if a host change exactly undid
+  it.
+- **A cell write takes in a host change to the very cells it changes.** When a host change made before an own cell
+  write is confined to cells that write then changes too (a host structural change on a sheet so small that every
+  shifted cell is one the write recalculates), the refresh takes it in and the reload stays in place. Any shifted
+  cell the write does not touch keeps the change visible.
 - **A host that removes only lines that are blank in the grid is not detected.** The check needs a line the
   engine left out that holds content in the grid, so after the host removes the blank row a move put last
   (`removeRows()` on rows `[a], [null], [c]` with `manualRowMove: [2, 0]`), the grid keeps that blank row
@@ -1183,7 +1207,8 @@ Pinned by the `Formulas reload of a moved sheet-built grid` block in
   only in formulas or only by a number against its text, and a host change made before an own edit: the cell
   meta, a hidden line, a Filters condition and a waiting edit are dropped, not moved onto another record; blank
   spare rows do not count; a host write over a cell a waiting set wrote early leaves the grid and the engine
-  agreeing;
+  agreeing; a host change before the grid's own row insert is seen; the grid's own writes that spill, change a
+  spill or clear one stay in place;
 - a moved, dragged and sorted grid with cross-row formulas reloads in place on every re-render;
 - the grid's own edits (a number typed as text, a formula), a hidden row, a cell meta value and a sort survive the
   re-render that follows them;
