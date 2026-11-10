@@ -1240,7 +1240,8 @@ export class Formulas extends BasePlugin {
       }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn),
       () => this.#isRowOrderSorted(),
       // The engine's references then depend on the order (DEV-917), and only a write of the data repairs them
-      // once the order is gone: a cleared sort is itself an order sent, so the next resync writes.
+      // once the order is gone: a cleared sort is itself an order sent, so the next resync writes. A reset of
+      // the grid's order (`onOrderReset()`) reaches no engine call, so only that write brings the engine to it.
       () => {
         this.#syncedContent = null;
       });

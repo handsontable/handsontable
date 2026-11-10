@@ -52,6 +52,7 @@ interface ParentIndexSyncer {
   getOwnEngineWrite(): <T>(engine: HyperFormulaEngine, fn: () => T) => T;
   isOrderSorted?(): boolean;
   onOrderSent?(): void;
+  onOrderReset?(): void;
 }
 
 /**
@@ -1314,6 +1315,9 @@ class AxisSyncer {
         this.#paddedElements = new Set<number>();
         this.#orderShifts = new Map<number, number>();
         this.#orderBase = null;
+        // The grid's order was reset (`initIndexMappers()`, a `columns` update without `data`) and no engine
+        // call followed it, so the engine still holds the order it had, and the order stored above is not it.
+        this.#indexSyncer.onOrderReset?.();
       }
 
       this.#clearOrderShiftsWhenPhysical();

@@ -50,7 +50,8 @@ class IndexSyncer {
    */
   readonly #isOrderSorted: () => boolean;
   /**
-   * Called whenever an axis sends one order (`setRowOrder()`/`setColumnOrder()`) to the engine.
+   * Called whenever an axis sends one order (`setRowOrder()`/`setColumnOrder()`) to the engine, and whenever
+   * an axis takes an order the engine did not follow (`onOrderReset()`).
    *
    * @private
    * @type {Function}
@@ -157,6 +158,14 @@ class IndexSyncer {
    * offsets, so the engine's formula text no longer follows the data.
    */
   onOrderSent() {
+    this.#onOrderSent();
+  }
+
+  /**
+   * Reports that an axis took a sequence no engine call followed (a reset of the grid's order). The engine
+   * still holds the order it had, so whoever skips writing the data again has to write it.
+   */
+  onOrderReset() {
     this.#onOrderSent();
   }
 

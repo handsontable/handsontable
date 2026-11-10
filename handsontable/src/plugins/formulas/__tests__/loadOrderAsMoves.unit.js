@@ -558,6 +558,36 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       expect(setSheetContent).toHaveBeenCalledTimes(1);
       expectEveryRowReadsItsRecord(hot);
     });
+
+    it('writes the sheet when a columns update without data resets the row order the user dragged', () => {
+      const engine = createEngine();
+      const hot = createGrid({ manualRowMove: true, formulas: { engine } });
+
+      hot.getPlugin('manualRowMove').moveRows([2], 0);
+      hot.render();
+      hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }, { data: 2 }] });
+
+      expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+      expectEveryRowReadsItsRecord(hot);
+    });
+
+    it('writes the sheet when a columns update without data resets the column order the user dragged', () => {
+      const engine = createEngine();
+      const hot = createGrid({
+        data: [[1, '=A1+10', 100], [2, '=A2+10', 200]],
+        manualColumnMove: true,
+        formulas: { engine },
+      });
+
+      hot.getPlugin('manualColumnMove').moveColumns([2], 0);
+      hot.render();
+
+      expect(hot.getData()).toEqual([[100, 1, 11], [200, 2, 12]]);
+
+      hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }, { data: 2 }] });
+
+      expect(hot.getData()).toEqual([[1, 11, 100], [2, 12, 200]]);
+    });
   });
 
   describe('the moves a reload still sends', () => {
