@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-10T03:59:41.521Z",
+  "updatedAt": "2026-11-10T13:38:15.053Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "jasmine",
+      "leg": "UMD (theme: main)",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor disallow html mode should strip html from strings provided in source (sync mode)",
+      "status": "failed",
+      "attempts": 1,
+      "error": "Expected $.length = 3 to equal 2.",
+      "isolation": "passes alone",
+      "quarantine": null,
+      "source": "ci",
+      "runId": "42814476859",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42814476859",
+      "workflow": "Tests",
+      "branch": "feature/DEV-508_rowHeights-physical-row-index",
+      "headSha": "217c4687a5b24009eea57d0397f4330aa9f2b619",
+      "event": "pull_request",
+      "seenAt": "2026-11-10T13:37:34Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD (theme: horizon)",

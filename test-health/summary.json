@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-10T03:59:41.521Z",
+  "generatedAt": "2026-11-10T13:38:15.053Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 434,
+    "tests": 435,
     "needsTicket": 25,
     "quarantined": 0,
-    "entries": 2260
+    "entries": 2261
   },
   "rows": [
     {
@@ -1782,6 +1782,41 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor disallow html mode should strip html from strings provided in source (sync mode)",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor disallow html mode should strip html from strings provided in source (sync mode)",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-10T13:37:34Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42814476859",
+        "branch": "feature/DEV-508_rowHeights-physical-row-index",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected $.length = 3 to equal 2.",
         "source": "ci"
       },
       "needsTicket": false
