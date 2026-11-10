@@ -44,6 +44,7 @@
  * 12b. /docs/:ver older than 9.0 (any form) → current framework page or home (cookie, 302)
  *      /docs/:major.:minor.:patch from 9.0 → /docs/:major.:minor (301)
  * 12c. /docs/(pro|latest)[/:ver][/:page.html] → current framework page or home (cookie, 302)
+ *      /docs/latest/:fw-data-grid/*        → /docs/:fw-data-grid/* (301)
  *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
  *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
  *  15. /docs/(page).html                   → flat framework page (cookie, 302)
@@ -790,8 +791,9 @@ function isFlatPageKey(page) {
   return Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page) || SITEMAP_PASSTHROUGH_SLUGS.has(page);
 }
 
-// U+200B-U+200D, U+2060 and U+FEFF, percent-encoded as `url.pathname` holds them.
-const TRAILING_INVISIBLE_CHARS = /(?:%E2%80%8[BCD]|%E2%81%A0|%EF%BB%BF)+$/i;
+// U+200B-U+200D, U+2060 and U+FEFF, percent-encoded as `url.pathname` holds
+// them, at the end of the path or before its final slash.
+const TRAILING_INVISIBLE_CHARS = /(?:%E2%80%8[BCD]|%E2%81%A0|%EF%BB%BF)+(\/?)$/i;
 
 // A slug the rule 19 retry never looks up under a framework: a framework
 // prefix, a version, or a file.
@@ -1383,7 +1385,12 @@ async function readDesignSystemDate(env) {
 
 async function route(request, env, ctx) {
     const url = new URL(request.url);
-    const path = url.pathname;
+    // Rule 1c cleans the path here, so rules 1 and 1b redirect the cleaned
+    // path in the same hop.
+    const cleanedPath = url.pathname.replace(TRAILING_INVISIBLE_CHARS, '$1');
+    const hasInvisibleChars = cleanedPath !== url.pathname &&
+      (cleanedPath === '/docs' || cleanedPath.startsWith('/docs/'));
+    const path = hasInvisibleChars ? cleanedPath : url.pathname;
 
     // -- 1. /docs/next/:splat → /docs/:splat ----------------------------------
     if (path.startsWith('/docs/next/') || path === '/docs/next') {
@@ -1414,12 +1421,9 @@ async function route(request, env, ctx) {
 
     // -- 1c. /docs/... ending in invisible characters → the same path without them --
     // A link copied from a chat or a document can carry a zero-width space.
-    {
-      const cleaned = path.replace(TRAILING_INVISIBLE_CHARS, '');
-
-      if (cleaned !== path && path.startsWith('/docs')) {
-        return redirect301(abs(`${cleaned}${url.search}`, url));
-      }
+    // `path` is already cleaned at the top of route().
+    if (hasInvisibleChars) {
+      return redirect301(abs(`${path}${url.search}`, url));
     }
 
     // -- 2. Root / → /docs ---------------------------------------------------
@@ -1538,10 +1542,14 @@ async function route(request, env, ctx) {
 
     // -- 7a. Vue 3 and Vue 2 legacy pages -----------------------------------
     {
-      const m = path.match(/^\/docs\/(?:(?:javascript|react|angular|vue)-data-grid\/)?(vue3?-[^/]+)\/?$/);
+      const m = path.match(/^\/docs\/((?:javascript|react|angular|vue)-data-grid\/)?(vue3?-[^/]+)\/?$/);
+      // Rule 16 answers an unprefixed slug that CROSS_FRAMEWORK_PAGES moves,
+      // in one hop and in the reader's framework.
+      const movedByRule16 = m && !m[1] &&
+        Object.prototype.hasOwnProperty.call(CROSS_FRAMEWORK_PAGES, `/docs/javascript-data-grid/${m[2]}/`);
 
-      if (m) {
-        const page = VUE_LEGACY_ALIASES[m[1]] ?? m[1];
+      if (m && !movedByRule16) {
+        const page = VUE_LEGACY_ALIASES[m[2]] ?? m[2];
 
         if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
           return redirect301(abs(VUE3_LEGACY_PAGES[page], url));
@@ -1726,13 +1734,18 @@ async function route(request, env, ctx) {
     // -- 12c. /docs/(pro|latest)[/{ver}][/{page}.html] → old docs that are not deployed --
     // The Handsontable Pro docs and the old `latest` alias are not deployed
     // at all. Like rule 12b, a known page goes to the current docs (cookie,
-    // 302), anything else to the framework home.
+    // 302), anything else to the framework home. A `latest` URL that names a
+    // framework only drops `latest/` (301), as rule 1b does for the version.
     {
-      const m = path.match(/^\/docs\/(?:pro|latest)(?:\/(.*))?$/);
+      const m = path.match(/^\/docs\/(pro|latest)(?:\/(.*))?$/);
+
+      if (m && m[1] === 'latest' && /^(?:javascript|react|angular|vue)-data-grid(?:\/|$)/.test(m[2] ?? '')) {
+        return redirect301(abs(`/docs/${m[2]}${url.search}`, url));
+      }
 
       if (m) {
         const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
-        const rest = (m[1] ?? '').replace(/^\d+\.\d+[^/]*\//, '');
+        const rest = (m[2] ?? '').replace(/^\d+\.\d+[^/]*\//, '');
 
         return redirect302(abs(undeployedDocsDestination(rest, framework), url));
       }
@@ -1837,7 +1850,8 @@ async function route(request, env, ctx) {
         const page = isFlatPageKey(m[1]) || !isFlatPageKey(trimmed) ? m[1] : trimmed;
 
         // A slug that rule 6 moves, here without a framework prefix: the
-        // cookie framework first, JavaScript second.
+        // cookie framework first, JavaScript second. A JavaScript destination
+        // found through the fallback switches to the cookie framework.
         if (!page.includes('/')) {
           const preferred = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
 
@@ -1845,7 +1859,9 @@ async function route(request, env, ctx) {
             const key = `/docs/${framework}/${page}/`;
 
             if (Object.prototype.hasOwnProperty.call(CROSS_FRAMEWORK_PAGES, key)) {
-              return redirect302(abs(CROSS_FRAMEWORK_PAGES[key], url));
+              const dest = CROSS_FRAMEWORK_PAGES[key].replace(`/docs/${framework}/`, `/docs/${preferred}/`);
+
+              return redirect302(abs(dest, url));
             }
           }
         }

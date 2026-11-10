@@ -1862,9 +1862,13 @@ test('an old Vue page name without a framework prefix redirects to the Vue data 
   await assertRedirect(worker, '/docs/vue-vuex-example/', '/docs/vue-data-grid/vue-vuex/');
   await assertRedirect(worker, '/docs/vue3-installation/', '/docs/vue-data-grid/installation/');
   await assertRedirect(worker, '/docs/vue3-simple-example/', '/docs/vue-data-grid/installation/');
-  // Two hops: rule 7a sends it to the old Vue slug, which rule 6 then moves.
-  await assertRedirect(worker, '/docs/vue3-custom-id-class-style/', '/docs/vue-data-grid/vue-custom-id-class-style/');
-  await assertRedirect(worker, '/docs/vue-data-grid/vue-custom-id-class-style/', '/docs/vue-data-grid/custom-id-class-style/');
+  // CROSS_FRAMEWORK_PAGES moves this one, so rule 16 answers it in one hop
+  // and keeps the reader's framework.
+  await assertRedirect(worker, '/docs/vue3-custom-id-class-style/', '/docs/javascript-data-grid/custom-id-class-style/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/vue3-custom-id-class-style/', 'react'),
+    'https://handsontable.com/docs/react-data-grid/custom-id-class-style/',
+  );
 });
 
 test('an unprefixed live vue- page is not redirected by the Vue legacy rule', async() => {
@@ -1920,14 +1924,60 @@ test('an invisible character at the end of a docs URL is dropped (PRO-1371)', as
   const worker = loadWorker();
 
   // A link copied from a chat or a document can carry a zero-width space.
-  await assertRedirect(worker, '/docs/javascript-data-grid/software-license/​', '/docs/javascript-data-grid/software-license/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/software-license/\u200b', '/docs/javascript-data-grid/software-license/');
   await assertRedirect(worker, '/docs/javascript-data-grid/software-license/%e2%80%8b', '/docs/javascript-data-grid/software-license/');
-  await assertRedirect(worker, '/docs/javascript-data-grid/license-key‌‍⁠﻿', '/docs/javascript-data-grid/license-key');
-  await assertRedirect(worker, '/docs/javascript-data-grid/api/core/​?query=1', '/docs/javascript-data-grid/api/core/?query=1');
+  await assertRedirect(worker, '/docs/javascript-data-grid/license-key\u200c\u200d\u2060\ufeff', '/docs/javascript-data-grid/license-key');
+  await assertRedirect(worker, '/docs/javascript-data-grid/api/core/\u200b?query=1', '/docs/javascript-data-grid/api/core/?query=1');
+  // Before the final slash too.
+  await assertRedirect(worker, '/docs/javascript-data-grid/merge-cells\u200b/', '/docs/javascript-data-grid/merge-cells/');
 
   // Only the end of the path is cleaned.
-  const middle = await worker.fetch(request('/docs/javascript-data-grid/​api/core/'), env);
+  const middle = await worker.fetch(request('/docs/javascript-data-grid/\u200bapi/core/'), env);
 
   assert.equal(middle.status, 200);
   assert.equal(await middle.text(), 'static-asset-passthrough');
+
+  // A path that only starts with "/docs" is left alone.
+  const lookAlike = await worker.fetch(request('/docsx\u200b'), env);
+
+  assert.equal(lookAlike.status, 200);
+  assert.equal(await lookAlike.text(), 'static-asset-passthrough');
+});
+
+test('an invisible character on a /docs/next/ or latest-version URL takes one redirect, not two', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/next/javascript-data-grid/merge-cells/\u200b', '/docs/javascript-data-grid/merge-cells/');
+  await assertRedirect(worker, '/docs/99.9/javascript-data-grid/merge-cells/\u200b', '/docs/javascript-data-grid/merge-cells/');
+});
+
+test('a /docs/latest/ URL that names a framework keeps its page', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/latest/react-data-grid/installation', '/docs/react-data-grid/installation');
+  await assertRedirect(worker, '/docs/latest/vue-data-grid', '/docs/vue-data-grid');
+
+  // The framework in the path wins over the cookie.
+  const response = await worker.fetch(request('/docs/latest/javascript-data-grid/merge-cells/', 'react'), env);
+
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('location'), 'https://handsontable.com/docs/javascript-data-grid/merge-cells/');
+});
+
+test('an unprefixed renamed page keeps the reader\'s framework when only the JavaScript entry exists', async() => {
+  const worker = loadWorker();
+
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/angular-setting-up-a-translation', 'angular'),
+    'https://handsontable.com/docs/angular-data-grid/locale/',
+  );
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/angular-custom-context-menu-example', 'angular'),
+    'https://handsontable.com/docs/angular-data-grid/context-menu/',
+  );
+  // A destination under another framework stays where it is.
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/angular-installation/', 'react'),
+    'https://handsontable.com/docs/angular-data-grid/installation/',
+  );
 });
