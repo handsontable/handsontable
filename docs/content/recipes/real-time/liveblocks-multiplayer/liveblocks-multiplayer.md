@@ -140,13 +140,13 @@ const updateCell = useMutation(
 
 ```typescript
 const afterChange = useCallback(
-  (changes: CellChange[] | null, source: ChangeSource) => {
+  (changes: AppliedCellChange[] | null, source: ChangeSource) => {
     if (!changes || source === "loadData") {
       return;
     }
 
     for (const [row, prop, , newVal] of changes) {
-      if (typeof prop !== "number") {
+      if (row === null || typeof prop !== "number") {
         continue;
       }
 

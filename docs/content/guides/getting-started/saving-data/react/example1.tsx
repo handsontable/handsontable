@@ -82,7 +82,7 @@ const ExampleComponent: React.FC = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        afterChange={function (change: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
+        afterChange={function (change: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) {
           if (source === 'loadData') {
             return; // don't save this change
           }

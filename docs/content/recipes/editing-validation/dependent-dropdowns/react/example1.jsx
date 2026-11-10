@@ -55,7 +55,7 @@ const ExampleComponent = () => {
     for (const change of changes) {
       const [row, prop, oldVal, newVal] = change;
 
-      if (prop !== CATEGORY_COL || oldVal === newVal) {
+      if (row === null || prop !== CATEGORY_COL || oldVal === newVal) {
         continue;
       }
 

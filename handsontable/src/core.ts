@@ -601,11 +601,12 @@ export default function Core(
   const waitingChangeSets: Map<CellChange[], { source: string | undefined, records: WaitingChangeRecords }> =
     new Map();
   /**
-   * The physical row of the record each applied change that waited for its validator landed on, read through
-   * `_getChangePhysicalRow()` by a listener of `beforeChangeRender` or `afterChange` that needs the record of a
-   * change whose row reads `null` (a record trimmed out of the visual space). Weak, so it holds no change alive.
+   * The record bookkeeping of every change a waiting set captured a record for, read by `_getChangePhysicalRow()`
+   * in O(1). An entry lives from the capture until the set has dispatched its `afterChange` (or was dropped), when
+   * `WaitingChangeRecords#release()` takes it out, so a listener of `beforeChangeRender` or `afterChange` can still
+   * find the record of a change whose row reads `null`. Weak, so it holds no change alive.
    */
-  const appliedChangeRows: WeakMap<object, number> = new WeakMap();
+  const waitingChangeRecords: WeakMap<object, WaitingChangeRecords> = new WeakMap();
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -732,7 +733,8 @@ export default function Core(
     let generation = validationLoadGeneration;
 
     changes.forEach(([row, prop]) => {
-      const record = Number.isInteger(row) ? recordTracker.find(getPhysicalRowOfChange(row)) : undefined;
+      const physicalRow = Number.isInteger(row) ? getPhysicalRowOfExistingRow(row) : null;
+      const record = physicalRow === null ? undefined : recordTracker.find(physicalRow);
       const oldest = record === undefined ? undefined : unansweredValidatorGenerations.get(prop)?.get(record)?.[0];
 
       if (oldest !== undefined && oldest < generation) {
@@ -4193,13 +4195,17 @@ export default function Core(
       let answered = !isCountedCall;
       let isGenerationReleased = !isChangeCall;
       const validatedProp = cellProperties.prop;
-      const validatedRecord = isChangeCall ?
-        recordTracker.track(getPhysicalRowOfChange(cellProperties.visualRow as number)) : null;
+      const validatedPhysicalRow = isChangeCall ?
+        getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
+      const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
       const countAnswer = () => {
-        if (!isGenerationReleased && validatedRecord !== null) {
+        if (!isGenerationReleased) {
           isGenerationReleased = true;
-          releaseValidatorGeneration(validatedRecord, validatedProp, loadGeneration);
-          recordTracker.release(validatedRecord);
+
+          if (validatedRecord !== null) {
+            releaseValidatorGeneration(validatedRecord, validatedProp, loadGeneration);
+            recordTracker.release(validatedRecord);
+          }
         }
 
         if (!answered) {
@@ -4576,7 +4582,9 @@ export default function Core(
    */
   function validateAndApplyChanges(changes: CellChange[], source: string | undefined, loadGeneration: number) {
     const hold = operationScope.hold();
-    const records = createWaitingChangeRecords(recordTracker, recordReader, getPhysicalRowOfExistingRow);
+    const records = createWaitingChangeRecords(
+      recordTracker, recordReader, getPhysicalRowOfExistingRow, waitingChangeRecords,
+    );
 
     if (loadGeneration === validationLoadGeneration) {
       waitingChangeSets.set(changes, { source, records });
@@ -4588,13 +4596,6 @@ export default function Core(
 
         try {
           if (loadGeneration === validationLoadGeneration) {
-            changes.forEach((change) => {
-              const recordRow = records.getSettledPhysicalRow(change);
-
-              if (recordRow !== undefined) {
-                appliedChangeRows.set(change, recordRow);
-              }
-            });
             hold.resume(() => applyChanges(changes, source, change => records.getSettledPhysicalRow(change)));
 
             if (removedChanges.length > 0 && instance) {
@@ -6530,18 +6531,10 @@ export default function Core(
    * @returns {number|null}
    */
   this._getChangePhysicalRow = function(change: readonly unknown[]): number | null {
-    const appliedRow = appliedChangeRows.get(change);
+    const recordRow = waitingChangeRecords.get(change)?.getPhysicalRow(change);
 
-    if (appliedRow !== undefined) {
-      return appliedRow;
-    }
-
-    for (const { records } of waitingChangeSets.values()) {
-      const waitingRow = records.resolve(change);
-
-      if (waitingRow !== undefined) {
-        return waitingRow;
-      }
+    if (recordRow !== undefined) {
+      return recordRow;
     }
 
     return typeof change[0] === 'number' ? instance.toPhysicalRow(change[0]) : null;

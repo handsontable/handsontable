@@ -766,7 +766,8 @@ export class BaseEditor {
    * A value the validator rejected under `allowInvalid: false` reopens the editor on the record the value was
    * typed into, at the visual row that record has when the validator answers (a sort, a move, a filter, or an
    * insert or removal can move it while the editor waits). When the record is gone, trimmed out of the visual
-   * space, or hidden, the editor closes instead: nothing was written, and no cell of that record is on screen.
+   * space, or hidden (a filter, a collapse, `hiddenRows`, or a Pagination page change), the editor closes instead:
+   * no cell of that record is on screen. Nothing was written, so the close callbacks receive `false`.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -777,11 +778,11 @@ export class BaseEditor {
     }
 
     const answeredRow = this.#answeredRow;
+    const isRejected = result === false && this.cellProperties.allowInvalid !== true;
 
     this.#answeredRow = undefined;
 
-    // validator was defined and failed
-    if (result === false && this.cellProperties.allowInvalid !== true && answeredRow !== null) {
+    if (isRejected && answeredRow !== null) {
       const row = answeredRow ?? this.row;
 
       if (row === null || this.col === null) {
@@ -810,7 +811,7 @@ export class BaseEditor {
       this.#seededString = null;
       this.#seededCellValue = null;
       this.state = EDITOR_STATE.VIRGIN;
-      this._fireCallbacks(true);
+      this._fireCallbacks(!isRejected);
 
       const shortcutManager = this.hot.getShortcutManager();
 

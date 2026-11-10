@@ -93,7 +93,10 @@ export function captureRecord(tracker: RecordTracker, reader: RecordReader, phys
 }
 
 /**
- * Tells whether the tracked physical row of an anchor still holds the record: the stored meta captured with it
+ * Tells whether the tracked physical row of an anchor still holds the record. A record captured with a row id is
+ * named by that id alone: the row holds it when it holds the same id. `updateData()` keeps the cell meta by
+ * physical row, so after it brought the records back in another order the stored meta at the row is the captured
+ * one while the record is another. Without an id, the row holds the record when the stored meta captured with it
  * is the one stored there, or the row object is the one captured.
  *
  * @param {object} reader Reads the grid.
@@ -106,11 +109,25 @@ function holdsRecord(reader: RecordReader, anchor: RecordAnchor, physicalRow: nu
     return false;
   }
 
+  if (hasRowId(anchor)) {
+    return reader.readKeyedRowId(physicalRow) === anchor.rowId;
+  }
+
   if (anchor.meta !== null && reader.getStoredMeta(physicalRow, anchor.metaColumn) === anchor.meta) {
     return true;
   }
 
   return isRowObject(anchor.rowObject) && reader.readRowObject(physicalRow) === anchor.rowObject;
+}
+
+/**
+ * Tells whether a record was captured with the id a row key read from it.
+ *
+ * @param {object} anchor The record anchor.
+ * @returns {boolean}
+ */
+function hasRowId(anchor: RecordAnchor): boolean {
+  return anchor.rowId !== null && anchor.rowId !== undefined;
 }
 
 /**
@@ -132,7 +149,7 @@ function isRowObject(rowObject: unknown): rowObject is object {
  * @returns {number|null}
  */
 function findRecord(reader: RecordReader, anchor: RecordAnchor): number | null {
-  if (anchor.rowId !== null && anchor.rowId !== undefined) {
+  if (hasRowId(anchor)) {
     return reader.findPhysicalRowById(anchor.rowId);
   }
 
@@ -221,6 +238,12 @@ export interface WaitingChangeRecords {
    */
   getSettledPhysicalRow(change: CellChange): number | undefined;
   /**
+   * Returns the physical row of a change's record: the one `settle()` resolved once the set is applied, the one
+   * the record holds now while it waits (`null` once it is gone), or `undefined` for a change no record was
+   * captured for.
+   */
+  getPhysicalRow(change: object): number | null | undefined;
+  /**
    * Stops tracking the records.
    */
   release(): void;
@@ -233,19 +256,22 @@ export interface WaitingChangeRecords {
  * @param {object} reader Reads the grid.
  * @param {Function} toPhysicalRow Returns the physical row of a visual row of an existing row, or `null` for a row
  *   past the last one, which the write creates and which keeps its visual coordinates.
+ * @param {WeakMap} registry Maps each captured change to the bookkeeping of its set, for as long as the set holds
+ *   its records, so the record of one change is found in O(1) whatever number of sets waits.
  * @returns {object}
  */
 export function createWaitingChangeRecords(
   tracker: RecordTracker,
   reader: RecordReader,
   toPhysicalRow: (visualRow: number) => number | null,
+  registry: WeakMap<object, WaitingChangeRecords>,
 ): WaitingChangeRecords {
   const anchorsByChange = new Map<object, RecordAnchor>();
   const anchors = new Set<RecordAnchor>();
-  const settledRows = new Map<CellChange, number>();
+  const settledRows = new Map<object, number>();
   let captured = false;
 
-  return {
+  const records: WaitingChangeRecords = {
     capture(changes) {
       if (captured) {
         return;
@@ -271,6 +297,7 @@ export function createWaitingChangeRecords(
         }
 
         anchorsByChange.set(change, anchor);
+        registry.set(change, records);
       });
     },
     noteMeta(change, meta, physicalColumn) {
@@ -322,10 +349,29 @@ export function createWaitingChangeRecords(
     getSettledPhysicalRow(change) {
       return settledRows.get(change);
     },
+    getPhysicalRow(change) {
+      const settledRow = settledRows.get(change);
+
+      if (settledRow !== undefined) {
+        return settledRow;
+      }
+
+      const anchor = anchorsByChange.get(change);
+
+      return anchor === undefined ? undefined : resolveRecord(reader, anchor);
+    },
     release() {
       anchors.forEach(anchor => tracker.release(anchor.record));
+      anchorsByChange.forEach((_, change) => {
+        if (registry.get(change) === records) {
+          registry.delete(change);
+        }
+      });
       anchors.clear();
       anchorsByChange.clear();
+      settledRows.clear();
     },
   };
+
+  return records;
 }

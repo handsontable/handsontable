@@ -39,12 +39,17 @@ export class AppComponent {
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
-    afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
+    afterChange: (changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) => {
       if (source === 'loadData' || !changes) {
         return;
       }
 
       const [row, prop] = changes[changes.length - 1];
+
+      if (row === null) {
+        return;
+      }
+
       const column = prop as number;
       const value = this.hotTable.hotInstance!.getDataAtCell(row, column);
       const label = column === 1 ? 'Default' : 'preserveNumericLiteral';

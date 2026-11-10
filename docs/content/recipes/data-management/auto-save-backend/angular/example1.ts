@@ -82,7 +82,7 @@ export class AppComponent {
     ],
     stretchH: 'all',
     height: 'auto',
-    afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
+    afterChange: (changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) => {
       if (!changes || source === 'loadData') {
         return;
       }
@@ -94,8 +94,8 @@ export class AppComponent {
       }
 
       changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
-        if (oldValue !== newValue) {
-          const physicalRow = hot.toPhysicalRow(visualRow as number);
+        if (visualRow !== null && oldValue !== newValue) {
+          const physicalRow = hot.toPhysicalRow(visualRow);
 
           if (physicalRow !== null && physicalRow >= 0) {
             this.dirtyRows.add(physicalRow);

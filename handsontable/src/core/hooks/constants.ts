@@ -148,10 +148,14 @@ export const REGISTERED_HOOKS = [
    * took the record out of the visual space in the meantime, `row` is `null`. When the record was removed in the
    * meantime, the change is not written, and this hook does not report it.
    *
+   * **Breaking change (19.0):** `row` can be `null`, and the type of `changes` is `AppliedCellChange[] | null`
+   * instead of `CellChange[] | null`. See the migration guide.
+   *
    * @event Hooks#afterChange
    * @param {Array[]|null} changes 2D array containing information about each of the edited cells
    *                               `[[row, prop, oldVal, newVal], ...]`, or `null` for the `"loadData"`
-   *                               and `"updateData"` sources. `row` is a visual row index. `prop` is a property name,
+   *                               and `"updateData"` sources. `row` is a visual row index, or `null` for a record
+   *                               trimmed out of the visual space. `prop` is a property name,
    *                               a column index, or – when [`columns[].data`](@/api/options.md#columns) is a function –
    *                               the column accessor function. To resolve a visual column index from `prop`, call
    *                               [`propToCol()`](@/api/core.md#proptocol). Unlike
@@ -1890,6 +1894,9 @@ export const REGISTERED_HOOKS = [
    * the visual row the changed record has when the value lands, or `null` when a filter or another trimming feature
    * took the record out of the visual space while the change waited (see {@link Hooks#afterChange}).
    *
+   * **Breaking change (19.0):** `row` can be `null`, and the type of `changes` is `AppliedCellChange[]` instead of
+   * `CellChange[]`.
+   *
    * @event Hooks#beforeChangeRender
    * @param {Array[]} changes Array in form of `[row, prop, oldValue, newValue]`.
    * @param {string} [source] String that identifies source of hook call
@@ -2529,8 +2536,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when a data was retrieved or modified.
    *
+   * **Breaking change (19.0):** a change that waited for its validator and landed on a record a filter or another
+   * trimming feature took out of the visual space is written with `row` set to `null` (`ioMode` `set`).
+   *
    * @event Hooks#modifyData
-   * @param {number} row Visual row index.
+   * @param {number|null} row Visual row index, or `null` for a write to a record with no visual row.
    * @param {number|string|Function|null} column Visual column index. `null` when the property is a
    *   numeric index that names no column that exists and is visible. A property name the data set
    *   does not use, or a `columns[].data` accessor function, arrives unchanged.

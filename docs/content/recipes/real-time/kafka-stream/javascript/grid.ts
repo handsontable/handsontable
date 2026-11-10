@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import type { CellChange, ChangeSource } from 'handsontable/settings';
+import type { AppliedCellChange, ChangeSource } from 'handsontable/settings';
 import 'handsontable/styles/handsontable.min.css';
 import 'handsontable/styles/ht-theme-main.min.css';
 
@@ -204,13 +204,17 @@ export function createGrid(container: HTMLElement) {
 
   // Sends a user's edit to the bridge, which writes it to Kafka. Each edit gets a generation,
   // so the response to an older request can't confirm or undo a newer edit of the same SKU.
-  hot.addHook('afterChange', (changes: CellChange[] | null, source: ChangeSource) => {
+  hot.addHook('afterChange', (changes: AppliedCellChange[] | null, source: ChangeSource) => {
     if (!changes || IGNORED_SOURCES.has(source)) {
       return;
     }
 
     for (const [visualRow, prop, oldValue, newValue] of changes) {
       if (prop !== 'reorderPoint' || oldValue === newValue) {
+        continue;
+      }
+
+      if (visualRow === null) {
         continue;
       }
 

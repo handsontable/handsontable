@@ -50,7 +50,7 @@ export class AppComponent implements OnInit, OnDestroy {
     height: 'auto',
     width: '100%',
     stretchH: 'all',
-    afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
+    afterChange: (changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) => {
       if ((source as string) !== 'external' || !changes) {
         return;
       }
@@ -62,8 +62,12 @@ export class AppComponent implements OnInit, OnDestroy {
       }
 
       changes.forEach(([row]) => {
+        if (row === null) {
+          return;
+        }
+
         [2, 3].forEach((col) => {
-          const td = hot.getCell(row as number, col);
+          const td = hot.getCell(row, col);
 
           if (td) {
             td.classList.remove('ht-cell-flash');

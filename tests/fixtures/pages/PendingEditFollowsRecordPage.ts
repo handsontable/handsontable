@@ -27,14 +27,16 @@ export class PendingEditFollowsRecordPage {
   readonly theme: string;
   readonly bundle: Bundle;
   readonly allowInvalid: boolean;
+  readonly pageSize: number | null;
   readonly pageErrors: string[] = [];
   readonly editorInput: Locator;
 
-  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', allowInvalid = true) {
+  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', allowInvalid = true, pageSize: number | null = null) {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.allowInvalid = allowInvalid;
+    this.pageSize = pageSize;
     this.editorInput = page.locator('textarea.handsontableInput');
 
     page.on('pageerror', (error) => { this.pageErrors.push(error.message); });
@@ -46,7 +48,7 @@ export class PendingEditFollowsRecordPage {
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/pending-edit-follows-record.html?theme=${this.theme}&bundle=${this.bundle}`
-        + `&allowInvalid=${this.allowInvalid}`
+        + `&allowInvalid=${this.allowInvalid}&pageSize=${this.pageSize ?? 'none'}`
     );
 
     await awaitBundle(this.page);

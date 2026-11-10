@@ -164,6 +164,10 @@ class HotGridElement extends HTMLElement {
         }
 
         changes.forEach(([row, prop, oldValue, newValue]) => {
+          if (row === null) {
+            return;
+          }
+
           this.dispatchEvent(new CustomEvent<HotGridCellChange>('cell-change', {
             detail: {
               row,
@@ -280,6 +284,10 @@ class HotGridElement extends HTMLElement {
         }
 
         changes.forEach(([row, prop, oldValue, newValue]) => {
+          if (row === null) {
+            return;
+          }
+
           this.dispatchEvent(new CustomEvent<HotGridCellChange>('cell-change', {
             detail: {
               row,

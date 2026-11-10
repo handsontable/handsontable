@@ -8,7 +8,7 @@ import type {
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
 import type {
-  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
+  CellChange, AppliedCellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
   ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
 import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
@@ -450,7 +450,7 @@ export interface GridSettings {
     direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
   afterCellMetaReset?: () => void;
-  afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
+  afterChange?: (changes: AppliedCellChange[] | null, source: ChangeSource) => void;
   afterChangesObserved?: () => void;
   afterColumnCollapse?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[],
     collapsePossible: boolean, successfullyCollapsed: boolean) => void;
@@ -665,7 +665,7 @@ export interface GridSettings {
   beforeReadOnlyToggle?: (stateBefore: Record<number, boolean[]>, ranges: WalkontableCellRange[],
     readOnly: boolean) => void;
   beforeChange?: (changes: (CellChange | null)[], source: ChangeSource) => void | boolean;
-  beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
+  beforeChangeRender?: (changes: AppliedCellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
     collapsePossible: boolean) => void | boolean;
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
@@ -836,7 +836,9 @@ export interface GridSettings {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
-  modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyData?: (
+    row: number | null, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set',
+  ) => void;
   modifyFiltersMatchedRows?: (matchedRows: number[], blankMatchedRows: number[]) => number[] | void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;

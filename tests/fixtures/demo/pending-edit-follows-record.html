@@ -22,6 +22,10 @@
     if (window.htAllowInvalid === undefined) {
       throw new Error('Unknown ?allowInvalid= value: ' + JSON.stringify(htParams.get('allowInvalid')));
     }
+    window.htPageSize = ({ none: false, '3': 3 })[htParams.get('pageSize') ?? 'none'];
+    if (window.htPageSize === undefined) {
+      throw new Error('Unknown ?pageSize= value: ' + JSON.stringify(htParams.get('pageSize')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
@@ -66,6 +70,7 @@
         columnSorting: true,
         manualRowMove: true,
         filters: true,
+        pagination: window.htPageSize ? { pageSize: window.htPageSize } : false,
         width: 600,
         height: 'auto',
         licenseKey: window.htTestLicenseKey,

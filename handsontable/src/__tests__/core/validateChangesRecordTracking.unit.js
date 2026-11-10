@@ -326,6 +326,18 @@ describe('Core validation of a change while its record moves', () => {
       await answerAll();
 
       expect(sourceNames()).toEqual(['p0', null, 'p1', 'zzz', 'p3', 'p4', 'p5']);
+      expect(applied).toEqual([[[3, 0, 'p2', 'zzz']]]);
+    });
+
+    it('should write every change to its record when rows are removed in two groups around them', async() => {
+      createGrid();
+
+      hot.setDataAtCell([[2, 0, 'two'], [5, 0, 'five']]);
+      hot.alter('remove_row', [[0, 1], [3, 1]]);
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p1', 'two', 'p4', 'five']);
+      expect(applied).toEqual([[[1, 0, 'p2', 'two'], [3, 0, 'p5', 'five']]]);
     });
 
     it('should write the value to the edited record when a row above it is removed', async() => {
@@ -392,6 +404,24 @@ describe('Core validation of a change while its record moves', () => {
       await answerAll();
 
       expect(sourceNames()).toEqual(['p5', 'p4', 'p3', 'p2', 'zzz', 'p0']);
+    });
+
+    it('should follow the row id when updateData() brings the records back in another order', async() => {
+      createGrid({
+        data: Array.from({ length: 6 }, (_, row) => ({ id: `id${row}`, name: `p${row}`, v: (row * 5) % 7 })),
+        columns: [{ data: 'name' }, { data: 'v' }],
+        cells: (row, col) => (col === 0 ? { validator: heldValidator } : {}),
+        rowId: 'id',
+      });
+
+      hot.setDataAtCell(1, 0, 'zzz');
+      await settle();
+      hot.updateData(hot.getSourceData().map(row => ({ ...row })).reverse());
+      await answerAll();
+
+      expect(hot.getSourceData().map(row => [row.id, row.name])).toEqual([
+        ['id5', 'p5'], ['id4', 'p4'], ['id3', 'p3'], ['id2', 'p2'], ['id1', 'zzz'], ['id0', 'p0'],
+      ]);
     });
 
     it('should drop the change when neither the row id nor the row object finds the record', async() => {
@@ -572,6 +602,50 @@ describe('Core validation of a change while its record moves', () => {
       expect(sourceNames()).toEqual(['p0', 'p2', 'p3', 'p4', 'p5']);
     });
 
+    it('should tell the close callback that nothing was saved when it closes instead of reopening', async() => {
+      createGrid({ allowInvalid: false });
+      hot.selectCell(1, 0);
+
+      const editor = hot.getActiveEditor();
+      const closed = [];
+
+      editor.beginEditing();
+      editor.setValue('zzz');
+      editor.finishEditing(false, false, saved => closed.push(saved));
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [5]);
+      filters.filter();
+      await answerAll(false);
+
+      expect(closed).toEqual([false]);
+    });
+
+    it('should close without saving when Pagination moved the record to another page', async() => {
+      createGrid({
+        allowInvalid: false,
+        filters: false,
+        trimRows: false,
+        hiddenRows: false,
+        pagination: { pageSize: 3 },
+      });
+      hot.selectCell(1, 0);
+
+      const editor = hot.getActiveEditor();
+      const closed = [];
+
+      editor.beginEditing();
+      editor.setValue('zzz');
+      editor.finishEditing(false, false, saved => closed.push(saved));
+      sortByKey();
+      await answerAll(false);
+
+      expect(editor.isOpened()).toBe(false);
+      expect(closed).toEqual([false]);
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+    });
+
     it('should close instead of reopening when a filter hid the record', async() => {
       createGrid({ allowInvalid: false });
 
@@ -602,6 +676,42 @@ describe('Core validation of a change while its record moves', () => {
       await answerAll();
 
       expect(countListeners()).toBe(idle);
+    });
+
+    it('should follow no record for a write to a row that does not exist yet', async() => {
+      createGrid();
+
+      const mapper = hot.rowIndexMapper;
+      const countListeners = () => (mapper._localHooks.indexesInserted ?? []).length;
+      const idle = countListeners();
+
+      hot.setDataAtCell(6, 0, 'new');
+
+      expect(countListeners()).toBe(idle);
+
+      await answerAll();
+    });
+
+    it('should forget the record of an applied change once its afterChange was dispatched', async() => {
+      createGrid();
+
+      const seen = [];
+
+      hot.addHook('afterChange', (changes, source) => {
+        if (source === 'edit') {
+          changes.forEach(change => seen.push({ change, during: hot._getChangePhysicalRow(change) }));
+        }
+      });
+      hot.setDataAtCell(1, 0, 'zzz');
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [5]);
+      filters.filter();
+      await answerAll();
+
+      expect(seen.map(({ during }) => during)).toEqual([1]);
+      expect(seen.map(({ change }) => hot._getChangePhysicalRow(change))).toEqual([null]);
     });
   });
 

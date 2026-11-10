@@ -99,7 +99,8 @@ These types describe the values that move in and out of the grid.
 | Type | Description |
 | --- | --- |
 | `CellValue` | A single cell value: `string \| number \| boolean \| null \| undefined`. |
-| `CellChange` | A single change tuple: `[row, column, oldValue, newValue]`. Passed to `afterChange` and `beforeChange`. |
+| `CellChange` | A single change tuple: `[row, column, oldValue, newValue]`. Passed to `beforeChange`. |
+| `AppliedCellChange` | A change tuple that was applied: `[row, column, oldValue, newValue]`. The row is `null` when a change that waited for its validator landed on a record that a filter or a trim took out of the visual space. Passed to `afterChange` and `beforeChangeRender`. |
 | `RowObject` | A data row as a plain object, used when `data` is an array of objects. |
 | `ChangeSource` | A string union of all built-in change source identifiers (e.g. `'edit'`, `'loadData'`, `'UndoRedo.undo'`). |
 | `SourceRowData` | A row from the original source data before any index translation. |
@@ -108,9 +109,9 @@ These types describe the values that move in and out of the grid.
 | `RangeType` | A cell range descriptor: `{ from: CellCoords, to: CellCoords }`. |
 
 ```typescript
-import type { CellChange, ChangeSource } from 'handsontable';
+import type { AppliedCellChange, ChangeSource } from 'handsontable';
 
-function onAfterChange(changes: CellChange[] | null, source: ChangeSource): void {
+function onAfterChange(changes: AppliedCellChange[] | null, source: ChangeSource): void {
   if (!changes || source === 'loadData') return;
 
   for (const [row, col, , newValue] of changes) {
@@ -276,9 +277,9 @@ const settings: GridSettings = {
 `Events` maps every hook name to its callback signature. Extract a specific callback type with `Events[hookName]`:
 
 ```typescript
-import type { Events, CellChange, ChangeSource } from 'handsontable';
+import type { Events, AppliedCellChange, ChangeSource } from 'handsontable';
 
-const onAfterChange: Events['afterChange'] = (changes: CellChange[] | null, source: ChangeSource) => {
+const onAfterChange: Events['afterChange'] = (changes: AppliedCellChange[] | null, source: ChangeSource) => {
   if (!changes) return;
   console.log(source, changes);
 };

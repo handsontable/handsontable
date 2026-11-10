@@ -136,3 +136,38 @@ test.describe('a rejected edit when the rows changed order while it waited', () 
     await expect(grid.cell(1, 0)).toHaveText('p2');
   });
 });
+
+/**
+ * Pagination hides the rows of the other pages. A sort while a rejected edit waits can put its record on another
+ * page, where no cell of it is on screen, so the editor closes instead of reopening there, and nothing is written.
+ */
+test.describe('a rejected edit whose record a sort moved to another page', () => {
+  let grid: PendingEditFollowsRecordPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new PendingEditFollowsRecordPage(page, theme, bundle, false, 3);
+    await grid.goto();
+  });
+
+  test.afterEach(() => {
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('closes the editor and writes nothing', async() => {
+    await grid.typeAndConfirm(1, 0, 'bad');
+    await grid.expectPending('bad');
+
+    await grid.sortByRank();
+    await expect(grid.cell(1, 0)).toHaveText('p3');
+    expect((await grid.editorState()).waiting).toBe(true);
+
+    await grid.answer('bad', false);
+
+    await expect.poll(async() => {
+      const { opened, waiting } = await grid.editorState();
+
+      return { opened, waiting };
+    }).toEqual({ opened: false, waiting: false });
+    expect(await grid.sourceData()).toEqual(SOURCE);
+  });
+});

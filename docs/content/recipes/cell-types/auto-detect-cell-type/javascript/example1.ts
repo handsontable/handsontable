@@ -143,7 +143,7 @@ function detectCell(hot: Handsontable, row: number, col: number, restoring = fal
 
 function detectChanged(
   hot: Handsontable,
-  changes: Handsontable.CellChange[] | null,
+  changes: Handsontable.AppliedCellChange[] | null,
   source: string
 ): void {
   if (!changes || !DETECT_SOURCES.includes(source)) {
@@ -153,6 +153,10 @@ function detectChanged(
   let changed = false;
 
   changes.forEach(([row, prop]) => {
+    if (row === null) {
+      return;
+    }
+
     // A column can be addressed by a function in `data`. Detection skips those.
     if (typeof prop === 'function') {
       return;

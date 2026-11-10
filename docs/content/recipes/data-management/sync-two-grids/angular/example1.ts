@@ -102,7 +102,7 @@ export class AppComponent {
     width: '100%',
     autoWrapRow: true,
     stretchH: 'all',
-    afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
+    afterChange: (changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) => {
       if (!changes || (source as string) === SOURCE_SYNC_FROM_MASTER || source === 'loadData') {
         return;
       }
