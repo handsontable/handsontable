@@ -264,7 +264,7 @@ moment ago, so its stored meta still holds `hidden` once it is the top-left. Aut
 `hidden`, so the text written into that cell was never measured and the row headers came out shorter than their
 rows (DEV-3971). `#reanchorMergesToVisibleRows` calls `#clearCoveredFlagsOfTopLeftCell` for every merge that has
 a visible top-left, and it removes `hidden` and `copyable` there through the meta manager (by physical index, no
-hooks). Five rules keep it narrow:
+hooks). Six rules keep it narrow:
 
 - **It acts only where `hidden` is an own stored key.** `hidden` marks a cell a merge covered, and the hook wrote
   `copyable` beside it. A top-left that was never covered keeps a `copyable: false` the user set, which matters
@@ -290,19 +290,36 @@ hooks). Five rules keep it narrow:
 - **A move also releases cells from a merge, and those are cleaned too.** A merge a move breaks into single cells
   (`translateAfterAxisMove` drops every 1x1 fragment) or a row or column that leaves a merge covers cells no merge
   covers afterwards, and nothing else would ever clean their stored `hidden` and `copyable: false`.
-  `#clearCoveredFlagsOfReleasedCells` walks the pre-move footprint of every merge the move split or dropped, built
+  `#cleanReleasedCells` walks the pre-move footprint of every merge the move split or dropped, built
   from the move snapshot (the moved axis) and the merge's own span on the other axis, which a move does not
   change, and cleans the cells the lookup matrix no longer holds a merge for. A merge replaced by one block of
   the same size is skipped: it covers the same cells and its top-left is handled by the pass above. It runs only
-  while no row is trimmed. **Known limit:** the span keys (`spanned`, `rowspan`, `colspan`) of a former top-left
-  that no merge is drawn from any more stay on the cell, so `getCellMeta()` reports a span nothing backs.
+  while no row is trimmed.
+- **The cell a merge is no longer drawn from loses its span keys.** `afterGetCellMeta` stores `spanned`,
+  `rowspan` and `colspan` on whichever cell is the top-left, and nothing took them off when a move or a freeze
+  made another cell the top-left, so `getCellMeta()` reported a span nothing backs (DEV-3990). The same pass
+  (`#clearReleasedCell`) removes them from every cell of a split or dropped merge's footprint that no merge is
+  drawn from: uncovered, or covered as a non-top-left cell. A merge replaced by one block of the same size is
+  not walked, but a reorder inside the block can still change its top-left (column B moved before A in a
+  two-column merge), so the cell it was drawn from before the move is checked too: the first entry of the move
+  snapshot on the moved axis, and the merge's unchanged index on the other. `#clearSpanKeysOfCell` acts only
+  where `spanned` is an own stored key (the merge stored it through `setCellMeta()`, the way it stored
+  `hidden`), so a `rowspan` the user stored on a cell without it stays. Of `rowspan` and `colspan`, a recorded
+  one stays too, because the hook writes them without recording them. A span from the `columns` option is not
+  on the cell, and a `cells` function applies its own again on the next read. **Known limits:** a recorded
+  `rowspan` or `colspan` on a former top-left holds the merge's span, because the hook overwrote the user's
+  value while the merge was drawn there (the same trade-off as `copyable: true` above), so `getCellMeta()` still
+  reports it. And like the pass above, this one runs only while no row is trimmed: after a move or a freeze on a
+  filtered or trimmed grid the former top-left keeps its span keys.
 - **It does not live in `afterGetCellMeta`.** That hook runs on every meta read; clearing there would delete a
   user's `copyable` on every read and pay for the check on every cell.
-- **It costs one meta manager lookup per merge per re-anchor and per axis move**, next to the pass over the merge's anchor rows
+- **It costs one meta manager lookup per merge per re-anchor**, next to the pass over the merge's anchor rows
   that the re-anchor makes already, and no lookup in the merge collection, so the counts pinned by
-  `__tests__/mergeCountScaling.unit.js` stay flat.
+  `__tests__/mergeCountScaling.unit.js` stay flat. An axis move adds one meta manager lookup and one collection
+  lookup per merge (the cell it was drawn from), plus the footprint of each merge it splits or drops. That file
+  pins the merge and restore paths, not the moves.
 
-Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` (the move, freeze and released-cell cases are in its `after a move or a freeze that splits the merge` block) and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
+Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` (the move, freeze and released-cell cases are in its `after a move or a freeze that splits the merge` block, the span keys in `span keys after a move or a freeze`) and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
 
 **While rows are trimmed, `updatePlugin()` keeps the merge of an area it cannot place.** Settings describe
 visual positions. An area that fits the rows on screen is applied to them, exactly as before and as the
