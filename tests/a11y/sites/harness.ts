@@ -188,10 +188,10 @@ export async function readStop(page: Page, cdp: CDPSession, { grid, startUrl, di
 
         return parts.join('>');
       };
-      // A class a build generates (Astro's scoped `astro-<hash>`, a CSS module's hash) names no kind of element. An
-      // element with no class or role of its own is named inside its nearest ancestor that has a class
+      // A class a build generates (Astro's scoped `astro-<hash>`, a hash suffix with a digit in it) and a layout
+      // utility (`sl-flex`, `md:sl-hidden`) name no kind of element. An element with no class or role of its own is named inside its nearest ancestor that has a class
       // (`div.copy button`), so a copy button and a panel's suggestion button are two shapes.
-      const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-hidden|^[a-z]+-[a-z0-9]{6,}$|\d{3,}/.test(name));
+      const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
       const meaningful = classOf(element);
       const role = element.getAttribute('role');
       const own = `${element.tagName.toLowerCase()}${meaningful ? `.${meaningful}` : ''}${role ? `[role="${role}"]` : ''}`;
@@ -444,7 +444,7 @@ export async function unfocusableControls(page: Page, grid: string): Promise<Arr
         && !focusable(element) && !element.parentElement?.closest('a[href], button, [tabindex]:not([tabindex="-1"])')
         && !element.querySelector('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'))
       .map((element) => {
-        const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-hidden|^[a-z]+-[a-z0-9]{6,}$|\d{3,}/.test(name));
+        const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
         const meaningful = classOf(element);
         const role = element.getAttribute('role');
         let context = '';

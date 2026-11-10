@@ -182,7 +182,7 @@ async function stateSignatures(page: Page) {
         const container = element.parentElement?.parentElement ?? element.parentElement;
         const sibling = [...(container?.querySelectorAll(element.tagName) ?? [])].find(other => other !== element
           && !other.hasAttribute(attribute) && other.checkVisibility({ visibilityProperty: true, opacityProperty: true }));
-        const meaningful = [...element.classList].find(name => !/^astro-|^sl-/.test(name));
+        const meaningful = [...element.classList].find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
         const selector = `${element.tagName.toLowerCase()}${meaningful ? `.${meaningful}` : ''}[${state}]`;
 
         if (sibling && !pairs.some(pair => pair.selector === selector)) {

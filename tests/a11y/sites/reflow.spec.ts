@@ -147,7 +147,7 @@ async function measure(page: Page, grid: string): Promise<Layout> {
     // checkboxes of a list is one finding with a count (`aggregate()` in the spec). A fixed layer keeps its id, which
     // names the one layer it is.
     // An element with no class of its own is named inside its nearest ancestor that has one (`div.hot-footer__row a`).
-    const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-|^[a-z]+-[a-z0-9]{6,}$|\d{3,}/.test(name));
+    const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
     const shapeOf = (element: Element, { id = false } = {}) => {
       const meaningful = classOf(element);
       let context = '';
