@@ -13,7 +13,8 @@
  * dispatch is an audit, anything else a change) and the cluster catalog (`a11y/issues.json`).
  *
  * Environment: `HOT_A11Y_CHECKS_SUITE` (the suite the job ran: a check of it that left no document gets a
- * red tooling check run instead of none; `A11Y_CHECKS`, comma-separated, names the checks instead),
+ * red tooling check run instead of none; `A11Y_CHECKS`, comma-separated, names the checks instead, and an
+ * entry that is no check id ends the script before a check run is posted, as it ends the config),
  * `A11Y_EVIDENCE_URL` (the uploaded evidence artifact),
  * and for the post `GITHUB_TOKEN` (with `checks: write`), `GITHUB_REPOSITORY` and `A11Y_HEAD_SHA` (the
  * pull request's head on a pull request, `github.sha` otherwise), plus the optional `GITHUB_API_URL`,
@@ -23,9 +24,9 @@
 import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pageLines } from '../lib/a11y-check-run.mjs';
 import { escapeMarkdownText } from '../lib/a11y-baseline.mjs';
-import { buildEvidenceCheckRun, checksForSuite, renderEvidenceSummary, validateEvidence } from '../lib/a11y-evidence.mjs';
+import { pageLines } from '../lib/a11y-check-run.mjs';
+import { buildEvidenceCheckRun, checksForRun, renderEvidenceSummary, validateEvidence } from '../lib/a11y-evidence.mjs';
 import { VERDICT_RULE } from '../lib/a11y-verdict.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
@@ -44,10 +45,17 @@ const artifactUrl = env.A11Y_EVIDENCE_URL || undefined;
 const pages = pageLines(readFileSync(path.join(TESTS_ROOT, 'a11y/pages.mjs'), 'utf8'));
 // Playwright keeps its own `.last-run.json` in the same folder; a check's document never starts with a dot.
 const files = existsSync(OUTPUT_DIR) ? readdirSync(OUTPUT_DIR).filter(name => name.endsWith('.json') && !name.startsWith('.')).sort() : [];
-// The checks the run covered: `A11Y_CHECKS` when given, otherwise the suite's (`HOT_A11Y_CHECKS_SUITE`).
-const expected = env.A11Y_CHECKS
-  ? env.A11Y_CHECKS.split(',').map(name => name.trim()).filter(Boolean)
-  : checksForSuite(env.HOT_A11Y_CHECKS_SUITE);
+// The checks the run covered, read the way the config read them (`checksForRun()`: the ones `A11Y_CHECKS`
+// names, otherwise the suite's), so a subset that names no check is refused here too, before a check run
+// is posted for a check that does not exist, and a check named twice is expected once.
+let expected;
+
+try {
+  expected = checksForRun(env);
+} catch (error) {
+  process.stderr.write(`a11y-evidence-report: ${error instanceof Error ? error.message : String(error)}\n`);
+  process.exit(1);
+}
 const reports = files.map((name) => {
   const check = name.slice(0, -'.json'.length);
 
@@ -67,9 +75,15 @@ for (const check of expected.filter(name => !reports.some(report => report.check
 const { scope, tracked, externalId, notes } = verdictInputs({ env, testsRoot: TESTS_ROOT });
 const payloads = reports.map(report => buildEvidenceCheckRun({ ...report, pages, runUrl, artifactUrl, scope, tracked }));
 const ROW = { success: '✔ green', neutral: '⚠ warning', failure: '✖ red' };
+// A subset run names what ran, so nobody reads the missing checks as clean: the ledger resolves a row only
+// where its check measured, the run verdict expects the named checks only, and the summary says the same.
+const subsetLine = env.A11Y_CHECKS
+  ? [`A subset run: ${escapeMarkdownText(expected.join(', '))} (the \`checks\` input). The other checks did not run and measured nothing.`, '']
+  : [];
 const summary = [
   '## A11y: the checks beyond axe',
   '',
+  ...subsetLine,
   `Each check's verdict follows the severity rule ${VERDICT_RULE}, on ${scope === 'audit' ? 'an audit run: every open finding counts' : 'a change run: a tracked finding is a warning at most'}. `
     + 'Its check run carries the verdict; this job never fails on a finding.',
   '',

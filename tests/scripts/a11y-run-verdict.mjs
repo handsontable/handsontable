@@ -10,8 +10,14 @@
  * scan mid-way; the run finishes, reports everything, then says it failed.
  *
  * Arguments: `--prefix <name prefix>` (repeatable; the check runs to read, such as `A11y / `), `--expect <name>`
- * (repeatable; a check run the run must have posted) and `--a11y-suite <suite>` (expects `A11y / axe report`
- * and one `A11y / <check> report` per check of the suite, `checksForSuite()`). `--dry-run <file>` reads the
+ * (repeatable; a check run the run must have posted), `--a11y-suite <suite>` (expects `A11y / axe report`
+ * and one `A11y / <check> report` per check of the suite), and the dispatch as `check-inputs` read it
+ * (`dispatchSubset()` of `lib/a11y-dispatch.mjs`): `--ref <github.ref>`, `--a11y-checks <ids>` (with
+ * `--a11y-suite`, expects the named checks instead of the suite's, the way `A11Y_CHECKS` narrows the checks
+ * job), `--projects <ids>` and `--groups <ids>` (keep only the `--expect` names that carry one of the named
+ * reader projects, and one of the named groups, as a word, the way the inputs narrow the lanes). An empty
+ * value of a subset means no subset, as an empty dispatch input does; an entry that names nothing, or a
+ * subset on develop, is the one-line red verdict `check-inputs` already gave. `--dry-run <file>` reads the
  * check runs from a JSON file (an array, or the API's `{check_runs}`) instead of the API.
  *
  * Environment: `GITHUB_TOKEN` (with `checks: read`), `GITHUB_REPOSITORY`, `HEAD_SHA` (the commit the posters
@@ -20,7 +26,8 @@
 import { appendFileSync, readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { CHECK_RUN_NAME } from '../lib/a11y-check-run.mjs';
-import { checkRunName, checksForSuite } from '../lib/a11y-evidence.mjs';
+import { dispatchSubset } from '../lib/a11y-dispatch.mjs';
+import { checkRunName } from '../lib/a11y-evidence.mjs';
 import { renderRunVerdict, runVerdict } from '../lib/a11y-verdict.mjs';
 import { listCheckRuns } from '../lib/github-check-run.mjs';
 
@@ -29,7 +36,11 @@ const { values } = parseArgs({
   options: {
     prefix: { type: 'string', multiple: true, default: [] },
     expect: { type: 'string', multiple: true, default: [] },
+    ref: { type: 'string' },
     'a11y-suite': { type: 'string' },
+    'a11y-checks': { type: 'string' },
+    projects: { type: 'string' },
+    groups: { type: 'string' },
     'dry-run': { type: 'string' },
   },
 });
@@ -39,9 +50,32 @@ if (values.prefix.length === 0) {
   process.exit(2);
 }
 
+// A subset dispatch ran a subset: the verdict expects that subset, or every subset run would be red for the
+// check runs it never posted. The inputs are read the way the check-inputs job read them before the build;
+// what it refused (a subset on develop, an entry that names nothing) is refused here the same way, in one
+// line, instead of a row per lane the run never had.
+let dispatch;
+
+try {
+  dispatch = dispatchSubset({ ref: values.ref, suite: values['a11y-suite'], checks: values['a11y-checks'], projects: values.projects, groups: values.groups });
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  const refused = renderRunVerdict({ conclusion: 'failure', problems: [message], rows: [] });
+
+  if (env.GITHUB_STEP_SUMMARY) {
+    appendFileSync(env.GITHUB_STEP_SUMMARY, `${refused}\n`);
+  }
+  process.stdout.write(`${refused}\n`);
+  process.stderr.write(`a11y-run-verdict: ${message}\n`);
+  process.exit(1);
+}
+
+// A project or group is matched as a whole word of the expected name, so `vo-chromium` never keeps a
+// `chromium` name, and `Screen reader / nvda-chromium menus report` follows both its project and its group.
+const named = (name, subset) => subset === null || name.split(' ').some(word => subset.includes(word));
 const expected = [
-  ...values.expect,
-  ...(values['a11y-suite'] ? [CHECK_RUN_NAME, ...checksForSuite(values['a11y-suite']).map(checkRunName)] : []),
+  ...values.expect.filter(name => named(name, dispatch.projects) && named(name, dispatch.groups)),
+  ...(values['a11y-suite'] ? [CHECK_RUN_NAME, ...dispatch.checks.map(checkRunName)] : []),
 ];
 let checkRuns;
 

@@ -4,7 +4,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, jobIds, steps } from '../lib/workflow-text.mjs';
-import { SCENARIO_GROUPS, loadScenarios, scenarioBudgetMs } from '../../../tests/lib/screenreader-scenario.mjs';
+import { SCENARIO_GROUPS, SCREENREADER_PROJECTS } from '../../../tests/lib/screenreader-matrix.mjs';
+import { loadScenarios, scenarioBudgetMs } from '../../../tests/lib/screenreader-scenario.mjs';
 
 // tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): the screen reader lanes are report-only and run on
 // their own nightly, never in the pull-request Tests pipeline. Every link in that chain fails silently
@@ -45,6 +46,40 @@ test('screenreader.yml is an NVDA job on Windows and a VoiceOver job on macOS, n
 
   assert.deepEqual(jobIds(workflow), ['nvda', 'voiceover'],
     `${LANE} runs one job per screen reader: Guidepup drives one screen reader per machine. ${DOC}`);
+});
+
+test('a subset dispatch runs the named projects only: each lane job skips itself when none of its projects is named, and the matrix drops the others', () => {
+  const workflow = stripYamlComments(read(LANE));
+  const [header] = workflow.split(/^jobs:$/m);
+  const input = name => header.split(/^ {6}(?=[A-Za-z0-9_-]+:$)/m).find(block => block.startsWith(`${name}:`)) ?? '';
+
+  ['groups', 'projects'].forEach((name) => {
+    assert.match(input(name), /^ {8}type: string$/m, `${LANE}: ${name} is a comma-separated subset. ${DOC}`);
+    assert.match(input(name), /^ {8}default: ''$/m, `${LANE}: an empty ${name} runs every one, so a caller that passes nothing runs the full set. ${DOC}`);
+  });
+
+  // `contains(format(',{0},', inputs.projects), ',<project>,')`: a whole-name match inside the comma-separated
+  // list, so `vo-chromium` never matches a `chromium` and an empty list matches nothing.
+  const named = project => `contains\\(format\\(',\\{0\\},', inputs\\.projects\\), ',${project},'\\)`;
+
+  [['nvda', 'nvda-chromium', 'nvda-firefox'], ['voiceover', 'vo-webkit', 'vo-chromium']].forEach(([id, ...projects]) => {
+    const body = job(workflow, id);
+
+    assert.match(body, new RegExp(`^ {4}if: \\$\\{\\{ inputs\\.projects == '' \\|\\| ${named(projects[0])} \\|\\| ${named(projects[1])} \\}\\}$`, 'm'),
+      `${LANE} ${id}: the job runs on an empty projects input, or when it names one of the job's projects; a job-level if reads inputs, never matrix, so the browser filter is the exclude below. ${DOC}`);
+    projects.forEach((project) => {
+      const browser = project.split('-')[1];
+
+      assert.match(body, new RegExp(`^ {10}- browser: \\$\\{\\{ inputs\\.projects != '' && !${named(project)} && '${browser}' \\|\\| '' \\}\\}$`, 'm'),
+        `${LANE} ${id}: a projects input that does not name ${project} excludes its browser from the matrix; an empty input excludes nothing (an exclude of '' matches no combination). Both axes stay literal: the filter is the exclude, never a rewritten axis. ${DOC}`);
+    });
+    SCENARIO_GROUPS.forEach((group) => {
+      assert.match(body, new RegExp(`^ {10}- group: \\$\\{\\{ inputs\\.groups != '' && !contains\\(format\\(',\\{0\\},', inputs\\.groups\\), ',${group},'\\) && '${group}' \\|\\| '' \\}\\}$`, 'm'),
+        `${LANE} ${id}: a groups input that does not name ${group} excludes it from the matrix, one entry per group of SCENARIO_GROUPS (tests/lib/screenreader-matrix.mjs); an empty input excludes nothing. A new group adds its line here. ${DOC}`);
+    });
+    assert.equal((body.match(/^ {10}- group: /gm) ?? []).length, SCENARIO_GROUPS.length,
+      `${LANE} ${id}: one group exclude per group of SCENARIO_GROUPS, none for a group the list no longer has. ${DOC}`);
+  });
 });
 
 test('the NVDA job: Windows, one browser per job, report-only, running the screen reader config against the UMD artifact', () => {
@@ -247,13 +282,40 @@ test('the run step fits every group\'s scenario budgets plus one retry of its la
   });
 });
 
-test('screenreader-nightly.yml calls the lane after the UMD build, on its own cron and from any ref, and the Tests pipeline never calls it', () => {
+test('screenreader-nightly.yml calls the lane after the UMD build, on a dispatch from any ref and never a cron, and the Tests pipeline never calls it', () => {
   const nightly = stripYamlComments(read(NIGHTLY));
 
-  assert.deepEqual(jobIds(nightly), ['build', 'screenreader', 'verdict', 'notify'], `${NIGHTLY}: build, the lane, the run verdict, the Slack ping. ${DOC}`);
-  assert.match(nightly, /^ {4}- cron: '30 4 \* \* 2-6'$/m, `${NIGHTLY}: weeknights, after the E2E nightly.`);
+  assert.deepEqual(jobIds(nightly), ['check-inputs', 'build', 'screenreader', 'verdict', 'notify'],
+    `${NIGHTLY}: the input guard, build, the lane, the run verdict, the Slack ping. ${DOC}`);
+  assert.doesNotMatch(nightly, /^ {2}schedule:$/m,
+    `${NIGHTLY}: manual trigger only. The accessibility program runs one audit, fixes, and re-audits; a cron would spend a headed Windows and macOS runner per browser on nights nobody reads. The tiers (axe on a pull request, a semi-lite set on a nightly, the full set on a release candidate and a stable release) come back with the schedule, not before. ${DOC}`);
+  assert.doesNotMatch(nightly, /cron/, `${NIGHTLY}: no cron, under any key. ${DOC}`);
   assert.match(nightly, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch from a feature branch is the proof run and the golden recorder.`);
+  assert.match(nightly, /^ {2}pull_request:\n {4}paths: \[ '\.github\/workflows\/screenreader-nightly\.yml' \]$/m,
+    `${NIGHTLY}: the self-validating trigger stays; without it a broken workflow_call graph first runs after merging. ${DOC}`);
+  ['groups', 'projects'].forEach((input) => {
+    assert.match(nightly, new RegExp(`^ {6}${input}:\\n(?: {8}.*\\n)*? {8}type: string\\n(?: {8}.*\\n)*? {8}default: ''$`, 'm'),
+      `${NIGHTLY}: the ${input} input is a comma-separated subset, and its default, empty, runs every one: a proof run on a branch dispatches the changed group on one project instead of every lane. ${DOC}`);
+    assert.match(job(nightly, 'screenreader'), new RegExp(`^ {6}${input}: \\$\\{\\{ inputs\\.${input} \\}\\}$`, 'm'),
+      `${NIGHTLY}: the ${input} input is forwarded to the lane as it is; the inputs context is empty on the pull_request trigger, where the job skips itself anyway. ${DOC}`);
+  });
   assert.match(job(nightly, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the lane needs the UMD artifact.`);
+  assert.match(job(nightly, 'build'), /^ {4}needs: \[ check-inputs \]$/m,
+    `${NIGHTLY}: the build waits for the input guard, so a refused dispatch (a subset on develop, an entry that names nothing) spends no runner and runs no lane. ${DOC}`);
+
+  const guard = job(nightly, 'check-inputs');
+  const guardRun = steps(guard).find(entry => /^- name: Refuse a subset on develop and an entry that names nothing$/m.test(entry)) ?? '';
+
+  assert.match(guard, /^ {4}if: github\.event_name != 'pull_request'$/m, `${NIGHTLY}: the guard skips itself on the validation run, like the jobs after it. ${DOC}`);
+  assert.match(guard, /^ {4}runs-on: ubuntu-26\.04$/m);
+  assert.deepEqual(permissions(guard), ['contents: read'], `${NIGHTLY}: the guard reads the checkout and nothing else. ${DOC}`);
+  assert.match(guard, /^ {10}persist-credentials: false$/m);
+  assert.match(guard, /^ {10}sparse-checkout: \|\n {12}tests\/lib\n {12}tests\/scripts$/m,
+    `${NIGHTLY}: the guard reads the dispatch lists from tests/lib (screenreader-matrix.mjs, dependency-free) and the script from tests/scripts, nothing else. ${DOC}`);
+  assert.match(guardRun, /SCREENREADER_PROJECTS: \$\{\{ inputs\.projects \}\}/);
+  assert.match(guardRun, /SCREENREADER_GROUPS: \$\{\{ inputs\.groups \}\}/);
+  assert.match(guardRun, /^ {8}run: node tests\/scripts\/a11y-dispatch-inputs\.mjs --ref "\$GITHUB_REF" --projects "\$SCREENREADER_PROJECTS" --groups "\$SCREENREADER_GROUPS"$/m,
+    `${NIGHTLY}: the guard reads the ref and both subset inputs the way the verdict does (dispatchSubset()): a subset on develop and an entry that is not a whole known name are refused before the build. ${DOC}`);
   ['build', 'screenreader'].forEach((id) => {
     assert.match(job(nightly, id), /^ {4}if: github\.event_name != 'pull_request'$/m,
       `${NIGHTLY}: the ${id} job skips itself on the pull_request trigger, which only validates this file; without it a pull request touching the nightly runs the lane on Windows. ${DOC}`);
@@ -265,7 +327,7 @@ test('screenreader-nightly.yml calls the lane after the UMD build, on its own cr
   assert.match(job(nightly, 'notify'), /^ {4}if: \$\{\{ failure\(\) && github\.event_name != 'pull_request' && github\.ref_name == 'develop' \}\}$/m,
     `${NIGHTLY}: Slack hears of a run that never reached the lane (failure()), on develop only. ${DOC}`);
   assert.match(job(nightly, 'screenreader'), /^ {6}update-goldens: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.update-goldens \|\| false \}\}$/m,
-    `${NIGHTLY}: only a dispatch records goldens; the cron always compares. ${DOC}`);
+    `${NIGHTLY}: only a dispatch that asks records goldens; a plain dispatch compares. ${DOC}`);
   assert.match(nightly, /^ {2}group: screenreader-nightly-\$\{\{ github\.ref \}\}$/m, `${NIGHTLY}: a static concurrency prefix, never the workflow-name expression.`);
   assert.doesNotMatch(stripYamlComments(read(TESTS)), /screenreader/, `${TESTS}: the lane is report-only and nightly; it is not a pull-request job. ${DOC}`);
 });
@@ -281,13 +343,18 @@ test('the screen reader nightly ends on a verdict job that expects one check run
   const doc = 'See tests/AGENTS.md, "A11y: the verdict of a check run".';
 
   assert.equal(projects.length, 4, `${LANE}: two browsers per screen reader.`);
+  assert.deepEqual(projects, SCREENREADER_PROJECTS,
+    `${LANE}: the matrices' projects are SCREENREADER_PROJECTS of tests/lib/screenreader-matrix.mjs, the list the projects input is checked against before the build and by the verdict. ${doc}`);
   assert.deepEqual(expected.sort(), lanes.sort(), `${NIGHTLY}: the verdict expects exactly the check runs ${LANE} posts, one per project and scenario group of SCENARIO_GROUPS; a job that posted nothing is red. ${doc}`);
   assert.match(verdict, /^ {4}needs: \[ screenreader \]$/m, `${NIGHTLY}: the verdict waits for every lane. ${doc}`);
   assert.match(verdict, /^ {4}if: \$\{\{ !cancelled\(\) && github\.event_name != 'pull_request' \}\}$/m,
     `${NIGHTLY}: !cancelled(), or a red job before it would skip the verdict (the implicit success(), .ai/CI.md). ${doc}`);
   assert.match(verdict, /^ {6}contents: read\n {6}checks: read$/m, `${NIGHTLY}: the verdict only reads check runs. ${doc}`);
   assert.doesNotMatch(verdict, /continue-on-error/, `${NIGHTLY}: the verdict's red is the run's red. ${doc}`);
-  assert.match(verdict, /node tests\/scripts\/a11y-run-verdict\.mjs --prefix "Screen reader \/ "/);
+  assert.match(verdict, /node tests\/scripts\/a11y-run-verdict\.mjs --prefix "Screen reader \/ "\n {10}--ref "\$GITHUB_REF" --projects "\$SCREENREADER_PROJECTS" --groups "\$SCREENREADER_GROUPS"\n/,
+    `${NIGHTLY}: on a subset dispatch the verdict keeps the expected lanes the projects and groups inputs name, read with the ref the way check-inputs read them; without this a subset run ends red for the lanes it never ran. ${doc}`);
+  assert.match(verdict, /SCREENREADER_PROJECTS: \$\{\{ inputs\.projects \}\}/, `${NIGHTLY}: the same projects input the lane reads. ${doc}`);
+  assert.match(verdict, /SCREENREADER_GROUPS: \$\{\{ inputs\.groups \}\}/, `${NIGHTLY}: the same groups input the lane reads. ${doc}`);
   assert.match(verdict, /HEAD_SHA: \$\{\{ github\.sha \}\}/);
   assert.match(job(nightly, 'notify'), /^ {4}needs: \[ screenreader \]$/m, `${NIGHTLY}: Slack never hears of the verdict job's red. ${doc}`);
 });
@@ -314,6 +381,9 @@ test('the screen reader config keeps the lane serial, patient and outside the fl
   assert.match(config, /failOnFlakyTests: false/, `${CONFIG}: a scenario that passed on a retry is a transcript like any other.`);
   assert.doesNotMatch(config, /quarantine/, `${CONFIG}: no quarantine reporter in a report-only lane.`);
   assert.doesNotMatch(config, /\['json'/, `${CONFIG}: no JSON reporter, so nothing here can feed the flake ledger.`);
+  SCREENREADER_PROJECTS.forEach((project) => {
+    assert.match(config, new RegExp(`name: '${project}'`), `${CONFIG}: ${project} of SCREENREADER_PROJECTS (tests/lib/screenreader-matrix.mjs) is a project of the config.`);
+  });
   assert.match(config, /name: 'nvda-chromium'/);
   assert.match(config, /name: 'nvda-firefox'/);
   assert.match(config, /name: 'vo-webkit', use: \{ \.\.\.devices\['Desktop Safari'\] \}/,
