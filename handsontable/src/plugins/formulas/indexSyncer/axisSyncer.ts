@@ -1,4 +1,4 @@
-import { warn } from '../../../helpers/console';
+import { warn, warnOnce } from '../../../helpers/console';
 import { listEngineElements } from './engineElements';
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
@@ -48,6 +48,129 @@ interface ParentIndexSyncer {
   getSheetId(): number | null;
   getPostponeAction(callback?: Function): Function;
   getOwnEngineWrite(): <T>(engine: HyperFormulaEngine, fn: () => T) => T;
+}
+
+/**
+ * Tells whether `order` holds every index from `0` to `length - 1` exactly once.
+ *
+ * @param {number[]} order The order.
+ * @param {number} length The number of indexes.
+ * @returns {boolean}
+ */
+function isOrderOf(order: number[], length: number): boolean {
+  if (order.length !== length) {
+    return false;
+  }
+
+  const seen = new Set<number>();
+
+  return order.every((index) => {
+    if (!Number.isInteger(index) || index < 0 || index >= length || seen.has(index)) {
+      return false;
+    }
+
+    seen.add(index);
+
+    return true;
+  });
+}
+
+/**
+ * Returns the elements of one longest increasing run of `order` (not necessarily adjacent), in O(n log n): the
+ * elements a move into `order` can leave where physical order has them.
+ *
+ * @param {number[]} order An order of distinct indexes.
+ * @returns {Set<number>}
+ */
+function getLongestIncreasingRun(order: number[]): Set<number> {
+  const tails: number[] = [];
+  const tailPositions: number[] = [];
+  const previous: number[] = order.map(() => -1);
+
+  order.forEach((value, position) => {
+    let low = 0;
+    let high = tails.length;
+
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+
+      if (tails[middle]! < value) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+
+    tails[low] = value;
+    tailPositions[low] = position;
+    previous[position] = low > 0 ? tailPositions[low - 1]! : -1;
+  });
+
+  const run = new Set<number>();
+  let position = tailPositions.length > 0 ? tailPositions[tailPositions.length - 1]! : -1;
+
+  while (position !== -1) {
+    run.add(order[position]!);
+    position = previous[position]!;
+  }
+
+  return run;
+}
+
+/**
+ * Plans the single-line moves that turn physical order into `targetOrder`: every line outside one longest
+ * increasing run is moved right behind the line in front of it in `targetOrder`, in that order, so the lines
+ * placed so far always keep their target order. Each move names the line's position before it and the target
+ * the engine takes (a position before the move).
+ *
+ * @param {number[]} targetOrder An order of the indexes `0..n - 1`.
+ * @returns {Array<{ from: number, target: number }>}
+ */
+function planMovesToOrder(targetOrder: number[]): Array<{ from: number; target: number }> {
+  const kept = getLongestIncreasingRun(targetOrder);
+  const moves: Array<{ from: number; target: number }> = [];
+  let current = targetOrder.map((_, index) => index);
+
+  targetOrder.forEach((element, index) => {
+    if (kept.has(element)) {
+      return;
+    }
+
+    const from = current.indexOf(element);
+    const rest = current.slice();
+
+    rest.splice(from, 1);
+
+    const to = index === 0 ? 0 : rest.indexOf(targetOrder[index - 1]!) + 1;
+
+    rest.splice(to, 0, element);
+    current = rest;
+
+    if (to !== from) {
+      moves.push({ from, target: to > from ? to + 1 : to });
+    }
+  });
+
+  return moves;
+}
+
+/**
+ * Applies single-line moves (as `planMovesToOrder()` describes them) to physical order.
+ *
+ * @param {number} length The number of lines.
+ * @param {Array<{ from: number, target: number }>} moves The moves.
+ * @returns {number[]} The physical indexes in the order the moves leave them.
+ */
+function applyMoves(length: number, moves: Array<{ from: number; target: number }>): number[] {
+  const order = Array.from({ length }, (_, index) => index);
+
+  moves.forEach(({ from, target }) => {
+    const [element] = order.splice(from, 1);
+
+    order.splice(target > from ? target - 1 : target, 0, element!);
+  });
+
+  return order;
 }
 
 /**
@@ -819,10 +942,15 @@ class AxisSyncer {
   #syncOrderWithEngine(targetSequence: number[]): boolean {
     const engine = this.#indexSyncer.getEngine();
 
-    // No endpoint yet: an order change that arrives before the plugin points the syncer at an engine
-    // sheet (as a grid built from an engine sheet without `data` used to, before its load set one up)
-    // has nowhere to go. A guard, not the fix - every binding sets the endpoint up.
+    // No endpoint: every path that binds or fills a sheet points the syncers at it first (`#loadSheet()`,
+    // `#writeSheet()`, `#clearRejectedSheet()`, `#adoptEngineSheet()`, and the enable and `updatePlugin()` paths
+    // that add a sheet from the grid's data), so no known path reaches this. It warns, once per syncer, rather
+    // than throwing: the order is lost and the formula results stay where they were, which a warning names. A
+    // throw would end the user's sort or move half-done, and develop threw a `TypeError` here.
     if (engine === null) {
+      warnOnce(this, 'noSyncEndpoint', `The Formulas plugin got a ${this.#axis} order before it was bound to an ` +
+        'engine sheet, so the engine keeps its previous order and formulas may read the wrong cells.');
+
       return false;
     }
 
@@ -1119,6 +1247,86 @@ class AxisSyncer {
     if (syncOrder) {
       this.#syncInitialOrder();
     }
+  }
+
+  /**
+   * Brings the engine sheet, which a live grid has just filled from its source data and so holds in physical
+   * order, to the grid's order the way the grid reached it: `movedSequence` (the order the grid's moves made)
+   * through `move<Axis>s`, which keeps every reference on its cell as a drag does, then what is left (a sort)
+   * as one order, as a sort itself reaches the engine. A sort sent as moves would remap the formula addresses
+   * a sort leaves alone (see the plugin's AGENTS.md, DEV-917), and a move sent as an order turns references
+   * into `#REF!` where the drag kept them. Run right after `init(false)`; a held order is left to the release.
+   *
+   * @param {number[]|null} movedSequence The order the moves made, or `null` when the whole sequence is moves.
+   * A value that is not an order of the grid's indexes counts as `null`.
+   */
+  syncOrderAsReached(movedSequence: number[] | null) {
+    const sequence = this.#indexMapper.getIndexesSequence();
+    const engine = this.#indexSyncer.getEngine();
+    const sheetId = this.#indexSyncer.getSheetId();
+
+    if (this.#orderHeld || engine === null || sheetId === null || sequence.length === 0 || this.#isSheetRemoved()) {
+      return;
+    }
+
+    const { height, width } = engine.getSheetDimensions(sheetId);
+
+    // An empty sheet has nothing to move; the order is kept for the content it gains (`#syncOrderWithEngine()`).
+    if ((this.#axis === 'row' ? height : width) > 0) {
+      this.#moveEngineToOrder(engine, sheetId,
+        movedSequence !== null && isOrderOf(movedSequence, sequence.length) ? movedSequence : sequence);
+    }
+
+    this.#syncOrderWithGrid();
+  }
+
+  /**
+   * Moves the lines of an engine sheet held in physical order into `targetOrder`, one `move<Axis>s` per line
+   * outside the longest run already in place, so a line moved from one end to the other costs one move. A move
+   * the engine refuses (an array formula in the way) ends the moves; the order sent after them carries the rest,
+   * or warns that it cannot. The stored order is what the engine holds when they end. Nothing is sent when no
+   * line moves: the engine records an undo entry for an empty batch too.
+   *
+   * @param {HyperFormulaEngine} engine The engine.
+   * @param {number} sheetId The sheet id.
+   * @param {number[]} targetOrder Physical indexes in the order the lines should end in.
+   */
+  #moveEngineToOrder(engine: HyperFormulaEngine, sheetId: number, targetOrder: number[]) {
+    const axisName = toUpperCaseFirst(this.#axis);
+    const moves = planMovesToOrder(targetOrder);
+    let movesMade = moves.length;
+
+    if (moves.length > 0) {
+      const moveAll = () => {
+        for (let index = 0; index < moves.length; index += 1) {
+          const { from, target } = moves[index]!;
+
+          if (!engine[`isItPossibleToMove${axisName}s`](sheetId, from, 1, target)) {
+            movesMade = index;
+
+            return;
+          }
+
+          engine[`move${axisName}s`](sheetId, from, 1, target);
+        }
+      };
+
+      this.#indexSyncer.getOwnEngineWrite()(engine, () => {
+        // Inside a batch of the caller's (an undo restore) or a host's suspension, `batch()` would end it early.
+        if (engine.isEvaluationSuspended()) {
+          moveAll();
+        } else {
+          engine.batch(moveAll);
+        }
+      });
+    }
+
+    this.#indexesSequence = movesMade === moves.length
+      ? targetOrder.slice() : applyMoves(targetOrder.length, moves.slice(0, movesMade));
+    this.#fillSequence = null;
+    this.#paddedElements = new Set<number>();
+    this.#orderShifts = new Map<number, number>();
+    this.#translationCache = null;
   }
 
   /**

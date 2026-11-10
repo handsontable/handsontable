@@ -1351,6 +1351,8 @@ export class Formulas extends BasePlugin {
     }
 
     let sheetPaintErrors: unknown[] = [];
+    // Set when this enable fills a new sheet from the grid's data; the sync endpoint is set up once the syncers exist.
+    let filledSheet = false;
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName) && this.isDataLoadPending()) {
@@ -1366,6 +1368,7 @@ export class Formulas extends BasePlugin {
 
       if (typeof addedSheetName === 'string') {
         this.#updateSheetNameAndSheetId(addedSheetName);
+        filledSheet = true;
       }
 
       sheetPaintErrors = paintErrors;
@@ -1425,6 +1428,10 @@ export class Formulas extends BasePlugin {
 
     if (this.#engineOrderHolds > 0) {
       this.indexSyncer.setOrderHeld(true);
+    }
+
+    if (filledSheet) {
+      this.#setupSyncEndpointInGridOrder();
     }
 
     this.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
@@ -1651,9 +1658,11 @@ export class Formulas extends BasePlugin {
       this.#followSheetNameSettingWhenBound();
     }
 
-    // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
-    // new sheet using the currently used data. Otherwise, it will be handled by the `afterLoadData` call.
-    if (!newSettings.data && !this.isDataLoadPending() && this.sheetName === null) {
+    // No sheet is connected to the instance -> create a new sheet using the currently used data. A load still to
+    // come in this call binds one itself (`afterLoadData`). A `data` passed in the same call does not: core loads
+    // it before the plugins update, so a plugin that this call enables never saw that load, and the grid showed
+    // its formulas as text.
+    if (!this.isDataLoadPending() && this.sheetName === null) {
       const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
@@ -1669,6 +1678,7 @@ export class Formulas extends BasePlugin {
 
         if (typeof addedSheetName === 'string') {
           this.#updateSheetNameAndSheetId(addedSheetName);
+          this.#setupSyncEndpointInGridOrder();
         }
 
         sheetPaintErrors = paintErrors;
@@ -2115,6 +2125,56 @@ export class Formulas extends BasePlugin {
     if (loadsData) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
     }
+  }
+
+  /**
+   * Points the order syncers at the bound sheet right after it was filled from the grid's source data, which
+   * holds the rows in physical order. At construction (no view yet) the grid's order is sent as one order, as it
+   * always was (`__tests__/plugins/initialManualColumnMove.spec.js` pins that rewrite). On a live grid the grid
+   * can have been moved or sorted already, before the plugin was enabled or since the last full write, and the
+   * order is sent the way the grid reached it (`#setupSyncEndpointInGridOrder()`).
+   */
+  #setupSyncEndpointAfterFill(): void {
+    if (this.hot.view) {
+      this.#setupSyncEndpointInGridOrder();
+
+    } else {
+      this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+    }
+  }
+
+  /**
+   * Points the order syncers at the bound sheet, which a live grid has just filled from its source data, and
+   * brings the sheet to the grid's order: the moves as moves, which keep every reference on its cell as a drag
+   * does, then the sort of the rows as one order, as the sort itself does (DEV-917). Every path that fills or
+   * binds a sheet on a live grid has to come through here or through `#loadSheet()`: an enable left without an
+   * endpoint sent no order to the engine at all, so a sort reordered the grid and left the formula results
+   * where they were.
+   */
+  #setupSyncEndpointInGridOrder(): void {
+    if (this.engine === null || this.sheetId === null) {
+      return;
+    }
+
+    this.indexSyncer!.setupSyncEndpointInGridOrder(this.engine, this.sheetId, this.#readPresortRowOrder());
+  }
+
+  /**
+   * Returns the row order a sort of ColumnSorting or MultiColumnSorting started from while one is applied, or
+   * `null`. The grid's moves made that order; the sort made the rest.
+   *
+   * @returns {number[]|null}
+   */
+  #readPresortRowOrder(): number[] | null {
+    for (const pluginKey of ['multiColumnSorting', 'columnSorting'] as const) {
+      const sorting = this.hot.getPlugin(pluginKey);
+
+      if (sorting?.isSorted() && sorting.indexesSequenceCache !== null) {
+        return sorting.indexesSequenceCache.getValues();
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -4689,7 +4749,7 @@ export class Formulas extends BasePlugin {
       dependentCells = this.#writeOwnSheet(this.engine!, () => {
         const changes = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
-        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+        this.#setupSyncEndpointAfterFill();
 
         return changes;
       });

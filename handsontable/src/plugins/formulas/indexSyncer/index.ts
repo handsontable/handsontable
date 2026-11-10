@@ -154,6 +154,22 @@ class IndexSyncer {
     this.#rowIndexSyncer.init(syncOrder);
     this.#columnIndexSyncer.init(syncOrder);
   }
+
+  /**
+   * Sets up a synchronization endpoint for a sheet a live grid has just filled from its source data (physical
+   * order), and brings the sheet to the grid's order the way the grid reached it (see
+   * `AxisSyncer#syncOrderAsReached()`): the moves as moves, the sort of the rows as one order.
+   *
+   * @param {HyperFormula} engine The HF's engine instance which will be synced.
+   * @param {number} sheetId HyperFormula's sheet id.
+   * @param {number[]|null} presortRowOrder The row order the sort started from, or `null` when no sort is applied.
+   */
+  setupSyncEndpointInGridOrder(engine: HyperFormulaEngine, sheetId: number, presortRowOrder: number[] | null) {
+    this.setupSyncEndpoint(engine, sheetId, false);
+
+    this.#columnIndexSyncer.syncOrderAsReached(null);
+    this.#rowIndexSyncer.syncOrderAsReached(presortRowOrder);
+  }
 }
 
 export default IndexSyncer;
