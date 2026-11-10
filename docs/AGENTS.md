@@ -516,7 +516,7 @@ Copy and complete this checklist in your PR description:
 
 **Production, staging, and PR previews are all served by Cloudflare Pages.** Netlify has been fully removed - see `README-DEPLOYMENT.md` for the current platform table.
 
-When you rename a page's `permalink` (or remove a page), add a redirect rule to `cloudflare/_worker.js` - the **sole**, hand-maintained authority for every redirect rule. Cloudflare Pages ignores `_redirects` when a `_worker.js` is present. Add old-slug-to-new-slug exact-path entries to its `crossFramework` map (matched before the static-asset fallthrough), one per framework prefix. Never point a `:major.:minor` versioned wildcard at the new slug; that wildcard matches frozen older versions where the page still lives at the old slug.
+When you rename a page's `permalink` (or remove a page), add a redirect rule to `cloudflare/_worker.js` - the **sole**, hand-maintained authority for every redirect rule. Cloudflare Pages ignores `_redirects` when a `_worker.js` is present. Add old-slug-to-new-slug exact-path entries to its `CROSS_FRAMEWORK_PAGES` map (matched before the static-asset fallthrough), one per framework prefix. Never point a `:major.:minor` versioned wildcard at the new slug; that wildcard matches frozen older versions where the page still lives at the old slug.
 
 Only versions from 9.0 up are deployed, and worker rule 12b sends every older version's URL to the current docs. The floor is declared twice - `OLDEST_DEPLOYED_DOCS_MAJOR` in `cloudflare/_worker.js` and `MIN_DOCS_VERSION` in `deploy/getListOrPreviousVersions.mjs` - so raise both together, or the dropped versions answer 404 (`cloudflare/README.md`).
 
