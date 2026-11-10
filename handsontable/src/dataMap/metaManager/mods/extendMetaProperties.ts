@@ -3,6 +3,15 @@ import { throwWithCause } from '../../../helpers/errors';
 import { FIXED_COLUMNS_LEFT_RTL_ERROR } from '../../../core/fixedColumnsAlias';
 
 /**
+ * Refuses an update of an init-only option.
+ *
+ * @param {string} propName The name of the init-only option.
+ */
+export function throwInitOnlyUpdateError(propName: string): never {
+  throwWithCause(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+}
+
+/**
  * @class ExtendMetaPropertiesMod
  */
 export class ExtendMetaPropertiesMod {
@@ -18,11 +27,6 @@ export class ExtendMetaPropertiesMod {
    * @type {Set}
    */
   usageTracker = new Set();
-  /**
-   * Becomes `true` once the `MetaManager` has applied the initial settings. A write that comes later is
-   * never an initial change, including the first write of an option the initial settings did not define.
-   */
-  #isInitialized = false;
   /**
    * @type {Map}
    */
@@ -64,10 +68,6 @@ export class ExtendMetaPropertiesMod {
     this.metaManager = metaManager;
 
     this.extendMetaProps();
-
-    metaManager.addLocalHook('afterInitialization', () => {
-      this.#isInitialized = true;
-    });
   }
 
   /**
@@ -79,7 +79,7 @@ export class ExtendMetaPropertiesMod {
    */
   #initOnlyCallback = (propName: string, value: unknown, isInitialChange: boolean) => {
     if (!isInitialChange) {
-      throwWithCause(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+      throwInitOnlyUpdateError(propName);
     }
   };
 
@@ -133,7 +133,7 @@ export class ExtendMetaPropertiesMod {
                                 value: unknown, isInitialChange: boolean) => void) {
     const { usageTracker } = this;
     const boundOnChange = onChange.bind(this);
-    const isInitialized = () => this.#isInitialized;
+    const isInitialized = () => this.metaManager.isInitialized();
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName as string, {
       get(): unknown {

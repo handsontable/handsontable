@@ -1916,6 +1916,16 @@ describe('SheetsBar plugin', () => {
     expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__add').getAttribute('aria-label')).toBe('Add sheet');
   });
 
+  it('builds a grid whose opening sheet sets an init-only option, as the grid is still being built', () => {
+    expect(() => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [['a']], settings: { renderAllRows: true } }] },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+    }).not.toThrow();
+    expect(hot.getSettings().renderAllRows).toBe(true);
+  });
+
   it('registers every formula-bound sheet in the shared engine before it is visited', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 

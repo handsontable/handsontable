@@ -3128,6 +3128,10 @@ export default function Core(
     }
 
     instance.runHooks('afterInit');
+
+    // From here on an init-only option can no longer be written. The grid's own initialization steps above
+    // (the column meta pass, the `cell` option, a `beforeInit` listener) still could.
+    metaManager.finishInitialization();
   }
 
   /**
@@ -6584,6 +6588,12 @@ export default function Core(
    */
   function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): boolean {
     let i;
+
+    // An init-only option refuses an update, so a payload that names one is refused as a whole, before
+    // the options in front of it are written.
+    if (!init) {
+      metaManager.assertNoInitOnlyUpdates(settings as Record<string, unknown>);
+    }
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {

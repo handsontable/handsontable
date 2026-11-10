@@ -7,8 +7,9 @@ import CellMeta, {
   type CellMetaKeyStateEntry,
 } from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
-import { mixin } from '../../helpers/object';
+import { hasOwnProperty, mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
+import { throwInitOnlyUpdateError } from './mods/extendMetaProperties';
 import type { CellProperties } from '../../settings';
 
 /**
@@ -20,7 +21,6 @@ interface MetaManagerLocalHooks {
   afterGetCellMeta: (cellMeta: CellProperties) => void;
   extendTransientCellMeta: (cellMeta: CellProperties) => void;
   invalidateMetaExtensions: () => void;
-  afterInitialization: () => void;
 }
 
 /**
@@ -56,6 +56,11 @@ export default class MetaManager {
    * `getStructureVersion()`.
    */
   #structureVersion = 0;
+
+  /**
+   * Becomes `true` when `finishInitialization()` is called. Read through `isInitialized()`.
+   */
+  #isInitialized = false;
 
   /**
    * The Handsontable instance passed to this manager on construction.
@@ -119,7 +124,45 @@ export default class MetaManager {
     (metaMods as Array<new (metaManager: MetaManager) => unknown>).forEach(ModifierClass => new ModifierClass(this));
 
     this.globalMeta.updateMeta(customSettings);
-    this.runLocalHooks('afterInitialization');
+  }
+
+  /**
+   * Tells the manager that the grid has finished initializing. From then on, a write to an init-only option
+   * is an update, including the first write of an option the initial settings did not define. Before it, the
+   * grid is still being built and its own steps (the column meta pass, the `cell` option, a `beforeInit`
+   * listener) may write those options once.
+   */
+  finishInitialization() {
+    this.#isInitialized = true;
+  }
+
+  /**
+   * Checks whether the grid has finished initializing (see `finishInitialization()`).
+   *
+   * @returns {boolean}
+   */
+  isInitialized(): boolean {
+    return this.#isInitialized;
+  }
+
+  /**
+   * Refuses a settings payload that names an init-only option, before any option of the payload is written,
+   * so a refused payload changes nothing. Does nothing while the grid initializes.
+   *
+   * @param {object} settings An `updateSettings()` payload.
+   */
+  assertNoInitOnlyUpdates(settings: Record<string, unknown>) {
+    if (!this.#isInitialized) {
+      return;
+    }
+
+    const initOnlyOptions = (this.globalMeta.getMeta()._initOnlySettings ?? []) as string[];
+
+    initOnlyOptions.forEach((option) => {
+      if (hasOwnProperty(settings, option)) {
+        throwInitOnlyUpdateError(option);
+      }
+    });
   }
 
   /**

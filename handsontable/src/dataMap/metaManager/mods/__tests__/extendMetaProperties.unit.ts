@@ -249,6 +249,8 @@ describe('ExtendMetaPropertiesMod', () => {
     it.each(initOnlyOptions)('should throw on the first update of `%s`', (option, value) => {
       const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
 
+      metaManager.finishInitialization();
+
       expect(() => {
         metaManager.updateGlobalMeta({ [option]: value });
       }).toThrow(`The \`${option}\` option can not be updated after the Handsontable is initialized.`);
@@ -257,8 +259,69 @@ describe('ExtendMetaPropertiesMod', () => {
     it.each(initOnlyOptions)('should keep throwing on the second update of `%s`', (option, value) => {
       const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
 
+      metaManager.finishInitialization();
+
       expect(() => metaManager.updateGlobalMeta({ [option]: value })).toThrow();
       expect(() => metaManager.updateGlobalMeta({ [option]: value })).toThrow();
+    });
+
+    it.each(initOnlyOptions)('should accept the first write of `%s` until the initialization is finished', (option, value) => {
+      const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+      expect(() => metaManager.updateGlobalMeta({ [option]: value })).not.toThrow();
+      expect(metaManager.getGlobalMeta()[option]).toBe(value);
+    });
+
+    it('should accept a column meta write while the grid is initializing, and refuse it afterwards', () => {
+      const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+      expect(() => metaManager.updateColumnMeta(0, { ariaTags: false })).not.toThrow();
+
+      metaManager.finishInitialization();
+
+      expect(() => metaManager.updateColumnMeta(1, { ariaTags: false })).toThrow();
+    });
+
+    describe('assertNoInitOnlyUpdates()', () => {
+      it('should refuse a payload that names an init-only option once the initialization is finished', () => {
+        const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+        metaManager.finishInitialization();
+
+        expect(() => {
+          metaManager.assertNoInitOnlyUpdates({ colHeaders: true, renderAllRows: true });
+        }).toThrow('The `renderAllRows` option can not be updated after the Handsontable is initialized.');
+      });
+
+      it('should refuse a payload that names an init-only option with `undefined`', () => {
+        const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+        metaManager.finishInitialization();
+
+        expect(() => metaManager.assertNoInitOnlyUpdates({ ariaTags: undefined })).toThrow();
+      });
+
+      it('should accept the payload while the grid is initializing', () => {
+        const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+        expect(() => metaManager.assertNoInitOnlyUpdates({ renderAllRows: true })).not.toThrow();
+      });
+
+      it('should accept a payload with no init-only option', () => {
+        const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
+
+        metaManager.finishInitialization();
+
+        expect(() => metaManager.assertNoInitOnlyUpdates({ colHeaders: true, fixedColumnsStart: 1 })).not.toThrow();
+      });
+
+      it('should accept any payload when the manager has no init-only options registered', () => {
+        const metaManager = new MetaManager(new Handsontable(), {}, []);
+
+        metaManager.finishInitialization();
+
+        expect(() => metaManager.assertNoInitOnlyUpdates({ renderAllRows: true })).not.toThrow();
+      });
     });
 
     it('should not throw for an option that the initial settings did define, set in the constructor', () => {

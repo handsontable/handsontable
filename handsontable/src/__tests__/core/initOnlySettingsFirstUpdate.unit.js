@@ -75,6 +75,42 @@ describe('Core: init-only options in the first `updateSettings()` call', () => {
     });
   });
 
+  it('should refuse a payload that names an init-only option as a whole', () => {
+    const afterUpdateSettings = jest.fn();
+
+    createGrid({ colHeaders: false, rowHeaders: false, afterUpdateSettings });
+
+    expect(() => {
+      hot.updateSettings({ colHeaders: ['X', 'Y', 'Z'], renderAllRows: true, rowHeaders: true });
+    }).toThrowError('The `renderAllRows` option can not be updated after the Handsontable is initialized.');
+
+    expect(hot.getSettings().colHeaders).toBe(false);
+    expect(hot.getSettings().rowHeaders).toBe(false);
+    expect(afterUpdateSettings).not.toHaveBeenCalled();
+  });
+
+  it('should accept an init-only option in the column meta while the grid is created', () => {
+    expect(() => {
+      createGrid({ columns: [{ data: 0, ariaTags: false }, { data: 1 }, { data: 2 }] });
+    }).not.toThrow();
+  });
+
+  it('should accept an init-only option in the `cell` option while the grid is created', () => {
+    expect(() => {
+      createGrid({ cell: [{ row: 0, col: 0, ariaTags: false }] });
+    }).not.toThrow();
+  });
+
+  it('should accept an update from a `beforeInit` listener, because the grid is still being built', () => {
+    expect(() => {
+      createGrid({
+        beforeInit() {
+          this.updateSettings({ renderAllRows: true });
+        },
+      });
+    }).not.toThrow();
+  });
+
   it('should still accept the value the grid was created with', () => {
     createGrid({ layoutDirection: 'rtl', renderAllRows: true });
 
