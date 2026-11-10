@@ -20,7 +20,6 @@ import {
   isEngineEscapedValue,
   isFormula,
   isPreservedText,
-  isSameCellContent,
   normalizeValueForFormulaEngine,
   padRowsToWidestRow,
   trimTrailingEmptyCells,
@@ -49,7 +48,6 @@ import { quoteUnreadableSheetNames, canReadSheetNameUnquoted } from '../../utils
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import {
-  countPluginEngineWrites,
   deferPaintToPluginEngineWrite,
   holdPluginEngineWritePaints,
   isPluginEngineProbe,
@@ -451,11 +449,6 @@ interface ReloadAxis {
    * it and the grid shows it in that order.
    */
   stale: boolean;
-  /**
-   * Whether the engine sheet gained or lost lines on this axis since the grid loaded it (a host that inserted or
-   * removed lines through the engine API), so the grid's physical indexes no longer name the same records.
-   */
-  resized: boolean;
 }
 
 interface EngineSheetSnapshot {
@@ -905,25 +898,25 @@ export class Formulas extends BasePlugin {
   #sourceHasStaleFormulas = false;
 
   /**
-   * How many rows, and how many columns at the widest row, the last load of the bound sheet into the grid read
-   * (`#loadSheet()`), or `null` before one. A reload compares the engine sheet against it and the grid's length
-   * to tell lines the host added (`#planReloadAxis()`).
-   */
-  #loadedSheetShape: { rows: number; columns: number } | null = null;
-
-  /**
-   * The bound sheet as `getSheetSerialized()` returned it at the last load of it into the grid (`#loadSheet()`),
-   * or `null` before one. A reload that finds the engine sheet unchanged since knows nothing but this grid can
-   * have touched it, and reads no source row to tell (`#canReloadInPlace()`).
+   * The bound sheet as `getSheetSerialized()` returned it at the end of the last load of it into the grid
+   * (`#loadSheet()`), or of the last write of this grid to the engine after it (`#trackOwnEngineWrite()`), or
+   * `null` before a load. A reload that finds the engine sheet still holding exactly this knows nothing but this
+   * grid changed it (`#canReloadInPlace()`). Kept up to date after writes only for a grid built from the sheet,
+   * the one that reloads on every settings update.
    */
   #loadedSheetContent: unknown[][] | null = null;
 
   /**
-   * `countPluginEngineWrites()` when `#loadedSheetContent` was recorded. A plugin write since (this grid's own
-   * edit, sort or move, or another grid's) can have changed the sheet and a host change undone it, so the
-   * unchanged content then proves nothing.
+   * Set when a write of this grid finds the engine sheet changed since the snapshot (`#loadedSheetContent`): a host
+   * change, or another grid's, came before it, and the snapshot taken after the write would hide it. Cleared by
+   * the next load.
    */
-  #pluginWritesAtLoad = 0;
+  #foreignSheetChange = false;
+
+  /**
+   * How many writes of this grid to the engine are on the stack (`#trackOwnEngineWrite()`).
+   */
+  #trackedOwnWriteDepth = 0;
 
   /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
@@ -1529,7 +1522,7 @@ export class Formulas extends BasePlugin {
     this.#sheetResyncPending = false;
     // The next load of a sheet starts the comparison over (and the content is not kept alive meanwhile).
     this.#loadedSheetContent = null;
-    this.#loadedSheetShape = null;
+    this.#foreignSheetChange = false;
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -1952,7 +1945,7 @@ export class Formulas extends BasePlugin {
     let registered: string | undefined;
 
     try {
-      withPluginEngineWrite(engine, () => {
+      withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(() => {
         const actualSheetName = engine.addSheet(sheetName ?? undefined);
 
         if (sheetData) {
@@ -1960,7 +1953,7 @@ export class Formulas extends BasePlugin {
         }
 
         registered = actualSheetName;
-      });
+      }));
     } catch (e) {
       if (registered === undefined) {
         warn(e instanceof Error ? e.message : String(e));
@@ -2034,7 +2027,11 @@ export class Formulas extends BasePlugin {
     const unescaped = this.#unescapeEngineSheetArray(this.#readableSheet(sheetContent), isSameSheetReload);
     // The engine holds the sheet in its own order; a reload that keeps the grid's order reads it back in
     // physical order.
-    const reload = keepsOrder ? this.#planReload(unescaped) : null;
+    // An engine sheet that still holds what this grid left in it cannot have lost a line the grid holds content in,
+    // so the plan reads no source row then.
+    const reload = keepsOrder
+      ? this.#planReload(unescaped, this.#isSheetAsLeft(sheetContent, previousContent))
+      : null;
     const physical = reload === null ? unescaped : this.#toPhysicalOrder(unescaped, reload);
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
@@ -2050,9 +2047,9 @@ export class Formulas extends BasePlugin {
       // Only a sheet nothing but this grid changed since the grid loaded it is reloaded in place. Any other change
       // can have moved or replaced the records under the grid's physical indexes, so it takes `loadData()`, which
       // drops the state keyed by them.
-      const inPlace = this.#canReloadInPlace(reload, sheetContent, previousContent, physical);
+      const inPlace = this.#canReloadInPlace(reload, sheetContent, previousContent);
 
-      this.#recordLoadedSheet(sheetContent, serialized);
+      this.#recordLoadedSheet(sheetContent);
 
       if (inPlace) {
         this.#reloadInPlace(serialized);
@@ -2064,7 +2061,7 @@ export class Formulas extends BasePlugin {
     }
 
     if (loadsData) {
-      this.#recordLoadedSheet(sheetContent, serialized);
+      this.#recordLoadedSheet(sheetContent);
     }
 
     // The order syncers are pointed at the bound sheet BEFORE the load: the load's `afterLoadData` re-applies
@@ -2084,88 +2081,96 @@ export class Formulas extends BasePlugin {
    * Records what a load of the bound sheet read, for the next reload to compare against.
    *
    * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returned it.
-   * @param {Array<Array<*>>} loaded The rows the grid loads.
    */
-  #recordLoadedSheet(sheetContent: unknown[][], loaded: unknown[][]): void {
-    this.#loadedSheetContent = sheetContent;
-    this.#pluginWritesAtLoad = countPluginEngineWrites(this.engine);
-    this.#loadedSheetShape = { rows: loaded.length, columns: widestRowLength(loaded) };
+  #recordLoadedSheet(sheetContent: unknown[][]): void {
+    // A copy: the rows the grid loads can be the very arrays the engine returned, and the grid writes into them.
+    this.#loadedSheetContent = sheetContent.map(row => row.slice());
+    this.#foreignSheetChange = false;
+  }
+
+  /**
+   * Tells whether the engine sheet holds exactly what this grid left in it: the snapshot of the last load or of
+   * this grid's last write after it (`#loadedSheetContent`), with no change of someone else's found in between
+   * (`#foreignSheetChange`).
+   *
+   * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returns it now.
+   * @param {Array<Array<*>>|null} previousContent The snapshot, or `null` before a load.
+   * @returns {boolean}
+   */
+  #isSheetAsLeft(sheetContent: unknown[][], previousContent: unknown[][] | null): boolean {
+    return previousContent !== null && !this.#foreignSheetChange
+      && areSheetContentsEqual(sheetContent, previousContent);
   }
 
   /**
    * Tells whether a reload of the sheet the syncers are synced with can keep the grid's state (`#reloadInPlace()`):
    * nothing but this grid changed the engine sheet since the grid last loaded it. The engine reports no event for
-   * a host's `addRows()`, `removeRows()` or `moveRows()` that changes no value, so the content is compared:
-   *
-   * - No plugin wrote the engine since the last load (`countPluginEngineWrites()`), and the engine sheet is the
-   *   one that load read: nothing changed it, and no source row is read. With a plugin write in between, a host
-   *   change could have undone it (a move the host turned back), so the content alone proves nothing.
-   * - Otherwise this grid, the host, or another grid on the sheet changed it. Every change this grid made reached
-   *   its source data too, so the engine sheet, read back in physical order, holds the grid's source rows
-   *   (`#doesEngineHoldSourceRows()`). Anything else is a change of someone else's.
-   *
-   * An axis whose line count changed (`resized`) or whose record no longer describes the sheet (`stale`) never
-   * reloads in place.
+   * a host's `addRows()`, `removeRows()` or `moveRows()` that changes no value, so the content is compared, exactly
+   * (`areSheetContentsEqual()`: formula text, a number against its text, an empty cell), against the snapshot
+   * this grid keeps of the sheet after its load and after each of its own writes (`#trackOwnEngineWrite()`).
+   * Every write of this grid runs in such a scope, so any difference is a change of someone else's: the host, or
+   * another grid on the sheet. An axis whose record no longer describes the sheet (`stale`) never reloads in place.
    *
    * @param {object} reload The plan of both axes (`#planReload()`).
    * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returns it now.
-   * @param {Array<Array<*>>|null} previousContent The sheet the last load read, or `null`.
-   * @param {Array<Array<*>>} physical The sheet read back in physical order.
+   * @param {Array<Array<*>>|null} previousContent The snapshot, or `null` before a load.
    * @returns {boolean}
    */
   #canReloadInPlace(
     reload: { row: ReloadAxis; column: ReloadAxis },
     sheetContent: unknown[][],
     previousContent: unknown[][] | null,
-    physical: unknown[][],
   ): boolean {
-    if (reload.row.stale || reload.column.stale || reload.row.resized || reload.column.resized) {
-      return false;
-    }
-
-    if (previousContent !== null && this.#pluginWritesAtLoad === countPluginEngineWrites(this.engine)
-      && areSheetContentsEqual(sheetContent, previousContent)) {
-      return true;
-    }
-
-    return this.#doesEngineHoldSourceRows(physical);
+    return !reload.row.stale && !reload.column.stale && this.#isSheetAsLeft(sheetContent, previousContent);
   }
 
   /**
-   * Tells whether the engine sheet, read back in physical order, holds the grid's source rows, cell by cell. Both
-   * empty (`null`, `undefined` or `''`) is a match, so is a formula on both sides whatever its text (the engine
-   * rewrites a moved formula's references, and the source keeps the text it loaded), and so are two values with
-   * the same text (the engine reads the text `7` as the number 7). A cell a change set still waiting for its
-   * validator wrote into the engine early is skipped: the Core writes it into the source data once it is applied.
+   * Runs a write of this grid to the engine and keeps the snapshot of the bound sheet (`#loadedSheetContent`) in
+   * step with it, for a grid built from the sheet. The outermost such write first compares the sheet with the
+   * snapshot: a difference is a change of someone else's made since (`#foreignSheetChange`), which the snapshot
+   * taken after the write would otherwise take in. After the write the sheet is read again. A write that throws
+   * counts as a foreign change, so the next reload loads the sheet. A validation probe takes its own write back
+   * before it ends, so it is not tracked.
    *
-   * @param {Array<Array<*>>} physical The sheet read back in physical order.
-   * @returns {boolean}
+   * @param {Function} fn The write.
+   * @returns {*} What `fn` returns.
    */
-  #doesEngineHoldSourceRows(physical: unknown[][]): boolean {
-    const sourceRows = this.#readOwnSourceRows();
-    const pendingCells = new Set<string>();
+  #trackOwnEngineWrite<T>(fn: () => T): T {
+    const sheetId = this.sheetId;
 
-    this.hot._getWaitingChangeSets().forEach(({ changes }) => {
-      this.#changesAwaitingApply.get(changes)?.writtenCells.forEach(({ physicalRow, physicalColumn }) => {
-        pendingCells.add(`${physicalRow},${physicalColumn}`);
-      });
-    });
-
-    const height = Math.max(physical.length, sourceRows.length);
-
-    for (let row = 0; row < height; row += 1) {
-      const engineRow = physical[row] ?? [];
-      const sourceRow = sourceRows[row] ?? [];
-      const width = Math.max(engineRow.length, sourceRow.length);
-
-      for (let column = 0; column < width; column += 1) {
-        if (!pendingCells.has(`${row},${column}`) && !isSameCellContent(engineRow[column], sourceRow[column])) {
-          return false;
-        }
-      }
+    if (this.#trackedOwnWriteDepth > 0 || !this.#hotWasInitializedWithEmptyData || this.#loadedSheetContent === null
+      || sheetId === null || !this.engine || isPluginEngineProbe(this.engine) || !this.#hasOwnSheet()) {
+      return fn();
     }
 
-    return true;
+    const engine = this.engine;
+
+    if (!this.#foreignSheetChange
+      && !areSheetContentsEqual(engine.getSheetSerialized(sheetId), this.#loadedSheetContent)) {
+      this.#foreignSheetChange = true;
+    }
+
+    this.#trackedOwnWriteDepth += 1;
+
+    let result: T;
+
+    try {
+      result = fn();
+    } catch (e) {
+      this.#foreignSheetChange = true;
+
+      throw e;
+    } finally {
+      this.#trackedOwnWriteDepth -= 1;
+    }
+
+    if (this.engine === engine && this.sheetId === sheetId && this.#hasOwnSheet()) {
+      this.#loadedSheetContent = engine.getSheetSerialized(sheetId);
+    } else {
+      this.#loadedSheetContent = null;
+    }
+
+    return result;
   }
 
   /**
@@ -2276,10 +2281,10 @@ export class Formulas extends BasePlugin {
    * @param {Array<Array<*>>} rows The sheet content, in engine order.
    * @returns {object}
    */
-  #planReload(rows: unknown[][]): { row: ReloadAxis; column: ReloadAxis } {
-    // Read only when an axis asks: that takes lines the engine left out, so a reload of a grid whose engine sheet
-    // covers it (every React or Vue re-render of one the host did not change) reads nothing. A row is read on its
-    // own, so the blank spare rows a grid holds past the sheet cost one read each.
+  #planReload(rows: unknown[][], isSheetAsLeft: boolean): { row: ReloadAxis; column: ReloadAxis } {
+    // Read only when an axis asks: that takes an axis out of physical order with lines the engine left out, and a
+    // sheet someone else changed, so a reload of a sheet only this grid changed (every React or Vue re-render of
+    // one) reads nothing.
     let sourceRows: unknown[][] | null = null;
     const readSourceRows = () => {
       sourceRows ??= this.#readOwnSourceRows();
@@ -2287,16 +2292,15 @@ export class Formulas extends BasePlugin {
       return sourceRows;
     };
     const hasContent = (value: unknown) => value !== null && value !== undefined && value !== '';
-    const loaded = this.#loadedSheetShape;
 
     return {
       row: this.#planReloadAxis(
-        this.rowAxisSyncer!, this.hot.rowIndexMapper, rows.length, loaded?.rows ?? 0,
-        physicalRow => this.#readOwnSourceRow(physicalRow).some(hasContent),
+        this.rowAxisSyncer!, this.hot.rowIndexMapper, rows.length,
+        physicalRow => !isSheetAsLeft && this.#readOwnSourceRow(physicalRow).some(hasContent),
       ),
       column: this.#planReloadAxis(
-        this.columnAxisSyncer!, this.hot.columnIndexMapper, widestRowLength(rows), loaded?.columns ?? 0,
-        physicalColumn => readSourceRows().some(row => hasContent(row?.[physicalColumn])),
+        this.columnAxisSyncer!, this.hot.columnIndexMapper, widestRowLength(rows),
+        physicalColumn => !isSheetAsLeft && readSourceRows().some(row => hasContent(row?.[physicalColumn])),
       ),
     };
   }
@@ -2313,16 +2317,9 @@ export class Formulas extends BasePlugin {
    * move reads it. Lines the engine gained are read through the record too (`listEngineElements()` names
    * them after the recorded ones), so the grid shows them where the engine has them.
    *
-   * The axis is `resized` when the engine holds lines the grid does not (more than the grid's length and the
-   * last load read: the host added lines, and an insert in the middle cannot be told from an append without
-   * reading content), or, on an axis in physical order, when a line the engine left out holds content in the
-   * grid (the host removed lines). A blank line past the sheet (a `minSpareRows` row, an emptied last line)
-   * does not count.
-   *
    * @param {AxisSyncer} syncer The axis syncer.
    * @param {IndexMapper} indexMapper The axis' index mapper.
    * @param {number} engineLength How many lines of the axis the engine wrote out.
-   * @param {number} loadedLength How many lines of the axis the last load of the sheet read.
    * @param {Function} hasContent Tells whether the grid holds content in a line, by its physical index.
    * @returns {object}
    */
@@ -2330,19 +2327,16 @@ export class Formulas extends BasePlugin {
     syncer: AxisSyncer,
     indexMapper: IndexMapper,
     engineLength: number,
-    loadedLength: number,
     hasContent: (physicalIndex: number) => boolean,
   ): ReloadAxis {
     const order = syncer.getEngineOrder();
     const previousSequence = indexMapper.getIndexesSequence();
-    const gridLength = indexMapper.getNumberOfIndexes();
-    const grew = engineLength > Math.max(gridLength, loadedLength);
 
     if (syncer.isEngineOrderPhysical()) {
-      const lostContent = hasContentPast(engineLength, gridLength, hasContent);
-
-      return { order, elements: null, previousSequence, stale: false, resized: grew || lostContent };
+      return { order, elements: null, previousSequence, stale: false };
     }
+
+    const gridLength = indexMapper.getNumberOfIndexes();
 
     const elements = listEngineElements(order.sequence, order.fillSequence, Math.max(engineLength, gridLength));
 
@@ -2352,11 +2346,10 @@ export class Formulas extends BasePlugin {
         elements: null,
         previousSequence: [],
         stale: true,
-        resized: true,
       };
     }
 
-    return { order, elements, previousSequence, stale: false, resized: grew };
+    return { order, elements, previousSequence, stale: false };
   }
 
   /**
@@ -2806,7 +2799,7 @@ export class Formulas extends BasePlugin {
    * @returns {*} What `fn` returns.
    */
   runEngineWrite<T>(engine: object, fn: () => T): T {
-    return withPluginEngineWrite(engine, fn);
+    return withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(fn));
   }
 
   /**
@@ -2821,7 +2814,7 @@ export class Formulas extends BasePlugin {
     this.#ownWriteDepth += 1;
 
     try {
-      return withPluginEngineWrite(engine, fn);
+      return withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(fn));
     } finally {
       this.#ownWriteDepth -= 1;
     }
@@ -5687,7 +5680,9 @@ export class Formulas extends BasePlugin {
     }
 
     if (sheetId !== this.sheetId) {
-      withPluginEngineWrite(this.engine, () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId));
+      withPluginEngineWrite(this.engine, () => this.#trackOwnEngineWrite(
+        () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId),
+      ));
 
     } else if (foreignLoadCount === this.#foreignLoadCount) {
       this.#restoreReloadedCells(writtenCells);
@@ -5907,11 +5902,11 @@ export class Formulas extends BasePlugin {
     });
 
     if (restored) {
-      withPluginEngineWrite(this.engine!, () => {
+      withPluginEngineWrite(this.engine!, () => this.#trackOwnEngineWrite(() => {
         this.engine!.batch(writeAll).forEach((dependentCell: unknown) => {
           dependentCells.push(dependentCell);
         });
-      });
+      }));
     } else {
       this.#writeOwnSheet(this.engine!, writeAll);
     }

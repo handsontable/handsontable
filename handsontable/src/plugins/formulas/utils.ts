@@ -342,26 +342,3 @@ export function areSheetContentsEqual(left: unknown[][], right: unknown[][]): bo
     return row.length === other.length && row.every((value, column) => value === other[column]);
   });
 }
-
-/**
- * Tells whether a cell the engine holds and a cell of the grid's source data hold the same content: both empty
- * (`null`, `undefined` or `''`), both a formula (whatever its text, which the engine rewrites when it moves the
- * formula), or two values with the same text (the engine reads the text `7` as the number 7).
- *
- * @param {*} engineValue The engine's cell.
- * @param {*} sourceValue The source data's cell.
- * @returns {boolean}
- */
-export function isSameCellContent(engineValue: unknown, sourceValue: unknown): boolean {
-  const isEmpty = (value: unknown) => value === null || value === undefined || value === '';
-
-  if (isEmpty(engineValue) || isEmpty(sourceValue)) {
-    return isEmpty(engineValue) && isEmpty(sourceValue);
-  }
-
-  if (isFormula(engineValue) || isFormula(sourceValue)) {
-    return isFormula(engineValue) && isFormula(sourceValue);
-  }
-
-  return String(engineValue) === String(sourceValue);
-}

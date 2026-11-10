@@ -391,21 +391,18 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     });
   });
 
-  it('keeps the state of a grid with blank spare rows past the sheet, reading only those rows', () => {
+  it('keeps the state of a grid with blank spare rows past the sheet, reading no row', () => {
     buildGrid(buildEngine(), { minSpareRows: 2, columnSorting: true });
 
     expect(hot.countRows()).toBe(5);
 
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
-    // The sort wrote the engine, so the first reload after it reads the rows to tell it from a host change.
-    hot.updateSettings({});
-
     const getSourceDataAtRow = jest.spyOn(hot, 'getSourceDataAtRow');
 
     hot.updateSettings({});
 
-    // The engine leaves the two blank rows out; they hold nothing, so the host removed no record.
-    expect(getSourceDataAtRow).toHaveBeenCalledTimes(2);
+    // The engine sheet holds what the grid left in it, so no row is read.
+    expect(getSourceDataAtRow).not.toHaveBeenCalled();
     expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
     expect(hot.countRows()).toBe(5);
     expect(hot.getDataAtCol(0).slice(0, 3)).toEqual(['c', 'b', 'a']);
@@ -483,5 +480,155 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
     expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual(hidden);
     expect(isAnyCellMarked()).toBe(true);
+  });
+
+  /**
+   * Builds an engine whose `S1` sheet holds only formulas that read the `Data` sheet, so its rows differ only in
+   * their formulas.
+   *
+   * @returns {HyperFormula}
+   */
+  function buildFormulaOnlyEngine() {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    engine.addSheet('Data');
+    engine.setSheetContent(engine.getSheetId('Data'), [['x'], ['y'], ['z']]);
+    engine.addSheet('S1');
+    engine.setSheetContent(engine.getSheetId('S1'), [['=Data!A1'], ['=Data!A2'], ['=Data!A3']]);
+
+    return engine;
+  }
+
+  describe.each([
+    ['moves a row', (engine, sheet) => engine.moveRows(sheet, 0, 1, 3)],
+    ['removes a row and inserts another', (engine, sheet) => {
+      engine.removeRows(sheet, [0, 1]);
+      engine.addRows(sheet, [2, 1]);
+      engine.setCellContents({ sheet, row: 2, col: 0 }, [['=Data!A1']]);
+    }],
+  ])('a host that %s of a sheet whose rows differ only in formulas', (_, change) => {
+    it.each([
+      ['without a move', {}],
+      ['with a manualRowMove', { manualRowMove: [2, 0, 1] }],
+    ])('drops the cell meta and the hidden row, %s', (__, settings) => {
+      const engine = buildFormulaOnlyEngine();
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        hiddenRows: true,
+        licenseKey: LICENSE_KEY,
+        ...settings,
+      });
+
+      const target = hot.toVisualRow(0);
+
+      hot.setCellMeta(target, 0, 'className', 'marked');
+      hot.getPlugin('hiddenRows').hideRow(target);
+
+      change(engine, engine.getSheetId('S1'));
+      hot.updateSettings({});
+
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+      expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+      expect(isAnyCellMarked()).toBe(false);
+    });
+  });
+
+  it('leaves the grid and the engine agreeing when the host writes a cell a waiting change wrote early', async() => {
+    const engine = buildEngine();
+    const sheet = engine.getSheetId('S1');
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      // The default `allowInvalid: true`: the change is written into the engine at once.
+      cells: (row, col) => (col === 1 ? {
+        validator(value, callback) {
+          held.push({ value, callback });
+        },
+      } : {}),
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.setDataAtCell(0, 1, 50);
+    await flush();
+    engine.setCellContents({ sheet, row: 0, col: 1 }, [[99]]);
+    hot.updateSettings({});
+    await answerAll(true);
+
+    expect(readEngineThroughGrid()).toEqual(hot.getData());
+    expect(hot.getDataAtCell(0, 1)).toBe(99);
+  });
+
+  it('takes a host swap of rows that differ only by a number against the same text as a change', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    engine.addSheet('S1');
+    engine.setSheetContent(engine.getSheetId('S1'), [['a', 7], ['a', '7']]);
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.setCellMeta(0, 0, 'className', 'marked');
+    engine.moveRows(engine.getSheetId('S1'), 0, 1, 2);
+    hot.updateSettings({});
+
+    expect(isAnyCellMarked()).toBe(false);
+  });
+
+  it('reloads a moved and sorted grid with cross-row formulas in place on a re-render', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    engine.addSheet('S1');
+    engine.setSheetContent(engine.getSheetId('S1'), [
+      ['b', 2, '=B2*10'], ['a', 1, '=B3*10'], ['d', 4, '=B4*10'], ['c', 3, '=B1*10'],
+    ]);
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      manualRowMove: [3, 1, 0, 2],
+      columnSorting: true,
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.getPlugin('manualRowMove').dragRows([3], 0);
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    hot.setCellMeta(0, 0, 'className', 'marked');
+
+    const loadData = jest.spyOn(hot, 'loadData');
+    const before = hot.getData();
+
+    for (let update = 0; update < 3; update += 1) {
+      hot.updateSettings({});
+
+      expect(hot.getData()).toEqual(before);
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+    }
+
+    expect(loadData).not.toHaveBeenCalled();
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+    expect(isAnyCellMarked()).toBe(true);
+  });
+
+  it('takes a host change made before the grid\'s own edit as a change, though the edit read the sheet after it', () => {
+    const engine = buildEngine();
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      hiddenRows: true,
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.setCellMeta(0, 0, 'className', 'marked');
+    hot.getPlugin('hiddenRows').hideRow(0);
+    engine.moveRows(engine.getSheetId('S1'), 0, 1, 3);
+    // The grid's own write after the host's: the snapshot it leaves must not take the host's move in.
+    hot.setDataAtCell(2, 0, 'q');
+    hot.updateSettings({});
+
+    expect(readEngineThroughGrid()).toEqual(hot.getData());
+    expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+    expect(isAnyCellMarked()).toBe(false);
   });
 });
