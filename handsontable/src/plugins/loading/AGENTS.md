@@ -18,7 +18,7 @@ Loading needs Dialog running, so it **requires** it through core's registry (`co
 is truthy or a plugin requires it, so `getSettings().dialog` stays what the user wrote. **Never write the
 `dialog` setting instead**: the old `getSettings().dialog = true` landed on the table meta and shadowed every
 later `updateSettings({ dialog: false })`. Cases pinned by `__tests__/dialogRequirement.unit.js` and
-`../sheetsBar/__tests__/loadingDialogRequirement.unit.js`. Three non-obvious rules:
+`../sheetsBar/__tests__/loadingDialogRequirement.unit.js`. Four non-obvious rules:
 
 - **The settings pass order does the work.** Loading (350) runs before Dialog (360), so Loading's release on
   `{ loading: false }` is visible to Dialog's branch 1 in the same pass. Outside a pass (a direct
