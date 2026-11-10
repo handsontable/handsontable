@@ -690,4 +690,58 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     expect(loadData).not.toHaveBeenCalled();
     expect(isAnyCellMarked()).toBe(true);
   });
+
+  it.each([
+    ['without a move', {}],
+    ['with a manualRowMove', { manualRowMove: [0, 2, 1] }],
+  ])('takes a host move of rows that only recalculate from the grid\'s own edit as a change, %s', (_, settings) => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    engine.addSheet('S1');
+    engine.setSheetContent(engine.getSheetId('S1'), [[10], ['=$A$1*2', '=$A$1+2'], ['=$A$1*3', '=$A$1+3']]);
+
+    hot = new Handsontable(container, {
+      formulas: { engine, sheetName: 'S1' },
+      licenseKey: LICENSE_KEY,
+      ...settings,
+    });
+
+    const target = hot.toVisualRow(1);
+
+    hot.setCellMeta(target, 0, 'className', 'marked');
+    engine.moveRows(engine.getSheetId('S1'), 1, 1, 3);
+    // The edit recalculates every formula the host moved: the refresh after it must not take the moved formula
+    // text in.
+    hot.setDataAtCell(hot.toVisualRow(0), 0, 20);
+    hot.updateSettings({});
+
+    expect(readEngineThroughGrid()).toEqual(hot.getData());
+    expect(isAnyCellMarked()).toBe(false);
+  });
+
+  it.each([
+    ['inserts a row', () => hot.alter('insert_row_above', 1)],
+    ['removes a row', () => hot.alter('remove_row', 1)],
+    ['inserts a column', () => hot.alter('insert_col_start', 1)],
+    ['removes a column', () => hot.alter('remove_col', 1)],
+  ])('reads no sheet when the grid %s, and reloads in place again after the next load', (_, alter) => {
+    const engine = buildEngine();
+
+    buildGrid(engine);
+
+    const getSheetSerialized = jest.spyOn(engine, 'getSheetSerialized');
+
+    alter();
+
+    expect(getSheetSerialized).not.toHaveBeenCalled();
+
+    hot.updateSettings({});
+
+    const loadData = jest.spyOn(hot, 'loadData');
+
+    hot.updateSettings({});
+
+    expect(loadData).not.toHaveBeenCalled();
+    expect(readEngineThroughGrid()).toEqual(hot.getData());
+  });
 });

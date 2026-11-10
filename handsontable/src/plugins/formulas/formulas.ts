@@ -429,6 +429,13 @@ const isRestoreSource = (source: unknown) => source === 'UndoRedo.undo' || sourc
  * the text written in the physical one.
  */
 /**
+ * How a write of this grid to the engine keeps the snapshot of the bound sheet in step (see
+ * `Formulas#trackOwnEngineWrite()`): `'cells'` refreshes the cells it changed, `'structural'` reads the sheet again,
+ * `'resets'` drops the snapshot, so the next reload loads the sheet and takes a new one.
+ */
+type OwnEngineWriteKind = 'cells' | 'structural' | 'resets';
+
+/**
  * How a reload that keeps the grid's order reads one axis of the sheet back (see `Formulas#planReloadAxis()`).
  */
 interface ReloadAxis {
@@ -930,6 +937,17 @@ export class Formulas extends BasePlugin {
    * cell write on the stack, refreshed in the snapshot one by one when it ends.
    */
   #trackedChangedCells: Array<{ row: number; col: number }> = [];
+
+  /**
+   * The engine addresses on the bound sheet the tracked cell write on the stack set itself (`row,col`), as against
+   * the ones the engine only recalculated (`#refreshTrackedCells()`).
+   */
+  #trackedSetCells = new Set<string>();
+
+  /**
+   * Whether a write in the tracked write on the stack drops the snapshot when it ends (`'resets'`).
+   */
+  #trackedWriteResets = false;
 
   /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
@@ -1838,6 +1856,7 @@ export class Formulas extends BasePlugin {
 
     this.engine = null;
     this.#ownSheetExists = null;
+    this.#loadedSheetContent = null;
 
     super.destroy();
   }
@@ -1849,6 +1868,11 @@ export class Formulas extends BasePlugin {
    */
   #updateSheetNameAndSheetId(sheetName: string) {
     const sheetId = this.engine?.getSheetId(sheetName) ?? null;
+
+    // The snapshot describes the sheet bound until now; the next load of the new one takes its own.
+    if (sheetId !== this.sheetId) {
+      this.#loadedSheetContent = null;
+    }
 
     // Store the name the engine itself reports. The engine matches names without regard to case
     // but keeps the casing it was given, so the name passed here may differ from the engine's own.
@@ -2046,9 +2070,8 @@ export class Formulas extends BasePlugin {
     // physical order.
     // An engine sheet that still holds what this grid left in it cannot have lost a line the grid holds content in,
     // so the plan reads no source row then.
-    const reload = keepsOrder
-      ? this.#planReload(unescaped, this.#isSheetAsLeft(sheetContent, previousContent))
-      : null;
+    const isSheetAsLeft = keepsOrder && this.#isSheetAsLeft(sheetContent, previousContent);
+    const reload = keepsOrder ? this.#planReload(unescaped, isSheetAsLeft) : null;
     const physical = reload === null ? unescaped : this.#toPhysicalOrder(unescaped, reload);
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
@@ -2064,7 +2087,7 @@ export class Formulas extends BasePlugin {
       // Only a sheet nothing but this grid changed since the grid loaded it is reloaded in place. Any other change
       // can have moved or replaced the records under the grid's physical indexes, so it takes `loadData()`, which
       // drops the state keyed by them.
-      const inPlace = this.#canReloadInPlace(reload, sheetContent, previousContent);
+      const inPlace = this.#canReloadInPlace(reload, isSheetAsLeft);
 
       this.#recordLoadedSheet(sheetContent);
 
@@ -2129,49 +2152,42 @@ export class Formulas extends BasePlugin {
    * another grid on the sheet. An axis whose record no longer describes the sheet (`stale`) never reloads in place.
    *
    * @param {object} reload The plan of both axes (`#planReload()`).
-   * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returns it now.
-   * @param {Array<Array<*>>|null} previousContent The snapshot, or `null` before a load.
+   * @param {boolean} isSheetAsLeft What `#isSheetAsLeft()` answered for the sheet the reload read.
    * @returns {boolean}
    */
-  #canReloadInPlace(
-    reload: { row: ReloadAxis; column: ReloadAxis },
-    sheetContent: unknown[][],
-    previousContent: unknown[][] | null,
-  ): boolean {
-    return !reload.row.stale && !reload.column.stale && this.#isSheetAsLeft(sheetContent, previousContent);
+  #canReloadInPlace(reload: { row: ReloadAxis; column: ReloadAxis }, isSheetAsLeft: boolean): boolean {
+    return !reload.row.stale && !reload.column.stale && isSheetAsLeft;
   }
 
   /**
    * Runs a write of this grid to the engine and keeps the snapshot of the bound sheet (`#loadedSheetContent`) in
-   * step with it, for a grid built from the sheet. Two kinds, so a cell edit costs what it writes, not the sheet:
+   * step with it, for a grid built from the sheet. Three kinds, so a write costs no more than it did before the
+   * snapshot existed, except an order or a move:
    *
-   * - **A cell write** (`writesCellsOnly`: an edit, a paste, a validator's correction, the early write, the write on
-   *   apply, a restore of written cells): each cell of the bound sheet the engine reports changed while it runs
-   *   (`valuesUpdated`, which names every cell whose content is set and every value it recalculated, spilled values
-   *   included) is read again (`getCellSerialized()`) into the snapshot when it ends. A host change made before it
-   *   stays visible: the cells it touched are not read again, unless this write changed them too, and then the
-   *   snapshot holds what the engine and the grid both hold. A host's structural change shifted lines this write
-   *   does not refresh, so it stays visible as well.
-   * - **A structural write** (the default: an order, a move, an insert, a removal, a restore of the whole sheet, a
-   *   load): the snapshot is read again in full when it ends. Read in full, it would take in a host change made
-   *   before the write, so the write first compares the sheet with the snapshot, and a difference sets
-   *   `#foreignSheetChange` until the next load. A structural write nested in a cell write turns the whole write
-   *   structural: the cells collected so far are refreshed first, then the check runs.
+   * - **`'cells'`** (an edit, a paste, a validator's correction, the early write, the write on apply, a restore of
+   *   written cells): each cell of the bound sheet the engine reports changed while it runs (`valuesUpdated`) is
+   *   read again into the snapshot when it ends (`#refreshTrackedCells()`): a cell it set itself as the engine
+   *   holds it, a recalculated one only while neither side is a formula (spilled values). A host change made before
+   *   it stays visible: the cells it touched are not read again, unless this write set them too, and then the
+   *   snapshot holds what the engine and the grid both hold.
+   * - **`'structural'`** (the default: an order or a move from the axis syncer, MoveCells, an undo or redo restore
+   *   of the sheet, a NestedRows detach, the sheets bar's writes): the snapshot is read again in full when it ends.
+   *   Read in full, it would take in a host change made before the write, so the write first compares the sheet
+   *   with the snapshot, and a difference sets `#foreignSheetChange` until the next load.
+   * - **`'resets'`** (an insert or a removal of rows or columns): the snapshot is dropped, so the next reload loads
+   *   the sheet with `loadData()`, as every reload did before this path existed, and takes a new one. Nothing is
+   *   read, so the insert or removal costs what it did.
    *
-   * A write that throws counts as a foreign change. A validation probe takes its own write back before it ends,
-   * so it is not tracked.
+   * Nested writes join the outermost one (`#joinTrackedWrite()`). A write that throws counts as a foreign change. A
+   * validation probe takes its own write back before it ends, so it is not tracked.
    *
    * @param {Function} fn The write.
-   * @param {boolean} [writesCellsOnly] Whether `fn` only sets cell contents.
+   * @param {string} [kind] How the write keeps the snapshot in step.
    * @returns {*} What `fn` returns.
    */
-  #trackOwnEngineWrite<T>(fn: () => T, writesCellsOnly = false): T {
+  #trackOwnEngineWrite<T>(fn: () => T, kind: OwnEngineWriteKind = 'structural'): T {
     if (this.#trackedOwnWriteDepth > 0) {
-      if (!writesCellsOnly && !this.#trackedWriteIsStructural) {
-        this.#refreshTrackedCells();
-        this.#checkSheetAsLeft();
-        this.#trackedWriteIsStructural = true;
-      }
+      this.#joinTrackedWrite(kind);
 
       return fn();
     }
@@ -2185,8 +2201,10 @@ export class Formulas extends BasePlugin {
 
     const engine = this.engine;
 
-    this.#trackedWriteIsStructural = !writesCellsOnly;
+    this.#trackedWriteIsStructural = kind === 'structural';
+    this.#trackedWriteResets = kind === 'resets';
     this.#trackedChangedCells = [];
+    this.#trackedSetCells.clear();
 
     if (this.#trackedWriteIsStructural) {
       this.#checkSheetAsLeft();
@@ -2206,7 +2224,7 @@ export class Formulas extends BasePlugin {
       this.#trackedOwnWriteDepth -= 1;
     }
 
-    if (this.engine !== engine || this.sheetId !== sheetId || !this.#hasOwnSheet()) {
+    if (this.#trackedWriteResets || this.engine !== engine || this.sheetId !== sheetId || !this.#hasOwnSheet()) {
       this.#loadedSheetContent = null;
     } else if (this.#trackedWriteIsStructural) {
       this.#loadedSheetContent = engine.getSheetSerialized(sheetId);
@@ -2215,8 +2233,37 @@ export class Formulas extends BasePlugin {
     }
 
     this.#trackedChangedCells = [];
+    this.#trackedSetCells.clear();
 
     return result;
+  }
+
+  /**
+   * Joins a write nested in the tracked write on the stack. A write that drops the snapshot makes the whole write
+   * drop it. A structural write nested in a cell write turns the whole write structural: the cells collected so far
+   * are refreshed first, then the sheet is checked (`#checkSheetAsLeft()`), as the outermost write would have.
+   *
+   * @param {string} kind The nested write's kind.
+   */
+  #joinTrackedWrite(kind: OwnEngineWriteKind): void {
+    if (kind === 'resets') {
+      this.#trackedWriteResets = true;
+    } else if (kind === 'structural' && !this.#trackedWriteIsStructural && !this.#trackedWriteResets) {
+      this.#refreshTrackedCells();
+      this.#checkSheetAsLeft();
+      this.#trackedWriteIsStructural = true;
+    }
+  }
+
+  /**
+   * Notes an engine cell of the bound sheet a tracked cell write sets itself (`#refreshTrackedCells()`).
+   *
+   * @param {object} address The engine address.
+   */
+  #noteOwnCellWrite(address: { sheet: number | null; row: number; col: number }): void {
+    if (this.#trackedOwnWriteDepth > 0 && address.sheet === this.sheetId) {
+      this.#trackedSetCells.add(`${address.row},${address.col}`);
+    }
   }
 
   /**
@@ -2246,7 +2293,12 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Reads the cells the tracked write changed into the snapshot (`setSheetSnapshotCell()`).
+   * Reads the cells the tracked write changed into the snapshot (`setSheetSnapshotCell()`). A cell the write set
+   * itself takes whatever the engine holds. A cell the engine only recalculated changes its value, never its
+   * content, except a spilled value, which the engine serializes as plain data: so a recalculated cell takes the
+   * engine's content only when neither side is a formula. A formula there that differs from the snapshot, or a
+   * formula where the snapshot holds none, is a change of someone else's (a host's row move of formulas that read
+   * the edited cell), and `#foreignSheetChange` is set instead of taking it in.
    */
   #refreshTrackedCells(): void {
     const snapshot = this.#loadedSheetContent;
@@ -2256,7 +2308,19 @@ export class Formulas extends BasePlugin {
     }
 
     this.#trackedChangedCells.forEach(({ row, col }) => {
-      setSheetSnapshotCell(snapshot, row, col, this.engine!.getCellSerialized({ sheet: this.sheetId!, row, col }));
+      const content: unknown = this.engine!.getCellSerialized({ sheet: this.sheetId!, row, col });
+
+      if (!this.#trackedSetCells.has(`${row},${col}`)) {
+        const previous = snapshot[row]?.[col];
+
+        if ((isFormula(previous) || isFormula(content)) && previous !== content) {
+          this.#foreignSheetChange = true;
+
+          return;
+        }
+      }
+
+      setSheetSnapshotCell(snapshot, row, col, content);
     });
     this.#trackedChangedCells = [];
   }
@@ -2896,14 +2960,14 @@ export class Formulas extends BasePlugin {
    *
    * @param {object|null|undefined} engine The engine `fn` writes.
    * @param {Function} fn The mutation.
-   * @param {boolean} [writesCellsOnly] Whether `fn` only sets cell contents (`#trackOwnEngineWrite()`).
+   * @param {string} [kind] How the write keeps the sheet snapshot in step (`#trackOwnEngineWrite()`).
    * @returns {*} What `fn` returns.
    */
-  #writeOwnSheet<T>(engine: object | null | undefined, fn: () => T, writesCellsOnly = false): T {
+  #writeOwnSheet<T>(engine: object | null | undefined, fn: () => T, kind: OwnEngineWriteKind = 'structural'): T {
     this.#ownWriteDepth += 1;
 
     try {
-      return withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(fn, writesCellsOnly));
+      return withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(fn, kind));
     } finally {
       this.#ownWriteDepth -= 1;
     }
@@ -3611,6 +3675,8 @@ export class Formulas extends BasePlugin {
     if (typeof newValue === 'string') {
       newValue = this.#escapeEngineBoundValue(newValue, this.hot.getCellMetaTransient(row, column));
     }
+
+    this.#noteOwnCellWrite(address);
 
     return this.engine?.setCellContents(address, newValue);
   }
@@ -5643,7 +5709,7 @@ export class Formulas extends BasePlugin {
         });
         changedCells.push({ address });
       });
-    }), true);
+    }), 'cells');
 
     writtenCells.forEach((cell) => {
       cell.writtenContent = this.#readEngineContent(cell.address);
@@ -5705,7 +5771,7 @@ export class Formulas extends BasePlugin {
         }
 
         return this.#writeChangesToEngine(changesToWrite);
-      }, true);
+      }, 'cells');
     // The dependents the early write left to the apply (see `#splitDependentsOfDeferred()`), also when every
     // deferred change was rejected and nothing is written here.
     const dependentsToValidate = uniqueCellChanges([...dependentCells, ...awaitingApply.heldDependents]);
@@ -5770,7 +5836,7 @@ export class Formulas extends BasePlugin {
 
     if (sheetId !== this.sheetId) {
       withPluginEngineWrite(this.engine, () => this.#trackOwnEngineWrite(
-        () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId), true,
+        () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId), 'cells',
       ));
 
     } else if (foreignLoadCount === this.#foreignLoadCount) {
@@ -5985,6 +6051,7 @@ export class Formulas extends BasePlugin {
       }
 
       changedCells.push({ address });
+      this.#noteOwnCellWrite(address);
       this.engine!.setCellContents(address, newValue).forEach((dependentCell: unknown) => {
         dependentCells.push(dependentCell);
       });
@@ -5995,9 +6062,9 @@ export class Formulas extends BasePlugin {
         this.engine!.batch(writeAll).forEach((dependentCell: unknown) => {
           dependentCells.push(dependentCell);
         });
-      }, true));
+      }, 'cells'));
     } else {
-      this.#writeOwnSheet(this.engine!, writeAll, true);
+      this.#writeOwnSheet(this.engine!, writeAll, 'cells');
     }
 
     this.validateDependentCells(dependentCells, changedCells);
@@ -6413,7 +6480,7 @@ export class Formulas extends BasePlugin {
       this.engine!.addRows(this.sheetId, [
         this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount,
       ])
-    )));
+    ), 'resets'));
 
     this.#syncFormulasToSourceData();
   };
@@ -6439,7 +6506,7 @@ export class Formulas extends BasePlugin {
     const changes = this.#trackPeerRewrites(() => this.#writeOwnSheet(this.engine!, () => this.engine!.addColumns(
       this.sheetId,
       [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]
-    )));
+    ), 'resets'));
 
     this.#syncFormulasToSourceData();
   };
@@ -6467,7 +6534,7 @@ export class Formulas extends BasePlugin {
 
     const changes = this.#trackPeerRewrites(() => this.#writeOwnSheet(this.engine!, () => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
-    })));
+    }), 'resets'));
 
     this.#syncFormulasToSourceData(true);
   };
@@ -6495,7 +6562,7 @@ export class Formulas extends BasePlugin {
 
     const changes = this.#trackPeerRewrites(() => this.#writeOwnSheet(this.engine!, () => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
-    })));
+    }), 'resets'));
 
     this.#syncFormulasToSourceData(true);
   };
