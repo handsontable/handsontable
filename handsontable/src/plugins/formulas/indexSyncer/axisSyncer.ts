@@ -1038,8 +1038,9 @@ class AxisSyncer {
    *
    * - **Array formulas.** A move throws `SourceLocationHasArrayError` for any line it displaces that an array
    *   spans, not only for the lines the order moves (`#isOrderAllowed()` asks about those). Every move of the
-   *   plan displaces lines between its `target` and its block's end only, and the targets grow, so the lines
-   *   ever displaced are among the lines from the first target to the last block end, read before the moves.
+   *   plan displaces only the lines between its block and its target, and each one starts at or after the
+   *   place the one before settled, so the lines ever displaced are among the lines from the lowest start or
+   *   target to the highest block end or target, read before the moves.
    * - **Size limits.** A move adds `count` lines before it moves them, so it throws
    *   `SheetSizeLimitExceededError` when the sheet plus the block would pass the engine's `maxRows` or
    *   `maxColumns`.
@@ -1079,8 +1080,10 @@ class AxisSyncer {
 
     moves.forEach(({ start, count, target }) => {
       largestBlock = Math.max(largestBlock, count);
-      firstLine = Math.min(firstLine, target);
-      lastLine = Math.max(lastLine, start + count - 1);
+      // A move up displaces the lines from its target to its block's end, a move down those from its block's
+      // start to its target.
+      firstLine = Math.min(firstLine, start, target);
+      lastLine = Math.max(lastLine, start + count - 1, target - 1);
     });
 
     if (typeof limit === 'number' && engineOrder.length + largestBlock > limit) {

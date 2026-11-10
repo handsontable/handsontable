@@ -438,6 +438,19 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       expect(hot.getDataAtCol(0)[2]).toBe('x');
     });
 
+    it('falls back to one order when a line moved down would pass an array formula at init', () => {
+      let hot;
+
+      expect(() => {
+        hot = createGrid({
+          data: [['x', 1, 2], ['=ARRAYFORMULA(B1:C1*10)', null, null], ['z', 3, 4], ['w', 5, 6]],
+          manualRowMove: [1, 2, 3, 0],
+        });
+      }).not.toThrow();
+
+      expect(hot.getDataAtCol(0)[3]).toBe('x');
+    });
+
     it('does not throw on a re-render after drags around an array formula', () => {
       const hot = createGrid({
         data: [['x', 1, 2], ['=ARRAYFORMULA(B1:C1*10)', null, null], ['z', 3, 4]],

@@ -311,142 +311,164 @@ the call stack.
 
 **A reload that changes no data writes nothing (DEV-3972).** A grid built with `data` resyncs its sheet from the
 source data on every `updateSettings()` (`#resyncSheet()`, every React or Vue re-render). Writing it feeds the
-content in physical order and then replays the grid's order, and no replay ends where the user's own moves left
-the engine: the references other sheets and named expressions hold into the sheet already followed each drag
-and a replay moves them again on every re-render; a range on the sheet ends on other cells when the replay
-takes another path than the drags (`=SUM(A1:A3)` became `=SUM(A5:A5)`). So `#writeSheet(array, true)`, the resync's write, skips the write and the replay when the escaped
-array reads the same as `#syncedContent`:
-
-- **`#syncedContent`** is the escaped array the last full write fed the engine, in physical row order, kept in
-  step with the grid's own writes: a cell write (`syncChangeWithEngine()`, `#writeSourceChangesToEngine()`, the
+content in physical order and then replays the grid's order, and no replay ends where the user's own moves left the
+engine: the references other sheets and named expressions hold into the sheet already followed each drag and a
+replay moves them again on every re-render; a range on the sheet ends on other cells when the replay takes another
+path than the drags (`=SUM(A1:A3)` became `=SUM(A5:A5)`). So `#writeSheet(array, true)`, the resync's write, skips
+the write and the replay when the escaped array reads the same as `#syncedContent`:
+- **`#syncedContent`** is the escaped array the last full write fed the engine, in physical row order, kept in step
+  with the grid's own writes: a cell write (`syncChangeWithEngine()`, `#writeSourceChangesToEngine()`, the
   write-back of rewritten formulas) records the value the ENGINE got at the cell's place in the array
   (`#recordSyncedCell()`), so a value a validator later rejects reads as a change and is written; a row insert or
-  removal splices it by physical index (an empty row reads as `null`s, so a `minSpareRows` row matches); a column
-  insert or removal, a `moveCells` move, a NestedRows detach (and any row change while NestedRows is on), an undo
-  or redo restore, an adopted or loaded engine sheet, a rejected sheet, a sheet built from the engine, and a
+  removal splices it by physical index (an empty row reads as `null`s, so a `minSpareRows` row matches; the rows go
+  in with a loop, `insertEmptyRows()`, because a spread into `splice()` overflows the stack on a large insert); a
+  column insert or removal, a `moveCells` move, a NestedRows detach (and any row change while NestedRows is on), an
+  undo or redo restore, an adopted or loaded engine sheet, a rejected sheet, a sheet built from the engine, and a
   column move on object rows or a projected `columns` list (read in visual order) drop it, and the next resync
-  writes in full. The array's column space is read when it is written (`#readSyncedColumnSpace()`), because a
-  write can run inside an engine batch, where a read through the data hooks throws.
+  writes in full. The array's column space, and for a projected `columns` list the place of each visual column, is
+  read once when it is written (`#readSyncedColumnSpace()`), because a write can run inside an engine batch, where
+  a read through the data hooks throws, and so a recorded cell is a lookup.
 - **Equal is not enough**: the engine and the sheet id must be the recorded ones, and both axis syncers must hold
   the grid's order (`AxisSyncer#holdsGridOrder()`: not held, and the engine's order as the syncer knows it is the
   grid's sequence), so a load that reset the grid's order still writes.
 - **An order sent as one order drops the record** (`IndexSyncer#onOrderSent()`, called by the axis syncer after
   every `setRowOrder()`/`setColumnOrder()`: a sort, a cleared sort, `setIndexesSequence()`, an order the move
-  guards or the cost choice sent as one, a hold's release). Such an order keeps each moved formula's relative offsets
-  (DEV-917), so the engine's text stops following the data, and only a write of the data repairs it once the
-  order is gone. Skipping it made the damage permanent: sort, re-render, `clearSort()`, re-render showed `#REF!`
-  where develop showed the value, and `getSourceData()` returned the engine's `=#REF!+A4`. The next resync
-  therefore writes in full and replays the order as develop does; a write inside it that sends an order (a
-  sorted grid's replay) records the content after it, because a second write of the same data and order would
-  reproduce the same engine. So a sorted grid pays one full write per sort change and skips after that, and a
-  cleared sort is repaired on the next re-render. Pinned by the `a re-render after a sort is cleared` cases
-  (ColumnSorting, MultiColumnSorting, an edit between) in `__tests__/loadOrderAsMoves.unit.js`.
+  guards or the cost choice sent as one, a hold's release). Such an order keeps each moved formula's relative
+  offsets (DEV-917), so the engine's text stops following the data, and only a write of the data repairs it once
+  the order is gone. Skipping it made the damage permanent: sort, re-render, `clearSort()`, re-render showed
+  `#REF!` where develop showed the value, and `getSourceData()` returned the engine's `=#REF!+A4`. The next resync
+  therefore writes in full and replays the order as develop does; a write inside it that sends an order (a sorted
+  grid's replay) records the content after it, because a second write of the same data and order would reproduce
+  the same engine. So a sorted grid pays one full write per sort change and skips after that, and a cleared sort is
+  repaired on the next re-render. Pinned by the `a re-render after a sort is cleared` cases (ColumnSorting,
+  MultiColumnSorting, an edit between) in `__tests__/loadOrderAsMoves.unit.js`.
 - **What still writes:** a value the host changed in place (`data[0][0] = 50; updateSettings({})`), a row count or
-  layout change (DEV-2978, NestedRows toggled), a meta change that changes what the engine reads (a cell type,
-  a `valueGetter`, the date and preserved-text escaping, since the comparison runs on the escaped array). A
-  skipped resync still records the layout (`#recordSyncedLayout()`), bumps no `#sheetWriteCount` (the engine
-  still holds every in-flight change) and leaves `#sourceHasStaleFormulas` as it was (the engine still holds the
-  rewritten text). The scan itself stays: a resync reads and escapes the source as before, and only the
-  `setSheetContent()` and the order replay are saved (measured below).
+  layout change (DEV-2978, NestedRows toggled), a meta change that changes what the engine reads (a cell type, a
+  `valueGetter`, the date and preserved-text escaping, since the comparison runs on the escaped array). A skipped
+  resync still records the layout (`#recordSyncedLayout()`), bumps no `#sheetWriteCount` (the engine still holds
+  every in-flight change) and leaves `#sourceHasStaleFormulas` as it was (the engine still holds the rewritten
+  text). The scan itself stays: a resync reads and escapes the source as before, and only the `setSheetContent()`
+  and the order replay are saved.
 - **Cost:** a second array of the grid's size is kept, and every resync compares it cell by cell.
 - **Known limits:** a host that writes into the grid's engine sheet directly (`engine.setCellContents()`) is not
   overwritten by a re-render that leaves the data unchanged: develop's resync replaced it with the source data on
   the wrapper path (vanilla JavaScript kept it until some rewrite there too). A host that mutates in place a cell
-  of a row the grid then writes is still seen (cell-precise records). An object-rows grid whose columns were
-  moved, and a grid after an undo, write in full on the next re-render. For array rows a `columns` list projects,
-  the place of each visual column is computed once per write (`#readSyncedColumnSpace()`), so a recorded cell is
-  a lookup.
+  of a row the grid then writes is still seen (cell-precise records). An object-rows grid whose columns were moved,
+  and a grid after an undo, write in full on the next re-render.
 
-**A reload that does write takes an order reached by moves as moves.** Every full write (init, a resync whose
-data changed, a sheet switch) feeds the engine its content in physical order and then runs `setupSyncEndpoint()`,
-which sends the grid's current order (`#syncInitialOrder()`). The engine call decides what the formulas read
-afterwards: `moveRows`/`moveColumns` keep every reference on its cell, while `setRowOrder`/`setColumnOrder` keep
-each moved formula's relative offsets, so a reference across the moved lines becomes `#REF!` or reads a line
-past the data. Sent as one order, a `manualRowMove: [2, 3, 4, 0, 1]` array showed `#REF!` at init, and
-`manualColumnMove: [0, 2, 1, 3]` turned `=A1+10` into `=B1+10` at init while a `loadData()` with the same array
-kept it (the move path). The rules:
-
-- **The kind of order follows how the grid reached it.** `#orderShifts` records what the engine took as an order
-  (a sort, `setIndexesSequence()`); a move, an insert and a removal leave nothing there. So a reload reproduces
-  what the grid showed only for an order reached by drags alone, or by drags and then orders: an insert or a
-  removal after a drag leaves no shifts either, and the planned moves then take another path than the drags
-  (`moveRow(4, 0)`, `alter('insert_row_above', 2, 1)`, a data-changing reload turned column B from
-  `[30, 20, -, 40, 10, 50]` into `[20, 0, -, 30, 10, 40]`; develop's one order is wrong there too). `#applyInitialOrder()`
-  reads `#orderShifts.size === 0` BEFORE it resets the stored order. A syncer built after a sort has no shifts, so
-  the grid answers too: `IndexSyncer#isOrderSorted()` asks ColumnSorting and MultiColumnSorting (through
+**A reload that does write takes an order reached by moves as moves.** Every full write (init, a resync whose data
+changed, a sheet switch) feeds the engine its content in physical order and then runs `setupSyncEndpoint()`, which
+sends the grid's current order (`#syncInitialOrder()`). The engine call decides what the formulas read afterwards:
+`moveRows`/`moveColumns` keep every reference on its cell, while `setRowOrder`/`setColumnOrder` keep each moved
+formula's relative offsets, so a reference across the moved lines becomes `#REF!` or reads a line past the data.
+Sent as one order, a `manualRowMove: [2, 3, 4, 0, 1]` array showed `#REF!` at init, and `manualColumnMove: [0, 2,
+1, 3]` turned `=A1+10` into `=B1+10` at init while a `loadData()` with the same array kept it (the move path). The
+rules:
+- **The kind of order follows how the grid reached it.** `#orderShifts` records what the engine took as an order (a
+  sort, `setIndexesSequence()`); a move, an insert and a removal leave nothing there. `#applyInitialOrder()` reads
+  `#orderShifts.size === 0` BEFORE it resets the stored order. A syncer built after a sort has no shifts, so the
+  grid answers too: `IndexSyncer#isOrderSorted()` asks ColumnSorting and MultiColumnSorting (through
   `hot.getPlugin()`, `#isRowOrderSorted()` in the plugin), and a sorted row order goes as one order. A postponed
-  `#applyInitialOrder()` carries the kind read when it was postponed, because by then the shifts are reset.
-  **An order sent on top of moves is replayed the way the grid reached it** (`#orderBase`): when the first
-  order since the engine's order was last physical is sent, the axis syncer records the order the moves had
-  reached, and a reload sends the moves to it as moves (when they can go as moves) and only the rest as one
-  order. A `manualRowMove` array with a `columnSorting.initialConfig` showed one set of values at init and
-  another after the first `updateSettings({})`; it now shows the init values on every re-render. The record is
-  dropped with the shifts, by an adopted engine order, and by an insert or a removal, whose renumbering the
-  recorded moves no longer describe: the reload then sends one order, as develop does. A drag after the sort is
-  folded into that one order too. **A sort keeps the documented sort limitation on a reload that writes**, and a sort always makes the next resync write
-  (an order sent drops the record, above), so a re-render of a sorted grid replays the sort as one order exactly as
-  develop does, and a re-render after the sort is cleared repairs what the sort rewrote. An initial
-  `columnSorting.initialConfig` sorts after the engine is set up, so it reaches the engine as an order. A sort
-  followed by a drag still replays as one order.
-- **Moves are planned as blocks** (`planOrderMoves()` in `indexSyncer/orderMoves.ts`), and sent through
-  `#runBatched()`, the one place that keeps a nested `engine.batch()` out of a host's open batch (the pad
+  `#applyInitialOrder()` carries the kind read when it was postponed, because by then the shifts are reset. So a
+  reload reproduces what the grid showed only for an order reached by drags alone, or by drags and then orders: an
+  insert or a removal after a drag leaves no shifts either, and the planned moves then take another path than the
+  drags (`moveRow(4, 0)`, `alter('insert_row_above', 2, 1)`, a data-changing reload turned column B from `[30, 20,
+  -, 40, 10, 50]` into `[20, 0, -, 30, 10, 40]`; develop's one order is wrong there too).
+- **An order sent on top of moves is replayed the way the grid reached it** (`#orderBase`). When the first order
+  since the engine's order was last physical is sent, the axis syncer records the order the moves had reached, and
+  a reload sends the moves to it as moves (when they can go as moves) and only the rest as one order. A
+  `manualRowMove` array with a `columnSorting.initialConfig` showed one set of values at init and another after the
+  first `updateSettings({})`; it now shows the init values on every re-render. The record is dropped with the
+  shifts, by an adopted engine order, and by an insert or a removal, whose renumbering the recorded moves no longer
+  describe: the reload then sends one order, as develop does. **A sort keeps the documented sort limitation on a
+  reload that writes**, and a sort always makes the next resync write (an order sent drops the record, above), so a
+  re-render of a sorted grid replays the sort as one order exactly as develop does, and a re-render after the sort
+  is cleared repairs what the sort rewrote. An initial `columnSorting.initialConfig` sorts after the engine is set
+  up, so it reaches the engine as an order.
+- **Moves are planned as blocks** (`planOrderMoves()` in `indexSyncer/orderMoves.ts`). Walking the places from the
+  start, the line due at a place and the lines that follow it in both orders form a block; either the block moves
+  up to the place, or the lines between the place and the block move down behind it, and the move that carries
+  fewer lines is planned, so a line dragged down a long way moves as that line, not as the block it passed. A plan
+  that needs a move of more than `ORDER_MOVE_MAX_LINES` (10,000) lines gives up: HyperFormula spreads a moved block
+  into one call's arguments, and a block of 100,000 rows threw `RangeError` inside `moveRows()`. The moves go
+  through `#runBatched()`, the one place that keeps a nested `engine.batch()` out of a host's open batch (the pad
   `#extendAndSetOrder()` uses it too).
-- **Moves fall back to one order** (`#planSafeMoves()`), checked before anything is sent, because a batch of
-  moves is not rolled back when one throws:
+- **Moves fall back to one order** (`#planSafeMoves()`), checked before anything is sent, because a batch of moves
+  is not rolled back when one throws:
   - **an array formula in any line a move displaces**, not only in the lines the order moves (which is all
     `#isOrderAllowed()` checks): a move from below an array row to above it throws `SourceLocationHasArrayError`
-    (`manualRowMove: [2, 1, 0]` with `=ARRAYFORMULA(B1:C1*10)` in row 1 threw at init). The plan's targets grow
-    and each move permutes lines between its target and its block's end only, so every line ever displaced is
-    in the range from the first target to the last block end, read before the moves;
-  - **the engine's `maxRows`/`maxColumns`**: a move adds `count` lines before it moves them, so the sheet plus
-    the largest block must fit (`maxRows: 3` with 3 rows and a `manualRowMove` array threw at init);
-  - **another sheet or a named expression on the engine** (global or scoped to this sheet): a reload replaces
-    this sheet only, so their references into it already follow the order, and a move would move them again;
-    one order leaves them alone (coarse: no per-line dependents check);
-  - **the cost** (`chooseOrderMoves()`): moves go only where they are clearly cheaper than one order. A move
-    rewrites the lines it shifts (up to the whole axis); one order rewrites every line that changes place, and
-    more per line as more lines change. Moves are chosen while their count times the axis length stays within
-    `LINES_PER_CHANGED_LINE` (40) times the lines that change place, and never past `ORDER_MOVES_MAX` (30) moves,
-    where HyperFormula's batch slows down sharply (40 moves of 2,000 x 4 took 21 ms, 50 took 216 to 988 ms).
-    Measured on HyperFormula 3.3.0 in Jest, a formula per cell reading 7 rows down (`=A{r+7}+A{r}`), one-row
-    drags (one order, the develop path, against the chosen call):
+    (`manualRowMove: [2, 1, 0]` with `=ARRAYFORMULA(B1:C1*10)` in row 1 threw at init). A move displaces only the
+    lines between its block and its target, and each move starts at or after the place the one before settled, so
+    every line ever displaced lies between the lowest start or target and the highest block end or target, read
+    before the moves;
+  - **the engine's `maxRows`/`maxColumns`**: a move adds `count` lines before it moves them, so the sheet plus the
+    largest block must fit (`maxRows: 3` with 3 rows and a `manualRowMove` array threw at init);
+  - **another sheet or a named expression on the engine** (global or scoped to this sheet): a reload replaces this
+    sheet only, so their references into it already follow the order, and a move would move them again; one order
+    leaves them alone (coarse: no per-line dependents check);
+  - **the cost** (`chooseOrderMoves()`), an estimate, not a guarantee. One order rewrites every line that changes
+    place, and costs more per line as more lines change (100,000 x 2: 3,006 lines in 30 ms, 30,006 in 1.3 s,
+    100,001 in 9 to 12 s). A move rewrites the lines it shifts. Moves are chosen while their count times the axis
+    length stays within `LINES_PER_CHANGED_LINE` (40) times the lines that change place, and never past
+    `ORDER_MOVES_MAX` (30) moves, where HyperFormula's batch slows down sharply (40 moves of 2,000 x 4 took 21 ms,
+    50 took 216 to 988 ms). The choice is there to avoid the order's seconds on long sheets; it does not promise
+    that the moves are never slower. Before the smaller-move planning above, it sent moves that were slower than
+    one order on small sheets (the reviewer measured 2,000 x 4 with ten drags of 50 rows: 27 ms against 9 ms;
+    10,000 x 4 with six drags of 500 rows: 89 to 97 ms against 49 to 53 ms; 5,000 x 30 with three drags of 500
+    rows: 267 to 273 ms against 239 to 247 ms), and a shape the estimate misjudges can still cost tens of
+    milliseconds more than one order, on a reload that writes the sheet only, in exchange for references that stay
+    right where one order gives `#REF!`. Measured on HyperFormula 3.3.0 in Jest, the moves inside `engine.batch()`
+    as `#runBatched()` sends them, a formula per cell reading 7 rows down (`=A{r+7}+A{r}`), two runs ("+N": each
+    one-row drag moves N rows down; "to top": to row 0):
 
-    | Shape, drags | One order | Chosen |
-    |---|---|---|
-    | 100,000 x 2, 6 drags 1,000 apart | 88 ms | one order (88 ms; the moves take about 66 ms) |
-    | 100,000 x 2, 6 drags 10,000 apart | 3.2 s | 6 moves, 70 ms |
-    | 200,000 x 2, 1 drag 100,000 rows | 9.4 s | 1 move, 26 ms |
-    | 2,000 x 4, 10 drags 100 apart | 16 ms | 10 moves, 7 ms |
-    | 2,000 x 4, 20 drags 10 apart | 4 ms | one order |
-    | 10,000 x 4, 6 drags 1,000 apart | 160 ms | 6 moves, 15 ms |
-    | 5,000 x 30, 3 drags 1,000 apart | 540 to 610 ms | 3 moves, 25 ms |
-    | 10,000 x 20, 3 drags 2,000 apart | 880 to 910 ms | 3 moves, 30 ms |
-    | 10,000 x 20, 1 drag 9,000 rows | 1.5 s | 1 move, 12 ms |
+    | Shape, drags | Lines changed | One order (develop) | Chosen |
+    |---|---|---|---|
+    | 100,000 x 2, 6 drags +500, 1,000 apart | 3,006 | 30 ms | one order |
+    | 100,000 x 2, 6 drags +5,000, 10,000 apart | 30,006 | 1.3 to 1.4 s | 6 moves, 71 to 76 ms |
+    | 200,000 x 2, row 0 dragged 100,000 rows down | 100,001 | 9.4 to 12.0 s | 1 move, 27 to 30 ms |
+    | 200,000 x 2, 1 drag of 100,000 rows to top | 100,001 | 9.9 to 10.8 s | 1 move, 27 to 29 ms |
+    | 2,000 x 4, 10 drags +50, 100 apart | 510 | 8 to 9 ms | 10 moves, 7 ms |
+    | 2,000 x 4, 20 drags +5, 10 apart | 120 | 3 ms | one order |
+    | 10,000 x 4, 6 drags +500, 1,000 apart | 3,006 | 51 to 53 ms | 6 moves, 15 ms |
+    | 10,000 x 4, 3 drags +1,500, 3,000 apart | 4,002 | 73 to 76 ms | 3 moves, 7 ms |
+    | 5,000 x 30, 3 drags +500, 1,000 apart | 1,503 | 257 to 266 ms | 3 moves, 30 to 31 ms |
+    | 10,000 x 20, 3 drags +1,000, 2,000 apart | 3,003 | 398 to 432 ms | 3 moves, 39 ms |
+    | 10,000 x 20, row 0 dragged 9,000 rows down | 9,001 | 1.5 to 1.6 s | 1 move, 17 to 18 ms |
+    | 10,000 x 20, 1 drag of 9,000 rows to top | 9,001 | 1.5 to 1.6 s | 1 move, 14 to 15 ms |
+    | 10,000 x 20, 30 drags to top | 9,001 | 1.5 s | 30 moves, 399 to 407 ms |
+    | 5,000 x 30, 30 drags to top | 4,501 | 0.9 to 1.0 s | 30 moves, 330 to 336 ms |
+    | 100,000 x 2, 30 drags to top | 90,001 | 8.0 to 8.4 s | 30 moves, 346 to 377 ms |
 
-    A reorder the choice sends as one order records its shifts like a sort. Known limit: such an order keeps
-    the old `#REF!` behavior.
+    A reorder the choice sends as one order records its shifts like a sort. Known limit: such an order keeps the
+    old `#REF!` behavior.
 - **The hold's release follows the reload rule** (`AxisSyncer#setOrderHeld(false)`). The engine fed its content
   again inside `runWithEngineOrderHeld()` (`#reloadedWhileHeld`, set by `#applyInitialOrder()` while held) holds it
-  in physical order, so the release sends an order reached by moves as moves, unless an order change other than
-  a move was held back in the hold (`#orderChangedWhileHeld`) or the grid is sorted. A release with no reload
-  in the hold, or with an engine order adopted (`adoptEngineOrder()` clears the flag), still sends one order: the
-  engine there holds the order an earlier step left, not a fresh physical one.
-- **Known limit:** a reload that writes (the data changed) after drags replays the order by the planned path, not
-  by the drags' own moves, so a range on the sheet can end on other cells than the drags left it on, and where
-  develop's one order showed `#REF!` this can show a plausible wrong number (row 0 dragged to the end of
-  `[1, 2, 4, 8, 16]` with `=SUM(A1:A3)`, another cell changed in place, `updateSettings({})`: 1, where 204 is
+  in physical order, so the release sends an order reached by moves as moves, unless an order change other than a
+  move was held back in the hold (`#orderChangedWhileHeld`) or the grid is sorted. A release with no reload in the
+  hold, or with an engine order adopted (`adoptEngineOrder()` clears the flag), still sends one order: the engine
+  there holds the order an earlier step left, not a fresh physical one.
+- **Known limit, drags after drags:** a reload that writes (the data changed) after drags replays the order by the
+  planned path, not by the drags' own moves, so a range on the sheet can end on other cells than the drags left it
+  on, and where develop's one order showed `#REF!` this can show a plausible wrong number (row 0 dragged to the end
+  of `[1, 2, 4, 8, 16]` with `=SUM(A1:A3)`, another cell changed in place, `updateSettings({})`: 1, where 204 is
   right and develop showed `#REF!`). An `ARRAYFORMULA` row moved by drags can likewise read another row after a
-  data-changing re-render, as develop's does on any re-render. Replaying the recorded drag moves when no insert
-  or removal happened since is the follow-up that would close it.
+  data-changing re-render, as develop's does on any re-render. Replaying the recorded drag moves when no insert or
+  removal happened since is the follow-up that would close it.
+- **Known limit, a drag after a sort:** a drag made after a sort, with no reload between, is folded into the one
+  order the next writing reload sends, the same class of result as develop's one order and inside the documented
+  sort limitation. The values change on that reload, and differently from develop: a drag, a sort, a drag and a
+  data-changing reload took rows `[4, 3, 2, 5, 1]` from `['#REF!', '#REF!', 1000, 1003, 1000]` to `['#REF!',
+  '#REF!', 1001, 1000, 1000]` here and to `['#REF!', 1005, 1001, 1004, 1000]` on develop. With a reload between the
+  sort and the drag the values stay as shown.
 - Pinned by `__tests__/loadOrderAsMoves.unit.js` (the skip on a re-render after a drag, an edit, a range, other
   sheets and named expressions, a second grid; the host's in-place change; the array-formula, `maxRows` and
-  other-sheet fallbacks; the hold release; init, both axes, the sort control),
+  other-sheet fallbacks; the hold release; the moves under an initial sort; init, both axes, the sort control),
   `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js` (moves on the mock engine, the cost fallback, a sort
-  replayed as an order, the moves under an order replayed as moves, a sorted order from a new syncer and from a
-  postponed sync),
-  `__tests__/indexSyncer/orderMoves.unit.js`, `__tests__/deferredResync.unit.js` (a settings update that leaves the
-  data unchanged writes nothing), `__tests__/plugins/initialManualColumnMove.spec.js` and
-  `tests/e2e/formulas-load-order-moves.spec.ts`.
+  replayed as an order, the moves under an order replayed as moves, one order after an insert, a sorted order from
+  a new syncer and from a postponed sync), `__tests__/indexSyncer/orderMoves.unit.js` (the smaller move, the block
+  cap, the cost choice), `__tests__/utils.unit.ts` (`insertEmptyRows()`), `__tests__/deferredResync.unit.js` (a
+  settings update that leaves the data unchanged writes nothing),
+  `__tests__/plugins/initialManualColumnMove.spec.js` and `tests/e2e/formulas-load-order-moves.spec.ts`.
 
 **Removed indexes are translated physically** (`AxisSyncer#setRemovedHfIndexes`). The engine holds trimmed
 rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, including a descendant trimmed
@@ -479,9 +501,9 @@ engine is fed from `afterCellMetaReset`.
 **The listener also overtakes `manualColumnMove` / `manualRowMove`, and that changed which engine call
 carries a configured order on a later `loadData()`.** At init those plugins apply their arrays in
 `enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
-`setupSyncEndpoint()` → `#syncInitialOrder()` sends it, as moves since DEV-3972 (see "A reload that does write takes an order reached by
-moves as moves" in "Sequence syncing" above). On a `loadData()` after
-init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
+`setupSyncEndpoint()` → `#syncInitialOrder()` sends it, as moves since DEV-3972 (see "A reload that does write
+takes an order reached by moves as moves" in "Sequence syncing" above). On a `loadData()` after init the two
+plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
 and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
 `setColumnOrder` from `#syncInitialOrder()` — a double transform that rewrote `=A1+10` to `=B1+10` (510
 instead of 15 on the spec's data). Now this listener runs first, `#syncInitialOrder()` sees the identity

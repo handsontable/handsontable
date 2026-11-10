@@ -1,4 +1,9 @@
-import { planOrderMoves, chooseOrderMoves, ORDER_MOVES_MAX } from '../../indexSyncer/orderMoves';
+import {
+  planOrderMoves,
+  chooseOrderMoves,
+  ORDER_MOVES_MAX,
+  ORDER_MOVE_MAX_LINES,
+} from '../../indexSyncer/orderMoves';
 
 /**
  * Applies moves the way `moveRows()` takes them and returns the lines in their new order.
@@ -43,11 +48,12 @@ describe('planOrderMoves', () => {
     expect(planOrderMoves([])).toEqual([]);
   });
 
-  it('moves a block that keeps its order in one move', () => {
+  it('moves a block that keeps its order in one move, carrying the fewer lines', () => {
     const lineAtPlace = [2, 3, 4, 0, 1];
     const moves = planOrderMoves(toEngineOrder(lineAtPlace));
 
-    expect(moves).toEqual([{ start: 2, count: 3, target: 0 }]);
+    // Lines 0 and 1 go down behind 2, 3 and 4, rather than those three going up.
+    expect(moves).toEqual([{ start: 0, count: 2, target: 5 }]);
     expect(applyMoves(5, moves)).toEqual(lineAtPlace);
   });
 
@@ -78,8 +84,9 @@ describe('planOrderMoves', () => {
       const moves = planOrderMoves(toEngineOrder(lineAtPlace));
 
       expect(applyMoves(5, moves)).toEqual(lineAtPlace);
-      moves.forEach(({ start, target }) => {
-        expect(target).toBeLessThan(start);
+      // Every move is one `moveRows()` takes: the target is outside the block and its end.
+      moves.forEach(({ start, count, target }) => {
+        expect(target < start || target > start + count).toBe(true);
       });
     });
   });
@@ -153,5 +160,28 @@ describe('chooseOrderMoves', () => {
 
   it('sends one order past the most moves a batch takes without slowing down', () => {
     expect(chooseOrderMoves(toEngineOrder(afterDrags(100000, ORDER_MOVES_MAX + 1, 1000)))).toBeNull();
+  });
+
+  it('moves a line dragged down a long way as that line, not as the block it passed', () => {
+    // Row 0 dragged to the middle of 200,000 rows. Moving the 100,000 rows it passed up in one block makes
+    // HyperFormula's `moveRows()` overflow the stack.
+    const lineAtPlace = Array.from({ length: 200000 }, (_, index) => index);
+    const [line] = lineAtPlace.splice(0, 1);
+
+    lineAtPlace.splice(100000, 0, line);
+
+    const moves = chooseOrderMoves(toEngineOrder(lineAtPlace));
+
+    expect(moves).toEqual([{ start: 0, count: 1, target: 100001 }]);
+    expect(applyMoves(200000, moves)).toEqual(lineAtPlace);
+  });
+
+  it('sends one order when a move would carry more lines than a move can take', () => {
+    // Two halves of 100,000 rows swapped: either way, one block of 100,000 rows has to move.
+    const half = Array.from({ length: 100000 }, (_, index) => index);
+    const lineAtPlace = half.map(line => line + 100000).concat(half);
+
+    expect(planOrderMoves(toEngineOrder(lineAtPlace), Infinity)).toBeNull();
+    expect(ORDER_MOVE_MAX_LINES).toBeLessThan(100000);
   });
 });

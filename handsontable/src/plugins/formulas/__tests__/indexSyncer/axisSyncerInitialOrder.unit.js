@@ -150,7 +150,7 @@ describe('AxisSyncer initial order sync', () => {
       new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine)).init();
 
       expect(engine.calls.moveRows).toEqual([
-        { sheetId: 0, start: 2, count: 3, target: 0 },
+        { sheetId: 0, start: 0, count: 2, target: 5 },
       ]);
       expect(engine.held.rows).toEqual(['r2', 'r3', 'r4', 'r0', 'r1']);
     });
