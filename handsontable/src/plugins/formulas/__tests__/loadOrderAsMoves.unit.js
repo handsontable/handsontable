@@ -193,6 +193,89 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
     expectEveryRowReadsItsRecord(hot);
   });
 
+  describe('a short reorder on a tall grid', () => {
+    /**
+     * Rows whose formula reads the ID of a row a few rows further down, and the value it must show.
+     *
+     * @param {number} size Number of rows.
+     * @returns {Array[]}
+     */
+    function tallCrossRowData(size) {
+      return Array.from({ length: size }, (_, index) => {
+        const target = ((index + 2) % size) + 1;
+
+        return [index + 1, `=A${target}+1000`, target + 1000];
+      });
+    }
+
+    /**
+     * The identity order with the rows of `moved` taken to the top.
+     *
+     * @param {number} size Number of rows.
+     * @param {number[]} moved Physical rows to take to the top.
+     * @returns {number[]}
+     */
+    function movedToTop(size, moved) {
+      return moved.concat(Array.from({ length: size }, (_, index) => index).filter(row => !moved.includes(row)));
+    }
+
+    it.each([
+      [100, [7]], [1000, [7]], [10000, [7]],
+      [100, [7, 8, 9]], [1000, [70, 80, 90]], [10000, [700, 800, 900]],
+    ])('sends a move array of a few rows on %i rows as moves at init (%j)', (size, moved) => {
+      const engine = createEngine();
+      const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+      const moveRows = jest.spyOn(engine, 'moveRows');
+      const hot = createGrid({
+        data: tallCrossRowData(size),
+        manualRowMove: movedToTop(size, moved),
+        formulas: { engine },
+      });
+
+      expect(setRowOrder).not.toHaveBeenCalled();
+      expect(moveRows).toHaveBeenCalled();
+      expect(hot.getDataAtCol(1)).toEqual(hot.getDataAtCol(2));
+    });
+
+    it('sends a short drag on a tall grid as a move on a reload that writes', () => {
+      const engine = createEngine();
+      const data = tallCrossRowData(1000).map(row => [...row, 'note']);
+      const hot = createGrid({ data, manualRowMove: true, formulas: { engine } });
+
+      hot.getPlugin('manualRowMove').moveRows([500], 498);
+      hot.render();
+
+      const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+      const moveRows = jest.spyOn(engine, 'moveRows');
+
+      data[0][3] = 'changed';
+      hot.updateSettings({});
+
+      expect(setRowOrder).not.toHaveBeenCalled();
+      expect(moveRows).toHaveBeenCalled();
+      expect(hot.getDataAtCol(1)).toEqual(hot.getDataAtCol(2));
+    });
+  });
+
+  describe('a reload inside a held order', () => {
+    it('shows the values of a move array and an initial sort after a reload in the hold', () => {
+      const data = crossRowData().map(row => [...row, 'note']);
+      const hot = createGrid({
+        data,
+        manualRowMove: [2, 3, 4, 0, 1],
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'desc' } },
+      });
+      const atInit = hot.getDataAtCol(1);
+
+      hot.getPlugin('formulas').runWithEngineOrderHeld(() => {
+        data[0][3] = 'changed';
+        hot.updateSettings({});
+      });
+
+      expect(hot.getDataAtCol(1)).toEqual(atInit);
+    });
+  });
+
   describe('a re-render after a sort is cleared', () => {
     /**
      * @returns {Array[]} Formulas that a sort by the third column moves across the cells they read.

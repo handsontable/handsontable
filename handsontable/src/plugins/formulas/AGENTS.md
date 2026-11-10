@@ -407,47 +407,60 @@ rules:
   - **another sheet or a named expression on the engine** (global or scoped to this sheet): a reload replaces this
     sheet only, so their references into it already follow the order, and a move would move them again; one order
     leaves them alone (coarse: no per-line dependents check);
-  - **the cost** (`chooseOrderMoves()`), an estimate, not a guarantee. One order rewrites every line that changes
-    place, and costs more per line as more lines change (100,000 x 2: 3,006 lines in 30 ms, 30,006 in 1.3 s,
-    100,001 in 9 to 12 s). A move rewrites the lines it shifts. Moves are chosen while their count times the axis
-    length stays within `LINES_PER_CHANGED_LINE` (40) times the lines that change place, and never past
-    `ORDER_MOVES_MAX` (30) moves, where HyperFormula's batch slows down sharply (40 moves of 2,000 x 4 took 21 ms,
-    50 took 216 to 988 ms). The choice is there to avoid the order's seconds on long sheets; it does not promise
-    that the moves are never slower. Before the smaller-move planning above, it sent moves that were slower than
-    one order on small sheets (the reviewer measured 2,000 x 4 with ten drags of 50 rows: 27 ms against 9 ms;
-    10,000 x 4 with six drags of 500 rows: 89 to 97 ms against 49 to 53 ms; 5,000 x 30 with three drags of 500
-    rows: 267 to 273 ms against 239 to 247 ms), and a shape the estimate misjudges can still cost tens of
-    milliseconds more than one order, on a reload that writes the sheet only, in exchange for references that stay
-    right where one order gives `#REF!`. Measured on HyperFormula 3.3.0 in Jest, the moves inside `engine.batch()`
-    as `#runBatched()` sends them, a formula per cell reading 7 rows down (`=A{r+7}+A{r}`), two runs ("+N": each
-    one-row drag moves N rows down; "to top": to row 0):
+  - **the cost** (`chooseOrderMoves()`), an estimate, not a guarantee. A move costs about one pass over the sheet,
+    whatever lines it carries (a one-line move of 200,000 x 2 took 31 to 35 ms), so it is priced against what it
+    follows or replaces. Every reorder sent as moves comes right after a full write of the sheet, and a move costs
+    about a sixtieth of that write (10,000 x 4: 5 ms after a 210 ms write; 10,000 x 20: 18 ms after 1.2 s; 200,000
+    x 2: 35 ms after 2.2 s), so `ORDER_MOVES_WITHIN_WRITE` (4) moves always go as moves, however tall the axis is:
+    a one-row `manualRowMove` array or a short drag on a tall grid never falls back to the order that gives
+    `#REF!`. Past those, moves are priced against one order, which rewrites every line that changes place and costs
+    more per line as more change (100,000 x 2: 3,006 lines in 30 ms, 30,006 in 1.5 s, 100,001 in 12 to 17 s):
+    `LINES_PER_CHANGED_LINE` (40) axis lengths per changed line, and never past `ORDER_MOVES_MAX` (30) moves, where
+    HyperFormula's batch slows down sharply (40 moves of 2,000 x 4 took 21 ms, 50 took 216 to 988 ms). So the
+    choice avoids the order's seconds on long sheets, and the moves it sends can cost a few to some tens of
+    milliseconds more than one order, which stays within the run-to-run spread of the write they follow, on a
+    reload that writes the sheet only, in exchange for references that stay right where one order gives `#REF!`. An
+    earlier version priced every move as a full-axis rewrite against one order alone, so a one-row move array on a
+    grid taller than about 80 rows fell back to one order; one before it planned the larger move and was slower
+    than one order on small sheets (reviewer, 2,000 x 4 with ten drags of 50 rows: 27 ms against 9 ms). Measured on
+    HyperFormula 3.3.0 in Jest, a full reload (`setSheetContent()`, then one order or the chosen moves inside
+    `engine.batch()`), a formula per cell reading 7 rows down (`=A{r+7}+A{r}`), two runs, the second on a loaded
+    machine ("+N": each one-row drag moves N rows down; "to top": to row 0):
 
-    | Shape, drags | Lines changed | One order (develop) | Chosen |
-    |---|---|---|---|
-    | 100,000 x 2, 6 drags +500, 1,000 apart | 3,006 | 30 ms | one order |
-    | 100,000 x 2, 6 drags +5,000, 10,000 apart | 30,006 | 1.3 to 1.4 s | 6 moves, 71 to 76 ms |
-    | 200,000 x 2, row 0 dragged 100,000 rows down | 100,001 | 9.4 to 12.0 s | 1 move, 27 to 30 ms |
-    | 200,000 x 2, 1 drag of 100,000 rows to top | 100,001 | 9.9 to 10.8 s | 1 move, 27 to 29 ms |
-    | 2,000 x 4, 10 drags +50, 100 apart | 510 | 8 to 9 ms | 10 moves, 7 ms |
-    | 2,000 x 4, 20 drags +5, 10 apart | 120 | 3 ms | one order |
-    | 10,000 x 4, 6 drags +500, 1,000 apart | 3,006 | 51 to 53 ms | 6 moves, 15 ms |
-    | 10,000 x 4, 3 drags +1,500, 3,000 apart | 4,002 | 73 to 76 ms | 3 moves, 7 ms |
-    | 5,000 x 30, 3 drags +500, 1,000 apart | 1,503 | 257 to 266 ms | 3 moves, 30 to 31 ms |
-    | 10,000 x 20, 3 drags +1,000, 2,000 apart | 3,003 | 398 to 432 ms | 3 moves, 39 ms |
-    | 10,000 x 20, row 0 dragged 9,000 rows down | 9,001 | 1.5 to 1.6 s | 1 move, 17 to 18 ms |
-    | 10,000 x 20, 1 drag of 9,000 rows to top | 9,001 | 1.5 to 1.6 s | 1 move, 14 to 15 ms |
-    | 10,000 x 20, 30 drags to top | 9,001 | 1.5 s | 30 moves, 399 to 407 ms |
-    | 5,000 x 30, 30 drags to top | 4,501 | 0.9 to 1.0 s | 30 moves, 330 to 336 ms |
-    | 100,000 x 2, 30 drags to top | 90,001 | 8.0 to 8.4 s | 30 moves, 346 to 377 ms |
+    | Shape, drags | Lines changed | Write | One order (develop) | Chosen |
+    |---|---|---|---|---|
+    | 100 x 4, 1 drag +1 | 2 | 7 to 8 ms | 1 ms | 1 move, 2 ms |
+    | 10,000 x 4, 1 drag +1 | 2 | 210 to 224 ms | 0 ms | 1 move, 4 to 5 ms |
+    | 10,000 x 4, 3 drags +1 | 6 | 221 to 224 ms | 0 to 1 ms | 3 moves, 10 to 11 ms |
+    | 200,000 x 2, 1 drag +1 | 2 | 2.2 s | 0 ms | 1 move, 35 ms |
+    | 10,000 x 20, 1 drag +1 | 2 | 1.2 to 1.3 s | 0 ms | 1 move, 18 ms |
+    | 100,000 x 2, 6 drags +500, 1,000 apart | 3,006 | 1.0 s | 31 to 32 ms | one order |
+    | 100,000 x 2, 6 drags +5,000, 10,000 apart | 30,006 | 1.0 s | 1.5 to 1.6 s | 6 moves, 80 to 84 ms |
+    | 200,000 x 2, row 0 dragged 100,000 rows down | 100,001 | 2.0 to 2.1 s | 11.8 to 16.8 s | 1 move, 57 to 63 ms |
+    | 2,000 x 4, 10 drags +50, 100 apart | 510 | 44 to 81 ms | 11 to 12 ms | 10 moves, 7 to 18 ms |
+    | 2,000 x 4, 20 drags +5, 10 apart | 120 | 42 to 87 ms | 2 to 5 ms | one order |
+    | 10,000 x 4, 6 drags +500, 1,000 apart | 3,006 | 226 to 370 ms | 72 to 129 ms | 6 moves, 21 to 31 ms |
+    | 10,000 x 4, 3 drags +1,500, 3,000 apart | 4,002 | 224 to 415 ms | 92 to 186 ms | 3 moves, 10 to 15 ms |
+    | 5,000 x 30, 3 drags +500, 1,000 apart | 1,503 | 1.0 to 1.7 s | 352 to 607 ms | 3 moves, 40 to 55 ms |
+    | 10,000 x 20, 3 drags +1,000, 2,000 apart | 3,003 | 1.2 to 2.3 s | 500 to 901 ms | 3 moves, 43 to 91 ms |
+    | 10,000 x 20, 30 drags to top | 9,001 | 1.2 to 2.2 s | 1.7 to 3.9 s | 30 moves, 459 to 470 ms |
 
     A reorder the choice sends as one order records its shifts like a sort. Known limit: such an order keeps the
     old `#REF!` behavior.
 - **The hold's release follows the reload rule** (`AxisSyncer#setOrderHeld(false)`). The engine fed its content
   again inside `runWithEngineOrderHeld()` (`#reloadedWhileHeld`, set by `#applyInitialOrder()` while held) holds it
   in physical order, so the release sends an order reached by moves as moves, unless an order change other than a
-  move was held back in the hold (`#orderChangedWhileHeld`) or the grid is sorted. A release with no reload in the
-  hold, or with an engine order adopted (`adoptEngineOrder()` clears the flag), still sends one order: the engine
-  there holds the order an earlier step left, not a fresh physical one.
+  move was held back in the hold (`#orderChangedWhileHeld`) or the grid is sorted. An order reached by moves and
+  then an order keeps its `#orderBase` across that reload (`#heldOrderBase`), and the release replays the moves to
+  it as moves and only the rest as one order, as a reload outside the hold does; any order change in the hold after
+  the reload drops it. A release with no reload in the hold, or with an engine order adopted (`adoptEngineOrder()`
+  clears the flag), still sends one order: the engine there holds the order an earlier step left, not a fresh
+  physical one. The base travels with the engine order (`EngineOrder.orderBase`), so an adopted order keeps it
+  while it keeps its shifts. In the sheets bar the replay never runs: a workbook's engine holds several sheets, so
+  the moves guard sends one order on any reload that writes, and a sheet's move array reaches the engine on its
+  first visit through the move path. A re-render of a returned sheet whose sort sits on a move array therefore
+  shows the one-order values, as develop does; the first visit and the return show a plain grid's values
+  (`../sheetsBar/__tests__/formulaSheets.unit.js`).
 - **Known limit, drags after drags:** a reload that writes (the data changed) after drags replays the order by the
   planned path, not by the drags' own moves, so a range on the sheet can end on other cells than the drags left it
   on, and where develop's one order showed `#REF!` this can show a plausible wrong number (row 0 dragged to the end
@@ -463,13 +476,14 @@ rules:
   sort and the drag the values stay as shown.
 - Pinned by `__tests__/loadOrderAsMoves.unit.js` (the skip on a re-render after a drag, an edit, a range, other
   sheets and named expressions, a second grid; the host's in-place change; the array-formula, `maxRows` and
-  other-sheet fallbacks; the hold release; the moves under an initial sort; init, both axes, the sort control),
-  `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js` (moves on the mock engine, the cost fallback, a sort
-  replayed as an order, the moves under an order replayed as moves, one order after an insert, a sorted order from
-  a new syncer and from a postponed sync), `__tests__/indexSyncer/orderMoves.unit.js` (the smaller move, the block
-  cap, the cost choice), `__tests__/utils.unit.ts` (`insertEmptyRows()`), `__tests__/deferredResync.unit.js` (a
-  settings update that leaves the data unchanged writes nothing),
-  `__tests__/plugins/initialManualColumnMove.spec.js` and `tests/e2e/formulas-load-order-moves.spec.ts`.
+  other-sheet fallbacks; the hold release; the moves under an initial sort, also after a reload in a hold; a few
+  moves on a tall grid; init, both axes, the sort control), `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js`
+  (moves on the mock engine, the cost fallback, a sort replayed as an order, the moves under an order replayed as
+  moves, one order after an insert, a sorted order from a new syncer and from a postponed sync),
+  `__tests__/indexSyncer/orderMoves.unit.js` (the smaller move, the block cap, the cost choice),
+  `__tests__/utils.unit.ts` (`insertEmptyRows()`), `__tests__/deferredResync.unit.js` (a settings update that
+  leaves the data unchanged writes nothing), `__tests__/plugins/initialManualColumnMove.spec.js` and
+  `tests/e2e/formulas-load-order-moves.spec.ts`.
 
 **Removed indexes are translated physically** (`AxisSyncer#setRemovedHfIndexes`). The engine holds trimmed
 rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, including a descendant trimmed

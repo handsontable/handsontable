@@ -42,6 +42,7 @@ export interface EngineOrder {
   fillSequence: number[] | null;
   paddedElements: number[];
   orderShifts?: Array<[number, number]>;
+  orderBase?: number[] | null;
 }
 
 interface ParentIndexSyncer {
@@ -188,6 +189,13 @@ class AxisSyncer {
    * @type {boolean}
    */
   #orderChangedWhileHeld = false;
+  /**
+   * The order moves reached under an order (`#orderBase`) that a reload inside the hold read before it reset
+   * the stored order, kept for the release to replay as moves. Dropped by any order change in the hold.
+   *
+   * @type {Array<number>|null}
+   */
+  #heldOrderBase: number[] | null = null;
 
   /**
    * Initializes the axis syncer for the given axis with the corresponding index mapper and parent index syncer references.
@@ -305,15 +313,17 @@ class AxisSyncer {
 
     const reloadedByMoves = this.#reloadedWhileHeld === true && !this.#orderChangedWhileHeld
       && !this.#isOrderSorted();
+    const heldOrderBase = this.#reloadedWhileHeld === false ? this.#heldOrderBase : null;
 
     this.#orderHeld = held;
     this.#adoptedWhileHeld = false;
     this.#reloadedWhileHeld = null;
     this.#orderChangedWhileHeld = false;
+    this.#heldOrderBase = null;
     this.#translationCache = null;
 
     if (!held && syncOnRelease) {
-      this.#syncOrderWithGrid(reloadedByMoves);
+      this.#syncOrderWithGrid(reloadedByMoves, heldOrderBase);
     }
   }
 
@@ -325,13 +335,21 @@ class AxisSyncer {
    * as `#syncInitialOrder()` would have sent it outside the hold. Any other release (an adopted engine order,
    * a sort or a sequence set in the hold, an order taken over by `adoptEngineOrder()`) sends one order.
    *
+   * A release over a reload whose order was moves and then an order replays the moves to the order they
+   * reached (`orderBase`) as moves first, as a reload outside the hold does (`#syncInitialOrder()`).
+   *
    * @param {boolean} [asMoves=false] Whether the order is sent as moves.
+   * @param {number[]|null} [orderBase=null] The order moves reached before an order was sent on top of them.
    */
-  #syncOrderWithGrid(asMoves: boolean = false) {
+  #syncOrderWithGrid(asMoves: boolean = false, orderBase: number[] | null = null) {
     const sequence = this.#indexMapper.getIndexesSequence();
 
     if (this.#indexSyncer.getEngine() !== null && this.#indexSyncer.getSheetId() !== null
       && sequence.length > 0 && !this.#isSheetRemoved()) {
+      if (orderBase !== null && orderBase.length === sequence.length) {
+        this.#syncOrderWithEngine(orderBase, true, true);
+      }
+
       this.#syncOrderWithEngine(sequence, asMoves);
     }
   }
@@ -414,6 +432,7 @@ class AxisSyncer {
       fillSequence: this.#fillSequence === null ? null : this.#fillSequence.slice(),
       paddedElements: Array.from(this.#paddedElements),
       orderShifts: Array.from(this.#orderShifts),
+      ...(this.#orderBase === null ? {} : { orderBase: this.#orderBase.slice() }),
     };
   }
 
@@ -449,7 +468,8 @@ class AxisSyncer {
 
     this.#paddedElements = new Set<number>(order.paddedElements.filter(physicalIndex => held.has(physicalIndex)));
     this.#orderShifts = new Map(order.orderShifts ?? []);
-    this.#orderBase = null;
+    this.#orderBase = order.orderBase && this.#orderShifts.size > 0 ? order.orderBase.slice() : null;
+    this.#heldOrderBase = null;
     this.#translationCache = null;
 
     if (!this.#orderHeld) {
@@ -1274,6 +1294,7 @@ class AxisSyncer {
           this.#syncOrderWithEngine(newSequence);
         } else if (this.#orderHeld) {
           this.#orderChangedWhileHeld = true;
+          this.#heldOrderBase = null;
         }
 
         return;
@@ -1286,6 +1307,8 @@ class AxisSyncer {
       // constructor); any other change starts over.
       this.#indexesSequence = newSequence;
       this.#fillSequence = null;
+      // The moves recorded under an order no longer lead to the grid's order once it changes again.
+      this.#heldOrderBase = null;
 
       if (source !== 'move' && source !== 'insert' && source !== 'remove') {
         this.#paddedElements = new Set<number>();
@@ -1374,6 +1397,7 @@ class AxisSyncer {
 
     if (this.#orderHeld) {
       this.#reloadedWhileHeld = reachedByMoves;
+      this.#heldOrderBase = reachedByMoves ? null : orderBase;
     }
 
     this.#syncInitialOrder(reachedByMoves, orderBase);

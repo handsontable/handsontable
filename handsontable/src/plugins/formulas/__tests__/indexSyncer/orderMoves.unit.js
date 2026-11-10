@@ -184,4 +184,13 @@ describe('chooseOrderMoves', () => {
     expect(planOrderMoves(toEngineOrder(lineAtPlace), Infinity)).toBeNull();
     expect(ORDER_MOVE_MAX_LINES).toBeLessThan(100000);
   });
+
+  it('sends a few moves however tall the axis is', () => {
+    // One row nudged by one place on 100,000 rows: two lines change place, and one move carries one line.
+    const lineAtPlace = Array.from({ length: 100000 }, (_, index) => index);
+
+    lineAtPlace.splice(50000, 2, 50001, 50000);
+
+    expect(chooseOrderMoves(toEngineOrder(lineAtPlace))).toEqual([{ start: 50001, count: 1, target: 50000 }]);
+  });
 });

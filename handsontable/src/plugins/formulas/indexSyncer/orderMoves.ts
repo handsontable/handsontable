@@ -24,6 +24,16 @@ export const ORDER_MOVES_MAX = 30;
 export const ORDER_MOVE_MAX_LINES = 10000;
 
 /**
+ * How many moves a reorder is always sent as, however tall the axis is. Moves are only ever sent right after a
+ * full write of the sheet (init, a reload whose data changed, a hold released over one), and a move costs
+ * about a sixtieth of that write on HyperFormula 3.3.0 (a one-line move of 10,000 x 4 took 5 ms after a 210 ms
+ * write, of 200,000 x 2 31 ms after 1,962 ms, of 10,000 x 20 17 ms after 1,178 ms). So a handful of moves adds
+ * at most about a tenth to the reload, and a one-row `manualRowMove` array or a short drag on a tall grid never
+ * falls back to the order that gives `#REF!`.
+ */
+export const ORDER_MOVES_WITHIN_WRITE = 4;
+
+/**
  * How many lines a move may shift for the price of one line changing place in one order. A move rewrites the
  * lines it shifts, about 0.05 to 0.2 us per cell on HyperFormula 3.3.0; one order rewrites every line that
  * changes place, about 4 to 8 us per cell, and more per line as more lines change place (100,000 x 2 with a
@@ -96,11 +106,13 @@ export function planOrderMoves(engineOrder: number[], maxMoves: number = ORDER_M
 }
 
 /**
- * Plans the moves for a reorder when they cost less than one order (`setRowOrder()`/`setColumnOrder()`),
- * and returns `null` when one order is the cheaper call. A move shifts the lines between its block and its
- * target, about as many as the sheet is long in the worst case; one order rewrites every line that changes
- * place. Moves are chosen while their count times the axis length stays within `LINES_PER_CHANGED_LINE`
- * times the lines that change place, and never past `ORDER_MOVES_MAX` moves.
+ * Plans the moves for a reorder, or returns `null` when one order (`setRowOrder()`/`setColumnOrder()`) is to
+ * be sent instead. A move costs about what a pass over the sheet costs, whatever lines it carries, so it is
+ * priced against two things it follows or replaces: the full write of the sheet every reorder sent as moves
+ * comes right after (`ORDER_MOVES_WITHIN_WRITE` moves fit in it), and one order, which rewrites every line
+ * that changes place (`LINES_PER_CHANGED_LINE` axis lengths per changed line). So up to
+ * `ORDER_MOVES_WITHIN_WRITE` plus `LINES_PER_CHANGED_LINE` times the changed lines over the axis length moves
+ * go as moves, never past `ORDER_MOVES_MAX`.
  *
  * @param {number[]} engineOrder The new place of each engine line, a permutation of `0..n - 1`.
  * @returns {OrderMove[]|null}
@@ -119,7 +131,10 @@ export function chooseOrderMoves(engineOrder: number[]): OrderMove[] | null {
     return [];
   }
 
-  const maxMoves = Math.min(ORDER_MOVES_MAX, Math.floor((LINES_PER_CHANGED_LINE * changedLines) / size));
+  const maxMoves = Math.min(
+    ORDER_MOVES_MAX,
+    ORDER_MOVES_WITHIN_WRITE + Math.floor((LINES_PER_CHANGED_LINE * changedLines) / size),
+  );
 
   return planOrderMoves(engineOrder, maxMoves);
 }
