@@ -88,6 +88,36 @@ export class FormulasSheetBuiltGridSortPage {
     await this.page.evaluate(() => window.hot.getPlugin('columnSorting').clearSort());
   }
 
+  /**
+   * Writes a value into the bound engine sheet through the engine API, the way a host does, at engine
+   * coordinates.
+   *
+   * @param row The engine row.
+   * @param col The engine column.
+   * @param value The value.
+   */
+  async writeEngineCell(row: number, col: number, value: string): Promise<void> {
+    await this.page.evaluate(({ r, c, v }) => {
+      const formulas = window.hot.getPlugin('formulas') as unknown as {
+        sheetId: number,
+        engine: { setCellContents(address: object, content: unknown[][]): void },
+      };
+
+      formulas.engine.setCellContents({ sheet: formulas.sheetId, row: r, col: c }, [[v]]);
+    }, { r: row, c: col, v: value });
+  }
+
+  /**
+   * The rendered width of a column header cell, in pixels.
+   *
+   * @param col The visual column.
+   */
+  async headerWidth(col: number): Promise<number> {
+    const box = await this.page.locator('.ht_clone_top').getByTestId(`col-header-${col}`).boundingBox();
+
+    return box?.width ?? 0;
+  }
+
   /** `getDataAtCol()`, read in the page. */
   async dataAtCol(col: number): Promise<CellValue[]> {
     return this.page.evaluate((c) => window.hot.getDataAtCol(c), col);

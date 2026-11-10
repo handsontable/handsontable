@@ -13,6 +13,7 @@ import {
   getDateInHfFormat,
   getDateInHotFormat,
   getTimeFromHfTimeFraction,
+  hasContentPast,
   isDate,
   isDateValid,
   isEngineEscapedValue,
@@ -23,6 +24,7 @@ import {
   trimTrailingEmptyCells,
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
+  widestRowLength,
 } from './utils';
 import {
   LINK_CLASS_NAME,
@@ -446,6 +448,11 @@ interface ReloadAxis {
    * it and the grid shows it in that order.
    */
   stale: boolean;
+  /**
+   * Whether the engine sheet gained or lost lines on this axis since the grid loaded it (a host that inserted or
+   * removed lines through the engine API), so the grid's physical indexes no longer name the same records.
+   */
+  resized: boolean;
 }
 
 interface EngineSheetSnapshot {
@@ -893,6 +900,13 @@ export class Formulas extends BasePlugin {
    * `restoreState()`.
    */
   #sourceHasStaleFormulas = false;
+
+  /**
+   * How many rows, and how many columns at the widest row, the last load of the bound sheet into the grid read
+   * (`#loadSheet()`), or `null` before one. A reload compares the engine sheet against it and the grid's length
+   * to tell lines the host added (`#planReloadAxis()`).
+   */
+  #loadedSheetShape: { rows: number; columns: number } | null = null;
 
   /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
@@ -2012,8 +2026,14 @@ export class Formulas extends BasePlugin {
       ? trimTrailingEmptyCells(physical) : padded;
     const loadsData = serialized.length > 0;
 
+    if (loadsData) {
+      this.#loadedSheetShape = { rows: serialized.length, columns: widestRowLength(serialized) };
+    }
+
     if (reload !== null && loadsData) {
-      if (reload.row.stale || reload.column.stale) {
+      // A grid whose physical indexes no longer name the records they named (the host inserted or removed lines,
+      // or the record no longer describes the sheet) takes `loadData()`, which drops the state keyed by them.
+      if (reload.row.stale || reload.column.stale || reload.row.resized || reload.column.resized) {
         this.#reloadKeepingOrder(serialized, reload);
       } else {
         this.#reloadInPlace(serialized);
@@ -2037,8 +2057,9 @@ export class Formulas extends BasePlugin {
 
   /**
    * Reloads the sheet the order syncers are synced with through `updateData()`, which keeps the grid's state:
-   * the index maps (row and column order, a sort, moves, hidden lines, manual sizes, with `fitToLength()` for
-   * lines the sheet gained or lost), the sort plugins' state, the cell meta, and every change still waiting for
+   * the index maps (row and column order, a sort, moves, hidden lines, manual sizes; `fitToLength()` drops only
+   * blank lines past the sheet, since a sheet whose line count the host changed takes `#reloadKeepingOrder()`),
+   * the sort plugins' state, the cell meta, and every change still waiting for
    * its validator, which the Core then writes at its coordinates of the reloaded rows. The rows come in physical
    * order (`#toPhysicalOrder()`, done by the caller) and the grid keeps its order, so the syncers' engine order
    * still describes the engine sheet and nothing is sent to the engine. ManualRowMove and ManualColumnMove
@@ -2064,8 +2085,10 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Reloads the sheet the order syncers are synced with, keeping the grid's row and column order, when the
-   * recorded order of an axis no longer describes the engine sheet (`#planReloadAxis()`). A grid
+   * Reloads the sheet the order syncers are synced with, keeping the grid's row and column order, when the host
+   * inserted or removed lines of the engine sheet, or the recorded order of an axis no longer describes it
+   * (`#planReloadAxis()`): the load drops the state keyed by physical indexes, which no longer name the same
+   * records. A grid
    * built from an engine sheet without `data` reloads it on every `updateSettings()`. The engine holds the
    * sheet in the grid's order, and the load resets the grid's order, after which ManualRowMove and
    * ManualColumnMove re-apply their arrays in `afterLoadData`. Read as the engine holds it and taken as
@@ -2141,8 +2164,9 @@ export class Formulas extends BasePlugin {
    * @returns {object}
    */
   #planReload(rows: unknown[][]): { row: ReloadAxis; column: ReloadAxis } {
-    // Read only when an axis asks: that takes an axis out of physical order with lines the engine left out,
-    // so a reload of a grid without a move (every React or Vue re-render of one) reads nothing.
+    // Read only when an axis asks: that takes lines the engine left out, so a reload of a grid whose engine sheet
+    // covers it (every React or Vue re-render of one the host did not change) reads nothing. A row is read on its
+    // own, so the blank spare rows a grid holds past the sheet cost one read each.
     let sourceRows: unknown[][] | null = null;
     const readSourceRows = () => {
       sourceRows ??= this.#readOwnSourceRows();
@@ -2150,15 +2174,15 @@ export class Formulas extends BasePlugin {
       return sourceRows;
     };
     const hasContent = (value: unknown) => value !== null && value !== undefined && value !== '';
+    const loaded = this.#loadedSheetShape;
 
     return {
       row: this.#planReloadAxis(
-        this.rowAxisSyncer!, this.hot.rowIndexMapper, rows.length,
-        physicalRow => (readSourceRows()[physicalRow] ?? []).some(hasContent),
+        this.rowAxisSyncer!, this.hot.rowIndexMapper, rows.length, loaded?.rows ?? 0,
+        physicalRow => this.#readOwnSourceRow(physicalRow).some(hasContent),
       ),
       column: this.#planReloadAxis(
-        this.columnAxisSyncer!, this.hot.columnIndexMapper,
-        rows.reduce((widest, row) => Math.max(widest, row.length), 0),
+        this.columnAxisSyncer!, this.hot.columnIndexMapper, widestRowLength(rows), loaded?.columns ?? 0,
         physicalColumn => readSourceRows().some(row => hasContent(row?.[physicalColumn])),
       ),
     };
@@ -2176,9 +2200,16 @@ export class Formulas extends BasePlugin {
    * move reads it. Lines the engine gained are read through the record too (`listEngineElements()` names
    * them after the recorded ones), so the grid shows them where the engine has them.
    *
+   * The axis is `resized` when the engine holds lines the grid does not (more than the grid's length and the
+   * last load read: the host added lines, and an insert in the middle cannot be told from an append without
+   * reading content), or, on an axis in physical order, when a line the engine left out holds content in the
+   * grid (the host removed lines). A blank line past the sheet (a `minSpareRows` row, an emptied last line)
+   * does not count.
+   *
    * @param {AxisSyncer} syncer The axis syncer.
    * @param {IndexMapper} indexMapper The axis' index mapper.
    * @param {number} engineLength How many lines of the axis the engine wrote out.
+   * @param {number} loadedLength How many lines of the axis the last load of the sheet read.
    * @param {Function} hasContent Tells whether the grid holds content in a line, by its physical index.
    * @returns {object}
    */
@@ -2186,30 +2217,53 @@ export class Formulas extends BasePlugin {
     syncer: AxisSyncer,
     indexMapper: IndexMapper,
     engineLength: number,
+    loadedLength: number,
     hasContent: (physicalIndex: number) => boolean,
   ): ReloadAxis {
     const order = syncer.getEngineOrder();
     const previousSequence = indexMapper.getIndexesSequence();
+    const gridLength = indexMapper.getNumberOfIndexes();
+    const grew = engineLength > Math.max(gridLength, loadedLength);
 
     if (syncer.isEngineOrderPhysical()) {
-      return { order, elements: null, previousSequence, stale: false };
+      const lostContent = hasContentPast(engineLength, gridLength, hasContent);
+
+      return { order, elements: null, previousSequence, stale: false, resized: grew || lostContent };
     }
 
-    const gridLength = indexMapper.getNumberOfIndexes();
     const elements = listEngineElements(order.sequence, order.fillSequence, Math.max(engineLength, gridLength));
 
-    for (let engineIndex = engineLength; engineIndex < gridLength; engineIndex += 1) {
-      if (hasContent(elements[engineIndex])) {
-        return {
-          order: { sequence: [], fillSequence: null, paddedElements: [], orderShifts: [] },
-          elements: null,
-          previousSequence: [],
-          stale: true,
-        };
-      }
+    if (hasContentPast(engineLength, gridLength, engineIndex => hasContent(elements[engineIndex]))) {
+      return {
+        order: { sequence: [], fillSequence: null, paddedElements: [], orderShifts: [] },
+        elements: null,
+        previousSequence: [],
+        stale: true,
+        resized: true,
+      };
     }
 
-    return { order, elements, previousSequence, stale: false };
+    return { order, elements, previousSequence, stale: false, resized: grew };
+  }
+
+  /**
+   * Reads one of the grid's source rows as the grid stores it, by physical row, without the engine's projection.
+   *
+   * @param {number} physicalRow The physical row.
+   * @returns {Array<*>}
+   */
+  #readOwnSourceRow(physicalRow: number): unknown[] {
+    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
+
+    this.#sourceDataProjectionSuspended = true;
+
+    try {
+      const row: unknown = this.hot.getSourceDataAtRow(physicalRow);
+
+      return Array.isArray(row) ? row as unknown[] : [];
+    } finally {
+      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
+    }
   }
 
   /**
@@ -2218,19 +2272,9 @@ export class Formulas extends BasePlugin {
    * @returns {Array<Array<*>>}
    */
   #readOwnSourceRows(): unknown[][] {
-    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
-
-    this.#sourceDataProjectionSuspended = true;
-
-    try {
-      return Array.from({ length: this.hot.rowIndexMapper.getNumberOfIndexes() }, (_, physicalRow) => {
-        const row: unknown = this.hot.getSourceDataAtRow(physicalRow);
-
-        return Array.isArray(row) ? row as unknown[] : [];
-      });
-    } finally {
-      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
-    }
+    return Array.from(
+      { length: this.hot.rowIndexMapper.getNumberOfIndexes() }, (_, physicalRow) => this.#readOwnSourceRow(physicalRow)
+    );
   }
 
   /**

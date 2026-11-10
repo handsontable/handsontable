@@ -310,4 +310,102 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     expect(hot.getDataAtRow(0)).toEqual([initial[0][0], 5, 10]);
     expect(readEngineThroughGrid()).toEqual(hot.getData());
   });
+
+  /**
+   * Tells whether any cell carries the `marked` class name.
+   *
+   * @returns {boolean}
+   */
+  function isAnyCellMarked() {
+    return hot.getData().some((row, visualRow) => row.some((_, visualColumn) => {
+      const className = hot.getCellMeta(visualRow, visualColumn).className;
+
+      return typeof className === 'string' && className.includes('marked');
+    }));
+  }
+
+  // A host that removes or inserts lines through the engine API shifts the records under the grid's physical
+  // indexes. `updateData()` keeps every piece of state keyed by a physical index, so it would land on another
+  // record; the reload takes the `loadData()` path there instead, and the state is dropped, as before.
+  describe.each([
+    ['removes rows', 'row', 0, (engine, sheet) => engine.removeRows(sheet, [0, 1])],
+    ['inserts a row', 'row', 2, (engine, sheet) => engine.addRows(sheet, [1, 1])],
+  ])('a host that %s through the engine API, on a grid without a move', (_, __, target, change) => {
+    it('drops the cell meta, the hidden row, the filter and the waiting edit instead of moving them', async() => {
+      const engine = buildEngine();
+      const sheet = engine.getSheetId('S1');
+
+      buildGrid(engine, { hiddenRows: true, filters: true });
+
+      hot.setCellMeta(target, 0, 'className', 'marked');
+      hot.getPlugin('hiddenRows').hideRow(target);
+      hot.getPlugin('filters').addCondition(0, 'by_value', [['b', 'c']]);
+      hot.getPlugin('filters').filter();
+      hot.setDataAtCell(hot.toVisualRow(target), 1, 50);
+      await flush();
+
+      expect(held.length).toBe(1);
+
+      change(engine, sheet);
+      hot.updateSettings({});
+      await answerAll(true);
+
+      // Every record the engine holds is shown, in the engine's order (an inserted row is blank).
+      expect(hot.getData()).toEqual(engine.getSheetValues(sheet).map(row => (row.length ? row : [null, null, null])));
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+      expect(hot.getData().flat()).not.toContain(50);
+      expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+      expect(isAnyCellMarked()).toBe(false);
+    });
+  });
+
+  describe.each([
+    ['removes a column', (engine, sheet) => engine.removeColumns(sheet, [0, 1])],
+    ['inserts a column', (engine, sheet) => engine.addColumns(sheet, [1, 1])],
+  ])('a host that %s through the engine API, on a grid without a move', (_, change) => {
+    it('drops the cell meta, the hidden column and the waiting edit instead of moving them', async() => {
+      const engine = buildEngine();
+      const sheet = engine.getSheetId('S1');
+
+      buildGrid(engine, { hiddenColumns: true });
+
+      hot.setCellMeta(0, 1, 'className', 'marked');
+      hot.getPlugin('hiddenColumns').hideColumn(1);
+      hot.setDataAtCell(0, 1, 50);
+      await flush();
+
+      expect(held.length).toBe(1);
+
+      change(engine, sheet);
+      hot.updateSettings({});
+      await answerAll(true);
+
+      const values = engine.getSheetValues(sheet)
+        .map(row => row.map(value => (value !== null && typeof value === 'object' ? value.value : value)));
+
+      expect(hot.getData().map(row => row.slice(0, values[0].length))).toEqual(values);
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+      expect(hot.getData().flat()).not.toContain(50);
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([]);
+      expect(isAnyCellMarked()).toBe(false);
+    });
+  });
+
+  it('keeps the state of a grid with blank spare rows past the sheet, reading only those rows', () => {
+    buildGrid(buildEngine(), { minSpareRows: 2, columnSorting: true });
+
+    expect(hot.countRows()).toBe(5);
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+    const getSourceDataAtRow = jest.spyOn(hot, 'getSourceDataAtRow');
+
+    hot.updateSettings({});
+
+    // The engine leaves the two blank rows out; they hold nothing, so the host removed no record.
+    expect(getSourceDataAtRow).toHaveBeenCalledTimes(2);
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+    expect(hot.countRows()).toBe(5);
+    expect(hot.getDataAtCol(0).slice(0, 3)).toEqual(['c', 'b', 'a']);
+  });
 });

@@ -111,4 +111,31 @@ test.describe('Formulas: sorting a grid built from an engine sheet', { tag: BUND
     await expect(grid.cell(0, 2)).toHaveText('10');
     expect(pageErrors).toEqual([]);
   });
+
+  // A re-render reloads the sheet with `updateData()`, which runs no AutoColumnSize sweep where `loadData()` did.
+  // The column still fits a value the host wrote into the engine sheet, longer and then shorter again.
+  test('fits a column to a value the host wrote into the engine sheet after a re-render', async ({ page, theme, bundle }) => {
+    const grid = new FormulasSheetBuiltGridSortPage(page, theme, bundle);
+    const pageErrors: string[] = [];
+
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+
+    await grid.goto();
+    await expect(grid.cell(2, 1)).toHaveText('3');
+
+    const initialWidth = await grid.headerWidth(1);
+
+    await grid.writeEngineCell(2, 1, 'a long value the host wrote into the engine sheet');
+    await grid.updateSettingsWithNothing();
+
+    await expect(grid.cell(2, 1)).toHaveText('a long value the host wrote into the engine sheet');
+    await expect.poll(() => grid.headerWidth(1)).toBeGreaterThan(initialWidth * 2);
+
+    await grid.writeEngineCell(2, 1, 'x');
+    await grid.updateSettingsWithNothing();
+
+    await expect(grid.cell(2, 1)).toHaveText('x');
+    await expect.poll(() => grid.headerWidth(1)).toBe(initialWidth);
+    expect(pageErrors).toEqual([]);
+  });
 });

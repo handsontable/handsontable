@@ -15,6 +15,8 @@ import {
   isEngineEscapedValue,
   unescapeEngineBoundValue,
   padRowsToWidestRow,
+  widestRowLength,
+  hasContentPast,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -330,6 +332,35 @@ describe('Formulas utils', () => {
     it('should handle an empty sheet and empty rows', () => {
       expect(padRowsToWidestRow([])).toEqual([]);
       expect(padRowsToWidestRow([[], []])).toEqual([[], []]);
+    });
+  });
+
+  describe('widestRowLength', () => {
+    it('should return the length of the longest row', () => {
+      expect(widestRowLength([['a'], ['b', 'c', 'd'], []])).toBe(3);
+    });
+
+    it('should return 0 for no rows', () => {
+      expect(widestRowLength([])).toBe(0);
+    });
+  });
+
+  describe('hasContentPast', () => {
+    it('should ask about every index of the range until one holds content', () => {
+      const asked: number[] = [];
+
+      expect(hasContentPast(2, 6, (index) => {
+        asked.push(index);
+
+        return index === 4;
+      })).toBe(true);
+      expect(asked).toEqual([2, 3, 4]);
+    });
+
+    it('should return false for a range with no content, and for an empty range', () => {
+      expect(hasContentPast(0, 3, () => false)).toBe(false);
+      expect(hasContentPast(3, 3, () => true)).toBe(false);
+      expect(hasContentPast(4, 2, () => true)).toBe(false);
     });
   });
 });

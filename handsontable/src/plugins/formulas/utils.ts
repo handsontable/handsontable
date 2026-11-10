@@ -298,3 +298,32 @@ export function padRowsToWidestRow(rows: unknown[][]): unknown[][] {
     return padded;
   });
 }
+
+/**
+ * Returns the length of the longest row of a sheet array, `0` for no rows.
+ *
+ * @param {Array<Array<*>>} rows Sheet content.
+ * @returns {number}
+ */
+export function widestRowLength(rows: unknown[][]): number {
+  return rows.reduce((widest, row) => Math.max(widest, row.length), 0);
+}
+
+/**
+ * Tells whether any index from `from` (inclusive) to `to` (exclusive) holds content, as `hasContent` answers.
+ * Stops at the first one that does.
+ *
+ * @param {number} from The first index.
+ * @param {number} to The index past the last one.
+ * @param {Function} hasContent Tells whether an index holds content.
+ * @returns {boolean}
+ */
+export function hasContentPast(from: number, to: number, hasContent: (index: number) => boolean): boolean {
+  for (let index = from; index < to; index += 1) {
+    if (hasContent(index)) {
+      return true;
+    }
+  }
+
+  return false;
+}

@@ -22,8 +22,9 @@ runs again. The manual *resize* plugins hit the same class of problem and docume
 
 Formulas reloading the engine sheet a grid built without `data` is bound to (every `updateSettings()`) does
 not trigger the replay: it reloads through `updateData()`, which keeps the index maps and fires no
-`afterLoadData`. Only when the host shrank the sheet behind the grid's back does it fall back to `loadData()`,
-and then it holds the replay from the engine and puts the grid's previous order back after the load
+`afterLoadData`. When the host inserted or removed lines through the engine API (or the record no longer
+describes the sheet), it falls back to `loadData()`, and then it holds the replay from the engine and puts the
+grid's previous order back after the load
 (`../formulas/AGENTS.md`, "A reload of the sheet the syncers are synced with keeps the grid's order"). It reads
 this plugin's state through nothing but the index mapper; the same holds for ManualColumnMove.
 
