@@ -17,8 +17,9 @@ export const ORDER_MOVES_MAX = 30;
 
 /**
  * The most lines one move may carry. HyperFormula adds the lines a move carries in one call that spreads them
- * as arguments, so a block of some hundred thousand lines overflows the stack inside `moveRows()` (measured on
- * 3.3.0: a block of 100,000 rows threw `RangeError`), and a batch of moves is not rolled back when one throws.
+ * as arguments, so a block of about 100,000 lines can overflow the stack inside `moveRows()` (`RangeError`, seen
+ * on 3.3.0 through the grid, depending on how deep the call stack already is), and a batch of moves is not rolled
+ * back when one throws.
  */
 export const ORDER_MOVE_MAX_LINES = 10000;
 

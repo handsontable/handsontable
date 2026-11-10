@@ -390,7 +390,8 @@ rules:
   up to the place, or the lines between the place and the block move down behind it, and the move that carries
   fewer lines is planned, so a line dragged down a long way moves as that line, not as the block it passed. A plan
   that needs a move of more than `ORDER_MOVE_MAX_LINES` (10,000) lines gives up: HyperFormula spreads a moved block
-  into one call's arguments, and a block of 100,000 rows threw `RangeError` inside `moveRows()`. The moves go
+  into one call's arguments, which can overflow the stack (`RangeError`) for a block of about 100,000 rows,
+  depending on how deep the call stack already is (seen through the grid, not in a bare engine). The moves go
   through `#runBatched()`, the one place that keeps a nested `engine.batch()` out of a host's open batch (the pad
   `#extendAndSetOrder()` uses it too).
 - **Moves fall back to one order** (`#planSafeMoves()`), checked before anything is sent, because a batch of moves
