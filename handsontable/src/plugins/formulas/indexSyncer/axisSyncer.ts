@@ -954,6 +954,11 @@ class AxisSyncer {
     // that leaves the engine's own elements in the same relative order ranks them identically.
     if (engineOrder.some((place, engineIndex) => place !== engineIndex)) {
       if (!this.#isOrderAllowed(engine, sheetId, engineOrder, sizeForAxis, sizeForOtherAxis)) {
+        // A `movesOnly` call only tries the moves to an order base, and the call that follows warns once.
+        if (movesOnly) {
+          return false;
+        }
+
         warn(`The engine cannot reorder the ${this.#axis}s an array formula spans, so it keeps its previous ` +
           `${this.#axis} order. Formulas may read the wrong cells until the grid takes an order that leaves ` +
           'them in place.');

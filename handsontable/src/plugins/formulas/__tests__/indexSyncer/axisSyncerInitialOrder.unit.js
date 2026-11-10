@@ -279,6 +279,28 @@ describe('AxisSyncer initial order sync', () => {
       expect(engine.calls.moveRows.length).toBe(1);
       expect(engine.calls.setRowOrder.length).toBe(2);
     });
+
+    it('should warn once when the order cannot be sent, not again for the moves tried under it', () => {
+      const engine = createMockEngine({ width: 2, height: 5 });
+      const indexMapper = createMockIndexMapper([2, 3, 4, 0, 1]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        axisSyncer.init();
+        indexMapper.state.indexesSequence = [4, 3, 2, 1, 0];
+        axisSyncer.getIndexesChangeSyncMethod()('update');
+
+        // An array formula in a moved row: neither the moves nor the order can reach the engine.
+        engine.isCellPartOfArray = () => true;
+        engine.isItPossibleToSetRowOrder = () => false;
+        axisSyncer.init();
+
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        warnSpy.mockRestore();
+      }
+    });
   });
 
   describe('postponed actions', () => {
