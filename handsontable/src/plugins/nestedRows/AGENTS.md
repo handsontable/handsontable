@@ -223,8 +223,9 @@ They are written in different places and can drift. Keep this in mind:
   holds, and the payload's old value is that same array, where it used to be another row's list or
   nothing. This is the parent branch only. `syncRowWithRawSource()` addresses a TOP-LEVEL position
   (`getRowIndexWithinParent()` of the upmost parent) and correctly keeps the modifiers off, so do not
-  generalize this to "always on". The `?? 0` fallback for a parent the cache does not know still sends
-  the write to flattened row 0. A test of this needs a parent whose flattened row is below the top-level
+  generalize this to "always on". A parent object the cache does not know (one an app kept across
+  a data load) makes `addChildAtIndex()` return before any hook: the old `?? 0` fallback wrote its
+  children onto the first top-level row and left an index slot with no data row behind it. A test of this needs a parent whose flattened row is below the top-level
   count, or the write is dropped and the test passes on the broken code. Pinned by
   `__tests__/addChildAtIndexNestedParent.unit.js` and `tests/e2e/nested-rows-undo.spec.ts`.
 - **Only the top-level branch translates its index for `insertIndexes()`.** `insertIndexes()` takes a

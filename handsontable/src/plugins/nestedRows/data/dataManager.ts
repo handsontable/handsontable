@@ -1034,6 +1034,14 @@ class DataManager {
   #addChildAtIndex(parent: RowObject | null, index: number, element: RowObject | null) {
     let childElement = element;
     let flattenedIndex: number;
+    const parentIndex = parent ? this.getRowIndex(parent) : null;
+
+    // A parent object the cache does not know (one an app kept across a data load) has no row to
+    // insert under. Falling back to row 0 wrote its children onto the first top-level row and left an
+    // index slot with no data behind it.
+    if (parent && parentIndex === null) {
+      return;
+    }
 
     if (!childElement) {
       childElement = this.mockNode();
@@ -1041,8 +1049,7 @@ class DataManager {
 
     this.hot.runHooks('beforeAddChild', parent, childElement, index);
 
-    if (parent) {
-      const parentIndex = this.getRowIndex(parent) ?? 0;
+    if (parent && parentIndex !== null) {
       const finalChildIndex = parentIndex + index + 1;
 
       this.hot.runHooks('beforeCreateRow', finalChildIndex, 1);

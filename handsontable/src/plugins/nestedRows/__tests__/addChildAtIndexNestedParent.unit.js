@@ -217,4 +217,27 @@ describe('NestedRows – addChildAtIndex() on a nested parent', () => {
     expect(nestedRows.getCollapsedParents()).toEqual([7]);
     expect(hot.countRows()).toBe(9);
   });
+
+  it('does nothing for a parent object the grid no longer holds', () => {
+    const beforeAddChild = jest.fn();
+    const afterAddChild = jest.fn();
+
+    createGrid({ beforeAddChild, afterAddChild });
+
+    const dm = dataManager();
+    const staleParent = dm.getDataObject(6);
+
+    expect(staleParent.name).toBe('B');
+
+    hot.loadData([{ name: 'X', __children: [{ name: 'X1' }] }, { name: 'Y' }]);
+
+    dm.addChildAtIndex(staleParent, 0, { name: 'NEW' });
+
+    // The first top-level row keeps its own children, and the grid and its index maps stay in step.
+    expect(tree()).toEqual(['X(X1)', 'Y']);
+    expect(hot.countRows()).toBe(3);
+    expect(hot.rowIndexMapper.getNumberOfIndexes()).toBe(3);
+    expect(beforeAddChild).not.toHaveBeenCalled();
+    expect(afterAddChild).not.toHaveBeenCalled();
+  });
 });
