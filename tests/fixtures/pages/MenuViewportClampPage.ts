@@ -219,8 +219,8 @@ export class MenuViewportClampPage {
   }
 
   /**
-   * Drags a finger up the menu through the browser's touch scrolling, which is a gesture of the
-   * compositor and not a series of DOM events. Chromium only.
+   * Drags a finger up the menu: a touch press at its center, a run of moves, and a release, as trusted touch
+   * events through CDP. `Input.synthesizeScrollGesture` moved nothing on the CI runners. Chromium only.
    *
    * @param {MenuKind} kind The menu.
    * @param {number} distance How far the finger moves, in pixels.
@@ -232,16 +232,23 @@ export class MenuViewportClampPage {
       throw new Error(`The ${kind} menu has no box`);
     }
 
-    const session = await this.page.context().newCDPSession(this.page);
-
-    await session.send('Input.synthesizeScrollGesture', {
-      x: Math.round(box.x + box.width / 2),
-      y: Math.round(box.y + box.height / 2),
-      yDistance: -distance,
-      gestureSourceType: 'touch',
-      speed: 800,
+    const startX = Math.round(box.x + box.width / 2);
+    const startY = Math.round(box.y + box.height / 2);
+    const steps = 12;
+    const cdp = await this.page.context().newCDPSession(this.page);
+    const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', y?: number) => cdp.send('Input.dispatchTouchEvent', {
+      type,
+      touchPoints: y === undefined ? [] : [{ x: startX, y, radiusX: 12, radiusY: 12, force: 1, id: 1 }],
     });
-    await session.detach();
+
+    await touch('touchStart', startY);
+
+    for (let step = 1; step <= steps; step++) {
+      await touch('touchMove', Math.round(startY - (distance * step) / steps));
+    }
+
+    await touch('touchEnd');
+    await cdp.detach();
   }
 
   /**
