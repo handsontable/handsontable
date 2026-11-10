@@ -319,18 +319,31 @@ the write and the replay when the escaped array reads the same as `#syncedConten
 - **`#syncedContent`** is the escaped array the last full write fed the engine, in physical row order, kept in step
   with the grid's own writes: a cell write (`syncChangeWithEngine()`, `#writeSourceChangesToEngine()`, the
   write-back of rewritten formulas) records the value the ENGINE got at the cell's place in the array
-  (`#recordSyncedCell()`), so a value a validator later rejects reads as a change and is written; a row insert or
-  removal splices it by physical index (an empty row reads as `null`s, so a `minSpareRows` row matches; the rows go
-  in with a loop, `insertEmptyRows()`, because a spread into `splice()` overflows the stack on a large insert); a
-  column insert or removal, a `moveCells` move, a NestedRows detach (and any row change while NestedRows is on), an
-  undo or redo restore, an adopted or loaded engine sheet, a rejected sheet, a sheet built from the engine, and a
-  column move on object rows or a projected `columns` list (read in visual order) drop it, and the next resync
-  writes in full. The array's column space, and for a projected `columns` list the place of each visual column, is
+  (`#recordSyncedCell()`), so a value a validator later rejects reads as a change and is written; an undo or redo
+  that only writes cells writes each one through the same path, so it keeps the record (an edit and its undo were
+  a full write and a replay of the order by the planned path, which moved a `SUM` range off its rows); a row insert
+  or removal follows it by physical index (an empty row reads as `null`s, so a `minSpareRows` row matches; the rows
+  go in with a loop, `insertEmptyRows()`, because a spread into `splice()` overflows the stack on a large insert,
+  and a removal compacts the array in one pass, because a splice per row or per span is quadratic on a large or
+  scattered removal: 50,000 of 100,000 rows took 5.1 s per row and 2.6 s per span for every other row, 3 ms in one
+  pass); a column insert or removal, a `moveCells` move, a NestedRows detach (and any row change while NestedRows
+  is on), an undo or redo restore that reloads the sheet, an adopted or loaded engine sheet, a rejected sheet, a
+  sheet built from the engine, a column move on object rows or a projected `columns` list (read in visual order),
+  and a reset of the grid's order (`IndexSyncer#onOrderReset()`, below) drop it, and the next resync writes in
+  full. The array's column space, and for a projected `columns` list the place of each visual column, is
   read once when it is written (`#readSyncedColumnSpace()`), because a write can run inside an engine batch, where
   a read through the data hooks throws, and so a recorded cell is a lookup.
 - **Equal is not enough**: the engine and the sheet id must be the recorded ones, and both axis syncers must hold
   the grid's order (`AxisSyncer#holdsGridOrder()`: not held, and the engine's order as the syncer knows it is the
-  grid's sequence), so a load that reset the grid's order still writes.
+  grid's sequence), so a load that reset the grid's order still writes. A reset no engine call follows (a
+  `columns` update without `data` runs `initIndexMappers()`, a sequence change with the `init` source) makes the
+  axis syncer store the reset order as the engine's, so `holdsGridOrder()` cannot see it: the syncer reports it
+  (`IndexSyncer#onOrderReset()`) and the record is dropped. Skipped, the engine kept the dragged rows while the
+  grid showed them in physical order, and every row read another row's values.
+- **Cells compare with `Object.is()`, a `Date` by its time, any other object as changed** (`areSyncedValuesEqual()`).
+  `!==` kept a sheet holding `NaN` from ever skipping, and took a `Date` the host changed in place
+  (`setFullYear()`) for the same value, since the record held the same object. The record keeps a copy of each
+  `Date` it is fed (`toSyncedValue()`).
 - **An order sent as one order drops the record** (`IndexSyncer#onOrderSent()`, called by the axis syncer after
   every `setRowOrder()`/`setColumnOrder()`: a sort, a cleared sort, `setIndexesSequence()`, an order the move
   guards or the cost choice sent as one, a hold's release). Such an order keeps each moved formula's relative
@@ -349,12 +362,15 @@ the write and the replay when the escaped array reads the same as `#syncedConten
   every in-flight change) and leaves `#sourceHasStaleFormulas` as it was (the engine still holds the rewritten
   text). The scan itself stays: a resync reads and escapes the source as before, and only the `setSheetContent()`
   and the order replay are saved.
-- **Cost:** a second array of the grid's size is kept, and every resync compares it cell by cell.
+- **Cost:** a second array of the grid's size is kept, and every resync compares it cell by cell. It is kept from
+  the first write, not from the first resync: started on the first resync, the first re-render after a drag would
+  write in full and replay the order by the planned path, the very case the record exists for.
 - **Known limits:** a host that writes into the grid's engine sheet directly (`engine.setCellContents()`) is not
   overwritten by a re-render that leaves the data unchanged: develop's resync replaced it with the source data on
   the wrapper path (vanilla JavaScript kept it until some rewrite there too). A host that mutates in place a cell
   of a row the grid then writes is still seen (cell-precise records). An object-rows grid whose columns were moved,
-  and a grid after an undo, write in full on the next re-render.
+  and a grid after an undo or a redo that changed its rows or columns (or the stale bit), write in full on the next
+  re-render.
 
 **A reload that does write takes an order reached by moves as moves.** Every full write (init, a resync whose data
 changed, a sheet switch) feeds the engine its content in physical order and then runs `setupSyncEndpoint()`, which
@@ -401,7 +417,8 @@ rules:
     (`manualRowMove: [2, 1, 0]` with `=ARRAYFORMULA(B1:C1*10)` in row 1 threw at init). A move displaces only the
     lines between its block and its target, and each move starts at or after the place the one before settled, so
     every line ever displaced lies between the lowest start or target and the highest block end or target, read
-    before the moves;
+    before the moves. The moves to an order base (`movesOnly`) are only tried, so a refused order warns once, from
+    the call that sends the order;
   - **the engine's `maxRows`/`maxColumns`**: a move adds `count` lines before it moves them, so the sheet plus the
     largest block must fit (`maxRows: 3` with 3 rows and a `manualRowMove` array threw at init);
   - **another sheet or a named expression on the engine** (global or scoped to this sheet): a reload replaces this
@@ -477,11 +494,14 @@ rules:
   '#REF!', 1001, 1000, 1000]` here and to `['#REF!', 1005, 1001, 1004, 1000]` on develop. With a reload between the
   sort and the drag the values stay as shown.
 - Pinned by `__tests__/loadOrderAsMoves.unit.js` (the skip on a re-render after a drag, an edit, a range, other
-  sheets and named expressions, a second grid; the host's in-place change; the array-formula, `maxRows` and
+  sheets and named expressions, a second grid, an edit and its undo, the same `data` array sent again, a removal of
+  scattered rows; the write after an undo that changed the rows, after a `columns` update without `data` on both
+  axes; `NaN` and a `Date` changed in place; the host's in-place change; the array-formula, `maxRows` and
   other-sheet fallbacks; the hold release; the moves under an initial sort, also after a reload in a hold; a few
   moves on a tall grid; init, both axes, the sort control), `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js`
   (moves on the mock engine, the cost fallback, a sort replayed as an order, the moves under an order replayed as
-  moves, one order after an insert, a sorted order from a new syncer and from a postponed sync),
+  moves, one order after an insert and after an insert and a removal that keep the length, one warning for a
+  refused order, a sorted order from a new syncer and from a postponed sync),
   `__tests__/indexSyncer/orderMoves.unit.js` (the smaller move, the block cap, the cost choice),
   `__tests__/utils.unit.ts` (`insertEmptyRows()`), `__tests__/deferredResync.unit.js` (a settings update that
   leaves the data unchanged writes nothing), `__tests__/plugins/initialManualColumnMove.spec.js` and
