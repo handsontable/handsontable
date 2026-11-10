@@ -25,7 +25,7 @@
       "id": "open-submenu",
       "action": {"press": "ArrowLeft"},
       "expect": [["left"]],
-      "note": "In a right-to-left grid ArrowLeft opens the submenu, toward the side it opens on, with its first item, Left, highlighted; NVDA reads it. Finding: VoiceOver with WebKit reads the parent item again, `Alignment expanded menu item`, as in the left-to-right context menu."
+      "note": "In a right-to-left grid ArrowLeft opens the submenu, toward the side it opens on, with its first item, Left, highlighted; NVDA reads it. Finding: VoiceOver with WebKit read only the parent item again, `Alignment expanded menu item`, in one run of two, as in the left-to-right context menu, and Left before the parent item in the other."
     },
     {
       "id": "close-submenu",

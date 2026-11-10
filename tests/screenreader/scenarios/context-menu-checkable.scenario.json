@@ -13,7 +13,7 @@
       "action": {"press": "Shift+F10"},
       "after": {"visible": ".htContextMenu .ht_master .htCore tbody td"},
       "expect": [["insert row above"], ["menu"]],
-      "note": "Shift+F10 on A1 opens the context menu with its first item highlighted. The setup gave A1 a top border, a read-only comment and the read-only state (the fixture's `markCellChecked()`), so the menu holds three checked items. Required: the highlighted item and the menu role (NVDA with Firefox says `menu`, VoiceOver `menu item`). Finding: NVDA with Chromium reads the menu as a `table` and never says menu, as it does for the context menu in grid-core."
+      "note": "Shift+F10 on A1 opens the context menu with its first item highlighted. The setup gave A1 a top border, a read-only comment and the read-only state (the fixture's `markCellChecked()`), so the menu holds three checked items. Required: the highlighted item and the menu role (NVDA with Firefox says `menu`, VoiceOver `menu item`). Finding: NVDA with Chromium reads the menu as a `table` and never says menu, as it does for the context menu in grid-core; VoiceOver with WebKit said nothing in one run of two."
     },
     {
       "id": "read-next-item",
