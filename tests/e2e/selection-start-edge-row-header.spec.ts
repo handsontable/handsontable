@@ -55,6 +55,25 @@ test.describe('Selection start edge next to an inline-start overlay', { tag: THE
       .toMatch(/^ht_clone_inline_start\/div\.wtBorder current/);
   });
 
+  test('a custom border on the first visible column keeps its start edge on the cell (frozen)', async() => {
+    const column = FIRST_VISIBLE_COLUMN;
+
+    await grid.scrollToColumn('frozen', column);
+    await grid.addCustomStartBorder('frozen', 2, column);
+
+    // No frozen overlay redraws a custom border, so its 1px edge stays on the cell's own first pixel.
+    await expect.poll(() => grid.gridlinePixelOwner('frozen', 2, column, 'start', { inside: true }))
+      .toMatch(/^ht_master\/div\.wtBorder/);
+  });
+
+  test('a custom border on the first visible row keeps its top edge on the cell (rows-frozen)', async() => {
+    await grid.scrollToRow('rows-frozen', FIRST_VISIBLE_ROW);
+    await grid.addCustomStartBorder('rows-frozen', FIRST_VISIBLE_ROW, 1);
+
+    await expect.poll(() => grid.gridlinePixelOwner('rows-frozen', FIRST_VISIBLE_ROW, 1, 'top', { inside: true }))
+      .toMatch(/^ht_master\/div\.wtBorder/);
+  });
+
   const SCROLLED: GridName[] = ['row-headers', 'frozen'];
 
   for (const name of SCROLLED) {

@@ -281,11 +281,10 @@ export class FixedColumnsEndLinePage {
         hot: { getCell(row: number, col: number): HTMLElement, isRtl(): boolean },
       };
       const rtl = hot.isRtl();
-      const band = (document.querySelector('.ht_clone_inline_end .wtHolder') as HTMLElement).getBoundingClientRect();
       const cell = hot.getCell(r, c).getBoundingClientRect();
       const y = cell.top + (cell.height / 2);
-      // The line is the band's first pixel; the selection lies on the other side of it.
-      const lineX = rtl ? band.right - 0.5 : band.left + 0.5;
+      // The column is lined up with the band, so its own last pixel is the line, under the band's first pixel.
+      const lineX = rtl ? cell.left + 0.5 : cell.right - 0.5;
       const step = rtl ? 1 : -1;
       const describe = (x: number) => {
         const el = document.elementFromPoint(x, y);
@@ -309,6 +308,51 @@ export class FixedColumnsEndLinePage {
         handleOnTop,
       };
     }, [row, column] as const);
+  }
+
+  /**
+   * Clears the selection and gives one cell a 1px custom border on its inline-end side.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   */
+  async addCustomEndBorder(row: number, column: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as {
+        hot: { deselectCell(): void, updateSettings(settings: object): void },
+      };
+
+      hot.deselectCell();
+      hot.updateSettings({ customBorders: [{ row: r, col: c, end: { width: 1, color: 'red' } }] });
+    }, [row, column] as const);
+  }
+
+  /**
+   * The master's custom border edge against the end clone's table, in one read: its width, and how much of it
+   * lies under the clone, which paints over it (`0`: all of it shows).
+   *
+   * @returns {Promise<{ width: number, underBand: number } | null>} `null` while no custom border is drawn.
+   */
+  async customEndBorderAgainstBand(): Promise<{ width: number; underBand: number } | null> {
+    return this.page.evaluate(() => {
+      const rtl = getComputedStyle(document.documentElement).direction === 'rtl';
+      const band = (document.querySelector('.ht_clone_inline_end .wtHolder table') as HTMLElement)
+        .getBoundingClientRect();
+      // The selection was cleared, so the only drawn border of the master is the custom one.
+      const edge = Array.from(document.querySelectorAll('.ht_master .wtBorder'))
+        .filter(el => getComputedStyle(el).display !== 'none')
+        .map(el => el.getBoundingClientRect())
+        .find(rect => rect.width > 0 && rect.height > rect.width);
+
+      if (!edge) {
+        return null;
+      }
+
+      return {
+        width: Math.round(edge.width),
+        underBand: Math.max(0, Math.round(rtl ? band.right - edge.left : edge.right - band.left)),
+      };
+    });
   }
 
   /**

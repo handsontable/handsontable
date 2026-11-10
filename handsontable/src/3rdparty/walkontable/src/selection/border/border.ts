@@ -1190,8 +1190,10 @@ class Border {
   isEdgeOnStartFreezeLine(axis: 'row' | 'column', fromIndex: number): boolean {
     const fixedCount = this.wot.getSetting(axis === 'row' ? 'fixedRowsTop' : 'fixedColumnsStart') as number;
 
+    // A custom border has no copy in the frozen overlays (the selection manager draws it only where its cell is
+    // rendered), so nothing would draw its half on the line: it keeps the shift onto its cell.
     return fixedCount > 0 && (fromIndex === fixedCount ||
-      (fromIndex > fixedCount && this.isTrackLinedUpWithFreezeLine(axis, 0, fromIndex)));
+      (fromIndex > fixedCount && !this.isCustomBorder() && this.isTrackLinedUpWithFreezeLine(axis, 0, fromIndex)));
   }
 
   /**
@@ -1210,6 +1212,16 @@ class Border {
     return fixedColumnsEnd > 0 &&
       toColumn < (this.wot.getSetting('totalColumns') as number) - fixedColumnsEnd &&
       this.isTrackLinedUpWithFreezeLine('column', 1, toColumn);
+  }
+
+  /**
+   * Tells whether this border draws a `customBorders` range rather than a selection.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isCustomBorder(): boolean {
+    return this.settings.selectionType === CUSTOM_SELECTION_TYPE;
   }
 
   /**
@@ -2316,6 +2328,18 @@ class Border {
           this.isStartGridlineCoveredByOverlay(fromTDEl, isRtl))) {
       inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
+    }
+
+    // The end clones draw a selection's end edge on the freeze line over themselves, but not a custom border's
+    // (the selection manager draws it only where its cell is rendered). So a custom border's end edge moves off
+    // the pixel the clones cover.
+    if (this.isCustomBorder() && this.isEdgeOnEndFreezeLine(corners[3])) {
+      const overlap = getFreezeLineOverlap(
+        this.wot.getSetting('fixedColumnsEnd') as number,
+        this.wot.getSetting('totalColumns') as number,
+      );
+
+      width = Math.max(width - overlap, 0);
     }
 
     // Resolved before the first style write below: narrowing the handle box reads cell geometry, and

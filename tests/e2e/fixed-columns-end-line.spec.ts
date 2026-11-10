@@ -112,6 +112,19 @@ for (const rtl of [false, true]) {
       });
     });
 
+    test('keeps a custom end border of a column the arrow key lines up with the band in view', async () => {
+      await open();
+
+      const column = await grid.arrowToBandEdge(1, 1, rtl);
+
+      await grid.addCustomEndBorder(3, column);
+      // Precondition: the column still ends at the line once the border is drawn.
+      await expect.poll(() => grid.masterColumnEndsAtLine()).toBe(true);
+
+      // Nothing redraws a custom border over the end clone, so its 1px edge stays off the line, inside its cell.
+      await expect.poll(() => grid.customEndBorderAgainstBand()).toEqual({ width: 1, underBand: 0 });
+    });
+
     test('drops the edge from the end clone once the column scrolls off the line', async () => {
       await open();
       await grid.arrowToBandEdge(1, 1, rtl);

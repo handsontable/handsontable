@@ -2274,7 +2274,12 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
     `Border#isEdgeOnEndFreezeLine`: the column is the last one the master shows whole and no column after it is
     partly visible, read from `Overlays#selectionVisibleRange`, the snapshot every overlay draws its selection from,
     never from cell rectangles (the clones draw before the master, so a geometry read can disagree between them).
-    Narrowing the edge off the covered pixel instead leaves a gray line beside a blue edge.
+    Narrowing the edge off the covered pixel instead leaves a gray line beside a blue edge. Two exceptions. A
+    `customBorders` edge has no copy in the clones (the selection manager draws a custom border only where its
+    cell is rendered), so it is the one that moves off the covered pixel, as it does on the start and top lines
+    (`Border#isCustomBorder`). And a selected merged cell reaches the border as its first cell only, so the end
+    column is the block's (`Border#getBlockEndColumn`): a block that starts on the lined-up column and runs into
+    the band does not end there, and the end clones must draw its outline and fill handle as usual.
   - The pointer on the line pixel hits the end clone's first cell, not the column before it.
   - An open editor on the column before the band ends right before the line, because
     `BaseEditor#getEditedCellRect` keeps the overlap out of its `maxWidth`; reaching 1px under the clone hid half

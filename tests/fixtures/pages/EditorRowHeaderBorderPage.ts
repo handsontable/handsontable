@@ -273,20 +273,31 @@ export class EditorRowHeaderBorderPage {
    * @param {number} row The visual row.
    * @param {number} col The visual column.
    * @param {'start'|'top'} side Which gridline of the cell.
+   * @param {object} [options] The read options.
+   * @param {boolean} [options.inside] Read the cell's own first pixel on that side instead.
    * @returns {Promise<string>}
    */
-  async gridlinePixelOwner(grid: GridName, row: number, col: number, side: 'start' | 'top'): Promise<string> {
-    return this.page.evaluate(([name, r, c, gridline]) => {
+  async gridlinePixelOwner(
+    grid: GridName, row: number, col: number, side: 'start' | 'top', { inside = false } = {},
+  ): Promise<string> {
+    return this.page.evaluate(([name, r, c, gridline, insideCell]) => {
       const hot = (window as unknown as Record<string, {
         getCell: (row: number, col: number, topmost?: boolean) => HTMLElement,
         isRtl: () => boolean,
       }>)[`hot_${name.replace(/-/g, '_')}`];
+      // A hit test needs the cell inside the window. Only the window moves, so the grid keeps its own scroll.
+      const before = hot.getCell(r, c, true).getBoundingClientRect();
+
+      window.scrollBy(before.left - (window.innerWidth / 2), before.top - (window.innerHeight / 2));
+
       const cell = hot.getCell(r, c, true).getBoundingClientRect();
+      // The gridline pixel in front of the cell, or with `inside` the cell's own first pixel.
+      const step = insideCell ? 0.5 : -0.5;
       let x = cell.left + (cell.width / 2);
-      let y = cell.top - 0.5;
+      let y = cell.top + step;
 
       if (gridline === 'start') {
-        x = hot.isRtl() ? cell.right + 0.5 : cell.left - 0.5;
+        x = hot.isRtl() ? cell.right - step : cell.left + step;
         y = cell.top + (cell.height / 2);
       }
 
@@ -294,7 +305,23 @@ export class EditorRowHeaderBorderPage {
       const overlay = element?.closest('.handsontable')?.className.match(/ht_clone_\w+|ht_master/)?.[0] ?? 'none';
 
       return `${overlay}/${element?.tagName.toLowerCase()}.${element?.className ?? ''}`;
-    }, [grid, row, col, side] as const);
+    }, [grid, row, col, side, inside] as const);
+  }
+
+  /**
+   * Gives one cell of a grid a 1px custom border on its top and inline-start sides.
+   *
+   * @param {GridName} grid The grid.
+   * @param {number} row The visual row.
+   * @param {number} col The visual column.
+   */
+  async addCustomStartBorder(grid: GridName, row: number, col: number): Promise<void> {
+    await this.page.evaluate(([name, r, c]) => {
+      (window as unknown as Record<string, { updateSettings: (settings: object) => void }>)[
+        `hot_${name.replace(/-/g, '_')}`].updateSettings({
+        customBorders: [{ row: r, col: c, top: { width: 1, color: 'red' }, start: { width: 1, color: 'red' } }],
+      });
+    }, [grid, row, col] as const);
   }
 
   /**
