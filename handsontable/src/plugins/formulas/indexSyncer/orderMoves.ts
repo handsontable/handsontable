@@ -9,19 +9,25 @@ export interface OrderMove {
 }
 
 /**
- * How much a reorder sent as moves may cost, in cells moved: the number of moves times the cells the sheet
- * holds (lines on the moved axis times lines on the other axis). The engine rewrites the sheet on every move,
- * so a move costs about as much as the sheet is large. Measured on HyperFormula 3.3.0 (Node, one formula per
- * cell, the worst-case move of the last line to the front): 60 to 660 ns per cell and move, with outliers of
- * up to 3 us in long batches (250 moves of 2,000 x 4 took 5.0 s, 50 moves of 10,000 x 4 took 5.9 s). At this
- * budget a 2,000 x 4 sheet takes up to 25 moves (23 ms), a 10,000 x 4 sheet 5 (26 to 71 ms), and a
- * 5,000 x 30 or a 10,000 x 20 sheet 1 (11 ms and 24 ms). Past it the reorder is sent as one order.
+ * The most moves a reorder is sent as. HyperFormula slows down sharply past a few dozen moves in one batch
+ * (measured on 3.3.0: 40 moves of a 2,000 x 4 sheet took 21 ms, 50 took 216 to 988 ms; 30 moves of 10,000 x 4
+ * took 178 ms, 50 took 5.9 s), so a reorder that needs more goes as one order.
  */
-export const ORDER_MOVES_BUDGET = 200000;
+export const ORDER_MOVES_MAX = 30;
 
 /**
- * Plans the moves that put each engine line at its new place, or returns `null` when they would cost more
- * than the budget allows.
+ * How many lines a move may shift for the price of one line changing place in one order. A move rewrites the
+ * lines it shifts, about 0.05 to 0.2 us per cell on HyperFormula 3.3.0; one order rewrites every line that
+ * changes place, about 4 to 8 us per cell, and more per line as more lines change place (100,000 x 2 with a
+ * formula per row: 6,001 lines in 72 ms, 60,001 in 2.9 s; 200,000 x 2, 100,001 lines in 8.0 s). Both scale with
+ * the other axis, so the comparison does not depend on it. The ratio is set below the measured one (20 to 100),
+ * so a reorder goes as moves only where they are clearly the cheaper call.
+ */
+export const LINES_PER_CHANGED_LINE = 40;
+
+/**
+ * Plans the moves that put each engine line at its new place, or returns `null` when more than `maxMoves`
+ * moves are needed.
  *
  * Walking the places from the start, the line due at a place is moved up to it together with the lines that
  * follow it in both the current and the new order, so an order a few moves produced (a `manualRowMove` array,
@@ -29,17 +35,11 @@ export const ORDER_MOVES_BUDGET = 200000;
  * always moves up and its `target` is the place itself.
  *
  * @param {number[]} engineOrder The new place of each engine line, a permutation of `0..n - 1`.
- * @param {number} [lineSize=1] How many cells one line holds (the sheet's size along the other axis).
- * @param {number} [budget=ORDER_MOVES_BUDGET] The most the moves may cost (moves times cells).
+ * @param {number} [maxMoves=ORDER_MOVES_MAX] The most moves to plan.
  * @returns {OrderMove[]|null}
  */
-export function planOrderMoves(
-  engineOrder: number[],
-  lineSize: number = 1,
-  budget: number = ORDER_MOVES_BUDGET,
-): OrderMove[] | null {
+export function planOrderMoves(engineOrder: number[], maxMoves: number = ORDER_MOVES_MAX): OrderMove[] | null {
   const size = engineOrder.length;
-  const maxMoves = size === 0 ? 0 : Math.floor(budget / (size * Math.max(lineSize, 1)));
   const lineAtPlace = new Array<number>(size);
   const moves: OrderMove[] = [];
   let currentLines = Array.from({ length: size }, (_, place) => place);
@@ -74,4 +74,33 @@ export function planOrderMoves(
   }
 
   return moves;
+}
+
+/**
+ * Plans the moves for a reorder when they cost less than one order (`setRowOrder()`/`setColumnOrder()`),
+ * and returns `null` when one order is the cheaper call. A move shifts the lines between its block and its
+ * target, about as many as the sheet is long in the worst case; one order rewrites every line that changes
+ * place. Moves are chosen while their count times the axis length stays within `LINES_PER_CHANGED_LINE`
+ * times the lines that change place, and never past `ORDER_MOVES_MAX` moves.
+ *
+ * @param {number[]} engineOrder The new place of each engine line, a permutation of `0..n - 1`.
+ * @returns {OrderMove[]|null}
+ */
+export function chooseOrderMoves(engineOrder: number[]): OrderMove[] | null {
+  const size = engineOrder.length;
+  let changedLines = 0;
+
+  engineOrder.forEach((place, line) => {
+    if (place !== line) {
+      changedLines += 1;
+    }
+  });
+
+  if (size === 0 || changedLines === 0) {
+    return [];
+  }
+
+  const maxMoves = Math.min(ORDER_MOVES_MAX, Math.floor((LINES_PER_CHANGED_LINE * changedLines) / size));
+
+  return planOrderMoves(engineOrder, maxMoves);
 }

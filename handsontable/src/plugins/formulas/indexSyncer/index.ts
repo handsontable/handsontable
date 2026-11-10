@@ -153,7 +153,7 @@ class IndexSyncer {
 
   /**
    * Reports that an axis sent one order to the engine (a sort, a cleared sort, `setIndexesSequence()`, an
-   * order the move guards or the budget sent as one). Such an order keeps each moved formula's relative
+   * order the move guards or the cost choice sent as one). Such an order keeps each moved formula's relative
    * offsets, so the engine's formula text no longer follows the data.
    */
   onOrderSent() {

@@ -155,7 +155,7 @@ describe('AxisSyncer initial order sync', () => {
       expect(engine.held.rows).toEqual(['r2', 'r3', 'r4', 'r0', 'r1']);
     });
 
-    it('should send an initial order too scrambled for the move budget as one order', () => {
+    it('should send an initial order whose moves cost more than one order as one order', () => {
       const size = 2000;
       const sequence = Array.from({ length: size }, (_, place) => (place * 7) % size);
       const engine = createMockEngine({ width: 1, height: size });
@@ -227,6 +227,56 @@ describe('AxisSyncer initial order sync', () => {
       postponedCallbacks.forEach(callback => callback());
 
       expect(engine.calls.moveRows).toEqual([]);
+      expect(engine.calls.setRowOrder.length).toBe(2);
+    });
+  });
+
+  describe('an order sent on top of moves', () => {
+    it('should replay the moves as moves and only the rest as one order', () => {
+      const engine = createMockEngine({ width: 2, height: 5 });
+
+      engine.held.rows = ['r0', 'r1', 'r2', 'r3', 'r4'];
+
+      const indexMapper = createMockIndexMapper([2, 3, 4, 0, 1]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+
+      expect(engine.calls.moveRows.length).toBe(1);
+
+      // A sort on top of the moved order reaches the engine as an order.
+      indexMapper.state.indexesSequence = [4, 3, 2, 1, 0];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
+
+      expect(engine.calls.setRowOrder.length).toBe(1);
+
+      // The reload feeds the content in physical order again.
+      engine.held.rows = ['r0', 'r1', 'r2', 'r3', 'r4'];
+      axisSyncer.init();
+
+      // The moves are replayed as moves, and the sort's part as one order, as the grid reached it.
+      expect(engine.calls.moveRows.length).toBe(2);
+      expect(engine.calls.moveRows[1]).toEqual(engine.calls.moveRows[0]);
+      expect(engine.calls.setRowOrder.length).toBe(2);
+      expect(engine.calls.setRowOrder[1]).toEqual(engine.calls.setRowOrder[0]);
+      expect(engine.held.rows).toEqual(['r4', 'r3', 'r2', 'r1', 'r0']);
+    });
+
+    it('should send one order on a reload when lines were inserted after the order', () => {
+      const engine = createMockEngine({ width: 2, height: 5 });
+      const indexMapper = createMockIndexMapper([2, 3, 4, 0, 1]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [4, 3, 2, 1, 0];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
+      // An insert renumbers the lines, and the recorded moves no longer describe them.
+      engine.dimensions.height = 6;
+      indexMapper.state.indexesSequence = [5, 4, 3, 2, 1, 0];
+      axisSyncer.getIndexesChangeSyncMethod()('insert');
+      axisSyncer.init();
+
+      expect(engine.calls.moveRows.length).toBe(1);
       expect(engine.calls.setRowOrder.length).toBe(2);
     });
   });

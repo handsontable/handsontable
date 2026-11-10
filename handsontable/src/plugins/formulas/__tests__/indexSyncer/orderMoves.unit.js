@@ -1,4 +1,4 @@
-import { planOrderMoves, ORDER_MOVES_BUDGET } from '../../indexSyncer/orderMoves';
+import { planOrderMoves, chooseOrderMoves, ORDER_MOVES_MAX } from '../../indexSyncer/orderMoves';
 
 /**
  * Applies moves the way `moveRows()` takes them and returns the lines in their new order.
@@ -100,25 +100,58 @@ describe('planOrderMoves', () => {
     expect(applyMoves(size, moves)).toEqual(lineAtPlace);
   });
 
-  it('gives up when the moves would cost more than the budget', () => {
+  it('gives up past the most moves it may plan', () => {
     const size = 2000;
     // Every line takes another line's place in a scrambled order: no two lines stay neighbors.
     const lineAtPlace = Array.from({ length: size }, (_, place) => (place * 7) % size);
 
-    expect(planOrderMoves(toEngineOrder(lineAtPlace))).toBeNull();
-    expect(planOrderMoves(toEngineOrder(lineAtPlace), 1, Infinity).length).toBeGreaterThan(ORDER_MOVES_BUDGET / size);
+    expect(planOrderMoves(toEngineOrder(lineAtPlace), ORDER_MOVES_MAX)).toBeNull();
+    expect(planOrderMoves(toEngineOrder(lineAtPlace), Infinity).length).toBeGreaterThan(ORDER_MOVES_MAX);
+  });
+});
+
+/**
+ * The grid order after one-row drags: the line `(drag + 1) * gap` moved to place `drag`, for each drag.
+ *
+ * @param {number} size Number of lines.
+ * @param {number} drags Number of drags.
+ * @param {number} gap Lines between the dragged lines.
+ * @returns {number[]} The line at each place.
+ */
+function afterDrags(size, drags, gap) {
+  const lineAtPlace = Array.from({ length: size }, (_, index) => index);
+
+  for (let drag = 0; drag < drags; drag += 1) {
+    const [line] = lineAtPlace.splice((drag + 1) * gap, 1);
+
+    lineAtPlace.splice(drag, 0, line);
+  }
+
+  return lineAtPlace;
+}
+
+describe('chooseOrderMoves', () => {
+  it('sends moves where one order would shift far more lines than the moves cost', () => {
+    // 100,000 rows, six drags 10,000 rows apart: 60,001 lines change place (2.9 s as one order, 65 ms as moves).
+    const lineAtPlace = afterDrags(100000, 6, 10000);
+    const moves = chooseOrderMoves(toEngineOrder(lineAtPlace));
+
+    expect(moves.length).toBe(6);
+    expect(applyMoves(100000, moves)).toEqual(lineAtPlace);
   });
 
-  it('weighs the lines of the other axis into the cost of a move', () => {
-    const size = 10000;
-    // Two drags: a block to the top, a line to the middle.
-    let lineAtPlace = applyMoves(size, [{ start: 9000, count: 3, target: 0 }]);
+  it('sends a single drag on a very long axis as a move', () => {
+    const lineAtPlace = afterDrags(600000, 1, 300000);
 
-    lineAtPlace = lineAtPlace.filter(line => line !== 42);
-    lineAtPlace.splice(5000, 0, 42);
+    expect(chooseOrderMoves(toEngineOrder(lineAtPlace)).length).toBe(1);
+  });
 
-    expect(planOrderMoves(toEngineOrder(lineAtPlace), 1)).not.toBeNull();
-    // Twenty columns make each move cost the whole budget.
-    expect(planOrderMoves(toEngineOrder(lineAtPlace), 20)).toBeNull();
+  it('sends one order where the moves would cost more than the order', () => {
+    // 2,000 rows, 20 drags 10 rows apart: 20 moves of the whole sheet against 220 lines that change place.
+    expect(chooseOrderMoves(toEngineOrder(afterDrags(2000, 20, 10)))).toBeNull();
+  });
+
+  it('sends one order past the most moves a batch takes without slowing down', () => {
+    expect(chooseOrderMoves(toEngineOrder(afterDrags(100000, ORDER_MOVES_MAX + 1, 1000)))).toBeNull();
   });
 });

@@ -169,6 +169,30 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
     expect(moveRows).not.toHaveBeenCalled();
   });
 
+  it('shows the same values on every re-render with a move array and an initial sort', () => {
+    const hot = createGrid({
+      manualRowMove: [2, 3, 4, 0, 1],
+      columnSorting: { initialConfig: { column: 0, sortOrder: 'desc' } },
+    });
+    const atInit = hot.getDataAtCol(1);
+
+    hot.updateSettings({});
+
+    expect(hot.getDataAtCol(1)).toEqual(atInit);
+
+    hot.updateSettings({});
+    hot.updateSettings({});
+
+    expect(hot.getDataAtCol(1)).toEqual(atInit);
+
+    // A cleared sort is repaired on the next re-render, back to what the move array alone shows.
+    hot.getPlugin('columnSorting').clearSort();
+    hot.updateSettings({});
+
+    expect(hot.getDataAtCol(0)).toEqual([3, 4, 5, 1, 2]);
+    expectEveryRowReadsItsRecord(hot);
+  });
+
   describe('a re-render after a sort is cleared', () => {
     /**
      * @returns {Array[]} Formulas that a sort by the third column moves across the cells they read.

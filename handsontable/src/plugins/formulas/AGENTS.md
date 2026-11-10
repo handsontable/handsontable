@@ -332,7 +332,7 @@ array reads the same as `#syncedContent`:
   grid's sequence), so a load that reset the grid's order still writes.
 - **An order sent as one order drops the record** (`IndexSyncer#onOrderSent()`, called by the axis syncer after
   every `setRowOrder()`/`setColumnOrder()`: a sort, a cleared sort, `setIndexesSequence()`, an order the move
-  guards or the budget sent as one, a hold's release). Such an order keeps each moved formula's relative offsets
+  guards or the cost choice sent as one, a hold's release). Such an order keeps each moved formula's relative offsets
   (DEV-917), so the engine's text stops following the data, and only a write of the data repairs it once the
   order is gone. Skipping it made the damage permanent: sort, re-render, `clearSort()`, re-render showed `#REF!`
   where develop showed the value, and `getSourceData()` returned the engine's `=#REF!+A4`. The next resync
@@ -367,12 +367,23 @@ past the data. Sent as one order, a `manualRowMove: [2, 3, 4, 0, 1]` array showe
 kept it (the move path). The rules:
 
 - **The kind of order follows how the grid reached it.** `#orderShifts` records what the engine took as an order
-  (a sort, `setIndexesSequence()`); a move, an insert and a removal leave nothing there. `#applyInitialOrder()`
+  (a sort, `setIndexesSequence()`); a move, an insert and a removal leave nothing there. So a reload reproduces
+  what the grid showed only for an order reached by drags alone, or by drags and then orders: an insert or a
+  removal after a drag leaves no shifts either, and the planned moves then take another path than the drags
+  (`moveRow(4, 0)`, `alter('insert_row_above', 2, 1)`, a data-changing reload turned column B from
+  `[30, 20, -, 40, 10, 50]` into `[20, 0, -, 30, 10, 40]`; develop's one order is wrong there too). `#applyInitialOrder()`
   reads `#orderShifts.size === 0` BEFORE it resets the stored order. A syncer built after a sort has no shifts, so
   the grid answers too: `IndexSyncer#isOrderSorted()` asks ColumnSorting and MultiColumnSorting (through
   `hot.getPlugin()`, `#isRowOrderSorted()` in the plugin), and a sorted row order goes as one order. A postponed
   `#applyInitialOrder()` carries the kind read when it was postponed, because by then the shifts are reset.
-  **A sort keeps the DEV-917 behavior on a reload that writes**, and a sort always makes the next resync write
+  **An order sent on top of moves is replayed the way the grid reached it** (`#orderBase`): when the first
+  order since the engine's order was last physical is sent, the axis syncer records the order the moves had
+  reached, and a reload sends the moves to it as moves (when they can go as moves) and only the rest as one
+  order. A `manualRowMove` array with a `columnSorting.initialConfig` showed one set of values at init and
+  another after the first `updateSettings({})`; it now shows the init values on every re-render. The record is
+  dropped with the shifts, by an adopted engine order, and by an insert or a removal, whose renumbering the
+  recorded moves no longer describe: the reload then sends one order, as develop does. A drag after the sort is
+  folded into that one order too. **A sort keeps the documented sort limitation on a reload that writes**, and a sort always makes the next resync write
   (an order sent drops the record, above), so a re-render of a sorted grid replays the sort as one order exactly as
   develop does, and a re-render after the sort is cleared repairs what the sort rewrote. An initial
   `columnSorting.initialConfig` sorts after the engine is set up, so it reaches the engine as an order. A sort
@@ -392,13 +403,28 @@ kept it (the move path). The rules:
   - **another sheet or a named expression on the engine** (global or scoped to this sheet): a reload replaces
     this sheet only, so their references into it already follow the order, and a move would move them again;
     one order leaves them alone (coarse: no per-line dependents check);
-  - **the budget** (`ORDER_MOVES_BUDGET`, 200,000): moves times the sheet's cells (lines times the other axis).
-    Measured on HyperFormula 3.3.0 in Node, one formula per cell, the worst-case move (the last line to the
-    front): 60 to 660 ns per cell and move, with long batches running away (250 moves of 2,000 x 4 took 5.0 s,
-    50 moves of 10,000 x 4 took 5.9 s, against 0.17 s and 2.1 s for one reversing `setRowOrder`). At the budget,
-    2,000 x 4 takes up to 25 moves (23 ms measured), 10,000 x 4 five (26 to 71 ms), 5,000 x 30 and 10,000 x 20
-    one (11 ms and 24 ms), so the worst case stays near 0.1 s. Past it the order goes as one, which records its
-    shifts like a sort. Known limit: such an order keeps the old `#REF!` behavior.
+  - **the cost** (`chooseOrderMoves()`): moves go only where they are clearly cheaper than one order. A move
+    rewrites the lines it shifts (up to the whole axis); one order rewrites every line that changes place, and
+    more per line as more lines change. Moves are chosen while their count times the axis length stays within
+    `LINES_PER_CHANGED_LINE` (40) times the lines that change place, and never past `ORDER_MOVES_MAX` (30) moves,
+    where HyperFormula's batch slows down sharply (40 moves of 2,000 x 4 took 21 ms, 50 took 216 to 988 ms).
+    Measured on HyperFormula 3.3.0 in Jest, a formula per cell reading 7 rows down (`=A{r+7}+A{r}`), one-row
+    drags (one order, the develop path, against the chosen call):
+
+    | Shape, drags | One order | Chosen |
+    |---|---|---|
+    | 100,000 x 2, 6 drags 1,000 apart | 88 ms | one order (88 ms; the moves take about 66 ms) |
+    | 100,000 x 2, 6 drags 10,000 apart | 3.2 s | 6 moves, 70 ms |
+    | 200,000 x 2, 1 drag 100,000 rows | 9.4 s | 1 move, 26 ms |
+    | 2,000 x 4, 10 drags 100 apart | 16 ms | 10 moves, 7 ms |
+    | 2,000 x 4, 20 drags 10 apart | 4 ms | one order |
+    | 10,000 x 4, 6 drags 1,000 apart | 160 ms | 6 moves, 15 ms |
+    | 5,000 x 30, 3 drags 1,000 apart | 540 to 610 ms | 3 moves, 25 ms |
+    | 10,000 x 20, 3 drags 2,000 apart | 880 to 910 ms | 3 moves, 30 ms |
+    | 10,000 x 20, 1 drag 9,000 rows | 1.5 s | 1 move, 12 ms |
+
+    A reorder the choice sends as one order records its shifts like a sort. Known limit: such an order keeps
+    the old `#REF!` behavior.
 - **The hold's release follows the reload rule** (`AxisSyncer#setOrderHeld(false)`). The engine fed its content
   again inside `runWithEngineOrderHeld()` (`#reloadedWhileHeld`, set by `#applyInitialOrder()` while held) holds it
   in physical order, so the release sends an order reached by moves as moves, unless an order change other than
@@ -415,8 +441,9 @@ kept it (the move path). The rules:
 - Pinned by `__tests__/loadOrderAsMoves.unit.js` (the skip on a re-render after a drag, an edit, a range, other
   sheets and named expressions, a second grid; the host's in-place change; the array-formula, `maxRows` and
   other-sheet fallbacks; the hold release; init, both axes, the sort control),
-  `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js` (moves on the mock engine, the budget fallback, a sort
-  replayed as an order, a sorted order from a new syncer and from a postponed sync),
+  `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js` (moves on the mock engine, the cost fallback, a sort
+  replayed as an order, the moves under an order replayed as moves, a sorted order from a new syncer and from a
+  postponed sync),
   `__tests__/indexSyncer/orderMoves.unit.js`, `__tests__/deferredResync.unit.js` (a settings update that leaves the
   data unchanged writes nothing), `__tests__/plugins/initialManualColumnMove.spec.js` and
   `tests/e2e/formulas-load-order-moves.spec.ts`.
