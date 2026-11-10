@@ -69,8 +69,8 @@ const PARTWAY_COLUMN = 40;
         // A range that starts in the end column has its focus cell on the line, so its 2px border shows.
         await expect.poll(() => grid.elementOnFreezeLine('bottom', 99))
           .toMatch(/^ht_clone_bottom_inline_end_corner\/div\.wtBorder (area|current)/);
-        // Outside the end band no selection is drawn, so no edge may reach past its first cell.
-        await expect.poll(() => grid.endCornerEdgeOverhang('bottom', 99)).toBe(0);
+        // Outside the end band no selection is drawn, so the edge starts on the band's own edge.
+        await expect.poll(() => grid.endCornerEdgeOffsets('bottom', 99)).toEqual([0]);
       });
 
       test(`draws the top edge inside the freeze line, scrolled partway, for ${name}`, async () => {
@@ -79,8 +79,43 @@ const PARTWAY_COLUMN = 40;
 
         await expect.poll(() => grid.elementOnFreezeLine('top', 99))
           .toMatch(/^ht_clone_top_inline_end_corner\/div\.wtBorder (area|current)/);
-        await expect.poll(() => grid.endCornerEdgeOverhang('top', 99)).toBe(0);
+        await expect.poll(() => grid.endCornerEdgeOffsets('top', 99)).toEqual([0]);
       });
+    });
+
+    [
+      { line: 'bottom' as const, row: 98, select: [92, 95, 98, 99] as const },
+      { line: 'top' as const, row: 1, select: [1, 95, 5, 99] as const },
+    ].forEach(({ line, row, select }) => {
+      test(`starts the ${line} edge on the border before the end band, scrolled to the end`, async () => {
+        await grid.scrollTo(row, 98);
+        await grid.selectCells(...select);
+
+        // Here the last scrollable column's border is the freeze line, so the edge starts one pixel early.
+        await expect.poll(() => grid.endCornerEdgeOffsets(line, 99)).toEqual([1]);
+      });
+
+      test(`moves the ${line} edge onto the end band when scrolled from the end to partway`, async () => {
+        // Selected at the end, then scrolled: the edge must follow the new scroll position at once, not
+        // keep the one from before the scroll until the next render.
+        await grid.scrollTo(row, 98);
+        await grid.selectCells(select[0], 99, select[2], 99);
+        await expect.poll(() => grid.endCornerEdgeOffsets(line, 99)).toEqual([1]);
+
+        await grid.scrollTo(row, PARTWAY_COLUMN);
+
+        await expect.poll(() => grid.endCornerEdgeOffsets(line, 99)).toEqual([0]);
+      });
+    });
+
+    test('starts the edge on the end band for a numeric end column, scrolled partway', async () => {
+      // A numeric cell is `dir="ltr"` in an RTL grid too, so its inline-start border is not on the grid's
+      // inline-start side.
+      await grid.goto({ rtl, numericEnd: true });
+      await grid.selectCells(92, 95, 98, 99, { scrollToCell: false });
+      await grid.scrollTo(98, PARTWAY_COLUMN);
+
+      await expect.poll(() => grid.endCornerEdgeOffsets('bottom', 99)).toEqual([0]);
     });
 
     test('draws no edge in the end corners for a selection away from the freeze lines', async () => {

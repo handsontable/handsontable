@@ -2226,9 +2226,13 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   column draws. That holds in the end corners only while the band stands on the last scrollable column
   (scrolled to the end). Scrolled partway, the band's first cell draws the end freeze line itself, and the
   corner's holder does not clip, so the shifted edge showed a 1px stub outside the selection.
-  `Border#getFreezeEdgeStartShift` reads the cell's own inline-start border there. The partway cases in the
-  spec measure the overhang with a box read: a hit test half a pixel off the band's edge returns the
-  corner's cell either way.
+  `Border#getFreezeEdgeStartShift` asks `InlineEndOverlay#isFreezeLineShared()` there, which reads the
+  current scroll position. Do not read the cell's computed border instead: `htFreezeLineShared` is toggled
+  only after the clones draw, so the border describes the previous scroll position (a scroll from the end
+  to partway kept the stub until the next render), and an RTL numeric or time cell (`dir="ltr"`) carries
+  its inline-start border on the left. The spec measures the signed offset of the corner's edges against
+  the band's first cell, with the side taken from the grid's direction: a hit test half a pixel off the
+  band's edge returns the corner's cell either way.
 - **Known limitation: a selection that crosses the freeze line shows a seam line, on both sides.** An area
   that spans the last scrollable column and the first end column is drawn once by the master and once by the
   end clone, each clamped to what it renders, so the clone draws an edge on its own start boundary inside the

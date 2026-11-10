@@ -1332,7 +1332,7 @@ class Border {
     const boundaryOffset = geometryReader.offset(boundaryTD);
     const endOffset = geometryReader.offset(boundaryEndTD);
 
-    const startShift = this.getFreezeEdgeStartShift(boundaryTD, firstColumn, isRtl);
+    const startShift = this.getFreezeEdgeStartShift(firstColumn);
 
     this.disappear();
     style.top = `${resolveTop(boundaryTD, boundaryOffset, containerOffset.top)}px`;
@@ -1360,17 +1360,17 @@ class Border {
   /**
    * Resolves how far a row freeze edge starts before its first cell: `1` overlaps the border shared with
    * the previous column, mirroring `appear`, and `0` starts on the cell itself. Column 0 has no previous
-   * column. In the end corners the first cell draws the end freeze line itself while the column before
-   * the band is not rendered next to it (the grid is not scrolled to its end), and a shift would then
-   * stick out one pixel past that line, outside the selection.
+   * column. In the end corners the first cell draws the end freeze line itself unless the master draws it
+   * (`InlineEndOverlay#isFreezeLineShared`, scrolled to the end), and a shift would then stick out one
+   * pixel past that line, outside the selection. Asked of the overlay, not read from the cell's border:
+   * the class that takes that border off is set only after the clones draw, so the border describes the
+   * previous scroll position, and an RTL numeric or time cell (`dir="ltr"`) has it on the other side.
    *
    * @private
-   * @param {HTMLElement} boundaryTD The first cell the edge spans.
    * @param {number} firstColumn The first column index the edge spans.
-   * @param {boolean} isRtl Whether the grid is rendered right-to-left.
    * @returns {number}
    */
-  getFreezeEdgeStartShift(boundaryTD: HTMLElement, firstColumn: number, isRtl: boolean): number {
+  getFreezeEdgeStartShift(firstColumn: number): number {
     if (firstColumn === 0) {
       return 0;
     }
@@ -1378,9 +1378,7 @@ class Border {
       return 1;
     }
 
-    const style = this.wot.domBindings.geometryReader.getComputedStyle(boundaryTD);
-
-    return parseFloat(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth']) > 0 ? 0 : 1;
+    return (this.wot.cloneSource ?? this.wot).wtOverlays.inlineEndOverlay.isFreezeLineShared() ? 1 : 0;
   }
 
   /**
@@ -2360,8 +2358,9 @@ class Border {
     // A boundary edge owned by the frozen overlay must be hidden on every other overlay that would
     // redraw it in its regular flow, so the lines don't stack into a doubled border. The row-freeze
     // edge is hidden on the master and `inline_start`; the column-freeze edge on the master and `top`.
-    // The `inline_end` clone keeps its copy of a row-freeze edge: its holder clips it at the freeze line,
-    // and the end corners draw the end-column slice on top of it.
+    // The `inline_end` clone keeps its copy of a row-freeze edge: the end corners (z-index 150 and 180,
+    // against its 120) draw the end-column slice over it, which the hit test on the freeze line in
+    // `tests/e2e/frozen-seam-edge-end-corners.spec.ts` pins.
     const overlayName = wtTable.name;
 
     // The master keeps drawing the seam top edge (its straddling lower half stays visible below the

@@ -4,6 +4,7 @@ import { awaitBundle, awaitFixtureBuilt } from '../bundle';
 type HotWindow = {
   hot: {
     countRows(): number;
+    isRtl(): boolean;
     scrollViewportTo(options: { row: number; col: number }): boolean;
     selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): boolean;
     getCell(row: number, column: number, topmost?: boolean): HTMLElement | null;
@@ -39,12 +40,16 @@ export class FrozenSeamEdgeEndCornersPage {
    *
    * @param {object} options The fixture options.
    * @param {boolean} [options.rtl] Whether the grid is laid out right to left.
+   * @param {boolean} [options.numericEnd] Whether the last column is a numeric one (`dir="ltr"` cells).
    */
-  async goto({ rtl = false }: { rtl?: boolean } = {}): Promise<void> {
+  async goto({ rtl = false, numericEnd = false }: { rtl?: boolean, numericEnd?: boolean } = {}): Promise<void> {
     const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
 
     if (rtl) {
       params.set('rtl', '1');
+    }
+    if (numericEnd) {
+      params.set('numericEnd', '1');
     }
     await this.page.goto(`/tests/fixtures/demo/frozen-seam-edge-end-corners.html?${params}`);
     await awaitBundle(this.page);
@@ -116,16 +121,19 @@ export class FrozenSeamEdgeEndCornersPage {
   }
 
   /**
-   * Measures how far, in pixels, the end corner's selection edges on a freeze line reach past the end
-   * band's inline-start boundary (the left edge of the band's first cell, the right one in RTL). The corner's
-   * holder does not clip, so a positive value is a stub the user sees outside the band. A box read rather
-   * than a hit test: a point half a pixel off the boundary can resolve to the cell on either side of it.
+   * Measures where the end corner's selection edges on a freeze line start, against the end band's
+   * inline-start boundary (the left edge of the band's first cell, the right one in RTL): one signed offset
+   * in pixels per distinct start. `1` is one pixel outside the band, on the border of the column before it,
+   * `0` is on the band's own edge, and a negative value leaves a gap inside the band. The corner's holder
+   * does not clip, so an edge outside the band is seen there. The side is the grid's direction, never the
+   * cell's: a numeric cell is `dir="ltr"` in an RTL grid. A box read rather than a hit test: a point half a
+   * pixel off the boundary can resolve to the cell on either side of it.
    *
    * @param {RowFreezeLine} line The freeze line, which picks the corner (`top` or `bottom` inline-end).
    * @param {number} col The first column of the end band.
-   * @returns {Promise<number>} The largest overhang, `0` when nothing reaches past the boundary.
+   * @returns {Promise<number[]>} The distinct offsets, sorted; empty when the corner draws no such edge.
    */
-  async endCornerEdgeOverhang(line: RowFreezeLine, col: number): Promise<number> {
+  async endCornerEdgeOffsets(line: RowFreezeLine, col: number): Promise<number[]> {
     return this.page.evaluate(([freezeLine, c]) => {
       const { hot } = window as unknown as HotWindow;
       const row = freezeLine === 'bottom' ? hot.countRows() - 1 : 0;
@@ -133,12 +141,12 @@ export class FrozenSeamEdgeEndCornersPage {
       const corner = cell?.closest('.handsontable');
 
       if (!cell || !corner) {
-        return -1;
+        return [];
       }
 
       const cellRect = cell.getBoundingClientRect();
-      const isRtl = getComputedStyle(cell).direction === 'rtl';
-      let overhang = 0;
+      const isRtl = hot.isRtl();
+      const offsets = new Set<number>();
 
       corner.querySelectorAll('.wtBorder').forEach((edge) => {
         const rect = edge.getBoundingClientRect();
@@ -147,10 +155,10 @@ export class FrozenSeamEdgeEndCornersPage {
         if (getComputedStyle(edge).display === 'none' || rect.width <= rect.height) {
           return;
         }
-        overhang = Math.max(overhang, isRtl ? rect.right - cellRect.right : cellRect.left - rect.left);
+        offsets.add(isRtl ? rect.right - cellRect.right : cellRect.left - rect.left);
       });
 
-      return overhang;
+      return [...offsets].sort((a, b) => a - b);
     }, [line, col] as const);
   }
 
