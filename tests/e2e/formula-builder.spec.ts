@@ -38,10 +38,10 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BR
     const values = await page.evaluate(() => {
       const style = document.createElement('style');
 
-      style.textContent = '.handsontable, .hfe-formula-bar { --hfe-color-error: rgb(1, 2, 3); }';
+      style.textContent = '.handsontable, .hfe-formula-bar { --hfe-color-accent: rgb(1, 2, 3); }';
       document.head.prepend(style);
 
-      const read = (el: Element | null) => (el ? getComputedStyle(el).getPropertyValue('--hfe-color-error').trim() : null);
+      const read = (el: Element | null) => (el ? getComputedStyle(el).getPropertyValue('--hfe-color-accent').trim() : null);
 
       return {
         grid: read((window as unknown as { hot: { rootElement: Element } }).hot.rootElement),
