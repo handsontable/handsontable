@@ -25,6 +25,8 @@ interface FixtureWindow {
     loadData(data: Row[]): void;
     updateData(data: Row[]): void;
     getSourceData(): Row[];
+    getSourceDataAtCol(col: number): unknown[];
+    validateCells(): void;
     destroy(): void;
   };
   htSortPlugin: SortPlugin;
@@ -113,6 +115,41 @@ export class ColumnSortingWaitingHeaderSortPage {
     await expect.poll(() => this.page.evaluate(
       () => (window as unknown as FixtureWindow).postAfterValidateCount)).toBe(1);
     await this.nextTask();
+  }
+
+  /**
+   * Starts `validateCells()`, a validation of every cell that is not the edit. The column A validator holds
+   * each call, after the edit's own call, which stays first in the list.
+   */
+  async validateAllCells(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as FixtureWindow).hot.validateCells();
+    });
+  }
+
+  /**
+   * Answers every held validator call but the first one (the edit's) as valid, then waits until the grid ran
+   * `postAfterValidate` for each of them and one more task has passed.
+   */
+  async answerAllButTheEdit(): Promise<void> {
+    const answered = await this.page.evaluate(() => {
+      const calls = (window as unknown as FixtureWindow).heldValidations.splice(1);
+
+      calls.forEach(callback => callback(true));
+
+      return calls.length;
+    });
+
+    await expect.poll(() => this.page.evaluate(
+      () => (window as unknown as FixtureWindow).postAfterValidateCount)).toBe(answered);
+    await this.nextTask();
+  }
+
+  /**
+   * Column A in source order, which a sort does not change.
+   */
+  async sourceLabels(): Promise<unknown[]> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getSourceDataAtCol(0));
   }
 
   /**

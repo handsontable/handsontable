@@ -118,8 +118,8 @@ export interface HeaderSortPress {
   column: number;
   isCtrlPressed: boolean;
   /**
-   * Settles once the cell that was being edited at press time has finished validating, or `null`
-   * when nothing was being edited.
+   * Settles once the editor that was open at press time has stopped waiting for its validator, read
+   * after each `postAfterValidate`, or `null` when nothing was being edited.
    */
   validation: Promise<void> | null;
   /** Set when ManualColumnMove ran its move before this press was resolved. */
@@ -239,6 +239,11 @@ export class ColumnSorting extends BasePlugin {
    * reset drop them all, and a second press made during the wait keeps the first.
    */
   #awaitingHeaderSorts = new Set<HeaderSortPress>();
+  /**
+   * The `postAfterValidate` listener of each press that waits for the editor, removed when the wait
+   * settles or the press is dropped.
+   */
+  #editorWaitListeners: Map<HeaderSortPress, () => void> = new Map();
   /**
    * `true` from an `enablePlugin()` until the settings sort of that enable runs in the ready step.
    * `onDataReady()` sorts itself, so it clears it too.
@@ -1453,7 +1458,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {boolean|Array} initialLoad Whether the load is made during init.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: unknown) => {
-    this.#awaitingHeaderSorts.clear();
+    this.#dropAwaitingHeaderSorts();
 
     if (initialLoad && this.hot.view) {
       this.#loadOrSortBySettings();
@@ -1514,7 +1519,7 @@ export class ColumnSorting extends BasePlugin {
     // Drop any press whose release never arrived - e.g. the window lost focus while the button
     // was held. Without this a stale press would resolve on the next unrelated release and sort
     // a column out of nowhere.
-    this.#pendingHeaderSort = null;
+    this.#dropPendingHeaderSort();
 
     if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
@@ -1554,23 +1559,23 @@ export class ColumnSorting extends BasePlugin {
     }
 
     const activeEditor = this.hot.getActiveEditor();
-    const awaitsValidation = !!(
-      activeEditor?.isOpened() &&
-      this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)
-    );
-
-    this.#pendingHeaderSort = {
+    const press: HeaderSortPress = {
       column: coords.col,
       isCtrlPressed,
-      // Subscribed on press, not on release: selecting the column closes the editor and its
-      // validation runs in a microtask, so it is already over before mouse up. Reading
-      // `awaitsValidation` on release is wrong too - by then the new selection has opened an
-      // editor on the highlighted cell.
-      validation: awaitsValidation ? new Promise<void>((resolve) => {
-        this.hot.addHookOnce('postAfterValidate', () => resolve());
-      }) : null,
+      validation: null,
       consumedByMove: false,
     };
+
+    // Subscribed on press, not on release: selecting the column closes the editor and its
+    // validation runs in a microtask, so it is already over before mouse up. Reading
+    // the editor's state on release is wrong too - by then the new selection has opened an
+    // editor on the highlighted cell.
+    if (activeEditor?.isOpened() && this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)) {
+      press.validation = this.#waitForEditor(press, activeEditor);
+    }
+
+    this.#dropPendingHeaderSort();
+    this.#pendingHeaderSort = press;
   }
 
   /**
@@ -1607,6 +1612,8 @@ export class ColumnSorting extends BasePlugin {
     // last. Running first, the drag is still in progress; running second, the move has already
     // fired. Either one cancels the sort.
     if (pending.consumedByMove || this.#isColumnBeingDragged()) {
+      this.#stopWaitingForEditor(pending);
+
       return;
     }
 
@@ -1630,11 +1637,70 @@ export class ColumnSorting extends BasePlugin {
   };
 
   /**
+   * Waits until the editor open at press time stops waiting for its validator. The editor decides which
+   * answer is its own: the edited cell's, or the first one of any cell when its save validated no cell yet.
+   * So the sort waits for that same answer, read after the editor's own listener has run on it (the highest
+   * `orderIndex`), and an unrelated validation that answers first leaves the editor waiting and the rows
+   * where they are. Matching the cell here instead would restate the editor's rules and drift from them.
+   *
+   * @param {HeaderSortPress} press The press that waits.
+   * @param {BaseEditor} editor The editor that was open at press time.
+   * @returns {Promise}
+   */
+  #waitForEditor(press: HeaderSortPress, editor: { isWaiting(): boolean }): Promise<void> {
+    return new Promise<void>((resolve) => {
+      const onPostAfterValidate = () => {
+        if (editor.isWaiting()) {
+          return;
+        }
+
+        this.#stopWaitingForEditor(press);
+        resolve();
+      };
+
+      this.#editorWaitListeners.set(press, onPostAfterValidate);
+      this.hot.addHook('postAfterValidate', onPostAfterValidate, Number.MAX_SAFE_INTEGER);
+    });
+  }
+
+  /**
+   * Removes the `postAfterValidate` listener of a press that waits for the editor, if it has one.
+   *
+   * @param {HeaderSortPress} press The press.
+   */
+  #stopWaitingForEditor(press: HeaderSortPress): void {
+    const listener = this.#editorWaitListeners.get(press);
+
+    if (listener) {
+      this.#editorWaitListeners.delete(press);
+      this.hot.removeHook('postAfterValidate', listener);
+    }
+  }
+
+  /**
+   * Drops the queued press, and its wait for the editor.
+   */
+  #dropPendingHeaderSort(): void {
+    if (this.#pendingHeaderSort !== null) {
+      this.#stopWaitingForEditor(this.#pendingHeaderSort);
+      this.#pendingHeaderSort = null;
+    }
+  }
+
+  /**
+   * Drops every sort that waits for a validator, and their waits for the editor.
+   */
+  #dropAwaitingHeaderSorts(): void {
+    this.#awaitingHeaderSorts.forEach(press => this.#stopWaitingForEditor(press));
+    this.#awaitingHeaderSorts.clear();
+  }
+
+  /**
    * Drops the queued press and every sort that waits for a validator.
    */
   #dropHeaderSorts(): void {
-    this.#pendingHeaderSort = null;
-    this.#awaitingHeaderSorts.clear();
+    this.#dropPendingHeaderSort();
+    this.#dropAwaitingHeaderSorts();
   }
 
   /**

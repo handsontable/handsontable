@@ -1,0 +1,331 @@
+import Handsontable from '../../../base';
+import Hooks from '../../../core/hooks';
+import { registerPlugin } from '../../registry';
+import { ColumnSorting } from '../columnSorting';
+import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
+import { TextEditor } from '../../../editors/textEditor';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
+
+/**
+ * A header click made while an editor waits for its cell's async validator queues the sort until the
+ * EDITED cell's validation answered, the same answer that ends the editor's own wait. An unrelated
+ * validation that answers first (a `validateCells()` batch here) must not sort the rows: the edit is
+ * written by visual row, so a sort before it lands writes it onto another record.
+ *
+ * Column A (labels) has a validator that holds its callback until the test answers it. Column B holds
+ * `(row * 5) % 7`, so sorting B ascending orders the records p0, p3, p2, p5, p1, p4.
+ */
+describe.each([
+  ['columnSorting', ColumnSorting],
+  ['multiColumnSorting', MultiColumnSorting],
+])('%s header sort waiting for the edited cell', (pluginKey, PluginClass) => {
+  let container;
+  let hot;
+  let held;
+
+  beforeAll(() => {
+    registerPlugin(PluginClass);
+  });
+
+  beforeEach(() => {
+    held = [];
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  /**
+   * Builds the grid.
+   *
+   * @param {object} [settings] Settings merged over the defaults.
+   * @returns {Handsontable}
+   */
+  function buildGrid(settings = {}) {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 6 }, (_, row) => [`p${row}`, (row * 5) % 7]),
+      colHeaders: true,
+      [pluginKey]: true,
+      cells: (row, col) => (col === 0 ? {
+        validator(value, callback) {
+          held.push({ row: this.visualRow, value, callback });
+        },
+      } : {}),
+      licenseKey: TEST_LICENSE_KEY,
+      ...settings,
+    });
+
+    return hot;
+  }
+
+  /**
+   * Waits until every queued microtask and one macrotask have run.
+   */
+  async function flush() {
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  /**
+   * Answers the held validator call that matches the predicate, and removes it from the list.
+   *
+   * @param {Function} predicate Picks the call.
+   * @param {boolean} [valid] The answer.
+   */
+  async function answer(predicate, valid = true) {
+    const index = held.findIndex(predicate);
+
+    expect(index).toBeGreaterThan(-1);
+
+    const [call] = held.splice(index, 1);
+
+    call.callback(valid);
+    await flush();
+  }
+
+  /**
+   * Opens the editor on a column A cell and types a value into it.
+   *
+   * @param {number} row The visual row.
+   * @param {string} value The typed value.
+   */
+  function editCell(row, value) {
+    hot.selectCell(row, 0);
+
+    const editor = hot.getActiveEditor();
+
+    editor.beginEditing();
+    editor.setValue(value);
+  }
+
+  /**
+   * Presses a column header label the way a mouse does: `beforeOnCellMouseDown`, the column selection
+   * (which closes and saves the editor), then `afterOnCellMouseDown`.
+   *
+   * @param {number} column The visual column.
+   * @returns {MouseEvent}
+   */
+  function pressHeader(column) {
+    const label = document.createElement('span');
+    const event = new MouseEvent('mousedown', { button: 0 });
+    const coords = { row: -1, col: column };
+
+    label.className = 'colHeader';
+    label.dispatchEvent(event);
+
+    hot.runHooks('beforeOnCellMouseDown', event, coords, null, { row: false, column: false, cell: false });
+    hot.selectColumns(column);
+    hot.runHooks('afterOnCellMouseDown', event, coords, null);
+
+    return event;
+  }
+
+  /**
+   * Releases the mouse over a column header.
+   *
+   * @param {number} column The visual column.
+   */
+  function releaseHeader(column) {
+    hot.runHooks('afterOnCellMouseUp', new MouseEvent('mouseup'), { row: -1, col: column }, null);
+  }
+
+  /**
+   * Edits row 1 to `zzz` and clicks the column B header. Resolves once the edit's validator is held.
+   */
+  async function editThenClickHeader() {
+    editCell(1, 'zzz');
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(held.map(call => call.value)).toEqual(['zzz']);
+  }
+
+  /**
+   * The number of `postAfterValidate` listeners the grid holds.
+   *
+   * @returns {number}
+   */
+  function countPostAfterValidateListeners() {
+    return Hooks.getSingleton().getBucket(hot).getHooks('postAfterValidate').length;
+  }
+
+  it('should not sort on an unrelated validation answered before the edited cell', async() => {
+    buildGrid();
+    await editThenClickHeader();
+
+    hot.validateCells();
+    await flush();
+
+    // Every other cell of column A (and row 1 by the batch, with its old value) answers first.
+    while (held.length > 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await answer(call => call.value !== 'zzz');
+    }
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+    expect(hot.getDataAtCol(0)).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+
+    await answer(call => call.value === 'zzz');
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(0)).toEqual(['p0', 'p3', 'p2', 'p5', 'zzz', 'p4']);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+  });
+
+  it('should sort once the edited cell answers when nothing else validates', async() => {
+    buildGrid();
+    await editThenClickHeader();
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(() => true);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(0)).toEqual(['p0', 'p3', 'p2', 'p5', 'zzz', 'p4']);
+  });
+
+  it('should wait for the edited cell on an unchanged edit, which validates the stored value', async() => {
+    buildGrid();
+    editCell(1, 'p1');
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(held.map(call => call.value)).toEqual(['p1']);
+
+    hot.validateCell('x', hot.getCellMeta(3, 0), () => {}, 'test');
+    await flush();
+    await answer(call => call.value === 'x');
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(call => call.value === 'p1');
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+
+  it('should sort at once when a `beforeChange` listener drops the edit, which validates no cell', async() => {
+    buildGrid({
+      beforeChange(changes, source) {
+        if (source === 'edit') {
+          return false;
+        }
+      },
+    });
+    editCell(1, 'zzz');
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(held).toEqual([]);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(0)).toEqual(['p0', 'p3', 'p2', 'p5', 'p1', 'p4']);
+  });
+
+  it('should end the wait on the first answer when the editor\'s save writes later, as the editor does', async() => {
+    let deferredWrite = null;
+
+    class DeferredWriteEditor extends TextEditor {
+      saveValue(value, ctrlDown) {
+        deferredWrite = () => super.saveValue(value, ctrlDown);
+      }
+    }
+
+    buildGrid({ columns: [{ editor: DeferredWriteEditor }, {}] });
+    editCell(1, 'zzz');
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(typeof deferredWrite).toBe('function');
+    expect(hot.getActiveEditor().isWaiting()).toBe(true);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    hot.validateCell('x', hot.getCellMeta(3, 0), () => {}, 'test');
+    await flush();
+    await answer(call => call.value === 'x');
+
+    expect(hot.getActiveEditor().isWaiting()).toBe(false);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+
+  it('should apply both presses made during one wait, in press order', async() => {
+    buildGrid();
+    await editThenClickHeader();
+
+    pressHeader(pluginKey === 'columnSorting' ? 1 : 0);
+    releaseHeader(pluginKey === 'columnSorting' ? 1 : 0);
+    await flush();
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(() => true);
+
+    // A press without Ctrl replaces the MultiColumnSorting config, so the second press wins there.
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual(pluginKey === 'columnSorting'
+      ? [{ column: 1, sortOrder: 'desc' }]
+      : [{ column: 0, sortOrder: 'asc' }]);
+  });
+
+  it('should remove its `postAfterValidate` listener once the wait resolves', async() => {
+    buildGrid();
+
+    const before = countPostAfterValidateListeners();
+
+    await editThenClickHeader();
+
+    expect(countPostAfterValidateListeners()).toBeGreaterThan(before);
+
+    await answer(() => true);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(countPostAfterValidateListeners()).toBe(before);
+  });
+
+  it.each([
+    ['loadData()', () => hot.loadData([['n0', 1], ['n1', 0]])],
+    ['disablePlugin()', () => hot.getPlugin(pluginKey).disablePlugin()],
+    ['updateSettings({ columns })', () => hot.updateSettings({ columns: [{ data: 1 }, { data: 0 }] })],
+  ])('should drop the wait and its listener on %s', async(_, reset) => {
+    buildGrid();
+
+    const before = countPostAfterValidateListeners();
+
+    await editThenClickHeader();
+    reset();
+
+    // `loadData()` ends the editor's own wait too; the other resets leave it registered.
+    const editorWaits = hot.getActiveEditor()?.isWaiting() ? 1 : 0;
+
+    expect(countPostAfterValidateListeners()).toBe(before + editorWaits);
+
+    held.splice(0).forEach(call => call.callback(true));
+    await flush();
+
+    expect(hot.getPlugin(pluginKey).enabled ? hot.getPlugin(pluginKey).getSortConfig() : []).toEqual([]);
+  });
+
+  it('should remove the listener of a press that turned into a column drag', async() => {
+    buildGrid();
+
+    const before = countPostAfterValidateListeners();
+
+    editCell(1, 'zzz');
+    pressHeader(1);
+    hot.runHooks('afterColumnMove', [1], 0, null, 0, true);
+    releaseHeader(1);
+    await flush();
+
+    // The editor's own wait is still registered; only the sort's listener is gone.
+    expect(countPostAfterValidateListeners()).toBe(before + 1);
+
+    await answer(() => true);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+    expect(countPostAfterValidateListeners()).toBe(before);
+  });
+});
