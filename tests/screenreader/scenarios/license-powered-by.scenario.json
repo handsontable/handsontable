@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "license-powered-by",
+  "surface": "The Powered by bar of a key that carries the badge: Tab out of the grid to its link and Shift+Tab back.",
+  "group": "status",
+  "page": "license-powered-by",
+  "start": "page",
+  "criteria": ["2.1.1", "2.4.4", "4.1.2"],
+  "setup": [{"selectCell": [0, 2]}],
+  "steps": [
+    {
+      "id": "tab-to-badge",
+      "action": {"press": "Tab"},
+      "expect": [["powered by handsontable"], ["link"]],
+      "note": "The page's key is a sponsored one with the badge flag (the catalog fixture), so a `Powered by Handsontable DataGrid` link shows under the grid. The page's first item is a text field, so the reader starts on the page (`start: page`). Tab from C1, the last column, leaves the grid for the link. Required: its name and role."
+    },
+    {
+      "id": "shift-tab-to-grid",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["c1"]],
+      "note": "Shift+Tab moves back into the grid, on C1."
+    },
+    {
+      "id": "tab-to-badge-again",
+      "action": {"press": "Tab"},
+      "expect": [["powered by handsontable"]],
+      "note": "Tab reaches the link again: it sits in the Tab order right after the grid."
+    }
+  ]
+}
