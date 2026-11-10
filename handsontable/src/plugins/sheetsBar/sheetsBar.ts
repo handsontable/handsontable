@@ -108,6 +108,20 @@ export const SOURCE_UI = 'SheetsBar.ui';
 const GRID_LEVEL_DATA_PROVIDER_WARN_KEY = 'sheetsBar.gridLevelDataProvider';
 
 /**
+ * `warnOnce` key prefix for an init-only option that a sheet declares after the grid was initialized.
+ */
+const INIT_ONLY_SHEET_SETTING_WARN_KEY = 'sheetsBar.initOnlySheetSetting';
+
+/**
+ * Builds the console message for an init-only option that a sheet declares after the grid was initialized.
+ *
+ * @param {string} option The name of the init-only option.
+ * @returns {string}
+ */
+const initOnlySheetSettingWarning = (option: string) => `The \`${option}\` option can only be set when the ` +
+  'grid is initialized, so a sheet that declares it after that does not apply it. Set it at the grid level.';
+
+/**
  * Console message for the grid-level `dataProvider` that the sheets bar disables.
  */
 const GRID_LEVEL_DATA_PROVIDER_WARNING = 'The grid-level `dataProvider` is disabled while `sheetsBar` is ' +
@@ -4380,7 +4394,8 @@ export class SheetsBar extends BasePlugin {
     const ownSettings = sheetSettings && PLUGIN_KEY in sheetSettings
       ? Object.fromEntries(Object.entries(sheetSettings).filter(([key]) => key !== PLUGIN_KEY))
       : sheetSettings;
-    const settings = ownSettings && normalizeFixedColumnsAlias(ownSettings, this.hot.isRtl());
+    const settings = ownSettings &&
+      this.#withoutInitOnlyKeys(normalizeFixedColumnsAlias(ownSettings, this.hot.isRtl()));
 
     Object.keys(settings ?? {}).forEach((key) => {
       if (!this.#settingsBaseline.has(key)) {
@@ -4411,6 +4426,34 @@ export class SheetsBar extends BasePlugin {
     const merged = this.#withOwnOptionObjects({ ...restored, ...(settings ?? {}) }, settings);
 
     return Object.keys(merged).length > 0 ? merged : null;
+  }
+
+  /**
+   * Takes the init-only options (`layoutDirection`, `renderAllRows`, `renderAllColumns`, `ariaTags`) out of
+   * the settings of a sheet once the grid is initialized, and warns once per option. The grid refuses an
+   * update of those options, so a sheet that declared one would make its first tab switch throw. The opening
+   * sheet is applied while the grid is still being built, and keeps them.
+   *
+   * @param {object} settings The settings of a sheet.
+   * @returns {object} `settings`, or a copy without the init-only options.
+   */
+  #withoutInitOnlyKeys(settings: Record<string, unknown>): Record<string, unknown> {
+    if (!this.hot._getMetaManager().isInitialized()) {
+      return settings;
+    }
+
+    const initOnlyOptions = ((this.hot.getSettings() as Record<string, unknown>)._initOnlySettings ?? []) as string[];
+    const declared = initOnlyOptions.filter(option => option in settings);
+
+    if (declared.length === 0) {
+      return settings;
+    }
+
+    declared.forEach((option) => {
+      warnOnce(this, `${INIT_ONLY_SHEET_SETTING_WARN_KEY}.${option}`, initOnlySheetSettingWarning(option));
+    });
+
+    return Object.fromEntries(Object.entries(settings).filter(([key]) => !declared.includes(key)));
   }
 
   /**

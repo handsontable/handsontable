@@ -119,6 +119,44 @@ describe('Core: init-only options in the first `updateSettings()` call', () => {
     expect(hot.getSettings().renderAllRows).toBe(true);
   });
 
+  it('should accept an update from an `afterInit` listener, because the initialization ends after that hook', () => {
+    expect(() => {
+      createGrid({
+        afterInit() {
+          this.updateSettings({ renderAllRows: true });
+        },
+      });
+    }).not.toThrow();
+
+    expect(hot.getSettings().renderAllRows).toBe(true);
+    expect(() => hot.updateSettings({ renderAllRows: false }))
+      .toThrowError('The `renderAllRows` option can not be updated after the Handsontable is initialized.');
+  });
+
+  describe('an init-only option in `columns` or `cell` (known limit: only top-level keys are checked first)', () => {
+    const message = 'The `ariaTags` option can not be updated after the Handsontable is initialized.';
+
+    it('should throw on the first write in `columns`, after the options in front of it were applied', () => {
+      createGrid({ colHeaders: false });
+
+      expect(() => {
+        hot.updateSettings({ colHeaders: true, columns: [{ data: 0, ariaTags: false }] });
+      }).toThrowError(message);
+
+      expect(hot.getSettings().colHeaders).toBe(true);
+    });
+
+    it('should throw on the first write in `cell`, after the options in front of it were applied', () => {
+      createGrid({ colHeaders: false });
+
+      expect(() => {
+        hot.updateSettings({ colHeaders: true, cell: [{ row: 0, col: 0, ariaTags: false }] });
+      }).toThrowError(message);
+
+      expect(hot.getSettings().colHeaders).toBe(true);
+    });
+  });
+
   it('should still accept the value the grid was created with', () => {
     createGrid({ layoutDirection: 'rtl', renderAllRows: true });
 

@@ -6030,6 +6030,14 @@ export default function Core(
    * [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) receives keeps the name you passed. Passing both
    * names in one call throws an error. When you pass them in separate calls, the later value applies.
    *
+   * Four options can only be set at initialization: [`ariaTags`](@/api/options.md#ariatags),
+   * [`layoutDirection`](@/api/options.md#layoutdirection), [`renderAllColumns`](@/api/options.md#renderallcolumns),
+   * and [`renderAllRows`](@/api/options.md#renderallrows). A call whose `settings` names any of them throws an
+   * error, even when you didn't set the option at initialization. The call is refused as a whole: it applies
+   * none of its other options. The check looks at the top-level keys only, so one of these options inside
+   * [`columns`](@/api/options.md#columns) or [`cell`](@/api/options.md#cell) throws only once it is written,
+   * after the options in front of it were applied.
+   *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.

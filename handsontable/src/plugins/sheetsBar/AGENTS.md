@@ -159,6 +159,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   refresh in `#onAfterUpdateSettings` read it the same way (`renameFixedColumnsLeft()`; core hands
   `afterUpdateSettings` the caller's own names). Before, the baseline kept the legacy key and a switch sent both names in
   one payload, which throws.
+- **A sheet's `settings` keep the init-only options only while the grid is being built** (DEV-762,
+  `#withoutInitOnlyKeys`, the first step of `#withBaselineFor`). `layoutDirection`, `renderAllRows`,
+  `renderAllColumns` and `ariaTags` are read when the grid initializes, and core refuses every later write
+  (`MetaManager#isInitialized()`). The opening sheet is applied from `beforeInit`, before that point, so it
+  keeps them. Any sheet applied afterwards (a switch, a rebuilt workbook on a live grid) has them taken out of
+  the payload with one `warnOnce` per option, or its first tab click would throw. The sheet's own record still
+  holds them. `updateSheetSettings()` on the visible sheet is an explicit `updateSettings()` call and is not
+  filtered, so core refuses the option there.
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`

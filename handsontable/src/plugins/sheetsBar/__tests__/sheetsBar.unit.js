@@ -1926,6 +1926,36 @@ describe('SheetsBar plugin', () => {
     expect(hot.getSettings().renderAllRows).toBe(true);
   });
 
+  it('skips an init-only option in the settings of a sheet that opens after the grid was built, and warns once', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a']] },
+          { name: 'B', data: [['b']], settings: { renderAllRows: true, colHeaders: true } },
+        ],
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+    const plugin = hot.getPlugin('sheetsBar');
+
+    expect(() => plugin.setActiveSheet('B')).not.toThrow();
+    expect(plugin.getSheets().find(sheet => sheet.isActive).name).toBe('B');
+    expect(hot.getSettings().renderAllRows).toBe(false);
+    expect(hot.getSettings().colHeaders).toBe(true);
+
+    expect(() => plugin.setActiveSheet('A')).not.toThrow();
+    expect(() => plugin.setActiveSheet('B')).not.toThrow();
+
+    const initOnlyWarnings = warnSpy.mock.calls
+      .filter(([message]) => /`renderAllRows` option can only be set/.test(message));
+
+    expect(initOnlyWarnings).toHaveLength(1);
+
+    warnSpy.mockRestore();
+  });
+
   it('registers every formula-bound sheet in the shared engine before it is visited', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 

@@ -261,8 +261,10 @@ describe('ExtendMetaPropertiesMod', () => {
 
       metaManager.finishInitialization();
 
-      expect(() => metaManager.updateGlobalMeta({ [option]: value })).toThrow();
-      expect(() => metaManager.updateGlobalMeta({ [option]: value })).toThrow();
+      const message = `The \`${option}\` option can not be updated after the Handsontable is initialized.`;
+
+      expect(() => metaManager.updateGlobalMeta({ [option]: value })).toThrow(message);
+      expect(() => metaManager.updateGlobalMeta({ [option]: value })).toThrow(message);
     });
 
     it.each(initOnlyOptions)('should accept the first write of `%s` until the initialization is finished', (option, value) => {
@@ -272,14 +274,20 @@ describe('ExtendMetaPropertiesMod', () => {
       expect(metaManager.getGlobalMeta()[option]).toBe(value);
     });
 
-    it('should accept a column meta write while the grid is initializing, and refuse it afterwards', () => {
+    it('should accept a column meta write while the grid is initializing', () => {
       const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
 
       expect(() => metaManager.updateColumnMeta(0, { ariaTags: false })).not.toThrow();
+    });
+
+    it('should refuse the first column meta write once the initialization is finished', () => {
+      const metaManager = new MetaManager(new Handsontable(), {}, [ExtendMetaPropertiesMod]);
 
       metaManager.finishInitialization();
 
-      expect(() => metaManager.updateColumnMeta(1, { ariaTags: false })).toThrow();
+      expect(() => {
+        metaManager.updateColumnMeta(0, { ariaTags: false });
+      }).toThrow('The `ariaTags` option can not be updated after the Handsontable is initialized.');
     });
 
     describe('assertNoInitOnlyUpdates()', () => {
@@ -298,7 +306,9 @@ describe('ExtendMetaPropertiesMod', () => {
 
         metaManager.finishInitialization();
 
-        expect(() => metaManager.assertNoInitOnlyUpdates({ ariaTags: undefined })).toThrow();
+        expect(() => {
+          metaManager.assertNoInitOnlyUpdates({ ariaTags: undefined });
+        }).toThrow('The `ariaTags` option can not be updated after the Handsontable is initialized.');
       });
 
       it('should accept the payload while the grid is initializing', () => {
