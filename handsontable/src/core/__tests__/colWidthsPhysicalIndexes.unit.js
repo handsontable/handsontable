@@ -326,6 +326,17 @@ describe('colWidths addressed by physical column index', () => {
     expect(widths()).toEqual([10, 20, 30, 40]);
   });
 
+  it('should give no width to a column inserted after a column the user moved to the end', () => {
+    createGrid({ colWidths: [10, 20, 30, 40] });
+
+    // screen order: b, c, a
+    hot.columnIndexMapper.moveIndexes([0], 2);
+    hot.alter('insert_col_end', 2);
+
+    expect(hot.getDataAtRow(0)).toEqual(['b', 'c', 'a', null]);
+    expect(widths()).toEqual([20, 30, 10, 50]);
+  });
+
   it('should give no width to a column appended at the physical end that sits between others on screen', () => {
     createGrid({ colWidths: [10, 20, 30, 40] });
 
