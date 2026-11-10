@@ -121,8 +121,10 @@ for (const rtl of [false, true]) {
       // Precondition: the column still ends at the line once the border is drawn.
       await expect.poll(() => grid.masterColumnEndsAtLine()).toBe(true);
 
-      // Nothing redraws a custom border over the end clone, so its 1px edge stays off the line, inside its cell.
+      // Nothing redraws a custom border over the end clone, so its 1px edge stays off the line, inside its cell,
+      // where the user sees it (the border is red).
       await expect.poll(() => grid.customEndBorderAgainstBand()).toEqual({ width: 1, underBand: 0 });
+      await expect.poll(() => grid.colorInsideEndEdge(3, column)).toEqual([255, 0, 0]);
     });
 
     test('drops the edge from the end clone once the column scrolls off the line', async () => {

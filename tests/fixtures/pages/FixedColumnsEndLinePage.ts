@@ -356,6 +356,43 @@ export class FixedColumnsEndLinePage {
   }
 
   /**
+   * The color a user sees on the pixel inside a lined-up cell's inline-end edge (the cell's last pixel is the freeze
+   * line, under the band), at the cell's middle row, read from a
+   * screenshot (decoded by the page's own canvas), as `[r, g, b]`. A hit test cannot stand in for it there: the end
+   * clone's hit area starts a fraction of a pixel before the pixel it paints.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   * @returns {Promise<number[]>}
+   */
+  async colorInsideEndEdge(row: number, column: number): Promise<number[]> {
+    const point = await this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as {
+        hot: { getCell(row: number, col: number): HTMLElement, isRtl(): boolean },
+      };
+      const cell = hot.getCell(r, c).getBoundingClientRect();
+
+      // The cell's own last pixel is the line, under the band; the pixel inside it is the next one in.
+      return {
+        x: Math.round(hot.isRtl() ? cell.left + 1 : cell.right - 2),
+        y: Math.floor(cell.top + (cell.height / 2)),
+      };
+    }, [row, column] as const);
+    const shot = await this.page.screenshot({ clip: { x: point.x, y: point.y, width: 1, height: 1 } });
+
+    return this.page.evaluate(async(base64) => {
+      const bytes = Uint8Array.from(atob(base64), char => char.charCodeAt(0));
+      const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+      const canvas = new OffscreenCanvas(1, 1);
+      const context = canvas.getContext('2d')!;
+
+      context.drawImage(bitmap, 0, 0);
+
+      return Array.from(context.getImageData(0, 0, 1, 1).data.slice(0, 3));
+    }, shot.toString('base64'));
+  }
+
+  /**
    * Scrolls the master holder by a few pixels toward the inline end and waits for the clones to follow.
    *
    * @param {number} pixels How far to scroll.
