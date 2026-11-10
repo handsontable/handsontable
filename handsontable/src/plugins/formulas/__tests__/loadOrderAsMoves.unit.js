@@ -504,6 +504,60 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
 
       expect(hot.getDataAtCell(3, 1)).toBe(1001);
     });
+
+    it('keeps the values a range showed after drags, an edit and its undo', () => {
+      const engine = createEngine();
+      const hot = createGrid({
+        data: [
+          [1, '=A3+1000'], [2, '=A4+1000'], [4, '=A5+1000'],
+          [8, '=A1+1000'], [16, '=SUM(A1:A3)'], [32, '=SUM(A2:A4)'],
+        ],
+        manualRowMove: true,
+        undo: true,
+        formulas: { engine },
+      });
+      const sums = () => [16, 32].map(id => hot.getDataAtCell(hot.getDataAtCol(0).indexOf(id), 1));
+
+      hot.getPlugin('manualRowMove').moveRows([0], 3);
+      hot.getPlugin('manualRowMove').moveRows([5], 1);
+      hot.render();
+
+      expect(sums()).toEqual([38, 46]);
+
+      hot.setDataAtCell(0, 0, 99);
+      hot.getPlugin('undoRedo').undo();
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expect(sums()).toEqual([38, 46]);
+
+      hot.getPlugin('undoRedo').redo();
+      hot.updateSettings({});
+
+      expect(setSheetContent).not.toHaveBeenCalled();
+      expect(hot.getDataAtCell(0, 0)).toBe(99);
+    });
+
+    it('writes the sheet in full after an undo that changed the rows', () => {
+      const data = crossRowData();
+      const engine = createEngine();
+      const hot = createGrid({ data, manualRowMove: true, undo: true, formulas: { engine } });
+
+      hot.getPlugin('manualRowMove').moveRows([3, 4], 0);
+      hot.render();
+      hot.alter('insert_row_above', 1, 1);
+      hot.getPlugin('undoRedo').undo();
+
+      const setSheetContent = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(setSheetContent).toHaveBeenCalledTimes(1);
+      expectEveryRowReadsItsRecord(hot);
+    });
   });
 
   describe('the moves a reload still sends', () => {

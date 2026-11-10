@@ -2472,12 +2472,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // A restore writes the engine from the recorded state, not cell by cell from the grid's writes.
-    this.#syncedContent = null;
-
     // The host removed this grid's sheet from the engine, so there is no sheet to bring in line. The
     // versions still follow the restored state, so a later capture compares against it.
     if (!this.#hasOwnSheet()) {
+      this.#syncedContent = null;
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
@@ -2500,6 +2498,8 @@ export class Formulas extends BasePlugin {
     this.#sourceHasStaleFormulas = state.sourceHasStaleFormulas;
 
     if (reloadsSheet) {
+      // The sheet is loaded from the recorded state, not written cell by cell, so the record cannot follow it.
+      this.#syncedContent = null;
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
@@ -2508,6 +2508,8 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Only cells are written back, and each one goes into the record (`#writeSourceChangesToEngine()`), so a
+    // re-render after an edit and its undo still finds the data the engine holds and skips the write.
     this.#dataVersion = state.dataVersion;
     this.#flushRestoredWrites();
     this.#syncPeerSources(this.#restorePeerRewrites(state, context));
