@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `stateBefore` argument of the `beforeCellAlignment` hook so it holds only alignment class names and no longer reports custom class names such as `htBlue`.",
+  "type": "fixed",
+  "issueOrPR": 14228,
+  "breaking": false,
+  "framework": "none"
+}
