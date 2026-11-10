@@ -156,8 +156,6 @@ export const DOCS_SITE: Site = {
   async open(page, entry, { theme, pageErrors, examples = true }) {
     const { url } = await openDocsPage(page, entry, { theme, baseUrl: entry.baseUrl ?? DOCS_BASE_URL, pageErrors, examples });
 
-    await plantDefects(page);
-
     return url;
   },
   async reach(page, entry) {
@@ -178,55 +176,4 @@ export function siteDefinition(site: string): Site {
   }
 
   throw new Error(`No site definition for ${JSON.stringify(site)} in a11y/sites/sites.ts`);
-}
-
-/**
- * PLANTED DEFECTS, a temporary commit: one defect per check, which its proof run must report. Reverted before the
- * pull request is marked ready.
- *
- * @param page The page.
- */
-async function plantDefects(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    // docs-structure: page-title-missing, page-lang-missing, heading-h1-missing.
-    document.title = '';
-    document.documentElement.setAttribute('lang', '');
-    document.querySelectorAll('h1').forEach((heading) => {
-      const div = document.createElement('div');
-
-      div.innerHTML = heading.innerHTML;
-      heading.replaceWith(div);
-    });
-
-    // docs-keyboard: a first Tab stop nobody sees (focus-stop-hidden), ahead of the skip link (skip-link-not-first).
-    const hidden = document.createElement('button');
-
-    hidden.className = 'planted-hidden';
-    hidden.textContent = 'Planted';
-    hidden.style.cssText = 'position:absolute;left:-9999px;top:0';
-    document.body.prepend(hidden);
-
-    // docs-focus-contrast and docs-forced-colors-motion: no focus indicator anywhere (focus-not-visible,
-    // focus-lost-in-forced-colors).
-    const style = document.createElement('style');
-
-    style.textContent = '*:focus, *:focus-visible { outline: none !important; box-shadow: none !important; }';
-    document.head.append(style);
-
-    // docs-reflow: a block wider than 320 px that pushes the page sideways (page-scrolls-sideways).
-    const wide = document.createElement('div');
-
-    wide.className = 'planted-wide';
-    wide.style.cssText = 'width:900px;height:4px;background:#888';
-    document.body.prepend(wide);
-
-    // docs-forced-colors-motion: content that moves without end (moves-over-five-seconds).
-    const spinner = document.createElement('div');
-
-    spinner.className = 'planted-spinner';
-    spinner.textContent = '*';
-    spinner.style.cssText = 'position:fixed;bottom:4px;right:4px;width:12px;height:12px';
-    document.body.append(spinner);
-    spinner.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 1000, iterations: Infinity });
-  });
 }
