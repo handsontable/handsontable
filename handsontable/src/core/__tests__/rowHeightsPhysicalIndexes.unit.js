@@ -422,4 +422,39 @@ describe('rowHeights addressed by physical row index', () => {
 
     expect(heights()).toEqual([10, 20, 30, undefined]);
   });
+
+  it('should give a data array shown earlier back the alignment it had, when it is loaded again', () => {
+    const first = [['a'], ['b'], ['c']];
+    const second = [['x'], ['y'], ['z']];
+
+    createGrid({ data: first, rowHeights: [10, 20, 30] });
+
+    hot.alter('insert_row_above', 1);
+    hot.loadData(second);
+
+    expect(heights()).toEqual([10, 20, 30]);
+
+    // `first` holds the inserted row, so its heights stay on their rows
+    hot.loadData(first);
+
+    expect(hot.getDataAtCol(0)).toEqual(['a', null, 'b', 'c']);
+    expect(heights()).toEqual([10, undefined, 20, 30]);
+  });
+
+  it('should keep only the alignment of the last array replaced while the data stays', () => {
+    const first = [['a'], ['b'], ['c']];
+    const declared = [10, 20, 30, 40];
+
+    createGrid({ data: first, rowHeights: declared });
+
+    hot.alter('insert_row_above', 1);
+    // each new array replaces what the previous one kept
+    hot.updateSettings({ rowHeights: [1, 2, 3, 4] });
+    hot.updateSettings({ rowHeights: [5, 6, 7, 8] });
+    hot.loadData([['x'], ['y'], ['z'], ['w']]);
+    hot.updateSettings({ rowHeights: declared });
+    hot.loadData(first);
+
+    expect(heights()).toEqual([10, 20, 30, 40]);
+  });
 });

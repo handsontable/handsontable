@@ -20,7 +20,8 @@ type DisposeObserver = () => void;
 
 /**
  * Returns the entry index after the highest one in use, which the next row appended after the last one takes,
- * so a row added at the end gets the next height listed, and an entry is never handed out twice.
+ * so a row added at the end gets the next height listed. No row still in use shares its entry, but the entry of a
+ * removed last row is handed out again, as in 18.1.
  *
  * @param {Array} values The entry index of each physical row (`null` for a row with none).
  * @returns {number}
@@ -119,6 +120,13 @@ export class RowSizeSettings {
    * data array each time the sheet is shown, so its heights come back on the rows they were on.
    */
   #kept = new WeakMap<object, KeptOrigins>();
+  /**
+   * The origins of an array replaced while the data shown now stays, by option, kept here until the next data
+   * load: a sheet switch applies the arriving sheet's settings before it loads its data, so they belong to the
+   * departing sheet. A later replacement overwrites them, so an app that builds a new array on each render keeps
+   * one copy, not one per array.
+   */
+  #departing = new Map<RowSizeOption, { declared: unknown[], values: unknown[] }>();
   /**
    * `true` between the start and the end of a data load, whose row changes come from the new data.
    */
@@ -243,7 +251,8 @@ export class RowSizeSettings {
     this.#lastSlot = null;
     this.#appendFrom = null;
 
-    if (insertedIndexes.length === 0) {
+    // Without a map nothing reads the slot, and the screen order check walks every row.
+    if (insertedIndexes.length === 0 || this.#maps.size === 0) {
       return;
     }
 
@@ -269,6 +278,7 @@ export class RowSizeSettings {
   #onRowsChanged = (): void => {
     if (!this.#loading && typeof this.#data === 'object' && this.#data !== null) {
       this.#kept.delete(this.#data);
+      this.#departing.clear();
     }
   };
 
@@ -277,6 +287,8 @@ export class RowSizeSettings {
    */
   #onBeforeDataLoad = (): void => {
     this.#loading = true;
+    this.#departing.forEach(({ declared, values }, option) => this.#keep(option, declared, values));
+    this.#departing.clear();
     this.#keepAll();
   };
 
@@ -301,12 +313,18 @@ export class RowSizeSettings {
    * Keeps the origins of every option for the data array shown now.
    */
   #keepAll(): void {
-    this.#maps.forEach((_, option) => this.#keep(option));
+    this.#maps.forEach((map, option) => {
+      const declared = this.#declared.get(option);
+
+      if (declared !== undefined) {
+        this.#keep(option, declared, map.getValues().slice());
+      }
+    });
   }
 
   /**
    * Follows the data array a load passed, and puts back the origins it had for the arrays the options hold now,
-   * once: a later settings update or load of the same data does not bring them back again.
+   * once: everything kept for that data is dropped then, since its rows now live in the maps.
    *
    * @param {Array} data The loaded data.
    */
@@ -314,6 +332,10 @@ export class RowSizeSettings {
     this.#loading = false;
     this.#data = data;
     this.#maps.forEach((_, option) => this.#restore(option));
+
+    if (typeof data === 'object' && data !== null) {
+      this.#kept.delete(data);
+    }
   };
 
   /**
@@ -321,13 +343,13 @@ export class RowSizeSettings {
    * for, so origins kept for another array never replace them.
    *
    * @param {string} option The option.
+   * @param {Array} declared The array of the option the origins were declared for.
+   * @param {Array} values The origins.
    */
-  #keep(option: RowSizeOption): void {
-    const map = this.#maps.get(option);
-    const declared = this.#declared.get(option);
+  #keep(option: RowSizeOption, declared: unknown[], values: unknown[]): void {
     const data = this.#data;
 
-    if (map === undefined || declared === undefined || typeof data !== 'object' || data === null) {
+    if (typeof data !== 'object' || data === null) {
       return;
     }
 
@@ -345,12 +367,12 @@ export class RowSizeSettings {
       kept.set(option, byDeclared);
     }
 
-    byDeclared.set(declared, map.getValues().slice());
+    byDeclared.set(declared, values);
   }
 
   /**
-   * Puts back, and forgets, the origins of one option kept for the current data array and the array the option
-   * holds now, when the data still has as many rows.
+   * Puts back the origins of one option kept for the current data array and the array the option holds now, when
+   * the data still has as many rows.
    *
    * @param {string} option The option.
    */
@@ -365,8 +387,6 @@ export class RowSizeSettings {
     }
 
     const values = byDeclared.get(declared);
-
-    byDeclared.delete(declared);
 
     if (values !== undefined && values.length === map.getLength()) {
       map.setValues(values);
@@ -387,8 +407,8 @@ export class RowSizeSettings {
     }
 
     if (declared !== undefined) {
-      // The origins of the previous array stay kept for the data shown now (a sheet switch applies the arriving
-      // sheet's settings before it loads its data), and a new map declares every row at its own index for the new
+      // The origins of the previous array wait in `#departing` for the next data load (a sheet switch applies the
+      // arriving sheet's settings before it loads its data), and a new map declares every row at its own index for the new
       // array, under a new name.
       this.#unfollow(option);
     }
@@ -430,7 +450,13 @@ export class RowSizeSettings {
       return;
     }
 
-    this.#keep(option);
+    const map = this.#maps.get(option);
+    const declared = this.#declared.get(option);
+
+    if (map !== undefined && declared !== undefined) {
+      this.#departing.set(option, { declared, values: map.getValues().slice() });
+    }
+
     this.#disposeObservers.get(option)?.();
     this.#hot.rowIndexMapper.unregisterMap(name);
     this.#maps.delete(option);

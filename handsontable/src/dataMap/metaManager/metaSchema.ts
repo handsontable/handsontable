@@ -7389,8 +7389,10 @@ export default (): Record<string, unknown> => {
      * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                      |
      *
      * The array and the function address a row by its physical index, so a height stays with its row
-     * when rows are moved, sorted, filtered, trimmed, or collapsed (for example, by the
-     * {@link NestedRows} plugin). The physical index doesn't change in any of those cases. An array entry
+     * when rows are moved with the {@link ManualRowMove} plugin, sorted, filtered, trimmed, or collapsed
+     * (for example, by the {@link NestedRows} plugin). The physical index doesn't change in any of those
+     * cases. A row that the {@link NestedRows} plugin moves by dragging or detaching takes a new physical
+     * index: an array entry follows the row, but a function is called with the new index. An array entry
      * also stays with the row it was declared for when you insert or remove rows: a row inserted between
      * others has no height of its own, a row added after the last one takes the next entry, and the array
      * you passed is never changed. A function is called with the physical index the row has now. To declare

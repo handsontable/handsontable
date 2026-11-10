@@ -971,12 +971,8 @@ class DataManager {
       return null;
     }
 
-    const rows: (RowObject | null)[] = [];
-    const rowCount = this.countAllRows();
-
-    for (let physicalRow = 0; physicalRow < rowCount; physicalRow++) {
-      rows.push(this.getDataObject(physicalRow) ?? null);
-    }
+    // The cache lists every row object by its physical index, so a copy of it needs no walk of the tree.
+    const rows: (RowObject | null)[] = this.cache.rows.slice();
 
     return () => {
       const moved = new Map<'rowHeights' | 'minRowHeights', unknown[]>();
