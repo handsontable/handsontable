@@ -3005,11 +3005,10 @@ export class MergeCells extends BasePlugin {
    * and `hidden` makes AutoRowSize skip the cell, so the text of the merge was never measured.
    *
    * The flags are removed only where `hidden` is stored on the cell itself: that is the mark of a cell a
-   * merge covered, and the hook wrote `copyable` next to it. A top-left that was never covered keeps a
-   * `copyable` the user set on it. One that was covered loses it, as in
-   * {@link MergeCells#clearRowsLeftBehind}: the hook had overwritten it already. The meta is removed
-   * through the meta manager, by physical index and without the remove-meta hooks. The check costs one
-   * meta lookup per merge and no lookup in the merge collection.
+   * merge covered, and the hook wrote `copyable` next to it. A `copyable` the user stored on the cell through
+   * `setCellMeta()` or the `cell` option stays, because the hook writes its flag without recording it.
+   * The meta is removed through the meta manager, by physical index and without the remove-meta hooks.
+   * The check costs one meta lookup per merge and no lookup in the merge collection.
    *
    * @param {number} physicalRow The physical row of the cell the merge is drawn from.
    * @param {number} physicalColumn The physical column of the cell the merge is drawn from.
@@ -3022,7 +3021,13 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    COVERED_CELL_META_KEYS.forEach(key => metaManager.removeCellMeta(physicalRow, physicalColumn, key));
+    metaManager.removeCellMeta(physicalRow, physicalColumn, 'hidden');
+
+    // The merge stores `hidden` through `setCellMeta()`, but the hook writes `copyable` straight onto the stored
+    // object and never records it. A `copyable` that is recorded is the user's, so it stays.
+    if (!metaManager.getCellMetaKeyState(physicalRow, physicalColumn, 'copyable').hadOwn) {
+      metaManager.removeCellMeta(physicalRow, physicalColumn, 'copyable');
+    }
   }
 
   /**

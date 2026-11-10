@@ -268,12 +268,16 @@ hooks). Four rules keep it narrow:
 
 - **It acts only where `hidden` is an own stored key.** `hidden` marks a cell a merge covered, and the hook wrote
   `copyable` beside it. A top-left that was never covered keeps a `copyable: false` the user set, which matters
-  because a relocation also happens when only the span changes (the last row of the merge trimmed). One that was
-  covered loses its `copyable`, as in the cleanup above: the hook had overwritten it already.
+  because a relocation also happens when only the span changes (the last row of the merge trimmed). On a cell that
+  was covered, `hidden` goes always (the merge stored it through `setCellMeta()`), and `copyable` goes only when the
+  meta manager has no record of it (`getCellMetaKeyState(…).hadOwn` is `false`): the hook writes `copyable` straight
+  onto the stored object, so a recorded one was set by the user through `setCellMeta()` or the `cell` option and
+  stays.
 - **It is not gated on a relocation.** A new top-left can leave the merge's derived geometry as it was: swap the
   trimmed row in one cache update (the visual row and the span stay), or remove the merge's first row with
   `alter('remove_row')` (the physical rows renumber). Neither queues a relocation, and both left `hidden` on the
-  new top-left while the gate was there.
+  new top-left while the gate was there. `alter('remove_col')` on the merge's first column reaches the re-anchor
+  too (through `#onAfterRemoveCol`) and makes the next column's cell the top-left, so it is cleaned the same way.
 - **It does not live in `afterGetCellMeta`.** That hook runs on every meta read; clearing there would delete a
   user's `copyable` on every read and pay for the check on every cell.
 - **It costs one meta manager lookup per merge per re-anchor**, next to the pass over the merge's anchor rows

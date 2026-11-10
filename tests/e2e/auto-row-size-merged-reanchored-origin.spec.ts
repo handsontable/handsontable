@@ -11,7 +11,7 @@ import {
  * row headers kept the default height.
  *
  * Every case builds the merge `{ row: 1, col: 4, rowspan: 3, colspan: 2 }` over 10 x 10 spreadsheet data,
- * hides the merge's first row or rows, and then writes text into the cell the merge is drawn from. It expects
+ * hides or removes the merge's first row or rows, and then writes text into the cell the merge is drawn from. It expects
  * two things. Every row header is as tall as its row. And the row the merge is drawn on is as tall as in a
  * control grid that has the same block built in place, with nothing trimmed: that tells a measurement of the
  * text at the block's width from no measurement, because both panes read the same stored height and stay
@@ -79,6 +79,19 @@ test.describe('row headers beside a merge that a trim or a filter drew from anot
     await grid.buildWithoutText({ mergeCells: TALL_MERGE, filters: true });
     // Row 1 of the spreadsheet data holds `A2` in the first column.
     await grid.filterOutValue(0, 'A2');
+    await grid.setDataAtCell(1, 4, LINES);
+
+    await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
+    await expect.poll(() => grid.misalignedRows()).toEqual([]);
+    await expect.poll(tallestRow).toBe(control);
+  });
+
+  test('removing the first row of the merge, then writing the text', async() => {
+    // The merge keeps its other two rows and is drawn from the row that followed the removed one.
+    const control = await controlTallestRow({ mergeCells: [{ row: 1, col: 4, rowspan: 2, colspan: 2 }] }, 1);
+
+    await grid.buildWithoutText({ mergeCells: TALL_MERGE });
+    await grid.removeRow(1);
     await grid.setDataAtCell(1, 4, LINES);
 
     await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);

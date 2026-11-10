@@ -121,7 +121,7 @@ the text (DEV-986). The measurement was not lost: the hidden top-left row was me
   the comparison; the cases in view pass without it, because a full render measures them anyway.
 - **Not covered:** a merge drawn by `virtualized` from a row the viewport moved it to, and a block drawn on the bottom
   overlay's first row; both are drawn on a cell this rule does not name.
-- **A merge that a trim or filter re-anchors needs no rule here.** The cell it is drawn from afterwards held `hidden`
+- **A merge that a trim, a filter, or the removal of its first row re-anchors needs no rule here.** The cell it is drawn from afterwards held `hidden`
   while the merge covered it, and the sampler skips every cell with `hidden`, so its text was never measured. MergeCells
   now removes the flag from the new top-left cell when it re-anchors (see "Trimming re-anchors a merge, and clips it"
   in `../mergeCells/AGENTS.md`), so the sampler sees an ordinary cell. Pinned by

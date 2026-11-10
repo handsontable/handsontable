@@ -37,6 +37,7 @@ interface FixtureHot {
   rootElement: HTMLElement;
   setDataAtCell(row: number, column: number, value: unknown): void;
   getPlugin(name: string): Record<string, (...args: unknown[]) => unknown>;
+  alter(action: string, index: number, amount?: number): void;
   render(): void;
 }
 
@@ -108,6 +109,16 @@ export class AutoRowSizeMergedHiddenOriginPage {
       filters.addCondition(col as number, 'neq', [val as string]);
       filters.filter();
     }, [column, value] as const);
+  }
+
+  /**
+   * Removes one row through `alter('remove_row')`, the path the context menu takes. `alter()` renders the grid
+   * itself.
+   */
+  async removeRow(index: number): Promise<void> {
+    await this.page.evaluate((row) => {
+      (window as unknown as FixtureWindow).hot.alter('remove_row', row);
+    }, index);
   }
 
   /**

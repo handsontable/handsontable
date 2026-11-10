@@ -209,4 +209,35 @@ describe('MergeCells re-anchored top-left cell meta', () => {
     expect(hot.getCellMeta(1, 4).rowspan).toBe(2);
     expect(hot.getCellMeta(1, 4).copyable).toBe(false);
   });
+
+  it('should keep a `copyable: false` the user set on a covered cell that a trim makes the top-left', () => {
+    createGrid({ trimRows: true });
+
+    hot.setCellMeta(2, 4, 'copyable', false);
+    hot.getCellMeta(2, 4);
+
+    hot.getPlugin('trimRows').trimRows([1]);
+    hot.render();
+
+    expect(hot.toPhysicalRow(1)).toBe(2);
+    expect(hasStoredFlag(2, 4, 'hidden')).toBe(false);
+    expect(hot.getCellMeta(1, 4).hidden).toBeUndefined();
+    expect(hot.getCellMeta(1, 4).copyable).toBe(false);
+    expect(hot.getCopyableText(1, 4, 1, 4)).toBe('');
+  });
+
+  it('should clear the covered flags when removing the first column of the merge re-anchors it', () => {
+    createGrid();
+
+    hot.alter('remove_col', 4);
+    hot.render();
+
+    // The merge covers the column that was 5, now 4, and keeps its three rows.
+    expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+    expect(hot.getCellMeta(1, 4).colspan).toBe(1);
+    expect(hasStoredFlag(1, 4, 'hidden')).toBe(false);
+    expect(hasStoredFlag(1, 4, 'copyable')).toBe(false);
+    expect(hot.getCellMeta(1, 4).hidden).toBeUndefined();
+    expect(hot.getCellMeta(2, 4).hidden).toBe(true);
+  });
 });
