@@ -324,6 +324,13 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some a
 
 The `beforeRowMove` and `afterRowMove` hooks also fire when a move leaves the order unchanged, for example when you grab a row header and drop the row back where it was. In that case, `movePossible` is `true` and the `orderChanged` parameter of `afterRowMove` is `false`. Check `orderChanged` to ignore such moves. The order of the rows stays as it was, even when some rows are trimmed.
 
+When some rows are trimmed, a moved row lands next to the visible row at the drop position. It never splits a run of neighboring trimmed rows:
+
+- Moved to a position before a visible row, it lands right before that row, after any trimmed rows that sit in front of it.
+- Moved to the last visible position, it lands right after the last visible row, before any trimmed rows at the end.
+
+You see where the row landed when you untrim the rows. For example, in a grid of six rows where the last two rows are trimmed, moving the first row to the last visible position leaves it in front of the two trimmed rows.
+
 The [`moveRows`](@/api/manualRowMove.md#moverows) method is also inactive when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled - see [Row parent-child known limitations](@/guides/rows/row-parent-child/row-parent-child.md#known-limitations).
 
 ### Related API reference
