@@ -8296,8 +8296,18 @@ export default function Core(
    * [`setDataAtCell()`](@/api/core.md#setdataatcell) or
    * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
    *
+   * The hook also lists a change that the [`sourceDataValidator`](@/api/options.md#sourcedatavalidator)
+   * rejects. When [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, the grid doesn't store that
+   * value, but the `changes` array of the hook still lists it.
+   *
    * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
    * editor shows the new value.
+   *
+   * __Note__: this method takes physical row and column indexes. {@link Core#setDataAtCell} takes a visual
+   * row and a visual column, and {@link Core#setDataAtRowProp} takes a visual row. Swapping one call for the
+   * other with the same numbers can write to a different row when the grid is sorted or filtered. To
+   * translate an index, use {@link Core#toVisualRow} or {@link Core#toVisualColumn}. A trimmed row has no
+   * visual index, so neither of those two methods can write it.
    *
    * @memberof Core#
    * @function setSourceDataAtCell
@@ -8306,7 +8316,9 @@ export default function Core(
    *   accessor function (called as `accessor(rowObject, value)`).
    * @param {*} value The value to be set at the provided coordinates.
    * @param {string} [source] Source of the change as a string. The method passes it to the
-   *   `afterSetSourceDataAtCell` hook.
+   *   `afterSetSourceDataAtCell` hook. In the array form, pass it as the fourth argument
+   *   (`setSourceDataAtCell(changes, undefined, undefined, source)`): a source in the second
+   *   argument only reaches the undo step, and the hook gets `undefined`.
    * @fires Hooks#afterSetSourceDataAtCell
    */
 
