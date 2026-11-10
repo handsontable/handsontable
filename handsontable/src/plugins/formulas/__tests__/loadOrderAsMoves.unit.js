@@ -505,6 +505,49 @@ describe('Formulas: an order reached by moves reaches a (re)loaded engine as mov
       expect(hot.getDataAtCell(3, 1)).toBe(1001);
     });
 
+    it('keeps the values ranges showed after two drags on the first re-render', () => {
+      const hot = createGrid({
+        data: [
+          [1, '=A3+1000'], [2, '=A4+1000'], [4, '=A5+1000'],
+          [8, '=A1+1000'], [16, '=SUM(A1:A3)'], [32, '=SUM(A2:A4)'],
+        ],
+        manualRowMove: true,
+      });
+      const sums = () => [16, 32].map(id => hot.getDataAtCell(hot.getDataAtCol(0).indexOf(id), 1));
+
+      // Two drags reach the engine as two moves; a full write would replay the order by the planned path, which
+      // puts the ranges on other rows (12 and 4).
+      hot.getPlugin('manualRowMove').moveRows([0], 3);
+      hot.getPlugin('manualRowMove').moveRows([5], 1);
+      hot.render();
+
+      expect(sums()).toEqual([38, 46]);
+
+      hot.updateSettings({});
+
+      expect(sums()).toEqual([38, 46]);
+    });
+
+    it('keeps the value a range showed after two drags of one row on the first re-render', () => {
+      const hot = createGrid({
+        data: [[1, null], [2, null], [4, null], [8, null], [16, '=SUM(A1:A3)']],
+        manualRowMove: true,
+      });
+      const sum = () => hot.getDataAtCell(hot.getDataAtCol(0).indexOf(16), 1);
+
+      hot.getPlugin('manualRowMove').moveRows([0], 4);
+      hot.getPlugin('manualRowMove').moveRows([0], 2);
+      hot.render();
+
+      const afterDrags = sum();
+
+      expect(afterDrags).toBe(4);
+
+      hot.updateSettings({});
+
+      expect(sum()).toBe(afterDrags);
+    });
+
     it('keeps the values a range showed after drags, an edit and its undo', () => {
       const engine = createEngine();
       const hot = createGrid({
