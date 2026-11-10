@@ -6,7 +6,9 @@
  * (`a11y-axe-results`, `tests/lib/a11y-findings.mjs`), and the `Screen reader nightly` leaves one
  * transcript per scenario and project (`screenreader-transcripts-<project>-<group>`,
  * `tests/lib/screenreader-transcript.mjs`). A dispatch of `Docs a11y` leaves the docs site scan's findings in
- * the same shape as the axe scan's (`docs-a11y-axe-results`, `tests/a11y/docs/`), a night of a third source.
+ * the same shape as the axe scan's (`docs-a11y-axe-results`, `tests/a11y/docs/`), a night of a third source, and the
+ * documents of the docs site checks beyond axe (`docs-a11y-checks-evidence`, `tests/a11y/sites/`) in the product
+ * checks' shape, in the same night under the row source `docs-checks`.
  * A raw night holds thousands of records, most of them the
  * same few defects on many pages, and nothing used to accumulate across nights or deduplicate across
  * checks. This module turns a night's artifacts into findings keyed so that a finding keeps its
@@ -44,6 +46,7 @@
  */
 
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, SEVERITIES, WCAG_CRITERIA, compareCriteria, targetKey } from '../../../tests/lib/a11y-evidence.mjs';
+import { SITE_CHECKS, siteChecks, siteEvidenceArtifact } from '../../../tests/lib/a11y-site-checks.mjs';
 import {
   AXE_SCAN_CHECK,
   AXE_SCAN_KIND,
@@ -100,6 +103,11 @@ export const A11Y_AXE_ARTIFACT = 'a11y-axe-results';
  * scan's shape, with the docs pages and the light and dark color schemes.
  */
 export const DOCS_AXE_ARTIFACT = 'docs-a11y-axe-results';
+/**
+ * The docs site checks' artifact (`.github/workflows/docs-a11y.yml`, the `checks` job): one evidence document per check
+ * at its root, read like the product checks' into the docs night with the row source `docs-checks`.
+ */
+export const DOCS_CHECKS_ARTIFACT = siteEvidenceArtifact('docs');
 /**
  * The axe scan's concise findings, at the axe artifact's root (`tests/lib/a11y-findings.mjs` writes it).
  */
@@ -165,7 +173,7 @@ const PROJECT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ROOT_JSON = /^([a-z0-9]+(?:-[a-z0-9]+)*)\.json$/;
 const TRANSCRIPT_PATH = new RegExp(`^${READER_TRANSCRIPTS_DIR}/[^/]+\\.json$`);
 const RUN_ID = /^\d{1,20}$/;
-const SOURCE_OF_NIGHT = Object.freeze({ checks: 'a11y', axe: 'a11y', reader: 'reader', docs: 'docs' });
+const SOURCE_OF_NIGHT = Object.freeze({ checks: 'a11y', axe: 'a11y', reader: 'reader', docs: 'docs', 'docs-checks': 'docs' });
 /**
  * The night sources each recorded workflow's run holds. A list, so a workflow that calls several of the reusable
  * accessibility workflows (a full audit) names every source its run uploads.
@@ -179,9 +187,9 @@ export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
 
 /**
  * @typedef {object} Finding
- * @property {'checks'|'axe'|'reader'|'docs'} source Where it came from.
- * @property {string} check The check id, `axe` for the gating scan, `docs-axe` for the docs site scan, or the reader
- * project (`nvda-chromium`).
+ * @property {'checks'|'axe'|'reader'|'docs'|'docs-checks'} source Where it came from.
+ * @property {string} check The check id, `axe` for the gating scan, `docs-axe` for the docs site scan, a docs site check
+ * (`docs-keyboard`), or the reader project (`nvda-chromium`).
  * @property {string} kind The finding kind; `axe-violation` for every finding of the scan; `token-missing` or
  * `golden-differs` for a reader step, `traversal-off` for a reader scenario's reading traversal (at `where`
  * `traversal`).
@@ -227,11 +235,14 @@ export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
  * the recordings and the goldens are named outside it on purpose.
  *
  * @param {string} name The artifact name.
- * @returns {'checks'|'axe'|'reader'|'docs'|null} The family, or `null` for an unrelated artifact.
+ * @returns {'checks'|'axe'|'reader'|'docs'|'docs-checks'|null} The family, or `null` for an unrelated artifact.
  */
 export function classifyA11yArtifact(name) {
   if (name === A11Y_EVIDENCE_ARTIFACT) {
     return 'checks';
+  }
+  if (name === DOCS_CHECKS_ARTIFACT) {
+    return 'docs-checks';
   }
   if (name === A11Y_AXE_ARTIFACT) {
     return 'axe';
@@ -358,9 +369,10 @@ function readableTarget(item) {
  *
  * @param {string} check The check.
  * @param {unknown} item The finding as the document holds it.
+ * @param {'checks'|'docs-checks'} [source] The row source: a product check's, or a site check's.
  * @returns {Finding|null} The finding.
  */
-function checkFinding(check, item) {
+function checkFinding(check, item, source = 'checks') {
   if (readableTarget(item) === null || typeof item.kind !== 'string' || !KEBAB.test(item.kind) || item.kind.length > 60
     || !SEVERITIES.includes(item.severity) || !validCriteria(item.criteria)
     || !optionalToken(item.state, TOKEN) || !optionalToken(item.rule, RULE) || !optionalToken(item.cause, CAUSE)
@@ -373,7 +385,7 @@ function checkFinding(check, item) {
   const where = selector !== null && step !== null ? `${selector} @ ${step}` : (selector ?? step);
 
   return {
-    source: 'checks',
+    source,
     check,
     kind: item.kind,
     rule: item.rule ?? null,
@@ -444,16 +456,26 @@ function stepSeverity(groups) {
  * did not run left no finding), less the target of a finding the reader dropped; a document cut at the
  * findings limit, or a dropped finding with no readable target, covers nothing.
  *
+ * A site check's document goes into its site's night under the site's row source, and only when it read the deploy
+ * the night records (`baseUrl`): a dispatch on another deploy (a pull request's preview) is not the site.
+ *
  * @param {{artifact: string, path: string, text: string}} file The file.
  * @param {string} label The file, for a note.
- * @param {Night} night The a11y night.
+ * @param {Night} night The a11y night, or a site's.
  * @param {string[]} notes Where a note goes.
+ * @param {object} [site] The site's checks: their registry, row source and deploy; the product's checks when absent.
+ * @param {Record<string, object>} site.checks The registry.
+ * @param {'docs-checks'} site.source The row source.
+ * @param {string} site.baseUrl The deploy the night records.
  */
-function readEvidence(file, label, night, notes) {
+function readEvidence(file, label, night, notes, site = null) {
   const check = ROOT_JSON.exec(file.path)[1];
+  const registry = site?.checks ?? EVIDENCE_CHECKS;
 
-  if (!Object.hasOwn(EVIDENCE_CHECKS, check)) {
-    notes.push(`${label}: ${check} is not a check of EVIDENCE_CHECKS (tests/lib/a11y-evidence.mjs), skipped`);
+  if (!Object.hasOwn(registry, check)) {
+    notes.push(site
+      ? `${label}: ${check} is not a site check of SITE_CHECKS (tests/lib/a11y-site-checks.mjs), skipped`
+      : `${label}: ${check} is not a check of EVIDENCE_CHECKS (tests/lib/a11y-evidence.mjs), skipped`);
 
     return;
   }
@@ -483,6 +505,11 @@ function readEvidence(file, label, night, notes) {
 
     return;
   }
+  if (site && doc.run?.baseUrl !== site.baseUrl) {
+    notes.push(`${label}: read ${cut(doc.run?.baseUrl ?? 'an unnamed deploy', 120)}, not the deploy the night records (${site.baseUrl}), skipped`);
+
+    return;
+  }
 
   const measured = doc.targets.filter(target => readableTarget(target) !== null && target.status === 'measured');
   const coverage = new Set(measured.filter(target => !(Number(target.problems) > 0)).map(targetKey));
@@ -493,7 +520,7 @@ function readEvidence(file, label, night, notes) {
   let unplaced = false;
 
   for (const item of findings) {
-    const finding = checkFinding(check, item);
+    const finding = checkFinding(check, item, site?.source);
 
     if (finding !== null) {
       kept.push(finding);
@@ -851,7 +878,7 @@ function emptyNight(source) {
  * The nights a run's accessibility artifacts hold: the a11y night (the check documents at the evidence
  * artifact's root and the findings at the axe artifact's root), the reader night (the transcripts of
  * every `screenreader-transcripts-<project>-<group>` artifact) and the docs night (the findings at the docs
- * site scan's artifact root). Everything else in those artifacts (the per-test folders, the detail files, the
+ * site scan's artifact root, and the docs site checks' documents at their artifact's root). Everything else in those artifacts (the per-test folders, the detail files, the
  * comparison, the scans, the logs) is ignored. A file that does not parse,
  * does not validate or is over the cap is skipped with a note, and the rest of the night is read.
  *
@@ -884,6 +911,9 @@ export function readA11yArtifacts(files) {
     } else if (family === 'docs' && file.path === A11Y_AXE_FILE) {
       sawDocs = true;
       readAxe(file, label, docs, notes, { source: 'docs', check: DOCS_SCAN_CHECK });
+    } else if (family === 'docs-checks' && ROOT_JSON.test(file.path)) {
+      sawDocs = true;
+      readEvidence(file, label, docs, notes, { checks: siteChecks('docs'), source: 'docs-checks', baseUrl: DEFAULT_DOCS_BASE_URL });
     }
   }
 
@@ -1020,7 +1050,7 @@ function coverageIndex(coverage) {
  * @returns {boolean} The verdict.
  */
 function covered(row, index) {
-  if (row.source === 'checks') {
+  if (row.source === 'checks' || row.source === 'docs-checks') {
     return index.checks.get(row.check)?.has(targetKey(row)) ?? false;
   }
   // The docs night keeps its scan's coverage in the same field: a night holds one source's rows.
@@ -1151,7 +1181,9 @@ function nightSummaries(earlier, night) {
     return { checks: { ...(earlier?.checks ?? {}), ...night.checks }, axe: night.axe ?? earlier?.axe ?? null };
   }
   if (night.source === 'docs') {
-    return { axe: night.axe ?? earlier?.axe ?? null };
+    const checks = { ...(earlier?.checks ?? {}), ...night.checks };
+
+    return { axe: night.axe ?? earlier?.axe ?? null, ...(Object.keys(checks).length > 0 ? { checks } : {}) };
   }
 
   const reader = {};
@@ -1628,6 +1660,9 @@ export function a11yView(doc, catalog) {
   if (latestDocs?.axe) {
     checks.push({ check: DOCS_SCAN_CHECK, title: 'docs site axe scan', targets: null, measured: null, findings: latestDocs.axe.findings,
       problems: latestDocs.axe.problems });
+  }
+  for (const check of Object.keys(latestDocs?.checks ?? {}).sort()) {
+    checks.push({ check, title: SITE_CHECKS[check]?.title ?? check, ...latestDocs.checks[check] });
   }
 
   const latestReader = nightOf('reader');

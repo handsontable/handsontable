@@ -600,6 +600,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 **Docs site accessibility scan (axe):**
 - The same rule set and comparator as the scan above, over a deployed docs site: `tests/a11y/docs/` (`docs-axe.spec.ts`, `pages.mjs` from the docs visual list plus the header's keyboard-opened states, `docs-baseline.json`), in the site's light and dark color schemes; config `tests/playwright.a11y-docs.config.ts`
 - Report-only, on demand: `.github/workflows/docs-a11y.yml` (`Docs a11y`: a dispatch, a caller, or a pull request that changes the scan's own code; never a docs change); a develop dispatch feeds the findings ledger's `docs` source. Locally: `cd tests && npm run test:a11y-docs` (`DOCS_A11Y_BASE_URL` picks the deploy). Policy: `tests/AGENTS.md`, "A11y: the docs site scan"
+- The docs site checks beyond axe run beside it on a dispatch or a call (the `checks` job): `tests/a11y/sites/` (structure, keyboard, focus and contrast, reflow, forced colors and motion), config `tests/playwright.a11y-sites.config.ts` (`HOT_A11Y_SITE=docs`), the registry `SITE_CHECKS` in `tests/lib/a11y-site-checks.mjs`, one `A11y / docs-<check> report` check run each. Locally: `cd tests && npm run test:a11y-sites`. Policy: `tests/AGENTS.md`, "A11y: the site checks beyond axe"
 
 **Accessibility checks beyond axe:**
 - Framework: Playwright, over the same catalog pages and keyboard-reached states as the axe scan (`tests/a11y/harness.ts`), one project per check

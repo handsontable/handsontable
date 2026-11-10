@@ -11,7 +11,9 @@
  *
  * Arguments: `--prefix <name prefix>` (repeatable; the check runs to read, such as `A11y / `), `--expect <name>`
  * (repeatable; a check run the run must have posted), `--a11y-suite <suite>` (expects `A11y / axe report`
- * and one `A11y / <check> report` per check of the suite), and the dispatch as `check-inputs` read it
+ * and one `A11y / <check> report` per check of the suite), `--site <site>` (expects one `A11y / <check> report` per
+ * site check of the site, or of `--site-checks <ids>`, the site workflow's `checks` input), and the dispatch as
+ * `check-inputs` read it
  * (`dispatchSubset()` of `lib/a11y-dispatch.mjs`): `--ref <github.ref>`, `--a11y-checks <ids>` (with
  * `--a11y-suite`, expects the named checks instead of the suite's, the way `A11Y_CHECKS` narrows the checks
  * job), `--projects <ids>` and `--groups <ids>` (keep only the `--expect` names that carry one of the named
@@ -41,6 +43,8 @@ const { values } = parseArgs({
     'a11y-checks': { type: 'string' },
     projects: { type: 'string' },
     groups: { type: 'string' },
+    site: { type: 'string' },
+    'site-checks': { type: 'string' },
     'dry-run': { type: 'string' },
   },
 });
@@ -57,7 +61,8 @@ if (values.prefix.length === 0) {
 let dispatch;
 
 try {
-  dispatch = dispatchSubset({ ref: values.ref, suite: values['a11y-suite'], checks: values['a11y-checks'], projects: values.projects, groups: values.groups });
+  dispatch = dispatchSubset({ ref: values.ref, suite: values['a11y-suite'], checks: values['a11y-checks'], projects: values.projects, groups: values.groups,
+    site: values.site, siteChecks: values['site-checks'] });
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   const refused = renderRunVerdict({ conclusion: 'failure', problems: [message], rows: [] });
@@ -76,6 +81,7 @@ const named = (name, subset) => subset === null || name.split(' ').some(word => 
 const expected = [
   ...values.expect.filter(name => named(name, dispatch.projects) && named(name, dispatch.groups)),
   ...(values['a11y-suite'] ? [CHECK_RUN_NAME, ...dispatch.checks.map(checkRunName)] : []),
+  ...(dispatch.siteChecks ?? []).map(checkRunName),
 ];
 let checkRuns;
 

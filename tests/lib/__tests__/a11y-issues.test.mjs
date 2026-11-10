@@ -334,7 +334,7 @@ test('the committed catalog validates against the live baseline issues and scree
     'read the baseline issues and the screen reader projects');
   assert.deepEqual(validateIssuesCatalog(doc, { axeIssues: AXE_ISSUES, docsIssues: DOCS_ISSUES, readerProjects: READER_PROJECTS }), []);
   assert.equal(doc.schema, ISSUES_SCHEMA);
-  assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader', 'docs']);
+  assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader', 'docs', 'docs-checks']);
   assert.deepEqual(MATCH_FIELDS, ['source', 'checks', 'kinds', 'rules', 'causes', 'criteria', 'pages', 'themes', 'where', 'axeIssues']);
   assert.equal(TRIAGE_ID, 'needs-triage');
 

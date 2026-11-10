@@ -21,6 +21,7 @@ import {
   A11Y_VERSION,
   DOCS_A11Y_WORKFLOW,
   DOCS_AXE_ARTIFACT,
+  DOCS_CHECKS_ARTIFACT,
   NIGHT_SOURCES,
   READER_ARTIFACT_PREFIX,
   READER_NIGHTLY_WORKFLOW,
@@ -331,6 +332,8 @@ test('classifyA11yArtifact knows the four families, and the flake collector file
   assert.equal(classifyA11yArtifact(A11Y_AXE_ARTIFACT), 'axe');
   assert.equal(classifyA11yArtifact(`${READER_ARTIFACT_PREFIX}nvda-chromium`), 'reader');
   assert.equal(classifyA11yArtifact(DOCS_AXE_ARTIFACT), 'docs');
+  assert.equal(classifyA11yArtifact(DOCS_CHECKS_ARTIFACT), 'docs-checks');
+  assert.equal(DOCS_CHECKS_ARTIFACT, 'docs-a11y-checks-evidence');
   assert.equal(classifyA11yArtifact('docs-a11y-report'), null, 'the docs site scan\'s HTML report is not read');
   // Named outside the family on purpose: the HTML report, the Playwright reports and the recordings.
   assert.equal(classifyA11yArtifact('a11y-report.html'), null);
@@ -344,7 +347,53 @@ test('classifyA11yArtifact knows the four families, and the flake collector file
   assert.equal(classifyArtifact(A11Y_AXE_ARTIFACT), 'a11y');
   assert.equal(classifyArtifact(`${READER_ARTIFACT_PREFIX}vo-chromium`), 'a11y');
   assert.equal(classifyArtifact(DOCS_AXE_ARTIFACT), 'a11y');
+  assert.equal(classifyArtifact(DOCS_CHECKS_ARTIFACT), 'a11y');
   assert.equal(classifyArtifact('a11y-report.html'), null);
+});
+
+test('the docs site checks join the docs night under their own row source, of the staging deploy only, and resolve their own rows', () => {
+  const docsCheck = (findings, extra = {}) => evidenceDoc('docs-keyboard', findings,
+    [{ page: 'js-introduction', theme: 'light', state: 'none', variant: null, status: 'measured', criteria: ['2.4.3'] },
+      { page: 'js-rows-sorting', theme: 'light', state: 'none', variant: null, status: 'measured', criteria: ['2.4.3'] }],
+    { title: 'Docs site: Keyboard walk', criteria: ['2.4.3'], run: { commit: NIGHTLY.head_sha, ref: 'develop', runUrl: NIGHTLY.html_url, baseUrl: DEFAULT_DOCS_BASE_URL }, ...extra });
+  const HIDDEN = { kind: 'focus-stop-hidden', criteria: ['2.4.3', '2.4.7'], severity: 'serious', selector: 'button.da-header-btn',
+    measured: { count: 1 }, reason: 'Tab stops on an element nobody can see', page: 'js-introduction', theme: 'light', url: '/docs/javascript-data-grid/' };
+  const read = readA11yArtifacts(docsFiles({ [`${DOCS_CHECKS_ARTIFACT}/docs-keyboard.json`]: docsCheck([HIDDEN]),
+    [`${DOCS_CHECKS_ARTIFACT}/docs-keyboard/js-introduction--light.json`]: { stops: [] } }));
+
+  assert.deepEqual(read.notes, []);
+  assert.deepEqual(read.nights.map(entry => entry.source), ['docs'], 'one docs night holds the scan and the checks');
+
+  const docs = read.nights[0];
+
+  assert.deepEqual(docs.checks, { 'docs-keyboard': { targets: 2, measured: 2, findings: 1, problems: 0 } });
+  assert.deepEqual(docs.coverage.checks['docs-keyboard'], ['js-introduction|light|', 'js-rows-sorting|light|']);
+  assert.deepEqual(docs.findings.filter(finding => finding.check === 'docs-keyboard').map(finding => [finding.source, finding.kind, finding.where]),
+    [['docs-checks', 'focus-stop-hidden', 'button.da-header-btn']]);
+
+  const merged = mergeA11yLedger(null, docs, runContextFromRun(DOCS_RUN), CATALOG, { now: NOW });
+  const key = 'docs-checks|docs-keyboard|focus-stop-hidden|||js-introduction|light|none||button.da-header-btn';
+
+  assert.equal(statusOf(merged.doc, key), 'new');
+  assert.equal(merged.doc.nights[0].checks['docs-keyboard'].findings, 1, 'the night record keeps the checks beside the scan');
+
+  // The next audit measured the page and the stop was gone: the row resolves, and the scan's rows keep their own state.
+  const next = mergeA11yLedger(merged.doc, nightOf(docsFiles({ [`${DOCS_CHECKS_ARTIFACT}/docs-keyboard.json`]: docsCheck([]) })),
+    runContextFromRun({ ...DOCS_RUN, id: 41700000002, updated_at: night(1) }), CATALOG, { now: new Date(night(1)) });
+
+  assert.equal(statusOf(next.doc, key), 'resolved');
+  assert.ok(a11yView(next.doc, CATALOG).checks.some(entry => entry.check === 'docs-keyboard' && entry.title === 'Docs site: Keyboard walk'));
+
+  // A check of another deploy (a pull request's preview), or a document that names no site check, is no night's.
+  const preview = readA11yArtifacts(docsFiles({ [`${DOCS_CHECKS_ARTIFACT}/docs-keyboard.json`]:
+    docsCheck([HIDDEN], { run: { baseUrl: 'https://preview.pages.dev/docs' } }) }));
+
+  assert.match(preview.notes.join('\n'), /read https:\/\/preview\.pages\.dev\/docs, not the deploy the night records/);
+  assert.equal(preview.nights[0].findings.filter(finding => finding.source === 'docs-checks').length, 0);
+
+  const product = readA11yArtifacts(docsFiles({ [`${DOCS_CHECKS_ARTIFACT}/keyboard-walker.json`]: evidenceDoc('keyboard-walker', []) }));
+
+  assert.match(product.notes.join('\n'), /keyboard-walker is not a site check of SITE_CHECKS/);
 });
 
 test('isA11yRun takes the two nightlies and the docs site scan on develop by schedule or dispatch, and nothing a pull request can start', () => {
@@ -1536,7 +1585,7 @@ test('test-health.yml chains on the two nightlies and the docs site scan, downlo
   assert.ok(describe.includes('import { isA11yRun } from \'./.github/scripts/lib/a11y-ledger.mjs\';'), 'the lib owns the develop rule');
   // eslint-disable-next-line no-template-curly-in-string
   assert.ok(describe.includes('echo "A11Y_RUN=${A11Y_RUN}" >> "$GITHUB_ENV"'));
-  const family = `"^(${A11Y_EVIDENCE_ARTIFACT}$|${A11Y_AXE_ARTIFACT}$|${DOCS_AXE_ARTIFACT}$|${READER_ARTIFACT_PREFIX})"`;
+  const family = `"^(${A11Y_EVIDENCE_ARTIFACT}$|${A11Y_AXE_ARTIFACT}$|${DOCS_AXE_ARTIFACT}$|${DOCS_CHECKS_ARTIFACT}$|${READER_ARTIFACT_PREFIX})"`;
 
   assert.ok(download.includes(`or (.name | test(${family}))`), 'the family is in the allowlist, by exact names and the transcript prefix');
   assert.ok(download.includes(`select((.name | test(${family}) | not) or env.A11Y_RUN == "true")`), 'and filtered on the flag');

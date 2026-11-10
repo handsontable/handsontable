@@ -17,19 +17,30 @@
  * check run as its `external_id`, which the run verdict reads).
  *
  * `--dry-run` prints the payload instead of posting it, and needs none of them. A posted check
- * run's URL goes to the step output `check-url`, which the pull request comment links.
+ * run's URL goes to the step output `check-url`, which the pull request comment links. `--suite docs` reports the
+ * docs site scan instead (`.github/workflows/docs-a11y.yml`): `A11y / docs-axe report`, from
+ * `test-results/a11y-docs/comparison.json`, annotated on the docs page list and baseline.
  */
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { baselineLines, buildCheckRun, pageLines } from '../lib/a11y-check-run.mjs';
+import { DOCS_SCAN, PRODUCT_SCAN, baselineLines, buildCheckRun, pageLines } from '../lib/a11y-check-run.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const COMPARISON = path.join(TESTS_ROOT, 'test-results/a11y/comparison.json');
 const env = process.env;
 const dryRun = process.argv.includes('--dry-run');
+const suite = process.argv.includes('--suite') ? process.argv[process.argv.indexOf('--suite') + 1] : 'product';
+
+if (!['product', 'docs'].includes(suite)) {
+  process.stderr.write(`a11y-check-run: --suite must be product or docs, got ${JSON.stringify(suite)}\n`);
+  process.exit(2);
+}
+
+const scan = suite === 'docs' ? DOCS_SCAN : PRODUCT_SCAN;
+const fromTests = file => path.join(TESTS_ROOT, file.replace(/^tests\//, ''));
+const COMPARISON = fromTests(scan.comparison);
 const runUrl = env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID
   ? `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`
   : undefined;
@@ -37,12 +48,13 @@ const { scope, tracked, externalId, notes } = verdictInputs({ env, testsRoot: TE
 const comparison = existsSync(COMPARISON) ? JSON.parse(readFileSync(COMPARISON, 'utf8')) : null;
 const payload = buildCheckRun({
   comparison: comparison && { ...comparison, notes: [...(comparison.notes ?? []), ...notes] },
-  pages: pageLines(readFileSync(path.join(TESTS_ROOT, 'a11y/pages.mjs'), 'utf8')),
-  baseline: baselineLines(readFileSync(path.join(TESTS_ROOT, 'a11y/axe-baseline.json'), 'utf8')),
+  pages: pageLines(readFileSync(fromTests(scan.pagesFile), 'utf8')),
+  baseline: baselineLines(readFileSync(fromTests(scan.baselineFile), 'utf8')),
   reportUrl: env.A11Y_REPORT_URL || undefined,
   runUrl,
   scope,
   tracked,
+  scan,
 });
 
 if (dryRun) {

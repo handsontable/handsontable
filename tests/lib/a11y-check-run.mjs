@@ -24,6 +24,19 @@ export const ANNOTATIONS_PER_REQUEST = 50;
 // The Checks API refuses an output summary over 65,535 characters.
 const SUMMARY_LIMIT = 65000;
 const PAGES_FILE = 'tests/a11y/pages.mjs';
+/**
+ * The scans a check run reports, each with its check run's name, the job and comparison a tooling failure names, the
+ * files its annotations go on, and the finding source and check its findings are clustered under in
+ * `tests/a11y/issues.json`.
+ */
+export const PRODUCT_SCAN = Object.freeze({
+  name: CHECK_RUN_NAME, job: 'axe job', comparison: 'test-results/a11y/comparison.json', pagesFile: PAGES_FILE,
+  baselineFile: `tests/${BASELINE_FILE}`, source: 'axe', check: 'axe',
+});
+export const DOCS_SCAN = Object.freeze({
+  name: 'A11y / docs-axe report', job: 'docs axe job', comparison: 'test-results/a11y-docs/comparison.json',
+  pagesFile: 'tests/a11y/docs/pages.mjs', baselineFile: 'tests/a11y/docs/docs-baseline.json', source: 'docs', check: 'docs-axe',
+});
 
 /**
  * The line of each page's entry in `tests/a11y/pages.mjs`, by page id.
@@ -82,15 +95,17 @@ export function baselineLines(source) {
  * @param {'audit'|'change'} [input.scope] What the run counts (`countingScope()` of `lib/a11y-verdict.mjs`).
  * @param {(source: string, check: string, item: object) => boolean} [input.tracked] Whether a finding's cluster
  * has a tracker (`trackedBy()` of `lib/a11y-issues.mjs`); read on a change run only.
+ * @param {object} [input.scan] Which scan the comparison is: the product scan by default (`PRODUCT_SCAN`), or the
+ * docs site scan (`DOCS_SCAN`), whose check run, page list, baseline and finding source are its own.
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.
  */
-export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false }) {
+export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false, scan = PRODUCT_SCAN }) {
   if (!comparison) {
     return {
-      name: CHECK_RUN_NAME,
+      name: scan.name,
       conclusion: 'failure',
       title: '✖ Tooling failure: the scan wrote no comparison',
-      summary: `**Verdict: red, a tooling failure.** The axe job ended without \`tests/test-results/a11y/comparison.json\`, so nothing was compared. ${runLink(runUrl)}`,
+      summary: `**Verdict: red, a tooling failure.** The ${scan.job} ended without \`tests/${scan.comparison}\`, so nothing was compared. ${runLink(runUrl)}`,
       annotations: [],
     };
   }
@@ -98,12 +113,12 @@ export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, 
   const counts = verdictCounts(comparison);
   const problems = comparison.problems ?? [];
   const blocking = comparison.mode === 'block' && problems.length === 0 && counts.action > 0;
-  const findings = countedFindings(comparison, scope, tracked);
+  const findings = countedFindings(comparison, scope, tracked, scan);
   const verdict = verdictOf({ findings: findings.map(({ severity, warningOnly }) => ({ severity, warningOnly })), tooling: problems });
   const conclusion = blocking ? 'failure' : verdict.conclusion;
   const title = blocking ? `✖ ${headline(comparison)}` : verdictTitle(verdict, headline(comparison));
   const notes = [...(comparison.notes ?? []), ...problems.map(problem => `Tooling problem: ${problem}`)];
-  const { annotations, omitted } = capAnnotations(annotationsOf(findings, comparison, pages, baseline));
+  const { annotations, omitted } = capAnnotations(annotationsOf(findings, comparison, pages, baseline, scan));
   const lead = [
     blocking
       ? '**Verdict: red, block mode.** A finding that needs action fails this check and the job, whatever its severity.'
@@ -121,7 +136,7 @@ export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, 
     summary = `${summary.slice(0, SUMMARY_LIMIT)}\n\n… cut at ${SUMMARY_LIMIT} characters; the HTML report and the job summary hold the rest.`;
   }
 
-  return { name: CHECK_RUN_NAME, conclusion, title: title.slice(0, 250), summary, annotations };
+  return { name: scan.name, conclusion, title: title.slice(0, 250), summary, annotations };
 }
 
 /**
@@ -132,14 +147,15 @@ export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, 
  * @param {object} comparison The comparison.
  * @param {'audit'|'change'} scope The scope.
  * @param {Function} tracked The tracker predicate.
+ * @param {object} scan The scan.
  * @returns {Array<{set: string, item: object, severity: string, warningOnly: boolean}>} The findings.
  */
-function countedFindings(comparison, scope, tracked) {
+function countedFindings(comparison, scope, tracked, scan) {
   const counted = set => comparison[set].map(item => ({
     set,
     item,
     severity: severityOfImpact(item.impact),
-    warningOnly: scope === 'change' && Boolean(tracked('axe', 'axe', item)),
+    warningOnly: scope === 'change' && Boolean(tracked(scan.source, scan.check, item)),
   }));
   const advisory = set => comparison[set].map(item => ({ set, item, severity: 'advisory', warningOnly: false }));
 
@@ -160,9 +176,10 @@ function countedFindings(comparison, scope, tracked) {
  * @param {object} comparison The comparison.
  * @param {Map<string, number>} pages The page lines.
  * @param {Map<string, number>} baseline The baseline lines.
+ * @param {object} scan The scan.
  * @returns {object[]} The annotations.
  */
-function annotationsOf(findings, comparison, pages, baseline) {
+function annotationsOf(findings, comparison, pages, baseline, scan) {
   const where = item => `${item.page} on ${item.theme}: ${item.rule} on ${item.target}`;
   const titles = {
     newViolations: (item, severity) => `New accessibility finding (${severity}): ${item.rule}`,
@@ -174,7 +191,7 @@ function annotationsOf(findings, comparison, pages, baseline) {
 
   return findings.map(({ set, item, severity, warningOnly }) => {
     const onPage = set === 'newViolations' || set === 'grown';
-    const path = onPage ? PAGES_FILE : `tests/${BASELINE_FILE}`;
+    const path = onPage ? scan.pagesFile : scan.baselineFile;
     const line = (onPage ? pages.get(item.page) : baseline.get(entryKey(item))) ?? 1;
 
     return {
