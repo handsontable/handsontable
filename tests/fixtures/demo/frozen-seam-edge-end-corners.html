@@ -26,7 +26,8 @@
 <body>
   <!--
     A grid frozen on all four edges (one row and one column each), so it has both end corners
-    (`top_inline_end_corner`, `bottom_inline_end_corner`). Query params: rtl=1, numericEnd=1 (the last
+    (`top_inline_end_corner`, `bottom_inline_end_corner`). Query params: rtl=1, fixedColumnsEnd (default 1),
+    numericEnd=1 (the last
     column is `type: 'numeric'`, whose renderer sets `dir="ltr"` on its cells, also in an RTL grid).
   -->
   <div id="grid" data-testid="grid"></div>
@@ -46,6 +47,11 @@
       }
 
       const numericEnd = htParams.get('numericEnd') === '1';
+      const fixedColumnsEnd = Number(htParams.get('fixedColumnsEnd') ?? 1);
+
+      if (!Number.isInteger(fixedColumnsEnd) || fixedColumnsEnd < 1) {
+        throw new Error('Invalid ?fixedColumnsEnd= value: ' + JSON.stringify(htParams.get('fixedColumnsEnd')));
+      }
 
       window.hot = new Handsontable(container, {
         data: Array.from({ length: 100 }, (_, r) => Array.from({ length: 100 }, (__, c) =>
@@ -56,7 +62,7 @@
         fixedRowsTop: 1,
         fixedRowsBottom: 1,
         fixedColumnsStart: 1,
-        fixedColumnsEnd: 1,
+        fixedColumnsEnd: fixedColumnsEnd,
         layoutDirection: isRtl ? 'rtl' : 'ltr',
         width: 900,
         height: 500,

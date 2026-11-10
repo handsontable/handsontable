@@ -41,9 +41,17 @@ export class FrozenSeamEdgeEndCornersPage {
    * @param {object} options The fixture options.
    * @param {boolean} [options.rtl] Whether the grid is laid out right to left.
    * @param {boolean} [options.numericEnd] Whether the last column is a numeric one (`dir="ltr"` cells).
+   * @param {number} [options.fixedColumnsEnd] How many columns the end band freezes (the fixture's default is 1).
    */
-  async goto({ rtl = false, numericEnd = false }: { rtl?: boolean, numericEnd?: boolean } = {}): Promise<void> {
+  async goto(
+    { rtl = false, numericEnd = false, fixedColumnsEnd }:
+    { rtl?: boolean, numericEnd?: boolean, fixedColumnsEnd?: number } = {}
+  ): Promise<void> {
     const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
+
+    if (fixedColumnsEnd !== undefined) {
+      params.set('fixedColumnsEnd', String(fixedColumnsEnd));
+    }
 
     if (rtl) {
       params.set('rtl', '1');

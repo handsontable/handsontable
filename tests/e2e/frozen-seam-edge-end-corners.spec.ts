@@ -118,6 +118,26 @@ const PARTWAY_COLUMN = 40;
       await expect.poll(() => grid.endCornerEdgeOffsets('bottom', 99)).toEqual([0]);
     });
 
+    [
+      { line: 'bottom' as const, row: 98, fromRow: 92, toRow: 98 },
+      { line: 'top' as const, row: 1, fromRow: 1, toRow: 5 },
+    ].forEach(({ line, row, fromRow, toRow }) => {
+      test(`starts the ${line} edge on the gridline inside a two-column end band, scrolled partway`, async () => {
+        // The band is columns 98 and 99. Only its first cell draws the freeze line itself; the gridline in
+        // front of column 99 belongs to column 98, so an edge starting on column 99 starts on that gridline.
+        await grid.goto({ rtl, fixedColumnsEnd: 2 });
+        await grid.selectCells(fromRow, 99, toRow, 99, { scrollToCell: false });
+        await grid.scrollTo(row, PARTWAY_COLUMN);
+
+        await expect.poll(() => grid.endCornerEdgeOffsets(line, 99)).toEqual([1]);
+
+        // The band's first column still starts on the band's own edge.
+        await grid.selectCells(fromRow, 98, toRow, 99, { scrollToCell: false });
+
+        await expect.poll(() => grid.endCornerEdgeOffsets(line, 98)).toEqual([0]);
+      });
+    });
+
     test('draws no edge in the end corners for a selection away from the freeze lines', async () => {
       await grid.scrollTo(98, 98);
       // Rows 92 to 97: the bottom edge lies a row above the freeze line, so the corner has nothing to draw.

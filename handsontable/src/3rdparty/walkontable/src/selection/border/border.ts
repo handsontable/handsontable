@@ -1360,9 +1360,10 @@ class Border {
   /**
    * Resolves how far a row freeze edge starts before its first cell: `1` overlaps the border shared with
    * the previous column, mirroring `appear`, and `0` starts on the cell itself. Column 0 has no previous
-   * column. In the end corners the first cell draws the end freeze line itself unless the master draws it
-   * (`InlineEndOverlay#isFreezeLineShared`, scrolled to the end), and a shift would then stick out one
-   * pixel past that line, outside the selection. Asked of the overlay, not read from the cell's border:
+   * column. In the end corners the band's first cell draws the end freeze line itself unless the master
+   * draws it (`InlineEndOverlay#isFreezeLineShared`, scrolled to the end), and a shift would then stick out
+   * one pixel past that line, outside the selection. An edge that starts on a later column of the band keeps
+   * the shift, onto the gridline the column before it draws. Asked of the overlay, not read from the cell's border:
    * the class that takes that border off is set only after the clones draw, so the border describes the
    * previous scroll position, and an RTL numeric or time cell (`dir="ltr"`) has it on the other side.
    *
@@ -1374,7 +1375,8 @@ class Border {
     if (firstColumn === 0) {
       return 0;
     }
-    if (getOverlaySegment(this.wot.wtTable.name, 'column') !== 'end') {
+    if (getOverlaySegment(this.wot.wtTable.name, 'column') !== 'end' ||
+        !this.isFrozenEndBoundaryOppositeEdge(firstColumn)) {
       return 1;
     }
 
