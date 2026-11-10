@@ -86,6 +86,8 @@ test.describe('row headers beside a merge that a trim or a filter drew from anot
     await expect.poll(tallestRow).toBe(control);
   });
 
+  // A guard, not a repro of the bug: the untrim makes the original cell the top-left again, and that cell never
+  // held `hidden`, so this case passes without the fix. It fails if the fix clears more than it should.
   test('trimming the first row, then untrimming it, keeps every row header as tall as its row', async() => {
     await grid.buildWithoutText({ mergeCells: TALL_MERGE, trimRows: true });
     await grid.callPlugin('trimRows', 'trimRows', [1]);

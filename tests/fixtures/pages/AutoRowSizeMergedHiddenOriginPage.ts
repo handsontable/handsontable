@@ -97,8 +97,8 @@ export class AutoRowSizeMergedHiddenOriginPage {
   }
 
   /**
-   * Filters out the rows of a column that hold the given value (`neq`), then renders. Needs the grid built
-   * with `filters: true`.
+   * Filters out the rows of a column that hold the given value (`neq`). `filter()` renders the grid itself.
+   * Needs the grid built with `filters: true`.
    */
   async filterOutValue(column: number, value: string): Promise<void> {
     await this.page.evaluate(([col, val]) => {
@@ -107,7 +107,6 @@ export class AutoRowSizeMergedHiddenOriginPage {
 
       filters.addCondition(col as number, 'neq', [val as string]);
       filters.filter();
-      hot.render();
     }, [column, value] as const);
   }
 
