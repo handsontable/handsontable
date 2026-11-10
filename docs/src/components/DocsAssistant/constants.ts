@@ -65,11 +65,11 @@ const SAME_ORIGIN_BASE = '/docs-assistant';
 /**
  * Absolute backend URL used everywhere the same-origin proxy does not exist —
  * `*.pages.dev` deploy previews and local development. Baked at build time from
- * `PUBLIC_CHAT_API_URL`, falling back to the Netlify deployment.
+ * `PUBLIC_CHAT_API_URL`, falling back to the production backend.
  */
 const ABSOLUTE_API_URL =
   (import.meta.env.PUBLIC_CHAT_API_URL as string | undefined) ||
-  'https://hot-docs-assistant.netlify.app';
+  'https://docs-assistant.handsontable.com';
 
 /**
  * Resolve the backend base URL at runtime. The widget mounts client-side only
