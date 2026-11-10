@@ -1093,8 +1093,15 @@ Consequences worth knowing:
   first row of the body, so the first visible row of a scrolled grid and the first row after
   `fixedRowsTop` kept 1px of their 2px edge. The covering overlay is the top clone for the master
   table and the top corner on the clone's own side for the inline-start and inline-end clones. Neither test applies to an
-  edge that lands exactly on a freeze line (`isFrozenBoundaryEdge`): the master and the frozen overlay
-  draw its two halves around the line, and `frozenBoundaryEdge.spec.js` pins that a shift would break it. A cell of the inline-start clone and of the corners is in
+  edge that lands on a freeze line (`Border#isEdgeOnStartFreezeLine`): the first track after the frozen ones
+  (`isFrozenBoundaryEdge`), or a later one that scrolling lined up with the frozen area (the first track the
+  master shows whole, with none partly hidden before it, read from `Overlays#selectionVisibleRange`). The
+  master and the frozen overlay draw its two halves around the line, so the line pixel is the selection's color
+  as at any gridline, and `frozenBoundaryEdge.spec.js` pins that a shift would break it. Moving such an edge off
+  the line instead shows a gray line beside it. The master's copy is hidden only in the index case; for a lined-up
+  track the frozen overlay's holder clips its copy at the line, so the master keeps the inside half. The bottom
+  line has no lined-up case yet: the bottom clone is 1px taller than the row calculators count (its first row
+  draws its own top border, a second gridline under the row's), so a lined-up row reads as partly covered. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by
   `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside
@@ -2208,9 +2215,9 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   bottom clones also render that column, under the end overlay, and their copy of the start edge sits one
   pixel off the freeze line, so both showed and the edge came out thicker (3px against 1px for an area in
   the `main` theme). `Border#appear` hides it through `isFrozenEndBoundaryOppositeEdge`, the mirror of the
-  `isFrozenBoundaryEdge('column', ...)` rule on the start side. The end edge of a selection that stops at
-  the last scrollable column needs nothing: the master draws it inside its own cell, and the end overlay
-  starts right after that cell.
+  `isFrozenBoundaryEdge('column', ...)` rule on the start side. The end edge of a selection that stops on the
+  column lined up with the band is the other way round: the master draws it, and the end clones draw it again
+  over themselves (see the freeze line bullet below).
 - **A selection edge on a row freeze line is drawn by the end corners over the end columns (DEV-3638).**
   `Border#drawFrozenBoundaryEdge` splits an edge on the `fixedRowsTop` or `fixedRowsBottom` line by column:
   the `top` or `bottom` clone draws it over the scrollable columns, and the corners over the frozen ones. The
@@ -2221,17 +2228,15 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   (`tests/e2e/frozen-seam-edge-end-corners.spec.ts`). Which overlay draws which line is read from
   `getOverlaySegment`, never from a list of overlay names: a hand-written list is how the end corners were
   left out.
-- **The end corners start a row-freeze edge on their first cell when that cell draws the freeze line.**
+- **The end corners start a row-freeze edge on their first cell, which draws the freeze line.**
   `drawHorizontalFreezeEdge` starts an edge one pixel before its first cell, onto the border the previous
-  column draws. That holds in the end corners only while the band stands on the last scrollable column
-  (scrolled to the end). Scrolled partway, the band's first cell draws the end freeze line itself, and the
-  corner's holder does not clip, so the shifted edge showed a 1px stub outside the selection.
-  `Border#getFreezeEdgeStartShift` asks `InlineEndOverlay#isFreezeLineShared()` there, which reads the
-  current scroll position, and only for an edge that starts on the band's first column: an edge that starts
-  on a later column of the band keeps the shift, onto the gridline the column before it draws. Do not read the cell's computed border instead: `htFreezeLineShared` is toggled
-  only after the clones draw, so the border describes the previous scroll position (a scroll from the end
-  to partway kept the stub until the next render), and an RTL numeric or time cell (`dir="ltr"`) carries
-  its inline-start border on the left. The spec measures the signed offset of the corner's edges against
+  column draws. In the end corners the band's first cell draws the end freeze line itself at every scroll
+  offset (its column reaches one pixel over the column before the band), and the corner's holder does not
+  clip, so the shifted edge would show a 1px stub outside the selection. `Border#getFreezeEdgeStartShift`
+  drops the shift for an edge that starts on the band's first column; one that starts on a later column of the
+  band keeps it, onto the gridline the column before it draws. Decided by index, never by the cell's computed
+  border: an RTL numeric or time cell (`dir="ltr"`) carries its inline-start border on the left. The spec
+  measures the signed offset of the corner's edges against
   the band's first cell, with the side taken from the grid's direction: a hit test half a pixel off the
   band's edge returns the corner's cell either way.
 - **Known limitation: a selection that crosses the freeze line shows a seam line, on both sides.** An area
@@ -2250,7 +2255,7 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   its `.wtHolder` follow the table width, and they are anchored at the inline end, so the clone starts on that
   pixel. Its first cell keeps its own 1px inline-start border (the generic `td:first-child` / `th:first-child`
   rule in `_base.scss`) at every scroll offset. The content box of that cell is as wide as any other cell of its
-  width. Five consequences:
+  width. Six consequences:
   - The line no longer moves at the end of the scroll range (DEV-3636). It used to be the clone's border
     mid-scroll and the master's at the junction, one pixel further, so the column looked 1px wider there. In
     `horizon`, where the scrolling cells draw no visible inline-end border, the line vanished at the junction.
@@ -2261,6 +2266,15 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   - A selection's inline-start edge on the band's first column lands on the line pixel inside the clone's holder,
     because the cell owns an inline-start border (`Border#appear` shifts the edge onto the cell's boundary). It
     used to be clipped at the junction, where the cell had no border and the edge went to `left: -1`.
+  - The column lined up with the band (by an arrow key, a snapped scroll, or the end of the scroll range) has its
+    own inline-end border under the clone, and that border is the line. A selection ending there keeps its end
+    edge where every other end edge is, on that border, and the end clones draw the same edge over themselves
+    (`Border#drawColumnFreezeEndEdge`, from `drawFrozenBoundaryEdge`), so the line pixel is the selection's color,
+    as at any gridline. The fill handle is lifted inside the cell (`isCornerLiftedAtInlineEnd`). "Lined up" is
+    `Border#isEdgeOnEndFreezeLine`: the column is the last one the master shows whole and no column after it is
+    partly visible, read from `Overlays#selectionVisibleRange`, the snapshot every overlay draws its selection from,
+    never from cell rectangles (the clones draw before the master, so a geometry read can disagree between them).
+    Narrowing the edge off the covered pixel instead leaves a gray line beside a blue edge.
   - The pointer on the line pixel hits the end clone's first cell, not the column before it.
   - An open editor on the column before the band ends right before the line, because
     `BaseEditor#getEditedCellRect` keeps the overlap out of its `maxWidth`; reaching 1px under the clone hid half

@@ -265,6 +265,39 @@ export class EditorRowHeaderBorderPage {
   }
 
   /**
+   * Names the topmost element on the gridline pixel in front of a cell, at the middle of the cell's other
+   * axis: the pixel before its inline-start edge (`'start'`) or above its top edge (`'top'`). Named
+   * `<overlay>/<element>`, so a test can tell whether a frozen overlay paints the selection there.
+   *
+   * @param {GridName} grid The grid.
+   * @param {number} row The visual row.
+   * @param {number} col The visual column.
+   * @param {'start'|'top'} side Which gridline of the cell.
+   * @returns {Promise<string>}
+   */
+  async gridlinePixelOwner(grid: GridName, row: number, col: number, side: 'start' | 'top'): Promise<string> {
+    return this.page.evaluate(([name, r, c, gridline]) => {
+      const hot = (window as unknown as Record<string, {
+        getCell: (row: number, col: number, topmost?: boolean) => HTMLElement,
+        isRtl: () => boolean,
+      }>)[`hot_${name.replace(/-/g, '_')}`];
+      const cell = hot.getCell(r, c, true).getBoundingClientRect();
+      let x = cell.left + (cell.width / 2);
+      let y = cell.top - 0.5;
+
+      if (gridline === 'start') {
+        x = hot.isRtl() ? cell.right + 0.5 : cell.left - 0.5;
+        y = cell.top + (cell.height / 2);
+      }
+
+      const element = document.elementFromPoint(x, y);
+      const overlay = element?.closest('.handsontable')?.className.match(/ht_clone_\w+|ht_master/)?.[0] ?? 'none';
+
+      return `${overlay}/${element?.tagName.toLowerCase()}.${element?.className ?? ''}`;
+    }, [grid, row, col, side] as const);
+  }
+
+  /**
    * Scroll a grid so that a row is the first scrollable one it shows, and wait until the scroll has
    * settled. Reading the first visible row while the viewport is still moving can return an interim one.
    *

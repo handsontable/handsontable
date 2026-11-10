@@ -93,6 +93,36 @@ for (const rtl of [false, true]) {
       expect(await grid.editorGapToLine()).toBe(0);
     });
 
+    test('draws the selection edge on the line for a column the arrow key lines up with the band', async () => {
+      await open();
+
+      const column = await grid.arrowToBandEdge(1, 1, rtl);
+
+      // Precondition: the arrow key scrolled the grid, and the selected column ends at the line.
+      expect(column).toBeGreaterThan(1);
+      expect(await grid.masterColumnEndsAtLine()).toBe(true);
+
+      // Like at any gridline: the line pixel is the selection's (drawn by the end clone over itself), and so is
+      // the pixel inside it (the master's edge, or the clone's copy where its holder does not clip it). The fill
+      // handle stays uncovered.
+      await expect.poll(() => grid.endEdgeAcrossLine(1, column)).toEqual({
+        onLine: expect.stringMatching(/^ht_clone_inline_end\/div\.wtBorder current/),
+        inside: expect.stringMatching(/^(ht_master|ht_clone_inline_end)\/div\.wtBorder current/),
+        handleOnTop: true,
+      });
+    });
+
+    test('drops the edge from the end clone once the column scrolls off the line', async () => {
+      await open();
+      await grid.arrowToBandEdge(1, 1, rtl);
+      // Precondition: lined up, the end clone draws its piece of the edge.
+      await expect.poll(() => grid.endCloneShowsCurrentBorder()).toBe(true);
+
+      await grid.scrollFurtherBy(5);
+
+      await expect.poll(() => grid.endCloneShowsCurrentBorder()).toBe(false);
+    });
+
     test('is one border wide without a horizontal scroll, where the clone rests against the last column', async () => {
       await grid.open({
         rtl, cols: 8, rows: ROWS, colWidth: COL_WIDTH, width: 800, fixedColumnsEnd: 2, fixedRowsBottom: 1,

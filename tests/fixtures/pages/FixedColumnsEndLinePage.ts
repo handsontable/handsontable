@@ -231,6 +231,114 @@ export class FixedColumnsEndLinePage {
   }
 
   /**
+   * Selects a cell and presses the arrow key toward the inline end until the grid scrolls, the way a user
+   * reaches the end band from the keyboard: the selected column then ends on the band's edge.
+   *
+   * @param {number} row The visual row to select.
+   * @param {number} column The visual column to start from.
+   * @param {boolean} rtl Whether the grid is right to left.
+   * @returns {Promise<number>} The visual column the selection ends on.
+   */
+  async arrowToBandEdge(row: number, column: number, rtl: boolean): Promise<number> {
+    const scrollLeft = () => this.page.evaluate(() => (
+      document.querySelector('.ht_master .wtHolder') as HTMLElement).scrollLeft);
+
+    await this.page.evaluate(([r, c]) => {
+      (window as unknown as { hot: { selectCell(row: number, col: number): void } }).hot.selectCell(r, c);
+    }, [row, column] as const);
+
+    const start = await scrollLeft();
+
+    for (let press = 0; press < 40 && await scrollLeft() === start; press++) {
+      await this.page.keyboard.press(rtl ? 'ArrowLeft' : 'ArrowRight');
+    }
+
+    // The clones follow the scroll a frame later.
+    await this.page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+
+    return this.page.evaluate(() => (
+      window as unknown as { hot: { getSelectedRangeLast(): { to: { col: number } } } }
+    ).hot.getSelectedRangeLast().to.col);
+  }
+
+  /**
+   * What a user sees across the selected cell's inline-end edge, at the cell's middle row, in one read: the
+   * topmost element on the freeze line's pixel (the end clone's first pixel) and on the pixel before it, each named
+   * `<overlay>/<element>`. Also whether the fill handle is the topmost element at its center. A border element's
+   * hit area is wider than what it paints, so a pixel further inside cannot be judged this way.
+   *
+   * @param {number} row The visual row of the selected cell.
+   * @param {number} column The visual column of the selected cell.
+   * @returns {Promise<{ onLine: string, inside: string, handleOnTop: boolean }>}
+   */
+  async endEdgeAcrossLine(row: number, column: number): Promise<{
+    onLine: string; inside: string; handleOnTop: boolean;
+  }> {
+    return this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as {
+        hot: { getCell(row: number, col: number): HTMLElement, isRtl(): boolean },
+      };
+      const rtl = hot.isRtl();
+      const band = (document.querySelector('.ht_clone_inline_end .wtHolder') as HTMLElement).getBoundingClientRect();
+      const cell = hot.getCell(r, c).getBoundingClientRect();
+      const y = cell.top + (cell.height / 2);
+      // The line is the band's first pixel; the selection lies on the other side of it.
+      const lineX = rtl ? band.right - 0.5 : band.left + 0.5;
+      const step = rtl ? 1 : -1;
+      const describe = (x: number) => {
+        const el = document.elementFromPoint(x, y);
+        const overlay = el?.closest('.handsontable')?.className.match(/ht_clone_\w+|ht_master/)?.[0] ?? 'none';
+
+        return `${overlay}/${el?.tagName.toLowerCase()}.${el?.className ?? ''}`;
+      };
+      const corner = Array.from(document.querySelectorAll('.wtBorder.current.corner'))
+        .find(el => getComputedStyle(el).display !== 'none');
+      let handleOnTop = false;
+
+      if (corner) {
+        const rect = corner.getBoundingClientRect();
+
+        handleOnTop = document.elementFromPoint(rect.left + (rect.width / 2), rect.top + (rect.height / 2)) === corner;
+      }
+
+      return {
+        onLine: describe(lineX),
+        inside: describe(lineX + step),
+        handleOnTop,
+      };
+    }, [row, column] as const);
+  }
+
+  /**
+   * Scrolls the master holder by a few pixels toward the inline end and waits for the clones to follow.
+   *
+   * @param {number} pixels How far to scroll.
+   */
+  async scrollFurtherBy(pixels: number): Promise<void> {
+    await this.page.evaluate(async(by) => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const rtl = getComputedStyle(holder).direction === 'rtl';
+
+      holder.scrollLeft += rtl ? -by : by;
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      });
+    }, pixels);
+  }
+
+  /**
+   * Whether an end clone shows a piece of a `current` selection border.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async endCloneShowsCurrentBorder(): Promise<boolean> {
+    return this.page.evaluate(() => Array.from(document.querySelectorAll('.ht_clone_inline_end .wtBorder.current'))
+      .some(el => getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().height > 0));
+  }
+
+  /**
    * Whether each end clone root carries the freeze-line state class.
    */
   async sharedStateOfClones(): Promise<Record<string, boolean>> {
