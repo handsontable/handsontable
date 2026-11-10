@@ -1213,6 +1213,24 @@ class Border {
   }
 
   /**
+   * Resolves the last column of the selection's bottom-end cell, past a merged block. A selected merged cell
+   * reaches the border as its first cell only, so a block that starts on the column lined up with the end band
+   * but runs into the band does not end there: the end clones draw its outline themselves.
+   *
+   * @private
+   * @param {number} toRow The selection's bottom row index.
+   * @param {number} toColumn The selection's inline-end column index.
+   * @returns {number}
+   */
+  getBlockEndColumn(toRow: number, toColumn: number): number {
+    const blockExtent = resolveBlockExtent(
+      this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'meta'),
+    );
+
+    return blockExtent ? Math.max(toColumn, blockExtent[3]) : toColumn;
+  }
+
+  /**
    * Mirror of {@link Border#isBoundaryCornerScrolledOut} for the bottom freeze line: tells whether the
    * selection's bottom boundary cell has scrolled behind the bottom frozen pane in the master viewport
    * (it then drops below the last visible master row), so the edge must not be drawn.
@@ -1310,7 +1328,7 @@ class Border {
     // The end freeze line is the inline-end border of the column lined up with the end band, and the end clones'
     // first column covers it. The master still draws the edge there, under the clones; they draw the same edge
     // over themselves, clamped to their rows, so the line pixel is the selection's color.
-    if (columnSegment === 'end' && this.isEdgeOnEndFreezeLine(toColumn)) {
+    if (columnSegment === 'end' && this.isEdgeOnEndFreezeLine(this.getBlockEndColumn(toRow, toColumn))) {
       const firstRow = Math.max(fromRow, wtTable.getFirstRenderedRow());
       const lastRow = Math.min(toRow, wtTable.getLastRenderedRow());
 
