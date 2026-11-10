@@ -558,6 +558,20 @@ To avoid this scenario, copy the data before you pass it to the grid. To change 
 can use our API methods. For example, a change being made will be displayed immediately on the screen after calling
 the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
+::: only-for vue
+
+Pass a new array to replace the data. Assigning `data.value = newArray`, passing a new `data` prop, or setting a new
+`settings.data` loads the new array into the grid. The grid keeps the sorted row order, the trimmed rows, and the
+cell and column states, as the [`updateData()`](@/api/core.md#updatedata) method does.
+
+An edit of the same array (`push()`, `splice()`, or a cell write) needs no replacement: the grid reads the array by
+reference.
+
+Don't write the array inline in the template (`:data="[[1, 2], [3, 4]]"`). Vue builds a new array on every render of
+the parent component, so the grid reloads its data each time. Keep the array in a `ref()`, or in a constant.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example10 --js 1 --ts 2

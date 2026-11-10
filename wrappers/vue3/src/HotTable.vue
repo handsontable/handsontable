@@ -11,7 +11,7 @@
 <script lang="ts">
 // eslint-disable-next-line  @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { defineComponent, VNode, markRaw } from 'vue';
+import { defineComponent, VNode, markRaw, toRaw } from 'vue';
 // TODO: The line above is ts-ignored because rollup-plugin-typescript2 throws an error otherwise.
 // It's most probably caused by outdated rollup-plugin-vue which is no longer maintained.
 
@@ -66,7 +66,12 @@ const HotTable = defineComponent({
 
         this.miscCache.hookKeys = getPassedHookKeys(props);
 
-        if (settings.data) {
+        const incomingData = settings.data ? toRaw(settings.data) : null;
+        const isNewData = incomingData !== null && incomingData !== this.miscCache.lastData.value;
+
+        // A new array replaces the grid's data: `updateSettings()` runs core's `updateData()`, which
+        // resets the index mappers and keeps sorting, filters and hidden rows.
+        if (settings.data && !isNewData) {
           if (
             this.hotInstance.isColumnModificationAllowed() ||
             (
@@ -92,6 +97,10 @@ const HotTable = defineComponent({
 
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
 
+        if (incomingData) {
+          this.miscCache.lastData.value = incomingData;
+        }
+
         recordSettingBaselines(this.miscCache.baselines, props, this.hotInstance.getSettings(), overriddenKeys);
       },
       deep: true,
@@ -109,6 +118,9 @@ const HotTable = defineComponent({
         hookKeys: [] as string[],
         // Holds the grid's own values, so it must not be wrapped in a proxy: the compare is by identity.
         baselines: markRaw({}) as SettingBaselines,
+        // The `data` array the grid was last given by the props, compared by identity to tell a new array
+        // from an in-place edit. Wrapped in a raw holder so Vue does not proxy the app's array.
+        lastData: markRaw({ value: null as unknown[] | null }),
       },
       columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
@@ -162,6 +174,7 @@ const HotTable = defineComponent({
 
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       this.miscCache.hookKeys = getPassedHookKeys(this.$props);
+      this.miscCache.lastData.value = newSettings.data ? toRaw(newSettings.data) : null;
     },
 
     matchHotMappersSize(): void {
