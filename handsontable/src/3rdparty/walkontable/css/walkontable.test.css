@@ -1,3 +1,15 @@
+/**
+ * Gives the scrollbars of the test page a fixed size that takes layout space. Without it the width
+ * follows the OS: 0 under macOS "Show scroll bars: When scrolling" (overlay scrollbars), 15px with
+ * classic ones. The size is the classic desktop Chrome width, so it matches what CI measures today.
+ * The bar is not painted (no thumb or track rules), so a spec must not click or drag it. A holder that
+ * a theme styles with `scrollbar-width` or `scrollbar-color` ignores this rule.
+ */
+::-webkit-scrollbar {
+  width: 15px;
+  height: 15px;
+}
+
 body > .handsontable {
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.3em;
