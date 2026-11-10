@@ -150,8 +150,13 @@ export class ColumnSizeSettings {
     const value = (this.#hot.getSettings() as Record<string, unknown>).colWidths;
 
     if (Array.isArray(value)) {
-      this.#follow(value);
-      this.#restore();
+      // Only a map this update created or reset starts from the declared order, so only that one takes the
+      // kept origins back. A map the update kept holds the current origins: the kept ones were taken when the
+      // data was last left, and putting them back after a later insert and removal gave a removed column's
+      // width to another column.
+      if (this.#follow(value)) {
+        this.#restore();
+      }
     } else {
       this.#unfollow();
     }
@@ -198,8 +203,9 @@ export class ColumnSizeSettings {
    * Starts following an array, or resets the origin map when a new array replaced the previous one.
    *
    * @param {Array} value The array.
+   * @returns {boolean} `true` when the map was created or reset, `false` when it was kept as it is.
    */
-  #follow(value: unknown[]): void {
+  #follow(value: unknown[]): boolean {
     if (this.#map === null) {
       // A load declares every column at its own index (called with the index alone); an inserted column takes
       // the next unused entry when it is appended after the last column (called with the ordinal too), and none
@@ -214,13 +220,17 @@ export class ColumnSizeSettings {
       this.#declared = value;
       this.#hot.columnIndexMapper.registerMap(MAP_NAME, this.#map);
 
-      return;
+      return true;
     }
 
     if (this.#declared !== value) {
       this.#declared = value;
       this.#resetOrigins(this.#map);
+
+      return true;
     }
+
+    return false;
   }
 
   /**

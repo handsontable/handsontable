@@ -235,6 +235,39 @@ describe('colWidths addressed by physical column index', () => {
     expect(widths()).toEqual([40, 60, 80]);
   });
 
+  it('should keep the widths after an insert and a removal on a data array the grid came back to', () => {
+    const colWidths = [100, 150, 200];
+    const first = [['a', 'b', 'c']];
+    const second = [['d', 'e', 'f']];
+
+    createGrid({ data: first, colWidths });
+
+    hot.loadData(second);
+    hot.loadData(first);
+
+    hot.alter('insert_col_start', 0);
+    hot.alter('remove_col', 3);
+
+    expect(widths()).toEqual([50, 100, 150]);
+
+    // A settings update that does not mention `colWidths`, as a React or Vue re-render sends it.
+    hot.updateSettings({});
+
+    expect(widths()).toEqual([50, 100, 150]);
+  });
+
+  it('should put the widths back when the same array is set again after a non-array value', () => {
+    const colWidths = [100, 150, 200];
+
+    createGrid({ colWidths });
+
+    hot.alter('insert_col_start', 0);
+    hot.updateSettings({ colWidths: 70 });
+    hot.updateSettings({ colWidths });
+
+    expect(widths()).toEqual([50, 100, 150, 200]);
+  });
+
   it('should stop reading through the map once colWidths is no longer an array', () => {
     createGrid({ colWidths: [100, 150, 200] });
 
