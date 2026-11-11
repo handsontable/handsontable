@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { ManualRowMoveHiddenGapPage } from '../fixtures/pages/ManualRowMoveHiddenGapPage';
 
 /**
@@ -7,7 +7,7 @@ import { ManualRowMoveHiddenGapPage } from '../fixtures/pages/ManualRowMoveHidde
  * the hidden block, so the order users see after showing the rows does not depend on where in the gap the
  * pointer was released.
  */
-test.describe('a row dragged into a gap that holds hidden rows', { tag: THEMES_TAG }, () => {
+test.describe('a row dragged into a gap that holds hidden rows', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: ManualRowMoveHiddenGapPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -67,7 +67,7 @@ test.describe('a row dragged into a gap that holds hidden rows', { tag: THEMES_T
  * The column plugin steps over hidden columns when it resolves a drop, so both sides of a gap that holds
  * hidden columns already give one physical order. This pins that, so the row rule above stays the mirror of it.
  */
-test.describe('a column dragged into a gap that holds hidden columns', { tag: THEMES_TAG }, () => {
+test.describe('a column dragged into a gap that holds hidden columns', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: ManualRowMoveHiddenGapPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
