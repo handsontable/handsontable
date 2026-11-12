@@ -138,6 +138,26 @@ for (const rtl of [false, true]) {
       await expect.poll(() => grid.endCloneShowsCurrentBorder()).toBe(false);
     });
 
+    test('keeps the outline and fill handle of a selected merge that runs from the lined-up column into the band', async () => {
+      await open();
+
+      const column = COLS - END - 1;
+
+      await grid.scrollTo(await grid.maxScroll(), COLS - 1, rtl);
+      await grid.mergeAndSelect(3, column, 2, 2);
+      expect(await grid.masterColumnEndsAtLine()).toBe(true);
+
+      await expect.poll(() => grid.blockOutlineInEndClone(3, column)).toMatchObject({
+        handleOnTop: true,
+        endEdgeOffset: 0,
+        bottomEdgeOffset: 0,
+      });
+
+      const { handleOffset } = await grid.blockOutlineInEndClone(3, column);
+
+      expect(Math.max(...handleOffset!.map(Math.abs))).toBeLessThanOrEqual(6);
+    });
+
     test('is one border wide without a horizontal scroll, where the clone rests against the last column', async () => {
       await grid.open({
         rtl, cols: 8, rows: ROWS, colWidth: COL_WIDTH, width: 800, fixedColumnsEnd: 2, fixedRowsBottom: 1,

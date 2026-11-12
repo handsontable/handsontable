@@ -420,6 +420,78 @@ export class FixedColumnsEndLinePage {
   }
 
   /**
+   * Merges a block of cells and selects it.
+   *
+   * @param {number} row The visual row of the block's top-start cell.
+   * @param {number} col The visual column of the block's top-start cell.
+   * @param {number} rowspan How many rows the block spans.
+   * @param {number} colspan How many columns the block spans.
+   */
+  async mergeAndSelect(row: number, col: number, rowspan: number, colspan: number): Promise<void> {
+    await this.page.evaluate(([r, c, rs, cs]) => {
+      const { hot } = window as unknown as {
+        hot: { updateSettings(settings: object): void, selectCell(row: number, col: number): void },
+      };
+
+      hot.updateSettings({ mergeCells: [{ row: r, col: c, rowspan: rs, colspan: cs }] });
+      hot.selectCell(r, c);
+    }, [row, col, rowspan, colspan] as const);
+  }
+
+  /**
+   * What the end clone draws of the selected block, in one read, measured against the block's bottom-end corner
+   * (the corner of its master cell): whether the fill handle the clone draws is the topmost element at its center,
+   * and how far that center is from the corner on each axis; how far the clone's displayed inline-end and bottom
+   * edges are from the block's own, in whole pixels. `null` for a part the clone does not draw.
+   *
+   * @param {number} row The visual row of the block's top-start cell.
+   * @param {number} col The visual column of the block's top-start cell.
+   * @returns {Promise<{ handleOnTop: boolean, handleOffset: number[] | null, endEdgeOffset: number | null,
+   * bottomEdgeOffset: number | null }>}
+   */
+  async blockOutlineInEndClone(row: number, col: number): Promise<{
+    handleOnTop: boolean; handleOffset: number[] | null; endEdgeOffset: number | null; bottomEdgeOffset: number | null;
+  }> {
+    return this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as {
+        hot: { getCell(row: number, col: number): HTMLElement, isRtl(): boolean },
+      };
+      const rtl = hot.isRtl();
+      const block = hot.getCell(r, c).getBoundingClientRect();
+      const cornerX = rtl ? block.left : block.right;
+      const shown = Array.from(document.querySelectorAll('.ht_clone_inline_end .wtBorder.current'))
+        .filter(el => getComputedStyle(el).display !== 'none')
+        .map(el => ({ el, rect: el.getBoundingClientRect() }))
+        .filter(({ rect }) => rect.width > 0 && rect.height > 0);
+      const corner = shown.find(({ el }) => el.classList.contains('corner'));
+      const lines = shown.filter(({ el }) => !el.classList.contains('corner'));
+      const vertical = lines.filter(({ rect }) => rect.height > rect.width)
+        .map(({ rect }) => Math.round((rtl ? rect.left : rect.right) - cornerX));
+      const horizontal = lines.filter(({ rect }) => rect.width > rect.height)
+        .map(({ rect }) => Math.round(rect.bottom - block.bottom));
+      const nearest = (values: number[]) => (values.length === 0 ? null :
+        values.reduce((best, value) => (Math.abs(value) < Math.abs(best) ? value : best)));
+      let handleOnTop = false;
+      let handleOffset: number[] | null = null;
+
+      if (corner) {
+        const x = corner.rect.left + (corner.rect.width / 2);
+        const y = corner.rect.top + (corner.rect.height / 2);
+
+        handleOnTop = document.elementFromPoint(x, y) === corner.el;
+        handleOffset = [Math.round(x - cornerX), Math.round(y - block.bottom)];
+      }
+
+      return {
+        handleOnTop,
+        handleOffset,
+        endEdgeOffset: nearest(vertical),
+        bottomEdgeOffset: nearest(horizontal),
+      };
+    }, [row, col] as const);
+  }
+
+  /**
    * Whether each end clone root carries the freeze-line state class.
    */
   async sharedStateOfClones(): Promise<Record<string, boolean>> {
