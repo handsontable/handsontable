@@ -818,20 +818,30 @@ early write, writes it, reads the results, and takes the write back with `engine
   pre-DEV-3760 early write 42.8 ms (1000 `setCellContents`); deferred write without a probe 47.1 ms;
   probe of the whole set 52 ms (2000); probe of the formula and the value it reads 47.3 ms (1002).
 - **Cost of a formula paste, measured, and why the probe's write is not kept.** Headless Chromium
-  (Playwright, `handsontable.full.js`), a paste (`populateFromArray()`, source `CopyPaste.paste`) of N
-  formulas `=B{i}*2` into a column with a sync validator and `allowInvalid: false`, time from the call to
-  `afterChange`, median of 5: develop 22.9 ms (N = 500) and 53.5 ms (N = 2000); this branch 30.0 ms and
-  82.7 ms. Each formula is written by the probe, undone, and written again by the apply. The review
-  measured 22.5 → 39.4 ms and 196 → 387 ms on its own setup. Keeping the probe's write when nothing is
-  rejected cannot meet the rule that a pending value never reaches a dependent: the Core validates in a
-  microtask, always (`validateCell()`, "validation should be always asynchronous"), so `setDataAtCell()`
-  returns before any validator runs, a sync one included (only `beforeValidate` fires inside the call), and a kept probe would be readable through every
-  dependent (`getDataAtCell()`, another grid's render) from that return until the apply, with no way to know
-  yet whether a validator is async. Taking it back later is also unsafe: anything a validator,
+  (Playwright, `handsontable.full.js`), a 2000-row grid, a paste (`populateFromArray()`, source
+  `CopyPaste.paste`) into a column with a sync validator and `allowInvalid: false`, time from the call to
+  `afterChange`, median of 7, against a fresh develop build (2e15365c43):
+  - N formulas `=B{i}*2`: develop 20.8 ms (N = 500) and 50.8 ms (N = 2000); this branch 28.2 ms and
+    80.3 ms. Each formula is written by the probe, undone, and written again by the apply. The review
+    measured 22.5 → 39.4 ms and 196 → 387 ms on its own setup.
+  - 2000 plain values next to 2000 readers `=A{i}*2` (validator, `allowInvalid: true`): develop 93 ms,
+    before the readers rule 108 ms, this branch 146 ms. The readers' probe writes the 2000 values and
+    undoes them, the price of validating each reader by the new value.
+  - 2000 plain values next to 2000 plain values with a validator (no reader): develop 78.6 ms, before the
+    readers rule 86.2 ms, this branch 86.8 ms. The dependency walk from the deferred cells costs nothing
+    measurable, and no probe runs.
+
+  Keeping the probe's write when nothing is rejected cannot meet the rule that a pending value never
+  reaches a dependent: the Core validates in a microtask, always (`validateCell()`, "validation should be
+  always asynchronous"), so `setDataAtCell()` returns before any validator runs, a sync one included (only
+  `beforeValidate` fires inside the call), and a kept probe would be readable through every dependent
+  (`getDataAtCell()`, another grid's render) from that return until the apply, with no way to know yet
+  whether a validator is async. Taking it back later is also unsafe: anything a validator,
   `beforeValidate` or `afterValidate` listener writes into the engine meanwhile (a `*Validator` correction is
   a nested `setDataAtCell()` with its own early write) lands on top of it, and `engine.undo()` would take
   that write back instead. So the cost stays, for a paste of formulas into a column whose cells can reject
-  it; a paste of plain values runs no probe.
+  it, and for a paste whose formulas written at once read such a column; a paste of plain values with no
+  formula reading them runs no probe.
 
 Pinned by `__tests__/deferredValidatedWrite.unit.js` (the wait for a rejected and an accepted value, a
 mixed set, a sync validator, `allowInvalid: true` and a numeric column written at once, a formula validated
