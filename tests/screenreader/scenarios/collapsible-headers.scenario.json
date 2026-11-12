@@ -41,7 +41,7 @@
       "id": "enter-expand",
       "action": {"press": "Enter"},
       "expect": [["expanded"]],
-      "note": "Enter expands it again. Finding: VoiceOver with WebKit says nothing when Enter expands the group, though it reads the collapse; the other three read `expanded`."
+      "note": "Enter expands it again. Finding (the grid's): VoiceOver with WebKit says nothing when Enter expands the group, though it reads the collapse; the other three read `expanded`. A plain header put through the same redraw (its role and states set again, its colspan, and the group's columns removed and added back) reads `expanded` with WebKit too."
     },
     {
       "id": "arrow-down-to-lower",

@@ -2131,7 +2131,9 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   ```json
   {
     "schema": 1,
-    "triageLimit": 26,
+    "triage": [
+      { "shape": "reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid", "reason": "Why it is not sorted yet." }
+    ],
     "clusters": [
       {
         "id": "dialogs-leak-tab",
@@ -2148,14 +2150,22 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   `lib/__tests__/fixtures/a11y-findings-sample.json` (one row per distinct finding shape of a real night, with
   the check that had not run yet written by hand and said so) and fails on an ambiguous one, on a cluster
   or a rule that matches nothing in the sample (a cluster leaves the catalog with its last finding, like a
-  baseline issue), and on a triage count other than `triageLimit`, exactly: lowered when a shape is sorted
-  into a cluster, raised only visibly, in the change that adds one. The sample is frozen, so the test also
+  baseline issue), and on a queue other than the catalog's `triage` list, exactly. Each entry names a queued
+  shape as `findingShape()` writes it, with its reason (why it is neither a known cause nor the reader's own
+  behavior yet), so the reason sits beside the shape and the limit is the list's length, never a second
+  number: an entry leaves when its shape is sorted into a cluster, and joins only visibly, in the change that
+  adds it. The validator refuses an entry with no reason, a repeated shape, and a catalog that gives both
+  `triage` and the bare `triageLimit` (still read from a catalog that gives the number alone, like the ledger's
+  test fixtures). The sample is frozen, so the test also
   checks every id a rule names against its live source: `criteria` against `WCAG_CRITERIA`, `themes` against
   the scan's themes, `axeIssues` against `a11y/axe-baseline.json`, a reader rule's `checks` against the
   projects of `playwright.screenreader.config.ts`, and a check rule's `kinds` against the kinds the checks'
   code can emit. Renaming one of those fails the catalog's test until the catalog follows. On a live night
   the collector raises a `::warning` on its run for a row two clusters match and for a night with more
-  triage shapes than `triageLimit`, which is the sign to refresh the sample and sort the new shapes. A
+  triage shapes than the `triage` list holds, which is the sign to refresh the sample and sort the new shapes.
+  A rule that exists only for rows an intended change retires (an outdated expectation, a golden recorded
+  before the change) says so in its cluster's title and leaves in the change that next refreshes the sample:
+  until then it would file a real miss on those steps under the old cause. A
   cluster is a root cause, not a bucket: add one when its findings would be fixed by one change (the
   overlay clones split the tree, the focus is not returned after Escape), name it by what is wrong, and
   put a screen reader's own behavior in a cluster that says so rather than in the queue. The axe baseline's
