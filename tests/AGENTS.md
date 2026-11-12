@@ -1262,7 +1262,8 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   machine-readable, for an implementer agent. `needsAction` lists each finding that needs action
   with its page, theme, fixture URL, steps, rule, WCAG criteria, element, counts, remedy and up to
   ten elements (selector, DOM path, box, markup, reason); `issues` lists every known issue with
-  every location and one locator each; `pages` says once how to reach each page's state;
+  every location, one locator each and the impact the scan gave it (the one the check run counts,
+  which the findings ledger reads); `pages` says once how to reach each page's state;
   `reproduce` has the commands. `schema` (`FINDINGS_SCHEMA`) changes when a field is removed or
   renamed. `comparison.json` beside it holds everything and is several times larger.
 - **The check run** `A11y / axe report` (`lib/a11y-check-run.mjs`, posted by
@@ -2080,6 +2081,15 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   cells with a class that carries the instance id (`ht-formula-ref-fill-ht_<hash>-2`), so without the mask
   those findings are gone and new every night. Add a class to `VOLATILE_CLASSES` when a key turns out to
   follow a state; `lib/__tests__/a11y-issues.test.mjs` pins the mask on every class of the list.
+- **A row is as severe as its check run counts it.** A check's finding and a reader step carry the
+  severity their check run counts. An axe finding, of the product scan and the docs site scan alike,
+  baselined or new, is its impact read through the verdict's own `severityOfImpact()` (an impact axe
+  did not give is serious): the findings document gives every known location the impact the scan
+  gave it. One function, so the severities per cluster and the triage order on the page agree with
+  the `A11y / axe report` title of the same audit. An improved entry is the one difference, on
+  purpose: the check run lists it as advisory, because its action is a baseline edit, and the ledger
+  keeps its impact, because its elements still fail. A findings document written before the
+  locations carried their impact leaves those rows without a severity until a night names them.
 - **A row is resolved by evidence of absence, never by silence.** A row of the night's source that the
   night did not find is `resolved` only when the night measured its target: for a check, the target
   (page, theme, variant) is `measured` in the check's document with no tooling problem (`problems` > 0
