@@ -5,7 +5,7 @@
   "group": "status",
   "page": "license-powered-by",
   "start": "page",
-  "criteria": ["2.1.1", "2.4.4", "4.1.2"],
+  "criteria": ["2.1.1", "2.4.3", "2.4.4", "4.1.2"],
   "setup": [{"selectCell": [0, 2]}],
   "steps": [
     {
