@@ -715,6 +715,27 @@ describe('Formulas batchEvaluation', () => {
   });
 
   describe('undo and redo', () => {
+    it('reverts only the last change of an array write on a direct engine.undo()', () => {
+      /**
+       * @param {boolean} batchEvaluation The setting.
+       * @returns {number[]} A1 and A2 of the engine after one `engine.undo()` of an array write in `batch()`.
+       */
+      function undoneColumnA(batchEvaluation) {
+        const engine = buildEngine();
+        const hot = mountGrid(engine, { formulas: { batchEvaluation } });
+
+        hot.batch(() => hot.setDataAtCell([[0, 0, 500], [1, 0, 600]]));
+        engine.undo();
+
+        return [0, 1].map(row => engine.getCellValue({ sheet: 0, row, col: 0 }));
+      }
+
+      // Without the option the array is one engine batch, so one undo reverts both cells. With it the changes are
+      // separate engine writes, and the host's `engine.undo()` takes back the last one (documented in the guide).
+      expect(undoneColumnA(false)).toEqual([1, 2]);
+      expect(undoneColumnA(true)).toEqual([500, 2]);
+    });
+
     it('restores the values and the engine for a batch of writes, and validates each dependent once', async() => {
       const { hot, engine, counts } = buildOptedIn({
         undo: true,
@@ -1217,6 +1238,19 @@ describe('Formulas batchEvaluation', () => {
 
       expect(withOption.values).toEqual(withoutOption.values);
       expect(withOption.validated).toEqual(withoutOption.validated);
+    });
+
+    it('validates the row that holds the write after a sort inside the batch', async() => {
+      // The sort takes effect when the batch resumes, so the write lands on the row the unsorted order names, and
+      // that row is visual row 5 once the sort is applied. Without the option the dependents are validated at the
+      // write, against the mapping that is not sorted yet, and report the untouched visual row 4.
+      const withOption = await runValidatedBatch(true, (hot) => {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        hot.setDataAtCell(4, 0, 50);
+      }, false);
+
+      expect(withOption.validated).toEqual(['10:2=650', '5:2=100']);
+      expect(withOption.values[5]).toEqual([50, 50, 100]);
     });
 
     it('validates the cells it validates without the option, for a column removal that breaks a reference and a '

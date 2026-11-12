@@ -1056,7 +1056,9 @@ The setting has these limits:
   with `getDataAtCell()`, or read from the engine after the batch.
 - The pause covers the whole engine. When several grids share one HyperFormula instance, a grid that
   doesn't use `batchEvaluation` gets the same error on its direct engine reads during another grid's
-  batch. Its reads through the grid still work.
+  batch. Its reads through the grid still work. It also gets one
+  [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) call for the whole batch, and
+  Handsontable validates its dependent cells when the other grid's batch ends.
 - The saving needs changes with no render in between. [`batch()`](@/api/core.md#batch) suspends
   rendering, so it gets the full saving.
   [`batchExecution()`](@/api/core.md#batchexecution) and a
@@ -1069,6 +1071,11 @@ The setting has these limits:
 - Inserting, removing, moving, or sorting rows or columns inside the batch recalculates the changes made
   before it. Handsontable validates their dependent cells before the structure changes, as it does without
   the setting. A removal also recalculates before the next change.
+- A sort inside the batch takes effect when the batch ends. Handsontable validates a change made after the
+  sort, in the same batch, at the end of the batch, on the sorted rows, so it validates the cells that hold
+  the change. Without the setting, it validates them at the change, before the sort takes effect.
+- A direct `engine.undo()` after an array `setDataAtCell()` call inside the batch reverts only the last
+  change of the array, because the changes are separate engine writes. The grid's own undo is not affected.
 - Loading data with [`loadData()`](@/api/core.md#loaddata) or [`updateData()`](@/api/core.md#updatedata)
   inside the batch replaces the data. Handsontable doesn't validate the cells of that grid that depend on the
   changes made before the load. It still validates the dependent cells on other sheets.
