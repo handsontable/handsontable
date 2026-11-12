@@ -135,6 +135,14 @@
     /**
      * Reports the active editor's state, the visual row it edits, and the last selected cell.
      */
+    /**
+     * Reads the page the Pagination plugin shows, or `null` without the plugin.
+     */
+    window.htCurrentPage = function() {
+      const pagination = hot.getPlugin('pagination');
+
+      return pagination && pagination.enabled ? pagination.getPaginationData().currentPage : null;
+    };
     window.htEditorState = function() {
       const editor = hot.getActiveEditor();
       const selected = hot.getSelectedLast();

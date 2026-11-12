@@ -358,6 +358,9 @@ export interface HotInstance {
   _addDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   ): void;
+  _addRowRevealer(revealer: (visualRow: number) => boolean): void;
+  _removeRowRevealer(revealer: (visualRow: number) => boolean): void;
+  _revealRow(visualRow: number): boolean;
   _removeDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   ): void;

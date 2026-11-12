@@ -598,6 +598,11 @@ export default function Core(
    * `_getWaitingChangeSets()`). A set leaves when its validators have answered, written or dropped, and every
    * set leaves on `loadData()`, which drops them all; a set whose validator never answers leaves then too.
    */
+  /**
+   * The functions that can bring a row a hiding feature of their own keeps off screen into view (see
+   * `_addRowRevealer()`).
+   */
+  const rowRevealers: Array<(visualRow: number) => boolean> = [];
   const waitingChangeSets: Map<CellChange[], { source: string | undefined, records: WaitingChangeRecords }> =
     new Map();
   /**
@@ -6626,6 +6631,59 @@ export default function Core(
     if (index !== -1) {
       droppedChangesListeners.splice(index, 1);
     }
+  };
+
+  /**
+   * Adds a function that can bring a row a hiding feature of its own keeps off screen back into view, the
+   * Pagination plugin's page change. It receives a visual row and returns `true` when it changed what is shown so
+   * the row can be rendered. Adding a function that is already there changes nothing.
+   *
+   * @private
+   * @param {Function} revealer The function to add.
+   */
+  this._addRowRevealer = function(revealer: (visualRow: number) => boolean) {
+    if (!rowRevealers.includes(revealer)) {
+      rowRevealers.push(revealer);
+    }
+  };
+
+  /**
+   * Removes a function `_addRowRevealer()` added. Removing one that is not there changes nothing.
+   *
+   * @private
+   * @param {Function} revealer The function to remove.
+   */
+  this._removeRowRevealer = function(revealer: (visualRow: number) => boolean) {
+    const index = rowRevealers.indexOf(revealer);
+
+    if (index !== -1) {
+      rowRevealers.splice(index, 1);
+    }
+  };
+
+  /**
+   * Asks the functions `_addRowRevealer()` added to bring a visual row into view, in the order they were added,
+   * until the row can be rendered. Only an editor that reopens on the record a rejected value was typed into asks
+   * (`BaseEditor#discardEditor()`): a plain `selectCell()` on a row off screen keeps doing what it did.
+   *
+   * @private
+   * @param {number} visualRow The visual row.
+   * @returns {boolean} Whether the row can be rendered now.
+   */
+  this._revealRow = function(visualRow: number): boolean {
+    const isRenderable = () => instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) !== null;
+
+    if (isRenderable()) {
+      return true;
+    }
+
+    for (const revealer of rowRevealers.slice()) {
+      if (revealer(visualRow) && isRenderable()) {
+        return true;
+      }
+    }
+
+    return false;
   };
 
   /**

@@ -672,8 +672,9 @@ export class BaseEditor {
   }
 
   /**
-   * Reads the visual row the waited-on record has now: `null` when the record is gone, trimmed out of the visual
-   * space, or hidden (not rendered), and `undefined` when no record is followed.
+   * Reads the visual row the waited-on record has now: `null` when the record is gone or trimmed out of the visual
+   * space, and `undefined` when no record is followed. A hidden record keeps its visual row; whether it can be
+   * shown again is decided when the editor reopens (`discardEditor()`).
    *
    * @returns {number|null|undefined}
    */
@@ -682,9 +683,7 @@ export class BaseEditor {
       return undefined;
     }
 
-    const row = this.#waitRecord.getVisualRow();
-
-    return row === null || this.hot.rowIndexMapper.getRenderableFromVisualIndex(row) === null ? null : row;
+    return this.#waitRecord.getVisualRow();
   }
 
   /**
@@ -765,9 +764,11 @@ export class BaseEditor {
    *
    * A value the validator rejected under `allowInvalid: false` reopens the editor on the record the value was
    * typed into, at the visual row that record has when the validator answers (a sort, a move, a filter, or an
-   * insert or removal can move it while the editor waits). When the record is gone, trimmed out of the visual
-   * space, or hidden (a filter, a collapse, `hiddenRows`, or a Pagination page change), the editor closes instead:
-   * no cell of that record is on screen. Nothing was written, so the close callbacks receive `false`.
+   * insert or removal can move it while the editor waits). A record a feature that can show it again keeps off
+   * screen (a sort moved it to another Pagination page) is brought back first (`Core#_revealRow()`), and the editor
+   * reopens there with the typed text. When the record is gone, trimmed out of the visual space (a filter, a
+   * collapse), or hidden for good (`hiddenRows`), the editor closes instead: no cell of that record can be shown.
+   * Nothing was written, so the close callbacks receive `false`.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -777,10 +778,14 @@ export class BaseEditor {
       return;
     }
 
-    const answeredRow = this.#answeredRow;
     const isRejected = result === false && this.cellProperties.allowInvalid !== true;
+    let answeredRow = this.#answeredRow;
 
     this.#answeredRow = undefined;
+
+    if (isRejected && typeof answeredRow === 'number' && !this.hot._revealRow(answeredRow)) {
+      answeredRow = null;
+    }
 
     if (isRejected && answeredRow !== null) {
       const row = answeredRow ?? this.row;

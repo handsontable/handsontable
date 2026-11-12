@@ -622,7 +622,7 @@ describe('Core validation of a change while its record moves', () => {
       expect(closed).toEqual([false]);
     });
 
-    it('should close without saving when Pagination moved the record to another page', async() => {
+    it('should show the page of the record and reopen on the record with the typed text when a sort moved it to another page', async() => {
       createGrid({
         allowInvalid: false,
         filters: false,
@@ -633,12 +633,36 @@ describe('Core validation of a change while its record moves', () => {
       hot.selectCell(1, 0);
 
       const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+      editor.setValue('zzz');
+      editor.finishEditing();
+      sortByKey();
+
+      expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(1);
+
+      await answerAll(false);
+
+      expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(2);
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.row).toBe(4);
+      expect(editor.getValue()).toBe('zzz');
+      expect(hot.getSelectedLast()).toEqual([4, 0, 4, 0]);
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+    });
+
+    it('should close without saving when hiddenRows hid the record', async() => {
+      createGrid({ allowInvalid: false });
+      hot.selectCell(1, 0);
+
+      const editor = hot.getActiveEditor();
       const closed = [];
 
       editor.beginEditing();
       editor.setValue('zzz');
       editor.finishEditing(false, false, saved => closed.push(saved));
-      sortByKey();
+      hot.getPlugin('hiddenRows').hideRow(1);
+      hot.render();
       await answerAll(false);
 
       expect(editor.isOpened()).toBe(false);

@@ -16,6 +16,7 @@ interface FixtureWindow {
   htFilterRank(name: string, value: number): void;
   htSourceData(): [string, number][];
   htEditorState(): EditorState;
+  htCurrentPage(): number | null;
 }
 
 /**
@@ -147,5 +148,12 @@ export class PendingEditFollowsRecordPage {
    */
   async editorState(): Promise<EditorState> {
     return this.page.evaluate(() => (window as unknown as FixtureWindow).htEditorState());
+  }
+
+  /**
+   * Reads the page the Pagination plugin shows, or `null` when the fixture runs without it.
+   */
+  async currentPage(): Promise<number | null> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htCurrentPage());
   }
 }

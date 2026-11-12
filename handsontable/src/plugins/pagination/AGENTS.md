@@ -165,6 +165,17 @@ rule to carry over: a method that changes *data* must not borrow the selection t
 because every selection constraint — this plugin's page window, and `selectionMode: 'single'`, which
 collapses any range to the highlighted cell — then silently becomes a data constraint.
 
+**A row on another page is shown only on request, through core's row revealer seam.** `enablePlugin()`
+registers `#revealRow` with the `@private` `Core#_addRowRevealer()` (`disablePlugin()` removes it), and
+core calls it from `_revealRow(visualRow)`. Today one caller asks: an editor that reopens on the record a
+rejected value was typed into, after a sort moved that record to another page (`BaseEditor#discardEditor()`).
+`#getPageOfRow()` counts the row's position among the rows no other hiding map hides (one pass over the
+visual rows) and finds the page whose `getState()` window holds it; a row another feature hides, a
+`dataProvider` grid (the rows are one page), or a row already on the current page answers `false`, and
+nothing changes. `setPage()` then announces the new page as any page change does, and the editor takes the
+focus right after. Do not make a plain `selectCell()` or a scroll call it: a selection of a row on another
+page keeps doing what it did.
+
 It also reacts to `afterSetTheme` (a theme changes row heights, and `useTheme()` does not go through
 `updateSettings`), `afterLanguageChange` (the pager's labels) and `afterDataProviderFetch`.
 
