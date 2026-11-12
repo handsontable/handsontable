@@ -447,6 +447,89 @@ describe.each([
     expect(hot.getDataAtCol(0)).toEqual(['p0', 'p3', 'p2', 'p5', 'p1', 'p4']);
   });
 
+  /**
+   * Presses a column header label while the editor stays open: the press runs no column selection, so the
+   * editor is still `EDITING` when the press reads it and takes the wait.
+   *
+   * @param {number} column The visual column.
+   */
+  function pressHeaderKeepingEditor(column) {
+    const event = new MouseEvent('mousedown', { button: 0 });
+    const label = document.createElement('span');
+    const coords = { row: -1, col: column };
+
+    label.className = 'colHeader';
+    label.dispatchEvent(event);
+    hot.runHooks('beforeOnCellMouseDown', event, coords, null, { row: false, column: false, cell: false });
+    hot.runHooks('afterOnCellMouseDown', event, coords, null);
+  }
+
+  it('should sort on release when a `beforeChange` veto ended the edit after the press', async() => {
+    buildGrid({
+      beforeChange(changes, source) {
+        if (source === 'edit') {
+          return false;
+        }
+      },
+    });
+    editCell(1, 'zzz');
+    pressHeaderKeepingEditor(1);
+    hot.getActiveEditor().finishEditing(); // vetoed: the editor is canceled and nothing is validated
+    releaseHeader(1);
+    await flush();
+
+    expect(held).toEqual([]);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+
+  it('should sort on release when Escape ended the edit after the press', async() => {
+    buildGrid();
+    editCell(1, 'zzz');
+    pressHeaderKeepingEditor(1);
+    hot.getActiveEditor().finishEditing(true); // Escape
+    releaseHeader(1);
+    await flush();
+
+    expect(held).toEqual([]);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(0)).toEqual(['p0', 'p3', 'p2', 'p5', 'p1', 'p4']);
+  });
+
+  it('should sort at once when an editor wait that holds no change set is canceled without an answer', async() => {
+    class DeferredWriteEditor extends TextEditor {
+      saveValue() {} // writes later, so the save holds no change set and validates nothing yet
+    }
+
+    buildGrid({ columns: [{ editor: DeferredWriteEditor }, {}] });
+    editCell(1, 'zzz');
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(hot.getActiveEditor().isWaiting()).toBe(true);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    hot.runHooks('beforeDialogShow'); // cancels the waiting editor; no validation will answer
+    await flush();
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+
+  it('should keep waiting for the save when the editor\'s wait is canceled without an answer', async() => {
+    buildGrid();
+    await editThenClickHeader();
+
+    hot.runHooks('beforeDialogShow'); // cancels the waiting editor; its validator still holds the answer
+    await flush();
+
+    // The save's change set still waits in core, so the sort waits for it.
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(() => true);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+
   it('should end the wait on the first answer when the editor\'s save writes later, as the editor does', async() => {
     let deferredWrite = null;
 

@@ -131,6 +131,16 @@ export interface HeaderSortPress {
   consumedByMove: boolean;
 }
 
+/**
+ * The editor a header press waits for: its wait for its validator, and the `@private` listener of its finish,
+ * which a `BaseEditor` provides.
+ */
+interface EditorToWaitFor {
+  isWaiting(): boolean;
+  _addFinishListener?(listener: () => void): void;
+  _removeFinishListener?(listener: () => void): void;
+}
+
 export interface SortConfig {
   column: number;
   sortOrder: string;
@@ -248,7 +258,7 @@ export class ColumnSorting extends BasePlugin {
    * The `postAfterValidate` listener of each press that waits for the editor, removed when the wait
    * settles or the press is dropped.
    */
-  #editorWaitListeners: Map<HeaderSortPress, () => void> = new Map();
+  #editorWaitListeners: Map<HeaderSortPress, { check: () => void, editor: EditorToWaitFor | null }> = new Map();
   /**
    * `true` from an `enablePlugin()` until the settings sort of that enable runs in the ready step.
    * `onDataReady()` sorts itself, so it clears it too.
@@ -1653,6 +1663,8 @@ export class ColumnSorting extends BasePlugin {
 
       this.applyHeaderClickSort(pending);
     });
+
+    this.#checkEditorWait(pending);
   };
 
   /**
@@ -1686,12 +1698,12 @@ export class ColumnSorting extends BasePlugin {
    * @returns {Promise}
    */
   #waitForEditor(
-    press: HeaderSortPress, editor: { isWaiting(): boolean } | null, waitingSets: CellChange[][]
+    press: HeaderSortPress, editor: EditorToWaitFor | null, waitingSets: CellChange[][]
   ): Promise<void> {
     let setsToWaitFor = waitingSets;
 
     return new Promise<void>((resolve) => {
-      const onPostAfterValidate = () => {
+      const check = () => {
         // An earlier `postAfterValidate` listener destroyed the grid; the plugin's destroy drops this wait.
         if (!this.hot || this.hot.isDestroyed || editor?.isWaiting()) {
           return;
@@ -1711,9 +1723,23 @@ export class ColumnSorting extends BasePlugin {
         resolve();
       };
 
-      this.#editorWaitListeners.set(press, onPostAfterValidate);
-      this.hot.addHook('postAfterValidate', onPostAfterValidate, Number.MAX_SAFE_INTEGER);
+      this.#editorWaitListeners.set(press, { check, editor });
+      this.hot.addHook('postAfterValidate', check, Number.MAX_SAFE_INTEGER);
+      // An edit can end with no validation at all (a `beforeChange` veto, Escape, a wait canceled without an
+      // answer), so the editor's finish checks the wait as well.
+      editor?._addFinishListener?.(check);
     });
+  }
+
+  /**
+   * Checks at once whether the wait of a press is over (the editor no longer waits and no change set of an
+   * editor save is pending), and resolves it then. The release calls it, so an edit that ended with no
+   * validation between the press and the release does not leave the sort queued.
+   *
+   * @param {HeaderSortPress} press The press.
+   */
+  #checkEditorWait(press: HeaderSortPress): void {
+    this.#editorWaitListeners.get(press)?.check();
   }
 
   /**
@@ -1722,11 +1748,12 @@ export class ColumnSorting extends BasePlugin {
    * @param {HeaderSortPress} press The press.
    */
   #stopWaitingForEditor(press: HeaderSortPress): void {
-    const listener = this.#editorWaitListeners.get(press);
+    const wait = this.#editorWaitListeners.get(press);
 
-    if (listener) {
+    if (wait) {
       this.#editorWaitListeners.delete(press);
-      this.hot.removeHook('postAfterValidate', listener);
+      this.hot.removeHook('postAfterValidate', wait.check);
+      wait.editor?._removeFinishListener?.(wait.check);
     }
   }
 

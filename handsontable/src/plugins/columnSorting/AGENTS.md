@@ -143,10 +143,16 @@ Everything about that machinery is load-bearing:
   edge: an unchanged edit waits for its stored value's answer; a save a `beforeChange` veto drops cancels the
   editor before the press reads it, so the sort runs on release; a single-cell save moved to another cell
   ends both waits on the first answer among the cells it validated (the sort also waits for its set); a
-  `saveValue()` that writes later ends both waits on the first answer of any cell. Each waiting press owns one listener (`#editorWaitListeners`),
-  removed when its wait settles, when the press turns into a drag, when a new press replaces a stale one, and
-  by every drop below. Known limit: an editor whose wait is canceled without an answer (`beforeDialogShow`)
-  leaves the sort waiting for the next answer of any cell. Pinned by
+  `saveValue()` that writes later ends both waits on the first answer of any cell. **The wait is checked on
+  three signals, not on `postAfterValidate` alone**, because an edit can end with no validation at all (a
+  `beforeChange` veto, Escape, a wait canceled without an answer by `beforeDialogShow`): each
+  `postAfterValidate`, each finish of the editor (`BaseEditor#_addFinishListener()`, run from
+  `discardEditor()`), and the release itself (`#checkEditorWait()` in `#resolvePendingSort`). Listening to
+  `postAfterValidate` only left such a sort queued until an unrelated validation answered, maybe minutes later.
+  The check is the same on every signal: the press-time editor no longer waits and no marked set is pending.
+  Each waiting press owns one entry (`#editorWaitListeners`: the check, registered on both the hook and the
+  editor), removed when its wait settles, when the press turns into a drag, when a new press replaces a stale
+  one, and by every drop below. Pinned by
   `__tests__/headerSortWaitsForEditedCell.unit.js` (both plugins), and the "waits for the edited cell when an
   unrelated validation answers first" and "waits for the whole Ctrl+Enter fill" cases of
   `tests/e2e/column-sorting-waiting-header-sort.spec.ts`.

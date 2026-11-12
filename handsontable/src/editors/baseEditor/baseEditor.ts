@@ -241,6 +241,12 @@ export class BaseEditor {
   ) | null = null;
 
   /**
+   * The functions run each time the editor finishes an edit (`discardEditor()`): it closes, or reopens on a
+   * rejection. See `_addFinishListener()`.
+   */
+  #finishListeners: Set<() => void> = new Set();
+
+  /**
    * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
    * source, so the baseline describes what the editor shows now rather than what it showed when it
    * opened. Does nothing while the guard is disarmed.
@@ -618,7 +624,7 @@ export class BaseEditor {
       const finishWait = this.#waitForValidation((result) => {
         this.discardEditor(result);
       });
-      const { validatesEditedCell, validatedCells, writtenCells } =
+      const { validatesEditedCell, validatedCells, writtenCells, startsWrite } =
         this.#saveValueValidatingEditedCell(value, ctrlDown);
 
       // A listener of the save destroyed the grid, and the editor's DOM went with it.
@@ -661,6 +667,12 @@ export class BaseEditor {
           }
         }
 
+      } else if (startsWrite) {
+        // The save wrote, but nothing it wrote has a validator (a `beforeChange` listener took the edited cell
+        // out of a Ctrl+Enter fill whose other cells have none, or moved the write to such a cell), so no
+        // answer will ever come.
+        finishWait(true);
+
       } else if (this.#validationWait) {
         // The save validated nothing yet: a `saveValue()` override that writes later. Its answer cannot be
         // told from a foreign one, so the first answer ends the wait.
@@ -682,12 +694,24 @@ export class BaseEditor {
    *
    * @param {*} value The value to save.
    * @param {boolean} [ctrlDown] If `true`, applies the value to each cell in every selected range.
-   * @returns {{ validatesEditedCell: boolean, validatedCells: ValidatedCell[], writtenCells: Array[] }}
+   * And it tells whether the save started a write (`beforeChange` ran during it), which a save that writes
+   * later does not.
+   *
+   * @param {*} value The value to save.
+   * @param {boolean} [ctrlDown] If `true`, applies the value to each cell in every selected range.
+   * @returns {{ validatesEditedCell: boolean, validatedCells: ValidatedCell[], writtenCells: Array[], startsWrite: boolean }}
    */
-  #saveValueValidatingEditedCell(
-    value: unknown, ctrlDown?: boolean
-  ): { validatesEditedCell: boolean, validatedCells: ValidatedCell[], writtenCells: Array<[number, unknown]> } {
+  #saveValueValidatingEditedCell(value: unknown, ctrlDown?: boolean): {
+    validatesEditedCell: boolean,
+    validatedCells: ValidatedCell[],
+    writtenCells: Array<[number, unknown]>,
+    startsWrite: boolean,
+  } {
     let validatesEditedCell = false;
+    let startsWrite = false;
+    const onBeforeChange = () => {
+      startsWrite = true;
+    };
     const validatedCells: ValidatedCell[] = [];
     const onBeforeValidate = (cellValue: unknown, row: number, col: number | string, source?: string) => {
       validatedCells.push({ row, col, source });
@@ -699,6 +723,7 @@ export class BaseEditor {
     };
 
     this.hot.addHook('beforeValidate', onBeforeValidate);
+    this.hot.addHook('beforeChange', onBeforeChange);
 
     let writtenCells: Array<[number, unknown]> = [];
 
@@ -708,10 +733,11 @@ export class BaseEditor {
     } finally {
       if (!this.hot.isDestroyed) {
         this.hot.removeHook('beforeValidate', onBeforeValidate);
+        this.hot.removeHook('beforeChange', onBeforeChange);
       }
     }
 
-    return { validatesEditedCell, validatedCells, writtenCells };
+    return { validatesEditedCell, validatedCells, writtenCells, startsWrite };
   }
 
   /**
@@ -954,6 +980,44 @@ export class BaseEditor {
       return;
     }
 
+    try {
+      this.#discardFinishedEditor(result);
+    } finally {
+      if (!this.hot.isDestroyed) {
+        [...this.#finishListeners].forEach(listener => listener());
+      }
+    }
+  }
+
+  /**
+   * Adds a function run each time the editor finishes an edit: it closes (saved, canceled by Escape or by a
+   * `beforeChange` veto, or its wait canceled without an answer) or reopens on a rejection. An edit can end
+   * with no validation at all, so code that waits for the editor (a header sort) cannot rely on
+   * `postAfterValidate` alone. Adding a function that is already there changes nothing.
+   *
+   * @private
+   * @param {Function} listener The function to add.
+   */
+  _addFinishListener(listener: () => void): void {
+    this.#finishListeners.add(listener);
+  }
+
+  /**
+   * Removes a function `_addFinishListener()` added.
+   *
+   * @private
+   * @param {Function} listener The function to remove.
+   */
+  _removeFinishListener(listener: () => void): void {
+    this.#finishListeners.delete(listener);
+  }
+
+  /**
+   * Closes a finished editor, or reopens it in `EDITING` on a rejection under `allowInvalid: false`.
+   *
+   * @param {boolean|undefined} result The validation result.
+   */
+  #discardFinishedEditor(result?: boolean): void {
     // validator was defined and failed
     if (result === false && this.cellProperties.allowInvalid !== true) {
       if (this.row === null || this.col === null) {

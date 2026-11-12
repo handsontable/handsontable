@@ -268,6 +268,35 @@ describe('BaseEditor validation wait', () => {
     expect(core.getDataAtCol(0)).toEqual([18, 18, 18, 7, 18]);
   });
 
+  it('closes at once when a beforeChange listener drops the edited cell from a fill whose other cells have no validator', async() => {
+    core = createHot(container, {
+      data: createData(5),
+      // A plain column: the `numeric` type would bring a validator to every other cell of the fill.
+      cell: [{ row: 1, col: 0, validator: asyncNonNegative, allowInvalid: false }],
+      beforeChange(changes) {
+        changes.forEach((change, index) => {
+          if (change && change[0] === 1 && change[1] === 0) {
+            changes[index] = null;
+          }
+        });
+      },
+    });
+
+    core.selectCells([[1, 0, 3, 0]]);
+
+    const editor = core.getActiveEditor();
+
+    editor.beginEditing();
+    editor.setValue('7');
+    editor.finishEditing(false, true);
+    await flush();
+
+    // Nothing the save wrote has a validator, so no answer can end the wait.
+    expect(editor.state).toBe('STATE_VIRGIN');
+    expect(editor.isOpened()).toBe(false);
+    expect(core.getDataAtCol(0)).toEqual([18, 18, '7', '7', 18]);
+  });
+
   /**
    * Starts a `validateCells()` batch, then confirms an edit of (1, 0) 300 ms into it, so the batch's answer
    * for the edited cell (its old value) arrives before the editor's own.
