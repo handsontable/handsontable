@@ -812,7 +812,7 @@ The remaining removed types have no replacement. Declare the shape in your proje
 
 ## 10. Replace removed `Handsontable.*` namespace types
 
-Handsontable 18.0 removes 23 top-level types from the `Handsontable` namespace of `handsontable` and `handsontable/base`. The type spelling breaks: `Handsontable.CellCoords` as a type annotation fails with `TS2749`, `Handsontable.CellRange` with `TS2724`, and `Handsontable.EditorType` with `TS2694`. The runtime values stay, so `new Handsontable.CellCoords(0, 0)`, `Handsontable.themes.getTheme('main')`, and `Handsontable.hooks.add()` still compile. A few values are typed `unknown` in 18.0, such as `Handsontable.version` and `Handsontable.EventManager`, and fail with `TS18046` when you call them or assign them to a typed variable.
+Handsontable 18.0 removes 23 top-level types from the `Handsontable` namespace of `handsontable` and `handsontable/base`. The type spelling breaks: `Handsontable.CellCoords` as a type annotation fails with `TS2749`, `Handsontable.CellRange` with `TS2724`, and `Handsontable.EditorType` with `TS2694`. The runtime values stay, so `new Handsontable.CellCoords(0, 0)`, `Handsontable.themes.getTheme('main')`, and `Handsontable.hooks.add()` still compile. Some values are typed more loosely in 18.0. `Handsontable.version` is `string | undefined`, so `Handsontable.version.toString()` fails with `TS18048`. `Handsontable.EventManager` is `unknown`, so calling it fails with `TS18046`.
 
 ### Who is affected
 
