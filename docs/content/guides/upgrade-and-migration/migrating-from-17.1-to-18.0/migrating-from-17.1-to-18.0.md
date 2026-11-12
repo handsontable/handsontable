@@ -321,7 +321,7 @@ If you render untrusted user HTML without a `sanitizer`, your users are exposed 
 
 ## 5. Stop calling deprecated resize-state methods
 
-The following methods previously saved and loaded column or row sizes through the `PersistentState` plugin. Because `PersistentState` was removed in Handsontable 17.0, these methods no longer do anything. They are now formally deprecated and will be removed in the next major release.
+The following methods saved and loaded column or row sizes through the `PersistentState` plugin. Handsontable 17.0 removed `PersistentState` and the methods themselves, although the 17.x typings still declared them. Handsontable 18.0 brings them back as deprecated methods that do nothing and log a deprecation warning. They are removed in the next major release. This is not a breaking change.
 
 | Method | Plugin |
 | --- | --- |
@@ -657,7 +657,6 @@ To keep a type annotation, use `Handsontable.GridSettings['formulas']`.
 | Moment.js and Pikaday removed; ISO 8601 required for date/time cells | Projects using non-ISO date strings or string `dateFormat`/`timeFormat` | Convert source data to ISO 8601; use `intl-date`/`intl-time` with object `dateFormat`/`timeFormat` |
 | `correctFormat` and `datePickerConfig` options removed | Projects using `correctFormat` or `datePickerConfig` on `date`/`time` cells | Remove both options; use `valueParser`/`valueSetter` for value correction |
 | DOMPurify removed; no built-in HTML sanitization | Projects rendering untrusted user HTML | Add a `sanitizer` function (for example, using DOMPurify) to the Handsontable configuration |
-| `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()` now no-op | Any project calling these methods | Remove calls; implement custom persistence if needed |
 | `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
 | Wrapper DOM structure changed -- new `.ht-grid-content`, `.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay` elements | Projects with CSS selectors or DOM queries targeting Handsontable's wrapper elements by position | Update selectors to be class-based; account for the new `.ht-grid-content` wrapper and sibling slot containers |
 | HyperFormula no longer installed with the `handsontable` npm package | Projects that use the `Formulas` plugin and install Handsontable from npm | Run `npm install hyperformula`; keep `import { HyperFormula } from 'hyperformula'` and `formulas: { engine: HyperFormula }` |
