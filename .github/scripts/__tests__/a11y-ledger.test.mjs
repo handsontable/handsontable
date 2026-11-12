@@ -552,7 +552,10 @@ test('a docs scan of another deploy than develop staging is never a night', () =
 
 test('collectArtifactFiles hands the a11y family over unparsed, root documents and transcripts only', () => {
   const run = runContextFromRun(NIGHTLY);
-  const { entries, durations, a11y, notes } = collectArtifactFiles([...nightlyFiles(), ...readerFiles(), ...docsFiles()], run);
+  const { entries, durations, a11y, notes } = collectArtifactFiles([...nightlyFiles(), ...readerFiles(), ...docsFiles({
+    [`${DOCS_CHECKS_ARTIFACT}/docs-keyboard.json`]: evidenceDoc('docs-keyboard', []),
+    [`${DOCS_CHECKS_ARTIFACT}/docs-keyboard/js-introduction--light.json`]: { stops: [] },
+  })], run);
 
   assert.deepEqual(entries, [], 'nothing in the family is a flake');
   assert.deepEqual(durations, []);
@@ -566,7 +569,9 @@ test('collectArtifactFiles hands the a11y family over unparsed, root documents a
     `${READER_ARTIFACT_PREFIX}nvda-chromium-keyboard/${READER_TRANSCRIPTS_DIR}/nvda-chromium--nested-rows.json`,
     `${READER_ARTIFACT_PREFIX}vo-webkit/${READER_TRANSCRIPTS_DIR}/vo-webkit--grid-core.json`,
     `${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`,
-  ].sort(), 'the per-test folders, the comparison and the scans are not read');
+    // A site's check documents sit at its evidence artifact's root, as the product checks' do; their detail files do not.
+    `${DOCS_CHECKS_ARTIFACT}/docs-keyboard.json`,
+  ].sort(), 'the per-test folders, the detail files, the comparison and the scans are not read');
 });
 
 test('readA11yArtifacts turns a night\'s documents into masked findings with their coverage', () => {
