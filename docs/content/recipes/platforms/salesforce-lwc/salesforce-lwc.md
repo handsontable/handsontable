@@ -195,12 +195,14 @@ export default class HotGrid extends LightningElement {
                     return;
                 }
 
-                changes.forEach(([row, col, oldValue, newValue]) => {
+                changes.forEach((change) => {
+                    const [row, col, oldValue, newValue] = change;
+
                     if (oldValue !== newValue) {
                         this.dispatchEvent(new CustomEvent('cellchange', {
                             detail: {
                                 row,
-                                physicalRow: this._hot.toPhysicalRow(row),
+                                physicalRow: this._hot.getPhysicalRowOfChange(change),
                                 col,
                                 oldValue,
                                 newValue,
@@ -238,7 +240,7 @@ Three details:
 
 - `loadScript` attaches the library to `window.Handsontable`, so the instance comes from the global, not from an import.
 - `destroy()` in `disconnectedCallback` is not optional. Lightning Experience keeps navigated-away pages in memory, and an undestroyed grid keeps its listeners and its resize observer.
-- The events carry physical row indexes. The hooks report visual indexes, which move when the user sorts a column, while the data component's arrays keep source order - an event carrying only the visual index would resolve a different record after a sort. [`toPhysicalRow()`](@/api/core.md#tophysicalrow) translates the first two, and `beforeRemoveRow` already receives its physical indexes as the third argument. See [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+- The events carry physical row indexes. The hooks report visual indexes, which move when the user sorts a column, while the data component's arrays keep source order - an event carrying only the visual index would resolve a different record after a sort. [`getPhysicalRowOfChange()`](@/api/core.md#getphysicalrowofchange) gives the physical row of a changed cell and [`toPhysicalRow()`](@/api/core.md#tophysicalrow) translates the index of a created row, and `beforeRemoveRow` already receives its physical indexes as the third argument. See [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
 Replace `licenseKey` with your commercial key before production. See [License key](@/guides/getting-started/license-key/license-key.md).
 

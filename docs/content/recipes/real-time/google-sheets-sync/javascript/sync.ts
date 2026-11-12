@@ -1,5 +1,5 @@
 import type Handsontable from 'handsontable/base';
-import type { CellChange, ChangeSource } from 'handsontable/settings';
+import type { AppliedCellChange, ChangeSource } from 'handsontable/settings';
 import { ID_HEADER, POLL_MS } from './config';
 import { createGrid } from './grid';
 import { appendRows, deleteRows, readSheet, retrying, SessionExpiredError, writeCells, type Cell } from './sheets';
@@ -381,13 +381,14 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
 
   function attachHooks(grid: Handsontable) {
     // A user's edit: remember the value the grid had before (the base), batch for 300 ms.
-    grid.addHook('afterChange', (changes: CellChange[] | null, source: ChangeSource) => {
+    grid.addHook('afterChange', (changes: AppliedCellChange[] | null, source: ChangeSource) => {
       if (!changes || OWN_SOURCES.has(source)) {
         return;
       }
 
-      for (const [visualRow, column, oldValue, newValue] of changes) {
-        const row = rows[grid.toPhysicalRow(visualRow)];
+      for (const change of changes) {
+        const [, column, oldValue, newValue] = change;
+        const row = rows[grid.getPhysicalRowOfChange(change) as number];
         const id = idOf(row);
         const value = normalize(newValue);
         const existing = editBatch.get(key(id, column as number));
