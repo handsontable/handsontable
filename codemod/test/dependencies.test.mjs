@@ -91,10 +91,78 @@ describe('planRange', () => {
   });
 
   it('reports ranges it does not rewrite', () => {
-    for (const spec of ['>=17 <18', '>=17.0.0', '^17.0.0 || ^16.0.0', '17.x', '17', '17.1', '*', 'x', '',
-      '1.0.0 - 17.5.0', 'npm:handsontable@17.0.0', 'v17.0.0', '=17.0.0']) {
+    for (const spec of ['>=17 <18', '^17.0.0 || ^16.0.0', '17.x', '17', '17.1', '1.0.0 - 17.5.0',
+      'npm:handsontable@17.0.0', 'v17.0.0', '=17.0.0', 'not a range']) {
       assert.equal(planRange(spec, '18.0.0').action, 'manual', spec);
     }
+  });
+
+  it('keeps a range that already allows the target, without a report', () => {
+    for (const spec of ['>=16.0.0', '>=17.0.0', '>=17.0.0 <19', '>= 17.0.0 < 19.0.0', '^17 || ^18', '*', 'x', '', '18',
+      '18.x', '1.0.0 - 19.0.0', 'npm:handsontable@^18.0.0']) {
+      assert.deepEqual(planRange(spec, '18.0.0'), { action: 'keep' }, spec);
+    }
+  });
+});
+
+describe('ranges, overrides, and aliases in a chained run', () => {
+  it('reports no entry for a peer range that already allows the target', async() => {
+    const input = pkg({
+      peerDependencies: { handsontable: '>=16.0.0', '@handsontable/react-wrapper': '>=17.0.0 <19' },
+    });
+
+    await migrate({ 'package.json': input }, {}, async({ result, read }) => {
+      assert.equal(await read('package.json'), input);
+      assert.deepEqual(result.report.entries, []);
+    });
+  });
+
+  it('reports a range it cannot judge once for the whole chain', async() => {
+    const input = pkg({ dependencies: { handsontable: '>=17 <18' } });
+
+    await migrate({ 'package.json': input }, {}, async({ result }) => {
+      assert.equal(result.report.entries.length, 1);
+      assert.match(result.report.entries[0].message, /Set it to \^18\.1\.0 by hand/);
+    });
+  });
+
+  it('reports a package that was moved twice as one change from the range the user wrote', async() => {
+    const input = pkg({ dependencies: { handsontable: '^17.1.0', '@handsontable/vue3': '~17.0.0' } });
+
+    await migrate({ 'package.json': input }, {}, async({ result }) => {
+      assert.deepEqual(result.report.entries.map(entry => entry.message).sort(), [
+        'Updated @handsontable/vue3 in dependencies from "~17.0.0" to "~18.1.0".',
+        'Updated handsontable in dependencies from "^17.1.0" to "^18.1.0".',
+      ]);
+    });
+  });
+
+  it('reports pins below the target in overrides and aliases, and edits none', async() => {
+    const input = pkg({
+      dependencies: { handsontable: '^17.1.0', hot17: 'npm:handsontable@17.1.0', hot18: 'npm:handsontable@^18.0.0' },
+      overrides: { handsontable: '17.1.0', 'some-lib': { handsontable: '^17.0.0' }, other: '1.0.0' },
+      resolutions: { '**/@handsontable/vue3': '17.0.0', 'handsontable@^17.0.0': '^18.0.0' },
+      pnpm: { overrides: { 'a>handsontable': '~17.1.0', handsontable: 'workspace:*' } },
+    });
+
+    await migrate({ 'package.json': input }, {}, async({ result, read }) => {
+      const manual = result.report.entries.filter(entry => entry.severity === 'manual').map(entry => entry.message);
+
+      assert.equal(manual.length, 5, manual.join('\n'));
+      assert.ok(manual.some(text => text.startsWith('overrides["handsontable"] pins handsontable to "17.1.0"')));
+      assert.ok(manual.some(text => text.startsWith('overrides["some-lib"].handsontable pins handsontable')));
+      assert.ok(manual.some(text => text.startsWith('resolutions["**/@handsontable/vue3"] pins @handsontable/vue3')));
+      assert.ok(manual.some(text => text.startsWith('pnpm.overrides["a>handsontable"] pins handsontable')));
+      assert.ok(manual.some(text => text.startsWith('hot17 in dependencies is an alias of handsontable@17.1.0')));
+      assert.equal(manual.filter(text => text.includes('hot18')).length, 0);
+
+      const output = JSON.parse(await read('package.json'));
+
+      assert.deepEqual(output.overrides, JSON.parse(input).overrides);
+      assert.deepEqual(output.resolutions, JSON.parse(input).resolutions);
+      assert.deepEqual(output.pnpm, JSON.parse(input).pnpm);
+      assert.equal(output.dependencies.hot17, 'npm:handsontable@17.1.0');
+    });
   });
 });
 
@@ -244,7 +312,9 @@ describe('dependency rules on package.json', () => {
 
       const changed = result.report.entries.filter(entry => entry.severity === 'changed');
 
-      assert.deepEqual(changed.map(entry => entry.ruleId), ['18.0.0/dependencies', '18.1.0/dependencies']);
+      assert.deepEqual(changed.map(entry => entry.message), [
+        'Updated handsontable in dependencies from "^17.1.0" to "^18.1.0".',
+      ]);
     });
   });
 
@@ -278,7 +348,7 @@ describe('dependency rules on package.json', () => {
 
       const entries = result.report.entries.filter(entry => entry.severity === 'manual');
 
-      assert.equal(entries.length, 4);
+      assert.equal(entries.length, 2, 'one entry per package, not one per migration step');
       assert.match(entries[0].message, /handsontable ">=17 <18" in dependencies is not a plain version range/);
     });
   });

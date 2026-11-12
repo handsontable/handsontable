@@ -1,5 +1,5 @@
-import { readFile, writeFile } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { readFile, stat, writeFile } from 'node:fs/promises';
+import { basename, join, resolve } from 'node:path';
 import { adapterFor } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
@@ -7,19 +7,68 @@ import { discover } from './discover.mjs';
 import { dirtyPaths, isGitRepo } from './git.mjs';
 import { registerPackageDir } from './lib/facts.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
-import { addCssTodo, addJsTodo, lineOf } from './lib/todo.mjs';
+import { addCssTodo, addJsTodo, collectComments, lineOf } from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
-import { Report } from './report.mjs';
+import { Report, SKIPPED_RULE_ID } from './report.mjs';
 import { registry as defaultRegistry } from './transforms/index.mjs';
 import {
   defaultTo,
-  detectInstalledVersion,
+  detectProjectVersion,
   resolveFrom,
   resolveTo,
   selectManifests,
 } from './versions.mjs';
 
 const SEVERITIES = new Set(['changed', 'manual', 'warning']);
+
+/**
+ * Largest file, in bytes, the run reads. A bigger file is skipped with a warning in the report. `--max-file-size`
+ * changes it.
+ */
+export const MAX_FILE_BYTES = 1024 * 1024;
+
+/**
+ * Milliseconds between progress reports while a run visits files.
+ */
+export const PROGRESS_INTERVAL_MS = 2000;
+
+/**
+ * The report entry that says a file, or a block of it, was not analyzed.
+ *
+ * @param {string} file Project-relative path.
+ * @param {number|null} line One-based line of the block, or `null` for the whole file.
+ * @param {string} message Why, and what to do.
+ * @returns {import('./types.mjs').ReportEntry} A `skipped-file` warning.
+ */
+function skippedEntry(file, line, message) {
+  return { ruleId: SKIPPED_RULE_ID, severity: 'warning', file, line, message, guideUrl: null };
+}
+
+/**
+ * The entries for what an adapter could not read: blocks of a Vue file (`<style lang="less">`, `src=`), the
+ * inline scripts of an HTML page, or a whole file of a kind the tool has no parser for.
+ *
+ * @param {import('./types.mjs').Adapter} adapter The adapter of the file.
+ * @param {import('./types.mjs').ParseHandle|null} handle The parse result, `null` before parsing.
+ * @param {string} source File text.
+ * @param {string} filePath Project-relative path.
+ * @returns {import('./types.mjs').ReportEntry[]} The entries, possibly none.
+ */
+function skippedEntries(adapter, handle, source, filePath) {
+  const entries = [];
+
+  for (const block of handle?.skippedBlocks ?? []) {
+    if (block.relevant) {
+      const tag = `<${block.type}${block.lang ? ` lang="${block.lang}"` : ''}${block.src ? ' src' : ''}>`;
+
+      entries.push(skippedEntry(filePath, block.line, `A ${tag} block was not analyzed. Check it by hand.`));
+    }
+  }
+
+  entries.push(...(adapter.skipNotes?.(source) ?? []).map(note => skippedEntry(filePath, note.line, note.message)));
+
+  return entries;
+}
 
 /**
  * First line of a message, so a multi-line parser error stays one report line.
@@ -82,6 +131,33 @@ function stepFileKinds(step) {
   return step.scan ? step.transform.scan.fileKinds : step.transform.fileKinds;
 }
 
+const scans = new WeakMap();
+
+/**
+ * The comments of a js part as the parser attached them, for the TODO dedupe. The list is built on the first
+ * call and kept for the part, because only the original comments matter: a comment this run inserts sits on a
+ * node the writer already knows.
+ *
+ * @param {import('./types.mjs').Part} part A `js` part.
+ * @returns {import('./lib/todo.mjs').CommentScan} The scan.
+ */
+function commentScan(part) {
+  if (!scans.has(part)) {
+    let list = null;
+
+    scans.set(part, {
+      source: part.source,
+      comments() {
+        list = list ?? collectComments(part.root.get().node);
+
+        return list;
+      },
+    });
+  }
+
+  return scans.get(part);
+}
+
 /**
  * Build the context for one part of a file. See the `Ctx` typedef in `types.mjs` for the contract.
  *
@@ -95,6 +171,7 @@ function stepFileKinds(step) {
  * @returns {import('./types.mjs').Ctx} The context.
  */
 function createContext({ filePath, part, plan, entries, facts, options }) {
+  const merged = new Map();
   const report = (entry) => {
     if (typeof entry?.ruleId !== 'string' || !SEVERITIES.has(entry.severity) || typeof entry.message !== 'string') {
       throw new Error(`Invalid report entry: ${JSON.stringify(entry)}`);
@@ -106,14 +183,29 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
       throw new Error(`Rule ${entry.ruleId} is not safe, so it must not edit code: ${entry.message}`);
     }
 
-    entries.push({
+    const stored = {
       ruleId: entry.ruleId,
       severity: entry.severity,
       file: filePath,
       line: Number.isInteger(entry.line) ? entry.line + part.lineOffset : null,
       message: entry.message,
       guideUrl: plan.rulesById.get(entry.ruleId)?.guideUrl ?? null,
-    });
+      ...(entry.scope === 'run' ? { scope: 'run' } : {}),
+      ...(Array.isArray(entry.lines) ? { lines: entry.lines.map(line => line + part.lineOffset) } : {}),
+    };
+
+    if (typeof entry.mergeKey === 'string' && merged.has(entry.mergeKey)) {
+      // A later step of the run says the same thing about the same spot: the net result replaces the first entry.
+      Object.assign(merged.get(entry.mergeKey), stored);
+
+      return;
+    }
+
+    entries.push(stored);
+
+    if (typeof entry.mergeKey === 'string') {
+      merged.set(entry.mergeKey, stored);
+    }
   };
 
   const markChanged = () => {
@@ -126,7 +218,7 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     let inserted = false;
 
     if (part.fileKind === 'js') {
-      inserted = addJsTodo(part.j, target, ruleId, comment ?? text, guideUrl);
+      inserted = addJsTodo(part.j, target, ruleId, comment ?? text, guideUrl, commentScan(part));
     } else if (part.fileKind === 'css') {
       inserted = addCssTodo(target, ruleId, comment ?? text, guideUrl);
     }
@@ -189,6 +281,12 @@ export async function transformFile({
     return unchanged('no-adapter');
   }
 
+  if (adapter.skipReason) {
+    return phase === 1 && adapter.precheck.test(source)
+      ? { ...unchanged(null), entries: [skippedEntry(filePath, null, adapter.skipReason)] }
+      : unchanged('precheck');
+  }
+
   const candidates = orderSteps(plan, registry, phase)
     .filter(step => stepFileKinds(step).some(kind => adapter.fileKinds.includes(kind)));
 
@@ -220,6 +318,10 @@ export async function transformFile({
         guideUrl: null,
       }],
     };
+  }
+
+  if (phase === 1) {
+    entries.push(...skippedEntries(adapter, handle, source, filePath));
   }
 
   const fullOptions = { aggressive: false, dryRun: false, ...options };
@@ -258,6 +360,8 @@ export async function transformFile({
  *
  * @param {object} args Arguments.
  * @param {string} args.cwd Project directory, used to detect the installed version.
+ * @param {string[]} [args.paths] Path arguments. With no `from`, the version is detected from the nearest
+ * `node_modules/handsontable` or `package.json` of each path, up to `cwd`.
  * @param {string} [args.from] The `--from` text. Detected from the project when absent.
  * @param {string} [args.to] The `--to` text. Defaults to the latest released manifest.
  * @param {string[]} [args.only] Rule ids to keep.
@@ -271,6 +375,7 @@ export async function transformFile({
  */
 export async function resolvePlan({
   cwd,
+  paths = [],
   from,
   to,
   only = [],
@@ -289,7 +394,7 @@ export async function resolvePlan({
   let fromText = from;
 
   if (!fromText) {
-    const detected = await detectInstalledVersion(cwd);
+    const detected = await detectProjectVersion(cwd, paths);
 
     if (detected) {
       fromText = detected.version;
@@ -378,6 +483,15 @@ export function describeRules(plan, registry = defaultRegistry) {
  * @param {boolean} [options.write] Write changed files. Defaults to `!dryRun`.
  * @param {string} [options.versionsDir] Directory with the manifests.
  * @param {import('./transforms/index.mjs').Registry} [options.registry] Transform registry.
+ * @param {string} [options.reportPath] Path of the report file the caller writes, relative to `cwd`. An untracked
+ * file at that path does not make the git tree dirty.
+ * @param {number} [options.maxFileSize] Largest file in bytes. A bigger file is skipped with a warning.
+ * Defaults to `MAX_FILE_BYTES`.
+ * @param {(progress: {done: number, total: number}) => void} [options.onProgress] Called at most once per
+ * `progressIntervalMs` while files are visited.
+ * @param {number} [options.progressIntervalMs] Milliseconds between progress reports. Defaults to
+ * `PROGRESS_INTERVAL_MS`.
+ * @param {(text: string) => void} [options.onWarning] Called with a one-line warning before anything is written.
  * @returns {Promise<{changedFiles: string[], report: Report, diffs: Array<{file: string, diff: string}>,
  * exitCode: number, notes: string[], error: string|null}>} The outcome. `exitCode` is 0 on success, 1 when a
  * file could not be parsed, read, or transformed, and 2 for a usage error or a refused dirty tree.
@@ -395,6 +509,11 @@ export async function run({
   write = !dryRun,
   versionsDir = VERSIONS_DIR,
   registry = defaultRegistry,
+  reportPath,
+  maxFileSize = MAX_FILE_BYTES,
+  onProgress,
+  progressIntervalMs = PROGRESS_INTERVAL_MS,
+  onWarning,
 } = {}) {
   const report = new Report();
   const result = { changedFiles: [], report, diffs: [], exitCode: 0, notes: [], error: null };
@@ -402,11 +521,17 @@ export async function run({
   let resolved;
 
   try {
-    resolved = await resolvePlan({ cwd, from, to, only, includeDraft, versionsDir });
+    resolved = await resolvePlan({ cwd, paths, from, to, only, includeDraft, versionsDir });
     result.notes = resolved.notes;
 
-    if (write && !allowDirty && await isGitRepo(cwd)) {
-      const dirty = await dirtyPaths(cwd);
+    const repo = await isGitRepo(cwd);
+
+    if (write && !repo) {
+      onWarning?.('Not a git repository: changes cannot be reviewed with git diff. Use --dry-run first.');
+    }
+
+    if (write && !allowDirty && repo) {
+      const dirty = await dirtyPaths(cwd, { ignoreUntracked: reportPath ? [resolve(cwd, reportPath)] : [] });
 
       if (dirty.length > 0) {
         throw new UsageError(`The git tree has ${dirty.length} uncommitted change${dirty.length === 1 ? '' : 's'}. `
@@ -437,6 +562,17 @@ export async function run({
     let source;
 
     try {
+      const { size } = await stat(join(cwd, file));
+
+      if (size > maxFileSize) {
+        if (phase === 1) {
+          report.add(skippedEntry(file, null, `The file is ${Math.ceil(size / 1024)} KB, above the limit of `
+            + `${Math.ceil(maxFileSize / 1024)} KB, so it was not analyzed. Raise the limit with --max-file-size.`));
+        }
+
+        return;
+      }
+
       source = await readFile(join(cwd, file), 'utf8');
     } catch (error) {
       report.add({
@@ -475,8 +611,15 @@ export async function run({
 
   packageFiles.forEach(file => registerPackageDir(facts, file));
 
-  for (const file of files) {
+  let lastProgress = Date.now();
+
+  for (const [index, file] of files.entries()) {
     await visit(file, 1);
+
+    if (onProgress && Date.now() - lastProgress >= progressIntervalMs) {
+      lastProgress = Date.now();
+      onProgress({ done: index + 1, total: files.length });
+    }
   }
 
   if (orderSteps(resolved.plan, registry, 2).length > 0) {

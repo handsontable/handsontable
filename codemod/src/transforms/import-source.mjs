@@ -1,5 +1,6 @@
 import { getImportedBindings, moveNamedImport } from '../lib/imports.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
+import { collectComments } from '../lib/todo.mjs';
 import {
   chooseSource,
   describeMoves,
@@ -43,6 +44,40 @@ function todoResidual(ctx, rule, residual) {
 }
 
 /**
+ * Report `import('<module>')` types inside comments (a JSDoc `@type {import('handsontable/common').CellValue}`) for a
+ * module the rule says is removed. A comment is not code, so nothing is rewritten: each one is a `manual` entry at
+ * its line.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of a `js` part.
+ * @param {import('../types.mjs').Rule} rule An `importSource` rule with `moduleRemoved`.
+ * @param {string} hint What to do instead.
+ */
+function reportCommentImports(ctx, rule, hint) {
+  const escaped = rule.from.replace(/[.*+?^${}()|[\]\\]/g, match => `\\${match}`);
+  const pattern = new RegExp(`import\\(\\s*(['"\`])${escaped}\\1\\s*\\)(?:\\.([\\w.]+))?`, 'g');
+
+  for (const comment of collectComments(ctx.root.get().node)) {
+    if (!comment.loc) {
+      continue;
+    }
+
+    for (const hit of comment.value.matchAll(pattern)) {
+      const line = comment.loc.start.line + comment.value.slice(0, hit.index).split('\n').length - 1;
+
+      const what = hit[2] ?? 'a type';
+
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        line,
+        message: `A comment imports ${what} from the removed module "${rule.from}". Edit the type by hand. ${hint}`
+          .trim(),
+      });
+    }
+  }
+}
+
+/**
  * Apply one `importSource` rule to a file.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context of a `js` part.
@@ -66,6 +101,10 @@ function applyRule(ctx, rule) {
     all: rule.moduleRemoved === true,
     hint: moves ? `The names moved: ${moves}.` : (rule.advice ?? ''),
   });
+
+  if (rule.moduleRemoved === true) {
+    reportCommentImports(ctx, rule, moves ? `The names moved: ${moves}.` : (rule.advice ?? ''));
+  }
 
   const bindings = getImportedBindings(j, root, rule.from).filter(binding => binding.form === 'named');
   const isModular = lazyModular(j, root);
@@ -111,7 +150,7 @@ function applyRule(ctx, rule) {
 
       if (entry.note && !noted.has(binding.imported)) {
         noted.add(binding.imported);
-        ctx.report({ ruleId: rule.id, severity: 'manual', line, message: entry.note });
+        ctx.report({ ruleId: rule.id, severity: 'manual', line, message: entry.note, scope: 'run' });
       }
     } else if (result.reason === 'collision') {
       ctx.report({

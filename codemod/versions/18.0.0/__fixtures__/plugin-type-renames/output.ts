@@ -1,14 +1,12 @@
 import { ColumnSorting, ColumnSortingConfig } from 'handsontable/plugins/columnSorting';
-// TODO(handsontable-codemod 18.0.0/type-multicolumnsorting-config): Replace Config with ColumnSortingConfig from "handsontable/plugins/columnSorting".
-import type { Config as MultiConfig } from 'handsontable/plugins/multiColumnSorting';
-// TODO(handsontable-codemod 18.0.0/type-columnsummary-endpoint): Replace Endpoint with SummaryEndpoint.
-import type { Endpoint } from 'handsontable/plugins/columnSummary';
-// TODO(handsontable-codemod 18.0.0/type-undoredo-action): Replace Action with UndoRedoAction.
-import type { Action as UndoAction } from 'handsontable/plugins/undoRedo';
+import type { ColumnSortingConfig as MultiConfig } from 'handsontable/plugins/columnSorting';
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
+import type { UndoRedoAction as UndoAction } from 'handsontable/plugins/undoRedo';
 import type { RangeType } from 'handsontable';
 import type { NestedHeaderSettings } from 'handsontable/plugins/nestedHeaders';
 import { arAR } from 'handsontable/i18n';
 import { ExportFileSettings as ExportSettings } from 'handsontable/plugins/exportFile';
+import type { BorderSettings } from 'handsontable/plugins/customBorders';
 import Handsontable from 'handsontable';
 
 export function sortBy(plugin: ColumnSorting, config: ColumnSortingConfig, other: MultiConfig): ColumnSortingConfig[] {
@@ -21,7 +19,7 @@ export function shadowed(Config: number): number {
   return Config + 1;
 }
 
-export function lastRow(endpoint: Endpoint): number {
+export function lastRow(endpoint: SummaryEndpoint): number {
   return endpoint.destinationRow ?? 0;
 }
 
@@ -32,5 +30,7 @@ export const copied: RangeType = { startRow: 0, startCol: 0, endRow: 1, endCol: 
 export const header: NestedHeaderSettings = { label: 'Orders', colspan: 2 };
 
 export const exportSettings: ExportSettings = {};
+
+export const border: BorderSettings = { width: 1 };
 
 Handsontable.languages.registerLanguageDictionary(arAR);

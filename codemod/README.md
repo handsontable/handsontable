@@ -20,18 +20,22 @@ The tool never guesses. It has no type information, so a spot it cannot confirm 
 - It never inserts a sanitizer. Handsontable 18.0 stopped sanitizing HTML. The tool reports the grids that pass
   markup to a surface that used to be sanitized, and you choose the sanitizer.
 - It never inserts or invents a license key. It reports a grid that sets none.
-- It does not rewrite templates. Angular and HTML templates are read-only for the tool. It reports the places that
-  need a change.
+- It does not rewrite templates or inline scripts. Vue, Angular, and HTML templates are read-only for the tool. It
+  reports the `<hot-table>` and `<hot-column>` attributes that set an option a rule targets, and the inline
+  `<script>` elements of an HTML page that use Handsontable, because it reads no JavaScript inside a page.
 - It does not convert Numbro.js patterns or Moment.js date formats. It reports each `numericFormat.pattern`,
   `dateFormat`, and `timeFormat` that no longer works, because the replacement depends on what the pattern meant.
-- It does not format code. A rewritten object can print on more lines than before. Run your formatter afterwards.
+- It does not format code. A rewritten one-line object or JSX element can print on more lines than before. Run your
+  formatter afterwards.
 
 ## Requirements
 
 - Node.js 20 or later.
 - A clean git tree. The tool refuses to run when `git status` shows uncommitted changes, so the migration is one
-  clean diff that you can review and revert. Pass `--allow-dirty` to run anyway. A directory outside a git
-  repository has no such check.
+  clean diff that you can review and revert. Pass `--allow-dirty` to run anyway. An untracked file at the path of
+  `--report` does not count, so a report from the previous run does not block the next one. Keep the report out
+  of the tree, or delete it when you are done. A directory outside a git repository has no such check, and the tool
+  warns before it writes there.
 
 ## Run it
 
@@ -45,8 +49,10 @@ handsontable-codemod migrate --from 17.1 --to 18.1 --dry-run
 handsontable-codemod migrate --from 17.1 --to 18.1 --report migration-report.md
 ```
 
-`--from` is optional. The tool reads the installed version from `node_modules/handsontable`, then the range of
-`handsontable` in `package.json`. `--to` defaults to the latest released migration.
+`--from` is optional. For each path you name, the tool reads the installed version from the nearest
+`node_modules/handsontable`, then the range of `handsontable` in the nearest `package.json`, searching from the
+path up to the current directory. Paths that resolve to different versions need `--from`. `--to` defaults to the
+latest released migration.
 
 ### Install from the repository
 
@@ -84,15 +90,16 @@ command line skips the generated-output filter.
 
 | Flag | Meaning |
 |---|---|
-| `--from <version>` | Version your project is on: `17`, `17.1`, or `18.0.0`. A partial version means any version of that line. Detected from `node_modules/handsontable`, then from the `package.json` range, when omitted. |
+| `--from <version>` | Version your project is on: `17`, `17.1`, or `18.0.0`. A partial version means any version of that line. Detected for each path argument from the nearest `node_modules/handsontable`, then the nearest `package.json` range, up to the current directory, when omitted. Paths that differ need `--from`. |
 | `--to <version>` | Version to migrate to. A partial version means the highest known release of that line. Defaults to the latest released migration. |
-| `--dry-run` | Print a unified diff and write nothing. The git check does not apply. |
+| `--dry-run` | Print a unified diff and write no project files. The git check does not apply. A file named by `--report` is still written, because you asked for it. |
 | `--allow-dirty` | Run even when the git tree has uncommitted changes. |
-| `--report <file>` | Also write the full report to `<file>` as a Markdown checklist. |
+| `--report <file>` | Also write the full report to `<file>` as a Markdown checklist. The git check ignores an untracked file at this path and no other. |
 | `--only <ruleId>` | Run only this rule. Repeat the flag for several rules. A trailing `*` matches a prefix, for example `--only "18.0.0/type-*"`. |
 | `--list` | List the rules in the version range and exit. `rewrite` rules edit code, `report` rules only report. |
 | `--aggressive` | Also rewrite settings objects found with medium confidence. |
 | `--include-draft` | Run migrations that are still drafts. |
+| `--max-file-size <bytes>` | Skip files larger than this and list them under "Skipped files". The default is 1048576 (1 MB). |
 | `--help` | Show the help. |
 
 A migration for version `v` runs when `from < v <= to`. `--from 17` means any 17.x, so it runs every migration from
@@ -108,10 +115,20 @@ A migration for version `v` runs when `from < v <= to`. `--from 17` means any 17
 
 ### Output
 
-The console report groups the entries by rule. Each rule lists up to 10 locations as `file:line`, then the number of
-the others. The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The file
-from `--report` has every location, one checkbox per entry, and a link to the migration guide section of each rule.
-A rewrite is checked. A manual step is not.
+The console report groups the entries by rule, ordered by version and then by rule id. Each rule lists up to 10
+locations as `file:line`, then the number of the others. A rule that matched many times in one file lists every
+line number in its one entry. Two more sections follow the rules:
+
+- **Read once.** A note that holds for every file, such as "CellValue is now `unknown`", appears one time with the
+  files it applies to, not once per file.
+- **Skipped files.** Files and blocks the tool did not analyze: Less, Stylus, and Sass files, Vue `<style>` blocks in
+  those languages or with `src=`, HTML pages with inline scripts that use Handsontable, and files above
+  `--max-file-size`. Check them by hand.
+
+The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The file from `--report`
+starts with the same line, has every location, one checkbox per entry, and a link to the migration guide section of
+each rule. A rewrite is checked. A manual step is not. On a terminal, a long run prints a progress line to the
+standard error stream every two seconds.
 
 ## Supported migrations
 
@@ -119,7 +136,7 @@ Each migration follows one page of the Handsontable migration guide, and each ru
 
 | Migration | Rules | Rewrite | Report |
 |---|---|---|---|
-| 17.x to 18.0 | 99 | 35 | 64 |
+| 17.x to 18.0 | 99 | 41 | 58 |
 | 18.0 to 18.1 | 8 | 1 | 7 |
 
 `npm run test --prefix codemod` fails when these numbers differ from the output of `--list`. A rule is a `rewrite`
@@ -128,8 +145,8 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 | Rule kind | Rewrite | Report | What it covers |
 |---|---|---|---|
 | `importSource` | 3 | 0 | Named imports that moved to another entry point, such as `handsontable/common`. |
-| `exportRename` | 8 | 5 | Type names that changed. The five `report` rules rename to a type with a different shape. |
-| `namespaceType` | 14 | 11 | `Handsontable.X` types that became named imports, and the ones that were removed. |
+| `exportRename` | 13 | 0 | Type names that changed. A rename to a type of another shape is applied, and its rule reports one note that says what changed in the shape. |
+| `namespaceType` | 15 | 10 | `Handsontable.X` types that became named imports, and the ones that were removed. |
 | `exportRemoved` | 0 | 33 | Names that an entry point no longer exports. The import stays and gets a TODO. |
 | `optionRename` | 1 | 0 | An option that changed its name. |
 | `optionMove` | 1 | 0 | An option that moved, such as `numericFormat.culture` to `locale`. |
@@ -149,7 +166,9 @@ The tool rewrites:
 
 - Imports from `handsontable/common` and the theme registry names, to `handsontable`, `handsontable/base`, or
   `handsontable/settings`.
-- Renamed plugin types, and `Handsontable.X` namespace types that became named imports.
+- Renamed plugin types, and `Handsontable.X` namespace types that became named imports. When the successor type has
+  another shape, such as `SummaryEndpoint`, the tool still renames and reports one note per run that says what
+  changed in the shape.
 - `numericFormat.culture` to the `locale` option, in option objects, `<HotTable>` props, and `<HotColumn>` props.
 - The removed `correctFormat` and `datePickerConfig` options. Handsontable 18.0 ignores both, so deleting them keeps
   the behavior. A TODO comment stays where the option was.
@@ -166,7 +185,6 @@ The tool reports:
 - CSS selectors and DOM queries that depend on the old wrapper structure.
 - Pikaday leftovers.
 - Removed exports, removed namespace types, and the removed wrapper border width and color.
-- Type renames that change the shape of the type, such as `SummaryEndpoint`.
 - Functions that the 17.x typings declared on `Handsontable.helper` and the runtime never set.
 
 ### 18.0 to 18.1
@@ -205,11 +223,23 @@ A rule rewrites an object at high confidence. At medium confidence it reports th
 - The tool reads one file at a time. It does not follow a settings object across files.
 - A receiver it cannot confirm as a grid instance is not rewritten. A generic name such as `editor.undo()` is
   silent.
-- A `.vue` file is read block by block. `less`, `stylus`, `sass`, and `src=` blocks are not read.
+- A `.vue` file is read block by block. `less`, `stylus`, `sass`, and `src=` blocks are not read. They are listed
+  under "Skipped files", and so are Less, Stylus, and Sass files.
 - A file that does not parse is skipped and reported, and the run exits with code 1.
 - It handles `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts`, `.vue`, `.css`, `.scss`, `.html`, `.htm`,
   and `package.json`.
 - It does not install packages. After it edits `package.json`, run your package manager.
+- When it rewrites a one-line object or a JSX element, the printer can spread it over several lines. Run your
+  formatter afterwards.
+- `export ... from 'handsontable/common'` and dynamic `import('handsontable/common')`, including the ones in JSDoc
+  comments, are reported and not rewritten.
+- Template code (Vue, Angular, and HTML templates) and the inline scripts of an HTML page are reported and not
+  rewritten. A Vue file that only has a `<template>` and never names `handsontable` is not read at all.
+- Assignments such as `column.numericFormat = {...}` and `setCellMeta(row, col, 'correctFormat', ...)` calls are
+  reported and not rewritten.
+- It does not edit `overrides`, `resolutions`, `pnpm.overrides`, `npm:` aliases, or CDN URLs. It reports the ones that
+  hold Handsontable or a wrapper below the target version.
+- A git tree check needs git. Without it the tool treats the directory as a plain folder.
 
 ## Contributing
 

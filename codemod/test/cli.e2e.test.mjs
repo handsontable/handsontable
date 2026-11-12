@@ -173,7 +173,7 @@ describe('the CLI on a 17.1 project', () => {
     assert.match(report, /^- \[ \] src\/grid\.js:7 Handsontable 18\.0 removed Numbro\.js/m);
     assert.match(report, /^- \[ \] src\/App\.tsx:\d+ Handsontable 18\.0 removed Numbro\.js/m);
     assert.match(report, /^- \[ \] src\/angular\.component\.html:1 Rename --ht-wrapper-border-radius to /m);
-    assert.match(report, /^- \[x\] package\.json Updated handsontable in dependencies from "\^18\.0\.0" to /m);
+    assert.ok(report.includes('- [x] package.json Updated handsontable in dependencies from "^17.1.0" to "^18.1.0".'));
   }));
 
   it('changes nothing on a second run', () => withProject(async(dir) => {

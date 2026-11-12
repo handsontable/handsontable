@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { readFile, stat } from 'node:fs/promises';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { UsageError } from './errors.mjs';
 
 /**
@@ -210,13 +210,15 @@ export function minimumOfRange(range) {
 
 /**
  * Detect the Handsontable version a project uses. The installed package wins, found by walking up from
- * `cwd`. The range in the nearest package.json is the fallback.
+ * `start`. The range in the nearest package.json, from `start` up to `stopAt`, is the fallback.
  *
- * @param {string} cwd Project directory.
+ * @param {string} start Directory to start from, usually the project directory.
+ * @param {object} [options] Options.
+ * @param {string} [options.stopAt] The highest directory whose package.json counts. Defaults to `start`.
  * @returns {Promise<{version: string, source: string}|null>} The version and where it came from, or `null`.
  */
-export async function detectInstalledVersion(cwd) {
-  let dir = cwd;
+export async function detectInstalledVersion(start, { stopAt = start } = {}) {
+  let dir = start;
 
   for (;;) {
     const installed = await readJson(join(dir, 'node_modules', 'handsontable', 'package.json'));
@@ -234,18 +236,56 @@ export async function detectInstalledVersion(cwd) {
     dir = parent;
   }
 
-  const manifest = await readJson(join(cwd, 'package.json'));
+  for (dir = start; ; dir = dirname(dir)) {
+    const manifest = await readJson(join(dir, 'package.json'));
 
-  for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
-    const range = manifest?.[field]?.handsontable;
-    const minimum = typeof range === 'string' ? minimumOfRange(range) : null;
+    for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
+      const range = manifest?.[field]?.handsontable;
+      const minimum = typeof range === 'string' ? minimumOfRange(range) : null;
 
-    if (minimum) {
-      return { version: minimum, source: `package.json ${field}` };
+      if (minimum) {
+        const where = relative(stopAt, dir).split(sep).join('/');
+
+        return { version: minimum, source: `${where ? `${where}/` : ''}package.json ${field}` };
+      }
+    }
+
+    if (dir === stopAt || dirname(dir) === dir) {
+      return null;
+    }
+  }
+}
+
+/**
+ * Detect the version for a run. Each path argument is searched on its own, from its directory up to `cwd`, so
+ * `migrate packages/a` from a monorepo root finds the package of `packages/a`. With no path, `cwd` is searched.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string[]} [paths] Path arguments relative to `cwd`.
+ * @returns {Promise<{version: string, source: string}|null>} The version and where it came from, or `null`.
+ * @throws {UsageError} When the paths resolve to different versions.
+ */
+export async function detectProjectVersion(cwd, paths = []) {
+  const found = [];
+
+  for (const path of paths.length > 0 ? paths : ['.']) {
+    const absolute = resolve(cwd, path);
+    const info = await stat(absolute).catch(() => null);
+    const detected = await detectInstalledVersion(info?.isFile() ? dirname(absolute) : absolute, { stopAt: cwd });
+
+    if (detected) {
+      found.push({ path, ...detected });
     }
   }
 
-  return null;
+  if (new Set(found.map(item => item.version)).size > 1) {
+    const list = found.map(item => `${item.path}: ${item.version}`).join(', ');
+
+    throw new UsageError(`The paths use different Handsontable versions (${list}). `
+      + 'Pass --from to say which one to migrate from, or run each path on its own.');
+  }
+
+  return found[0] ?? null;
 }
 
 /**

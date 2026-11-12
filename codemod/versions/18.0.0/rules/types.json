@@ -12,13 +12,12 @@
     {
       "id": "18.0.0/type-multicolumnsorting-config",
       "kind": "exportRename",
-      "safe": false,
-      "todo": true,
+      "safe": true,
       "source": "handsontable/plugins/multiColumnSorting",
       "from": "Config",
       "to": "ColumnSortingConfig",
       "toSource": "handsontable/plugins/columnSorting",
-      "note": "ColumnSortingConfig accepts `sortOrder: 'none'` besides 'asc' and 'desc'. Code that narrows `sortOrder` to two values needs a third branch."
+      "note": "ColumnSortingConfig accepts `sortOrder: 'none'` besides 'asc' and 'desc', so code that narrows `sortOrder` to two values needs a third branch."
     },
     {
       "id": "18.0.0/type-multicolumnsorting-columnsorting",
@@ -32,18 +31,17 @@
     {
       "id": "18.0.0/type-columnsummary-endpoint",
       "kind": "exportRename",
-      "safe": false,
-      "todo": true,
+      "guide": "replace-the-removed-detailedsettings-type-exports",
+      "safe": true,
       "source": "handsontable/plugins/columnSummary",
       "from": "Endpoint",
       "to": "SummaryEndpoint",
-      "note": "SummaryEndpoint is looser than Endpoint. Every field is optional, `type` is a string, `result` is `number | string`, and there is an index signature. Code that reads a field as a number or a literal union needs a check."
+      "note": "SummaryEndpoint makes every field optional, types `type` as a string and `result` as `number | string`, and adds an index signature, so code that reads a field as a number or a literal union needs a check."
     },
     {
       "id": "18.0.0/type-columnsummary-detailedsettings",
       "kind": "exportRename",
-      "safe": false,
-      "todo": true,
+      "safe": true,
       "guide": "replace-the-removed-detailedsettings-type-exports",
       "source": "handsontable/plugins/columnSummary",
       "from": "DetailedSettings",
@@ -53,26 +51,25 @@
     {
       "id": "18.0.0/type-undoredo-action",
       "kind": "exportRename",
-      "safe": false,
-      "todo": true,
+      "safe": true,
       "source": "handsontable/plugins/undoRedo",
       "from": "Action",
       "to": "UndoRedoAction",
-      "note": "UndoRedoAction is `{ actionType: string; [key: string]: unknown }`. The union of the 11 action interfaces is gone, so narrowing on `actionType` no longer types the other fields."
+      "note": "UndoRedoAction is `{ actionType: string; [key: string]: unknown }` and replaces the union of the 11 action interfaces, so narrowing on `actionType` no longer types the other fields."
     },
     {
       "id": "18.0.0/type-customborders-borderoptions",
       "kind": "exportRename",
-      "safe": false,
-      "todo": true,
+      "safe": true,
       "source": "handsontable/plugins/customBorders",
       "from": "BorderOptions",
       "to": "BorderSettings",
-      "note": "BorderSettings has an index signature, and `style` is no longer a named field (it reads as `unknown`). It has `cornerVisible` and `className` besides `width`, `color`, and `hide`."
+      "note": "BorderSettings has an index signature and no named `style` field (it reads as `unknown`), and it adds `cornerVisible` and `className` besides `width`, `color`, and `hide`."
     },
     {
       "id": "18.0.0/type-nestedheaders-detailedsettings",
       "kind": "exportRename",
+      "guide": "replace-the-removed-detailedsettings-type-exports",
       "safe": true,
       "source": "handsontable/plugins/nestedHeaders",
       "from": "DetailedSettings",
@@ -106,6 +103,7 @@
     {
       "id": "18.0.0/type-copypaste-rangetype",
       "kind": "exportRename",
+      "guide": "replace-handsontablecommon-imports",
       "safe": true,
       "source": "handsontable/plugins/copyPaste",
       "from": "RangeType",
@@ -180,6 +178,7 @@
     {
       "id": "18.0.0/type-plugin-detailedsettings",
       "kind": "exportRemoved",
+      "guide": "replace-the-removed-detailedsettings-type-exports",
       "safe": false,
       "source": [
         "handsontable/plugins/autoColumnSize",
@@ -443,6 +442,7 @@
     {
       "id": "18.0.0/ns-core-types",
       "kind": "namespaceType",
+      "guide": "replace-handsontablecommon-imports",
       "safe": true,
       "from": [
         "Handsontable.CellCoords",
@@ -453,6 +453,7 @@
     {
       "id": "18.0.0/ns-settings-types",
       "kind": "namespaceType",
+      "guide": "replace-handsontablecommon-imports",
       "safe": true,
       "from": ["Handsontable.SelectOptionsObject", "Handsontable.SourceRowData"],
       "to": { "source": ["handsontable", "handsontable/base", "handsontable/settings"] }
@@ -495,6 +496,7 @@
     {
       "id": "18.0.0/ns-indexmapper",
       "kind": "namespaceType",
+      "guide": "replace-handsontablecommon-imports",
       "safe": true,
       "from": "Handsontable.RecordTranslation.IndexMapper",
       "to": { "name": "IndexMapper", "source": ["handsontable", "handsontable/base"] },
@@ -518,11 +520,10 @@
     {
       "id": "18.0.0/ns-customborders-borderoptions",
       "kind": "namespaceType",
-      "safe": false,
-      "todo": true,
+      "safe": true,
       "from": "Handsontable.plugins.CustomBorders.BorderOptions",
       "to": { "name": "BorderSettings", "source": "handsontable/plugins/customBorders" },
-      "note": "BorderSettings has an index signature, and `style` is no longer a named field (it reads as `unknown`)."
+      "note": "BorderSettings has an index signature and no named `style` field, so `style` reads as `unknown`."
     },
     {
       "id": "18.0.0/ns-exportfile-settings",

@@ -3,6 +3,7 @@ import { addFact } from '../lib/facts.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { findDynamicImports, findImports, findReExports, findRequires } from '../lib/imports.mjs';
 import { findOptionObjects, hasSpread } from '../lib/option-objects.mjs';
+import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import { lookup } from '../lib/scope.mjs';
 
 /**
@@ -15,7 +16,8 @@ export const COLLAPSE_AFTER = 5;
 const FILE_KINDS = ['js', 'css', 'template'];
 const SEVERITIES = ['manual', 'warning'];
 const REQUIRES = ['hot-file', 'option-object', 'none'];
-const JS_ONLY_MATCHERS = ['import', 'property', 'call', 'hook', 'string', 'missingOption', 'namespaceMember'];
+const JS_ONLY_MATCHERS = ['import', 'property', 'call', 'hook', 'string', 'missingOption', 'namespaceMember',
+  'annotatedObject'];
 const ANY_MATCHERS = ['regex', 'selector'];
 
 /**
@@ -23,7 +25,8 @@ const ANY_MATCHERS = ['regex', 'selector'];
  */
 const MODIFIERS = {
   import: [],
-  property: ['withKey', 'valueMatches', 'in', 'flags'],
+  property: ['withKey', 'siblingKey', 'valueMatches', 'in', 'flags'],
+  annotatedObject: ['flags'],
   call: ['argMatches', 'receiver', 'flags'],
   hook: [],
   namespaceMember: [],
@@ -107,8 +110,11 @@ function validateMatch(spec, files, where) {
     .filter(field => field !== key && !MODIFIERS[key].includes(field))
     .map(field => `${where} has unknown field "${field}" for the ${key} matcher`);
 
-  if (JS_ONLY_MATCHERS.includes(key) && files.some(file => file !== 'js')) {
-    problems.push(`${where}: the ${key} matcher reads js only, so "files" must be ["js"]`);
+  const readable = ['property', 'annotatedObject'].includes(key) ? ['js', 'template'] : ['js'];
+
+  if (JS_ONLY_MATCHERS.includes(key) && files.some(file => !readable.includes(file))) {
+    problems.push(`${where}: the ${key} matcher reads js only${readable.length > 1 ? ', and templates' : ''}, `
+      + `so "files" must be ${JSON.stringify(readable)} or a part of it`);
   }
 
   if (key === 'missingOption' && typeof spec.missingOption !== 'string') {
@@ -121,6 +127,15 @@ function validateMatch(spec, files, where) {
 
   if (key === 'property' && !listOf(spec.property).every(item => typeof item === 'string' && item)) {
     problems.push(`${where}.property must be a dotted key path or a list of them`);
+  }
+
+  if (key === 'annotatedObject' && !listOf(spec.annotatedObject).every(item => typeof item === 'string' && item)) {
+    problems.push(`${where}.annotatedObject must be a type name or a list of them`);
+  }
+
+  if (spec.siblingKey !== undefined && (typeof spec.siblingKey !== 'string' || !spec.siblingKey
+    || listOf(spec.property).some(item => item.includes('.')))) {
+    problems.push(`${where}.siblingKey must be a key name, and goes with a property of one segment`);
   }
 
   if (key === 'namespaceMember' && !listOf(spec.namespaceMember).every(item => typeof item === 'string' && item)) {
@@ -421,7 +436,7 @@ function receiverText(node) {
  */
 function createEnv(ctx) {
   const bindings = memo(() => collectHotBindings(ctx.j, ctx.root));
-  const optionList = memo(() => findOptionObjects(ctx.j, ctx.root, bindings(), { aggressive: ctx.options.aggressive }));
+  const optionList = memo(() => findOptionObjects(ctx.j, ctx.root, bindings()));
   const optionNodes = memo(() => new Set(optionList().map(item => item.path.node)));
 
   return { ctx, source: ctx.source, j: ctx.j, root: ctx.root, requires: 'hot-file', bindings, optionList, optionNodes };
@@ -567,6 +582,10 @@ function valueOfProperty(node) {
  * @returns {Match[]} The matches.
  */
 function matchProperty(env, node) {
+  if (env.ctx.fileKind === 'template') {
+    return matchTemplateProperty(env, node);
+  }
+
   const { j, root } = env;
   const { spec, re } = node;
   const paths = listOf(spec.property).map(dotted => dotted.split('.'));
@@ -601,6 +620,16 @@ function matchProperty(env, node) {
 
       const value = valueOfProperty(path.node);
 
+      if (spec.siblingKey !== undefined) {
+        const siblings = origin.element
+          ? origin.element.node.attributes.map(item => (item.type === 'JSXAttribute' ? attributeName(item) : null))
+          : origin.object.node.properties.map(item => propertyName(item));
+
+        if (!siblings.includes(spec.siblingKey)) {
+          continue;
+        }
+      }
+
       if (spec.withKey !== undefined) {
         const target = unwrapNode(value);
 
@@ -627,6 +656,136 @@ function matchProperty(env, node) {
   [j.ObjectProperty, j.Property, j.ObjectMethod, j.JSXAttribute]
     .filter(Boolean)
     .forEach(type => root.find(type).forEach(visit));
+
+  return [...matches, ...matchDynamicProperty(env, node)];
+}
+
+/**
+ * Whether a value node is an object literal with a key.
+ *
+ * @param {object|null|undefined} value A value node.
+ * @param {string} key Key name.
+ * @returns {boolean} `true` for an object literal that sets the key.
+ */
+function objectHasKey(value, key) {
+  const target = value ? unwrapNode(value) : null;
+
+  return target?.type === 'ObjectExpression' && target.properties.some(item => propertyName(item) === key);
+}
+
+/**
+ * Find the places a `property` matcher's option is set by assignment (`column.dateFormat = ...`) or by
+ * `setCellMeta()` in a Handsontable file. A dotted path matches `a.b = ...` and `x.a.b = ...`, and a value of `a`
+ * that is an object literal with `b`. The `valueMatches` and `withKey` modifiers apply to the assigned value.
+ *
+ * @param {Env} env Part state.
+ * @param {Compiled} node The compiled matcher.
+ * @returns {Match[]} The matches.
+ */
+function matchDynamicProperty(env, node) {
+  const { spec, re } = node;
+
+  if (!env.bindings().isHotFile || spec.siblingKey !== undefined) {
+    return [];
+  }
+
+  const paths = listOf(spec.property).map(dotted => dotted.split('.'));
+
+  return dynamicOptionSites(env.j, env.root).filter(site => paths.some((segments) => {
+    const last = segments[segments.length - 1];
+    const before = segments[segments.length - 2];
+    const set = site.name === last && (segments.length === 1 || site.parent === before);
+    const holds = segments.length > 1 && site.name === before && objectHasKey(site.value, last);
+
+    if (!set && !holds) {
+      return false;
+    }
+
+    if (set && spec.withKey !== undefined && !objectHasKey(site.value, spec.withKey)) {
+      return false;
+    }
+
+    if (re.value) {
+      const text = site.value ? stringValue(unwrapNode(site.value)) : null;
+
+      return text !== null && re.value.test(text);
+    }
+
+    return true;
+  })).map(site => ({ line: site.line }));
+}
+
+/**
+ * Find the matches of a `property` matcher in a template: attributes of the wrapper tags (`<hot-column>`,
+ * `<HotColumn>`, ...) that bind the option, in kebab-case or camel-case, with `:`, `v-bind:`, or `[...]`, and
+ * `settings` bindings that name it. The option is the first segment of the dotted path. For a longer path, an
+ * attribute whose value is an object literal must name the next segment, while a value that is a reference is kept,
+ * because the template cannot say what it holds. The `valueMatches` modifier tests the attribute value.
+ *
+ * @param {Env} env Part state.
+ * @param {Compiled} node The compiled matcher.
+ * @returns {Match[]} The matches.
+ */
+function matchTemplateProperty(env, node) {
+  const { spec, re } = node;
+
+  if (spec.siblingKey !== undefined) {
+    return [];
+  }
+  const paths = listOf(spec.property).map(dotted => dotted.split('.'));
+  const named = word => new RegExp(`(?<![\\w$])${word}(?![\\w$])`);
+
+  return templateOptionSites(env.source, paths.map(segments => segments[0]))
+    .filter((site) => {
+      const needs = [...paths.filter(segments => segments[0] === site.name && segments.length > 1)
+        .map(segments => segments[1]), ...(spec.withKey === undefined ? [] : [spec.withKey])];
+      const literal = site.value !== null && /^\s*\{/.test(site.value.replace(/^['"]/, ''));
+
+      if (needs.length > 0 && literal && !needs.some(word => named(word).test(site.value))) {
+        return false;
+      }
+
+      return !re.value || (site.value !== null && re.value.test(site.value));
+    })
+    .map(site => ({ line: site.line }));
+}
+
+/**
+ * Find the matches of an `annotatedObject` matcher: an object literal that a type annotation, `as`, or `satisfies`
+ * names with one of the listed types (the last segment of a qualified name counts), as in
+ * `const format: NumericFormatOptions = { ... }`.
+ *
+ * @param {Env} env Part state.
+ * @param {Compiled} node The compiled matcher.
+ * @returns {Match[]} The matches, at the object.
+ */
+function matchAnnotatedObject(env, node) {
+  const { j, root } = env;
+  const names = new Set(listOf(node.spec.annotatedObject));
+  const named = (type) => {
+    const reference = type?.type === 'TSTypeAnnotation' ? type.typeAnnotation : type;
+    const typeName = reference?.type === 'TSTypeReference' ? reference.typeName : null;
+    const last = typeName?.type === 'TSQualifiedName' ? typeName.right.name : typeName?.name;
+
+    return names.has(last);
+  };
+  const matches = [];
+
+  root.find(j.VariableDeclarator).forEach((path) => {
+    const init = path.node.init ? unwrapNode(path.node.init) : null;
+
+    if (init?.type === 'ObjectExpression' && named(path.node.id.typeAnnotation)) {
+      matches.push({ line: lineOfNode(init) });
+    }
+  });
+
+  [j.TSAsExpression, j.TSSatisfiesExpression].filter(Boolean).forEach((type) => {
+    root.find(type).forEach((path) => {
+      if (path.node.expression.type === 'ObjectExpression' && named(path.node.typeAnnotation)) {
+        matches.push({ line: lineOfNode(path.node.expression) });
+      }
+    });
+  });
 
   return matches;
 }
@@ -958,6 +1117,8 @@ function evaluate(env, node) {
       return matchCall(env, node);
     case 'hook':
       return matchHook(env, node);
+    case 'annotatedObject':
+      return env.ctx.fileKind === 'js' ? matchAnnotatedObject(env, node) : [];
     case 'namespaceMember':
       return matchNamespaceMember(env, node);
     case 'string':
@@ -1040,7 +1201,8 @@ function applyRule(env, rule) {
     ruleId: rule.id,
     severity: compiled.severity,
     line: matches[0].line,
-    message: `${rule.message} This part has ${matches.length} matches. Only the first is listed.`,
+    lines: matches.map(match => match.line),
+    message: `${rule.message} This part has ${matches.length} matches.`,
   });
 }
 

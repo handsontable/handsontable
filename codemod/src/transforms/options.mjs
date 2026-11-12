@@ -1,6 +1,9 @@
+import { enclosingAnchor, hasOwnLines } from '../lib/anchor.mjs';
 import { memberName, stringValue, unwrapNode, unwrapPath } from '../lib/ast.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
+import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import {
+  GENERIC_OPTIONS,
   findJsxOptionAttributes,
   findOptionObjects,
   getProperties,
@@ -13,8 +16,9 @@ import { TODO_PREFIX } from '../lib/todo.mjs';
 
 const REPORT_BELOW_BAR = 'This object only looks like a Handsontable options object, so it was not changed. '
   + 'Re-run with --aggressive or edit by hand.';
+const REPORT_UNCORROBORATED = 'This object only looks like a Handsontable options object and sets fewer than two '
+  + 'other known options, so it was not changed. Edit by hand.';
 const MEMBER_CALLS = new Set(['MemberExpression', 'OptionalMemberExpression']);
-const ANCHOR_NODES = new Set(['ObjectProperty', 'ObjectMethod', 'Property', 'ClassProperty', 'ClassMethod']);
 
 /**
  * Per-rule state passed between the helpers below.
@@ -24,6 +28,8 @@ const ANCHOR_NODES = new Set(['ObjectProperty', 'ObjectMethod', 'Property', 'Cla
  * @property {object} j The jscodeshift API.
  * @property {import('../types.mjs').Rule} rule The rule being applied.
  * @property {boolean} aggressive Whether `--aggressive` is on, which lowers every rule's bar to `medium`.
+ * @property {string[]|null} keys Known option names of the `heuristic` object being handled, or `null` for any
+ * other object. Set by `apply()` before each handler call.
  */
 
 /**
@@ -33,6 +39,7 @@ const ANCHOR_NODES = new Set(['ObjectProperty', 'ObjectMethod', 'Property', 'Cla
  * @property {'object'|'jsx'} type What the target is.
  * @property {object} path NodePath of the `ObjectExpression` or of the `JSXOpeningElement`.
  * @property {'high'|'medium'} confidence Confidence that it holds Handsontable options. JSX is always `high`.
+ * @property {string[]|null} [keys] Known option names of a `heuristic` object, `null` for any other target.
  */
 
 /**
@@ -92,7 +99,40 @@ function isLocaleTag(tag) {
 }
 
 /**
- * Whether a rule may rewrite an object of the given confidence.
+ * The option name a rule acts on, which does not count as evidence that an object holds Handsontable options.
+ *
+ * @param {import('../types.mjs').Rule} rule The rule.
+ * @returns {string} The name: `from` of a rename, the parent of a move, `name` of a removal.
+ */
+function ownKey(rule) {
+  if (rule.kind === 'optionMove') {
+    return rule.from.split('.')[0];
+  }
+
+  return rule.kind === 'optionRename' ? rule.from : rule.name;
+}
+
+/**
+ * Whether a `heuristic` object has enough company to be taken for settings: at least two known option names
+ * other than the one the rule acts on, one of them not too common in unrelated objects (`GENERIC_OPTIONS`). An
+ * object that did not come from the heuristic (a column below a settings object, say) always passes.
+ *
+ * @param {Env} env The state.
+ * @returns {boolean} `true` when the evidence is enough.
+ */
+function corroborated(env) {
+  if (!env.keys) {
+    return true;
+  }
+
+  const others = env.keys.filter(key => key !== ownKey(env.rule));
+
+  return others.length >= 2 && others.some(key => !GENERIC_OPTIONS.has(key));
+}
+
+/**
+ * Whether a rule may rewrite an object of the given confidence. A `medium` object needs the rule's bar to be
+ * `medium` (the rule's `minConfidence`, or `--aggressive`) and `corroborated()` evidence.
  *
  * @param {Env} env The state.
  * @param {'high'|'medium'} confidence Confidence of the object.
@@ -101,7 +141,7 @@ function isLocaleTag(tag) {
 function clearsBar(env, confidence) {
   const bar = env.aggressive ? 'medium' : (env.rule.minConfidence ?? 'high');
 
-  return confidence === 'high' || bar === 'medium';
+  return confidence === 'high' || (bar === 'medium' && corroborated(env));
 }
 
 /**
@@ -119,7 +159,8 @@ function reportBelowBar(env, node, what) {
     ruleId: rule.id,
     severity: 'manual',
     line: lineOf(node),
-    message: [what, REPORT_BELOW_BAR, rule.advice].filter(Boolean).join(' '),
+    message: [what, corroborated(env) ? REPORT_BELOW_BAR : REPORT_UNCORROBORATED, rule.advice]
+      .filter(Boolean).join(' '),
   });
 }
 
@@ -179,16 +220,20 @@ function attributeName(attribute) {
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
- * @param {boolean} aggressive Whether `--aggressive` is on.
  * @returns {Target[]} The targets in discovery order.
  */
-function collectTargets(j, root, aggressive) {
+function collectTargets(j, root) {
   const bindings = collectHotBindings(j, root);
   const objects = new Map();
   const elements = new Map();
 
-  for (const item of findOptionObjects(j, root, bindings, { aggressive })) {
-    objects.set(item.path.node, { type: 'object', path: item.path, confidence: item.confidence });
+  for (const item of findOptionObjects(j, root, bindings)) {
+    objects.set(item.path.node, {
+      type: 'object',
+      path: item.path,
+      confidence: item.confidence,
+      keys: item.keys ?? null,
+    });
   }
 
   for (const entry of findJsxOptionAttributes(j, root, bindings)) {
@@ -226,30 +271,6 @@ function renameKey(j, path, from, to) {
   } else {
     replaceStringLiteral(j, path.get('key'), text => text.replace(from, to));
   }
-}
-
-/**
- * Where a comment about a removed property can sit without changing the code around it: before the nearest
- * enclosing property, statement, declaration, or array element. Never before the object itself, because
- * `return // comment` followed by `{` would end the statement.
- *
- * @param {object} path NodePath to start from.
- * @returns {object} The node that takes the comment.
- */
-function enclosingAnchor(path) {
-  for (let current = path; current; current = current.parent) {
-    const { type } = current.node;
-
-    if (current.parent?.node.type === 'ArrayExpression' || ANCHOR_NODES.has(type)
-      || /(?:Statement|Declaration)$/.test(type)) {
-      const parentType = current.parent?.node.type;
-
-      return parentType === 'ExportNamedDeclaration' || parentType === 'ExportDefaultDeclaration'
-        ? current.parent.node : current.node;
-    }
-  }
-
-  return path.node;
 }
 
 /**
@@ -346,23 +367,6 @@ function removalAdvice(rule) {
  */
 function deletedComment(name, advice) {
   return `Deleted ${name} here. ${advice}`;
-}
-
-/**
- * Whether a property of an object literal sits on lines of its own, so a comment before it does not land in the
- * middle of a line.
- *
- * @param {object} objectPath NodePath of the `ObjectExpression`.
- * @param {object} node The property node.
- * @returns {boolean} `true` when no other property or brace shares a line with it.
- */
-function hasOwnLines(objectPath, node) {
-  const list = objectPath.node.properties;
-  const index = list.indexOf(node);
-  const before = list[index - 1]?.loc?.end.line ?? objectPath.node.loc?.start.line;
-  const after = list[index + 1]?.loc?.start.line ?? objectPath.node.loc?.end.line;
-
-  return Boolean(node.loc) && before < node.loc.start.line && after > node.loc.end.line;
 }
 
 /**
@@ -542,7 +546,7 @@ function removeInObject(env, objectPath, confidence) {
 
   for (const node of nodes) {
     if (!rewrites(rule)) {
-      adviseRemoval(env, hasOwnLines(objectPath, node) ? node : enclosingAnchor(objectPath), lineOf(node),
+      adviseRemoval(env, hasOwnLines(objectPath.node, node) ? node : enclosingAnchor(objectPath), lineOf(node),
         `the ${rule.name} property`);
 
       continue;
@@ -563,8 +567,8 @@ function removeInObject(env, objectPath, confidence) {
 }
 
 /**
- * Handle `optionRemove` for one wrapper component element: delete the attribute and leave the TODO before the
- * statement that holds the element.
+ * Handle `optionRemove` for one wrapper component element: delete the attribute and leave the TODO next to the
+ * element (see `addJsxTodo` in `lib/todo.mjs`).
  *
  * @param {Env} env The state.
  * @param {object} openingPath NodePath of the `JSXOpeningElement`.
@@ -576,8 +580,8 @@ function removeOnElement(env, openingPath) {
   const found = attributes.filter(item => attributeName(item) === rule.name);
 
   if (!rewrites(rule) && found.length > 0) {
-    // The attribute stays, so a TODO anchored on the statement is left once for the whole element.
-    adviseRemoval(env, enclosingAnchor(openingPath), lineOf(found[0]), `the ${rule.name} attribute`);
+    // The attribute stays, so one TODO next to the element covers all of them.
+    adviseRemoval(env, openingPath, lineOf(found[0]), `the ${rule.name} attribute`);
 
     return;
   }
@@ -591,7 +595,7 @@ function removeOnElement(env, openingPath) {
     ctx.markChanged();
 
     if (rule.todo !== false) {
-      ctx.todo(enclosingAnchor(openingPath), rule.id, text, deletedComment(rule.name, text));
+      ctx.todo(openingPath, rule.id, text, deletedComment(rule.name, text));
     }
 
     ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Removed the ${rule.name} attribute.` });
@@ -895,14 +899,93 @@ function moveOnElement(env, openingPath) {
 }
 
 /**
+ * The option a rule acts on, as it is written in a template or an assignment, and what to do about it. A rename
+ * that acts on call arguments (`context.callArg`) has no template or assignment form, so it gives `null`.
+ *
+ * @param {import('../types.mjs').Rule} rule An option rule.
+ * @returns {{name: string, instruction: string}|null} The option name and the instruction for the user.
+ */
+function siteOf(rule) {
+  if (rule.kind === 'optionRename') {
+    return rule.context ? null : { name: rule.from, instruction: `Rename ${rule.from} to ${rule.to}.` };
+  }
+
+  if (rule.kind === 'optionMove') {
+    return {
+      name: rule.from.split('.')[0],
+      instruction: `If it sets ${rule.from.split('.')[1]}, move ${rule.from} to ${rule.to}.`,
+    };
+  }
+
+  return { name: rule.name, instruction: `Remove ${rule.name}. ${removalAdvice(rule)}`.trim() };
+}
+
+/**
+ * Report the wrapper tags of a template that set an option a rule targets. A template is read-only for the tool,
+ * so every site is a `manual` entry that names the option and the line.
+ *
+ * @param {import('../types.mjs').Ctx} ctx Context of a `template` part.
+ * @param {import('../types.mjs').Rule[]} rules Option rules of one version.
+ * @returns {void}
+ */
+function reportTemplateOptions(ctx, rules) {
+  const targets = rules.map(rule => ({ rule, site: siteOf(rule) })).filter(item => item.site);
+  const sites = templateOptionSites(ctx.source, targets.map(item => item.site.name));
+
+  for (const site of sites) {
+    for (const { rule, site: target } of targets.filter(item => item.site.name === site.name)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        line: site.line,
+        message: `${site.attribute} on <${site.tag}> sets ${site.name} in a template. The tool does not rewrite `
+          + `templates. ${target.instruction}`,
+      });
+    }
+  }
+}
+
+/**
+ * Report the places where a file sets an option a rule targets without an options object: an assignment to
+ * `x.numericFormat`, `setCellMeta(row, col, 'correctFormat', ...)`, and `setCellMetaObject(row, col, {...})`. Only a
+ * file that belongs to Handsontable is read. Each site is a `manual` entry, and nothing is rewritten.
+ *
+ * @param {import('../types.mjs').Ctx} ctx Context of a `js` part.
+ * @param {import('../types.mjs').Rule[]} rules Option rules of one version.
+ * @returns {void}
+ */
+function reportDynamicOptions(ctx, rules) {
+  const targets = rules.map(rule => ({ rule, site: siteOf(rule) }))
+    .filter(item => item.site && ctx.source.includes(item.site.name));
+
+  if (targets.length === 0 || !collectHotBindings(ctx.j, ctx.root).isHotFile) {
+    return;
+  }
+
+  for (const site of dynamicOptionSites(ctx.j, ctx.root)) {
+    for (const { rule, site: target } of targets.filter(item => item.site.name === site.name)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        line: site.line,
+        message: `${site.name} is set by ${site.form === 'setCellMeta' ? 'setCellMeta()' : 'an assignment'} here, `
+          + `so the tool cannot rewrite it. ${target.instruction}`,
+      });
+    }
+  }
+}
+
+/**
  * Renames, moves, and removes options (`optionRename`, `optionMove`, `optionRemove`).
  *
  * Where it acts: object literals that `findOptionObjects` recognizes as Handsontable options (grid, column, and
  * cell level, reached through `new Handsontable()`, `updateSettings()`, `settings={...}`, type annotations, and
  * `columns`, `cell`, `cells`), and the attributes of `<HotTable>` and `<HotColumn>`. A rule rewrites an object
  * when its confidence reaches the rule's `minConfidence` (default `high`); `--aggressive` lowers every bar to
- * `medium`. An object below the bar is reported as `manual` and left alone. A key set twice, or a missing key,
- * is never guessed: the first case is reported, the second is skipped.
+ * `medium`. Even then a `medium` object that sets fewer than two known options besides the one the rule acts on
+ * stays below the bar, and a file with no Handsontable import or global holds no `medium` object at all. An object
+ * below the bar is reported as `manual` and left alone. A key set twice, or a missing key, is never guessed: the
+ * first case is reported, the second is skipped.
  *
  * - `optionRename` (`from`, `to`): the key changes, the value and the key's quoting stay, a shorthand property
  *   becomes `to: from`. When `to` is already set the object is reported. With `context: { callArg: [names] }`
@@ -919,6 +1002,11 @@ function moveOnElement(env, openingPath) {
  *   comment is never written twice. Comments on the removed property go with it, except a section header
  *   (followed by a blank line) and a TODO of this tool, which move to the anchor.
  *
+ * Two places that cannot be rewritten are reported as `manual` entries from the same rules: the attributes of
+ * `<hot-table>`, `<hot-column>`, `<HotTable>`, and `<HotColumn>` in a `template` part (Vue, Angular, and HTML
+ * templates, kebab-case and camel-case names, with `:`, `v-bind:`, and `[...]` prefixes, and `settings` bindings that
+ * name the option), and, in a Handsontable file, assignments and `setCellMeta()` calls that set the option.
+ *
  * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
  * when the rule asks for one (see `lib/safety.mjs`).
  *
@@ -926,15 +1014,23 @@ function moveOnElement(env, openingPath) {
  */
 const options = {
   kinds: ['optionRename', 'optionMove', 'optionRemove'],
-  fileKinds: ['js'],
+  fileKinds: ['js', 'template'],
 
   /**
-   * @param {import('../types.mjs').Ctx} ctx Context of a `js` part.
+   * @param {import('../types.mjs').Ctx} ctx Context of a `js` or `template` part.
    * @param {import('../types.mjs').Rule[]} rules Option rules of one version in manifest order.
    * @returns {void}
    */
   apply(ctx, rules) {
+    if (ctx.fileKind === 'template') {
+      reportTemplateOptions(ctx, rules);
+
+      return;
+    }
+
     const active = rules.filter(rule => mentions(ctx.source, rule));
+
+    reportDynamicOptions(ctx, rules);
 
     if (active.length === 0) {
       return;
@@ -945,10 +1041,10 @@ const options = {
 
     const { j } = ctx;
     const aggressive = Boolean(ctx.options?.aggressive);
-    const targets = collectTargets(j, ctx.root, aggressive);
+    const targets = collectTargets(j, ctx.root);
 
     for (const rule of active) {
-      const env = { ctx, j, rule, aggressive };
+      const env = { ctx, j, rule, aggressive, keys: null };
 
       if (rule.kind === 'optionRename' && rule.context) {
         renameInCallArguments(env);
@@ -960,7 +1056,9 @@ const options = {
         if (target.type === 'object') {
           const handler = { optionRename: renameInObject, optionMove: moveInObject, optionRemove: removeInObject };
 
+          env.keys = target.keys ?? null;
           handler[rule.kind](env, target.path, target.confidence);
+          env.keys = null;
         } else {
           const handler = { optionRename: renameOnElement, optionMove: moveOnElement, optionRemove: removeOnElement };
 

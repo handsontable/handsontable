@@ -1,4 +1,6 @@
 import { execFile } from 'node:child_process';
+import { realpath } from 'node:fs/promises';
+import { basename, dirname, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -46,15 +48,57 @@ export async function isGitRepo(cwd) {
 }
 
 /**
+ * The real path of a file, or of its directory plus its name when the file does not exist, so two spellings of one
+ * location (a symbolic link in a temporary directory path, say) compare equal.
+ *
+ * @param {string} path Absolute path.
+ * @returns {Promise<string>} The canonical path.
+ */
+async function canonical(path) {
+  try {
+    return await realpath(path);
+  } catch {
+    // The file is not there: its directory still gives the real location.
+    return resolve(await realpath(dirname(path)).catch(() => dirname(path)), basename(path));
+  }
+}
+
+/**
  * List the paths with uncommitted changes under a directory, untracked files included.
  *
+ * An untracked file listed in \`ignoreUntracked\` does not count. The caller uses it for the report file the user
+ * asked for: a report left in the tree by the previous run would otherwise refuse the next run.
+ *
  * @param {string} cwd Directory.
+ * @param {object} [options] Options.
+ * @param {string[]} [options.ignoreUntracked] Absolute paths of untracked files to leave out.
  * @returns {Promise<string[]>} Porcelain status lines, empty for a clean tree.
  */
-export async function dirtyPaths(cwd) {
-  const output = await git(['status', '--porcelain', '--', '.'], cwd);
+export async function dirtyPaths(cwd, { ignoreUntracked = [] } = {}) {
+  const output = await git(['status', '--porcelain', '-z', '--', '.'], cwd);
+  const fields = output.split('\0').filter(Boolean);
+  const lines = [];
+  const top = ignoreUntracked.length > 0 ? (await git(['rev-parse', '--show-toplevel'], cwd)).trim() : null;
+  const root = top === null ? null : await canonical(top);
+  const ignored = await Promise.all(ignoreUntracked.map(canonical));
 
-  return output.split('\n').filter(Boolean);
+  for (let index = 0; index < fields.length; index += 1) {
+    const field = fields[index];
+    const status = field.slice(0, 2);
+
+    // A rename or copy entry carries the old path as one more field.
+    if (/[RC]/.test(status)) {
+      index += 1;
+    }
+
+    const absolute = root === null ? null : await canonical(resolve(root, field.slice(3)));
+
+    if (!(status === '??' && absolute !== null && ignored.includes(absolute))) {
+      lines.push(field);
+    }
+  }
+
+  return lines;
 }
 
 /**

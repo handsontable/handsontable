@@ -24,14 +24,13 @@ const IMPORT = 'import Handsontable from \'handsontable\';\n';
  *
  * @param {string} source Source text.
  * @param {string} [parser] Parser name.
- * @param {object} [options] Options for `findOptionObjects`.
  * @returns {string[]} One `confidence role origin [keys]` line per object.
  */
-function describeObjects(source, parser = 'tsx', options = {}) {
+function describeObjects(source, parser = 'tsx') {
   const { j, root } = parse(source, parser);
   const bindings = collectHotBindings(j, root);
 
-  return findOptionObjects(j, root, bindings, options).map(({ path, confidence, role, origin }) => {
+  return findOptionObjects(j, root, bindings).map(({ path, confidence, role, origin }) => {
     const keys = path.node.properties.map(node => node.key?.name ?? node.key?.value ?? '...');
 
     return `${confidence} ${role} ${origin} [${keys.join(',')}]`;
@@ -320,13 +319,10 @@ describe('findOptionObjects: medium confidence', () => {
     ]);
   });
 
-  it('does not run in a file without Handsontable unless aggressive', () => {
+  it('does not run in a file without Handsontable', () => {
     const source = 'export const settings = { colHeaders: true, rowHeaders: true };\n';
 
     assert.deepEqual(describeObjects(source, 'ts'), []);
-    assert.deepEqual(describeObjects(source, 'ts', { aggressive: true }), [
-      'medium grid heuristic [colHeaders,rowHeaders]',
-    ]);
   });
 
   it('reports each object once at its highest confidence', () => {

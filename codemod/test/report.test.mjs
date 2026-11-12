@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { unifiedDiff } from '../src/diff.mjs';
-import { Report, renderConsole, renderMarkdown } from '../src/report.mjs';
+import { Report, SKIPPED_RULE_ID, formatLines, renderConsole, renderMarkdown, summaryLine } from '../src/report.mjs';
 
 /**
  * Build a report with a few entries across two rules and three files.
@@ -50,11 +50,47 @@ describe('Report', () => {
     assert.ok(!report.has('nope'));
   });
 
-  it('groups by rule in first-seen order and sorts entries by file and line', () => {
+  it('groups by rule, ordered by version and then by rule, and sorts entries by file and line', () => {
     const groups = sampleReport().byRule();
 
-    assert.deepEqual(groups.map(group => group.ruleId), ['18.0.0/b', '18.0.0/a', 'parse-error']);
-    assert.deepEqual(groups[1].entries.map(entry => entry.file), ['src/a.css', 'src/b.css']);
+    assert.deepEqual(groups.map(group => group.ruleId), ['18.0.0/a', '18.0.0/b', 'parse-error']);
+    assert.deepEqual(groups[0].entries.map(entry => entry.file), ['src/a.css', 'src/b.css']);
+  });
+
+  it('orders the versions numerically, so 18.10.0 follows 18.2.0', () => {
+    const report = new Report();
+
+    ['18.10.0/a', '18.2.0/z', '18.2.0/b', 'transform-error', '9.0.0/a'].forEach((ruleId) => {
+      report.add({ ruleId, severity: 'manual', file: 'a.ts', message: 'm' });
+    });
+
+    assert.deepEqual(report.byRule().map(group => group.ruleId),
+      ['9.0.0/a', '18.2.0/b', '18.2.0/z', '18.10.0/a', 'transform-error']);
+  });
+
+  it('keeps a note that holds for every file once, with the files it came from', () => {
+    const report = new Report();
+    const note = { ruleId: '18.0.0/n', severity: 'manual', message: 'CellValue is now unknown.', scope: 'run' };
+
+    report.add({ ...note, file: 'src/b.ts', line: 3 });
+    report.add({ ...note, file: 'src/a.ts', line: 7 });
+    report.add({ ...note, file: 'src/a.ts', line: 9 });
+
+    assert.equal(report.entries.length, 1);
+    assert.deepEqual(report.entries[0].files, ['src/b.ts', 'src/a.ts']);
+    assert.deepEqual(report.counts(), { changed: 0, manual: 1, warning: 0 });
+    assert.deepEqual(report.byRule(), []);
+    assert.equal(report.once().length, 1);
+  });
+
+  it('sets skipped files apart from the rule groups', () => {
+    const report = new Report();
+
+    report.add({ ruleId: SKIPPED_RULE_ID, severity: 'warning', file: 'b.less', message: 'Not analyzed.' });
+    report.add({ ruleId: SKIPPED_RULE_ID, severity: 'warning', file: 'a.styl', message: 'Not analyzed.' });
+
+    assert.deepEqual(report.byRule(), []);
+    assert.deepEqual(report.skipped().map(entry => entry.file), ['a.styl', 'b.less']);
   });
 });
 
@@ -96,6 +132,80 @@ describe('renderConsole', () => {
     assert.doesNotMatch(text, /src\/a\.ts:11 /);
     assert.match(text, /^ {2}\+4 more \(use --report <file> for the full list\)$/m);
     assert.match(renderMarkdown(report), /^- \[ \] src\/a\.ts:14 Fix 14\.$/m);
+  });
+});
+
+describe('formatLines', () => {
+  it('sorts, drops duplicates, and writes a run of three or more lines as a range', () => {
+    assert.equal(formatLines([14, 3, 9, 10, 11, 3, 20, 21]), '3, 9-11, 14, 20, 21');
+    assert.equal(formatLines([5]), '5');
+  });
+});
+
+describe('every location of a collapsed entry', () => {
+  it('lists every line in the console and in the markdown', () => {
+    const report = new Report();
+
+    report.add({
+      ruleId: '18.0.0/many',
+      severity: 'manual',
+      file: 'src/a.ts',
+      line: 3,
+      lines: [3, 9, 14, 15, 16],
+      message: 'Check it. This part has 5 matches.',
+    });
+
+    const tail = 'Check it. This part has 5 matches. Lines: 3, 9, 14-16.';
+
+    assert.ok(renderConsole(report).includes(`src/a.ts:3  ${tail}`));
+    assert.ok(renderMarkdown(report).includes(`- [ ] src/a.ts:3 ${tail}`));
+  });
+});
+
+describe('Read once and Skipped files sections', () => {
+  const fill = () => {
+    const report = new Report();
+
+    ['src/a.ts', 'src/b.ts', 'src/c.ts', 'src/d.ts'].forEach((file) => {
+      report.add({
+        ruleId: '18.0.0/n',
+        severity: 'manual',
+        file,
+        line: 1,
+        message: 'It is unknown now.',
+        scope: 'run',
+      });
+    });
+    report.add({ ruleId: SKIPPED_RULE_ID, severity: 'warning', file: 'a.less', message: 'Not analyzed.' });
+
+    return report;
+  };
+
+  it('prints the note once with the files in the console', () => {
+    const text = renderConsole(fill());
+
+    assert.equal(text.split('It is unknown now.').length - 1, 1);
+    assert.ok(text.includes('Read once (1)\n'));
+    assert.ok(text.includes('[manual] 18.0.0/n  It is unknown now. (4 files: src/a.ts, src/b.ts, src/c.ts, +1 more)'));
+    assert.ok(text.includes('Skipped files (1)\n  a.less  Not analyzed.\n'));
+  });
+
+  it('prints every file in the markdown', () => {
+    const text = renderMarkdown(fill());
+
+    assert.ok(text.includes('## Read once\n'));
+    assert.ok(text.includes('\n  - 4 files: src/a.ts, src/b.ts, src/c.ts, src/d.ts\n'));
+    assert.ok(text.includes('## Skipped files\n'));
+    assert.ok(text.includes('- [ ] a.less Not analyzed.\n'));
+  });
+
+  it('uses the same summary line in both reports', () => {
+    const report = fill();
+    const line = summaryLine(report, { filesChanged: 2, dryRun: true });
+
+    assert.equal(line, 'Summary: 2 files would change, 0 rewrites would be applied, 1 manual step, 1 warning.');
+    assert.ok(renderConsole(report, { filesChanged: 2, dryRun: true }).endsWith(`${line}\n`));
+    assert.ok(renderMarkdown(report, { filesChanged: 2, dryRun: true }).includes(`\n${line}\n`));
   });
 });
 

@@ -14,6 +14,7 @@ const MOVE = {
   minConfidence: 'medium',
 };
 const REMOVE = { id: '18.0.0/remove', kind: 'optionRemove', name: 'gone', advice: 'It is gone.' };
+const REMOVE_FORMAT = { ...REMOVE, id: '18.0.0/correct-format', name: 'correctFormat' };
 const CALLS = {
   id: '18.0.0/calls',
   kind: 'optionRename',
@@ -135,13 +136,42 @@ describe('optionRename confidence bar', () => {
     assert.match(byFlag.output, /newName: 1/);
   });
 
-  it('finds a medium object in a file with no Handsontable import only under --aggressive', async() => {
+  it('never touches a file with no Handsontable usage, not even under --aggressive', async() => {
     const source = '// handsontable settings\nexport const s = { oldName: 1, colHeaders: true, rowHeaders: true };\n';
     const plain = await run(source, [RENAME]);
     const aggressive = await run(source, [RENAME], { aggressive: true });
 
     assert.deepEqual([plain.changed, plain.entries.length], [false, 0]);
-    assert.match(aggressive.output, /newName: 1/);
+    assert.deepEqual([aggressive.changed, aggressive.entries.length], [false, 0]);
+  });
+
+  it('leaves the removal rules alone in a file with no Handsontable usage under --aggressive', async() => {
+    const source = 'export const cfg = { correctFormat: true, datePickerConfig: {} };\n';
+    const rules = [REMOVE_FORMAT, { ...REMOVE_FORMAT, id: '18.0.0/date-picker', name: 'datePickerConfig' }];
+    const result = await run(source, rules, { aggressive: true });
+
+    assert.deepEqual([result.changed, result.entries.length], [false, 0]);
+    assert.equal(result.output, source);
+  });
+
+  it('needs two known options besides the one the rule acts on, even under --aggressive', async() => {
+    const lookAlike = `${IMPORT}const s = { locale: 'zz', numericFormat: { culture: 'de-DE' } };\n`;
+    const twoRemovals = `${IMPORT}const s = { correctFormat: true, datePickerConfig: {} };\n`;
+    const moved = await run(lookAlike, [MOVE], { aggressive: true });
+    const removed = await run(twoRemovals, [REMOVE_FORMAT], { aggressive: true });
+
+    assert.equal(moved.changed, false);
+    assert.equal(removed.changed, false);
+    assert.match(moved.entries[0].message, /fewer than two other known options/);
+    assert.match(removed.entries[0].message, /fewer than two other known options/);
+  });
+
+  it('rewrites a hot-file object that has two other known options under --aggressive', async() => {
+    const source = `${IMPORT}const s = { colHeaders: true, rowHeaders: true, correctFormat: true };\n`;
+    const result = await run(source, [REMOVE_FORMAT], { aggressive: true });
+
+    assert.equal(result.changed, true);
+    assert.equal(result.output.includes('correctFormat: true'), false);
   });
 });
 
@@ -290,7 +320,7 @@ describe('optionMove', () => {
   });
 
   it('respects minConfidence high and the aggressive flag', async() => {
-    const source = `${IMPORT}const s = { colHeaders: true, numericFormat: { culture: 'de-DE' } };\n`;
+    const source = `${IMPORT}const s = { colHeaders: true, rowHeaders: true, numericFormat: { culture: 'de-DE' } };\n`;
     const strict = await run(source, [{ ...MOVE, minConfidence: undefined }]);
     const aggressive = await run(source, [{ ...MOVE, minConfidence: undefined }], { aggressive: true });
 
@@ -443,6 +473,79 @@ export function Other() {
     assert.equal((await run(result.output, [REMOVE], { filePath: 'a.tsx' })).changed, false);
   });
 
+  describe('TODO placement for a removed attribute', () => {
+    const wrapper = 'import { HotTable, HotColumn } from \'@handsontable/react-wrapper\';\n';
+    const runJsx = source => run(`${wrapper}${source}`, [REMOVE], { filePath: 'a.tsx' });
+
+    it('puts a JSX comment right before an element that is a child of another element', async() => {
+      const result = await runJsx([
+        'export const App = () => (',
+        '  <HotTable data={[]}>',
+        '    <HotColumn data="a" gone />',
+        '    <HotColumn data="b" />',
+        '  </HotTable>',
+        ');',
+        '',
+      ].join('\n'));
+
+      assert.match(result.output,
+        /\n {4}\{\/\* TODO[^\n]*It is gone\. \*\/\}\n {4}<HotColumn data="a" \/>\n {4}<HotColumn data="b" \/>/);
+      assert.equal(result.output.includes('// TODO'), false);
+      assert.doesNotThrow(() => parse(result.output, 'tsx'));
+      assert.equal((await runJsx(result.output.replace(wrapper, ''))).changed, false);
+    });
+
+    it('puts the JSX comment before the expression that holds the element', async() => {
+      const result = await runJsx([
+        'export const App = () => (',
+        '  <HotTable data={[]}>',
+        '    {on && <HotColumn data="a" gone />}',
+        '    {list.map(item => <HotColumn key={item} gone />)}',
+        '  </HotTable>',
+        ');',
+        '',
+      ].join('\n'));
+
+      assert.match(result.output, /\{\/\* TODO[^\n]*\*\/\}\n {4}\{on && <HotColumn data="a" \/>\}/);
+      assert.match(result.output, /\{\/\* TODO[^\n]*\*\/\}\n {4}\{list\.map\(item => <HotColumn key=\{item\} \/>\)\}/);
+      assert.doesNotThrow(() => parse(result.output, 'tsx'));
+    });
+
+    it('puts a line comment above the statement when the element is its value and it starts close', async() => {
+      const result = await runJsx([
+        'export function App() {',
+        '  return (',
+        '    <HotColumn',
+        '      data="a"',
+        '      gone',
+        '    />',
+        '  );',
+        '}',
+        '',
+      ].join('\n'));
+
+      assert.match(result.output, /\{\n {2}\/\/ TODO[^\n]*\n {2}return/);
+      assert.doesNotThrow(() => parse(result.output, 'tsx'));
+    });
+
+    it('puts a line comment on the first attribute when the statement is far above the element', async() => {
+      const result = await runJsx([
+        'export const view = render(',
+        '  first,',
+        '  second,',
+        '  third,',
+        '  fourth,',
+        '  wrap(<HotColumn data="a" gone />),',
+        ');',
+        '',
+      ].join('\n'));
+
+      assert.match(result.output, /<HotColumn\s+\/\/ TODO[^\n]*\n\s+data="a"/);
+      assert.doesNotThrow(() => parse(result.output, 'tsx'));
+      assert.equal((await runJsx(result.output.replace(wrapper, ''))).changed, false);
+    });
+  });
+
   it('ignores a computed key and a key of the same name in a plain object', async() => {
     const computed = await run(grid('{ [\'gone\']: true, colHeaders: true }'), [REMOVE]);
     const plain = await run(`${IMPORT}const row = { gone: true };\n`, [REMOVE]);
@@ -461,5 +564,109 @@ describe('option rules in all parsers', () => {
       assert.equal(result.changed, true, filePath);
       assert.doesNotThrow(() => parse(result.output, parser), filePath);
     }
+  });
+});
+
+describe('options in templates', () => {
+  const rules = [MOVE, REMOVE_FORMAT, { ...REMOVE_FORMAT, id: '18.0.0/picker', name: 'datePickerConfig' }, RENAME];
+
+  /**
+   * Report entries of a template, as `ruleId line` pairs.
+   *
+   * @param {string} source File text.
+   * @param {string} filePath File name.
+   * @returns {Promise<string[]>} Sorted pairs.
+   */
+  async function sites(source, filePath) {
+    const result = await run(source, rules, { filePath });
+
+    assert.equal(result.changed, false, 'a template is never rewritten');
+
+    return result.entries.map(entry => `${entry.ruleId.replace('18.0.0/', '')} ${entry.line}`).sort();
+  }
+
+  it('reports the options that kebab-case and camel-case attributes set on Vue wrapper tags', async() => {
+    const source = [
+      '<template>',
+      '  <hot-table :settings="grid" :old-name="1">',
+      '    <hot-column :numeric-format="fmt" correct-format />',
+      '    <HotColumn v-bind:correctFormat="true" datePickerConfig="{}" />',
+      '    <div correct-format />',
+      '  </hot-table>',
+      '</template>',
+      '<script>import Handsontable from \'handsontable\';</script>',
+      '',
+    ].join('\n');
+
+    assert.deepEqual(await sites(source, 'a.vue'), [
+      'correct-format 3',
+      'correct-format 4',
+      'move 3',
+      'picker 4',
+      'rename 2',
+    ]);
+  });
+
+  it('reports Angular bindings, tags that span lines, and a settings binding that names the option', async() => {
+    const source = [
+      '<hot-table',
+      '  [settings]="{ correctFormat: true, colHeaders: true }"',
+      '  [datePickerConfig]="cfg">',
+      '  <hot-column [(numericFormat)]="fmt"></hot-column>',
+      '</hot-table>',
+      '',
+    ].join('\n');
+
+    assert.deepEqual(await sites(source, 'a.component.html'), [
+      'correct-format 2',
+      'move 4',
+      'picker 3',
+    ]);
+  });
+
+  it('ignores a plain element and an attribute that only contains the name', async() => {
+    const source = '<div correctFormat="x"></div>\n'
+      + '<hot-table my-correct-format="1" data-numeric-format="x"></hot-table>\n';
+
+    assert.deepEqual(await sites(source, 'a.html'), []);
+  });
+});
+
+describe('options set by assignment or setCellMeta', () => {
+  const rules = [MOVE, REMOVE_FORMAT, RENAME];
+
+  /**
+   * Run the rules over a file and describe the entries.
+   *
+   * @param {string} source File text.
+   * @returns {Promise<{output: string, entries: string[]}>} The output and `ruleId line` pairs.
+   */
+  async function dynamic(source) {
+    const result = await run(source, rules);
+
+    return {
+      output: result.output,
+      entries: result.entries.map(entry => `${entry.ruleId.replace('18.0.0/', '')} ${entry.line}`).sort(),
+    };
+  }
+
+  it('reports member assignments and setCellMeta calls in a Handsontable file, and rewrites none', async() => {
+    const source = `${IMPORT}const hot = new Handsontable(el, {});
+column.numericFormat = { pattern: '0.0' };
+settings['correctFormat'] = true;
+hot.setCellMeta(0, 1, 'correctFormat', false);
+hot.setCellMetaObject(0, 1, { oldName: 1, other: 2 });
+other.unrelated = 1;
+`;
+    const result = await dynamic(source);
+
+    assert.deepEqual(result.entries, ['correct-format 4', 'correct-format 5', 'move 3', 'rename 6']);
+    assert.equal(result.output, source);
+  });
+
+  it('stays silent in a file that does not belong to Handsontable', async() => {
+    const result = await dynamic('column.numericFormat = {};\nform.correctFormat = true;\n');
+
+    assert.deepEqual(result.entries, []);
   });
 });

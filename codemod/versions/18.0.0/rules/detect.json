@@ -5,11 +5,17 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
-      "files": ["js"],
+      "files": ["js", "template"],
       "requires": "hot-file",
       "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
       "emitsFact": "uses-numbro-pattern",
-      "match": { "property": "numericFormat.pattern" },
+      "match": {
+        "anyOf": [
+          { "property": "numericFormat.pattern" },
+          { "property": "pattern", "siblingKey": "culture" },
+          { "annotatedObject": "NumericFormatOptions" }
+        ]
+      },
       "message": "Handsontable 18.0 removed Numbro.js, so numericFormat.pattern does nothing. Replace it with Intl.NumberFormat options, for example style: 'currency' with currency: 'USD', style: 'percent', or minimumFractionDigits and maximumFractionDigits for a fixed number of decimals. Set the locale with the locale option. To keep Numbro, follow the Numbro recipe: https://handsontable.com/docs/javascript-data-grid/recipes/cell-types/numbro"
     },
     {
@@ -17,7 +23,7 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
-      "files": ["js"],
+      "files": ["js", "template"],
       "requires": "option-object",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
       "match": { "property": "dateFormat", "valueMatches": "." },
@@ -28,7 +34,7 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
-      "files": ["js"],
+      "files": ["js", "template"],
       "requires": "option-object",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
       "match": { "property": "timeFormat", "valueMatches": "." },

@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 import { PACKAGE_ROOT, VERSIONS_DIR, buildPlan, loadManifest } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { COLLAPSE_AFTER, stringsIn, validateDetectRule } from '../src/transforms/detect.mjs';
+import { anchorsOf } from './helpers/guide-anchors.mjs';
 import { parse } from './helpers/parse.mjs';
 
 /**
@@ -45,23 +46,12 @@ async function run(detectRule, source, filePath = 'a.ts', facts = new Set()) {
 
 const HOT = 'import Handsontable from "handsontable";\n';
 
-/**
- * Slug the docs site gives a heading: the leading list number is dropped, punctuation is removed, the rest is
- * lowercased and joined with hyphens. A dot or a backtick is removed, not turned into a hyphen.
- *
- * @param {string} heading Heading text without the leading hashes.
- * @returns {string} Anchor without the `#`.
- */
-function slug(heading) {
-  return heading.replace(/^\d+\.\s+/, '').toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').replace(/\s/g, '-');
-}
-
 describe('shipped detect rules', () => {
   for (const version of ['18.0.0', '18.1.0']) {
     it(`are valid and point at a heading of the ${version} guide`, async() => {
       const manifest = await loadManifest(join(VERSIONS_DIR, version));
       const guide = await readFile(join(PACKAGE_ROOT, '..', manifest.guide.source), 'utf8');
-      const anchors = new Set([...guide.matchAll(/^##+ (.+)$/gm)].map(match => slug(match[1])));
+      const anchors = anchorsOf(guide);
       const rules = manifest.rules.filter(item => item.kind === 'detect');
 
       assert.ok(rules.length > 0);
@@ -286,6 +276,89 @@ describe('property matcher', () => {
   });
 });
 
+describe('property matcher in templates and in dynamic forms', () => {
+  const pattern = rule({ files: ['js', 'template'], match: { property: 'numericFormat.pattern' } });
+  const format = rule({
+    files: ['js', 'template'],
+    requires: 'option-object',
+    match: { property: 'dateFormat', valueMatches: '.' },
+  });
+
+  it('is valid for js and template files, and still not for css', () => {
+    assert.deepEqual(validateDetectRule(pattern), []);
+    assert.match(validateDetectRule(rule({ match: { property: 'a' }, files: ['js', 'css'] })).join(), /reads js only/);
+  });
+
+  it('reports a wrapper tag whose attribute binds the option, in kebab-case and camel-case', async() => {
+    const source = [
+      '<template>',
+      '  <hot-column :numeric-format="{ pattern: \'0.0\' }" />',
+      '  <HotColumn numericFormat="{ culture: \'de\' }" />',
+      '  <hot-column :numeric-format="fmt" />',
+      '  <div :numeric-format="{ pattern: 1 }" />',
+      '</template>',
+      '<script>import Handsontable from \'handsontable\';</script>',
+      '',
+    ].join('\n');
+
+    assert.deepEqual((await run(pattern, source, 'a.vue')).lines, [2, 4]);
+  });
+
+  it('applies valueMatches to the attribute value of a template', async() => {
+    const source = '<hot-column date-format="DD/MM/YYYY"></hot-column>\n<hot-column [dateFormat]="fmt"></hot-column>\n'
+      + '<hot-column date-format></hot-column>\n';
+
+    assert.deepEqual((await run(format, source, 'a.html')).lines, [1, 2]);
+  });
+
+  it('reports assignments and setCellMeta in a Handsontable file, and nothing in another file', async() => {
+    const source = `${HOT}column.numericFormat = { pattern: '0.0' };\ncolumn.numericFormat = { culture: 'de' };\n`
+      + 'column.numericFormat.pattern = 1;\nhot.setCellMeta(0, 0, \'numericFormat\', { pattern: 2 });\n'
+      + 'hot.setCellMetaObject(0, 0, { numericFormat: { pattern: 3 } });\nother.pattern = 1;\n';
+
+    assert.deepEqual((await run(pattern, source)).lines, [2, 4, 5, 6]);
+    assert.deepEqual((await run(pattern, source.replace(HOT, '// x\n'))).lines, []);
+  });
+
+  it('applies valueMatches to the assigned value', async() => {
+    const source = `${HOT}cell.dateFormat = 'DD.MM.YYYY';\ncell.dateFormat = format;\n`
+      + 'hot.setCellMeta(0, 0, \'dateFormat\', \'MM/DD\');\n';
+
+    assert.deepEqual((await run(format, source)).lines, [2, 4]);
+  });
+});
+
+describe('siblingKey and annotatedObject matchers', () => {
+  const sibling = rule({ match: { property: 'pattern', siblingKey: 'culture' } });
+  const annotated = rule({ match: { annotatedObject: 'NumericFormatOptions' } });
+
+  it('matches a property whose object also sets the sibling key, and a JSX element with both attributes', async() => {
+    const source = `${HOT}const fmt = { pattern: '0,0', culture: 'de-DE' };\nconst only = { pattern: 'x' };\n`
+      + 'const sheet = <Sheet pattern="a" culture="b" />;\nconst other = <Sheet pattern="a" />;\n';
+
+    assert.deepEqual((await run(sibling, source, 'a.tsx')).lines, [2, 4]);
+  });
+
+  it('does not read a template or take a dotted path', async() => {
+    assert.deepEqual((await run(rule({ files: ['js', 'template'], match: sibling.match }),
+      '<hot-column pattern="0" culture="x"></hot-column>\n', 'a.html')).lines, []);
+    assert.match(validateDetectRule(rule({ match: { property: 'a.b', siblingKey: 'c' } })).join(), /siblingKey/);
+  });
+
+  it('matches an object literal that a type annotation, as, or satisfies names', async() => {
+    const source = [
+      `${HOT}const a: NumericFormatOptions = { pattern: '0' };`,
+      'const b = { pattern: \'0\' } as Handsontable.NumericFormatOptions;',
+      'const c = { pattern: \'0\' } satisfies NumericFormatOptions;',
+      'const d: Other = { pattern: \'0\' };',
+      'const e: NumericFormatOptions = makeOne();',
+      '',
+    ].join('\n');
+
+    assert.deepEqual((await run(annotated, source)).lines, [2, 3, 4]);
+  });
+});
+
 describe('call matcher', () => {
   it('matches a method by name and tests argMatches inside nested arguments', async() => {
     const matcher = rule({ requires: 'none', match: { call: 'dispatchEvent', argMatches: '^mousedown$', flags: 'i' } });
@@ -472,6 +545,8 @@ describe('reporting', () => {
     assert.equal(many.entries.length, 1);
     assert.equal(many.entries[0].line, 2);
     assert.match(many.entries[0].message, new RegExp(`${COLLAPSE_AFTER + 1} matches`));
+    assert.deepEqual(many.entries[0].lines, [2, 3, 4, 5, 6, 7]);
+    assert.doesNotMatch(many.entries[0].message, /Only the first/);
   });
 
   it('adds the rule fact once when the rule matches, and not otherwise', async() => {

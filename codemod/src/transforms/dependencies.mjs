@@ -1,4 +1,4 @@
-import { planRange } from '../lib/dependency-range.mjs';
+import { planRange, rangeAdmits } from '../lib/dependency-range.mjs';
 import { addFact, dirOf, hasFactFor } from '../lib/facts.mjs';
 import { rewrites } from '../lib/safety.mjs';
 
@@ -17,6 +17,11 @@ const ADD_SECTIONS = ['dependencies', 'devDependencies'];
  * that imports `moment` without ever naming Handsontable is still parsed.
  */
 const SCAN_PRECHECK = /handsontable|hyperformula|numbro|moment|dompurify|pikaday/i;
+
+/**
+ * An `npm:` alias spec: `npm:handsontable@^17.0.0` names the package and its range.
+ */
+const NPM_ALIAS = /^npm:((?:@[\w.-]+\/)?[\w.-]+)@(.+)$/;
 
 /**
  * Tell whether a value is a plain object.
@@ -198,13 +203,27 @@ function dependsOnAny(manifest, names) {
 }
 
 /**
- * Raise the range of every listed package that the `package.json` declares, keeping the operator style.
+ * The range each `package.json` entry had before the run changed it, so a chain of migrations (17 to 18.0 to 18.1)
+ * reports the net change once, from the range the user wrote.
+ *
+ * @type {WeakMap<object, Map<string, string>>}
+ */
+const writtenRanges = new WeakMap();
+
+/**
+ * Raise the range of every listed package that the `package.json` declares, keeping the operator style. A range
+ * that already allows the target version is left alone and not reported. Two migration steps that touch the same
+ * entry produce one report entry that states the net change.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
  * @param {import('../types.mjs').Rule} rule A rule with a `bump` map of package name to target version.
  * @returns {void}
  */
 function bump(ctx, rule) {
+  const written = writtenRanges.get(ctx.root) ?? new Map();
+
+  writtenRanges.set(ctx.root, written);
+
   for (const [name, target] of Object.entries(isObject(rule.bump) ? rule.bump : {})) {
     for (const section of SECTIONS) {
       const current = sectionOf(ctx.root, section)[name];
@@ -213,27 +232,159 @@ function bump(ctx, rule) {
         continue;
       }
 
+      const key = `${section}:${name}`;
+      const original = written.get(key) ?? current;
+      const mergeKey = `range:${key}`;
       const plan = planRange(current, target);
 
       if (plan.action === 'rewrite' && !rewrites(rule)) {
         ctx.report({
           ruleId: rule.id,
           severity: 'manual',
-          message: `Update ${name} in ${section} from "${current}" to "${plan.value}".`,
+          mergeKey,
+          message: `Update ${name} in ${section} from "${original}" to "${plan.value}".`,
         });
       } else if (plan.action === 'rewrite') {
+        written.set(key, original);
         ctx.root[section][name] = plan.value;
         ctx.markChanged();
         ctx.report({
           ruleId: rule.id,
           severity: 'changed',
-          message: `Updated ${name} in ${section} from "${current}" to "${plan.value}".`,
+          mergeKey,
+          message: `Updated ${name} in ${section} from "${original}" to "${plan.value}".`,
         });
       } else if (plan.action === 'manual') {
         ctx.report({
           ruleId: rule.id,
           severity: 'manual',
+          mergeKey,
           message: `${name} "${current}" in ${section} ${plan.reason}. Set it to ^${target} by hand.`,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * The package a `overrides`, `resolutions`, or `pnpm.overrides` key names, when it is Handsontable or a wrapper:
+ * `handsontable`, `handsontable@^17`, `**\/handsontable`, `some-lib>handsontable`, `@handsontable/vue3`.
+ *
+ * @param {string} key The key as written.
+ * @param {string[]} names The package names the rule bumps.
+ * @returns {string|null} The package name, or `null` for any other key.
+ */
+function overriddenPackage(key, names) {
+  const last = key.split('>').pop().replace(/^(?:\*\*\/)+/, '');
+
+  return names.find(name => last === name || last.startsWith(`${name}@`)
+    || last.endsWith(`/${name}`) || last.includes(`/${name}@`)) ?? null;
+}
+
+/**
+ * Report the pins that hold a package below the target version: an entry of `overrides`, `resolutions`, or
+ * `pnpm.overrides` that names Handsontable or a wrapper, and an `npm:` alias to one of them under another name.
+ * The tool never edits them: each is one `manual` entry, and two migration steps report it once.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `bump` map of package name to target version.
+ * @returns {void}
+ */
+function reportPins(ctx, rule) {
+  const bumps = isObject(rule.bump) ? rule.bump : {};
+  const names = Object.keys(bumps);
+
+  if (names.length === 0) {
+    return;
+  }
+
+  const below = (spec, name) => {
+    if (typeof spec !== 'string' || spec.startsWith('$') || planRange(spec, bumps[name]).action === 'skip') {
+      return false;
+    }
+
+    const alias = NPM_ALIAS.exec(spec.trim());
+
+    return rangeAdmits(alias ? alias[2] : spec, bumps[name]) !== true;
+  };
+  const visit = (label, key, value, inherited = null) => {
+    const name = inherited ?? overriddenPackage(key, names);
+
+    if (isObject(value)) {
+      Object.entries(value).forEach(([childKey, child]) => {
+        visit(`${label}.${childKey}`, childKey, child, childKey === '.' ? name : null);
+      });
+
+      return;
+    }
+
+    if (name && below(value, name)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        mergeKey: `pin:${label}`,
+        message: `${label} pins ${name} to "${value}", which does not allow ${bumps[name]}. `
+          + 'Update or remove it by hand. The tool does not edit overrides.',
+      });
+    }
+  };
+  const containers = [
+    ['overrides', ctx.root.overrides],
+    ['resolutions', ctx.root.resolutions],
+    ['pnpm.overrides', isObject(ctx.root.pnpm) ? ctx.root.pnpm.overrides : undefined],
+  ];
+
+  containers.filter(([, value]) => isObject(value)).forEach(([label, value]) => {
+    Object.entries(value).forEach(([key, child]) => visit(`${label}["${key}"]`, key, child));
+  });
+
+  for (const section of SECTIONS) {
+    for (const [key, spec] of Object.entries(sectionOf(ctx.root, section))) {
+      const alias = typeof spec === 'string' ? NPM_ALIAS.exec(spec.trim()) : null;
+
+      // A package that is its own alias is reported by the range bump.
+      if (alias && names.includes(alias[1]) && alias[1] !== key && below(spec, alias[1])) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          mergeKey: `alias:${section}:${key}`,
+          message: `${key} in ${section} is an alias of ${alias[1]}@${alias[2]}, which does not allow `
+            + `${bumps[alias[1]]}. Update it by hand.`,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Report script and stylesheet URLs of an HTML page that pin Handsontable or a wrapper to a version below the target:
+ * `.../npm/handsontable@17.1.0/...`, `unpkg.com/handsontable@17/...`, `.../ajax/libs/handsontable/17.1.0/...`. The
+ * page is never edited, so each one is a `manual` entry with its line, and two migration steps report it once.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of a `template` part of an HTML file.
+ * @param {import('../types.mjs').Rule} rule A rule with a `bump` map of package name to target version.
+ * @returns {void}
+ */
+function reportCdnPins(ctx, rule) {
+  const bumps = isObject(rule.bump) ? rule.bump : {};
+
+  for (const attribute of ctx.source.matchAll(/\b(?:src|href)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) {
+    const url = attribute[1] ?? attribute[2];
+    const line = ctx.source.slice(0, attribute.index).split('\n').length;
+
+    for (const [name, target] of Object.entries(bumps)) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\/]/g, match => `\\${match}`);
+      const pinned = new RegExp(`(?:[/]|^)${escaped}@([0-9][^/?#]*)`).exec(url)
+        ?? new RegExp(`/${escaped}/([0-9]+\\.[0-9]+\\.[0-9]+[^/?#]*)/`).exec(url);
+
+      if (pinned && rangeAdmits(pinned[1], target) !== true) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          line,
+          mergeKey: `cdn:${line}:${name}`,
+          message: `${name} ${pinned[1]} is loaded from a URL here, which does not allow ${target}. `
+            + 'The tool does not edit HTML pages. Update the URL by hand.',
         });
       }
     }
@@ -375,8 +526,8 @@ function reportMissing(ctx, rule) {
  */
 const dependencies = {
   kinds: ['dependency'],
-  fileKinds: ['json', 'js'],
-  scan: { fileKinds: ['js'], precheck: SCAN_PRECHECK },
+  fileKinds: ['json', 'js', 'template'],
+  scan: { fileKinds: ['js', 'template'], precheck: SCAN_PRECHECK },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx The transform context.
@@ -390,12 +541,21 @@ const dependencies = {
       return;
     }
 
+    if (ctx.fileKind === 'template') {
+      if (/\.html?$/i.test(ctx.filePath)) {
+        rules.forEach(rule => reportCdnPins(ctx, rule));
+      }
+
+      return;
+    }
+
     if (!isObject(ctx.root)) {
       return;
     }
 
     for (const rule of rules) {
       bump(ctx, rule);
+      reportPins(ctx, rule);
       reportReplaced(ctx, rule);
       addPackages(ctx, rule);
       reportMissing(ctx, rule);

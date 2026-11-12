@@ -16,6 +16,7 @@ const SCRIPT_PARSERS = new Map([
  */
 const NO_SCRIPT_OR_TEMPLATE = /^At least one <template> or <script> is required/;
 
+const MENTIONS = /--ht-|handsontable/i;
 const STYLE_LANGS = new Set([undefined, 'css', 'postcss', 'scss']);
 const TEMPLATE_LANGS = new Set([undefined, 'html']);
 
@@ -40,13 +41,22 @@ function restoreEdges(original, printed) {
  * @param {object} block A block of the `@vue/compiler-sfc` descriptor.
  * @param {'script'|'style'|'template'} type Block type.
  * @param {string} filePath File path, for parser error messages.
- * @returns {{part: object|null, skipped: {type: string, lang: string|null, line: number}|null}} The part,
- * or the description of a block the adapter does not handle. Both are `null` for a block that cannot matter
- * (empty, or without any text a rule could match).
+ * @param {boolean} fileMentions Whether the whole file mentions Handsontable or a theme variable.
+ * @returns {{part: object|null, skipped: {type: string, lang: string|null, line: number, src: boolean,
+ * relevant: boolean}|null}} The part, or the description of a block the adapter does not handle. `relevant` is
+ * `true` when the block's own text mentions Handsontable or a theme variable, or, for a `src=` block whose text
+ * is not in the file, when the file does. Both are `null` for a block that cannot matter (empty, or without any
+ * text a rule could match).
  */
-function blockToPart(block, type, filePath) {
+function blockToPart(block, type, filePath, fileMentions) {
   const { lang, src, loc } = block;
-  const skipped = { type, lang: lang ?? null, line: loc.start.line };
+  const skipped = {
+    type,
+    lang: lang ?? null,
+    line: loc.start.line,
+    src: Boolean(src),
+    relevant: src ? fileMentions : MENTIONS.test(block.content),
+  };
   const found = part => ({ part: { ...part, start: loc.start.offset, end: loc.end.offset }, skipped: null });
 
   if (src) {
@@ -108,9 +118,9 @@ function blockToPart(block, type, filePath) {
  * part is the line of the tag and the first line of code is line 2.
  *
  * A block the adapter cannot handle (`lang="less"`, `lang="stylus"`, `lang="sass"`, or any `src=` block) gets
- * no part. `handle.skippedBlocks` lists them as `{ type, lang, line }`, so a detect step can report them.
- * A script or style block whose text carries nothing a rule could match gets no part either, which keeps
- * parsing cost down. The template part is never parsed.
+ * no part. `handle.skippedBlocks` lists them as `{ type, lang, line, src, relevant }`, and the runner reports each
+ * `relevant` one as a `skipped-file` warning. A script or style block whose text carries nothing a rule could
+ * match gets no part either, which keeps parsing cost down. The template part is never parsed.
  *
  * `print` splices the printed text of every changed part into the original file, last to first, and keeps
  * every other byte, including the template and the whitespace around each block's content.
@@ -150,7 +160,7 @@ const vueAdapter = {
     const skippedBlocks = [];
 
     for (const [block, type] of blocks) {
-      const { part, skipped } = blockToPart(block, type, filePath);
+      const { part, skipped } = blockToPart(block, type, filePath, MENTIONS.test(source));
 
       if (part) {
         parts.push(part);

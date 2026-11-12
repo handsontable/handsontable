@@ -1,3 +1,4 @@
+import { anchorForProperty } from '../lib/anchor.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { replaceStringLiteral } from '../lib/string-literal.mjs';
 
@@ -111,7 +112,8 @@ function renameKey(j, path, from, to) {
  *
  * - Rename: the key changes and the value stays. A shorthand property turns into `to: from`. When the object
  *   already has the new key, nothing changes and a `manual` entry is reported.
- * - Removal (`removed: true`): the property stays and gets a TODO comment with the rule's advice, once.
+ * - Removal (`removed: true`): the property stays and gets a TODO comment with the rule's advice, once. The comment
+ *   goes before the property when it has lines of its own, else before the enclosing statement.
  *
  * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
  * when the rule asks for one (see `lib/safety.mjs`).
@@ -152,7 +154,7 @@ const themeTokens = {
       handled.add(property.node);
 
       if (rule.removed === true) {
-        ctx.todo(property, rule.id, rule.advice ?? rule.message ?? `${rule.from} was removed.`);
+        ctx.todo(anchorForProperty(property), rule.id, rule.advice ?? rule.message ?? `${rule.from} was removed.`);
 
         return;
       }

@@ -22,8 +22,13 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   (`SAMPLE_FILES`, `createSampleProject()`). Add a file kind there when a transform starts to handle one.
 - `test/readme.test.mjs` compares the rule counts in the README tables with `describeRules()`. A change to a rule's
   `safe`, or a new rule, changes a count, so update the two tables in `README.md`.
-- `test/safety.test.mjs` pins the `safe` contract: the runner guard, the shipped data, and one case per kind that
-  flips its rules to `safe: false` and expects reports and TODO comments only.
+- `test/safety.test.mjs` pins the `safe` contract: the runner guard, the shipped data, one case per kind that flips
+  its rules to `safe: false`, and a sweep that flips every rule of a manifest for every fixture input. Both expect
+  reports and TODO comments only, and no `transform-error`.
+- `test/idempotency.test.mjs` runs every fixture output a second and a third time, and runs one-line shapes of every
+  TODO-emitting kind three times. A new kind that leaves a TODO adds a one-line case there.
+- `test/manifest.test.mjs` checks every rule's `guide` anchor against the headings of the guide page with
+  `anchorsOf()` in `test/helpers/guide-anchors.mjs`, the one slug function of the tests.
 
 ## Layout
 
@@ -41,7 +46,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `versions/18.1.0/custom/sanitizer-source.mjs` | Two `custom` rules for the `sanitizer` option, picked by the rule's `mode` (see Traps). |
 | `src/transforms/css-variables.mjs`, `theme-tokens.mjs` | `cssVariable` (css, js strings, template report) and `themeToken` kinds. |
 | `src/lib/string-literal.mjs` | `replaceStringLiteral()`: edit a string literal and keep its quote style. |
-| `src/lib/todo.mjs` | The only writer of TODO comments: `shortenAdvice()`, `formatTodo()`, `addJsTodo()`, `addCssTodo()`. |
+| `src/lib/todo.mjs` | The only writer of TODO comments: `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
+| `src/lib/anchor.mjs` | Where a comment about a property can go: `enclosingAnchor()`, `hasOwnLines()`, `anchorForProperty()`. |
+| `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
+| `src/adapters/unsupported-style.mjs` | `.less`, `.styl`, `.stylus`, `.sass`: never parsed, only reported through `skipReason`. |
 | `src/lib/safety.mjs` | The meaning of `safe`: `rewrites(rule)`, `modeOf(rule)`, `requiresSafe(kind)`, `reportInstead()`. |
 | `src/lib/facts.mjs` | `addFact(ctx, name)` and `hasFactFor(ctx, name)`: facts keyed by name and directory. |
 | `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. |
@@ -50,7 +58,8 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/transforms/methods.mjs`, `call-unwrap.mjs` | `methodRemove` and `methodMove` (receiver rule, see Traps), and `callUnwrap`. |
 | `src/transforms/options.mjs` | `optionRename`, `optionMove`, `optionRemove` on option objects, wrapper attributes, and `context.callArg` arguments (see Traps). |
 | `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportOnly`, `replaced`, and `facts`. `matchesWhen(j, root, when)` is the fact matcher. |
-| `src/discover.mjs`, `git.mjs`, `report.mjs`, `diff.mjs` | Support modules. |
+| `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id), `renderConsole()`, `renderMarkdown()`, `summaryLine()` (both renderers print it), `SKIPPED_RULE_ID`. |
+| `src/discover.mjs`, `git.mjs`, `diff.mjs` | Support modules. |
 | `versions/<semver>/` | `manifest.json`, optional `custom/*.mjs`, optional extra rule files, `__fixtures__/`. |
 | `test/*.test.mjs`, `test/helpers/` | Tests (`node:test`). Helpers are not listed in the test script. |
 
@@ -62,9 +71,12 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    `node_modules/handsontable/package.json`, then the `package.json` range minimum. `--to` defaults to the latest
    `released` manifest. `draft` manifests need `--include-draft`.
    `--only` takes a full rule id or a prefix that ends in `*`. A pattern that selects no rule in range is a usage error.
-   A range with no manifest (`--from` not below `--to`) is a usage error that lists the known migrations.
+   A range with no manifest (`--from` not below `--to`) is a usage error that lists the known migrations. The
+   auto-detect (`detectProjectVersion()`) runs once per path argument, from the path up to `cwd`, and paths that
+   resolve to different versions are a usage error that asks for `--from`.
 2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. It does not apply to `--dry-run`,
-   `--list`, `write: false`, or a directory outside a git repository.
+   `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
+   the first write. An untracked file at the `--report` path (`reportPath`) is not a change.
 3. `discover()` lists files (`git ls-files -z --cached --others --exclude-standard`, or an fs walk), drops
    `node_modules`, `dist`, `build`, `coverage`, `.git`, `*.min.*`, `*.d.ts`, files deleted on disk, and any
    extension no adapter handles. JSON is limited to `package.json`. A file named on the command line bypasses the
@@ -73,7 +85,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    registered transform for the adapter's kinds, skip when the adapter's cheap `precheck` regex does not match,
    parse once, run versions ascending and kinds in `KIND_ORDER`, print only parts that called `markChanged()`.
    Parse and transform failures become `parse-error` and `transform-error` warning entries, the file is left
-   byte for byte alone, and the run ends with exit code 1.
+   byte for byte alone, and the run ends with exit code 1. A file above `MAX_FILE_BYTES` (1 MB, `--max-file-size`) is
+   not read and becomes a `skipped-file` warning. `transformFile()` also turns what an adapter cannot read into
+   `skipped-file` warnings: `skipReason` (whole file), `handle.skippedBlocks` entries with `relevant: true` (Vue), and
+   `skipNotes(source)` (inline scripts of an HTML page). The report lists them under "Skipped files".
 5. Phase 2 visits only `package.json` files and runs the kinds in `PHASE_TWO_KINDS` (`dependency`) after phase 1
    has filled `ctx.facts`. Before phase 1 the runner records the directory of every discovered `package.json`
    (`registerPackageDir`), so a fact is credited to the nearest `package.json` above the file it came from.
@@ -109,8 +124,8 @@ of its earliest kind in `KIND_ORDER`.
 | `source` | Original text of this part. |
 | `j` | jscodeshift API bound to the right parser. `null` unless `fileKind` is `js`. |
 | `root` | Parsed form, edited in place. `js`: a jscodeshift Collection. `css`: a postcss Root. `json`: the parsed value. |
-| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line`. Identical entries collapse. |
-| `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. |
+| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. |
+| `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
 | `options` | `{ aggressive, dryRun }`. Never write to disk from a transform. |
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
@@ -198,11 +213,13 @@ the rule, for example a longer name that shares a prefix. Fixture directories ar
   `note` or `message` follows the instruction) and, for `todo: true`, the TODO comment. A removal advisory
   (`removed: true` on `cssVariable`, `themeToken`, `namespaceType`) never deletes, so its `safe` is `false`.
 - Use `safe: false` for a change that is not behavior-preserving. `18.0.0/helper-sanitize` ran DOMPurify in 17.1 and
-  is a pass-through in 18.0, so unwrapping it would drop sanitization the project relies on. The five `exportRename`
-  rules that rename to a type with another shape (`type-multicolumnsorting-config`, `type-columnsummary-endpoint`,
-  `type-columnsummary-detailedsettings`, `type-undoredo-action`, `type-customborders-borderoptions`) and
-  `ns-customborders-borderoptions` are `safe: false` with `todo: true`: the new type is looser or lacks a field the
-  old one had.
+  is a pass-through in 18.0, so unwrapping it would drop sanitization the project relies on. A rename to the
+  documented successor type is not that case, even when the successor is looser: `type-multicolumnsorting-config`,
+  `type-columnsummary-endpoint`, `type-columnsummary-detailedsettings`, `type-undoredo-action`,
+  `type-customborders-borderoptions`, and `ns-customborders-borderoptions` are `safe: true`, and a one-sentence `note`
+  says what changed in the shape. The note is a `manual` entry with `scope: 'run'`, so it shows once per run under
+  "Read once". Keep a type rename report-only (`safe: false`, `todo: true`) only when the successor is not the same
+  concept.
 - `optionRemove` is `safe: true` only when the removed option is ignored at runtime in the target version.
   `correctFormat` (no code reads it in 18.0.0, 18.1 warns) and `datePickerConfig` (`DateEditor#prepare` warns and
   ignores it) qualify. Its comment says `Deleted <name> here.` only on a deletion.
@@ -213,8 +230,13 @@ A TODO comment is `TODO(handsontable-codemod <ruleId>): <first sentence of the a
 is cut to about 100 characters by `shortenAdvice()`: the first sentence, plus the next one while the first is under
 40 characters. The full advice stays in the report entry. Write the advice of a rule so that its first sentence says
 what to do. A caller with a better short form passes it as the fourth argument of `ctx.todo()`. Dedupe compares the
-whole comment, and the text is a pure function of the rule, so a second run adds nothing. recast prints a trailing
-comment above its line when a TODO lands on the same node.
+whole comment, and the text is a pure function of the rule, so a second run adds nothing. The parser attaches a
+comment on a one-line object to the property before it or after it, so `addJsTodo()` does not trust the attachment:
+it takes the comment list of the whole part (`collectComments()`) and counts a comment with the same text that has
+nothing but white space, commas, and `}` between it and the target (`sitsBefore()`). A node the run built has no
+offsets, so only its own comments count. recast prints a trailing line comment before its node, never after it, so
+a comment cannot trail the last property of an object. A TODO about a property that stays goes on the property
+when it has lines of its own, else on the enclosing statement (`anchorForProperty()`).
 
 ## Traps
 
@@ -245,7 +267,12 @@ comment above its line when a TODO lands on the same node.
   `#update-theme-wrapper-border-variables`, not the old `#_6-...` form.
 - Option rules (`options.mjs`): a rule rewrites an object when its confidence from `findOptionObjects` reaches the
   rule's `minConfidence` (default `high`, `--aggressive` lowers every rule to `medium`); below the bar the key is
-  only reported. Rule shapes: `optionRename` `{ from, to, context?: { callArg: [method names] } }` (with `callArg` it
+  only reported. `medium` objects exist only in a file that imports or uses Handsontable (`isHotFile`), so a file with
+  none is never edited, even under `--aggressive`. A `heuristic` object also needs `corroborated()`: at least two known
+  option names besides the key the rule acts on (`ownKey()`), one of them outside `GENERIC_OPTIONS`. So
+  `{ locale, numericFormat: {...} }` and `{ correctFormat, datePickerConfig }` stay reports in a hot file. A
+  template part and the assignment forms are only reported (`reportTemplateOptions()`, `reportDynamicOptions()`,
+  both fed by `lib/option-sites.mjs`). A removed JSX attribute puts its TODO next to the element (see `todo()`). Rule shapes: `optionRename` `{ from, to, context?: { callArg: [method names] } }` (with `callArg` it
   acts on object-literal arguments of member calls, whatever the finder says); `optionMove` `{ from: "<option>.<key>",
   to, report? }` (`to` is a sibling of `<option>`, the key lands before `<option>`); `optionRemove` `{ name, todo?,
   advice }` (`todo` defaults to true). Edits splice `properties`, so recast reprints the whole object: expect a
@@ -326,11 +353,22 @@ comment above its line when a TODO lands on the same node.
   typings declared (`error`, `hasCaptionProblem`, `info`, `isIE`, `isIE9`, `isMSBrowser`, `isValidDate`, `log`,
   `toSingleLine`, `warn`) were never set on the runtime object in 17.1.0 or 18.0.0, because `index.js` fills
   `Handsontable.helper` from a fixed module list that leaves out `helpers/console` and `helpers/templateLiteralTag`.
-- A `detect` rule reports up to `COLLAPSE_AFTER` (5) matches per part, then one entry with the count. A Vue file has
-  several parts, so the limit is per part. The Vue adapter's `skippedBlocks` (less, stylus, `src=`) are not reachable
-  from `ctx`, so detect rules never report them. The js precheck also skips a test file that never says
-  `handsontable`, and an inline `<script>` or `<style>` of an `.html` file is raw text for `selector` and `regex`
-  only.
+- A `detect` rule reports up to `COLLAPSE_AFTER` (5) matches per part, then one entry that carries the count and
+  every line in `lines` (the renderers print `Lines: 3, 9-11`). A Vue file has several parts, so the limit is per
+  part. The Vue adapter's `skippedBlocks` do not reach `ctx`: the runner turns the `relevant` ones into
+  `skipped-file` warnings itself. The js precheck also skips a test file that never says `handsontable`, and an
+  inline `<script>` or `<style>` of an `.html` file is raw text for `selector` and `regex` only.
+- The `property` matcher also reads a `template` part (list `template` in the rule's `files`): attributes of
+  `<hot-table>`, `<hot-column>`, `<HotTable>`, and `<HotColumn>` whose name binds the first segment of the path, in
+  either case style, and `settings` or `v-bind` bindings that name it as a word. In js it also matches assignments and
+  `setCellMeta()`/`setCellMetaObject()` in a hot file. `siblingKey` (one-segment path) wants the object or element
+  to set another key too (`pattern` beside `culture`), and `annotatedObject` finds an object literal that a type
+  annotation, `as`, or `satisfies` names. Neither reads templates.
+- Dependency ranges (`planRange()`, `rangeAdmits()`): a range that already allows the target (`>=17 <19`, `*`, `18`,
+  an `npm:` alias to a new enough version) is `keep` and produces no entry. `dependencies.mjs` also reports, never
+  edits, `overrides`, `resolutions`, `pnpm.overrides`, `npm:` aliases under another name, and pinned CDN URLs in
+  `.html` pages (a `template` scan of the `dependency` module) that sit below the target. Every entry carries a
+  `mergeKey`, so a chain 17 to 18.1 reports one net entry per spot.
 - **The `18.1.0/sanitizer-*` custom rules are report-only and find the sanitizer by function, not by name:** a
   `sanitizer` property of an option object or a `<HotTable>` prop, whose value is a function written there or a
   same-file function the option names. `Handsontable.dom.fastInnerHTML()` still defaults its `context` to

@@ -5,7 +5,10 @@ import { describe, it } from 'node:test';
 import { modeOf, requiresSafe, rewrites } from '../src/lib/safety.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifest, loadManifests } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
-import { createRegistry } from '../src/transforms/index.mjs';
+import { createRegistry, registry as shipped } from '../src/transforms/index.mjs';
+import { listFixtures } from './helpers/fixtures.mjs';
+
+const fixtures = await listFixtures();
 
 /**
  * The code of a text: no comment and no white space. A comment can move when a TODO lands next to it, and a TODO
@@ -15,7 +18,11 @@ import { createRegistry } from '../src/transforms/index.mjs';
  * @returns {string} The text without comments and white space.
  */
 function codeOf(text) {
-  return text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '').replace(/\s+/g, '');
+  return text
+    .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/[^\n]*/g, '')
+    .replace(/\s+/g, '');
 }
 
 /**
@@ -122,16 +129,54 @@ describe('every shipped rule states what it does', () => {
     }
   });
 
-  it('lists a rule that has to stay a report only for a reason its note or message gives', async() => {
+  it('applies a rename to a successor type of another shape and says in its note what changed', async() => {
     const manifest = await loadManifest(join(VERSIONS_DIR, '18.0.0'));
-    const renames = manifest.rules.filter(rule => rule.kind === 'exportRename' && rule.safe === false);
+    const reshaped = [
+      'type-multicolumnsorting-config',
+      'type-columnsummary-endpoint',
+      'type-columnsummary-detailedsettings',
+      'type-undoredo-action',
+      'type-customborders-borderoptions',
+      'ns-customborders-borderoptions',
+    ].map(slug => manifest.rules.find(rule => rule.id === `18.0.0/${slug}`));
 
-    assert.ok(renames.length >= 5);
-    renames.forEach(rule => assert.ok(rule.note, `${rule.id}: say what changes in the type`));
+    for (const rule of reshaped) {
+      assert.equal(rule.safe, true, `${rule.id}: the documented successor is applied`);
+      assert.ok(rule.note, `${rule.id}: say what changes in the type`);
+      assert.equal(rule.todo, undefined, `${rule.id}: the note is the follow-up, not a TODO comment`);
+    }
   });
 });
 
+describe('a rule that is not safe never edits code, whatever the input', () => {
+  for (const fixture of fixtures) {
+    it(`${fixture.version}/${fixture.name}: with every rule safe: false, only reports and TODO comments`, async() => {
+      const manifest = await loadManifest(join(VERSIONS_DIR, fixture.version));
+      const rules = manifest.rules.map(rule => ({ ...rule, safe: false }));
+      const input = await readFile(join(fixture.dir, fixture.inputName), 'utf8');
+      const config = JSON.parse(await readFile(join(fixture.dir, 'options.json'), 'utf8').catch(() => '{}'));
+      const result = await transformFile({
+        filePath: fixture.inputName,
+        source: input,
+        plan: buildPlan([{ ...manifest, rules }], config.only ?? []),
+        options: { aggressive: Boolean(config.aggressive) },
+        facts: new Set(config.facts ?? []),
+        phase: config.phase ?? 1,
+      });
+
+      assert.equal(result.entries.some(item => item.ruleId === 'transform-error'), false,
+        result.entries.map(item => item.message).join('\n'));
+      assert.equal(result.entries.some(item => item.severity === 'changed'), false);
+      assert.equal(codeOf(result.output), codeOf(input));
+    });
+  }
+});
+
 describe('a rule that is not safe never edits code', () => {
+  it('covers every registered rule kind', () => {
+    assert.deepEqual([...shipped.byKind.keys()].filter(kind => !KINDS.some(entry => entry.kind === kind)), []);
+  });
+
   for (const entry of KINDS) {
     it(`${entry.kind}: only reports, and leaves nothing but TODO comments behind`, async() => {
       const version = entry.version ?? '18.0.0';

@@ -136,11 +136,21 @@ describe('vue adapter parse', () => {
 
     assert.deepEqual(handle.parts.map(part => part.fileKind), ['css']);
     assert.deepEqual(handle.skippedBlocks, [
-      { type: 'style', lang: 'less', line: 1 },
-      { type: 'style', lang: 'stylus', line: 4 },
-      { type: 'style', lang: 'sass', line: 8 },
-      { type: 'style', lang: null, line: 12 },
+      { type: 'style', lang: 'less', line: 1, src: false, relevant: true },
+      { type: 'style', lang: 'stylus', line: 4, src: false, relevant: true },
+      { type: 'style', lang: 'sass', line: 8, src: false, relevant: true },
+      { type: 'style', lang: null, line: 12, src: true, relevant: true },
     ]);
+  });
+
+  it('marks a skipped block relevant only when its own text, or for src= the file, mentions Handsontable', () => {
+    const srcBlock = '<style src="./a.css"></style>\n';
+    const quiet = vueAdapter.parse(`<style lang="less">\n.a { color: red; }\n</style>\n${srcBlock}`, 'App.vue');
+    const loud = vueAdapter.parse(`<template lang="pug">\np handsontable\n</template>\n${srcBlock}`, 'App.vue');
+
+    assert.deepEqual(quiet.skippedBlocks.map(block => block.relevant), [false, false]);
+    assert.deepEqual(loud.skippedBlocks.map(block => [block.type, block.relevant]),
+      [['template', true], ['style', true]]);
   });
 
   it('gives no part to a script or style block that cannot match any rule', () => {

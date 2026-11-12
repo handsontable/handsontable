@@ -6,6 +6,7 @@ import { describe, it } from 'node:test';
 import { ManifestError } from '../src/errors.mjs';
 import { PACKAGE_ROOT, RULE_KINDS, buildPlan, loadManifest, loadManifests, validateRule } from '../src/manifest.mjs';
 import { KIND_ORDER, registry } from '../src/transforms/index.mjs';
+import { anchorsOf, slugOf } from './helpers/guide-anchors.mjs';
 
 const schema = JSON.parse(await readFile(join(PACKAGE_ROOT, 'src', 'manifest.schema.json'), 'utf8'));
 
@@ -82,6 +83,27 @@ describe('every shipped manifest', () => {
       assert.ok((await readFile(source, 'utf8')).length > 0, manifest.guide.source);
       assert.match(manifest.guide.url, /^https:\/\/handsontable\.com\/docs\/javascript-data-grid\/[^/]+$/);
     }
+  });
+
+  it('names an anchor in every rule `guide` that is a heading of the guide page', async() => {
+    for (const manifest of await loadManifests()) {
+      const page = await readFile(join(PACKAGE_ROOT, '..', manifest.guide.source), 'utf8');
+      const anchors = anchorsOf(page);
+
+      for (const rule of manifest.rules.filter(item => item.guide)) {
+        assert.ok(anchors.has(rule.guide), `${rule.id}: ${rule.guide} is not a heading of ${manifest.guide.source}`);
+      }
+    }
+  });
+
+  it('builds anchors with the slug rules of the docs site', () => {
+    assert.equal(slugOf('Replace `handsontable/common` imports'), 'replace-handsontablecommon-imports');
+    assert.equal(slugOf('6. Update theme wrapper border variables'), 'update-theme-wrapper-border-variables');
+    assert.equal(slugOf('Migrate numeric format from Numbro.js `pattern` to `Intl.NumberFormat`'),
+      'migrate-numeric-format-from-numbrojs-pattern-to-intlnumberformat');
+    assert.equal(slugOf('How to migrate -- date cells'), 'how-to-migrate----date-cells');
+    assert.deepEqual([...anchorsOf('## A\n### Who\n```sh\n## not a heading\n```\n## B\n### Who\n')],
+      ['a', 'who', 'b', 'who-1']);
   });
 
   it('only uses rule kinds that the kind order knows', async() => {

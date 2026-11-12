@@ -6,5 +6,10 @@
   { "ruleId": "18.0.0/type-copypaste-rangetype", "severity": "changed", "line": 5 },
   { "ruleId": "18.0.0/type-nestedheaders-detailedsettings", "severity": "changed", "line": 6 },
   { "ruleId": "18.0.0/type-i18n-arar", "severity": "changed", "line": 7 },
-  { "ruleId": "18.0.0/type-exportfile-settings", "severity": "changed", "line": 8 }
+  { "ruleId": "18.0.0/type-exportfile-settings", "severity": "changed", "line": 8 },
+  { "ruleId": "18.0.0/type-multicolumnsorting-config", "severity": "changed", "line": 2 },
+  { "ruleId": "18.0.0/type-columnsummary-endpoint", "severity": "changed", "line": 3 },
+  { "ruleId": "18.0.0/type-undoredo-action", "severity": "changed", "line": 4 },
+  { "ruleId": "18.0.0/type-customborders-borderoptions", "severity": "changed", "line": 9 },
+  { "ruleId": "18.0.0/type-customborders-borderoptions", "severity": "manual", "line": 9 }
 ]

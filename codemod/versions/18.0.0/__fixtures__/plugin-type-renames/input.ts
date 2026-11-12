@@ -6,6 +6,7 @@ import type { RangeType } from 'handsontable/plugins/copyPaste';
 import type { DetailedSettings } from 'handsontable/plugins/nestedHeaders';
 import { arAr } from 'handsontable/i18n';
 import { Settings as ExportSettings } from 'handsontable/plugins/exportFile';
+import type { BorderOptions } from 'handsontable/plugins/customBorders';
 import Handsontable from 'handsontable';
 
 export function sortBy(plugin: ColumnSorting, config: Config, other: MultiConfig): Config[] {
@@ -29,5 +30,7 @@ export const copied: RangeType = { startRow: 0, startCol: 0, endRow: 1, endCol: 
 export const header: DetailedSettings = { label: 'Orders', colspan: 2 };
 
 export const exportSettings: ExportSettings = {};
+
+export const border: BorderOptions = { width: 1 };
 
 Handsontable.languages.registerLanguageDictionary(arAr);

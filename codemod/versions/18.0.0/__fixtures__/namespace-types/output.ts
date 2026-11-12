@@ -1,4 +1,5 @@
 import type { CellCoords, SelectOptionsObject, ThemeConfig } from 'handsontable';
+import type { BorderSettings } from 'handsontable/plugins/customBorders';
 import type { DataProviderFetchOptions } from 'handsontable/plugins/dataProvider';
 import Handsontable, { IndexMapper } from 'handsontable';
 
@@ -22,8 +23,7 @@ export interface Marker extends CellCoords {
   label: string;
 }
 
-// TODO(handsontable-codemod 18.0.0/ns-customborders-borderoptions): Use BorderSettings from "handsontable/plugins/customBorders" instead.
-export let borders: Handsontable.plugins.CustomBorders.BorderOptions;
+export let borders: BorderSettings;
 
 // TODO(handsontable-codemod 18.0.0/ns-plugin-settings): Use `GridSettings['columnSorting']` (import type { GridSettings } from 'handsontable').
 export let sorting: Handsontable.plugins.ColumnSorting.Settings;

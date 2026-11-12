@@ -5,7 +5,7 @@
       "kind": "optionMove",
       "safe": true,
       "minConfidence": "medium",
-      "guide": "migrate-numeric-format-from-numbro-js-pattern-and-culture-to-intl-numberformat",
+      "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
       "from": "numericFormat.culture",
       "to": "locale"
     },

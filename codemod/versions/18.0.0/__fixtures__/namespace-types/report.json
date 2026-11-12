@@ -12,5 +12,6 @@
   { "ruleId": "18.0.0/ns-dataprovider-options", "severity": "changed", "line": 35 },
   { "ruleId": "18.0.0/ns-indexmapper", "severity": "changed", "line": 39 },
   { "ruleId": "18.0.0/ns-indexmapper", "severity": "changed", "line": 41 },
-  { "ruleId": "18.0.0/ns-eventmanager", "severity": "manual", "line": 43 }
+  { "ruleId": "18.0.0/ns-eventmanager", "severity": "manual", "line": 43 },
+  { "ruleId": "18.0.0/ns-customborders-borderoptions", "severity": "changed", "line": 23 }
 ]

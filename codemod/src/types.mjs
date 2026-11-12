@@ -33,6 +33,11 @@
  * @property {number|null} line One-based line in the file, or `null`.
  * @property {string} message What happened or what to do.
  * @property {string|null} guideUrl Link to the migration guide section, or `null`.
+ * @property {number[]} [lines] For an entry that stands for several matches in one part: every matching line.
+ * `line` is the first of them.
+ * @property {'run'} [scope] `run` marks a note that holds for every file. The `Report` keeps it once and lists the
+ * files it came from in `files`.
+ * @property {string[]} [files] Files a `run` entry applies to. Set by the `Report`.
  */
 
 /**
@@ -43,6 +48,11 @@
  * @property {string} ruleId Id of the rule that produced the entry.
  * @property {Severity} severity Entry severity.
  * @property {number} [line] One-based line inside the part's own source.
+ * @property {number[]} [lines] Every line of a collapsed group of matches, inside the part's own source.
+ * @property {'run'} [scope] `run` for a note that is the same in every file (a rule's `note`), so the report shows
+ * it once with the list of files.
+ * @property {string} [mergeKey] A later entry of the same part with the same key replaces this one instead of adding
+ * another, so a change that two migration steps make to one spot is reported once, as the net result.
  * @property {string} message What happened or what to do.
  */
 
@@ -155,6 +165,9 @@
  *
  * @typedef {object} ParseHandle
  * @property {Part[]} parts The parts to transform.
+ * @property {Array<{type: string, lang: string|null, line: number, src: boolean, relevant: boolean}>} [skippedBlocks]
+ * Blocks of the file the adapter has no part for (a Vue `<style lang="less">`, any `src=` block). The runner reports
+ * the `relevant` ones as `skipped-file` warnings.
  */
 
 /**
@@ -166,6 +179,10 @@
  * @property {string[]} extensions Lowercase extensions with the dot.
  * @property {boolean} implemented `false` for a stub. The runner skips files of an unimplemented adapter.
  * @property {RegExp} precheck Cheap test on the raw source. A file that does not match is never parsed.
+ * @property {string} [skipReason] Set by an adapter that never parses: a file that passes `precheck` becomes one
+ * `skipped-file` warning with this text, and nothing else runs on it.
+ * @property {(source: string) => Array<{line: number, message: string}>} [skipNotes] Code in the file that the adapter
+ * cannot analyze, as `skipped-file` warnings (an HTML page's inline scripts).
  * @property {(source: string, filePath: string) => ParseHandle} parse Parse once.
  * @property {(handle: ParseHandle, source: string) => string} print Print the whole file from the handle.
  * It is called only when a part changed.

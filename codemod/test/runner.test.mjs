@@ -316,6 +316,23 @@ describe('transformFile and the transform contract', () => {
     assert.equal(failed.entries[0].ruleId, 'transform-error');
   });
 
+  it('passes the scope and the line list of an entry on, and moves both by the part line offset', async() => {
+    const vueRule = { id: '18.0.0/a', kind: 'detect', safe: false };
+    const registry = createRegistry([{
+      kinds: ['detect'],
+      fileKinds: ['js'],
+      apply(ctx) {
+        ctx.report({ ruleId: '18.0.0/a', severity: 'manual', line: 1, lines: [1, 3], message: 'Look.', scope: 'run' });
+      },
+    }]);
+    const source = '<template><div /></template>\n<script>\nconst handsontable = 1;\n</script>\n';
+    const result = await transformFile({ filePath: 'a.vue', source, plan: planOf([vueRule]), registry });
+
+    assert.equal(result.entries[0].line, 2);
+    assert.deepEqual(result.entries[0].lines, [2, 4]);
+    assert.equal(result.entries[0].scope, 'run');
+  });
+
   it('leaves a TODO once, reports manual every time, and marks the part changed', async() => {
     const body = (ctx) => {
       ctx.todo(ctx.root.first.nodes.find(node => node.type === 'decl'), '18.0.0/a', 'Check this value.');

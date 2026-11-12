@@ -2,7 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
-import { renderConsole, renderMarkdown } from './report.mjs';
+import { plural, renderConsole, renderMarkdown } from './report.mjs';
 import { describeRules, resolvePlan, run } from './runner.mjs';
 
 export const HELP = `Usage: handsontable-codemod migrate [paths...] [options]
@@ -15,19 +15,24 @@ Arguments:
 
 Options:
   --from <version>      Version your project is on: 17, 17.1, or 18.0.0. A partial version means any version
-                        of that line. Detected from node_modules/handsontable, then from the handsontable
-                        range in package.json, when omitted.
+                        of that line. When omitted, it is detected for each path argument from the nearest
+                        node_modules/handsontable, then the handsontable range in the nearest package.json,
+                        up to the current directory. Paths that differ need --from.
   --to <version>        Version to migrate to. A partial version means the highest known release of that line.
                         Defaults to the latest released migration.
-  --dry-run             Print a unified diff and write nothing.
+  --dry-run             Print a unified diff and write no project files. A file named by --report is still
+                        written.
   --allow-dirty         Run even when the git tree has uncommitted changes.
-  --report <file>       Also write the full report to <file> as a Markdown checklist.
+  --report <file>       Also write the full report to <file> as a Markdown checklist. Keep the file out of the
+                        project tree, or delete it after use: the git check ignores an untracked file at
+                        this path, and no other.
   --only <ruleId>       Run only this rule. Repeat the flag for several rules. A trailing * matches a prefix,
                         for example --only "18.0.0/type-*".
   --list                List the rules in the version range and exit. "rewrite" rules edit code, "report"
                         rules only report.
   --aggressive          Also rewrite settings objects found with medium confidence.
   --include-draft       Run migrations that are still drafts.
+  --max-file-size <n>   Skip files larger than <n> bytes and list them in the report. Default: 1048576.
   --help                Show this help.
 
 Exit codes:
@@ -47,6 +52,7 @@ const OPTIONS = {
   list: { type: 'boolean' },
   aggressive: { type: 'boolean' },
   'include-draft': { type: 'boolean' },
+  'max-file-size': { type: 'string' },
   help: { type: 'boolean' },
 };
 
@@ -78,12 +84,15 @@ function renderList(rows) {
  * @param {string} [io.cwd] Working directory.
  * @param {(text: string) => void} [io.stdout] Standard output writer.
  * @param {(text: string) => void} [io.stderr] Standard error writer.
+ * @param {boolean} [io.progress] Whether to print a progress line every two seconds. Defaults to whether standard
+ * output is a terminal.
  * @returns {Promise<number>} The exit code: 0 done, 1 runtime or parse errors, 2 usage error or refusal.
  */
 export async function main(argv, {
   cwd = process.cwd(),
   stdout = text => process.stdout.write(text),
   stderr = text => process.stderr.write(text),
+  progress = Boolean(process.stdout.isTTY),
 } = {}) {
   let parsed;
 
@@ -113,8 +122,17 @@ export async function main(argv, {
     return 2;
   }
 
+  const maxFileSize = values['max-file-size'] === undefined ? undefined : Number(values['max-file-size']);
+
+  if (maxFileSize !== undefined && (!Number.isInteger(maxFileSize) || maxFileSize <= 0)) {
+    stderr(`--max-file-size needs a whole number of bytes above 0, not "${values['max-file-size']}".\n`);
+
+    return 2;
+  }
+
   const range = {
     cwd,
+    paths,
     from: values.from,
     to: values.to,
     only: values.only ?? [],
@@ -138,6 +156,12 @@ export async function main(argv, {
       dryRun,
       aggressive: Boolean(values.aggressive),
       allowDirty: Boolean(values['allow-dirty']),
+      reportPath: values.report,
+      maxFileSize,
+      onWarning: text => stderr(`${text}\n`),
+      onProgress: progress
+        ? ({ done, total }) => stderr(`Checked ${done} of ${plural(total, 'file')}...\n`)
+        : undefined,
     });
 
     result.notes.forEach(note => stderr(`${note}\n`));
@@ -152,10 +176,12 @@ export async function main(argv, {
       result.diffs.forEach(({ diff }) => stdout(diff));
     }
 
-    stdout(renderConsole(result.report, { filesChanged: result.changedFiles.length, dryRun }));
+    const summary = { filesChanged: result.changedFiles.length, dryRun };
+
+    stdout(renderConsole(result.report, summary));
 
     if (values.report) {
-      await writeFile(resolve(cwd, values.report), renderMarkdown(result.report));
+      await writeFile(resolve(cwd, values.report), renderMarkdown(result.report, summary));
       stdout(`Report written to ${values.report}.\n`);
     }
 

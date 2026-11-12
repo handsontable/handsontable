@@ -32,6 +32,7 @@ import { invalidateScope, lookup } from './scope.mjs';
  * @property {string} origin Where the match came from: `new`, `updateSettings`, `jsx-settings`, `annotation`,
  * `columns`, `columns()`, `cell`, `cells()`, `spread`, or `heuristic`. A `:identifier` suffix means the object
  * was reached through a variable in the same file.
+ * @property {string[]} [keys] For a `heuristic` object: the known option names it sets, in source order.
  */
 
 /**
@@ -331,12 +332,9 @@ function createResolver(j, root) {
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
  * @param {import('./hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
- * @param {object} [options] Options.
- * @param {boolean} [options.aggressive] Also apply the `medium` key heuristic in files that have no Handsontable
- * import, such as a shared settings module. Without it the heuristic only runs in Handsontable files.
  * @returns {OptionObject[]} The objects in source order of discovery, each once, at its highest confidence.
  */
-export function findOptionObjects(j, root, bindings, { aggressive = false } = {}) {
+export function findOptionObjects(j, root, bindings) {
   const { returned, resolveObjects, resolveArray } = createResolver(j, root);
   const found = new Map();
 
@@ -529,7 +527,7 @@ export function findOptionObjects(j, root, bindings, { aggressive = false } = {}
     }
   });
 
-  if (aggressive || bindings.isHotFile) {
+  if (bindings.isHotFile) {
     const isFound = node => found.has(node);
 
     root.find(j.ObjectExpression).forEach((path) => {
@@ -547,6 +545,7 @@ export function findOptionObjects(j, root, bindings, { aggressive = false } = {}
 
       if (names.size >= 2 && [...names].some(name => !GENERIC_OPTIONS.has(name))) {
         addObject(path, 'grid', 'heuristic', 'medium');
+        found.get(path.node).keys = [...names];
       }
     });
   }

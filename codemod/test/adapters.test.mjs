@@ -31,7 +31,7 @@ describe('adapter registry', () => {
   it('gives every adapter the documented interface', () => {
     for (const adapter of ADAPTERS) {
       assert.ok(adapter.extensions.every(extension => extension.startsWith('.')));
-      assert.ok(adapter.fileKinds.includes(adapter.fileKind));
+      assert.ok(adapter.skipReason ? adapter.fileKinds.length === 0 : adapter.fileKinds.includes(adapter.fileKind));
       assert.ok(adapter.precheck instanceof RegExp);
       assert.equal(typeof adapter.parse, 'function');
       assert.equal(typeof adapter.print, 'function');

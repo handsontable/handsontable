@@ -210,7 +210,7 @@ function rewrite(ctx, match, isModular, noted) {
 
   if (rule.note && !noted.has(rule.id)) {
     noted.add(rule.id);
-    ctx.report({ ruleId: rule.id, severity: 'manual', line, message: rule.note });
+    ctx.report({ ruleId: rule.id, severity: 'manual', line, message: rule.note, scope: 'run' });
   }
 }
 
