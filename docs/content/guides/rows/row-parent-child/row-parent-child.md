@@ -441,6 +441,10 @@ When you use the parent-child row structure, the following Handsontable features
 
 When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows()`](@/api/manualRowMove.md#moverows) method has no effect and logs a console warning. To move rows programmatically, use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead.
 
+### Subtotals in parent rows
+
+To show a subtotal in a parent row, use the [`ColumnSummary`](@/api/columnSummary.md) plugin. Set up the summaries with a function, and give each parent row a summary of its child rows. To make a parent row count the subtotal of a nested group, set the `includeSummaryResults` option on its summary. For the rules and an example, see [Include nested summary results](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results).
+
 ### Rows added below the last row
 
 When [`fillHandle.autoInsertRow`](@/api/options.md#fillhandle) is enabled, dragging the fill handle
@@ -510,6 +514,7 @@ In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdir
 <div class="boxes-list">
 
 - [Row header](@/guides/rows/row-header/row-header.md)
+- [Column summary](@/guides/columns/column-summary/column-summary.md)
 
 </div>
 

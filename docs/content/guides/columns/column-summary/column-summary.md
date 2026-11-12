@@ -805,7 +805,7 @@ Using a function to provide a column summary configuration lets you set up all s
 
 By default, a column summary skips every other summary result inside its range. A total whose range covers its subtotals counts each data row once.
 
-If the range names the subtotal row itself, and not the rows under it, set the `includeSummaryResults` option to `true` on the summary that should count it. The option is `false` by default.
+If the range names the subtotal row itself, and not the rows under it, set the `includeSummaryResults` option to `true` on the summary that should count it. The option is `false` by default, and is available since version 19.0.0.
 
 For example, a subtotal row sums the values 7, 8, and 9, so its result is 24. A parent summary adds the rows holding 5 and 6, and the subtotal row:
 
@@ -825,7 +825,9 @@ These rules apply to an included result:
 - The [`custom`](#implement-a-custom-summary-function) summary type is not affected, unless your custom function calls the plugin's own `getCellValue()` or `calculateSum()` method for a summary that has the option: then it gets the included results too.
 - A summary never includes its own destination cell.
 
-The example below builds a budget tree with the [`NestedRows`](@/api/nestedRows.md) plugin. A function gives every parent row a `sum` summary. Its ranges are the parent's direct children, and the `includeSummaryResults` option lets it count the subtotal of the `Payroll` group. The function walks the data tree, not the visible rows, because the coordinates are physical and the rows of a collapsed group are not visible. The `Payroll` row shows `31000`, and the `Operations` row shows `35850`:
+The example below builds a budget tree with the [`NestedRows`](@/api/nestedRows.md) plugin. A function gives every parent row a `sum` summary. Its ranges are the parent's direct children, and the `includeSummaryResults` option lets it count the subtotal of the `Payroll` group. The function walks the data tree, not the visible rows, because the coordinates are physical and the rows of a collapsed group are not visible. The `Payroll` row shows `31000`, and the `Operations` row shows `35850`.
+
+The function reads the data array that you pass to the grid. If your code adds, removes, or moves rows in another copy of the data, apply the same change to that array, so the summaries keep pointing at the right rows:
 
 ::: only-for javascript
 
