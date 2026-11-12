@@ -50,6 +50,10 @@ import {
 import { DOCS_SCAN_CHECK, ISSUES_SCHEMA, TRIAGE_ID, compileIssuesCatalog } from '../../../tests/lib/a11y-issues.mjs';
 import { DEFAULT_DOCS_BASE_URL } from '../../../tests/a11y/docs/constants.mjs';
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA } from '../../../tests/lib/a11y-evidence.mjs';
+import { compareViolations } from '../../../tests/lib/a11y-baseline.mjs';
+import { buildCheckRun } from '../../../tests/lib/a11y-check-run.mjs';
+import { agentFindings } from '../../../tests/lib/a11y-findings.mjs';
+import { docsSuite } from '../../../tests/lib/a11y-suites.mjs';
 import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, steps } from '../lib/workflow-text.mjs';
@@ -169,8 +173,10 @@ const AXE_DOC = {
     id: 'menu-roles', title: 'Menu items have no menu parent', tracker: 'DEV-3491', rules: ['aria-required-parent'], wcag: ['1.3.1'],
     findings: 2, nodes: 22,
     locations: [
-      { page: 'context-menu', theme: 'main', rule: 'aria-required-parent', target: 'td[role="menuitem"]', nodes: 13, selector: 'td', domPath: null },
-      { page: 'context-menu', theme: 'classic', rule: 'aria-required-parent', target: 'td[role="menuitem"]', nodes: 9, selector: 'td', domPath: null },
+      { page: 'context-menu', theme: 'main', rule: 'aria-required-parent', target: 'td[role="menuitem"]', impact: 'critical', nodes: 13,
+        selector: 'td', domPath: null },
+      { page: 'context-menu', theme: 'classic', rule: 'aria-required-parent', target: 'td[role="menuitem"]', impact: 'critical', nodes: 9,
+        selector: 'td', domPath: null },
     ],
   }],
 };
@@ -282,8 +288,8 @@ const DOCS_DOC = {
     id: 'docs-link-underline', title: 'Links in prose are told apart by color only', rules: ['link-in-text-block'], wcag: ['1.4.1'],
     findings: 2, nodes: 31,
     locations: [
-      { page: 'js-introduction', theme: 'light', rule: 'link-in-text-block', target: 'a', nodes: 3, selector: 'a', domPath: null },
-      { page: 'vue-accessibility', theme: 'dark', rule: 'link-in-text-block', target: 'a', nodes: 28, selector: 'a', domPath: null },
+      { page: 'js-introduction', theme: 'light', rule: 'link-in-text-block', target: 'a', impact: 'serious', nodes: 3, selector: 'a', domPath: null },
+      { page: 'vue-accessibility', theme: 'dark', rule: 'link-in-text-block', target: 'a', impact: 'serious', nodes: 28, selector: 'a', domPath: null },
     ],
   }],
 };
@@ -546,10 +552,10 @@ test('readA11yArtifacts turns a night\'s documents into masked findings with the
   const axe = night.findings.filter(item => item.source === 'axe');
 
   assert.deepEqual(axe.map(item => [item.kind, item.page, item.theme, item.where, item.issue, item.severity]), [
-    ['axe-violation', 'context-menu', 'main', 'td[role="menuitem"]', 'menu-roles', null],
-    ['axe-violation', 'context-menu', 'classic', 'td[role="menuitem"]', 'menu-roles', null],
+    ['axe-violation', 'context-menu', 'main', 'td[role="menuitem"]', 'menu-roles', 'critical'],
+    ['axe-violation', 'context-menu', 'classic', 'td[role="menuitem"]', 'menu-roles', 'critical'],
     ['axe-violation', 'dark-grid', 'classic', 'td[role="gridcell"]', 'classic-contrast', 'serious'],
-  ], 'one kind for the scan: a baselined location has no impact of its own; a new finding carries axe\'s and the issue the scan suggests');
+  ], 'one kind for the scan, each at the impact the scan gave it; a new finding carries the issue the scan suggests');
   assert.deepEqual(axe[2].criteria, ['1.4.3']);
   assert.equal(axe[0].check, 'axe');
 
@@ -774,6 +780,169 @@ test('the axe scan is one row per location: a grown entry is the location, a bas
 
   assert.equal(partial.coverage.axe, false);
   assert.ok(notes.some(note => /a11y-findings\.json: 1 malformed finding\(s\) dropped; the scan resolves nothing tonight/.test(note)));
+});
+
+/**
+ * One audit of the axe scan as the reporter leaves it: the comparison the check run reads and the findings document
+ * the collector reads, both written from the same `compareViolations()` result. Known locations at every impact
+ * (one axe gave none), a grown one, an improved one, a fixed one and two new findings.
+ *
+ * @returns {{comparison: object, findings: object}} The two outputs.
+ */
+function axeAudit() {
+  const entry = (page, rule, impact, nodes, issue) => ({ page, theme: 'main', rule, target: `td.${rule}[role="gridcell"]`, impact, nodes, issue });
+  const finding = (page, rule, impact) => ({ page, theme: 'main', rule, target: `td.${rule}[role="gridcell"]`, impact, help: rule,
+    helpUrl: `https://dequeuniversity.com/rules/axe/4.14/${rule}`, wcag: ['4.1.2'], html: '<td>', selector: [`#ht_1 td.${rule}`], ancestry: null,
+    box: null, failureSummary: 'Fix it', nodes: 1 });
+  const baseline = [
+    entry('grid', 'aria-required-parent', 'critical', 1, 'menu-roles'),
+    entry('grid', 'color-contrast', 'serious', 1, 'menu-roles'),
+    entry('grid', 'aria-allowed-role', null, 1, 'menu-roles'),
+    entry('grid', 'list', 'moderate', 1, 'menu-roles'),
+    entry('grid', 'region', 'minor', 1, 'menu-roles'),
+    entry('grid-grown', 'aria-required-parent', 'critical', 1, 'menu-roles'),
+    entry('grid-improved', 'aria-required-parent', 'critical', 2, 'menu-roles'),
+    entry('grid-fixed', 'aria-required-parent', 'critical', 1, 'menu-roles'),
+  ];
+  const violations = [
+    finding('grid', 'aria-required-parent', 'critical'),
+    finding('grid', 'color-contrast', 'serious'),
+    finding('grid', 'aria-allowed-role', null),
+    finding('grid', 'list', 'moderate'),
+    finding('grid', 'region', 'minor'),
+    finding('grid-grown', 'aria-required-parent', 'critical'), finding('grid-grown', 'aria-required-parent', 'critical'),
+    finding('grid-improved', 'aria-required-parent', 'critical'),
+    finding('grid-new', 'button-name', 'critical'),
+    finding('grid-new', 'aria-dialog-name', null),
+  ];
+  const scanned = ['grid', 'grid-grown', 'grid-improved', 'grid-fixed', 'grid-new'].map(page => ({ page, theme: 'main' }));
+  const comparison = compareViolations({ baseline, issues: [{ id: 'menu-roles', title: 'Menu items have no menu parent' }], violations, scanned,
+    mode: 'warn' });
+
+  return { comparison, findings: agentFindings({ verdict: comparison, pages: [], problems: [] }) };
+}
+
+/**
+ * The counts a check run title states, by severity.
+ *
+ * @param {string} title The title.
+ * @returns {Record<string, number>} The counts.
+ */
+function titleCounts(title) {
+  const match = /(\d+) critical, (\d+) serious, (\d+) moderate, (\d+) minor/.exec(title);
+
+  assert.ok(match, title);
+
+  return { critical: Number(match[1]), serious: Number(match[2]), moderate: Number(match[3]), minor: Number(match[4]) };
+}
+
+/**
+ * Open findings by severity, the four the check run title counts.
+ *
+ * @param {object[]} items Findings or rows.
+ * @returns {Record<string, number>} The counts.
+ */
+function severityCounts(items) {
+  const counts = { critical: 0, serious: 0, moderate: 0, minor: 0 };
+
+  for (const item of items) {
+    counts[item.severity] += 1;
+  }
+
+  return counts;
+}
+
+test('an axe finding is as severe as the check run of the same audit counts it, through the verdict\'s own mapping', () => {
+  const { comparison, findings } = axeAudit();
+  const checkRun = buildCheckRun({ comparison, pages: new Map(), baseline: new Map(), scope: 'audit' });
+
+  assert.ok(findings.issues[0].locations.every(item => Object.hasOwn(item, 'impact')), 'every known location carries the impact the scan gave it');
+
+  const [read] = readA11yArtifacts(nightlyFiles({ [`${A11Y_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: findings })).nights;
+  const axe = read.findings.filter(item => item.source === 'axe');
+  const severityOf = page => axe.filter(item => item.page === page).map(item => [item.rule, item.severity]);
+
+  assert.deepEqual(severityOf('grid'), [['aria-allowed-role', 'serious'], ['aria-required-parent', 'critical'], ['color-contrast', 'serious'],
+    ['list', 'moderate'], ['region', 'minor']], 'a known location at its impact; an impact axe did not give is serious, as the check run counts it');
+  assert.deepEqual(severityOf('grid-new'), [['aria-dialog-name', 'serious'], ['button-name', 'critical']],
+    'a new finding the same way: an impact axe did not give is serious, never left without a severity');
+  assert.deepEqual(severityOf('grid-improved'), [['aria-required-parent', 'critical']],
+    'an improved location keeps its own severity: its elements still fail, though the check run lists the entry as advisory');
+  assert.deepEqual(severityOf('grid-fixed'), [], 'a fixed location is gone');
+  assert.deepEqual(severityCounts(axe.filter(item => item.page !== 'grid-improved')), titleCounts(checkRun.title),
+    'every finding the check run counts is in the ledger at the severity it counts it: one mapping, not two');
+
+  // The docs site scan writes the same document through the same function, and its night reads it the same way.
+  const docs = agentFindings({ verdict: comparison, pages: [], problems: [], suite: docsSuite() });
+  const [docsNight] = readA11yArtifacts(docsFiles({ [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: docs })).nights;
+
+  assert.equal(docsNight.source, 'docs');
+  assert.deepEqual(docsNight.findings.map(item => [item.page, item.rule, item.severity]),
+    axe.map(item => [item.page, item.rule, item.severity]), 'the docs scan\'s rows carry the severities the product scan\'s do');
+
+  // A document written before the locations carried their impact says nothing about it: the row has no severity yet.
+  const older = { ...AXE_DOC, issues: AXE_DOC.issues.map(issue => ({ ...issue, locations: issue.locations.map(({ impact, ...item }) => item) })) };
+  const [olderNight] = readA11yArtifacts(nightlyFiles({ [`${A11Y_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: older })).nights;
+
+  assert.deepEqual(olderNight.findings.filter(item => item.source === 'axe').map(item => item.severity), [null, null, 'serious']);
+  assert.equal(olderNight.coverage.axe, true, 'an older document is still read whole');
+});
+
+test('an axe row stored without a severity takes it on the next night, keeping its key, its first sighting and its history', () => {
+  const stripped = doc => ({ ...doc, issues: doc.issues.map(issue => ({ ...issue, locations: issue.locations.map(({ impact, ...item }) => item) })) });
+  const first = mergeA11yLedger(null, nightOf(nightlyFiles({ [`${A11Y_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: stripped(AXE_DOC) })),
+    runContextFromRun(NIGHTLY), CATALOG, { now: NOW }).doc;
+  const firstDocs = mergeA11yLedger(first, nightOf(docsFiles({ [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: stripped(DOCS_DOC) })),
+    runContextFromRun(DOCS_RUN), CATALOG, { now: NOW }).doc;
+  const known = row => ['menu-roles', 'docs-link-underline'].includes(row.issue);
+  const before = firstDocs.rows.filter(known);
+
+  assert.equal(before.length, 4);
+  assert.ok(before.every(row => row.severity === null), 'the live ledger\'s state: the baselined rows have no severity');
+
+  const second = mergeA11yLedger(firstDocs, nightOf(nightlyFiles()), runContextFromRun({ ...NIGHTLY, id: 41600000000, updated_at: night(1) }),
+    CATALOG, { now: new Date(night(1)) }).doc;
+  const third = mergeA11yLedger(second, nightOf(docsFiles()), runContextFromRun({ ...DOCS_RUN, id: 41700000002, updated_at: night(1) }),
+    CATALOG, { now: new Date(night(1)) }).doc;
+  const after = third.rows.filter(known);
+
+  assert.deepEqual(after.map(row => row.key), before.map(row => row.key), 'no row changes its key: the key never holds the severity');
+  assert.deepEqual(after.map(row => [row.source, row.severity]), [['axe', 'critical'], ['axe', 'critical'], ['docs', 'serious'], ['docs', 'serious']]);
+
+  for (const [index, row] of after.entries()) {
+    assert.equal(row.firstSeen, before[index].firstSeen, row.key);
+    assert.equal(row.firstRun, before[index].firstRun, row.key);
+    assert.equal(row.nightsSeen, 2, row.key);
+    assert.equal(row.status, 'persisting', row.key);
+  }
+  assert.equal(findingKey({ ...before[0], severity: 'critical' }), findingKey(before[0]));
+  assert.equal(third.nights.filter(item => item.source === 'a11y')[0].new, 0, 'the night that brings the severity opens nothing new');
+});
+
+test('the page counts the axe rows by severity in their cluster and orders the triage queue by it', () => {
+  const unsorted = {
+    ...AXE_DOC,
+    needsAction: [],
+    issues: [...AXE_DOC.issues, {
+      id: 'grid-roles', title: 'The grid root holds children its role does not allow', rules: ['aria-required-children'], wcag: ['1.3.1'],
+      findings: 1, nodes: 1,
+      locations: [{ page: 'context-menu', theme: 'main', rule: 'aria-required-children', target: 'div.ht-wrapper[role="treegrid"]', impact: 'critical',
+        nodes: 1, selector: 'div', domPath: null }],
+    }],
+  };
+  const doc = mergeA11yLedger(null, nightOf(nightlyFiles({ [`${A11Y_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: unsorted })), runContextFromRun(NIGHTLY),
+    CATALOG, { now: NOW }).doc;
+  const view = a11yView(doc, CATALOG);
+  const menu = view.clusters.find(cluster => cluster.id === 'menu-semantics');
+
+  assert.deepEqual(menu.severities, { critical: 3 }, 'the two axe locations and the discovery record');
+  assert.ok(view.clusters.every(cluster => Object.values(cluster.severities).reduce((sum, count) => sum + count, 0) === cluster.open),
+    'a cluster\'s severities add up to its open rows: a row without a severity used to drop out of them silently');
+
+  // Every shape here is on one page, so the severity decides: the critical axe finding leads, where a row without
+  // one used to sort as advisory, after every other shape.
+  assert.deepEqual(view.triage.rows.map(shape => [shape.check, shape.pages, shape.severity]),
+    [['axe', 1, 'critical'], ['axe-discovery', 1, 'minor'], ['keyboard-walker', 1, 'advisory']]);
 });
 
 test('a transcript covers its golden rows only when its wording was compared with a golden', () => {

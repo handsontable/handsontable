@@ -116,6 +116,18 @@ They are written in different places and can drift. Keep this in mind:
   `ht_nestingLevel_empty` spacers come before it). Scope any new rule there the same way. Pinned by
   `tests/e2e/icon-elements.spec.ts` ("renderer markup inside the nested rows button gets no row-header
   label padding").
+- **In a row with an exact height, the row header's label and button are aligned to the TOP; every
+  other row keeps them centered.** The header's inner `.relative` is a flex row with
+  `align-items: center`. A row with an exact `rowHeights` height (`tr.htExactRow`, DEV-2791) stretches
+  the `.rowHeader` span to the whole row so a long label clips instead of growing the row, and its text
+  then starts at the top, like the cells: centered, the button stayed in the middle, 30px and more
+  below the label. So `tr.htExactRow > th.ht_nestingLevels` switches to `align-items: flex-start` and
+  gives the button a top margin (`(--ht-line-height - --ht-icon-button-hit-area-size) / 2`) that
+  centers the 24px button on the label's first line. Plain `flex-start` is not enough: the button's
+  negative margins (meant for centering) then lift it above the label, 3.5px on `classic`, out of the
+  row. The rule is scoped to exact rows so a row that grows with its content keeps the 18.1 layout (a
+  label that wraps keeps the button centered on it). Pinned by
+  `tests/e2e/nested-rows-header-alignment.spec.ts` on every theme.
 - **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
   The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
   header's inner `div` is `HeadersUI#appendLevelIndicators()`, which runs from `afterGetRowHeader` —
@@ -197,7 +209,8 @@ They are written in different places and can drift. Keep this in mind:
   `addChildAtIndex()` build the insert by hand — splice, `rewriteCache()`,
   `rowIndexMapper.insertIndexes()`, `shiftCellsMeta()` (physical), then the hooks. Three things come
   with that. `disableCoreAPIModifiers()` around such an insert is not a safety measure but the thing
-  that **hid** the mistake: with the modifiers off, `Core#countSourceRows()` reports the top-level
+  that **hid** the mistake (the parent branch no longer wraps its write; see the next bullet): with the
+  modifiers off, `Core#countSourceRows()` reports the top-level
   count, so a grid-row index above it is silently clamped instead of failing. The `beforeAlter` and
   `beforeDataSplice` hooks no longer fire for a top-level insert, which neither the parent branch nor
   `addChild()` ever fired either. And `beforeCreateRow`'s **veto has to keep being honored** in any
@@ -209,6 +222,29 @@ They are written in different places and can drift. Keep this in mind:
   which `#onAfterAddChild` already tolerates) to close that stash. **The parent branch and
   `addChild()` still ignore that veto** — pre-existing, and a separate behavior change to fix, because
   a cancel there would start actually cancelling. (DEV-2625, following #7727 / DEV-2605.)
+- **A source write addressed by a flattened row index must run with the plugin's modifiers ON.**
+  `disableCoreAPIModifiers()` turns off `modifyRowData` and `modifySourceLength`, so the source data is
+  the top-level array alone and `setSourceDataAtCell(parentIndex, '__children', …)` addresses a
+  TOP-LEVEL position by a flattened number. The parent branch of `addChildAtIndex()` did exactly that
+  around its write: for a parent whose flattened row was a valid top-level position too (a nested parent
+  at row 2 of a three-row tree) it handed the parent's `__children` to an unrelated top-level row, so
+  the same row objects sat in the tree twice, undo left the grid a row short, and a following
+  `detachFromParent()` duplicated rows. A flattened row at or past the top-level count made the write a
+  silent no-op, which is why the defect hid. The write runs with the modifiers on now, so it resolves
+  `parentIndex` through the flattened tree to the parent itself: it assigns the list the parent already
+  holds, and the payload's old value is that same array, where it used to be another row's list or
+  nothing. This is the parent branch only. `syncRowWithRawSource()` addresses a TOP-LEVEL position
+  (`getRowIndexWithinParent()` of the upmost parent) and correctly keeps the modifiers off, so do not
+  generalize this to "always on". A parent object the cache does not know (one an app kept across
+  a data load) makes `addChildAtIndex()` warn once per grid and return before any hook: the old `?? 0`
+  fallback wrote its children onto the first top-level row and left an index slot with no data row
+  behind it. **The parent's row is read AFTER `beforeAddChild`**, not before: a listener may move the
+  parent (add or remove a row above it), and a number read earlier would aim the write, `insertIndexes()`
+  and `afterCreateRow` at whatever row holds that position now. If a listener removed the parent
+  itself, `afterAddChild` still fires with a `null` element, because `beforeAddChild` opened the
+  collapsed-rows stash and only that hook closes it. A test of the write needs a parent whose flattened
+  row is below the top-level count, or the write is dropped and the test passes on the broken code. Pinned by
+  `__tests__/addChildAtIndexNestedParent.unit.js` and `tests/e2e/nested-rows-undo.spec.ts`.
 - **Only the top-level branch translates its index for `insertIndexes()`.** `insertIndexes()` takes a
   **visual** index and resolves it through `getNotTrimmedIndexes()[arg]`, but the parent branch passes
   `finalChildIndex` and `addChild()` passes `getRowIndex(childElement)` — both **physical**. With a
@@ -255,10 +291,11 @@ They are written in different places and can drift. Keep this in mind:
   user saw as top-level. Every other insert with no index - `minSpareRows`/`minRows` (`auto`), a paste
   or an edit past the last row, a host's bare `alter('insert_row_below')` - still appends a top-level
   row, because an app may rely on that to add a new parent. (2) **Autofill must keep passing no index.**
-  An explicit `alter('insert_row_below', X)` makes the Core move row X's index map values (a hidden
-  flag, a manual row height) onto the new row - a Core defect on every grid, measured in 18.1.2 - so
-  the fill handle passing the last row's index would have regressed every grid whose last row is hidden
-  or resized. The source string is the contract; the Autofill `AGENTS.md` says the same from its side.
+  An explicit `alter('insert_row_below', X)` used to make the Core move row X's index map values (a
+  hidden flag, a manual row height) onto the new row - a Core defect on every grid in 18.1.2, fixed in
+  19.0 by `DataMap#createRow()` passing the insert mode to the index mapper (DEV-508) - so the fill
+  handle passing the last row's index would have regressed every grid whose last row is hidden or
+  resized. The source string is still the contract; the Autofill `AGENTS.md` says the same from its side.
   (3) **The anchor is honored only when the splice is a pure append AND the last row of the flattened
   tree is the anchor or one of its descendants** (`#endsWithSubtreeOf()`). That is exactly when every
   level lands at the flattened end, where the Core already put the index maps and the cell meta. A last
@@ -278,7 +315,21 @@ They are written in different places and can drift. Keep this in mind:
   hooks by hand. So
   stored meta (comments, `className`, everything) stays on the old physical rows and lands on the
   wrong cells: #7727 for the insert side, DEV-2626 for the detach side, same context menu. Use
-  `dataManager.shiftCellsMeta()` for an insert and `dataManager.moveCellsMeta()` for a move. Both
+  `dataManager.shiftCellsMeta()` for an insert and `dataManager.moveCellsMeta()` for a move. The
+  declared row heights need less: an array `rowHeights` or `minRowHeights` is read through a core row
+  index map (`core/rowSizeSettings.ts`, DEV-508), which `insertIndexes()` and `removeIndexes()` keep
+  aligned on their own, so a parent removal needs nothing here. An insert almost does: the parent branch of
+  `addChildAtIndex()` hands `insertIndexes()` a position inside the parent, so its slot lands rows above the
+  data (the context menu's "Insert row above/below" on a nested child), or one past the last row for an
+  index past the child count, which the maps read as an append, and `shiftCellsMeta()`, which has the real
+  physical index, calls `Core#_alignInsertedRowSizes()` to move it there, with no entry unless the row ends
+  the rows. A detach and a row move
+  renumber rows without the index mapper, so both wrap the tree rewrite in
+  `dataManager.captureRowSizeOrigins()`: it records each row OBJECT's declared entry before the rewrite
+  and writes it back at the object's new physical index after `rewriteCache()`. Keyed by object, never
+  by index arithmetic, because `RowMoveController#moveRows()` moves each row object on its own, in the
+  order of the dragged indexes, so a block formula swapped heights on an unsorted multi-row drag (pinned
+  by `__tests__/rowHeightsPhysical.unit.js`). Both
   take **physical** indexes, which is what `getRowIndex()` already returns, so never pass the result
   through `toPhysicalRow()` and never use `hot.spliceCellsMeta()`, which takes a **visual** index and
   would translate a second time. Qualify the class when you name the mover: `RowMoveController` has

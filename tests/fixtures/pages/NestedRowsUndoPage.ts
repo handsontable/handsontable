@@ -71,6 +71,27 @@ export class NestedRowsUndoPage {
     await expect(menu).toBeHidden();
   }
 
+  /** Insert a sibling above one row through the context-menu command. */
+  async insertRowAboveViaContextMenu(row: number): Promise<void> {
+    await this.cell(row, 0).click({ button: 'right' });
+    const menu = this.page.locator('.htContextMenu.handsontable').locator('visible=true');
+
+    await expect(menu).toBeVisible();
+    await menu.locator('.ht_master td').filter({ hasText: /^Insert row above$/ }).click();
+    await expect(menu).toBeHidden();
+  }
+
+  /** Insert a child into the parent shown at `parentRow`, at `index` within that parent, through the plugin API. */
+  async addChildAtIndex(parentRow: number, index: number, name: string): Promise<void> {
+    await this.page.evaluate(([row, position, childName]) => {
+      const { dataManager } = window.hot.getPlugin('nestedRows');
+
+      dataManager.addChildAtIndex(dataManager.getDataObject(row as number), position as number, {
+        name: childName,
+      });
+    }, [parentRow, index, name]);
+  }
+
   /** Undo the removal through the platform-specific Cmd/Ctrl+Z shortcut. */
   async undoWithKeyboard(): Promise<void> {
     await this.cell(0, 0).click();

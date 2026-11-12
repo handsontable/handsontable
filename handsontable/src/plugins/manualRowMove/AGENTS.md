@@ -35,10 +35,22 @@ row's own position, it moved the row to the far side of the trimmed row, and unt
 breaking. Because the mapper is not touched, a drop onto the same position no longer fires
 `afterRowSequenceChange` and `afterRowSequenceCacheUpdate` (source `move`), no longer forces a full render, and
 no longer runs the selection repair of the cache update: nothing moved, so there is nothing to react to. Do not
-move the computation back below the mapper call. A move that does change the order still
-lands on the same side of a trimmed row as before: that placement is a separate, open design question.
+move the computation back below the mapper call.
 `../manualColumnMove/` has the identical guard. NestedRows moves rows by its own path and is not covered.
 Pinned by `__tests__/noopMoveTrimmedRows.unit.js` and `tests/e2e/manual-move-trimmed.spec.ts`.
+
+## A move that changes the order lands next to a visible row
+
+`moveIndexes()` puts the moved rows right before the physical row of the visible row at `finalIndex`, after any
+trimmed rows in front of it. A move to the last visible position puts them right after the last visible row,
+before the trailing trimmed rows. The rows never split a run of neighboring trimmed rows (they can land between
+two trimmed rows that have a visible row between them). The rule is specified and pinned by
+`__tests__/moveTrimmedPlacement.unit.js`, and the row-moving guide documents it. Landing on the other side of a
+trimmed block would change the physical order users see after untrimming, so it is a breaking change.
+
+With HIDDEN rows the same visible gap has two drop indexes: the lower half of the row above the hidden block
+and the upper half of the row below it. They land on either side of the block, and the visible order is the
+same. The test pins only the visible order.
 
 ## Row heights are read defensively
 

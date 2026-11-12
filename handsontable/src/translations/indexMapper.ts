@@ -773,7 +773,7 @@ export class IndexMapper {
    * @private
    * @param {number} firstInsertedVisualIndex First inserted visual index.
    * @param {number} amountOfIndexes Amount of inserted indexes.
-   * @param {'start' | 'end'} [mode] Sets where the column is inserted: at the start of the passed index or at the end.
+   * @param {'start' | 'end'} [mode] Sets where the row or column is inserted: at the start of the passed index or at the end.
    */
   insertIndexes(firstInsertedVisualIndex: number, amountOfIndexes: number, mode: 'start' | 'end' = 'start'): void {
     if (amountOfIndexes === 0) {
@@ -794,13 +794,16 @@ export class IndexMapper {
 
     this.indexesSequence.insert(visualInsertionIndex, insertedIndexes);
     this.indexesChangeSource = undefined;
-    this.runLocalHooks('indexesInserted', insertedIndexes);
+    // The mode tells a listener where the maps take the new slots: one index after `insertedIndexes` for `end`.
+    this.runLocalHooks('indexesInserted', insertedIndexes, mode);
 
     const modInsertedIndexes = mode === 'end' ? insertedIndexes.map(index => index + 1) : insertedIndexes;
 
     this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
     this.hidingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
-    this.variousMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
+    // A sequence map mirrors `indexesSequence`, which takes the unshifted indexes above: inserted at the passed
+    // index's position, they leave that index's row before the new one, which is where `end` puts it.
+    this.variousMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes, insertedIndexes);
     this.resumeOperations();
   }
 
