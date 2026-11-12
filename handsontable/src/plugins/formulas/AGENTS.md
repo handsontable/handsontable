@@ -836,7 +836,8 @@ again. The rules:
   its record and hands `beforeChangeRender` the record's current visual row, so a sort or a move in the window is
   already in `change[0]`. A record a filter or a collapse trimmed meanwhile arrives with a `null` row:
   `#writeTrimmedRecordChange()` addresses it by physical row (`getPhysicalRowOfChange()`), which the engine still
-  holds. A record removed meanwhile is dropped by core and reaches `#onChangesDropped` in a new array, which
+  holds, and records the cell in `#syncedContent` (`#recordSyncedCell()`) like every other cell write, or the next
+  resync takes the write for a change of the data and writes the whole sheet. A record removed meanwhile is dropped by core and reaches `#onChangesDropped` in a new array, which
   matches no awaiting set.
 - **`#clearRejectedSheet` does not bump the count.** Writing one change back into a sheet the engine
   refused to hold would leave it holding that one cell.

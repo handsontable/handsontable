@@ -5494,6 +5494,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.engine!.setCellContents(address, newValue);
+    this.#recordSyncedCell(physicalRow, visualColumn, newValue);
     writtenCells.push({
       address, physicalRow, physicalColumn, visualRow: physicalRow, visualColumn, oldValue, writtenContent: undefined,
     });

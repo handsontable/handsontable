@@ -140,6 +140,27 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getDataAtCell(2, 0)).toBe(3);
   });
 
+  it('records a write-back into a record a trim took out of the visual rows, so the next resync writes nothing',
+    async() => {
+      const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']], { trimRows: true });
+      const sheet = hot.getPlugin('formulas').sheetId;
+
+      hot.setDataAtCell(1, 0, 5);
+      hot.getPlugin('trimRows').trimRow(1);
+      hot.updateSettings({});
+
+      await waitForValidation();
+
+      expect(hot.getSourceDataAtCell(1, 0)).toBe(5);
+      expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(5);
+
+      const sheetWrites = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(sheetWrites).not.toHaveBeenCalled();
+    });
+
   it('drops the change from both sheets when the sheet switched while the change was validated', async() => {
     const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
     const first = hot.getPlugin('formulas').sheetId;
