@@ -80,19 +80,46 @@ export function isPluginLicense(value: unknown): value is PluginLicense {
   const license = value as PluginLicense | null | undefined;
 
   return typeof license?.capability === 'string' && typeof license.name === 'string' &&
-    (license.gate === 'enable' || license.gate === 'call') && Array.isArray(license.implies);
+    (license.gate === 'enable' || license.gate === 'call') && Array.isArray(license.implies) &&
+    Array.isArray(license.tiers);
 }
 
 /**
- * Resolves what a license key unlocks. A key that does not restrict (see `_getLicenseState`) unlocks
- * everything. A key that does unlocks `core`, the tokens it lists, every token a `<namespace>:all` it
- * lists covers, and the tokens every granted, registered plugin requires (its `LICENSE.implies`).
+ * Returns the tokens of the registered plugins whose `LICENSE.tiers` list one of the tiers a key names.
+ *
+ * @param {string[]} tiers The tiers the key names.
+ * @returns {Set<string>}
+ */
+function resolveTiers(tiers: readonly string[]): Set<string> {
+  const granted = new Set<string>();
+
+  getPluginsNames().forEach((pluginName) => {
+    const license: unknown = getPlugin(pluginName)?.LICENSE;
+
+    if (isPluginLicense(license) && license.tiers.some(tier => tiers.includes(tier))) {
+      granted.add(license.capability);
+    }
+  });
+
+  return granted;
+}
+
+/**
+ * Resolves what a license key unlocks. A key that names a tier (`tier:<name>`) unlocks the plugins whose
+ * `LICENSE.tiers` list one of its tiers, whatever its flags. Any other key that does not restrict (see
+ * `_getLicenseState`) unlocks everything. A key that does unlocks `core`, the tokens it lists, every token
+ * a `<namespace>:all` it lists covers, and the tokens every granted, registered plugin requires (its
+ * `LICENSE.implies`).
  *
  * @param {string} key The license key.
  * @returns {LicenseCapabilities}
  */
 function resolveKey(key: string): LicenseCapabilities {
-  const { grants } = _getLicenseState(key);
+  const { grants, tiers } = _getLicenseState(key);
+
+  if (tiers !== null) {
+    return resolveTiers(tiers);
+  }
 
   if (grants.unrestricted) {
     return ALL;

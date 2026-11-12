@@ -8,7 +8,7 @@ import { LISTED_CAPABILITIES_FLAG, XLSX_CAPABILITY_IDS } from '../../xlsxEngine/
  *
  * It deliberately names no product package ("Standard", "Pro", ...): which tokens a product grants is
  * decided where keys are issued and can change at any time. Tests build keys from single tokens and
- * arbitrary sets of them, never from a tier.
+ * arbitrary sets of them, and `keyWithTier()` takes the tier names it is given, never a real product tier.
  */
 
 /**
@@ -41,6 +41,28 @@ export function keyWithoutFlag(tokens, flags = []) {
     products: {
       handsontable: {
         capabilities: ['core', ...tokens],
+        usage_until: '2027-08-12',
+        notice: 60,
+        grace: 90,
+        flags,
+      },
+    },
+  });
+}
+
+/**
+ * Builds a current subscription key (the dates of `keyWithoutFlag`) whose Handsontable entry lists one
+ * `tier:<name>` token per tier and nothing else.
+ *
+ * @param {string[]} tiers The tier names.
+ * @param {string[]} [flags] The product flags.
+ * @returns {string}
+ */
+export function keyWithTier(tiers, flags = []) {
+  return buildTestKey({
+    products: {
+      handsontable: {
+        capabilities: tiers.map(tier => `tier:${tier}`),
         usage_until: '2027-08-12',
         notice: 60,
         grace: 90,

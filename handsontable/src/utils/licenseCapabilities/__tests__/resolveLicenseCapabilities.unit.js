@@ -1,4 +1,7 @@
 import { registerAllModules } from 'handsontable/registry';
+import { BasePlugin } from 'handsontable/plugins/base';
+import { registerPlugin } from 'handsontable/plugins/registry';
+import { _getLicenseState } from 'handsontable/helpers/mixed';
 import {
   resolveLicenseCapabilities,
   hasLicenseCapability,
@@ -15,8 +18,64 @@ import {
   FLAGGED_EXTERNAL_KEY,
   UNFLAGGED_WITH_TOKENS_KEY,
 } from '../../entitlementLicenseKey/__tests__/fixtures';
+import { buildTestKey } from '../../entitlementLicenseKey/__tests__/buildTestKey';
+import { keyWithTier } from '../../entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 registerAllModules();
+
+/**
+ * Builds a stub plugin class whose static `LICENSE` names one tier.
+ *
+ * @param {string} pluginKey The plugin key.
+ * @param {string} capability The plugin's token.
+ * @param {string[]} tiers The tiers that include it.
+ * @returns {Function}
+ */
+function createTierStub(pluginKey, capability, tiers) {
+  return class TierStub extends BasePlugin {
+    static get PLUGIN_KEY() {
+      return pluginKey;
+    }
+
+    static get LICENSE() {
+      return { capability, name: 'Tier stub', gate: 'enable', implies: [], tiers };
+    }
+  };
+}
+
+registerPlugin(createTierStub('tierStub', 'feat:tier_stub', ['alpha']));
+
+/**
+ * Registers a second stub plugin, after keys were resolved: token `feat:late_stub`, tier `gamma`.
+ */
+function registerLateStub() {
+  registerPlugin(createTierStub('lateStub', 'feat:late_stub', ['gamma']));
+}
+
+/**
+ * A key whose Handsontable entry lists no tier and has no flag, while the HyperFormula entry lists
+ * `tier:alpha`.
+ *
+ * @type {string}
+ */
+const FOREIGN_TIER_KEY = buildTestKey({
+  products: {
+    handsontable: {
+      capabilities: ['core'],
+      usage_until: '2027-08-12',
+      notice: 60,
+      grace: 90,
+      flags: [],
+    },
+    hyperformula: {
+      capabilities: ['tier:alpha'],
+      usage_until: '2027-08-12',
+      notice: 60,
+      grace: 90,
+      flags: [],
+    },
+  },
+});
 
 /**
  * A stand-in for a grid: the helper reads only the settings and whether the object is a root grid.
@@ -126,5 +185,62 @@ describe('resolveLicenseCapabilities()', () => {
     licenseKey = FLAGGED_FILTERS_KEY;
 
     expect(hasLicenseCapability(hot, 'feat:filters')).toBe(true);
+  });
+});
+
+describe('a key that names a tier', () => {
+  it('should restrict without the listed-capabilities flag', () => {
+    const hot = gridWithKey(keyWithTier(['alpha']));
+
+    expect(resolveLicenseCapabilities(hot)).toBeInstanceOf(Set);
+    expect(hasLicenseCapability(hot, 'feat:a_feature_no_release_has_yet')).toBe(false);
+  });
+
+  it('should unlock the plugins whose tiers list it', () => {
+    expect(hasLicenseCapability(gridWithKey(keyWithTier(['alpha'])), 'feat:tier_stub')).toBe(true);
+  });
+
+  it('should keep a plugin off when its tiers do not list the key\'s tier', () => {
+    expect(hasLicenseCapability(gridWithKey(keyWithTier(['beta'])), 'feat:tier_stub')).toBe(false);
+  });
+
+  it('should unlock the features of every tier the key names', () => {
+    expect(hasLicenseCapability(gridWithKey(keyWithTier(['beta', 'alpha'])), 'feat:tier_stub')).toBe(true);
+  });
+
+  it('should unlock no feature for a tier no feature lists', () => {
+    const hot = gridWithKey(keyWithTier(['zz_unknown']));
+
+    expect(hasLicenseCapability(hot, 'feat:tier_stub')).toBe(false);
+    expect(hasLicenseCapability(hot, 'feat:filters')).toBe(false);
+  });
+
+  it.each(['__proto__', 'constructor'])('should unlock no feature for the tier %s', (tier) => {
+    const hot = gridWithKey(keyWithTier([tier]));
+
+    expect(() => hasLicenseCapability(hot, 'feat:tier_stub')).not.toThrow();
+    expect(hasLicenseCapability(hot, 'feat:tier_stub')).toBe(false);
+  });
+
+  it('should unlock everything for a tier token with no name: it names no tier', () => {
+    expect(resolveLicenseCapabilities(gridWithKey(keyWithTier([''])))).toBe('all');
+  });
+
+  it('should ignore a tier token in another product\'s entry', () => {
+    expect(resolveLicenseCapabilities(gridWithKey(FOREIGN_TIER_KEY))).toBe('all');
+  });
+
+  it('should expose the tiers of a key on its license state', () => {
+    expect(_getLicenseState(keyWithTier(['alpha', 'beta'])).tiers).toEqual(['alpha', 'beta']);
+    expect(_getLicenseState(SUBSCRIPTION_KEY).tiers).toBe(null);
+    expect(_getLicenseState('11111-22222-33333-44444-55555').tiers).toBe(null);
+  });
+
+  it('should grant a plugin registered after the key was first resolved', () => {
+    const key = keyWithTier(['gamma']);
+
+    expect(hasLicenseCapability(gridWithKey(key), 'feat:late_stub')).toBe(false);
+    registerLateStub();
+    expect(hasLicenseCapability(gridWithKey(key), 'feat:late_stub')).toBe(true);
   });
 });

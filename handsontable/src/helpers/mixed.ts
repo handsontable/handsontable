@@ -11,6 +11,7 @@ import {
   LISTED_CAPABILITIES_FLAG,
   BADGE_FLAG,
 } from '../utils/entitlementLicenseKey';
+import { getKeyTiers } from '../utils/licenseCapabilities/tiers';
 import type {
   LicenseLifecycle,
   LicenseGrants,
@@ -616,6 +617,12 @@ export interface LicenseStateDescriptor {
   channels: LicenseChannels;
   grants: LicenseGrants;
   badge: boolean;
+  /**
+   * The license tiers the Handsontable entry names (`tier:<name>` tokens), in order. `null` for every
+   * key outside the entitlement format, an unreadable or foreign one, the `*.handsontable.com` bypass,
+   * and an entry that names no tier.
+   */
+  tiers: readonly string[] | null;
 }
 
 /**
@@ -711,6 +718,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
       badge: false,
+      tiers: null,
     };
   }
 
@@ -720,6 +728,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
       badge: false,
+      tiers: null,
     };
   }
 
@@ -738,6 +747,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
       badge: false,
+      tiers: null,
     };
   }
 
@@ -758,6 +768,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
     // feature of every customer.
     grants: _listsCapabilities(entitlement) ? getLicenseGrants(keyData) : UNRESTRICTED_GRANTS,
     badge: _carriesBadge(entitlement),
+    tiers: getKeyTiers(entitlement.capabilities),
   };
 }
 
