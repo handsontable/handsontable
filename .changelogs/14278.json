@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a validated edit being saved into another row when the rows are sorted, moved, filtered, inserted, or removed before its validator answers.",
+  "title": "Fixed a validated edit being saved into another row when the rows are sorted, moved, filtered, inserted, or removed before its validator answers. The `afterChange` and `beforeChangeRender` hooks now pass `AppliedCellChange` changes, whose row is the record's current visual row, or `null` for a record a filter or a trim took out of the visible rows, and the row of `modifyData` and `afterValidate` is `number | null`. Added the `getPhysicalRowOfChange()` method, which finds the record of such a change. See the 18.1 to 19.0 migration guide.",
   "type": "fixed",
   "issueOrPR": 14278,
   "breaking": true,

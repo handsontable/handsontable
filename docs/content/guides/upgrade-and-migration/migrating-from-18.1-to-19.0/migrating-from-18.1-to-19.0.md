@@ -3486,12 +3486,19 @@ is unchanged, so [`beforeChange`](@/api/hooks.md#beforechange) and the `afterSet
 - Your validator corrects the value through `this.visualRow`, or your `afterValidate` callback uses the row as a
   number, and you use filters or `trimRows`. It can now be `null`.
 - You use TypeScript and type the `changes` parameter of `afterChange` or `beforeChangeRender` as
-  `CellChange[]`, or the `row` of `modifyData` or `afterValidate` as `number`. That no longer compiles.
+  `CellChange[]`, or the `row` of `modifyData` or `afterValidate` as `number`, in the grid settings or in a
+  listener typed through the `Events` type. That no longer compiles. A listener you pass to
+  [`addHook()`](@/api/core.md#addhook) with the old annotations still compiles, because `addHook()` accepts
+  any annotated callback, but its `row` can still be `null` at runtime.
 
 ### How to migrate
 
-1. Skip a change whose row is `null`, or read its record another way, for example with
-   [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow) on a row ID you keep.
+1. Don't use the row of a change as a number before you check it. When it is `null`, pass the change to
+   [`getPhysicalRowOfChange()`](@/api/core.md#getphysicalrowofchange) inside the hook. It returns the
+   physical row the change was written to. Read the record with
+   [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow), which takes a physical row, or read its ID
+   with [`getRowIdAtPhysicalRow()`](@/api/core.md#getrowidatphysicalrow). Call the method while the hook
+   runs: after `afterChange`, it no longer follows the record.
 2. In TypeScript, type the parameter with `AppliedCellChange`.
 
 ```ts
@@ -3500,18 +3507,18 @@ import type { AppliedCellChange, CellChange, ChangeSource } from 'handsontable';
 // Before
 hot.addHook('afterChange', (changes: CellChange[] | null, source: ChangeSource) => {
   changes?.forEach(([row]) => {
-    console.log(hot.getDataAtRow(row));
+    saveRow(hot.getSourceDataAtRow(hot.toPhysicalRow(row)));
   });
 });
 
 // After
 hot.addHook('afterChange', (changes: AppliedCellChange[] | null, source: ChangeSource) => {
-  changes?.forEach(([row]) => {
-    if (row === null) {
-      return;
-    }
+  changes?.forEach((change) => {
+    const physicalRow = hot.getPhysicalRowOfChange(change);
 
-    console.log(hot.getDataAtRow(row));
+    if (physicalRow !== null) {
+      saveRow(hot.getSourceDataAtRow(physicalRow));
+    }
   });
 });
 ```
