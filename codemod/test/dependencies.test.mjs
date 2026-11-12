@@ -76,6 +76,14 @@ describe('planRange', () => {
     assert.deepEqual(planRange('20.0.0', '18.1.0'), { action: 'keep' });
   });
 
+  it('raises a simple range whose lowest version is below the target, and keeps a compound range that admits it', () => {
+    assert.deepEqual(planRange('^18.0.0', '18.1.0'), { action: 'rewrite', value: '^18.1.0' });
+    assert.deepEqual(planRange('~18.0.0', '18.1.0'), { action: 'rewrite', value: '~18.1.0' });
+    assert.deepEqual(planRange('18.0.0', '18.1.0'), { action: 'rewrite', value: '18.1.0' });
+    assert.deepEqual(planRange('>=17.1.0 <19', '18.1.0'), { action: 'keep' });
+    assert.deepEqual(planRange('*', '18.1.0'), { action: 'keep' });
+  });
+
   it('treats a prerelease as lower than its release', () => {
     assert.deepEqual(planRange('^18.0.0-rc5', '18.0.0'), { action: 'rewrite', value: '^18.0.0' });
     assert.deepEqual(planRange('^18.1.0-rc1', '18.0.0'), { action: 'keep' });

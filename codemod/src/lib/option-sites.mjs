@@ -1,4 +1,4 @@
-import { memberName, propertyName, stringValue, unwrapNode } from './ast.mjs';
+import { memberName, propertyName, stringValue, unwrapNode, unwrapPath } from './ast.mjs';
 
 /**
  * Wrapper tags whose attributes are grid or column options: Vue and Angular `<hot-table>` and `<hot-column>`, and
@@ -109,7 +109,10 @@ export function templateOptionSites(source, names) {
  * @property {string|null} parent For `a.numericFormat.pattern = x`, the name before the last one (`numericFormat`).
  * @property {number|undefined} line One-based line.
  * @property {object|null} value The value node, or `null` when it is not known.
- * @property {'assignment'|'setCellMeta'} form How the option is set.
+ * @property {'assignment'|'setCellMeta'|'setCellMetaObject'} form How the option is set. For `setCellMetaObject`,
+ * it is the name of the method that makes the call.
+ * @property {object} [receiver] For `setCellMetaObject`, the NodePath of the receiver of the call, so the caller can
+ * tell a confirmed grid instance, whose object is an option object, from any other receiver.
  */
 
 /**
@@ -165,7 +168,14 @@ export function dynamicOptionSites(j, root) {
         const name = propertyName(property);
 
         if (name !== null) {
-          sites.push({ name, parent: null, line, value: property.value ?? null, form: 'setCellMeta' });
+          sites.push({
+            name,
+            parent: null,
+            line,
+            value: property.value ?? null,
+            form: 'setCellMetaObject',
+            receiver: unwrapPath(path.get('callee')).get('object'),
+          });
         }
       });
     }

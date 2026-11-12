@@ -16,6 +16,11 @@ const SCRIPT_PARSERS = new Map([
  */
 const NO_SCRIPT_OR_TEMPLATE = /^At least one <template> or <script> is required/;
 
+/**
+ * What makes a block or a file relevant to the report of a skipped block: Handsontable by name, or a theme
+ * variable. The adapter's `precheck` adds the wrapper tags, so a template-only component that uses a globally
+ * registered `<hot-table>` is still read.
+ */
 const MENTIONS = /--ht-|handsontable/i;
 const STYLE_LANGS = new Set([undefined, 'css', 'postcss', 'scss']);
 const TEMPLATE_LANGS = new Set([undefined, 'html']);
@@ -132,7 +137,7 @@ const vueAdapter = {
   fileKinds: ['vue', 'js', 'css', 'template'],
   extensions: ['.vue'],
   implemented: true,
-  precheck: /handsontable|--ht-/i,
+  precheck: /handsontable|--ht-|<hot-?(?:table|column)\b/i,
 
   /**
    * @param {string} source File text.

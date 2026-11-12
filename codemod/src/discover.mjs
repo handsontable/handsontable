@@ -91,6 +91,34 @@ async function walk(dir, cwd, out, onLink) {
 }
 
 /**
+ * Find the entries of a git file list that are symbolic links to a directory. Git lists such a link as one entry
+ * with no sign of the directory behind it, and its name usually has no handled extension, so the file filter drops it
+ * silently. Only entries no adapter handles are checked, because a handled one goes through `isFile`.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string[]} files Project-relative paths with forward slashes.
+ * @returns {Promise<string[]>} The paths of the links to a directory that the walk would also leave out.
+ */
+async function directoryLinks(cwd, files) {
+  const unhandled = files.filter(file => !isCandidate(file) && !isSkipped(file)
+    && !SKIPPED_DIRECTORIES.has(file.split('/').pop()));
+  const links = [];
+
+  for (let start = 0; start < unhandled.length; start += 256) {
+    const batch = unhandled.slice(start, start + 256);
+    const results = await Promise.all(batch.map(async(file) => {
+      const info = await lstat(join(cwd, file)).catch(() => null);
+
+      return info?.isSymbolicLink() && (await stat(join(cwd, file)).catch(() => null))?.isDirectory() ? file : null;
+    }));
+
+    links.push(...results.filter(Boolean));
+  }
+
+  return links;
+}
+
+/**
  * Tell whether a regular file exists at a path. A symbolic link is not a regular file, so it is reported to
  * `onLink` and left out.
  *
@@ -220,7 +248,10 @@ export async function discover({ cwd, paths = [], skipped = [] }) {
     if (tracked) {
       const prefix = rel === '' ? '' : `${rel}/`;
 
-      candidates.push(...tracked.filter(file => file.startsWith(prefix)));
+      const inside = tracked.filter(file => file.startsWith(prefix));
+
+      candidates.push(...inside);
+      (await directoryLinks(cwd, inside)).forEach(noteLink);
     } else {
       await walk(absolute, cwd, candidates, noteLink);
     }

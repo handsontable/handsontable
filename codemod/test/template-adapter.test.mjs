@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
+import { VERSIONS_DIR, buildPlan, loadManifest } from '../src/manifest.mjs';
 import { adapterFor } from '../src/adapters/index.mjs';
 import templateAdapter, { TEMPLATE_PRECHECK } from '../src/adapters/template.mjs';
 import { transformFile } from '../src/runner.mjs';
@@ -85,6 +87,20 @@ describe('template adapter', () => {
       assert.equal(result.output, source);
       assert.deepEqual(result.entries.map(({ ruleId, severity, line }) => ({ ruleId, severity, line })), [
         { ruleId: RADIUS.id, severity: 'manual', line: 2 },
+      ]);
+    });
+
+    it('reads an Angular template that only uses a wrapper tag, with the real 18.0.0 rules', async() => {
+      const manifest = await loadManifest(join(VERSIONS_DIR, '18.0.0'));
+      const source = '<div>\n  <hot-table dateFormat="MM/DD/YYYY" [correctFormat]="true"></hot-table>\n</div>\n';
+      const result = await transformFile({ filePath: 'grid.component.html', source, plan: buildPlan([manifest]) });
+
+      assert.equal(result.skipped, null);
+      assert.equal(result.output, source);
+      assert.deepEqual(result.entries.map(({ ruleId, line }) => [ruleId, line])
+        .sort((a, b) => a[0].localeCompare(b[0])), [
+        ['18.0.0/correct-format-removed', 2],
+        ['18.0.0/moment-date-format', 2],
       ]);
     });
 

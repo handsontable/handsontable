@@ -235,6 +235,40 @@ describe('findOptionObjects: high confidence seeds', () => {
     ]);
   });
 
+  it('finds the objects of the columns, cell, and cells props of a wrapper component', () => {
+    const found = describeObjects([
+      'import { HotTable, HotColumn } from \'@handsontable/react-wrapper\';',
+      'const columnDefs = [{ data: \'a\' }, { data: \'b\' }];',
+      'const cellDefs = [{ row: 0, col: 0, readOnly: true }];',
+      'const App = () => {',
+      '  const memoColumns = useMemo(() => [{ data: \'m\' }], []);',
+      '  const twoReturns = useMemo(() => { if (x) { return [{ data: \'n\' }]; } return [{ data: \'o\' }]; }, []);',
+      '  return (<>',
+      '    <HotTable columns={[{ data: \'x\', type: \'numeric\' }, extra, ...spread]} />',
+      '    <HotTable columns={columnDefs} cell={cellDefs} />',
+      '    <HotTable columns={memoColumns} />',
+      '    <HotTable columns={twoReturns} />',
+      '    <HotTable columns={(index) => ({ data: index })} cells={(row) => ({ className: row })} />',
+      '    <HotTable cell={[{ row: 1, col: 1, comment: \'c\' }]} />',
+      '    <HotTable nestedHeaders={[[{ label: \'a\', colspan: 2 }, \'b\']]}',
+      '      columnSummary={[{ sourceColumn: 0, type: \'sum\' }]} />',
+      '    <Other columns={[{ data: \'no\' }]} cells={() => ({ data: \'no\' })} />',
+      '  </>);',
+      '};',
+    ].join('\n'), 'tsx');
+
+    assert.deepEqual(found, [
+      'high column columns [data,type]',
+      'high column columns [data]',
+      'high column columns [data]',
+      'high cell cell [row,col,readOnly]',
+      'high column columns [data]',
+      'high column columns() [data]',
+      'high cell cells() [className]',
+      'high cell cell [row,col,comment]',
+    ]);
+  });
+
   for (const parser of TS_PARSERS) {
     it(`finds annotation, as, satisfies, return type, and generic-call forms (${parser})`, () => {
       const found = describeObjects([

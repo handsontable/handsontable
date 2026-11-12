@@ -234,7 +234,7 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     if (part.fileKind === 'js') {
       inserted = addJsTodo(part.j, target, ruleId, text, guideUrl, commentScan(part));
     } else if (part.fileKind === 'css') {
-      inserted = addCssTodo(target, ruleId, text, guideUrl);
+      inserted = addCssTodo(target, ruleId, text, guideUrl, part.document);
     }
 
     if (inserted) {
@@ -259,6 +259,7 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     j: part.j,
     root: part.root,
     json: part.json ?? null,
+    css: part.document ?? null,
     report,
     todo,
     comment,
@@ -372,7 +373,23 @@ export async function transformFile({
     };
   }
 
-  const output = handle.parts.some(part => part.changed) ? adapter.print(handle, source) : source;
+  let output = source;
+
+  try {
+    output = handle.parts.some(part => part.changed) ? adapter.print(handle, source) : source;
+  } catch (error) {
+    return {
+      ...unchanged(null),
+      entries: [{
+        ruleId: 'transform-error',
+        severity: 'warning',
+        file: filePath,
+        line: null,
+        message: `The tool failed on this file and left it unchanged: ${error.message}`,
+        guideUrl: null,
+      }],
+    };
+  }
 
   return { output, changed: output !== source, entries, skipped: null };
 }

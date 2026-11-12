@@ -67,7 +67,7 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
-      "files": ["css"],
+      "files": ["css", "template"],
       "requires": "none",
       "mergeKey": "pikaday",
       "unlessFileMatches": "pikaday",

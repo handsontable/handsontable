@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
+import { createCssPart } from '../src/adapters/css.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifest } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { guidePath, skipWithoutGuides } from './helpers/guide-source.mjs';
@@ -108,6 +109,152 @@ describe('cssVariable in css', () => {
   });
 });
 
+describe('cssVariable edits a stylesheet by offset and keeps every other byte', () => {
+  const OLD = '--ht-wrapper-border-radius';
+  const NEW = '--ht-border-radius';
+
+  /**
+   * The expected result of renaming the variable: the input with only the variable name changed.
+   *
+   * @param {string} source Stylesheet text.
+   * @returns {string} The text with every whole-token mention renamed.
+   */
+  function renamed(source) {
+    return source.replace(new RegExp(`${OLD}(?![\\w-])`, 'g'), NEW);
+  }
+
+  it('leaves <style and </style in comments and strings alone', async() => {
+    const source = '/* Loaded through <style src> in App.vue; see </style> handling */\n'
+      + '.grid::before { content: "<style>"; }\n'
+      + '.grid { --ht-wrapper-border-radius: 4px; }\n';
+    const { output, changed } = await run('links.style.css', source);
+
+    assert.equal(changed, true);
+    assert.equal(output, renamed(source));
+    assert.equal(output.includes('\\3c'), false);
+  });
+
+  it('keeps a byte order mark and CRLF line endings, and inserts a TODO with the same ending', async() => {
+    const source = '﻿/* <style> */\r\n.a {\r\n  --ht-wrapper-border-radius: 1px;\r\n'
+      + '  box-shadow: 0 0 0 var(--ht-wrapper-border-width);\r\n}\r\n';
+    const { output } = await run('a.css', source);
+
+    assert.equal(output.startsWith('﻿/* <style> */\r\n.a {\r\n  --ht-border-radius: 1px;\r\n  /* TODO('), true);
+    assert.equal(output.includes('\n') && output.replace(/\r\n/g, '').includes('\n'), false, 'no bare LF appears');
+    assert.equal(output.endsWith('  box-shadow: 0 0 0 var(--ht-wrapper-border-width);\r\n}\r\n'), true);
+  });
+
+  it('edits a minified one-line file without adding a byte elsewhere', async() => {
+    const source = '.a{--ht-wrapper-border-radius:4px;margin:0}.b{border-radius:var(--ht-wrapper-border-radius,2px)}';
+    const { output } = await run('a.css', source);
+
+    assert.equal(output, renamed(source));
+  });
+
+  it('puts a TODO before a declaration in a minified file without breaking it', async() => {
+    const source = '.a{margin:0;box-shadow:0 0 0 var(--ht-wrapper-border-width)}.b{color:red}';
+    const { output } = await run('a.css', source);
+
+    assert.match(output, new RegExp('^\\.a\\{margin:0;/\\* TODO\\(handsontable-codemod [^*]*\\*/'
+      + 'box-shadow:0 0 0 var\\(--ht-wrapper-border-width\\)\\}\\.b\\{color:red\\}$'));
+  });
+
+  it('edits SCSS with // comments, interpolation, nested rules, and a declaration over several lines', async() => {
+    const source = [
+      '// <style> in a line comment',
+      '$gap: 4px;',
+      '.card {',
+      '  --ht-wrapper-border-radius: 1px; // keep "<style>" here',
+      '  .inner-#{$gap} {',
+      '    border-radius: var(--ht-wrapper-border-radius,',
+      '      2px);',
+      '    &:hover { --ht-wrapper-border-radius: #{$gap}; }',
+      '  }',
+      '}',
+      '@include theme((--ht-wrapper-border-radius: 1px));',
+      '',
+    ].join('\n');
+    const { output } = await run('a.scss', source);
+
+    assert.equal(output, renamed(source));
+  });
+
+  it('does not edit a value that holds a comment, and reports it instead', async() => {
+    const source = '.a { border-radius: var(--ht-wrapper-border-radius, /* fallback */ 2px); }\n';
+    const { output, changed, entries } = await run('a.css', source);
+
+    assert.equal(changed, false);
+    assert.equal(output, source);
+    assert.deepEqual(entries.map(entry => [entry.ruleId, entry.severity, entry.line]), [[RADIUS, 'manual', 1]]);
+  });
+
+  it('keeps the order of two TODOs before one declaration and indents them like the declaration', async() => {
+    const source = '.a {\n\tbox-shadow: 0 0 0 var(--ht-wrapper-border-width) var(--ht-wrapper-border-color);\n}\n';
+    const { output } = await run('a.css', source);
+    const lines = output.split('\n');
+
+    assert.equal(lines.length, 6);
+    assert.match(lines[1], /^\t\/\* TODO\(handsontable-codemod 18\.0\.0\/css-wrapper-border-width\)/);
+    assert.match(lines[2], /^\t\/\* TODO\(handsontable-codemod 18\.0\.0\/css-wrapper-border-color\)/);
+    assert.equal(lines[3], '\tbox-shadow: 0 0 0 var(--ht-wrapper-border-width) var(--ht-wrapper-border-color);');
+  });
+
+  it('edits a style block of a Vue file and leaves the rest of the file, including a <style> comment, alone', async() => {
+    const source = '<template>\n  <div class="a"></div>\n</template>\n'
+      + '<style>\n/* <style src> */\n.a { --ht-wrapper-border-radius: 1px; }\n</style>\n';
+    const { output } = await run('A.vue', source);
+
+    assert.equal(output, renamed(source));
+  });
+});
+
+describe('CssDocument', () => {
+  const SOURCE = '.a { --x: 1px; }\n';
+
+  /**
+   * A document over a stylesheet, with the postcss root it reads.
+   *
+   * @param {string} source Stylesheet text.
+   * @returns {import('../src/lib/css-edit.mjs').CssDocument} The document.
+   */
+  function documentOf(source) {
+    const part = createCssPart(source, 'a.css', false);
+
+    return part.document;
+  }
+
+  it('refuses an edit when the text at the offsets is not what the model says, and records nothing', () => {
+    const document = documentOf(SOURCE);
+    const declaration = document.root.first.first;
+
+    document.source = '.a { --y: 1px; }\n';
+
+    assert.equal(document.replaceInDeclaration(declaration, /--x/g, '--z'), false);
+    assert.equal(declaration.prop, '--x');
+    assert.equal(document.edited, false);
+  });
+
+  it('refuses to edit a value that holds a comment', () => {
+    const document = documentOf('.a { --x: 1px /* note --x */; }\n');
+
+    assert.equal(document.replaceInDeclaration(document.root.first.first, /1px/g, '2px'), false);
+    assert.equal(document.edited, false);
+  });
+
+  it('throws when the edited text does not parse to the model', () => {
+    const document = documentOf(SOURCE);
+
+    assert.equal(document.replaceInDeclaration(document.root.first.first, /--x/g, '--z'), true);
+    document.root.first.first.prop = '--other';
+
+    assert.throws(() => document.print(), /does not match the intended edits/);
+  });
+
+  it('prints the original text when nothing was edited', () => {
+    assert.equal(documentOf(SOURCE).print(), SOURCE);
+  });
+});
+
 describe('cssVariable in js', () => {
   it('keeps the quote style of each string and never touches identifiers', async() => {
     const source = 'import H from \'handsontable\';\n'
@@ -131,6 +278,24 @@ describe('cssVariable in js', () => {
     const { output } = await run('a.jsx', source);
 
     assert.equal(output, source.replace('--ht-wrapper-border-radius', '--ht-border-radius'));
+  });
+
+  it('renames a --ht- variable in a file with no other Handsontable usage, and touches nothing else there', async() => {
+    const source = 'document.body.style.setProperty(\'--ht-wrapper-border-radius\', \'4px\');\n'
+      + 'const theme = { wrapperBorderRadius: \'4px\', correctFormat: true, numericFormat: { culture: \'de-DE\' } };\n'
+      + 'grid.saveManualColumnWidths();\n';
+    const { output, entries } = await run('not-handsontable.js', source);
+
+    assert.equal(output, source.replace('--ht-wrapper-border-radius', '--ht-border-radius'));
+    assert.deepEqual(entries.map(entry => [entry.ruleId, entry.severity, entry.line]), [[RADIUS, 'changed', 1]]);
+  });
+
+  it('does not rename a --ht- look-alike inside a longer name', async() => {
+    const source = 'a.setProperty(\'--ht-wrapper-border-radius-extra\', \'4px\');\n';
+    const { output, entries } = await run('not-handsontable.js', source);
+
+    assert.equal(output, source);
+    assert.deepEqual(entries, []);
   });
 
   it('reports a removed variable in a string and does not edit the file', async() => {

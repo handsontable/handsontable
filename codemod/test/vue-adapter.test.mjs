@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { ADAPTERS, adapterFor } from '../src/adapters/index.mjs';
+import { VERSIONS_DIR, buildPlan, loadManifest } from '../src/manifest.mjs';
 import vueAdapter from '../src/adapters/vue.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { createRegistry } from '../src/transforms/index.mjs';
@@ -30,7 +32,7 @@ function renamer({ scripts = true, styles = true } = {}) {
 
       if (ctx.fileKind === 'css' && styles) {
         ctx.root.walkDecls('--ht-a', (declaration) => {
-          declaration.prop = '--ht-b';
+          ctx.css.replaceInDeclaration(declaration, /--ht-a/g, '--ht-b');
           ctx.markChanged();
           ctx.report({ ruleId: RULE.id, severity: 'changed', line: declaration.source.start.line, message: 'a' });
         });
@@ -243,6 +245,32 @@ describe('vue adapter print', () => {
     template.changed = true;
 
     assert.equal(vueAdapter.print(handle, source), source.replace('1px', '3px'));
+  });
+});
+
+describe('vue adapter with the real 18.0.0 rules', () => {
+  it('reads a template-only component that uses a globally registered wrapper tag', async() => {
+    const manifest = await loadManifest(join(VERSIONS_DIR, '18.0.0'));
+    const source = '<template>\n  <hot-table date-format="MM/DD/YYYY" :correct-format="true" />\n</template>\n';
+    const result = await transformFile({ filePath: 'SummaryBadge.vue', source, plan: buildPlan([manifest]) });
+
+    assert.equal(result.skipped, null);
+    assert.equal(result.changed, false);
+    assert.equal(result.output, source);
+    assert.deepEqual(result.entries
+      .map(({ ruleId, severity, line }) => [ruleId, severity, line])
+      .sort((a, b) => a[0].localeCompare(b[0])), [
+      ['18.0.0/correct-format-removed', 'manual', 2],
+      ['18.0.0/moment-date-format', 'manual', 2],
+    ]);
+  });
+
+  it('still skips a component that neither names Handsontable nor uses a wrapper tag', async() => {
+    const manifest = await loadManifest(join(VERSIONS_DIR, '18.0.0'));
+    const source = '<template>\n  <my-table date-format="MM/DD/YYYY" :correct-format="true" />\n</template>\n';
+    const result = await transformFile({ filePath: 'Other.vue', source, plan: buildPlan([manifest]) });
+
+    assert.deepEqual([result.skipped, result.entries], ['precheck', []]);
   });
 });
 

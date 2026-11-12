@@ -5,7 +5,8 @@
  *
  * A match is `high` when the file shows it: the second argument of `new <namespace>(...)`, the argument of
  * `.updateSettings()`, `settings={...}` on a wrapper component, a `GridSettings` (or similar) annotation, and
- * what hangs below those (`columns`, `cell`, `cells`). It is `medium` when only the keys suggest it.
+ * what hangs below those (`columns`, `cell`, `cells`, also as props of a wrapper component). It is `medium` when
+ * only the keys suggest it.
  *
  * @module lib/option-objects
  */
@@ -304,23 +305,50 @@ function createResolver(j, root) {
   };
 
   /**
-   * Resolve an expression to the array literal it stands for.
+   * The array literal an expression is, or the one a `useMemo(() => [...])` call returns when the callback has a
+   * single return.
+   *
+   * @param {object} path NodePath of an expression.
+   * @returns {object|null} NodePath of the `ArrayExpression`, or `null`.
+   */
+  const arrayOf = (path) => {
+    const target = unwrapPath(path);
+    const node = target.node;
+
+    if (node.type === 'ArrayExpression') {
+      return target;
+    }
+
+    if ((node.type === 'CallExpression' || node.type === 'OptionalCallExpression')
+      && calleeName(node.callee) === 'useMemo' && node.arguments[0] && isFunctionNode(node.arguments[0])) {
+      const items = returned(target.get('arguments', 0));
+      const only = items.length === 1 ? unwrapPath(items[0]) : null;
+
+      return only?.node.type === 'ArrayExpression' ? only : null;
+    }
+
+    return null;
+  };
+
+  /**
+   * Resolve an expression to the array literal it stands for: written there, behind one identifier hop, or
+   * returned by a `useMemo` callback.
    *
    * @param {object} path NodePath of an expression.
    * @returns {object|null} NodePath of the `ArrayExpression`, or `null`.
    */
   const resolveArray = (path) => {
     const target = unwrapPath(path);
+    const direct = arrayOf(target);
 
-    if (target.node.type === 'ArrayExpression') {
-      return target;
+    if (direct) {
+      return direct;
     }
 
     const initializer = target.node.type === 'Identifier' || target.node.type === 'MemberExpression'
       ? hop(target) : null;
-    const resolved = initializer ? unwrapPath(initializer) : null;
 
-    return resolved?.node.type === 'ArrayExpression' ? resolved : null;
+    return initializer ? arrayOf(initializer) : null;
   };
 
   return { returned, resolveObjects, resolveArray };
@@ -398,6 +426,38 @@ export function findOptionObjects(j, root, bindings) {
   };
 
   /**
+   * Add what one `columns`, `cell`, or `cells` option holds: the elements of an array, or what a function
+   * returns. Any other option name is left alone. The option is a property of an option object or a JSX
+   * attribute of a wrapper component, and both nest the same way.
+   *
+   * @param {string|null} name Option name.
+   * @param {object} value NodePath of the option value (the function itself for an object method).
+   * @param {'high'|'medium'} confidence Confidence of the object or element that holds the option.
+   */
+  const expandOption = (name, value, confidence) => {
+    if (name !== 'columns' && name !== 'cell' && name !== 'cells') {
+      return;
+    }
+
+    const isFunction = isFunctionNode(value.node);
+
+    if (name === 'cell') {
+      addElements(isFunction ? null : resolveArray(value), 'cell', 'cell', confidence);
+    } else if (isFunction) {
+      const label = name === 'cells' ? 'cells()' : 'columns()';
+
+      returned(value).forEach((item) => {
+        resolveObjects(item).forEach(({ objectPath: child, viaIdentifier }) => {
+          addObject(child, name === 'cells' ? 'cell' : 'column', viaIdentifier ? `${label}:identifier` : label,
+            confidence);
+        });
+      });
+    } else if (name === 'columns') {
+      addElements(resolveArray(value), 'column', 'columns', confidence);
+    }
+  };
+
+  /**
    * Add what hangs below an option object: `columns`, `cell`, `cells`, and spreads.
    *
    * @param {object} objectPath NodePath of an option object.
@@ -416,29 +476,8 @@ export function findOptionObjects(j, root, bindings) {
         return;
       }
 
-      const name = PROPERTY_TYPES.has(node.type) ? propertyName(node) : null;
-
-      if (name !== 'columns' && name !== 'cell' && name !== 'cells') {
-        return;
-      }
-
-      const value = getPropertyValue(propertyPath);
-      const isFunction = isFunctionNode(value.node);
-
-      if (name === 'cell') {
-        addElements(isFunction ? null : resolveArray(value), 'cell', 'cell', confidence);
-      } else if (isFunction) {
-        const label = name === 'cells' ? 'cells()' : 'columns()';
-
-        returned(value).forEach((item) => {
-          resolveObjects(item).forEach(({ objectPath: child, viaIdentifier }) => {
-            addObject(child, name === 'cells' ? 'cell' : 'column', viaIdentifier ? `${label}:identifier` : label,
-              confidence);
-          });
-        });
-      } else if (name === 'columns') {
-        addElements(resolveArray(value), 'column', 'columns', confidence);
-      }
+      expandOption(PROPERTY_TYPES.has(node.type) ? propertyName(node) : null, getPropertyValue(propertyPath),
+        confidence);
     });
   };
 
@@ -480,6 +519,31 @@ export function findOptionObjects(j, root, bindings) {
     }
   });
 
+  const claimed = new Set();
+  const calls = new Set();
+
+  [...root.find(j.CallExpression).paths(), ...root.find(j.OptionalCallExpression).paths()].forEach((path) => {
+    const callee = path.node.callee;
+
+    if (calls.has(path.node) || !calls.add(path.node) || memberName(callee) !== 'setCellMetaObject'
+      || path.node.arguments.length < 3) {
+      return;
+    }
+
+    const objectPath = unwrapPath(path.get('arguments', 2));
+
+    if (objectPath.node.type !== 'ObjectExpression') {
+      return;
+    }
+
+    if (bindings.isInstance(unwrapPath(path.get('callee')).get('object'))) {
+      addObject(objectPath, 'cell', 'setCellMetaObject', 'high');
+    } else {
+      // The site is reported as a dynamic option set, so the key heuristic must not report the object again.
+      claimed.add(objectPath.node);
+    }
+  });
+
   root.find(j.JSXElement).forEach((path) => {
     const component = bindings.getComponent(path);
 
@@ -488,10 +552,17 @@ export function findOptionObjects(j, root, bindings) {
     }
 
     path.node.openingElement.attributes.forEach((attribute, index) => {
-      if (attribute.type === 'JSXAttribute' && attribute.name.name === 'settings'
-        && attribute.value?.type === 'JSXExpressionContainer') {
-        addFrom(path.get('openingElement', 'attributes', index, 'value', 'expression'),
-          component === 'HotTable' ? 'grid' : 'column', 'jsx-settings');
+      if (attribute.type !== 'JSXAttribute' || attribute.value?.type !== 'JSXExpressionContainer') {
+        return;
+      }
+
+      const expression = path.get('openingElement', 'attributes', index, 'value', 'expression');
+
+      if (attribute.name.name === 'settings') {
+        addFrom(expression, component === 'HotTable' ? 'grid' : 'column', 'jsx-settings');
+      } else {
+        // An attribute of a wrapper component is an option position, like a key of a settings object.
+        expandOption(attribute.name.name ?? null, expression, 'high');
       }
     });
   });
@@ -528,7 +599,7 @@ export function findOptionObjects(j, root, bindings) {
   });
 
   if (bindings.isHotFile) {
-    const isFound = node => found.has(node);
+    const isFound = node => found.has(node) || claimed.has(node);
 
     root.find(j.ObjectExpression).forEach((path) => {
       if (isFound(path.node)) {

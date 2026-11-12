@@ -1023,17 +1023,24 @@ function reportDynamicOptions(ctx, rules) {
   const targets = rules.map(rule => ({ rule, site: siteOf(rule) }))
     .filter(item => item.site && ctx.source.includes(item.site.name));
 
-  if (targets.length === 0 || !collectHotBindings(ctx.j, ctx.root).isHotFile) {
+  const bindings = targets.length === 0 ? null : collectHotBindings(ctx.j, ctx.root);
+
+  if (!bindings?.isHotFile) {
     return;
   }
 
   for (const site of dynamicOptionSites(ctx.j, ctx.root)) {
+    if (site.form === 'setCellMetaObject' && bindings.isInstance(site.receiver)) {
+      // The object of a call on a confirmed grid instance is a cell option object, which the rules handle.
+      continue;
+    }
+
     for (const { rule, site: target } of targets.filter(item => item.site.name === site.name)) {
       ctx.report({
         ruleId: rule.id,
         severity: 'manual',
         line: site.line,
-        message: `${site.name} is set by ${site.form === 'setCellMeta' ? 'setCellMeta()' : 'an assignment'} here, `
+        message: `${site.name} is set by ${site.form === 'assignment' ? 'an assignment' : `${site.form}()`} here, `
           + `so the tool cannot rewrite it. ${target.instruction}`,
       });
     }
@@ -1059,7 +1066,10 @@ function reportDynamicOptions(ctx, rules) {
  * - `optionMove` (`from` = `<option>.<key>`, `to` = sibling option name): the nested key moves, value verbatim,
  *   to a property before `<option>`. An existing `to` with the same value only drops the nested key, a different
  *   one is reported. A literal value that is not a BCP 47 tag is reported and not moved. An emptied `<option>`
- *   object stays. A value read through a variable is only reported. An optional `report` text is added as a
+ *   object stays: `numericFormat: {}` is not the same as no `numericFormat`, because the 18.x numeric renderer
+ *   falls back to its own defaults (`DEFAULT_INTL_FORMAT`, no grouping) only for a nullish value, and formats with
+ *   the `Intl.NumberFormat` defaults (grouping on) for an empty object. A value read through a variable is only
+ *   reported. An optional `report` text is added as a
  *   `manual` entry after every move.
  * - `optionRemove` (`name`, `todo`, `advice`): every property or attribute of that name goes. Unless `todo` is
  *   `false`, a TODO comment with the advice is left before the next property (else the previous one, else the

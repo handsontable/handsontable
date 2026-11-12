@@ -171,15 +171,18 @@ function applyToDeclaration(ctx, declaration, entry) {
     return;
   }
 
-  const prop = declaration.prop.replace(all, rule.to);
-  const value = declaration.value.replace(all, rule.to);
+  const edited = ctx.css.replaceInDeclaration(declaration, all, rule.to);
 
-  if (prop === declaration.prop && value === declaration.value) {
+  if (edited === null) {
     return;
   }
 
-  declaration.prop = prop;
-  declaration.value = value;
+  if (edited === false) {
+    reportRename(ctx, rule, line);
+
+    return;
+  }
+
   ctx.markChanged();
   ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Renamed ${rule.from} to ${rule.to}.` });
 }
@@ -211,7 +214,14 @@ function applyToAtRule(ctx, atRule, entry) {
     return;
   }
 
-  atRule.params = atRule.params.replace(all, rule.to);
+  const edited = ctx.css.replaceInAtRule(atRule, all, rule.to);
+
+  if (edited === false) {
+    reportRename(ctx, rule, atRule.source?.start?.line);
+
+    return;
+  }
+
   ctx.markChanged();
   ctx.report({
     ruleId: rule.id,

@@ -121,6 +121,10 @@
  * the advice (a removal) uses it, so the report says it once. Returns whether a comment was inserted.
  * @property {import('./lib/json-edit.mjs').JsonDocument|null} json For a `json` part, the document that edits the
  * text by offset and keeps `root` in step: `setString()` and `addMember()`. `null` for every other kind.
+ * @property {import('./lib/css-edit.mjs').CssDocument|null} css For a `css` part, the document that edits the text
+ * by offset and keeps `root` in step: `replaceInDeclaration()`, `replaceInAtRule()`, and `insertCommentBefore()`.
+ * The printed file is the original text with those edits spliced in, so a transform never prints the postcss
+ * root. `null` for every other kind.
  * @property {Set<string>} facts Set shared across the whole run, phase 1 and phase 2. A transform adds a
  * fact (for example `uses-formulas`) for a later phase to read. Names are lowercase kebab-case, optionally
  * `name:value`. Use `addFact()` and `hasFactFor()` from `src/lib/facts.mjs`: they also record the directory
@@ -163,6 +167,7 @@
  * @property {string} source Text of this part.
  * @property {object} root Parsed form of this part.
  * @property {import('./lib/json-edit.mjs').JsonDocument} [json] The editor of a `json` part.
+ * @property {import('./lib/css-edit.mjs').CssDocument} [document] The editor of a `css` part.
  * @property {object|null} j The jscodeshift API for `js` parts, otherwise `null`.
  * @property {number} lineOffset Zero-based line of the part inside the file, added to reported lines.
  * @property {number} [start] Offset of the part's text inside the file. Set by the Vue adapter.

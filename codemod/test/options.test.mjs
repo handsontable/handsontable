@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { buildPlan } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
@@ -282,10 +283,33 @@ describe('optionMove', () => {
     assert.deepEqual(summary(result.entries), ['2:changed']);
   });
 
-  it('keeps an emptied parent object', async() => {
-    const result = await run(column('{ culture: \'ja-JP\' }'), [MOVE]);
+  it('keeps an emptied parent object, in an object and in a JSX attribute', async() => {
+    const object = await run(column('{ culture: \'ja-JP\' }'), [MOVE]);
+    const same = await run(grid('{ columns: [{ locale: \'ja-JP\', numericFormat: { culture: \'ja-JP\' } }] }'), [MOVE]);
+    const element = '<HotColumn type="numeric" numericFormat={{ culture: \'ja-JP\' }} />';
+    const jsx = await run(`import { HotColumn } from '@handsontable/react-wrapper';\nconst a = (\n  ${element}\n);\n`,
+      [MOVE], { filePath: 'a.tsx' });
 
-    assert.match(result.output, /numericFormat: \{\}/);
+    assert.match(object.output, /locale: 'ja-JP'/);
+    assert.match(object.output, /numericFormat: \{\}/);
+    assert.match(same.output, /numericFormat: \{\}/);
+    assert.match(jsx.output, /locale="ja-JP"/);
+    assert.match(jsx.output, /numericFormat=\{\{\}\}/);
+  });
+
+  it('keeps the empty numericFormat because the renderer reads {} and an absent value differently', (context) => {
+    const path = new URL('../../handsontable/src/renderers/numericRenderer/utils.ts', import.meta.url);
+
+    if (!existsSync(path)) {
+      context.skip('the core sources are not available outside the monorepo');
+
+      return;
+    }
+
+    const source = readFileSync(path, 'utf8');
+
+    assert.match(source, /numericFormat \?\? DEFAULT_INTL_FORMAT/);
+    assert.match(source, /useGrouping: false/);
   });
 
   it('moves a value that is not a literal and asks for a check', async() => {
@@ -751,13 +775,40 @@ describe('options set by assignment or setCellMeta', () => {
 column.numericFormat = { pattern: '0.0' };
 settings['correctFormat'] = true;
 hot.setCellMeta(0, 1, 'correctFormat', false);
-hot.setCellMetaObject(0, 1, { oldName: 1, other: 2 });
+picker.setCellMetaObject(0, 1, { oldName: 1, other: 2 });
 other.unrelated = 1;
 `;
     const result = await dynamic(source);
 
     assert.deepEqual(result.entries, ['correct-format 4', 'correct-format 5', 'move 3', 'rename 6']);
     assert.equal(result.output, source);
+  });
+
+  it('names setCellMetaObject() once, and only once, for an object of an unconfirmed receiver', async() => {
+    const source = `${IMPORT}picker.setCellMetaObject(0, 2, { dateFormat: 'DD/MM/YYYY', correctFormat: true });\n`;
+    const result = await run(source, [REMOVE_FORMAT]);
+
+    assert.equal(result.output, source);
+    assert.equal(result.entries.length, 1);
+    assert.equal(result.entries[0].severity, 'manual');
+    assert.equal(result.entries[0].line, 2);
+    assert.match(result.entries[0].message, /set by setCellMetaObject\(\) here/);
+    assert.doesNotMatch(result.entries[0].message, /setCellMeta\(\)|only looks like/);
+  });
+
+  it('treats the object of setCellMetaObject() on a confirmed instance as a cell object', async() => {
+    const source = `${IMPORT}const hot = new Handsontable(el, {});\n`
+      + 'hot.setCellMetaObject(0, 2, { dateFormat: \'DD/MM/YYYY\', correctFormat: true });\n'
+      + 'hot.setCellMetaObject(1, 2, { numericFormat: { pattern: \'0,0\', culture: \'de-DE\' } });\n';
+    const result = await run(source, [REMOVE_FORMAT, MOVE]);
+
+    assert.doesNotMatch(result.output, /correctFormat: true/);
+    assert.match(result.output, /locale: 'de-DE'/);
+    assert.doesNotMatch(result.output, /culture/);
+    assert.deepEqual(result.entries.map(entry => [entry.ruleId.replace('18.0.0/', ''), entry.severity, entry.line]), [
+      ['correct-format', 'changed', 3],
+      ['move', 'changed', 4],
+    ]);
   });
 
   it('stays silent in a file that does not belong to Handsontable', async() => {

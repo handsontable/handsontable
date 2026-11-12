@@ -312,9 +312,11 @@ export function addJsTodo(j, target, ruleId, text, guideUrl = null, scan = null)
  * @param {string} ruleId Id of the rule that asks for the follow-up.
  * @param {string} text What the user has to do. Only its first sentence is kept.
  * @param {string|null} [guideUrl] Link to the guide section, or `null` for none.
+ * @param {import('./css-edit.mjs').CssDocument|null} [document] The part's document, which splices the comment into
+ * the original text. Without one, only the postcss model gets the comment.
  * @returns {boolean} `true` when a comment was inserted, `false` when an identical one was already there.
  */
-export function addCssTodo(target, ruleId, text, guideUrl = null) {
+export function addCssTodo(target, ruleId, text, guideUrl = null, document = null) {
   const body = formatTodo(ruleId, text, guideUrl);
   const previous = target.prev();
 
@@ -322,7 +324,11 @@ export function addCssTodo(target, ruleId, text, guideUrl = null) {
     return false;
   }
 
-  target.before(postcss.comment({ text: body }));
+  if (document) {
+    document.insertCommentBefore(target, body);
+  } else {
+    target.before(postcss.comment({ text: body }));
+  }
 
   return true;
 }

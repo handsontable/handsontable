@@ -52,6 +52,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/adapters/unsupported-style.mjs` | `.less`, `.styl`, `.stylus`, `.sass`: never parsed, only reported through `skipReason`. |
 | `src/lib/safety.mjs` | The meaning of `safe`: `rewrites(rule)`, `modeOf(rule)`, `requiresSafe(kind)`, `reportInstead()`. |
 | `src/lib/json-edit.mjs` | `JsonDocument`: edits a `package.json` by offset (`setString()`, `addMember()`), `scanJson()`, `memberPosition()`. Every edit is verified against the parsed model. |
+| `src/lib/css-edit.mjs` | `CssDocument`: edits a stylesheet by offset (`replaceInDeclaration()`, `replaceInAtRule()`, `insertCommentBefore()`) and prints the original text with the edits spliced in. `print()` parses the result again and compares it with the postcss model. |
 | `src/lib/validate.mjs` | `problemsOf()` and `assertRenameOrRemoval()`, the helpers behind the `validate(rule)` hook of a transform. |
 | `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
 | `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, ...) and `isUnresolvedReceiver()`. |
@@ -93,7 +94,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    `node_modules`, `dist`, `build`, `coverage`, `.git`, `*.min.*`, `*.d.ts`, files deleted on disk, and any
    extension no adapter handles. JSON is limited to `package.json`. A file named on the command line bypasses the
    generated-output filter. It never follows a symbolic link: a link to a file or a directory, a path argument that
-   is one or sits below one, goes to its `skipped` list and the report shows it under "Skipped files". A path
+   is one or sits below one, goes to its `skipped` list and the report shows it under "Skipped files". Git lists a
+   link to a directory as one entry without a handled extension, so `directoryLinks()` checks the entries of the git
+   list that no adapter handles with `lstat`, and the fs walk checks every entry. A path
    check uses `leavesDirectory()`, so a directory named `..odd` is inside the project. Before a write, `run()` asks
    `resolvesInside()`: the real path of the file must be inside the real project directory. `--report` is refused
    (exit 2) when its target is a symbolic link, a file git tracks, or a file the run migrates
@@ -145,6 +148,7 @@ of its earliest kind in `KIND_ORDER`.
 | `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
 | `comment(target, ruleId, text)` | The comment half of `todo()`: the same TODO comment, no report entry. A removal uses it, so its one `changed` entry carries the advice. |
 | `json` | For a `json` part, the `JsonDocument` that edits the text by offset: `setString(section, name, value)` and `addMember(section, name, value)` return `false` and change nothing when the scan of the text and the parsed file disagree, and the transform then reports `manual`. `null` for every other kind. A transform never prints a `package.json` with `JSON.stringify`. |
+| `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
 | `options` | `{ aggressive, dryRun }`. Never write to disk from a transform. |
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
@@ -157,7 +161,8 @@ Rules for transforms:
 - Rewrite only what is certain. When there is no type information, report instead of guessing.
 - Never insert a sanitizer, and never insert or invent a license key.
 - Do not mention tickets, tasks, or reviews in comments. Cite code by a greppable symbol, not by a line number.
-- Edit `root` in place, report every edit as `changed`, and leave every other byte alone.
+- Edit `root` in place, report every edit as `changed`, and leave every other byte alone. In a `css` part edit through
+  `ctx.css`, which splices the original text (see the `css` row above).
 
 ## Rule kinds and manifest fields
 
@@ -338,7 +343,10 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   line. Parts carry `start` and `end`, and `print` splices changed parts back last to first. A script or style block
   without a match for the `js` or `css` precheck gets no part, and `less`, `stylus`, `sass`, and `src=` blocks are
   listed in `handle.skippedBlocks`. A transform edits a template by assigning `root.content` and calling
-  `markChanged()`.
+  `markChanged()`. The adapter's `precheck` lets a file through when it names `handsontable` or a `--ht-` variable,
+  or opens a `<hot-table>`, `<hot-column>`, `<HotTable>`, or `<HotColumn>` tag, so a template-only component with a
+  globally registered wrapper still gets its template reports. The `.html` adapter's `TEMPLATE_PRECHECK` has matched
+  those tags from the start.
 - `cssVariable` and `themeToken` rules are a rename (`from`, `to`) or a removal (`from`, `removed: true`, `advice`).
   `RULE_KINDS` cannot express "`to` or `removed`", so the transforms throw on a rule with neither and
   `validate(rule)` of both kinds checks it at load. `themeToken` rewrites keys only inside the arguments of
@@ -347,6 +355,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `handsontable/themes` (import, namespace import, or `require`), or a variable that holds one (`addThemeVariables()`,
   one hop). `axios.get(url).params({ ... })` stays untouched. The search for keys stops at a function nested in the
   argument (`insideNestedFunction()`), because code that runs later is not the theme configuration.
+- A `cssVariable` rule edits a `--ht-` string in a js part without the `isHotFile` guard on purpose: `--ht-` is
+  Handsontable's own namespace, so a file that names such a variable uses Handsontable styling, like a `.css` file with
+  no imports. That is the only exception. Every other rule kind needs a Handsontable import or global, and
+  `test/styles.test.mjs` pins both halves on a file with no imports (the `--ht-` string is renamed, `culture`,
+  `correctFormat`, and `.saveManualColumnWidths()` stay untouched and unreported). Do not add a guard to `css-variables.mjs`.
 - A guide anchor on the docs site drops the list number: `## 6. Update theme wrapper border variables` is
   `#update-theme-wrapper-border-variables`, not the old `#_6-...` form.
 - Option rules (`options.mjs`): a rule rewrites an object when its confidence from `findOptionObjects` reaches the
@@ -365,16 +378,37 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   option names besides the key the rule acts on (`ownKey()`), one of them outside `GENERIC_OPTIONS`. So
   `{ locale, numericFormat: {...} }` and `{ correctFormat, datePickerConfig }` stay reports in a hot file. A
   template part and the assignment forms are only reported (`reportTemplateOptions()`, `reportDynamicOptions()`,
-  both fed by `lib/option-sites.mjs`). A removed JSX attribute puts its TODO next to the element (see `todo()`). Rule shapes: `optionRename` `{ from, to, context?: { callArg: [method names] } }` (with `callArg` it
+  both fed by `lib/option-sites.mjs`). The object argument of `setCellMetaObject(row, col, {...})` is the exception:
+  on a receiver `isInstance()` confirms, `findOptionObjects` returns it as a high `cell` object (origin
+  `setCellMetaObject`) and `reportDynamicOptions()` skips it, so the rules rewrite it like a `cells()` return. On any
+  other receiver the object is `claimed`, so the key heuristic never reports it, and the dynamic site is the one entry
+  (its message names the method that makes the call). The `columns`, `cell`, and `cells` JSX attributes of a wrapper
+  component go through the same `expandOption()` as the keys of a settings object. A removed JSX attribute puts its TODO next to the element (see `todo()`). Rule shapes: `optionRename` `{ from, to, context?: { callArg: [method names] } }` (with `callArg` it
   acts on object-literal arguments of member calls, whatever the finder says); `optionMove` `{ from: "<option>.<key>",
   to, report? }` (`to` is a sibling of `<option>`, the key lands before `<option>`); `optionRemove` `{ name, todo?,
-  advice }` (`todo` defaults to true). Edits splice `properties`, so recast reprints the whole object: expect a
-  blank line before a commented property and an expanded one-line object. Anchor a TODO only on a property,
+  advice }` (`todo` defaults to true). Edits that change the length of `properties` make recast reprint the whole
+  object: expect a blank line before a commented or multi-line property, a dropped trailing comma, and an expanded
+  one-line object. A same-length edit would patch only the replaced element, but no move can use that: the emptied
+  `numericFormat: {}` must stay. The 18.x `intlFormatter()` in `renderers/numericRenderer/utils.ts` reads
+  `numericFormat ?? DEFAULT_INTL_FORMAT`, so a nullish value gives no grouping and up to 20 fraction digits, while
+  `{}` gives the `Intl.NumberFormat` defaults. Deleting the empty object would change what the grid shows, and
+  `test/options.test.mjs` pins the assumption against that source. Replacing an object's text from its source (a
+  parsed node that recast prints verbatim) was left out too: a later rule would hold stale paths, and a TODO an
+  earlier rule attached to a child would be lost. Anchor a TODO only on a property,
   statement, declaration, or array element, never on an object after `return`, where `return // c` ends the
   statement. Removing the property that carries a TODO moves the TODO on, so rules sharing an object lose none.
   The `advice` never says the property was deleted, because the rule may not be safe. The comment of a deletion starts
   with `Deleted <name> here.`. A rule that is not safe leaves the property and puts the TODO before it (before the
   enclosing property, statement, or array element when the object is on one line).
+- The `css` adapter never prints the postcss root. postcss 8's stringifier escapes `<style` and `</style` in comments
+  and strings (`\3c style`), so printing the root changes bytes no transform touched. `printCssPart()` asks the part's
+  `CssDocument` for the text: the original with each recorded edit spliced in by offset (a renamed property or value,
+  renamed at-rule parameters, an inserted `/* TODO(...) */` that copies the node's indentation and the file's line
+  ending, or sits inline in a one-line file). Offsets count from after a byte order mark, which postcss strips. A value
+  or property that holds a comment is not edited (`replaceInDeclaration()` returns `false`). `print()` throws when the
+  edited text does not parse to the model, and `transformFile()` turns that into a `transform-error` that leaves the
+  file alone. `test/fixtures.test.mjs` holds every css, scss, and vue fixture to "a changed line is a line a report
+  entry names, an added line is a TODO comment".
 - The `json` adapter does not print the parsed value. A `package.json` is edited by offset through
   `JsonDocument` (`ctx.json`), so every byte outside the edited value stays: escapes (`é`, `\/`), number
   spelling (`1.0`, `1e3`), key order, tabs, CRLF, a minified file. An added dependency is one new line (or one new
@@ -487,8 +521,10 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `setCellMeta()`/`setCellMetaObject()` in a hot file. `siblingKey` (one-segment path) wants the object or element
   to set another key too (`pattern` beside `culture`), and `annotatedObject` finds an object literal that a type
   annotation, `as`, or `satisfies` names. Neither reads templates.
-- Dependency ranges (`planRange()`, `rangeAdmits()`): a range that already allows the target (`>=17 <19`, `*`, `18`,
-  an `npm:` alias to a new enough version) is `keep` and produces no entry. `dependencies.mjs` also reports, never
+- Dependency ranges (`planRange()`, `rangeAdmits()`): a compound or open range that already allows the target
+  (`>=17.1.0 <19`, `*`, `18`, an `npm:` alias to a new enough version) is `keep` and produces no entry. A simple caret,
+  tilde, or exact range whose lowest version is below the target is raised to the target, even when it admits it
+  (`^18.0.0` becomes `^18.1.0`), because the user asked to migrate to that version. A range is never lowered. `dependencies.mjs` also reports, never
   edits, `overrides`, `resolutions`, `pnpm.overrides`, `npm:` aliases under another name, and pinned CDN URLs in
   `.html` pages (a `template` scan of the `dependency` module) that sit below the target. Every entry carries a
   `mergeKey`, so a chain 17 to 18.1 reports one net entry per spot.
@@ -501,5 +537,10 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   already handles `'header'` in the same `||` chain or fall-through group, and once per function that reads its source
   argument (dialog content is now `'dialog'`, not `undefined`). `sanitizer-new-sources` reports a function that reads
   its source or looks like it escapes HTML.
+- `18.1.0/pikaday-theme-leftovers` reads `css` and `template` parts, so the inline `<style>` of an HTML page is
+  covered (class attributes are not: the rule looks for `.pika-single`, `.pika-next`, and `.pika-prev` selectors).
+  `unlessFileMatches: "pikaday"` skips a stylesheet or a page that mentions `pikaday`, such as a `<link>` or `<script
+  src>` that loads Pikaday itself. It shares `mergeKey: "pikaday"` with `18.0.0/pikaday-leftovers`, so a chained run
+  reports one entry per spot.
 - Detect negative fixtures must pass the adapter precheck, or they prove nothing: put the word Handsontable in a
   comment. `report.json` is matched as a subset, so `test/detect.test.mjs` asserts the empty reports.

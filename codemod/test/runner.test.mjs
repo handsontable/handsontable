@@ -273,9 +273,10 @@ describe('transformFile and the transform contract', () => {
     }, { filePath: 'dir/a.css', facts, options: { aggressive: true } });
 
     assert.deepEqual(Object.keys(seen).sort(), [
-      'comment', 'facts', 'fileKind', 'filePath', 'j', 'json', 'markChanged', 'options', 'report', 'root',
+      'comment', 'css', 'facts', 'fileKind', 'filePath', 'j', 'json', 'markChanged', 'options', 'report', 'root',
       'source', 'todo',
     ]);
+    assert.equal(typeof seen.css.replaceInDeclaration, 'function');
     assert.equal(seen.filePath, 'dir/a.css');
     assert.equal(seen.fileKind, 'css');
     assert.equal(seen.source, css);
@@ -287,16 +288,41 @@ describe('transformFile and the transform contract', () => {
 
   it('prints only after markChanged and keeps the original bytes otherwise', async() => {
     const noop = await runFake((ctx) => {
-      ctx.root.first.first.value = '2';
+      ctx.css.replaceInDeclaration(ctx.root.first.first, /1/g, '2');
     });
     const edit = await runFake((ctx) => {
-      ctx.root.first.first.value = '2';
+      ctx.css.replaceInDeclaration(ctx.root.first.first, /1/g, '2');
       ctx.markChanged();
     });
 
     assert.equal(noop.changed, false);
     assert.equal(noop.output, css);
     assert.equal(edit.output, 'a { --ht-x: 2; }\n');
+  });
+
+  it('turns an edit that the printer cannot verify into a transform-error and leaves the file alone', async() => {
+    const result = await runFake((ctx) => {
+      ctx.css.replaceInDeclaration(ctx.root.first.first, /1/g, '2');
+      ctx.root.first.first.prop = '--ht-other';
+      ctx.markChanged();
+    });
+
+    assert.equal(result.changed, false);
+    assert.equal(result.output, css);
+    assert.equal(result.entries.length, 1);
+    assert.equal(result.entries[0].ruleId, 'transform-error');
+    assert.match(result.entries[0].message, /does not match the intended edits/);
+  });
+
+  it('turns a direct edit of the postcss root, which the document never saw, into a transform-error', async() => {
+    const result = await runFake((ctx) => {
+      ctx.root.first.first.value = '2';
+      ctx.markChanged();
+    });
+
+    assert.equal(result.changed, false);
+    assert.equal(result.output, css);
+    assert.equal(result.entries[0].ruleId, 'transform-error');
   });
 
   it('fills file, guideUrl, and a null line into report entries and rejects malformed ones', async() => {
@@ -532,6 +558,20 @@ describe('which versions a run covers', () => {
 
       assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]), [['18.1.0/pikaday-theme-leftovers', 1]]);
       assert.match(entries[0].message, /Remove this rule unless you load Pikaday yourself\./);
+    });
+  });
+
+  it('reports a Pikaday style rule of an HTML page once in a chained run, and in a run from 18.0', async() => {
+    const page = '<style>\n  .pika-single { color: red; }\n</style>\n<hot-table></hot-table>\n';
+
+    await withProject({ 'index.html': page }, async(dir) => {
+      for (const from of ['17', '18.0']) {
+        const result = await run({ cwd: dir, from, to: '18.1', dryRun: true });
+        const entries = result.report.entries.filter(entry => entry.file === 'index.html');
+
+        assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]),
+          [['18.1.0/pikaday-theme-leftovers', 2]], `from ${from}`);
+      }
     });
   });
 
@@ -823,6 +863,8 @@ describe('symbolic links and the project boundary', () => {
         const skipped = result.report.skipped().map(entry => entry.file);
 
         assert.ok(skipped.includes('src/link.css'), skipped.join(','));
+        assert.ok(skipped.includes('linkdir'), `a link to a directory is listed once: ${skipped.join(',')}`);
+        assert.equal(skipped.filter(file => file === 'linkdir').length, 1);
         assert.equal(result.report.skipped().find(entry => entry.file === 'src/link.css').severity, 'warning');
         assert.match(result.report.skipped()[0].message, /symbolic link/);
       });

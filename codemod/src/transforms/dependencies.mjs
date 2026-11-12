@@ -226,9 +226,11 @@ function setRange(ctx, section, name, value) {
 }
 
 /**
- * Raise the range of every listed package that the `package.json` declares, keeping the operator style. A range
- * that already allows the target version is left alone and not reported. Two migration steps that touch the same
- * entry produce one report entry that states the net change.
+ * Raise the range of every listed package that the `package.json` declares, keeping the operator style. A compound
+ * or open range that already allows the target version (`>=17.1.0 <19`, `*`) is left alone and not reported, and so
+ * is a range that starts at or above it. A simple caret, tilde, or exact range below the target is raised even when
+ * it admits the target (`^18.0.0` becomes `^18.1.0`). Two migration steps that touch the same entry produce one
+ * report entry that states the net change.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
  * @param {import('../types.mjs').Rule} rule A rule with a `bump` map of package name to target version.

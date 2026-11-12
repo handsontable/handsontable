@@ -144,8 +144,10 @@ export function rangeAdmits(range, version) {
  *
  * - `rewrite`: `^17.1.0` becomes `^18.0.0`, `~17.1.0` becomes `~18.0.0`, `17.1.0` becomes `18.0.0`, and a
  *   `^17` or `~17.1` shorthand becomes the same operator with the full target.
- * - `keep`: the range already allows the target (`>=17.0.0 <19`, `*`, `18.x`, `npm:handsontable@^18.0.0`), or its
- *   lowest version is at or above the target, so it is never lowered.
+ * - `keep`: a compound or open range that already allows the target (`>=17.0.0 <19`, `*`, `18.x`,
+ *   `npm:handsontable@^18.0.0`), or a simple range whose lowest version is at or above the target, so it is never
+ *   lowered. A simple caret, tilde, or exact range below the target is raised even when it admits the target
+ *   (`^18.0.0` becomes `^18.1.0`), because the user asked to migrate to that version.
  * - `skip`: a local or remote source (`workspace:`, `file:`, `link:`, git, URL, `owner/repo`) or a dist-tag
  *   (`latest`, `next`). There is nothing to rewrite and nothing to tell the user.
  * - `manual`: a comparator range that stops short of the target (`>=17 <18`), an `||` range, an x-range

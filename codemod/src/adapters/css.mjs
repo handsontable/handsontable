@@ -1,6 +1,7 @@
 import { extname } from 'node:path';
 import postcss from 'postcss';
 import scss from 'postcss-scss';
+import { CssDocument } from '../lib/css-edit.mjs';
 
 /**
  * Cheap test on raw stylesheet text: does it mention a Handsontable class, a theme variable, or a
@@ -16,36 +17,39 @@ export const CSS_PRECHECK = /--ht-|\bht-|\bht[A-Z]|[Hh]andsontable|\.pika-/;
  * @param {string} from File name, used in postcss error messages.
  * @param {boolean} isScss Parse with the SCSS syntax instead of plain CSS.
  * @param {number} [lineOffset] Zero-based line of the text inside its file.
- * @returns {import('../types.mjs').Part} The part. It carries `syntax`, which `printCssPart` reads.
+ * @returns {import('../types.mjs').Part} The part. It carries the `CssDocument` that records its edits.
  * @throws {Error} When the text does not parse.
  */
 export function createCssPart(source, from, isScss, lineOffset = 0) {
   const syntax = isScss ? scss : postcss;
+  const root = syntax.parse(source, { from });
 
   return {
     fileKind: 'css',
     source,
-    root: syntax.parse(source, { from }),
+    root,
     j: null,
-    syntax,
+    document: new CssDocument(source, root, text => syntax.parse(text, { from })),
     lineOffset,
     changed: false,
   };
 }
 
 /**
- * Print a `css` part back to text.
+ * Print a `css` part back to text: the original with the edits of its `CssDocument` spliced in. The root is never
+ * stringified, because that would change bytes no transform touched.
  *
  * @param {import('../types.mjs').Part} part A part made by `createCssPart`.
  * @returns {string} Printed text.
+ * @throws {Error} When the edited text does not match the intended edits.
  */
 export function printCssPart(part) {
-  return part.root.toString(part.syntax === scss ? scss.stringify : undefined);
+  return part.document.print();
 }
 
 /**
- * Adapter for CSS and SCSS. The whole file is one `css` part whose `root` is a postcss Root. postcss keeps the
- * raw formatting of every node it does not touch, so an edited file keeps its layout.
+ * Adapter for CSS and SCSS. The whole file is one `css` part whose `root` is a postcss Root, which transforms read.
+ * They edit through the part's `CssDocument`, so an edited file differs from the original only where an edit is.
  *
  * @type {import('../types.mjs').Adapter}
  */

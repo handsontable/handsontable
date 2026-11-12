@@ -13,7 +13,9 @@ one of two ways:
 - **Report.** When the change needs a decision, the tool leaves the code alone. It adds a line to the report, and in
   some cases a `TODO(handsontable-codemod <rule id>)` comment next to the code.
 
-The tool never guesses. It has no type information, so a spot it cannot confirm is reported, not rewritten.
+The tool never guesses. It has no type information, so a spot it cannot confirm is reported, not rewritten. A
+JavaScript file needs a Handsontable import or global before the tool edits it. The one exception is a file that names
+a `--ht-` CSS variable, which counts as Handsontable usage for the CSS variable rules (see "How confidence works").
 
 ### What it does not do
 
@@ -25,8 +27,8 @@ The tool never guesses. It has no type information, so a spot it cannot confirm 
   `<script>` elements of an HTML page that use Handsontable, because it reads no JavaScript inside a page.
 - It does not convert Numbro.js patterns or Moment.js date formats. It reports each `numericFormat.pattern`,
   `dateFormat`, and `timeFormat` that no longer works, because the replacement depends on what the pattern meant.
-- It does not format code. A rewritten one-line object or JSX element can print on more lines than before. Run your
-  formatter afterwards.
+- It does not format code. A rewritten one-line object or JSX element can print on more lines than before (see
+  "Limitations"). Run your formatter afterwards.
 
 ## Requirements
 
@@ -211,19 +213,34 @@ The tool reports:
 
 ### 18.0 to 18.1
 
-The tool raises the version ranges in `package.json`. It reports a grid with no `licenseKey`, sanitizer functions
+The tool raises the version ranges in `package.json`. A caret, tilde, or exact range whose lowest version is below the
+target moves to the target, even when it already admits it (`^18.0.0` becomes `^18.1.0`), because you asked to migrate
+to that version. A compound or open range that admits the target (`>=17.1.0 <19`, `*`) stays as it is. It reports a
+grid with no `licenseKey`, sanitizer functions
 that test the source against `'innerHTML'`, synthetic header events, column move hooks, loading markup, and Pikaday
-styles that are left in a theme.
+styles that are left in a theme, in a stylesheet, or in the inline `<style>` of an HTML page. A file that mentions
+`pikaday` (a `<link>` to its stylesheet, say) is left alone, because it loads Pikaday itself.
 
 ## How confidence works
 
 The tool recognizes a Handsontable settings object by what the file shows. An object passed to
 `new Handsontable()` or `updateSettings()`, an object in a `settings` prop, an object with a `GridSettings`
-annotation, and the `columns`, `cell`, and `cells` below them have high confidence. An object that only looks like
-settings, for example a variable with the keys `colHeaders` and `rowHeaders`, has medium confidence.
+annotation, and the `columns`, `cell`, and `cells` below them have high confidence. So do the objects in the
+`columns`, `cell`, and `cells` props of a wrapper component, because a prop of `<HotTable>` is an option like a key of
+a settings object: `columns={[{ ... }]}`, `columns={(index) => ({ ... })}`, and `columns={columnDefs}`, where
+`columnDefs` is an array in the same file, or a `useMemo(() => [...], [])` call with a single `return`. The object
+argument of `setCellMetaObject(row, col, { ... })` on a grid instance the file shows (`const hot = new Handsontable(...)`)
+is a cell object with high confidence, like a return of `cells()`. An object that
+only looks like settings, for example a variable with the keys `colHeaders` and `rowHeaders`, has medium confidence.
 
 A rule rewrites an object at high confidence. At medium confidence it reports the key and leaves the object alone.
 `--aggressive` lowers the bar to medium for every rule. Use it after you read the report of a normal run.
+
+Every rule kind needs a Handsontable import or global in the file, with one exception. `--ht-` is Handsontable's own
+CSS variable namespace, so a file that names a `--ht-` variable counts as Handsontable usage for the CSS variable
+rules only, as a `.css` file does. In a JavaScript file with no other sign of Handsontable, the tool still renames
+`'--ht-wrapper-border-radius'` in a string. It does not touch `numericFormat.culture`, `correctFormat`, or a
+`.saveManualColumnWidths()` call there, and it does not report them.
 
 ## After the run
 
@@ -256,20 +273,29 @@ the tool reads the version from `package.json`, which the run raised, and answer
 - It edits `package.json` by text offset, so only the changed values and one added line differ. When it cannot
   find a value in the text in a way that agrees with the parsed file (a repeated key, say), it reports the step
   instead of editing.
+- It edits a stylesheet (`.css`, `.scss`, and a Vue `<style>` block) by text offset too, so only the renamed names and
+  the inserted `/* TODO(...) */` comments differ: comments, strings, and spacing keep their bytes. A declaration whose
+  value holds a comment is reported, not edited.
 - A `.vue` file is read block by block. `less`, `stylus`, `sass`, and `src=` blocks are not read. They are listed
   under "Skipped files", and so are Less, Stylus, and Sass files.
 - A file that does not parse is skipped and reported, and the run exits with code 1.
 - It handles `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts`, `.vue`, `.css`, `.scss`, `.html`, `.htm`,
   and `package.json`.
 - It does not install packages. After it edits `package.json`, run your package manager.
-- When it rewrites a one-line object or a JSX element, the printer can spread it over several lines. Run your
-  formatter afterwards.
+- When a rewrite adds or removes a key, the printer reprints that object: a one-line object can spread over several
+  lines, a blank line can appear around a multi-line key, and a trailing comma can go. A removed option leaves its
+  TODO above the next property, or the previous one when it was last. Run your formatter afterwards.
+- Moving `numericFormat.culture` to `locale` can leave `numericFormat: {}` behind. The tool keeps it on purpose: in
+  18.x an empty object formats with the `Intl.NumberFormat` defaults (digit grouping on), while no `numericFormat`
+  at all uses a plain format without grouping. Delete the empty object yourself when you want the plain format.
 - `export ... from 'handsontable/common'` and dynamic `import('handsontable/common')`, including the ones in JSDoc
   comments, are reported and not rewritten.
 - Template code (Vue, Angular, and HTML templates) and the inline scripts of an HTML page are reported and not
-  rewritten. A Vue file that only has a `<template>` and never names `handsontable` is not read at all.
-- Assignments such as `column.numericFormat = {...}` and `setCellMeta(row, col, 'correctFormat', ...)` calls are
-  reported and not rewritten.
+  rewritten. A Vue file is read when it names `handsontable` or a `--ht-` variable, or when it uses a `<hot-table>`,
+  `<hot-column>`, `<HotTable>`, or `<HotColumn>` tag, so a template-only component with a globally registered
+  wrapper is reported too. Any other Vue file is not read at all.
+- Assignments such as `column.numericFormat = {...}`, `setCellMeta(row, col, 'correctFormat', ...)` calls, and
+  `setCellMetaObject()` calls on a receiver the tool cannot confirm as a grid instance are reported and not rewritten.
 - It does not edit `overrides`, `resolutions`, `pnpm.overrides`, `npm:` aliases, or CDN URLs. It reports the ones that
   hold Handsontable or a wrapper below the target version.
 - A git tree check needs git. Without it the tool treats the directory as a plain folder.

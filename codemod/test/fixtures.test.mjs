@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { diffArrays } from 'diff';
 import { listFixtures, parseReport, runFixture, unmatchedEntries } from './helpers/fixtures.mjs';
 
 const fixtures = await listFixtures();
@@ -39,8 +40,105 @@ describe('fixture harness', () => {
   });
 });
 
+/**
+ * The input lines (one-based) that the report entries of a run name, as `line` or in `lines`.
+ *
+ * @param {object[]} entries Report entries.
+ * @returns {Set<number>} The lines.
+ */
+function namedLines(entries) {
+  const lines = new Set();
+
+  for (const entry of entries) {
+    [entry.line, ...(entry.lines ?? [])].filter(Number.isInteger).forEach(line => lines.add(line));
+  }
+
+  return lines;
+}
+
+/**
+ * The one-based input lines inside the `<style>` blocks of a Vue file, tags excluded.
+ *
+ * @param {string[]} lines The lines of the file.
+ * @returns {Set<number>} The lines of the blocks.
+ */
+function styleBlockLines(lines) {
+  const inside = new Set();
+  let open = false;
+
+  lines.forEach((text, index) => {
+    if (/<\/style>/.test(text)) {
+      open = false;
+    }
+
+    if (open) {
+      inside.add(index + 1);
+    }
+
+    if (/<style\b[^>]*>\s*$/.test(text)) {
+      open = true;
+    }
+  });
+
+  return inside;
+}
+
+/**
+ * Compare a stylesheet input with its output line by line. A line the run changed must be one a report entry names,
+ * and a line it added without removing one must be a TODO comment. In a Vue file only the removed lines of the
+ * `<style>` blocks are held to this, because the printer of a script block reformats what it edits.
+ *
+ * @param {string} input The original text.
+ * @param {string} output The migrated text.
+ * @param {object[]} entries Report entries of the run.
+ * @param {boolean} isVue Whether the file is a Vue component.
+ * @returns {string[]} A description of every line that broke the rule.
+ */
+function untargetedStyleChanges(input, output, entries, isVue) {
+  const before = input.split('\n');
+  const named = namedLines(entries);
+  const styles = isVue ? styleBlockLines(before) : null;
+  const problems = [];
+  let line = 1;
+  let afterRemoval = false;
+
+  for (const chunk of diffArrays(before, output.split('\n'))) {
+    if (chunk.added) {
+      if (!isVue && !afterRemoval) {
+        chunk.value.filter(text => !/TODO\(handsontable-codemod/.test(text))
+          .forEach(text => problems.push(`added line that is not a TODO comment: ${text}`));
+      }
+    } else if (chunk.removed) {
+      for (let index = 0; index < chunk.value.length; index++) {
+        const number = line + index;
+
+        if ((!styles || styles.has(number)) && !named.has(number)) {
+          problems.push(`line ${number} changed without a report entry: ${chunk.value[index]}`);
+        }
+      }
+
+      line += chunk.count;
+    } else {
+      line += chunk.count;
+    }
+
+    afterRemoval = Boolean(chunk.removed);
+  }
+
+  return problems;
+}
+
 for (const fixture of fixtures) {
   describe(`fixture ${fixture.version}/${fixture.name}`, () => {
+    if (/\.(css|scss|vue)$/.test(fixture.inputName ?? '')) {
+      it('changes only lines that a report entry names, and adds only TODO comments', async() => {
+        const result = await runFixture(fixture);
+        const isVue = fixture.inputName.endsWith('.vue');
+
+        assert.deepEqual(untargetedStyleChanges(result.input, result.output, result.entries, isVue), []);
+      });
+    }
+
     it('produces the expected output and report', async() => {
       const result = await runFixture(fixture);
 
