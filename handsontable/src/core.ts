@@ -61,7 +61,7 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
-import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { ColumnSizeSettings } from './core/columnSizeSettings';
 import { RowSizeSettings, type RowSizeOption } from './core/rowSizeSettings';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
@@ -1957,20 +1957,13 @@ export default function Core(
 
             if (colDelta) {
               // `getColHeader()` reads the array by the physical index, so the empty entries go in at the
-              // physical index the created column takes, the same as `colWidths` below. The array is changed
-              // in place, because the user holds it and UndoRedo refills it in place.
+              // physical index the created column takes. The array is changed in place, because the user holds
+              // it and UndoRedo refills it in place.
               if (Array.isArray(tableMeta.colHeaders)) {
                 const spliceArray = [startColumnPhysicalIndex!, 0];
 
                 spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
-              }
-
-              // `colWidths` is addressed by the physical index, which a created column takes in the middle of
-              // the physical order after any column move, so the widths after it shift with their columns.
-              if (Array.isArray(tableMeta.colWidths)) {
-                tableMeta.colWidths =
-                  insertColWidths(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
               }
 
               selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
@@ -2128,7 +2121,7 @@ export default function Core(
                 // The physical indexes of the columns the removal takes, read before it renumbers them.
                 const removedPhysicalColumns: number[] = [];
 
-                if (Array.isArray(tableMeta.colWidths) || Array.isArray(tableMeta.colHeaders)) {
+                if (Array.isArray(tableMeta.colHeaders)) {
                   const firstRemovedVisualColumn = isEmpty(groupIndex) ?
                     Math.max(totalColumnsBefore - groupAmount, 0) : calcIndex;
 
@@ -2224,10 +2217,6 @@ export default function Core(
                   });
                 }
 
-                if (Array.isArray(tableMeta.colWidths)) {
-                  tableMeta.colWidths = removeColWidths(tableMeta.colWidths, removedPhysicalColumns);
-                }
-
                 offset += groupAmount;
               });
             };
@@ -2256,9 +2245,9 @@ export default function Core(
 
         // The index mapper update already asked for a full render and dropped the size caches, but a
         // `hot.render()` a hook made from inside this call consumed that request and rebuilt the caches from
-        // state this call had not finished writing, such as the `colHeaders` and `colWidths` arrays. The
+        // state this call had not finished writing, such as the `colHeaders` array and the fixed counts. The
         // closing render must repaint the headers and re-measure the widths. It sits in the `finally`, so a
-        // hook that throws after the arrays were written does not leave the next fast draw with that paint.
+        // hook that throws after the state was written does not leave the next fast draw with that paint.
         instance.forceFullRender = true;
         instance.view.invalidateColumnWidthCache();
       }
@@ -9594,16 +9583,6 @@ export default function Core(
   };
 
   /**
-   * Translates a visual column index to the index that the `colWidths` array and function use.
-   * Headers (negative indexes) and columns outside the index mapper have no physical index,
-   * so they keep the index they were given.
-   *
-   * @param {number} col Visual col index.
-   * @returns {number}
-   */
-  const toPhysicalWidthIndex = (col: number): number => (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
-
-  /**
    * Return column width from settings (no guessing). Private use intended.
    *
    * A `null` width names no width and is returned as `undefined`, the way `AutoColumnSize#isEnabled()`
@@ -9613,8 +9592,9 @@ export default function Core(
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {number} col Visual col index. The `colWidths` array and function are read by the
-   * matching physical index.
+   * @param {number} col Visual col index. The `colWidths` function is called with the matching physical index,
+   * and the `colWidths` array is read at the entry that column was declared at, which it keeps when columns are
+   * inserted or removed (`ColumnSizeSettings`). A column outside the grid gets no width from either.
    * @returns {number|undefined}
    */
   this._getColWidthFromSettings = function(col: number) {
@@ -9631,13 +9611,30 @@ export default function Core(
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
-        case 'object': // array, addressed by the physical column index
-          width = (width as Record<number, unknown>)[toPhysicalWidthIndex(col)];
-          break;
+        case 'object': { // array, addressed by the physical column index
+          if (col < 0) {
+            width = (width as Record<number, unknown>)[col];
+            break;
+          }
 
-        case 'function': // called with the physical column index
-          width = (width as (col: number) => unknown)(toPhysicalWidthIndex(col));
+          const physicalColumn = instance.toPhysicalColumn(col);
+          // The grid-level array is read through the entry each column was declared at, which the column keeps
+          // when columns are inserted or removed. A column inserted between others has none. A column outside
+          // the index mapper has no physical index and keeps the index it was given.
+          const entry = physicalColumn === null ?
+            col : columnSizeSettings.getDeclaredIndex(physicalColumn, width as unknown[]);
+
+          width = entry === null ? undefined : (width as Record<number, unknown>)[entry];
           break;
+        }
+
+        case 'function': { // called with the physical column index
+          // A header, and a column outside the index mapper, keep the index they were given.
+          const physicalColumn = (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
+
+          width = (width as (col: number) => unknown)(physicalColumn);
+          break;
+        }
         default:
           break;
       }
@@ -11374,6 +11371,7 @@ export default function Core(
   });
 
   const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
+  const columnSizeSettings = new ColumnSizeSettings(instance);
   const rowSizeSettings = new RowSizeSettings(instance);
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
