@@ -178,12 +178,13 @@ interface ChangeSetAwaitingApply {
    */
   rejectableChanges: CellChange[];
   /**
-   * The cells of the set written at once that read a deferred cell of the set (`#findReadersOfDeferred()`).
-   * The Core validated them by the value the validation probe read, with the deferred cells' new values, so
-   * the apply leaves them out of the dependent validation, unless a deferred change was rejected: they then
-   * hold a value computed from the old content, and the apply validates them again.
+   * The cells of the set written at once that read a deferred cell of the set (`#findReadersOfDeferred()`)
+   * and got the validation probe's result (`#probeValidationValues()`). The Core validated them by that
+   * result, with the deferred cells' new values, so the apply leaves them out of the dependent validation,
+   * unless a deferred change was rejected: they then hold a value computed from the old content, and the
+   * apply validates them again. A reader without a probe result is not here: it stays a held dependent.
    */
-  readersOfDeferred: { address: FormulasCellAddress }[];
+  readersOfDeferred: { address: FormulasCellAddress; answer: ReaderAnswer }[];
   /**
    * The cells the first write really reached, with the value each held before it. A sheet switch
    * before the Core applies the set drops it and restores exactly these (`#restoreSwitchedAwaySheet`): by then the
@@ -206,6 +207,23 @@ interface ValidationValue {
   changeValue: unknown;
   hasResult: boolean;
   result: unknown;
+  /**
+   * Set for the entry of a reader of a deferred cell (`ProbeReader`): how the Core's validation of the
+   * change answered.
+   */
+  readerAnswer?: ReaderAnswer;
+}
+
+/**
+ * How the validator of a reader of a deferred cell (`Formulas#findReadersOfDeferred`) answered the Core's
+ * validation of its change: `answered` once `afterValidate` fired for it, and `isSyncChecked` /
+ * `wasAnsweredAtCheck` once a check queued behind the validator's own microtask ran. The Core runs every
+ * validator in a microtask, so a validator that answers in its call has answered by then.
+ */
+interface ReaderAnswer {
+  answered: boolean;
+  isSyncChecked: boolean;
+  wasAnsweredAtCheck: boolean;
 }
 
 /**
@@ -849,6 +867,14 @@ export class Formulas extends BasePlugin {
   #dependentValidationUnrecorded = false;
 
   /**
+   * The answer records of the readers of deferred cells whose change the Core is validating, keyed by
+   * `#validationValueKey()`, oldest first (see `#trackReaderAnswer()`).
+   *
+   * @type {Map<string, ReaderAnswer[]>}
+   */
+  #readerAnswers = new Map<string, ReaderAnswer[]>();
+
+  /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
    * `commitPendingMoveCells` can execute the corresponding HF operation without recomputing
    * visual-to-HF coordinates. `rect` carries the same operation in visual coordinates for the
@@ -1481,6 +1507,7 @@ export class Formulas extends BasePlugin {
     this.addHook('modifyData', this.#onModifyData);
     this.addHook('modifySourceData', this.#onModifySourceData);
     this.addHook('beforeValidate', this.#onBeforeValidate);
+    this.addHook('afterValidate', this.#onAfterValidate);
 
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterSetDataAtCell', this.#onAfterSetDataAtCell);
@@ -4612,6 +4639,10 @@ export class Formulas extends BasePlugin {
     if (index !== -1) {
       const [pending] = entries.splice(index, 1);
 
+      if (pending.readerAnswer) {
+        this.#trackReaderAnswer(visualRow, visualColumn, pending.readerAnswer);
+      }
+
       return pending.hasResult ? pending.result : value;
     }
 
@@ -4620,6 +4651,54 @@ export class Formulas extends BasePlugin {
     }
 
     return value;
+  };
+
+  /**
+   * Starts watching how the validator of a reader of a deferred cell answers the Core's validation of its
+   * change (see `ReaderAnswer`). `beforeValidate` fires in the `validateCell()` call, before the call queues
+   * the validator's microtask, so a check queued from a microtask queued now runs after the validator's.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @param {object} answer The answer record of the reader.
+   */
+  #trackReaderAnswer(visualRow: number, visualColumn: number, answer: ReaderAnswer) {
+    const key = this.#validationValueKey(visualRow, visualColumn);
+
+    this.#readerAnswers.set(key, [...(this.#readerAnswers.get(key) ?? []), answer]);
+    this.hot._registerMicrotask(() => this.hot._registerMicrotask(() => {
+      answer.isSyncChecked = true;
+      answer.wasAnsweredAtCheck = answer.answered;
+    }));
+  }
+
+  /**
+   * `afterValidate` hook callback. Marks the answer of a reader of a deferred cell the Core is validating
+   * (see `#trackReaderAnswer()`).
+   *
+   * @param {boolean} isValid The validation result.
+   * @param {*} value The validated value.
+   * @param {number} visualRow The visual row index.
+   * @param {number|string} prop The visual column index or property name of the column.
+   */
+  #onAfterValidate = (isValid: boolean, value: unknown, visualRow: number, prop: number | string) => {
+    if (this.#readerAnswers.size === 0) {
+      return;
+    }
+
+    const visualColumn = this.hot.propToCol(prop);
+    const key = visualColumn === null ? null : this.#validationValueKey(visualRow, visualColumn);
+    const answers = key === null ? undefined : this.#readerAnswers.get(key);
+
+    if (!answers) {
+      return;
+    }
+
+    answers.shift()!.answered = true;
+
+    if (answers.length === 0) {
+      this.#readerAnswers.delete(key!);
+    }
   };
 
   /**
@@ -5576,11 +5655,12 @@ export class Formulas extends BasePlugin {
       hasRejectableChange: rejectableChanges.length > 0,
       heldDependents,
       rejectableChanges: rejectableChanges.map(({ change }) => change),
-      readersOfDeferred: readersOfDeferred.map(({ address }) => ({ address })),
+      readersOfDeferred: [],
       writtenCells,
     });
 
-    this.#probeValidationValues(rejectableChanges, source, readersOfDeferred);
+    this.#changesAwaitingApply.get(changes)!.readersOfDeferred =
+      this.#probeValidationValues(rejectableChanges, source, readersOfDeferred);
     this.validateDependentCells(earlyDependents, changedCells);
   };
 
@@ -5674,8 +5754,8 @@ export class Formulas extends BasePlugin {
    * content, so the Core validated it by a value it never ends with (`#VALUE!` read from an old text),
    * marked it invalid for the whole wait, and the apply validated it a second time outside the edit's
    * undo step. The validation probe reads its result with the deferred cells' new values instead
-   * (`#probeValidationValues()`). Only the last change of a cell is taken, as the engine holds it, and only
-   * a cell with a validator: the probe result is for the Core's validation of the change.
+   * (`#probeValidationValues()`). A cell the set changes more than once is left out, and so is a cell
+   * without a validator: the probe result is for the Core's validation of the change.
    *
    * @param {Array[]} immediateChanges The changes written at once.
    * @param {Set<string>} reached The keys of the cells the deferred changes of the set recalculate.
@@ -5683,6 +5763,7 @@ export class Formulas extends BasePlugin {
    */
   #findReadersOfDeferred(immediateChanges: CellChange[], reached: Set<string>) {
     const readers = new Map<string, RejectableChange & { address: FormulasCellAddress }>();
+    const changedKeys = new Set<string>();
 
     if (reached.size === 0) {
       return [];
@@ -5706,8 +5787,16 @@ export class Formulas extends BasePlugin {
       const address = this.#toEngineCellAddress(visualRow, visualColumn);
       const key = toCellKey(address);
 
-      // A later change to the cell replaces an earlier one, as in the engine.
-      readers.delete(key);
+      // A cell the set changes more than once is not a reader: the Core validates each change, and
+      // `#onBeforeValidate` hands an entry to a change of the cell whose value does not match it, so the
+      // earlier change took the last one's result. It stays a held dependent, validated at the apply.
+      if (changedKeys.has(key)) {
+        readers.delete(key);
+
+        return;
+      }
+
+      changedKeys.add(key);
 
       if (reached.has(key) && this.hot.getCellValidator(this.hot.getCellMetaTransient(visualRow, visualColumn))) {
         readers.set(key, { change, visualRow, visualColumn, physicalRow, physicalColumn, address });
@@ -5801,14 +5890,15 @@ export class Formulas extends BasePlugin {
    * @param {object[]} rejectableChanges The changes the Core can reject.
    * @param {string} [source] The change source, which the Core hands `beforeValidate`.
    * @param {object[]} [readersOfDeferred] The changes written at once that read a deferred cell of the set.
+   * @returns {object[]} The readers that got the probe's result: their address and answer record.
    */
   #probeValidationValues(
     rejectableChanges: RejectableChange[],
     source: string | undefined,
     readersOfDeferred: (RejectableChange & { address: FormulasCellAddress })[] = [],
-  ) {
+  ): ChangeSetAwaitingApply['readersOfDeferred'] {
     if (rejectableChanges.length === 0) {
-      return;
+      return [];
     }
 
     if (this.#validationValues.size === 0) {
@@ -5863,7 +5953,7 @@ export class Formulas extends BasePlugin {
     });
 
     if (!canProbe || (readers.length === 0 && !writes.some(({ value }) => isFormula(value)))) {
-      return;
+      return [];
     }
 
     // A probe pushes up to two batches and undoes each. An engine that keeps fewer undo entries would drop
@@ -5876,7 +5966,7 @@ export class Formulas extends BasePlugin {
         }
       });
 
-      return;
+      return [];
     }
 
     // A cell the set writes twice holds its last value in the engine, as after the apply; an earlier formula
@@ -5892,6 +5982,25 @@ export class Formulas extends BasePlugin {
     });
 
     withPluginEngineProbe(engine!, () => this.#writeOwnSheet(engine, () => this.#runProbe(lastWrites, readers)));
+
+    // A reader the probe read no result for is validated by the engine's value, as a cell of the set written at
+    // once: its entry would hand the validator the formula text.
+    return readers.flatMap(({ visualRow, visualColumn, address, entry }) => {
+      if (!entry.hasResult) {
+        const entries = this.#validationValues.get(this.#validationValueKey(visualRow, visualColumn)) ?? [];
+        const index = entries.indexOf(entry);
+
+        if (index !== -1) {
+          entries.splice(index, 1);
+        }
+
+        return [];
+      }
+
+      entry.readerAnswer = { answered: false, isSyncChecked: false, wasAnsweredAtCheck: false };
+
+      return [{ address, answer: entry.readerAnswer }];
+    });
   }
 
   /**
@@ -6153,9 +6262,12 @@ export class Formulas extends BasePlugin {
 
     // The Core validated the readers of the deferred cells by the probe's result, which is what they hold
     // now when every deferred change was accepted, so they are not validated again. After a rejection they
-    // hold a value computed from the old content: validated again, as changes of the edit, inside its undo
-    // step, so what their validator or `afterValidate` writes is undone with the edit.
+    // hold a value computed from the old content, so they are validated again. A reader whose validator
+    // answered in its own call is validated inside the edit's undo step, so what its validator or
+    // `afterValidate` writes is undone with the edit. Any other one is validated outside every step, like a
+    // dependent: inside, its validator would hold the step and an undo right after `afterChange` was lost.
     const isAnyRejected = awaitingApply.rejectableChanges.some(change => !changes.includes(change));
+    const otherChangedCells = changedCells.filter(change => !isReader(change));
 
     this.#validateChangedDependents(
       awaitingApply,
@@ -6164,7 +6276,11 @@ export class Formulas extends BasePlugin {
     );
 
     if (isAnyRejected) {
-      this.validateDependentCells(readersOfDeferred, changedCells.filter(change => !isReader(change)));
+      const isSync = ({ answer }: { answer: ReaderAnswer }) => answer.answered &&
+        (!answer.isSyncChecked || answer.wasAnsweredAtCheck);
+
+      this.validateDependentCells(readersOfDeferred.filter(isSync), otherChangedCells);
+      this.#validateDependentCellsUnrecorded(readersOfDeferred.filter(reader => !isSync(reader)), otherChangedCells);
     }
   };
 

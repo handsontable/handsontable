@@ -675,21 +675,47 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   whole wait; the apply then validated it again as a held dependent, outside the edit's undo step, so what
   its validator or `afterValidate` wrote was undone with nothing. Develop validated it once, by the new A1.
   Now `#onAfterSetDataAtCell` takes the immediate changes the walk from the deferred cells reaches (one walk,
-  shared with `#splitDependentsOfDeferred()`; the last change of a cell; only a cell with a validator) and
-  hands them to the probe as readers: the probe runs for them even without a deferred formula, writes every
-  deferred plain value of the set into its second batch (a reader can read a deferred cell through a formula
-  without a validator, which is not a reader), and reads their results into `#validationValues`, so the
-  Core validates B1 by 20. The record keeps them (`readersOfDeferred`); the apply leaves them out of the
-  dependent validation when every deferred change was accepted (B1 holds the probe's result). After a
-  rejection (a rejectable change missing from the array, `rejectableChanges` on the record) B1 holds a value
-  computed from the old content, so the apply validates it again, through `validateDependentCells()` inside
-  the edit's step: B1 is a change of the edit. **The cost there:** an async validator on such a reader holds
-  the step after a rejection, so an `undo()` right after `afterChange` is dropped, as for any change whose
-  validator still works. Without a probe (`undoLimit` below 2, evaluation suspended) a reader gets no entry and
-  is validated by the engine's value, as before. Pinned by `validates an immediate formula that reads a
-  deferred cell of its set once, by the new value`, `validates an immediate formula again by the old value
-  when the deferred cell it reads is rejected`, and `keeps what the afterValidate of an immediate formula
-  reading a deferred cell writes in the edit's undo step`.
+  shared with `#splitDependentsOfDeferred()`; only a cell with a validator) and hands them to the probe as
+  readers: the probe runs for them even without a deferred formula, writes every deferred plain value of the
+  set into its second batch (a reader can read a deferred cell through a formula without a validator, which
+  is not a reader), and reads their results into `#validationValues`, so the Core validates B1 by 20. The
+  probe returns the readers it read a result for, and only those go on the record (`readersOfDeferred`);
+  the apply leaves them out of the dependent validation when every deferred change was accepted (B1 holds
+  the probe's result). After a rejection (a rejectable change missing from the array, `rejectableChanges` on
+  the record) B1 holds a value computed from the old content, so the apply validates it again. Rules:
+  - **A reader without a probe result is no reader.** Without a probe (`undoLimit` below 2, evaluation
+    suspended) or when the probe read no result, it gets no entry (an entry without a result would hand the
+    validator the formula text), the Core validates it by the engine's value, from the deferred cells' old
+    content, and it stays a held dependent, validated again at the apply, as at the commit before. Recorded
+    as a reader, it was validated only by `#VALUE!` and ended invalid while holding 20. Pinned by
+    `validates an immediate formula that reads a deferred cell again at the apply without a probe` (both
+    limits).
+  - **A cell the set changes more than once is no reader.** The Core validates every change, and
+    `#onBeforeValidate` hands an entry with the same source to a change whose value does not match, so the
+    earlier change took the last one's result and the last one read the engine's `#VALUE!`; the apply then
+    skipped it, and it ended invalid. It stays a held dependent. Pinned by `validates an immediate formula
+    changed twice in its set again at the apply`.
+  - **The re-validation after a rejection joins the edit's undo step only when the reader's validator
+    answered in its own call.** Inside the step, `validateCell()` holds it until the validator answers, so
+    an async validator made `isUndoAvailable()` `false` and an `undo()` right after `afterChange` was lost
+    for good. Whether a validator answers in its call cannot be known before it runs, so the plugin watches
+    the Core's validation of the change: `#onBeforeValidate` starts `#trackReaderAnswer()` when it hands out
+    a reader's entry, `#onAfterValidate` marks the answer, and a check queued from a microtask queued in
+    `beforeValidate` (so it runs after the validator's own microtask, `validateCell()` queues it after the
+    hook) records whether the answer had come. A reader that answered so is validated again through
+    `validateDependentCells()`, inside the step, so what its validator or `afterValidate` writes is undone
+    with the edit; any other one goes through `#validateDependentCellsUnrecorded()`, like a dependent, and
+    such a write joins no step, as at the commit before. On develop the reader was validated once, inside
+    the step, by the rejected value develop had written into the engine. **Known limit:** a validator that
+    answers in its call the first time and later asynchronously (a cache) holds the step after a rejection.
+    Pinned by `keeps what the afterValidate of a reader of a rejected cell writes at the apply in the edit's
+    undo step` (sync) and `keeps an edit undoable right after it is applied when an async validator of a
+    reader of a rejected cell still works`.
+
+  Pinned by `validates an immediate formula that reads a deferred cell of its set once, by the new value`,
+  `validates an immediate formula again by the old value when the deferred cell it reads is rejected`, and
+  `keeps what the afterValidate of an immediate formula reading a deferred cell writes in the edit's undo
+  step`.
 - **When the set holds a change the Core can reject, the apply's dependent validation joins no undo
   step.** `validateCell()` holds the step it runs in until the validator answers. Called from the apply,
   an async validator on a dependent (a total row over the column) held the edit's step for its whole run, so

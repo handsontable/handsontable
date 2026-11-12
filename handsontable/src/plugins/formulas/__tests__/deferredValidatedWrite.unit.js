@@ -461,10 +461,11 @@ describe('Formulas writes a validated change when the Core applies it', () => {
    * invalid values (written at once), and D = B * 2.
    *
    * @param {object} [settings] Extra settings merged into the grid configuration.
+   * @param {object} [engineConfig] Extra engine configuration.
    * @returns {{ engine: object, sheet: number, bValues: Array }}
    */
-  function buildReaderOfDeferredGrid(settings = {}) {
-    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+  function buildReaderOfDeferredGrid(settings = {}, engineConfig = {}) {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', ...engineConfig });
     const bValues = [];
 
     hot = new Handsontable(container, {
@@ -562,6 +563,100 @@ describe('Formulas writes a validated change when the Core applies it', () => {
 
     expect(hot.getDataAtCell(0, 1)).toBe(20);
     expect(hot.getDataAtCell(0, 2)).toBe('seen 20');
+  });
+
+  [0, 1].forEach((undoLimit) => {
+    it(`validates an immediate formula that reads a deferred cell again at the apply without a probe (undoLimit ${undoLimit})`, async() => {
+      const { bValues } = buildReaderOfDeferredGrid({}, { undoLimit });
+
+      hot.setDataAtCell([[0, 0, 4], [0, 1, '=A1*5']]);
+      await waitForValidation();
+      held.splice(0).forEach(({ answer }) => answer());
+      await waitForValidation();
+
+      // No probe can read B1 with the new A1, so the Core validates it by the engine's value, and the apply
+      // validates it again by the value it holds.
+      expect(hot.getDataAtCell(0, 1)).toBe(20);
+      expect(bValues).toEqual(['#VALUE!', 20]);
+      expect(hot.getCellMeta(0, 1).valid).toBe(true);
+    });
+  });
+
+  it('validates an immediate formula changed twice in its set again at the apply', async() => {
+    const { bValues } = buildReaderOfDeferredGrid();
+
+    hot.setDataAtCell([[0, 1, '=A1*2'], [0, 0, 4], [0, 1, '=A1*5']]);
+    await waitForValidation();
+    held.splice(0).forEach(({ answer }) => answer());
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 1)).toBe(20);
+    expect(bValues[bValues.length - 1]).toBe(20);
+    expect(hot.getCellMeta(0, 1).valid).toBe(true);
+  });
+
+  it('keeps an edit undoable right after it is applied when an async validator of a reader of a rejected cell still works', async() => {
+    const bHeld = [];
+
+    buildReaderOfDeferredGrid({
+      data: [[1, '=A1*3', 'c', '=B1*2']],
+      undo: true,
+      columns: [
+        {
+          validator: (value, callback) => held.push({ value, answer: () => callback(value < 10) }),
+          allowInvalid: false,
+        },
+        { validator: (value, callback) => bHeld.push({ value, answer: () => callback(true) }) },
+        {},
+        {},
+      ],
+    });
+
+    hot.setDataAtCell([[0, 0, 50], [0, 1, '=A1*5']]);
+    await waitForValidation();
+    bHeld.splice(0).forEach(({ answer }) => answer());
+    held.splice(0).forEach(({ answer }) => answer());
+    await waitForValidation();
+
+    // The apply validates B1 again by the value it holds (A1 kept 1); its validator still works.
+    expect(hot.getDataAtCell(0, 1)).toBe(5);
+    expect(bHeld.map(({ value }) => value)).toEqual([5]);
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*3');
+
+    bHeld.splice(0).forEach(({ answer }) => answer());
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*3');
+    expect(hot.getDataAtCell(0, 1)).toBe(3);
+  });
+
+  it('keeps what the afterValidate of a reader of a rejected cell writes at the apply in the edit\'s undo step', async() => {
+    buildReaderOfDeferredGrid({
+      data: [[1, '=A1*3', 'c', '=B1*2']],
+      undo: true,
+      afterValidate(isValid, value, row, prop) {
+        if (prop === 1 && value === 5) {
+          this.setDataAtCell(row, 2, `seen ${value}`, 'afterValidateTest');
+        }
+      },
+    });
+
+    hot.setDataAtCell([[0, 0, 50], [0, 1, '=A1*5']]);
+    await waitForValidation();
+    held.splice(0).forEach(({ answer }) => answer());
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 2)).toBe('seen 5');
+
+    hot.getPlugin('undoRedo').undo();
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*3');
+    expect(hot.getDataAtCell(0, 2)).toBe('c');
   });
 
   it('writes a plain value of the set a formula reads through a named expression into the probe', async() => {
