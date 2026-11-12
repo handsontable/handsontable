@@ -219,6 +219,10 @@ export interface WaitingChangeRecords {
    */
   noteMeta(change: CellChange, meta: object, physicalColumn: number): void;
   /**
+   * Tells whether the set captured a record for any change. A set no validator waited on captures none.
+   */
+  hasRecords(): boolean;
+  /**
    * Returns the tracked record of a change, or `undefined` for a change no record was captured for.
    */
   getRecord(change: CellChange): TrackedRecord | undefined;
@@ -316,7 +320,14 @@ export function createWaitingChangeRecords(
 
       return anchor === undefined ? undefined : resolveRecord(reader, anchor);
     },
+    hasRecords() {
+      return anchorsByChange.size > 0;
+    },
     settle(changes, toVisualRow) {
+      if (anchorsByChange.size === 0) {
+        return [];
+      }
+
       const resolved = new Map<RecordAnchor, number | null>();
       const removed: CellChange[] = [];
 

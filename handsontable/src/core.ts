@@ -3846,10 +3846,11 @@ export default function Core(
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
    * @param {Function} [getRecordRow] Returns the physical row of the record a change that waited for its
-   *   validator was resolved to, or `undefined` for a change that is written by its visual row.
+   *   validator was resolved to, or `undefined` for a change that is written by its visual row. Left out for a
+   *   set that captured no record, so a set no validator waited on pays no lookup per change.
    */
   function writeChangesToData(
-    changes: CellChange[], getRecordRow: (change: CellChange) => number | undefined = () => undefined,
+    changes: CellChange[], getRecordRow?: (change: CellChange) => number | undefined,
   ) {
     const run: ReversedCellRun = { op: null };
 
@@ -3867,7 +3868,7 @@ export default function Core(
         continue;
       }
 
-      const recordRow = getRecordRow(changes[i]);
+      const recordRow = getRecordRow === undefined ? undefined : getRecordRow(changes[i]);
 
       if (tableMeta.allowInsertRow && recordRow === undefined) {
         // Create the whole missing range in one call - one index-mapper insert and one hook
@@ -4596,7 +4597,10 @@ export default function Core(
 
         try {
           if (loadGeneration === validationLoadGeneration) {
-            hold.resume(() => applyChanges(changes, source, change => records.getSettledPhysicalRow(change)));
+            const getRecordRow = records.hasRecords() ?
+              (change: CellChange) => records.getSettledPhysicalRow(change) : undefined;
+
+            hold.resume(() => applyChanges(changes, source, getRecordRow));
 
             if (removedChanges.length > 0 && instance) {
               droppedChangesListeners.slice().forEach(listener => listener(removedChanges, source, []));
