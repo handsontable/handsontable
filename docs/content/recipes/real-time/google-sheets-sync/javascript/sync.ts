@@ -388,7 +388,13 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
 
       for (const change of changes) {
         const [, column, oldValue, newValue] = change;
-        const row = rows[grid.getPhysicalRowOfChange(change) as number];
+        const physicalRow = grid.getPhysicalRowOfChange(change);
+
+        if (physicalRow === null) {
+          continue;
+        }
+
+        const row = rows[physicalRow];
         const id = idOf(row);
         const value = normalize(newValue);
         const existing = editBatch.get(key(id, column as number));
