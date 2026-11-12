@@ -40,6 +40,10 @@ export interface FormulasStub {
    */
   engineDetachListeners: Set<() => void>;
   addEngineDetachListener: (listener: () => void) => () => void;
+  /**
+   * Recalculates the writes held on the engine (`batchEvaluation`); nothing is held in the stub.
+   */
+  flushEngineEvaluation: () => void;
 }
 
 /**
@@ -175,6 +179,7 @@ export function makePluginHotStub(
 
       return () => this.engineDetachListeners.delete(listener);
     },
+    flushEngineEvaluation() {},
   };
   const settings: Record<string, unknown> = {
     formulaBuilder: { builder: core, ...pluginSettings },

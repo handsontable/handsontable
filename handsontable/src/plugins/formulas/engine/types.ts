@@ -86,7 +86,7 @@ export interface HyperFormulaEngine {
   on(eventName: string, listener: Function): void;
   off(eventName: string, listener: Function): void;
   suspendEvaluation(): void;
-  resumeEvaluation(): void;
+  resumeEvaluation(): unknown[];
   isEvaluationSuspended(): boolean;
   addNamedExpression(name: unknown, expression: unknown, scope: unknown, options: unknown): void;
   undo(): void;

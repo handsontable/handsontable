@@ -1218,6 +1218,139 @@ A plugin write runs inside `withPluginEngineWrite` (`indexSyncer/pluginEngineWri
 
 A grid whose data is written into its sheet registers it inside one `#writeOwnSheet()`: `addSheet` re-resolves a formula in another grid that named the sheet first (`#REF!` becomes the cell's value, or empty), and the fill follows. On the `updateSettings` path the fill comes later, from `#resyncSheet()` at the first render, so the registration scope calls `holdPluginEngineWritePaints()` and the grids it named paint when the resync scope ends, once, after the data is in. A grid whose fill never comes (a throw before the resync) keeps its stale paint until the next plugin write on that engine. A grid built from the sheet (`#hotWasInitializedWithEmptyData`) writes nothing and registers unscoped. `updateConfig` is not wrapped: it does not emit `valuesUpdated`.
 
+## `batchEvaluation`: one recalculation per suspended execution (DEV-202)
+
+With `formulas.batchEvaluation: true`, the plugin writes a grid makes while its execution is suspended
+(`batch()`, `batchExecution()`, `suspendExecution()`) are recalculated once, when it resumes. Off (the default),
+every path below takes the branch it took before: no hold exists, so `runEngineBatch()` is `engine.batch(fn)`.
+
+- **The hold is per engine** (`engine/evaluationHold.ts`, a module-level `WeakMap`). A grid joins it on
+  `afterSuspendExecution` (the setting is read there, live) and leaves on `afterResumeExecution`. Every render
+  suspends the execution (AutoColumnSize, AutoRowSize), so join and leave must stay a `Set` add and delete: the
+  engine listeners are attached at the first suspension the plugin makes, not on join.
+- **Lazy suspension.** The engine is suspended at the first plugin engine write made while the hold has a
+  holder (`beginHeldEngineWrite()`), so a suspension that writes only index maps (filters, hiding, autosizing)
+  never touches the engine. Any grid's write joins an owned suspension, a grid that did not opt in included.
+- **The join helper replaces the 11 plugin `engine.batch()` calls** (`runEngineBatch(engine, fn,
+  { joinsAnySuspension, movesCells })`): an owned suspension, or one started now, is joined and returns `[]`;
+  otherwise `engine.batch(fn)`, so a host-owned suspension is ended as before. `#restorePeerRewrites()` and
+  `AxisSyncer#extendAndSetOrder()` pass `joinsAnySuspension`: they already joined any suspension. The direct writes
+  (`#writeSourceChangesToEngine()` forward, `addRows`, `addColumns`) call `beginHeldEngineWrite()` and keep their
+  direct call. `#writeSheet()` calls `beginHeldSheetWrite()` first, only while the engine is held (an empty write
+  scope would release the paints `holdPluginEngineWritePaints()` parked), before `#internalOperationPending`: it
+  joins a suspension that is open and never starts one. `#clearRejectedSheet()`, `#loadEngineSheet()` (the restore
+  flushes before it) and `#adoptEngineSheet()` (a load, see below) are unchanged. `paste()` throws while suspended,
+  so the MoveCells copy flushes first and stays unheld.
+- **A removal never shares a recalculation with a cell write.** The two removals pass `movesCells`, and so does
+  a sheet write (`beginHeldSheetWrite()`); a held write of the other kind than the ones held since the last
+  recalculation recalculates those first (`heldWriteKind`). A cell write that shared a recalculation with a removal
+  validated the `#REF!` the removal made (a row or a column), which nothing validates without the option, and a
+  sheet rewrite that joined a held write validated every cell it set. Inserts, moves, orders, `moveCells` and the
+  restore pass nothing: no test showed a difference, so they join.
+- **Before an insert, a removal or a move, the held writes are validated, not only recalculated**
+  (`#validateHeldWritesNow()`, `takeHeldRecalculations()`). HyperFormula reports the changes of a suspension that
+  set a cell and then moved it at the addresses from after the move, while the written cells are recorded at the
+  addresses from before it (a formula write, then an insert above it: the release validated the cell above the
+  dependent `SUM`). The grid moves its cells before the engine does (`afterCreateRow` writes the engine), so they
+  are validated from `beforeCreateRow`/`Col` and `beforeRemoveRow`/`Col` (not for `auto`, which adds and gives back
+  rows at the end), `beforeRowMove` and `beforeColumnMove`. A sort, a freeze, `moveCells` and a NestedRows detach
+  showed no difference and have no listener. `switchSheet()` validates in `#loadSheet()`, before the load.
+  `beforeLoadData`/`beforeUpdateData` validate only the other sheets' dependents (`leavingSheetId`): the Core
+  destroys the data map before those hooks, so the dependents on this grid's own sheet of a write made before a
+  host's `loadData()`/`updateData()` in the same hold are not validated (without the option they are, against the
+  data the load replaces; pinned by "never validates the loaded data ..."). A throw there is reported with `warn`,
+  or the load stops with no data map. A reorder that follows a write keeps the pre-existing HF-versus-visual
+  defect of `validateDependentCells()` (top of this file), with the option and without it.
+- **Ownership is `owned` AND `engine.isEvaluationSuspended()`.** An `evaluationSuspended` listener sets `owned`
+  from `suspending`, which is set only around the plugin's own `suspendEvaluation()`. HyperFormula 3.3.0 emits
+  `valuesUpdated` BEFORE `evaluationResumed` (the plan said otherwise), and a listener of the first can suspend the
+  engine again, so the `evaluationResumed` listener always records the change list, but drops `owned` and runs the
+  deferred reads (`runAfterEvaluationFlush()`) only while the engine is still resumed. Every resume is recorded,
+  whoever makes it: a host's `resumeEvaluation()` that ends the plugin's suspension leaves nothing to resume
+  later, and its changes are still validated. Pinned by "a suspension the host owns" (red without the listener).
+- **The plugin's own resume claims its recalculation after it returns** (`claimOwnRecalculation()`). An
+  `afterFormulasValuesUpdate` listener runs inside the resume, before its `evaluationResumed`, and a write it makes
+  resumes first (an unheld `engine.batch()`, or a `hot.batch()` of its own): read at event time, `hold.changed`
+  gave those inner resumes the outer writes' cells, and the outer recalculation validated nothing. So
+  `flushEvaluationHold()` takes `hold.changed` before `resumeEvaluation()`, and once it returns it finds its own
+  entry by the change list (the event and the return value are the same array) and gives it those cells; cells
+  written during the resume go back to `hold.changed`. `resuming` is a depth counter: a nested release resets
+  nothing, so its settle leaves the end of the hold to the outer release.
+- **Flush on read.** `#flushEvaluation()` comes after the cheap type early return, so a plain cell never ends
+  the hold: `#onModifyData`, `#onModifySourceData`, `#onBeforeValidate`, `#onPaintFormulaText`,
+  `#onBeforeCopyOrCut`, `#getHyperlinkHref`, `#onBeforeAutofill`, `#captureEngineSheet`,
+  `exportEngineOrder(true)`, `#loadSheet` (before the switch), the MoveCells copy, `#syncHotDataAfterMoveCells`,
+  `#syncPeerSources` (only when a peer grid writes), the `#restoreStructure` pre-read and `#onChangesDropped`.
+  Other plugins call the `@private` `flushEngineEvaluation(engine?)`: FormulaBuilder (`afterRenderer`,
+  `#readCellText`), ExportFile (`getNamedExpressions`, `getEngineCellFacts`), SheetsBar (`#flushEngine` before
+  `planEngineWorkbook()`, the copy's named expressions and serialized sheet, `getFillRangeData`) and ImportFile
+  (before the mapping). `#readEngineContent()` after a
+  `setDataAtCell()` write is deferred, not flushed: it would recalculate once per write.
+- **`#onBeforeRender` flushes only for a grid that holds the engine.** Unconditional, a second grid that writes
+  inside the first grid's `batch()` ended the hold on each of its own renders. A non-holder therefore flushes from
+  the first formula cell of its draw. A paint asked for while this grid prepares a draw that starts with the engine
+  held (`#onBeforeRenderStart`, `beforeRender` at `orderIndex: -1`, to the end of `#onBeforeRender`: AutoColumnSize's
+  sampling reads cells in between) or draws a held engine (`#isDrawingHeldEngine`, to `afterRender`) is left to that
+  draw
+  (`#deferPaintToDraw()`), never rendered inside it. A full draw reads every cell after the recalculation, so
+  nothing more is needed. A fast draw (a selection) repaints only what it adds, so `#onAfterRender` renders once
+  more: dropping the paint there left the formula cells on screen at their old values. A draw that throws never
+  reaches `afterRender`, so a microtask (`#onDrawEndCheck`) resets the state and paints. A draw that starts with
+  nothing held paints as before, so the option off changes nothing there.
+- **Validation.** A held cell write records its cells (`recordHeldWrite()`). Each recalculation keeps the cells
+  the writes before it set, and the release validates the dependents of every recalculation that ended held cell
+  writes, minus those cells, each cell once (`collectHeldDependents()`). A recalculation with no held cell write
+  (a load, an insert, a host batch) validates nothing, as before. Undo and redo need their change list at once
+  (DEV-2036): `#runRestoreWrite()` flushes right after the write and takes that recalculation out of the hold
+  (`flushEvaluationHoldNow()`). **Each dependent is validated by the grid bound to its sheet**
+  (`#validateHeldDependents()`), whichever grid ends the hold or inserts, removes, moves or loads before it:
+  `validateDependentCells()` checks an address against the size of the grid it runs on, so a one-row grid that
+  inserted a row inside a taller grid's `batch()` skipped every dependent below its first row, and a grid built
+  inside the hold (no data map yet) read its row count from nothing.
+- **Release.** The grid leaves first, then the flush and the settle run in one write scope, so the grids paint
+  after the validation. A paint can suspend a grid's execution again (its render's autosizing), so a release
+  re-entered during the plugin's own resume (`resuming`) leaves the end to the outer one. When the host holds the
+  engine suspended, the hold ends and validates at the host's resume, unless a grid holds the engine again before
+  then: `joinEvaluationHold()` clears `onSettled`, so that grid's release ends it. Left set, the host's resume
+  kept the hold open, and the next owned resume ended it from its own `evaluationResumed`, before it claimed the
+  cells of its writes, so their dependents were never validated. The settle runs in a `finally`, so a throwing
+  `afterFormulasValuesUpdate` listener leaves no stale entries for the next hold. A holder's `disablePlugin()`
+  releases first and drops `#sheetResyncPending` before it: the validation reads the grid, which drained the owed
+  resync into an extra full write (measured); a grid that holds nothing keeps the old order. `destroy()` releases after its engine listeners are off and before `unregisterEngine()`: the
+  view, the data and the index mappers are gone by then, so its own sheet's dependents are skipped and the grids
+  bound to the other sheets validate theirs. A sheet switch only flushes; the grid stays a holder.
+- **A release a throwing listener skipped is made before the next draw.** `Hooks.run` runs the global bucket
+  first, so a global `afterResumeExecution` listener that throws skips the plugin's release whatever its
+  `orderIndex`, and the grid stayed a holder: every later plugin write on the engine, from any grid, was held.
+  `#onBeforeRender` of any grid on the engine takes out the holders whose execution is not suspended
+  (`leaveResumedHolders()`) and ends the hold when none is left. A `batch()` renders on its way out, so its hold
+  ends there; a `batchExecution()` or a bare pair keeps the engine held until any grid on it draws. A read
+  recalculates the held writes but leaves the stale holder in place, so the next write is held again. `enablePlugin()`
+  resets the draw state (`#isPreparingDraw`, `#isDrawingHeldEngine`): a plugin turned off inside a draw never
+  reached the listener that ends it, and the next engine change was then left to a draw that never came.
+- **`SHEET()`/`SHEETS()` under an owned suspension** clear the engine's undo stack at once, without resuming.
+
+Measured on the 11x3 fixture (jsdom, HyperFormula 3.3.0, `valuesUpdated` with the option off / on): ten
+`setDataAtCell()` in `batch()` 10 / 1; in `batchExecution()` 10 / 10 and in a bare `suspendExecution()` pair
+10 / 10 (each write renders, each render flushes); ten formulas into plain cells in `batch()` 1 (on); ten `setSourceDataAtCell()` in
+`batch()` 10 / 1; a write, an insert, a write and a removal in `batch()` 3 / 3 (each structure change validates the
+writes before it); ten writes over formula cells in `batch()` 10 / 1; the undo and the redo of the batch 1 each.
+**`#onModifySourceData` reads a formula cell with `getCellFormula()`, not `getCellSerialized()`.** The Core reads
+the old value of every cell it writes there, and `getCellSerialized()` (`getCellFormula() ?? getRawValue()` in
+HyperFormula) refuses while the engine is suspended, so a flush per write made ten overwrites 10 / 10. The text
+needs no recalculation. Only a cell with no formula of its own (a value an array formula spilled) still flushes
+and reads `getCellSerialized()`. Pinned by the two `getSourceDataAtCell()`/overwrite cases; the spilled-value flush by the
+"a value an array formula spilled" cases (removing it throws "Computations are suspended"). **Known limit:** ten
+formulas written into a validated column (`numeric`, `date`, `dropdown`, a `validator`) in `batch()` stay 10 / 10:
+`afterSetDataAtCell` writes the engine before the Core validates (`core.ts`), and `#onBeforeValidate` reads the
+formula's value for the validator. It is in the guide.
+Other limits: a later write
+to the same cell in one hold makes `writtenContent` the later content; a cell written in a hold is validated by the
+Core only, also when a later write in the same recalculation changes it; the last holder leaving inside a host's
+resume (its `valuesUpdated`) ends the hold before that resume is recorded; and a Walkontable scroll draw fires no
+`beforeRender`, so a hold that outlives the task (a host pair across an `await`) can paint a grid inside such a
+draw. Tests: `__tests__/batchEvaluation.unit.js`.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='formulas'`

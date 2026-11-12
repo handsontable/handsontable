@@ -138,7 +138,7 @@ By using these methods, you can suspend:
 - execution
 - both rendering and the execution.
 
-The term "rendering" refers directly to DOM rendering, and the term "execution" refers to all operations that are different from DOM rendering. Currently, only the indexing recalculation allows you to postpone the process.
+The term "rendering" refers directly to DOM rendering, and the term "execution" refers to all operations that are different from DOM rendering. By default, suspending the execution postpones only the indexing recalculation. To also recalculate formulas once for a batch of changes, set the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option to `true`, and make the changes inside [`batch()`](@/api/core.md#batch). For details, see [Batch formula recalculation](@/guides/formulas/formula-calculation/formula-calculation.md#batch-formula-recalculation).
 
 Method names that are prefixed with `batch\*`, i.e., [`batch()`](@/api/core.md#batch), [`batchRender()`](@/api/core.md#batchrender), and [`batchExecution()`](@/api/core.md#batchexecution) are recommended to be used as the first choice if you don't need to batch async operations.
 Methods names that are prefixed with `suspend\*`, i.e., [`suspendRender()`](@/api/core.md#suspendrender) and [`suspendExecution()`](@/api/core.md#suspendexecution), are the second choice. These are useful when you need to batch async operations. Essentially they work the same way as `batch\*` methods, but the render has to be resumed manually.
@@ -192,6 +192,8 @@ hot.batchExecution(() => {
 });
 ```
 
+[`batchExecution()`](@/api/core.md#batchexecution) doesn't suspend rendering. With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, each render inside the callback still recalculates the formulas. To recalculate them once, use [`batch()`](@/api/core.md#batch).
+
 ### suspend* and resume* methods
 
 #### [`suspendRender()`](@/api/core.md#suspendrender) and [`resumeRender()`](@/api/core.md#resumerender)
@@ -221,6 +223,23 @@ filters.addCondition(2, 'contains', ['3']);
 filters.filter();
 hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
 hot.resumeExecution(); // It updates the cache internally
+```
+
+[`suspendExecution()`](@/api/core.md#suspendexecution) and [`resumeExecution()`](@/api/core.md#resumeexecution) don't suspend rendering. With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, each render between them still recalculates the formulas. To recalculate them once, use [`batch()`](@/api/core.md#batch). See [Batch formula recalculation](@/guides/formulas/formula-calculation/formula-calculation.md#batch-formula-recalculation).
+
+#### Execution hooks
+
+When the execution changes from resumed to suspended, Handsontable fires the [`beforeSuspendExecution`](@/api/hooks.md#beforesuspendexecution) and [`afterSuspendExecution`](@/api/hooks.md#aftersuspendexecution) hooks. When it changes back to resumed, Handsontable fires the [`beforeResumeExecution`](@/api/hooks.md#beforeresumeexecution) and [`afterResumeExecution`](@/api/hooks.md#afterresumeexecution) hooks.
+
+- The hooks fire only on that change. A nested [`suspendExecution()`](@/api/core.md#suspendexecution) or [`resumeExecution()`](@/api/core.md#resumeexecution) call fires nothing.
+- [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend and resume the execution the same way, so they fire the hooks too. Handsontable also suspends the execution on its own, for example to size columns on a render.
+- The hooks can't cancel the change. Handsontable ignores their return values.
+
+```js
+hot.addHook('afterResumeExecution', () => {
+  // the index cache is up to date here
+  console.log(hot.isExecutionSuspended()); // false
+});
 ```
 
 ## Live demo of the suspend feature
@@ -278,6 +297,7 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 <div class="boxes-list">
 
 - [Understanding rendering](@/guides/optimization/rendering/rendering.md)
+- [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
 - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
@@ -296,6 +316,7 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 <div class="boxes-list">
 
+- [formulas](@/api/options.md#formulas)
 - [maxCols](@/api/options.md#maxcols)
 - [maxRows](@/api/options.md#maxrows)
 - [observeDOMVisibility](@/api/options.md#observedomvisibility)
@@ -326,9 +347,13 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 <div class="boxes-list">
 
 - [afterRender](@/api/hooks.md#afterrender)
+- [afterResumeExecution](@/api/hooks.md#afterresumeexecution)
+- [afterSuspendExecution](@/api/hooks.md#aftersuspendexecution)
 - [afterViewRender](@/api/hooks.md#afterviewrender)
 - [beforeChangeRender](@/api/hooks.md#beforechangerender)
 - [beforeRender](@/api/hooks.md#beforerender)
+- [beforeResumeExecution](@/api/hooks.md#beforeresumeexecution)
+- [beforeSuspendExecution](@/api/hooks.md#beforesuspendexecution)
 - [beforeViewRender](@/api/hooks.md#beforeviewrender)
 
 </div>

@@ -1212,6 +1212,10 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    // The Formulas plugin can hold the engine's recalculation (`batchEvaluation`), and the engine refuses
+    // value reads until it is recalculated.
+    this.#formulasPlugin?.flushEngineEvaluation();
+
     const cellValue = this.#engine?.getCellValue({ sheet: sheetId, row: hfRow, col: hfCol });
 
     this.#markCell(cellEl, cellValue);
@@ -1982,6 +1986,8 @@ export class FormulaBuilder extends BasePlugin {
     if (!engine || !this.#core || sheetId === null || hfRow < 0 || hfCol < 0) {
       return '';
     }
+
+    this.#formulasPlugin?.flushEngineEvaluation();
 
     return this.#core.readCellText(
       engine as unknown as Parameters<CoreModule['readCellText']>[0],

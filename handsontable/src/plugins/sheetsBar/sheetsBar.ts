@@ -3494,6 +3494,9 @@ export class SheetsBar extends BasePlugin {
       boundFormulas,
       excludedNames,
     );
+
+    this.#flushEngine(engine);
+
     const plan = planEngineWorkbook({
       engine,
       formulas: boundFormulas,
@@ -5813,6 +5816,8 @@ export class SheetsBar extends BasePlugin {
           return;
         }
 
+        this.#flushEngine(engine);
+
         engine.listNamedExpressions?.(originalId).forEach((name) => {
           const formula = engine.getNamedExpressionFormula?.(name, originalId);
           const expression = formula === undefined
@@ -5850,6 +5855,8 @@ export class SheetsBar extends BasePlugin {
     engineOrder: FormulasEngineSheetOrder,
     repoint: (formula: string) => string,
   ) {
+    this.#flushEngine(engine);
+
     const content = (engine.getSheetSerialized?.(originalId) ?? []).map(row => row.map(cell => (
       typeof cell === 'string' && cell.startsWith('=') ? repoint(cell) : cell
     )));
@@ -5940,6 +5947,17 @@ export class SheetsBar extends BasePlugin {
     const formulas = this.hot.getPlugin('formulas');
 
     return formulas ? formulas.runEngineWrite(engine, run) : run();
+  }
+
+  /**
+   * Recalculates the writes a grid holds on `engine` (the `formulas.batchEvaluation` setting) before the bar
+   * reads a value or serialized content from it, which the engine refuses while its evaluation is suspended
+   * (see `Formulas#flushEngineEvaluation`). Through the bar's Formulas plugin, like `#withEngineWrite()`.
+   *
+   * @param {object} engine The engine.
+   */
+  #flushEngine(engine: object) {
+    this.hot.getPlugin('formulas')?.flushEngineEvaluation(engine as HyperFormulaEngine);
   }
 
   /**
@@ -6452,6 +6470,9 @@ export class SheetsBar extends BasePlugin {
     }
 
     const target = { sheet: sheetId, row: at.row - shift.row, col: at.col - shift.col };
+
+    this.#flushEngine(engine);
+
     const [[content]] = engine.getFillRangeData({ start: source, end: source }, { start: target, end: target });
 
     return typeof content === 'string' && content.startsWith('=') ? content : undefined;

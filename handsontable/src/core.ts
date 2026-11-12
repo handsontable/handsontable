@@ -5199,9 +5199,20 @@ export default function Core(
    * The method is intended to be used by advanced users. Suspending the execution
    * process could cause visual glitches caused by not updated the internal table cache.
    *
+   * Calls nest. Only the outermost call suspends the execution and fires the
+   * [`beforeSuspendExecution`](@/api/hooks.md#beforesuspendexecution) and
+   * [`afterSuspendExecution`](@/api/hooks.md#aftersuspendexecution) hooks. When an `afterSuspendExecution`
+   * listener throws, the method resumes the execution (firing the resume hooks) and rethrows the error.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, but a render in between
+   * still recalculates.
+   *
    * @memberof Core#
    * @function suspendExecution
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
    * @example
    * ```js
    * hot.suspendExecution();
@@ -5214,9 +5225,34 @@ export default function Core(
    * ```
    */
   this.suspendExecution = function(this: HotInstance & CoreInternals) {
+    // The hooks report the state change, so a nested call fires nothing. A grid being destroyed fires
+    // nothing either: its teardown runs in a `batchExecution()` whose resume comes after `afterDestroy`.
+    const changesState = this.executionSuspendedCounter === 0 && !isBeingDestroyed;
+
+    if (changesState) {
+      this.runHooks('beforeSuspendExecution');
+    }
+
     this.executionSuspendedCounter += 1;
     this.columnIndexMapper.suspendOperations();
     this.rowIndexMapper.suspendOperations();
+
+    if (changesState) {
+      try {
+        this.runHooks('afterSuspendExecution');
+      } catch (error) {
+        // The caller gets no suspension to resume, so take it back here, through the resume hooks: a
+        // listener that ran before the throw may hold something it releases on resume. The listener's
+        // error is the one the caller gets, also when a resume listener throws as well.
+        try {
+          this.resumeExecution();
+        } catch {
+          // The rollback's own error would replace the cause.
+        }
+
+        throw error;
+      }
+    }
   };
 
   /**
@@ -5227,6 +5263,17 @@ export default function Core(
    * The method is intended to be used by advanced users. Suspending the execution
    * process could cause visual glitches caused by not updated the internal table cache.
    *
+   * Only the call that ends the outermost {@link Core#suspendExecution} call resumes the execution and fires
+   * the [`beforeResumeExecution`](@/api/hooks.md#beforeresumeexecution) and
+   * [`afterResumeExecution`](@/api/hooks.md#afterresumeexecution) hooks. A forced nested call
+   * (`forceFlushChanges`) updates the index cache too, and the execution stays suspended. A nested call, a
+   * forced nested call, and a call while the execution is not suspended fire nothing. The execution resumes,
+   * and `afterResumeExecution` fires, even when a `beforeResumeExecution` listener throws.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, until the execution
+   * resumes.
+   *
    * @memberof Core#
    * @function resumeExecution
    * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
@@ -5234,6 +5281,8 @@ export default function Core(
    * {@link Core#batchExecution} calls, it can be desire to recalculate the table
    * after each batch.
    * @since 8.3.0
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.suspendExecution();
@@ -5247,12 +5296,32 @@ export default function Core(
    */
   this.resumeExecution = function(this: HotInstance & CoreInternals, forceFlushChanges = false) {
     const nextValue = this.executionSuspendedCounter - 1;
+    // Only the resume that brings the counter back to 0 changes the state (see `suspendExecution`).
+    const changesState = nextValue === 0 && !isBeingDestroyed;
 
-    this.executionSuspendedCounter = Math.max(nextValue, 0);
+    // Each step runs in a `finally`, so a throwing listener (of these hooks or of a cache update) cannot
+    // keep the grid or a mapper suspended, and `afterResumeExecution` (where a plugin releases what it held
+    // on the suspension) still fires.
+    try {
+      if (changesState) {
+        this.runHooks('beforeResumeExecution');
+      }
+    } finally {
+      this.executionSuspendedCounter = Math.max(nextValue, 0);
 
-    if ((!this.isExecutionSuspended() && nextValue === this.executionSuspendedCounter) || forceFlushChanges) {
-      this.columnIndexMapper.resumeOperations();
-      this.rowIndexMapper.resumeOperations();
+      try {
+        if ((!this.isExecutionSuspended() && nextValue === this.executionSuspendedCounter) || forceFlushChanges) {
+          try {
+            this.columnIndexMapper.resumeOperations();
+          } finally {
+            this.rowIndexMapper.resumeOperations();
+          }
+        }
+      } finally {
+        if (changesState) {
+          this.runHooks('afterResumeExecution');
+        }
+      }
     }
   };
 
@@ -5268,6 +5337,14 @@ export default function Core(
    * Like [`batch()`](@/api/core.md#batch), the callback is one operation: every change it makes is one
    * undo step of the [`UndoRedo`](@/api/undoRedo.md) plugin, with the `'batch'` action type.
    *
+   * The method suspends and resumes the execution through {@link Core#suspendExecution} and
+   * {@link Core#resumeExecution}, so the outermost call fires the four execution hooks around the callback.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, but `batchExecution()`
+   * does not suspend rendering, so each render inside the callback still recalculates. For fewer
+   * recalculations, use [`batch()`](@/api/core.md#batch).
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -5276,6 +5353,10 @@ export default function Core(
    * it can be a desire to recalculate the table after each batch.
    * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.batchExecution(() => {
@@ -5291,6 +5372,8 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     // The operation wraps the resume too: the cache rebuild it triggers belongs to this batch.
     return operationScope.run('batch', undefined, () => {
+      // Outside the `try`: a throw from `suspendExecution` leaves nothing suspended, because a throwing
+      // `afterSuspendExecution` listener makes the method resume on its own.
       instance.suspendExecution();
 
       let completed = false;
@@ -5318,11 +5401,21 @@ export default function Core(
    * performance of wrapped operations. Rendering and execution resume even when the
    * callback throws; the error is rethrown.
    *
+   * The method suspends and resumes the execution through {@link Core#suspendExecution} and
+   * {@link Core#resumeExecution}, so the outermost call fires the four execution hooks around the callback.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too.
+   *
    * @memberof Core#
    * @function batch
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.batch(() => {
@@ -5349,20 +5442,21 @@ export default function Core(
     // this batch, so the transaction settles only after them.
     return operationScope.run('batch', undefined, () => {
       instance.suspendRender();
-      instance.suspendExecution();
 
       // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
-      // instance suspended for the rest of its life, so it never painted again. The two resumes are
-      // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
-      // the flush) still lets `resumeRender` run.
+      // instance suspended for the rest of its life, so it never painted again. The calls are
+      // nested so that a throw from `suspendExecution` or `resumeExecution` (a listener of the execution
+      // hooks, or an `afterUpdateSettings`-style hook firing on the flush) still lets `resumeRender` run.
       try {
-        return wrappedOperations();
-      } finally {
+        instance.suspendExecution();
+
         try {
-          instance.resumeExecution();
+          return wrappedOperations();
         } finally {
-          instance.resumeRender();
+          instance.resumeExecution();
         }
+      } finally {
+        instance.resumeRender();
       }
     });
   };

@@ -3,6 +3,7 @@ import { listEngineElements } from './engineElements';
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
 import { getDecreasedIndexes, getIncreasedIndexes } from '../../../translations/maps/utils/actionsOnIndexes';
+import { runEngineBatch } from '../engine/evaluationHold';
 import type { HyperFormulaEngine } from '../engine/types';
 
 interface AxisIndexMapper {
@@ -490,7 +491,7 @@ class AxisSyncer {
     }
 
     this.#indexSyncer.getOwnEngineWrite()(engine, () => {
-      engine.batch(() => {
+      runEngineBatch(engine, () => {
         moves.forEach((move: { from: number; to: number }) => {
           const moveToTheSamePosition = move.from !== move.to;
           // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
@@ -1002,11 +1003,9 @@ class AxisSyncer {
       setOrder();
     };
 
-    if (engine.isEvaluationSuspended()) {
-      extendAndSetOrder();
-    } else {
-      engine.batch(extendAndSetOrder);
-    }
+    // Joins any suspension (a nested `engine.batch()` would end it), and a suspension a grid holds
+    // (`formulas.batchEvaluation`) starts here when none is open yet.
+    runEngineBatch(engine, extendAndSetOrder, { joinsAnySuspension: true });
 
     return true;
   }

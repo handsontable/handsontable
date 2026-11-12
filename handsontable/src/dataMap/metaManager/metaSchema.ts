@@ -4205,6 +4205,19 @@ export default (): Record<string, unknown> => {
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
      * | `hyperlinks` | `true` \|<br>`false` (default) \|<br>An object with `target` and `schemes`                                                                                                                                                   |
+     * | `batchEvaluation` | `true` \|<br>`false` (default)                                                                                                                                                                                  |
+     *
+     * Set `batchEvaluation` to `true` to make HyperFormula recalculate once for all the writes the grid makes
+     * while its execution is suspended: inside [`batch()`](@/api/core.md#batch),
+     * [`batchExecution()`](@/api/core.md#batchexecution), or between
+     * [`suspendExecution()`](@/api/core.md#suspendexecution) and [`resumeExecution()`](@/api/core.md#resumeexecution).
+     * Without it, every write recalculates. A read of a formula cell through the grid (`getDataAtCell()`, a render)
+     * recalculates first, so it never returns a stale value, and so does each render. The saving is therefore the
+     * largest in `batch()`, which suspends rendering too: `batchExecution()` renders after each write, and each render
+     * recalculates. The pause
+     * covers the whole engine: after a write, and until the next grid read or the end of the batch, a direct
+     * HyperFormula read (`engine.getCellValue()`) throws "Computations are suspended", also in another grid that
+     * shares the engine. Read through the grid inside the batch, or read the engine after it.
      *
      * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
      * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
@@ -4250,6 +4263,12 @@ export default (): Record<string, unknown> => {
      * formulas: {
      *   engine: HyperFormula,
      *   hyperlinks: true
+     * }
+     *
+     * // or, recalculate once for all writes made inside `batch()`
+     * formulas: {
+     *   engine: HyperFormula,
+     *   batchEvaluation: true
      * }
      *
      * // or, open `HYPERLINK()` links in the same tab and link only web URLs
