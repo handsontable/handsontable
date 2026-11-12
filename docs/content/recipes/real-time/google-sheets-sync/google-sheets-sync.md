@@ -168,7 +168,7 @@ Create `src/sheets.ts`:
 **What's happening:**
 
 - **A missing tab is named.** If the spreadsheet has no tab called `VITE_SHEET_NAME`, the API answers `Unable to parse range`. `readSheet` turns that into a message that lists the tabs the spreadsheet does have.
-- **One wrapper for every request.** `sheetsFetch` adds the bearer token and retries `429` and `5xx` responses with truncated exponential backoff, as Google recommends: about 1, 2, 4, and 8 seconds, plus random jitter, capped at 32 seconds, and at most five tries. A `401` throws `SessionExpiredError` instead of retrying.
+- **One wrapper for every request.** `sheetsFetch` adds the bearer token. A read that gets `429` or a `5xx` response is retried with truncated exponential backoff, as Google recommends: about 1, 2, 4, and 8 seconds, plus random jitter, capped at 32 seconds, and at most five tries. A write isn't retried on its own: it addresses rows by number, and rows can move in the sheet during the wait. It throws `RetryableError`, and `retrying` runs the whole write task again, read included, so each try finds the rows where they are. A `401` throws `SessionExpiredError` instead of retrying.
 - **Numbers come back as numbers.** `readSheet` asks for `UNFORMATTED_VALUE`, so a price is `12.5`, not `"$12.50"`, and the grid can sort and edit it as a number. `dateTimeRenderOption=FORMATTED_STRING` returns dates as the text the sheet shows, instead of serial numbers.
 - **`RAW` keeps text as text.** `writeCells` sends `valueInputOption: 'RAW'`, so the sheet stores each value exactly as sent. With `USER_ENTERED`, the sheet would parse it the way it parses typing, and a value that starts with `=` would become a formula.
 - **One request per batch.** `values:batchUpdate` writes any number of cells in one request, and either all of them are written or none is. It counts as one request against the quota.
@@ -188,8 +188,8 @@ Create `src/sync.ts`:
 
 **What's happening:**
 
-- **The grid polls.** Google can notify a server about file changes through Drive's `files.watch`, but the notification goes to a public HTTPS endpoint, which a browser-only app doesn't have. So `poll` reads the sheet every `POLL_MS`, and pauses while the browser tab is hidden.
-- **Rows are matched by ID.** `applyRemote` compares each sheet row with the grid row that has the same ID. A row that moved in the sheet, because someone sorted it or inserted a row above it, still updates the right grid row. A sheet row with an empty `id` isn't synced. `parse` skips blank rows but keeps each row's sheet row number, so a blank row in the middle of the sheet can't shift a write to the row below it.
+- **The grid polls.** Google can notify a server about file changes through Drive's `files.watch`, but the notification goes to a public HTTPS endpoint, which a browser-only app doesn't have. So `poll` reads the sheet every `POLL_MS`, and pauses while the browser tab is hidden. If a read fails, for example while the user is offline, the grid shows one toast and keeps polling.
+- **Rows are matched by ID.** `applyRemote` compares each sheet row with the grid row that has the same ID. A row that moved in the sheet, because someone sorted it or inserted a row above it, still updates the right grid row. A sheet row with an empty `id` isn't synced. If a row was copied in Google Sheets with its ID, only the first row with that ID syncs, and the grid warns about the copy. `parse` skips blank rows but keeps each row's sheet row number, so a blank row in the middle of the sheet can't shift a write to the row below it.
 - **Empty cells are normalized on both sides.** The Sheets API leaves out empty cells at the end of a row, and an empty grid cell is `null`. `parse` pads every row to the header's width, and `normalize` turns `null` and missing cells into `''`. Without this, every untouched empty cell would look like a change.
 - **Changed values go in by physical row.** `setSourceDataAtCell` takes physical row indexes, the positions in the `rows` array, so a sort or filter in the grid can't send a value to the wrong row. It takes all of a poll's changes in one call and renders once. The `'sync'` source tells the `afterChange` hook not to send the change back.
 - **Added and removed rows replace the data.** When the sheet has rows the grid doesn't, or the other way round, `updateData` loads the new array. Sorting and filtering don't re-run on their own when data changes, so `reapplyView` re-applies them, and new rows land in sorted position.
@@ -198,6 +198,7 @@ Create `src/sync.ts`:
 - **Edits are batched and checked.** `afterChange` collects a user's edits for 300 ms and remembers each cell's value before the edit, the base. `writeEdits` then reads the sheet once, finds each row's current position by ID, and compares the sheet's value with the base. If they differ, someone changed the cell in Google Sheets after the grid last read it: the grid keeps their value, and the [Notification](@/guides/dialog/notification/notification.md) plugin says so. The other edits go out in one `values:batchUpdate`.
 - **New rows get an ID in the grid.** `afterCreateRow` gives each new row a `crypto.randomUUID()` ID and appends it to the sheet. A row that undo brings back keeps its old ID: undo creates the row before it refills it, so `sendNewRows` reads the row in a microtask, once the refill is done. `beforeRemoveRow` reads the IDs of the rows being removed while they still exist, then deletes those rows from the sheet by their current row numbers. If either write fails, the pending entry is dropped, and the next poll puts the grid back to what the sheet holds.
 - **Writes run in order.** `enqueueWrite` chains every write on one promise, so a new row reaches the sheet before an edit to that row does.
+- **Undo covers the user's own edits.** The sync writes with the `'sync'` source, and `beforeUndoStackChange` keeps those writes off the undo stack, so <kbd>Ctrl</kbd>+<kbd>Z</kbd> can't revert a colleague's change.
 
 ## Step 6: Build the grid
 
@@ -213,7 +214,7 @@ Create `src/grid.ts`:
 
 - **The data is arrays, not objects.** Handsontable reads a column's `data` property with dots as a nested path, so a header such as `Unit.price` would bind to the wrong place. The grid keeps each row as an array, uses the column index as the column, and shows the sheet's headers through `colHeaders`.
 - **Column types come from the data.** `columnFor` makes a column numeric when every filled cell in it is a number, and text otherwise.
-- **The ID stays in the data.** `hiddenColumns` hides the `id` column from users. The value is still in each row, so edits can be matched to sheet rows.
+- **The ID stays in the data.** `hiddenColumns` hides the `id` column from users. The value is still in each row, so edits can be matched to sheet rows. Hidden columns still take part in copy and paste, so the column is also `readOnly`: pasting rows or pressing <kbd>Delete</kbd> on a selected row can't change an ID. The sync sets new IDs with `setSourceDataAtCell`, which writes the data directly.
 
 ## Step 7: Run the app
 

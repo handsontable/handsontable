@@ -12,6 +12,9 @@ const requestLog: number[] = [];
 
 export class SessionExpiredError extends Error {}
 
+// A write that hit the quota (429) or a server error (5xx). Run the whole task again with `retrying`.
+export class RetryableError extends Error {}
+
 export function setAccessToken(token: string) {
   accessToken = token;
 }
@@ -28,9 +31,15 @@ export function requestsLastMinute() {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Every Sheets API call goes through here. Over quota (429) or a server error (5xx) waits
-// and retries with truncated exponential backoff, as Google recommends.
+// Truncated exponential backoff with jitter, as Google recommends: about 1, 2, 4, and 8 seconds.
+const backoff = (attempt: number) => Math.min(2 ** attempt * 1000 + Math.random() * 1000, 32_000);
+
+// Every Sheets API call goes through here. A read that hits the quota (429) or a server error
+// (5xx) waits and tries again. A write doesn't: it addresses rows by number, and rows can move
+// in the sheet while it waits, so it throws RetryableError instead.
 async function sheetsFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const isRead = (init.method ?? 'GET') === 'GET';
+
   for (let attempt = 0; ; attempt++) {
     requestLog.push(Date.now());
 
@@ -43,9 +52,15 @@ async function sheetsFetch<T>(path: string, init: RequestInit = {}): Promise<T> 
       throw new SessionExpiredError('Your Google session expired. Sign in again.');
     }
 
-    if ((response.status === 429 || response.status >= 500) && attempt < MAX_TRIES - 1) {
-      await sleep(Math.min(2 ** attempt * 1000 + Math.random() * 1000, 32_000));
-      continue;
+    if (response.status === 429 || response.status >= 500) {
+      if (!isRead) {
+        throw new RetryableError(`Sheets API error ${response.status}`);
+      }
+
+      if (attempt < MAX_TRIES - 1) {
+        await sleep(backoff(attempt));
+        continue;
+      }
     }
 
     if (!response.ok) {
@@ -55,6 +70,24 @@ async function sheetsFetch<T>(path: string, init: RequestInit = {}): Promise<T> 
     }
 
     return response.json() as Promise<T>;
+  }
+}
+
+// Runs a write task, and runs it again with backoff when a write in it throws RetryableError. The
+// task reads the sheet before it writes, so each attempt finds the rows where they are now.
+export async function retrying(task: () => Promise<void>) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await task();
+
+      return;
+    } catch (error) {
+      if (!(error instanceof RetryableError) || attempt >= MAX_TRIES - 1) {
+        throw error;
+      }
+
+      await sleep(backoff(attempt));
+    }
   }
 }
 

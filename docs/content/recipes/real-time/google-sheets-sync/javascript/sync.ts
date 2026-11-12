@@ -2,7 +2,7 @@ import type Handsontable from 'handsontable/base';
 import type { CellChange, ChangeSource } from 'handsontable/settings';
 import { ID_HEADER, POLL_MS } from './config';
 import { createGrid } from './grid';
-import { appendRows, deleteRows, readSheet, SessionExpiredError, writeCells, type Cell } from './sheets';
+import { appendRows, deleteRows, readSheet, retrying, SessionExpiredError, writeCells, type Cell } from './sheets';
 
 // Changes the sync makes itself. Only a user's change goes back to the sheet.
 const OWN_SOURCES = new Set<string>(['sync', 'loadData', 'updateData']);
@@ -48,6 +48,10 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
   // Set once the sheet's first row no longer matches the grid's columns. From then on, nothing
   // syncs: a write by column index could land in the wrong column.
   let columnsChanged = false;
+  // IDs that more than one sheet row has. Each is reported once.
+  const warnedDuplicates = new Set<string>();
+  // Set while polls fail, so an outage shows one toast, not one every POLL_MS.
+  let pollFailing = false;
 
   let editBatch = new Map<string, Edit>();
   let editTimer = 0;
@@ -97,6 +101,29 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
   // A row the grid just created holds null, which normalize turns into ''.
   const idOf = (row: Cell[]) => String(normalize(row[idColumn]));
 
+  // The first sheet row with each ID. A row copied in Google Sheets with its ID is left out, with a
+  // warning, so an edit or a delete in the grid reaches one sheet row only.
+  function byId(body: { sheetRow: number; row: Cell[] }[]) {
+    const entries = new Map<string, { sheetRow: number; row: Cell[] }>();
+
+    for (const entry of body) {
+      const id = idOf(entry.row);
+
+      if (id === '') {
+        continue;
+      }
+
+      if (!entries.has(id)) {
+        entries.set(id, entry);
+      } else if (hot && !warnedDuplicates.has(id)) {
+        warnedDuplicates.add(id);
+        notify('Duplicate ID', `More than one row in the sheet has the ID "${id}". Only the first one syncs.`);
+      }
+    }
+
+    return entries;
+  }
+
   function checkColumns(names: string[]) {
     if (columnsChanged || names.join('\u0000') !== header.join('\u0000')) {
       columnsChanged = true;
@@ -137,7 +164,7 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
       }
 
       // A row typed into the sheet without an ID isn't synced. Give it one there.
-      rows = body.map(({ row }) => row).filter((row) => idOf(row) !== '');
+      rows = [...byId(body).values()].map(({ row }) => row);
       reindex();
       hot = createGrid(container, header, rows, idColumn);
       attachHooks(hot);
@@ -157,13 +184,7 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
     const cellChanges: [number, number, Cell][] = [];
     let structural = false;
 
-    for (const { row: remoteRow } of body) {
-      const id = idOf(remoteRow);
-
-      if (id === '') {
-        continue;
-      }
-
+    for (const [id, { row: remoteRow }] of byId(body)) {
       remoteIds.add(id);
       pendingAppends.delete(id);
 
@@ -227,15 +248,16 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
     }
   }
 
+  // Each task reads the sheet before it writes, so `retrying` can run it again after a 429 or 5xx.
   function enqueueWrite(task: () => Promise<void>) {
-    writeQueue = writeQueue.then(task).catch(handleError);
+    writeQueue = writeQueue.then(() => retrying(task)).catch(handleError);
   }
 
   // Writes a batch of grid edits. Reads the sheet first to find each row's current position
   // and to catch edits someone else made to the same cell since the grid last synced.
   async function flushEdits(batch: Map<string, Edit>) {
     try {
-      await writeEdits(batch);
+      await retrying(() => writeEdits(batch));
     } catch (error) {
       // Nothing from this batch reached the sheet: put the grid back to what the sheet holds.
       for (const edit of batch.values()) {
@@ -257,15 +279,17 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
 
     checkColumns(names);
 
-    const remoteById = new Map(body.map((entry) => [idOf(entry.row), entry]));
+    const remoteById = byId(body);
     const toWrite: { sheetRow: number; column: number; value: Cell }[] = [];
     const written: Edit[] = [];
 
-    for (const edit of batch.values()) {
+    // An edit that is settled here leaves the batch, so a retry doesn't handle it twice.
+    for (const [editKey, edit] of batch) {
       const remote = remoteById.get(edit.id);
 
       if (!remote) {
         settle(edit);
+        batch.delete(editKey);
         continue; // The row was deleted in the sheet; the next poll removes it here too.
       }
 
@@ -275,6 +299,7 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
       if (current !== edit.base && current !== edit.value) {
         // Someone changed this cell in the sheet after the grid last read it. Keep their value.
         settle(edit);
+        batch.delete(editKey);
 
         const index = indexById.get(edit.id);
 
@@ -336,8 +361,14 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
 
     enqueueWrite(async () => {
       try {
-        checkColumns(header);
-        await appendRows(newRows);
+        // A 5xx can come back after Google added the rows, so a retry skips the ones it has.
+        const { names, body } = parse(await readSheet());
+
+        checkColumns(names);
+
+        const present = byId(body);
+
+        await appendRows(newRows.filter((row) => !present.has(idOf(row))));
       } catch (error) {
         // The rows never reached the sheet, so the next poll removes them from the grid.
         newIds.forEach((id) => pendingAppends.delete(id));
@@ -380,7 +411,7 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
         const batch = editBatch;
 
         editBatch = new Map();
-        enqueueWrite(() => flushEdits(batch));
+        writeQueue = writeQueue.then(() => flushEdits(batch)).catch(handleError);
       }, EDIT_DEBOUNCE_MS);
     });
 
@@ -415,7 +446,8 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
 
           checkColumns(names);
 
-          const sheetRows = body.filter(({ row }) => ids.includes(idOf(row))).map(({ sheetRow }) => sheetRow);
+          const remote = byId(body);
+          const sheetRows = ids.flatMap((id) => remote.get(id)?.sheetRow ?? []);
 
           await deleteRows(sheetRows);
         } catch (error) {
@@ -427,6 +459,9 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
     });
 
     grid.addHook('afterRemoveRow', () => reindex());
+
+    // The sync's own writes stay off the undo stack, so Ctrl+Z can't revert a colleague's change.
+    grid.addHook('beforeUndoStackChange', (_doneActions: unknown[], source?: string) => source !== 'sync');
   }
 
   function handleError(error: unknown) {
@@ -447,6 +482,7 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
         const readStartedAt = Date.now();
 
         applyRemote(await readSheet(), readStartedAt);
+        pollFailing = false;
         onStatus(`Synced at ${new Date().toLocaleTimeString()}`);
       }
     } catch (error) {
@@ -457,7 +493,13 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
         return;
       }
 
-      handleError(error);
+      // Offline, for example. Say so once, and keep polling until a read works again.
+      onStatus(`Can't reach the sheet. Retrying every ${POLL_MS / 1000} seconds.`);
+
+      if (!pollFailing) {
+        pollFailing = true;
+        handleError(error);
+      }
     }
 
     pollTimer = window.setTimeout(poll, POLL_MS);

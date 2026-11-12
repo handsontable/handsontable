@@ -21,7 +21,8 @@ export function createGrid(container: HTMLElement, header: string[], rows: Cell[
   return new Handsontable(container, {
     data: rows,
     colHeaders: header,
-    columns: header.map((_, column) => columnFor(rows, column)),
+    // The ID column is read-only, so a paste or Delete over a selected row can't change an ID.
+    columns: header.map((_, column) => (column === idColumn ? { readOnly: true } : columnFor(rows, column))),
     // The ID column stays in the data, so edits can be matched to sheet rows, but users never see it.
     hiddenColumns: { columns: [idColumn] },
     rowHeaders: true,
