@@ -35,6 +35,17 @@ false`. The sequence change hooks (`afterColumnSequenceChange` and its cache upd
 such a drop either. The row mirror documents the same rule in `../manualRowMove/AGENTS.md`; keep both in step.
 Pinned by `__tests__/noopMoveTrimmedColumns.unit.js` and `tests/e2e/manual-move-trimmed.spec.ts`.
 
+## A move that changes the order lands next to a visible column
+
+`moveIndexes()` puts the moved columns right before the physical column of the visible column at `finalIndex`,
+after any trimmed columns in front of it. A move to the last visible position puts them right after the last
+visible column, before the trailing trimmed columns. The columns never split a run of neighboring trimmed
+columns. The rule is pinned by `__tests__/moveTrimmedPlacement.unit.js`, which mirrors the row plugin's test of
+the same name, and the column-moving guide documents it. Landing on the other side of a trimmed block would
+change the physical order users see after untrimming, so it is a breaking change. With HIDDEN columns the two
+drop indexes around a hidden block land on either side of it with the same visible order, and the test pins only
+the visible order.
+
 ## `isDragging()` is the shared click-versus-drag verdict
 
 ```js

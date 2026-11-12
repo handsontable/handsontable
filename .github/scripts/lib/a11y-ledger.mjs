@@ -60,6 +60,7 @@ import {
 import { DEFAULT_DOCS_BASE_URL } from '../../../tests/a11y/docs/constants.mjs';
 import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { DEFAULT_TOKEN_SEVERITY, TOKEN_SEVERITIES } from '../../../tests/lib/screenreader-transcript.mjs';
+import { severityOfImpact } from '../../../tests/lib/a11y-verdict.mjs';
 
 export const A11Y_VERSION = 1;
 /**
@@ -193,7 +194,9 @@ export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
  * @property {string|null} variant The target's variant (`dark`, `rtl`, a check's own).
  * @property {string} where The masked selector, the step, or both (`<masked selector> @ <step>`).
  * @property {string[]} criteria The WCAG criteria.
- * @property {string|null} severity One of `SEVERITIES`; `null` for a baselined axe location, whose impact the baseline holds.
+ * @property {string|null} severity One of `SEVERITIES`. An axe finding's is its impact read the way its check run reads it
+ * (`severityOfImpact()`: an impact axe did not give is serious); `null` for a baselined location of a findings document
+ * written before the locations carried their impact.
  * @property {string} reason One sentence, bounded.
  * @property {string|null} url The fixture path, when the finding names one.
  * @property {string|null} issue The baseline issue an axe finding is filed under, or the one the scan suggests for a new one.
@@ -532,9 +535,13 @@ function readEvidence(file, label, night, notes) {
  * Reads an axe scan's findings document into its night: every baselined location once (matched, grown or
  * improved, `issues[].locations`), and every new finding (`needsAction` with `status: 'new'`). A grown or
  * improved entry of `needsAction` is a location already read; a `fixed` one is gone. All of them are one kind,
- * so a finding keeps its row when it is baselined. The scan covers its rows only when it was complete (no
- * tooling problem, no unverified page) and read whole. The product scan's document goes into the a11y night with
- * the source `axe`; the docs site scan's, in the same shape, into the docs night with the source `docs`.
+ * so a finding keeps its row when it is baselined. Every finding is as severe as the `A11y / axe report` check run of
+ * the same audit counts it: its impact, the one the scan gave it, through the verdict's own `severityOfImpact()`, so
+ * the ledger and the check run cannot disagree on a severity. A location of a document written before the locations
+ * carried their impact has none, and its row keeps a `null` severity until a night that names it. The scan covers its
+ * rows only when it was complete (no tooling problem, no unverified page) and read whole. The product scan's document
+ * goes into the a11y night with the source `axe`; the docs site scan's, in the same shape, into the docs night with
+ * the source `docs`.
  *
  * @param {{artifact: string, path: string, text: string}} file The file.
  * @param {string} label The file, for a note.
@@ -606,7 +613,7 @@ function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_C
     for (const item of issue.locations.slice(0, LIMITS.locations)) {
       location(item, {
         criteria: [...issue.wcag].sort(compareCriteria),
-        severity: null,
+        severity: isObject(item) && Object.hasOwn(item, 'impact') ? severityOfImpact(item.impact) : null,
         reason: cut(issue.title, LIMITS.reason),
         url: null,
         issue: issue.id,
@@ -624,7 +631,7 @@ function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_C
     }
     location(item, {
       criteria: [...item.wcag].sort(compareCriteria),
-      severity: SEVERITIES.includes(item.impact) ? item.impact : null,
+      severity: severityOfImpact(item.impact),
       reason: cut(item.help ?? item.rule, LIMITS.reason),
       url: fixturePath(item.url),
       issue: item.issue ?? item.suggestedIssue ?? null,

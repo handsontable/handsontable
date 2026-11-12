@@ -384,6 +384,17 @@ applied in full. The step is saved and restored around a nested `_applySettingsA
 "off". In every case the flag plugins read stays `true`, so their work still waits for the call's
 `onDataReady()` pass. Pinned by `src/__tests__/core/applySettingsAndData.unit.js`.
 
+## A plugin that needs another plugin running
+
+Core's `PluginRequirements` (`../../core/pluginRequirements.ts`, one per grid, reached through the `@private`
+`hot._requirePlugin()`, `_releasePlugin()` and `_isPluginRequired()`) records which plugins another plugin needs
+running. The required plugin's `isEnabled()` reads `_isPluginRequired(PLUGIN_KEY)` beside its own option and
+knows nothing about who requires it. The requiring plugin requires in `enablePlugin()`, releases in
+`disablePlugin()`, and **never writes the other plugin's setting**: a `getSettings()` write shadows the global
+meta and the required plugin then never turns off. Outside a settings pass it calls the other plugin's
+`enablePlugin()`/`disablePlugin()` itself. Loading → Dialog is the only consumer (`../loading/AGENTS.md`); every
+other dependent plugin warns and stays inert when the plugin it needs is off.
+
 ## Hard conflicts
 
 `registerConflict(blockedKey, incompatibleSettingKeys)` declares "this plugin must never enable while that
@@ -445,8 +456,8 @@ turns it on through branch 2. Three things follow:
   `.isEnabled()` call whose receiver is not `this` or `super`; a read that really means the option goes on its
   allowlist with the reason. The rules are in `../../utils/entitlementLicenseKey/AGENTS.md`.
 - **A direct `getPlugin(name).enablePlugin()` call is gated too**, in the lifecycle wrapper
-  (`#routeLifecycleCalls()`), so an app cannot turn on a plugin the key leaves out. The only built-in direct call
-  is Filters turning on DropdownMenu, which Filters' own `LICENSE.implies` grants with it.
+  (`#routeLifecycleCalls()`), so an app cannot turn on a plugin the key leaves out. The built-in direct calls are
+  Filters turning on DropdownMenu and Loading turning on Dialog, each granted by the caller's own `LICENSE.implies`.
 - **A read of another plugin's SETTING has the same trap as `isEnabled()`**, and the guard test does not see it.
   Asked at run time, read `getPlugin(name)?.enabled` (the "Copy with group headers" menu item asks NestedHeaders
   that way). At init the other plugin may not have started yet, so the setting is the only answer there:
