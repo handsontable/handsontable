@@ -173,6 +173,18 @@ interface ChangeSetAwaitingApply {
    */
   heldDependents: unknown[];
   /**
+   * The changes of the set the Core can reject. The Core splices a rejected one out of the set's array, so
+   * the apply tells a rejection by a change missing from it.
+   */
+  rejectableChanges: CellChange[];
+  /**
+   * The cells of the set written at once that read a deferred cell of the set (`#findReadersOfDeferred()`).
+   * The Core validated them by the value the validation probe read, with the deferred cells' new values, so
+   * the apply leaves them out of the dependent validation, unless a deferred change was rejected: they then
+   * hold a value computed from the old content, and the apply validates them again.
+   */
+  readersOfDeferred: { address: FormulasCellAddress }[];
+  /**
    * The cells the first write really reached, with the value each held before it. A sheet switch
    * before the Core applies the set drops it and restores exactly these (`#restoreSwitchedAwaySheet`): by then the
    * grid maps its indexes onto the switched-to sheet's data, so mapping the changes again names
@@ -203,6 +215,17 @@ interface ValidationValue {
 interface ProbeWrite {
   rejectable: RejectableChange;
   value: unknown;
+  address: FormulasCellAddress;
+  entry: ValidationValue;
+}
+
+/**
+ * A cell of the set written at once that reads a deferred cell of the set (`Formulas#findReadersOfDeferred`):
+ * the probe does not write it (the engine holds it already), it reads its result into `entry`.
+ */
+interface ProbeReader {
+  visualRow: number;
+  visualColumn: number;
   address: FormulasCellAddress;
   entry: ValidationValue;
 }
@@ -5535,7 +5558,14 @@ export class Formulas extends BasePlugin {
       changedCells.push({ address: this.#toEngineCellAddress(visualRow, visualColumn) });
     });
 
-    const { earlyDependents, heldDependents } = this.#splitDependentsOfDeferred(dependentCells, rejectableChanges);
+    // One walk of the engine's dependency graph from the deferred cells serves both splits below.
+    const isWalkNeeded = rejectableChanges.length > 0 && (dependentCells.length > 0 || immediateChanges.length > 0);
+    const reachedFromDeferred = isWalkNeeded
+      ? this.#collectDependentKeys(rejectableChanges
+        .map(({ visualRow, visualColumn }) => this.#toEngineCellAddress(visualRow, visualColumn)))
+      : new Set<string>();
+    const { earlyDependents, heldDependents } = this.#splitDependentsOfDeferred(dependentCells, reachedFromDeferred);
+    const readersOfDeferred = this.#findReadersOfDeferred(immediateChanges, reachedFromDeferred);
 
     this.#changesAwaitingApply.set(changes, {
       writeCount: this.#sheetWriteCount,
@@ -5545,10 +5575,12 @@ export class Formulas extends BasePlugin {
       deferredChanges,
       hasRejectableChange: rejectableChanges.length > 0,
       heldDependents,
+      rejectableChanges: rejectableChanges.map(({ change }) => change),
+      readersOfDeferred: readersOfDeferred.map(({ address }) => ({ address })),
       writtenCells,
     });
 
-    this.#probeValidationValues(rejectableChanges, source);
+    this.#probeValidationValues(rejectableChanges, source, readersOfDeferred);
     this.validateDependentCells(earlyDependents, changedCells);
   };
 
@@ -5614,16 +5646,15 @@ export class Formulas extends BasePlugin {
    * `#onBeforeChangeRender` validates them with the final values.
    *
    * @param {object[]} dependentCells The cells the early write recalculated.
-   * @param {object[]} rejectableChanges The deferred changes the Core can reject.
+   * @param {Set<string>} reached The keys of the cells the deferred changes of the set recalculate
+   *   (`#collectDependentKeys()`).
    * @returns {{ earlyDependents: object[], heldDependents: object[] }}
    */
-  #splitDependentsOfDeferred(dependentCells: unknown[], rejectableChanges: RejectableChange[]) {
-    if (rejectableChanges.length === 0 || dependentCells.length === 0) {
+  #splitDependentsOfDeferred(dependentCells: unknown[], reached: Set<string>) {
+    if (reached.size === 0 || dependentCells.length === 0) {
       return { earlyDependents: dependentCells, heldDependents: [] };
     }
 
-    const reached = this.#collectDependentKeys(rejectableChanges
-      .map(({ visualRow, visualColumn }) => this.#toEngineCellAddress(visualRow, visualColumn)));
     const earlyDependents: unknown[] = [];
     const heldDependents: unknown[] = [];
 
@@ -5634,6 +5665,56 @@ export class Formulas extends BasePlugin {
     });
 
     return { earlyDependents, heldDependents };
+  }
+
+  /**
+   * Finds the changes of the set written at once (`afterSetDataAtCell`) whose cell reads a deferred cell
+   * of the same set, directly or through other formulas: a formula the early write put into the engine
+   * that the deferred cell's new value recalculates. The engine computed it from the deferred cell's old
+   * content, so the Core validated it by a value it never ends with (`#VALUE!` read from an old text),
+   * marked it invalid for the whole wait, and the apply validated it a second time outside the edit's
+   * undo step. The validation probe reads its result with the deferred cells' new values instead
+   * (`#probeValidationValues()`). Only the last change of a cell is taken, as the engine holds it, and only
+   * a cell with a validator: the probe result is for the Core's validation of the change.
+   *
+   * @param {Array[]} immediateChanges The changes written at once.
+   * @param {Set<string>} reached The keys of the cells the deferred changes of the set recalculate.
+   * @returns {object[]} The changes with their coordinates and engine address.
+   */
+  #findReadersOfDeferred(immediateChanges: CellChange[], reached: Set<string>) {
+    const readers = new Map<string, RejectableChange & { address: FormulasCellAddress }>();
+
+    if (reached.size === 0) {
+      return [];
+    }
+
+    immediateChanges.forEach((change) => {
+      const [visualRow, prop] = change;
+      const visualColumn = this.hot.propToCol(prop as string | number);
+
+      if (visualColumn === null) {
+        return;
+      }
+
+      const physicalRow = this.hot.toPhysicalRow(visualRow);
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalRow === null || physicalColumn === null) {
+        return;
+      }
+
+      const address = this.#toEngineCellAddress(visualRow, visualColumn);
+      const key = toCellKey(address);
+
+      // A later change to the cell replaces an earlier one, as in the engine.
+      readers.delete(key);
+
+      if (reached.has(key) && this.hot.getCellValidator(this.hot.getCellMetaTransient(visualRow, visualColumn))) {
+        readers.set(key, { change, visualRow, visualColumn, physicalRow, physicalColumn, address });
+      }
+    });
+
+    return [...readers.values()];
   }
 
   /**
@@ -5711,10 +5792,21 @@ export class Formulas extends BasePlugin {
    * An engine that keeps no undo history (`undoLimit: 0`) cannot take a batch back without risking an
    * array formula's spill, so each formula is calculated on its own there (`#calculateDetached()`).
    *
+   * A formula of the set written at once that reads a deferred cell of the set (`#findReadersOfDeferred()`)
+   * gets an entry too, so its validator sees the result the cell holds once the deferred cells are written:
+   * the probe runs for it even without a deferred formula, writes the deferred cells it reads, and reads its
+   * result. Without a probe (an engine keeping fewer than two undo entries, evaluation suspended) it has no
+   * entry and is validated by what the engine holds, from the deferred cells' old content.
+   *
    * @param {object[]} rejectableChanges The changes the Core can reject.
    * @param {string} [source] The change source, which the Core hands `beforeValidate`.
+   * @param {object[]} [readersOfDeferred] The changes written at once that read a deferred cell of the set.
    */
-  #probeValidationValues(rejectableChanges: RejectableChange[], source: string | undefined) {
+  #probeValidationValues(
+    rejectableChanges: RejectableChange[],
+    source: string | undefined,
+    readersOfDeferred: (RejectableChange & { address: FormulasCellAddress })[] = [],
+  ) {
     if (rejectableChanges.length === 0) {
       return;
     }
@@ -5751,13 +5843,28 @@ export class Formulas extends BasePlugin {
     });
 
     const engine = this.engine;
+    const canProbe = !!engine && this.sheetId !== null && !engine.isEvaluationSuspended();
+    const { undoLimit } = canProbe ? engine.getConfig() : { undoLimit: undefined };
+    // The detached calculation below cannot read the deferred cells' new values, so a reader gets an entry
+    // only with a probe.
+    const readers: ProbeReader[] = canProbe && !(typeof undoLimit === 'number' && undoLimit < 2)
+      ? readersOfDeferred.map(({ change, visualRow, visualColumn, address }) => ({
+        visualRow,
+        visualColumn,
+        address,
+        entry: { source, changeValue: change[3], hasResult: false, result: undefined },
+      }))
+      : [];
 
-    if (!engine || this.sheetId === null || engine.isEvaluationSuspended() ||
-      !writes.some(({ value }) => isFormula(value))) {
+    readers.forEach(({ visualRow, visualColumn, entry }) => {
+      const key = this.#validationValueKey(visualRow, visualColumn);
+
+      this.#validationValues.set(key, [...(this.#validationValues.get(key) ?? []), entry]);
+    });
+
+    if (!canProbe || (readers.length === 0 && !writes.some(({ value }) => isFormula(value)))) {
       return;
     }
-
-    const { undoLimit } = engine.getConfig();
 
     // A probe pushes up to two batches and undoes each. An engine that keeps fewer undo entries would drop
     // the first one, and the second `undo()` would throw with the probe still in the engine.
@@ -5784,7 +5891,7 @@ export class Formulas extends BasePlugin {
       }
     });
 
-    withPluginEngineProbe(engine, () => this.#writeOwnSheet(engine, () => this.#runProbe(lastWrites)));
+    withPluginEngineProbe(engine!, () => this.#writeOwnSheet(engine, () => this.#runProbe(lastWrites, readers)));
   }
 
   /**
@@ -5793,38 +5900,47 @@ export class Formulas extends BasePlugin {
    * second batch, only when one of those formulas reads its cell (`getCellPrecedents()`, a range
    * included): a formula of the set reads every other formula of the set from the first batch, so this
    * covers a chain through them, and a paste of many plain values with one formula writes one cell, not
-   * the whole paste.
+   * the whole paste. A reader of the set (a formula written at once that reads a deferred cell) is in the
+   * engine already, so it is not written; with one, every plain value of the set goes into the second batch,
+   * and its result is read too. Without a deferred formula, the first batch is not written.
    *
    * @param {object[]} writes The probe writes: the change, its engine-bound value, address and entry.
+   * @param {object[]} [readers] The cells written at once whose result the probe reads.
    */
-  #runProbe(writes: ProbeWrite[]) {
+  #runProbe(writes: ProbeWrite[], readers: ProbeReader[] = []) {
     const engine = this.engine!;
     const formulaWrites = writes.filter(({ value }) => isFormula(value));
     let batches = 0;
 
     try {
-      batches += 1;
-      this.#writeProbeBatch(formulaWrites);
+      if (formulaWrites.length > 0) {
+        batches += 1;
+        this.#writeProbeBatch(formulaWrites);
+      }
 
       const precedents = formulaWrites.flatMap(({ address }) => engine.getCellPrecedents(address));
       // A named expression is reported with sheet -1 and hides the cells it reads, so any plain value of
       // the set may be one of them.
       const readsNamedExpression = precedents
         .some(precedent => ('start' in precedent ? precedent.start : precedent).sheet < 0);
+      // A reader can read a deferred cell through a formula written at once that is not a reader itself (one
+      // without a validator), so with a reader every plain value of the set goes in.
       const readValueWrites = writes.filter(({ value, address }) => !isFormula(value) &&
-        (readsNamedExpression || precedents.some(precedent => isAddressInPrecedent(address, precedent))));
+        (readsNamedExpression || readers.length > 0 ||
+          precedents.some(precedent => isAddressInPrecedent(address, precedent))));
 
       if (readValueWrites.length > 0) {
         batches += 1;
         this.#writeProbeBatch(readValueWrites);
       }
 
-      formulaWrites.forEach(({ rejectable: { visualRow, visualColumn }, entry }) => {
-        if (this.isFormulaCellType(visualRow, visualColumn)) {
-          entry.hasResult = true;
-          entry.result = this.#readValidationValue(visualRow, visualColumn);
-        }
-      });
+      [...formulaWrites.map(({ rejectable, entry }) => ({ ...rejectable, entry })), ...readers]
+        .forEach(({ visualRow, visualColumn, entry }) => {
+          if (this.isFormulaCellType(visualRow, visualColumn)) {
+            entry.hasResult = true;
+            entry.result = this.#readValidationValue(visualRow, visualColumn);
+          }
+        });
     } finally {
       // An empty batch still pushes an undo entry, so this never takes back an earlier operation.
       for (let batch = 0; batch < batches; batch++) {
@@ -6024,13 +6140,51 @@ export class Formulas extends BasePlugin {
     // The dependents the early write left to the apply (see `#splitDependentsOfDeferred()`), also when every
     // deferred change was rejected and nothing is written here.
     const dependentsToValidate = uniqueCellChanges([...dependentCells, ...awaitingApply.heldDependents]);
+    const { readersOfDeferred } = awaitingApply;
+    const readerKeys = new Set(readersOfDeferred.map(({ address }) => toCellKey(address)));
+    const isReader = (change: unknown) => isHFCellChange(change) && !!change.address &&
+      readerKeys.has(toCellKey(change.address));
 
-    if (awaitingApply.hasRejectableChange) {
-      this.#validateDependentCellsUnrecorded(dependentsToValidate, changedCells);
-    } else {
-      this.validateDependentCells(dependentsToValidate, changedCells);
+    if (readerKeys.size === 0) {
+      this.#validateChangedDependents(awaitingApply, dependentsToValidate, changedCells);
+
+      return;
+    }
+
+    // The Core validated the readers of the deferred cells by the probe's result, which is what they hold
+    // now when every deferred change was accepted, so they are not validated again. After a rejection they
+    // hold a value computed from the old content: validated again, as changes of the edit, inside its undo
+    // step, so what their validator or `afterValidate` writes is undone with the edit.
+    const isAnyRejected = awaitingApply.rejectableChanges.some(change => !changes.includes(change));
+
+    this.#validateChangedDependents(
+      awaitingApply,
+      dependentsToValidate.filter(change => !isReader(change)),
+      [...changedCells, ...readersOfDeferred],
+    );
+
+    if (isAnyRejected) {
+      this.validateDependentCells(readersOfDeferred, changedCells.filter(change => !isReader(change)));
     }
   };
+
+  /**
+   * Validates the dependents an apply recalculated: outside every undo step when the set held a change the
+   * Core can reject (`#validateDependentCellsUnrecorded()`), inside the edit's step otherwise.
+   *
+   * @param {object} awaitingApply The record of the change set.
+   * @param {object[]} dependentCells The cells to validate.
+   * @param {object[]} changedCells The cells the Core validates as changes of the set.
+   */
+  #validateChangedDependents(
+    awaitingApply: ChangeSetAwaitingApply, dependentCells: unknown[], changedCells: unknown[],
+  ) {
+    if (awaitingApply.hasRejectableChange) {
+      this.#validateDependentCellsUnrecorded(dependentCells, changedCells);
+    } else {
+      this.validateDependentCells(dependentCells, changedCells);
+    }
+  }
 
   /**
    * Answers whether the engine refused a full write of the sheet while the change set waited, with no

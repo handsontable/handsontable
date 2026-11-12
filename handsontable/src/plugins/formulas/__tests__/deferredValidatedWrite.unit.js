@@ -455,6 +455,115 @@ describe('Formulas writes a validated change when the Core applies it', () => {
     expect(hot.getCellMeta(0, 1).flagged).toBeUndefined();
   });
 
+  /**
+   * Builds a grid for a mixed set where an immediate formula reads a deferred cell: A is deferred (held
+   * validator, `allowInvalid: false`, values of 10 and more rejected), B has a validator that accepts
+   * invalid values (written at once), and D = B * 2.
+   *
+   * @param {object} [settings] Extra settings merged into the grid configuration.
+   * @returns {{ engine: object, sheet: number, bValues: Array }}
+   */
+  function buildReaderOfDeferredGrid(settings = {}) {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const bValues = [];
+
+    hot = new Handsontable(container, {
+      data: [['x', '=A1*3', 'c', '=B1*2']],
+      columns: [
+        {
+          validator: (value, callback) => held.push({ value, answer: () => callback(value < 10) }),
+          allowInvalid: false,
+        },
+        {
+          validator: (value, callback) => {
+            bValues.push(value);
+            callback(typeof value === 'number');
+          },
+        },
+        {},
+        {},
+      ],
+      formulas: { engine },
+      licenseKey: TEST_LICENSE_KEY,
+      ...settings,
+    });
+
+    return { engine, sheet: hot.getPlugin('formulas').sheetId, bValues };
+  }
+
+  it('validates an immediate formula that reads a deferred cell of its set once, by the new value', async() => {
+    const { bValues } = buildReaderOfDeferredGrid();
+
+    hot.setDataAtCell([[0, 0, 4], [0, 1, '=A1*5']]);
+    await waitForValidation();
+
+    // A1 still waits, and B1 was validated by the value it gets once A1 is written, not by #VALUE! from 'x'.
+    expect(held.map(({ value }) => value)).toEqual([4]);
+    expect(bValues).toEqual([20]);
+    expect(hot.getCellMeta(0, 1).valid).toBe(true);
+
+    held.splice(0).forEach(({ answer }) => answer());
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 1)).toBe(20);
+    expect(hot.getDataAtCell(0, 3)).toBe(40);
+    expect(bValues).toEqual([20]);
+    expect(hot.getCellMeta(0, 1).valid).toBe(true);
+  });
+
+  it('validates an immediate formula again by the old value when the deferred cell it reads is rejected', async() => {
+    const { engine, sheet, bValues } = buildReaderOfDeferredGrid({
+      data: [[1, '=A1*3', 'c', '=B1*2']],
+    });
+
+    hot.setDataAtCell([[0, 0, 50], [0, 1, '=A1*5']]);
+    await waitForValidation();
+
+    expect(bValues).toEqual([250]);
+
+    held.splice(0).forEach(({ answer }) => answer());
+    await waitForValidation();
+
+    // A1 kept 1, so B1 holds 5 and its dependent reads it; the mark describes the value B1 holds.
+    expect(hot.getSourceDataAtCell(0, 0)).toBe(1);
+    expect(engine.getCellValue({ sheet, row: 0, col: 0 })).toBe(1);
+    expect(hot.getDataAtCell(0, 1)).toBe(5);
+    expect(hot.getDataAtCell(0, 3)).toBe(10);
+    expect(bValues).toEqual([250, 5]);
+    expect(hot.getCellMeta(0, 1).valid).toBe(true);
+  });
+
+  it('keeps what the afterValidate of an immediate formula reading a deferred cell writes in the edit\'s undo step', async() => {
+    buildReaderOfDeferredGrid({
+      undo: true,
+      afterValidate(isValid, value, row, prop) {
+        // The undo validates B1 again, by #VALUE! from the restored 'x', which writes nothing.
+        if (prop === 1 && typeof value === 'number') {
+          this.setDataAtCell(row, 2, `seen ${value}`, 'afterValidateTest');
+        }
+      },
+    });
+
+    hot.setDataAtCell([[0, 0, 4], [0, 1, '=A1*5']]);
+    await waitForValidation();
+    held.splice(0).forEach(({ answer }) => answer());
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 2)).toBe('seen 20');
+
+    hot.getPlugin('undoRedo').undo();
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 0)).toBe('x');
+    expect(hot.getDataAtCell(0, 2)).toBe('c');
+
+    hot.getPlugin('undoRedo').redo();
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 1)).toBe(20);
+    expect(hot.getDataAtCell(0, 2)).toBe('seen 20');
+  });
+
   it('writes a plain value of the set a formula reads through a named expression into the probe', async() => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const values = [];
