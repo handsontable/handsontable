@@ -1402,13 +1402,23 @@ export class AutoRowSize extends BasePlugin {
   /**
    * Queues the visual row indexes affected by the incoming changes so their heights are
    * recalculated on the next render. A change whose row is `null` landed on a record a trimming map took out
-   * of the visual space while the change waited for its validator, so it has no row to measure.
+   * of the visual space while the change waited for its validator, so it has no row to measure now: its cached
+   * height is dropped instead (`getPhysicalRowOfChange()` names the record), so the row is measured again when it
+   * is shown.
    */
   #onBeforeChange = (changes: unknown[][]) => {
     const changedRows = new Set<number>();
 
-    changes.forEach(([row, prop]: unknown[]) => {
+    changes.forEach((change) => {
+      const [row, prop] = change;
+
       if (row === null) {
+        const physicalRow = this.hot.getPhysicalRowOfChange(change);
+
+        if (physicalRow !== null) {
+          this.rowHeightsMap.setValueAtIndex(physicalRow, null);
+        }
+
         return;
       }
 
