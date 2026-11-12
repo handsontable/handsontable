@@ -175,10 +175,10 @@ export interface GridSettings {
   height?: number | 'auto' | (string & {}) | null | (() => number | string | null);
   colWidths?: number | number[] | string | ((physicalColumn: number) => number | string | null | undefined)
     | Array<number | string | null | undefined> | null;
-  rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
+  rowHeights?: number | number[] | string | ((physicalRow: number) => number | string) | Array<number | string>;
   rowHeaderWidth?: number | number[] | string | Array<number | string>;
   columnHeaderHeight?: number | number[] | string | Array<number | string>;
-  minRowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
+  minRowHeights?: number | number[] | string | ((physicalRow: number) => number | string) | Array<number | string>;
   maxRows?: number;
   maxCols?: number;
   minRows?: number;

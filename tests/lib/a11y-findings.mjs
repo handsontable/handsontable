@@ -5,7 +5,7 @@
  * `test-results/a11y/a11y-findings.json`, which CI uploads in the `a11y-axe-results`
  * artifact. It is the concise form of the run: what needs action, each with where to
  * open it and the elements it is on (selector, DOM path, box, markup, axe's reason), and
- * every known issue with its locations, one locator each; how to reach each page's
+ * every known issue with its locations, one locator and the scan's impact each; how to reach each page's
  * state is listed once, under `pages`. `comparison.json` beside it holds everything, every node of
  * every known finding included, and is many times larger. The shape is documented in
  * `tests/AGENTS.md` ("A11y: the axe scan and its baseline"); `schema` changes when
@@ -103,12 +103,15 @@ export function agentFindings({ verdict, pages, problems = [], suite = PRODUCT_S
         wcag: [...new Set(items.flatMap(item => item.wcag ?? []))].sort(),
         findings: items.length,
         nodes: items.reduce((sum, item) => sum + item.nodes, 0),
-        // One locator per location, the first element's; the steps are in `pages`, once per page.
+        // One locator per location, the first element's; the steps are in `pages`, once per page. The impact is
+        // the one the scan gave the location, which the check run counts (`severityOfImpact()`), so the findings
+        // ledger reads a known location at the severity its check run counted it.
         locations: items.map(item => ({
           page: item.page,
           theme: item.theme,
           rule: item.rule,
           target: item.target,
+          impact: item.impact ?? null,
           nodes: item.nodes,
           selector: item.details?.[0] ? selectorText(item.details[0].selector) : null,
           domPath: item.details?.[0]?.ancestry ? selectorText(item.details[0].ancestry) : null,

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Row header width per level e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    A grid with more than one row header level and a frozen end column. The `modifyRowHeaderWidth`
+    hook sizes each level, and the engine reads it in two places: the `col` elements of the row
+    headers, and the total row header width the hider and the inline-end overlay are placed with.
+    When the two disagree, the end column drawn by the inline-end overlay sits off the column the
+    master draws under it, and the holder scrolls past the table.
+
+    ?case= picks the configuration, ?size= the grid width (`wide`: every column fits, `narrow`: the
+    columns scroll).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const COLUMNS = 6;
+    const extraLevel = (renderers) => {
+      renderers.push((row, TH) => {
+        TH.textContent = `#${row}`;
+      });
+    };
+    const cases = {
+      rowSelection: { rowSelection: true },
+      rowSelectionWidth80: { rowSelection: true, rowHeaderWidth: 80 },
+      rowSelectionPerLevel: { rowSelection: true, rowHeaderWidth: [60, 40] },
+      rowSelectionRtl: { rowSelection: true, layoutDirection: 'rtl' },
+      nestedRows: { rowSelection: true, nestedRows: true },
+      extraLevelHook: {
+        afterGetRowHeaderRenderers: extraLevel,
+        modifyRowHeaderWidth: width => (Array.isArray(width) ? width.map(level => level + 10) : width + 10),
+      },
+      extraLevelRowSelection: { rowSelection: true, afterGetRowHeaderRenderers: extraLevel },
+    };
+    const caseSettings = cases[htParams.get('case') ?? 'rowSelection'];
+    const size = ({ wide: { width: 900, height: 'auto' }, narrow: { width: 320, height: 240 } })[htParams.get('size') ?? 'wide'];
+
+    if (!caseSettings || !size) {
+      throw new Error('Unknown ?case= or ?size= value');
+    }
+
+    const container = document.querySelector('[data-testid="grid"]');
+    const data = Array.from({ length: 12 }, (_, row) => {
+      const record = {};
+
+      for (let column = 0; column < COLUMNS; column++) {
+        record[`c${column}`] = `R${row}C${column}`;
+      }
+
+      if (caseSettings.nestedRows && row === 0) {
+        record.__children = [{ c0: 'child' }];
+      }
+
+      return record;
+    });
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data,
+        colHeaders: true,
+        rowHeaders: true,
+        colWidths: 90,
+        fixedColumnsEnd: 1,
+        ...size,
+        ...caseSettings,
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

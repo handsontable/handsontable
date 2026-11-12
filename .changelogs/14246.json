@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the frozen end column drawn off its column when the row header has more than one level, for example with the row selection checkboxes.",
+  "type": "fixed",
+  "issueOrPR": 14246,
+  "breaking": false,
+  "framework": "none"
+}

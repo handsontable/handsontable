@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where adding a child row through the NestedRows plugin copied the parent's children to an unrelated top-level row, which left the grid a row short after undo.",
+  "type": "fixed",
+  "issueOrPR": 14247,
+  "breaking": false,
+  "framework": "none"
+}
