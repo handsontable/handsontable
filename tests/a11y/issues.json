@@ -47,13 +47,15 @@
     },
     {
       "id": "focus-not-returned-after-escape",
-      "title": "The focus is not returned to the cell after Escape, Enter, Tab or a shortcut closes an editor, a menu or the comment editor: it stays on the closed editor's field or falls to the document, and a screen reader does not announce the cell",
+      "title": "The focus is not returned to the cell after Escape, Enter, Tab or a shortcut closes an editor, a menu or the comment editor, or an arrow key closes a submenu: it stays on the closed editor's field or falls to the document, and a screen reader does not announce the cell or the parent item",
       "tracker": ["DEV-3603", "DEV-3604"],
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-not-returned", "focus-lost", "shortcut-moves-focus-out"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(close-editor|close-context-menu)$"] },
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-keeps-focus"], "where": ["handsontableInput"] },
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor", "dropdown-editor", "date-editor", "comment-editor", "multiselect-editor", "dropdown-menu"], "where": ["^(commit-choice|commit-date|cancel-edit|save-with-control-enter|close-with-escape|commit-selection|close-menu)$"] }
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor", "dropdown-editor", "date-editor", "comment-editor", "multiselect-editor", "dropdown-menu"], "where": ["^(commit-choice|commit-date|cancel-edit|save-with-control-enter|close-with-escape|commit-selection|close-menu)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["time-editor", "datetime-editor"], "where": ["^(commit-time|commit-datetime|cancel-edit)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["context-menu-submenu", "rtl-dropdown-menu"], "where": ["^(close-submenu|close-menu)$"] }
       ]
     },
     {
@@ -62,6 +64,13 @@
       "match": [
         { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor", "handsontable-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third|type-narrow|arrow-down-narrowed)$"] },
         { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] }
+      ]
+    },
+    {
+      "id": "ime-fast-edit-reads-input",
+      "title": "With imeFastEdit the browser focus sits in the editor's hidden input while a cell is only selected, so a date or time cell reads as that input (`Year, spin button, 2024`, `6 month stepper`) or not at all, VoiceOver differently from run to run, and Enter, which opens the editor without a focus move, is silent on NVDA with Firefox",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing", "golden-differs"], "pages": ["intl-date-editor", "intl-time-editor"] }
       ]
     },
     {
@@ -111,11 +120,13 @@
     },
     {
       "id": "formula-builder-popups",
-      "title": "The formula builder's editor puts the combobox role on a textarea with aria-controls naming a closed list, and its function help panel takes the focus as a div with no role that Tab does not leave",
+      "title": "The formula builder's editor puts the combobox role on a textarea with aria-controls naming a closed list, and its function help panel takes the focus as a div with no role that Tab does not leave; VoiceOver reads neither the suggestion that typing highlights nor the function help, and with WebKit says the editor has 0 items",
       "match": [
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^textarea\\.hfe-editor__input"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["hfe-fn-help__body"] },
-        { "source": "checks", "checks": ["tree-snapshots", "keyboard-walker"], "kinds": ["focusable-without-role", "focus-stop-without-role", "tab-keeps-focus"], "where": ["hfe-fn-help__body"] }
+        { "source": "checks", "checks": ["tree-snapshots", "keyboard-walker"], "kinds": ["focusable-without-role", "focus-stop-without-role", "tab-keeps-focus"], "where": ["hfe-fn-help__body"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["formula-suggestions"], "where": ["^type-su$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["formula-function-help"], "where": ["^type-sum$"] }
       ]
     },
     {
@@ -126,15 +137,25 @@
       ]
     },
     {
+      "id": "formula-cell-not-announced",
+      "title": "A cell that holds a formula reads as its result alone: nothing the cell exposes says that it holds a formula",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["formula-bar"], "where": ["^arrow-to-formula-cell$"] }
+      ]
+    },
+    {
       "id": "menu-semantics",
-      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, separators are exposed as menu items, and a screen reader hears the context and column menus as a table, NVDA without the word menu",
+      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, separators are exposed as menu items, and a screen reader hears the context and column menus as a table, NVDA without the word menu, and VoiceOver's next item (VO+Right) moves along the table's row and out of the menu",
       "tracker": ["DEV-3491", "DEV-2944"],
       "match": [
         { "source": "axe", "axeIssues": ["menu-roles", "menu-separators"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-required-parent", "aria-allowed-attr"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["^div\\.htMenu\\[role=\"menu\"\\]$"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^open-context-menu$"] },
-        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value", "filters-by-condition"], "where": ["^open-menu$"] }
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value", "filters-by-condition"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["context-menu-checkable", "rtl-dropdown-menu"], "where": ["^open-menu$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["context-menu-checkable"], "where": ["^read-next-separator$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["context-menu-checkable"], "where": ["^read-next-item$"] }
       ]
     },
     {
@@ -151,7 +172,9 @@
       "id": "read-only-not-announced",
       "title": "A read-only cell is not announced as read only: the cell carries aria-readonly, which no reader says when the focus reaches it",
       "match": [
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["checkbox-cell"], "where": ["^arrow-down-read-only$"] }
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["checkbox-cell"], "where": ["^arrow-down-read-only$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["read-only"], "where": ["^arrow-down-read-only$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["read-only"], "where": ["^arrow-right-read-only$"] }
       ]
     },
     {
@@ -229,11 +252,12 @@
     },
     {
       "id": "status-messages",
-      "title": "A range extension, Ctrl+A selecting every cell, a sort and a nested row's level are not announced: no status message reaches the screen reader",
+      "title": "A range extension, Ctrl+A selecting every cell, a sort, a column added to a multi-column sort with its place in the order, and a nested row's level are not announced: no status message reaches the screen reader",
       "tracker": "DEV-2957",
       "match": [
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again|sort-ascending|sort-descending|into-parent-cell|down-to-child)$"] },
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^select-all-cells$"] }
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^select-all-cells$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["shared-demo"], "where": ["^add-to-sort$"] }
       ]
     },
     {
@@ -314,10 +338,24 @@
       ]
     },
     {
+      "id": "voiceover-submenu-reads-parent",
+      "title": "When ArrowRight opens a submenu, VoiceOver reads the parent item (`Alignment expanded`), not the submenu item that takes the focus",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["context-menu-submenu"], "where": ["^open-submenu$"] }
+      ]
+    },
+    {
       "id": "voiceover-webkit-select-change-silent",
       "title": "VoiceOver with WebKit says nothing when the keys change the option of a closed select, on a plain select too, whether a script changes it as the select editor does or its own type-ahead does: the screen reader's behavior, not the grid's",
       "match": [
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["select-editor"], "where": ["^arrow-down-(first|second)$"] }
+      ]
+    },
+    {
+      "id": "voiceover-webkit-tab-out-of-grid",
+      "title": "VoiceOver with WebKit does not follow the focus when Tab leaves the grid for a link after it (the license notice's links, the Powered by badge): it says nothing or reads the link focused before, and its reading cursor stays in the grid, so reading on reads cells, not the notice",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["license-bar", "license-missing-features", "license-powered-by"] }
       ]
     },
     {
@@ -330,7 +368,12 @@
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "pages": ["dropdown-menu", "filters-by-value"], "where": ["^open-menu$"] },
         { "source": "reader", "checks": ["vo-chromium"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
         { "source": "reader", "checks": ["vo-webkit"], "pages": ["row-selection-corner"], "where": ["^arrow-left-row-checkbox$"] },
-        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["grid-core-horizon", "multiselect-editor", "date-editor"], "where": ["^(menu-arrow-down|arrow-down-third|back-to-committed)$"] }
+        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["grid-core-horizon", "multiselect-editor", "date-editor"], "where": ["^(menu-arrow-down|arrow-down-third|back-to-committed)$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["time-editor", "datetime-editor"], "where": ["^open-editor$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["time-editor", "datetime-editor"], "where": ["^back-to-committed$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["context-menu-checkable", "formula-bar", "formula-function-help", "formula-suggestions", "read-only", "shared-demo"], "where": ["^(open-menu|arrow-to-formula-cell|open-editor|arrow-right-read-only|arrow-right-past-hidden)$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["rtl-dropdown-menu"], "where": ["^(open-menu|end-to-alignment|open-submenu)$"] },
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["formula-function-help"], "where": ["^commit-formula$"] }
       ]
     },
     {
@@ -342,7 +385,9 @@
         { "source": "reader", "kinds": ["golden-differs"], "pages": ["virtualization-reading"], "where": ["^read-\\d+$"] },
         { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["golden-differs"], "pages": ["filters-by-value"], "where": ["^open-menu$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
-        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-snapshot-changed"], "pages": ["dropdown-editor"] }
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-snapshot-changed"], "pages": ["dropdown-editor"] },
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["context-menu-checkable", "rtl-dropdown-menu"], "where": ["^(open-menu|open-submenu)$"] },
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["formula-function-help", "formula-suggestions"], "where": ["^(open-editor|type-sum|type-range|type-close|type-su|accept-sum|commit-formula)$"] }
       ]
     },
     {
