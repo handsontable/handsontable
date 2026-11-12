@@ -1966,6 +1966,19 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
   a `tracker` waits until someone files the task. Findings on the docs site are recorded here and fixed in
   `docs/`, never in the change that adds or refreshes the scan.
+- **A refresh is one command, never a hand edit.** Every docs merge can add or remove findings, so the
+  baseline drifts with the docs. `node tests/scripts/a11y-docs-baseline.mjs --run <run-id>` rewrites it from
+  that run's `docs-a11y-axe-results` (`--scans <folder>` for a local run, `--dry-run` to read the changes
+  first). It compares the run's scans with the file through the scan's own comparator, so whichever
+  baseline the run compared against makes no difference. It takes every count and impact from the run,
+  deletes a finding the run no longer found, adds a new one under the issue its rule and target already
+  belong to, and keeps the entries of a page the run did not scan. It writes nothing when a scan read
+  another deploy than staging, or when a new finding's rule and target belong to no issue yet: name that
+  issue, add the listed entries under it, and run it again. The file stays in the order and form the
+  script writes (`lib/__tests__/a11y-docs-baseline.test.mjs`), so a refresh diff holds the changed lines
+  only. Refresh from a develop dispatch with no staging deploy in flight
+  (`gh run list --workflow docs-staging.yml`): a deploy between that run and the pull request's own scan
+  reads as new findings again.
 - **No keyboard walker yet.** The checks beyond axe (`a11y/checks/`) open fixture targets through the
   harness and bracket a grid's root with sentinels; the docs chrome has neither, so the docs site's
   keyboard paths are a gap of this scan, not a pass.
