@@ -50,6 +50,31 @@ test.describe('column summary that includes a nested summary result', () => {
     await expect(grid.cell(0, 1)).toHaveText('80');
   });
 
+  // The docs example's shape: function-form endpoints built from the data tree in physical rows. Built
+  // from the visible rows instead, the collapsed group's children have no visual row, so the subtotal
+  // got no range and the total dropped it (5650 instead of 36650 in the docs example).
+  test('keeps both levels right through a collapse with endpoints built from the data tree', async() => {
+    await grid.initTreeSummaryGrid();
+    await expect(grid.cell(3, 1)).toHaveText('24');
+    await expect(grid.cell(0, 1)).toHaveText('35');
+
+    await grid.collapseButton(3).click();
+    await expect(grid.cell(4, 1)).toBeHidden();
+
+    await grid.typeValue(1, 50);
+
+    await expect(grid.cell(1, 1)).toHaveText('50');
+    // 50 + 6 + 24
+    await expect(grid.cell(0, 1)).toHaveText('80');
+
+    await grid.collapseButton(3).click();
+
+    await expect(grid.cell(4, 1)).toHaveText('7');
+    // 7 + 8 + 9
+    await expect(grid.cell(3, 1)).toHaveText('24');
+    await expect(grid.cell(0, 1)).toHaveText('80');
+  });
+
   test('restores both levels on undo', async() => {
     await grid.initNestedSummaryGrid(true);
     await expect(grid.cell(0, 1)).toHaveText('35');

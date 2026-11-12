@@ -825,7 +825,7 @@ These rules apply to an included result:
 - The [`custom`](#implement-a-custom-summary-function) summary type is not affected, unless your custom function calls the plugin's own `getCellValue()` or `calculateSum()` method for a summary that has the option: then it gets the included results too.
 - A summary never includes its own destination cell.
 
-The example below builds a budget tree with the [`NestedRows`](@/api/nestedRows.md) plugin. A function gives every parent row a `sum` summary. Its ranges are the parent's direct children, and the `includeSummaryResults` option lets it count the subtotal of the `Payroll` group. The `Payroll` row shows `31000`, and the `Operations` row shows `35850`:
+The example below builds a budget tree with the [`NestedRows`](@/api/nestedRows.md) plugin. A function gives every parent row a `sum` summary. Its ranges are the parent's direct children, and the `includeSummaryResults` option lets it count the subtotal of the `Payroll` group. The function walks the data tree, not the visible rows, because the coordinates are physical and the rows of a collapsed group are not visible. The `Payroll` row shows `31000`, and the `Operations` row shows `35850`:
 
 ::: only-for javascript
 

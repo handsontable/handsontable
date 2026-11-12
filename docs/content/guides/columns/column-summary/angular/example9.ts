@@ -3,6 +3,37 @@ import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 
+interface BudgetLine {
+  item: string;
+  amount: number | null;
+  __children?: BudgetLine[];
+}
+
+// Give every parent a summary of its direct children. Physical rows follow the data tree,
+// so the endpoints stay right while a group is collapsed. Returns the rows `line` spans.
+const addEndpoints = (endpoints: SummaryEndpoint[], line: BudgetLine, physicalRow: number): number => {
+  const ranges: number[][] = [];
+  let nextRow = physicalRow + 1;
+
+  (line.__children ?? []).forEach((child) => {
+    ranges.push([nextRow, nextRow]);
+    nextRow += addEndpoints(endpoints, child, nextRow);
+  });
+
+  if (ranges.length > 0) {
+    endpoints.push({
+      sourceColumn: 1,
+      destinationColumn: 1,
+      destinationRow: physicalRow,
+      type: 'sum',
+      ranges,
+      includeSummaryResults: true,
+    });
+  }
+
+  return nextRow - physicalRow;
+};
+
 @Component({
   selector: 'app-example9',
   template: `
@@ -15,7 +46,7 @@ import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 })
 export class AppComponent {
 
-  readonly hotData = [
+  readonly hotData: BudgetLine[] = [
     {
       item: 'Operations',
       amount: null,
@@ -40,38 +71,13 @@ export class AppComponent {
     nestedRows: true,
     rowHeaders: true,
     colHeaders: ['Budget line', 'Amount (USD)'],
-    columnSummary() {
+    columnSummary: () => {
       const endpoints: SummaryEndpoint[] = [];
-      const hot = (this as any).hot;
-      const nestedRowsPlugin = hot.getPlugin('nestedRows');
+      let physicalRow = 0;
 
-      for (let visualRow = 0; visualRow < hot.countRows(); visualRow++) {
-        if (!nestedRowsPlugin.isParent(visualRow)) {
-          continue;
-        }
-
-        const childLevel = nestedRowsPlugin.getRowLevel(visualRow) + 1;
-        const lastDescendant = visualRow + nestedRowsPlugin.countChildren(visualRow, true);
-        const ranges: number[][] = [];
-
-        // Add one range for each direct child, which can be a subtotal row.
-        for (let row = visualRow + 1; row <= lastDescendant; row++) {
-          if (nestedRowsPlugin.getRowLevel(row) === childLevel) {
-            const physicalRow = hot.toPhysicalRow(row);
-
-            ranges.push([physicalRow, physicalRow]);
-          }
-        }
-
-        endpoints.push({
-          sourceColumn: 1,
-          destinationColumn: 1,
-          destinationRow: hot.toPhysicalRow(visualRow),
-          type: 'sum',
-          ranges,
-          includeSummaryResults: true,
-        });
-      }
+      this.hotData.forEach((line) => {
+        physicalRow += addEndpoints(endpoints, line, physicalRow);
+      });
 
       return endpoints;
     },
