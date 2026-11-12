@@ -259,6 +259,7 @@ export interface FixtureHotInstance {
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
   selectCells(ranges: number[][], scrollToCell?: boolean, changeListener?: boolean): boolean;
   batch<T>(operations: () => T): T;
+  batchExecution<T>(operations: () => T): T;
   selectRows(fromRow: number, toRow?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
   selectColumns(fromCol: number, toCol?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
   selectAll(
@@ -349,6 +350,14 @@ declare global {
      * cached `getPlugin('autofill')` still holds it.
      */
     destroyedAutofill?: { enablePlugin(): void, disablePlugin(): void, updatePlugin(): void };
+    /**
+     * `formulas-batch-evaluation` fixture: the recalculations the grid reported (`afterFormulasValuesUpdate`).
+     */
+    valuesUpdates: number;
+    /**
+     * `formulas-batch-evaluation` fixture: the text of the first formula cell and whether it fits, per draw.
+     */
+    renderLog: Array<{ text: string | null, fits: boolean }>;
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
     /**

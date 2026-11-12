@@ -11,7 +11,8 @@ import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
 import { firstRowDrawsTopBorder } from '../axisSizing/boxModel';
-import { CLONE_INLINE_END, CLONE_INLINE_START } from '../overlay/constants';
+import { CLONE_INLINE_END, CLONE_INLINE_START, INLINE_END_CLONE_TYPES } from '../overlay/constants';
+import { getFreezeLineOverlap } from '../settings/fixedColumnsEnd';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
@@ -539,6 +540,25 @@ export class TableRenderer {
     const fixedColumnsEnd = wtSettings.getSetting<number>('fixedColumnsEnd');
 
     return fixedColumnsEnd > 0 ? wtSettings.getSetting<number>('totalColumns') - fixedColumnsEnd : Infinity;
+  }
+
+  /**
+   * Returns how many pixels the first column of this table reaches over the freeze line: the end band's
+   * overlap (`getFreezeLineOverlap()` in `settings/fixedColumnsEnd.ts`) in the three end clones, `0` in every
+   * other table. Draw-constant.
+   *
+   * @returns {number}
+   */
+  getFreezeLineOverlap(): number {
+    if (!INLINE_END_CLONE_TYPES.includes(this.activeOverlayName)) {
+      return 0;
+    }
+
+    const { wtSettings } = this.rowUtils!;
+
+    return getFreezeLineOverlap(
+      wtSettings.getSetting<number>('fixedColumnsEnd'), wtSettings.getSetting<number>('totalColumns'),
+    );
   }
 
   /**

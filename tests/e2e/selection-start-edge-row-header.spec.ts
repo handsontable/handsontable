@@ -5,6 +5,9 @@ import { EditorRowHeaderBorderPage, type GridName } from '../fixtures/pages/Edit
 const FIRST_VISIBLE_COLUMN = 8;
 const ON_THE_CELL_EDGE = { offset: 0, hiddenUnderOverlay: 0 };
 const ON_THE_GRIDLINE = { offset: -1, hiddenUnderOverlay: 0 };
+// On a freeze line: the master's copy keeps the gridline, one pixel of it under the frozen overlay, which paints
+// the selection on that pixel itself.
+const ON_THE_FREEZE_LINE = { offset: -1, hiddenUnderOverlay: 1 };
 // The row that comes first once a grid is scrolled by fifty 23px rows.
 const FIRST_VISIBLE_ROW = 50;
 
@@ -15,12 +18,14 @@ const FIRST_VISIBLE_ROW = 50;
  * the master selection layer, so the edge is in the DOM either way: every case below measures how
  * much of it lies inside the overlay's table.
  *
- * The cells that have to move are the first one a table draws after the overlay:
+ * The cells that have to move are the first one a table draws after a row header or column header:
+ * the first fully visible column of a scrolled grid with row headers, where the default overscan puts a
+ * hidden column between the row header and the cell, and the first visible row of a scrolled grid.
  *
- *  - the first fully visible column of a scrolled grid with row headers, where the default overscan
- *    puts a hidden column between the row header and the cell;
- *  - the first column past `fixedColumnsStart` in a scrolled grid;
- *  - the same column in a frozen top or bottom row, whose clone sits under the start corner.
+ * A freeze line is different: there the edge stays on the gridline, as at any other gridline, and the
+ * frozen overlay paints the selection on the pixel it covers. That holds for the first column past
+ * `fixedColumnsStart` (and the first row past `fixedRowsTop`) of a scrolled grid, in the master table and in
+ * a frozen top or bottom row, whose clone sits under the start corner.
  *
  * Every other cell keeps the edge on the gridline.
  */
@@ -32,16 +37,46 @@ test.describe('Selection start edge next to an inline-start overlay', { tag: THE
     await grid.goto();
   });
 
+  test('the first visible column of a scrolled grid keeps the whole start edge in view (row-headers)', async() => {
+    const column = FIRST_VISIBLE_COLUMN;
+
+    await grid.scrollToColumn('row-headers', column);
+
+    await expect.poll(() => grid.startEdge('row-headers', 0, column)).toEqual(ON_THE_CELL_EDGE);
+  });
+
+  test('the first visible column of a scrolled grid draws the start edge on the freeze line (frozen)', async() => {
+    const column = FIRST_VISIBLE_COLUMN;
+
+    await grid.scrollToColumn('frozen', column);
+
+    await expect.poll(() => grid.startEdge('frozen', 0, column)).toEqual(ON_THE_FREEZE_LINE);
+    await expect.poll(() => grid.gridlinePixelOwner('frozen', 0, column, 'start'))
+      .toMatch(/^ht_clone_inline_start\/div\.wtBorder current/);
+  });
+
+  test('a custom border on the first visible column keeps its start edge on the cell (frozen)', async() => {
+    const column = FIRST_VISIBLE_COLUMN;
+
+    await grid.scrollToColumn('frozen', column);
+    await grid.addCustomStartBorder('frozen', 2, column);
+
+    // No frozen overlay redraws a custom border, so its 1px edge stays on the cell's own first pixel.
+    await expect.poll(() => grid.gridlinePixelOwner('frozen', 2, column, 'start', { inside: true }))
+      .toMatch(/^ht_master\/div\.wtBorder/);
+  });
+
+  test('a custom border on the first visible row keeps its top edge on the cell (rows-frozen)', async() => {
+    await grid.scrollToRow('rows-frozen', FIRST_VISIBLE_ROW);
+    await grid.addCustomStartBorder('rows-frozen', FIRST_VISIBLE_ROW, 1);
+
+    await expect.poll(() => grid.gridlinePixelOwner('rows-frozen', FIRST_VISIBLE_ROW, 1, 'top', { inside: true }))
+      .toMatch(/^ht_master\/div\.wtBorder/);
+  });
+
   const SCROLLED: GridName[] = ['row-headers', 'frozen'];
 
   for (const name of SCROLLED) {
-    test(`the first visible column of a scrolled grid keeps the whole start edge in view (${name})`, async() => {
-      const column = FIRST_VISIBLE_COLUMN;
-
-      await grid.scrollToColumn(name, column);
-
-      await expect.poll(() => grid.startEdge(name, 0, column)).toEqual(ON_THE_CELL_EDGE);
-    });
 
     test(`the column after the first visible one keeps the edge on the gridline (${name})`, async() => {
       const column = FIRST_VISIBLE_COLUMN;
@@ -75,15 +110,19 @@ test.describe('Selection start edge next to an inline-start overlay', { tag: THE
     await expect.poll(() => grid.startEdge('scrolled-top', 3, column)).toEqual(ON_THE_CELL_EDGE);
   });
 
-  test('the first visible column keeps the whole start edge in view in a frozen top and bottom row', async() => {
+  test('the first visible column draws the start edge on the freeze line in a frozen top and bottom row', async() => {
     const column = FIRST_VISIBLE_COLUMN;
 
     await grid.scrollToColumn('frozen-rows', column);
 
     await expect.poll(() => grid.startEdge('frozen-rows', 0, column, { layer: 'top' }))
-      .toEqual(ON_THE_CELL_EDGE);
+      .toEqual(ON_THE_FREEZE_LINE);
+    await expect.poll(() => grid.gridlinePixelOwner('frozen-rows', 0, column, 'start'))
+      .toMatch(/^ht_clone_top_inline_start_corner\/div\.wtBorder current/);
     await expect.poll(() => grid.startEdge('frozen-rows', 7, column, { layer: 'bottom' }))
-      .toEqual(ON_THE_CELL_EDGE);
+      .toEqual(ON_THE_FREEZE_LINE);
+    await expect.poll(() => grid.gridlinePixelOwner('frozen-rows', 7, column, 'start'))
+      .toMatch(/^ht_clone_bottom_inline_start_corner\/div\.wtBorder current/);
   });
 
   test('the first visible column of a scrolled RTL grid keeps the whole start edge in view', async() => {
@@ -105,14 +144,23 @@ test.describe('Selection start edge next to an inline-start overlay', { tag: THE
     await expect.poll(() => grid.startEdge('row-headers', 0, 0)).toEqual(ON_THE_CELL_EDGE);
   });
 
+  test('the first visible row of a scrolled grid keeps the whole top edge in view (rows)', async() => {
+    await grid.scrollToRow('rows', FIRST_VISIBLE_ROW);
+
+    await expect.poll(() => grid.topEdge('rows', FIRST_VISIBLE_ROW, 1)).toEqual(ON_THE_CELL_EDGE);
+  });
+
+  test('the first visible row of a scrolled grid draws the top edge on the freeze line (rows-frozen)', async() => {
+    await grid.scrollToRow('rows-frozen', FIRST_VISIBLE_ROW);
+
+    await expect.poll(() => grid.topEdge('rows-frozen', FIRST_VISIBLE_ROW, 1)).toEqual(ON_THE_FREEZE_LINE);
+    await expect.poll(() => grid.gridlinePixelOwner('rows-frozen', FIRST_VISIBLE_ROW, 1, 'top'))
+      .toMatch(/^ht_clone_top\/div\.wtBorder current/);
+  });
+
   const VERTICAL: GridName[] = ['rows', 'rows-frozen'];
 
   for (const name of VERTICAL) {
-    test(`the first visible row of a scrolled grid keeps the whole top edge in view (${name})`, async() => {
-      await grid.scrollToRow(name, FIRST_VISIBLE_ROW);
-
-      await expect.poll(() => grid.topEdge(name, FIRST_VISIBLE_ROW, 1)).toEqual(ON_THE_CELL_EDGE);
-    });
 
     test(`the row after the first visible one keeps the top edge on the gridline (${name})`, async() => {
       await grid.scrollToRow(name, FIRST_VISIBLE_ROW);
