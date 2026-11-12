@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T09:17:53.206Z",
+  "generatedAt": "2026-11-12T09:29:13.540Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1984,13 +1984,13 @@
       "line": 25,
       "title": "the date editor opened with the keyboard › takes the digits typed after Enter",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 2,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-webkit"
       ],
@@ -2017,13 +2017,13 @@
       "line": 26,
       "title": "the native picker editors opened with the keyboard › intl-datetime: Shift+Tab after Enter commits and moves the selection",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 1,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-firefox"
       ],
@@ -2050,13 +2050,13 @@
       "line": 26,
       "title": "the native picker editors opened with the keyboard › time: Tab after Enter commits and moves the selection",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 1,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-firefox"
       ],
