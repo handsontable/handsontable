@@ -1353,8 +1353,17 @@ the arrays, re-applied on `afterLoadData`, moved it again: with `[2, 0, 1]`, A, 
 every visit (before DEV-3760 the sheet rotated left, and the grid showed the arriving one with other rows' results, since it sent
 the move to the sheet it left). Now a load that leaves a bound sheet records its engine order when it is not
 physical, and a later load of that sheet reads it back in physical order through the record and takes the order
-over (`#reloadKeepingOrder(data, plan, false)`: the order held, the order the load's listeners apply kept, so the
-re-applied array lands on the order the engine holds and nothing is sent). A record of another engine, or of a
+over (`#reloadKeepingOrder(data, plan, false)`: the order held, the order the load's listeners apply kept). When
+nothing moved the lines after the array, the re-applied array lands on the order the engine holds and nothing is
+sent. **A reorder made on the visit before (a drag) leaves the engine elsewhere**, and the hold's release sends the
+difference. An order the engine reached by moves alone (no order shifts, no order base) is marked with
+`AxisSyncer#releaseAdoptedOrderAsMoves()`, and the release sends the difference as moves (`sheetKept`: the sheet was
+not rewritten, so other sheets and named expressions followed every move too, and `#planSafeMoves()` skips its
+readers-outside-the-sheet fallback; its array, `maxRows` and cost fallbacks stay). One order there kept each moved
+formula's relative offsets: drag, switch away and back showed `#REF!` and an empty-cell `1000` (659bb5878a until
+this fix). An order a sort or `setIndexesSequence()` reached the engine as, or a sort or sequence set in the hold,
+still goes back as one order, as a cleared sort does. The flag is cleared by every release, a later adoption or
+reload in the hold, and an order change other than a move. A record of another engine, or of a
 sheet whose dimensions changed meanwhile (a host insert or removal), is dropped and the sheet loads as the engine
 holds it; a host move that keeps the dimensions is not told apart (grid and engine stay equal, the records show in
 the host's order). A sheet sorted on its last visit shows in its own order again (the load clears the sort) and

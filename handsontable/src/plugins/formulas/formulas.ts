@@ -2393,7 +2393,9 @@ export class Formulas extends BasePlugin {
     if (revisit !== null && loadsData) {
       this.#recordLoadedSheet(sheetContent);
       // The grid's order is the one the load's listeners apply: the move plugins re-apply their arrays onto the rows
-      // in physical order, which is the order the engine holds, so nothing is sent.
+      // in physical order. The engine holds the order the grid left the sheet in, which is that order only when
+      // nothing moved the lines after the arrays; otherwise the hold's release sends the difference, as moves when
+      // the left order was reached by moves alone (a drag), as one order when a sort or a sequence set reached it.
       this.#reloadKeepingOrder(serialized, revisit, false);
 
       return;
@@ -2918,6 +2920,9 @@ export class Formulas extends BasePlugin {
    *
    * A switch back to a sheet the grid left (`#takeLeftSheetOrder()`) loads it the same way, but keeps the order the
    * load's listeners applied (`putBackOrder` `false`): the grid's order before the load belongs to the sheet it left.
+   * That order can differ from the one the engine kept (a drag on the visit before), and the release sends the
+   * difference: as moves when the kept order was reached by moves alone (`releaseAdoptedOrderAsMoves()`), otherwise
+   * as one order.
    *
    * @param {Array<Array<*>>} data The sheet content, in physical order.
    * @param {object} reload The plan of both axes (`#planReload()`).
@@ -2956,6 +2961,12 @@ export class Formulas extends BasePlugin {
       if (putBackOrder) {
         putBack(this.hot.rowIndexMapper, reload.row.previousSequence);
         putBack(this.hot.columnIndexMapper, reload.column.previousSequence);
+      } else {
+        // The engine kept the sheet in the order the grid left it in, reached by moves when no sort or sequence set
+        // reached it; the arrays applied again reach the grid's order from it by moves too, so the release sends
+        // them as moves (one order would shift the references across the moved lines).
+        this.rowAxisSyncer!.releaseAdoptedOrderAsMoves();
+        this.columnAxisSyncer!.releaseAdoptedOrderAsMoves();
       }
 
       if (!this.rowAxisSyncer!.isEngineOrderPhysical() || !this.columnAxisSyncer!.isEngineOrderPhysical()) {

@@ -209,4 +209,248 @@ describe('Formulas switchSheet() back to a visited sheet', () => {
     expect(hot.getData()).toEqual([['b1', 11, 22], ['b2', 20, 40], ['b3', 30, 60]]);
     expect(engineValues(hot)).toEqual(hot.getData());
   });
+
+  /**
+   * The grid leaves a sheet in an order the move plugins' array does not give (a drag after it), and the return
+   * loads the sheet through the order it left it in, with the array applied again. The engine has to follow from the
+   * left order to the array's, and both were reached by moves: one order between them kept each moved formula's
+   * relative offsets, so a reference across the moved rows turned into `#REF!` or read an empty cell (`1000`).
+   */
+  describe('after a reorder made on the visit before', () => {
+    /**
+     * Row `i` holds an ID, a formula that reads the ID of another row, and the value the formula must show.
+     *
+     * @returns {Array[]}
+     */
+    function crossRowSheet() {
+      return [1, 2, 3, 4, 5].map((id, index) => {
+        const target = ((index + 2) % 5) + 1;
+
+        return [id, `=A${target}+1000`, target + 1000];
+      });
+    }
+
+    /**
+     * Builds an engine with the cross-row sheet `A` and the plain sheet `B`.
+     *
+     * @returns {HyperFormula}
+     */
+    function buildCrossRowEngine() {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      engine.addSheet('A');
+      engine.setSheetContent(engine.getSheetId('A'), crossRowSheet());
+      engine.addSheet('B');
+      engine.setSheetContent(engine.getSheetId('B'), copy(SHEET_B));
+
+      return engine;
+    }
+
+    /**
+     * Checks that every row shows what its formula has to read, and that the engine holds what the grid shows.
+     */
+    function expectEveryRowReadsItsRecord() {
+      hot.getData().forEach(([, shown, expected]) => {
+        expect(shown).toBe(expected);
+      });
+      expect(engineValues(hot)).toEqual(hot.getData());
+    }
+
+    /**
+     * Spies on the engine's row order calls.
+     *
+     * @param {HyperFormula} engine The engine.
+     * @returns {object}
+     */
+    function spyRowOrderCalls(engine) {
+      return { moveRows: jest.spyOn(engine, 'moveRows'), setRowOrder: jest.spyOn(engine, 'setRowOrder') };
+    }
+
+    let staying;
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+      staying?.destroy();
+      staying = null;
+    });
+
+    /**
+     * Reads what each record (by its ID in column A) shows in the formula column.
+     *
+     * @param {Handsontable} [grid=hot] The grid.
+     * @returns {Map}
+     */
+    function shownByRecord(grid = hot) {
+      return new Map(grid.getData().map(([id, shown]) => [id, shown]));
+    }
+
+    /**
+     * Builds a second grid on its own engine, from the same sheet, that runs `act` without leaving the sheet: what
+     * the grid that returns has to show.
+     *
+     * @param {object} settings Extra settings.
+     * @param {Function} act What the grid does.
+     * @returns {Handsontable}
+     */
+    function buildStayingGrid(settings, act) {
+      const stayingContainer = document.createElement('div');
+
+      container.appendChild(stayingContainer);
+      staying = new Handsontable(stayingContainer, {
+        formulas: { engine: buildCrossRowEngine(), sheetName: 'A' },
+        licenseKey: LICENSE_KEY,
+        ...settings,
+      });
+      act(staying);
+
+      return staying;
+    }
+
+    // A grid built from the sheet only: a grid built with `data` on an engine with another sheet gets its move array
+    // at init as one order (the readers-outside-the-sheet fallback of a load), so its cross-row references are off
+    // from the start, the documented limit of a load on a multi-sheet engine.
+    it('keeps every reference on its record when a sheet-built grid returns to a sheet it dragged a row of', () => {
+      const engine = buildCrossRowEngine();
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'A' },
+        manualRowMove: [2, 0, 1, 4, 3],
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([4], 0);
+      hot.render();
+
+      expectEveryRowReadsItsRecord();
+
+      hot.getPlugin('formulas').switchSheet('B');
+
+      const calls = spyRowOrderCalls(engine);
+
+      hot.getPlugin('formulas').switchSheet('A');
+
+      // The load applies the array again, as any load does; the drag belonged to the visit before.
+      expect(hot.getDataAtCol(0)).toEqual([3, 1, 2, 5, 4]);
+      expectEveryRowReadsItsRecord();
+      expect(calls.setRowOrder).not.toHaveBeenCalled();
+      expect(calls.moveRows).toHaveBeenCalled();
+
+      hot.updateSettings({});
+
+      expect(hot.getDataAtCol(0)).toEqual([3, 1, 2, 5, 4]);
+      expectEveryRowReadsItsRecord();
+    });
+
+    it('keeps every reference on its record when a sheet-built grid returns to a sheet it dragged a column of', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      // Column `i` of the formula row reads the number of another column; the last row holds what it must show.
+      const sheet = [
+        [1, 2, 3, 4, 5],
+        ['=C1+100', '=D1+100', '=E1+100', '=A1+100', '=B1+100'],
+        [103, 104, 105, 101, 102],
+      ];
+
+      engine.addSheet('A');
+      engine.setSheetContent(engine.getSheetId('A'), sheet);
+      engine.addSheet('B');
+      engine.setSheetContent(engine.getSheetId('B'), copy(SHEET_B));
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'A' },
+        manualColumnMove: [2, 0, 1, 4, 3],
+        licenseKey: LICENSE_KEY,
+      });
+
+      const expectEveryColumnReadsItsRecord = () => {
+        expect(hot.getDataAtRow(1)).toEqual(hot.getDataAtRow(2));
+        expect(engineValues(hot)).toEqual(hot.getData());
+      };
+
+      hot.getPlugin('manualColumnMove').moveColumns([4], 0);
+      hot.render();
+
+      expectEveryColumnReadsItsRecord();
+
+      hot.getPlugin('formulas').switchSheet('B');
+
+      const moveColumns = jest.spyOn(engine, 'moveColumns');
+      const setColumnOrder = jest.spyOn(engine, 'setColumnOrder');
+
+      hot.getPlugin('formulas').switchSheet('A');
+
+      expect(hot.getDataAtRow(0)).toEqual([3, 1, 2, 5, 4]);
+      expectEveryColumnReadsItsRecord();
+      expect(setColumnOrder).not.toHaveBeenCalled();
+      expect(moveColumns).toHaveBeenCalled();
+
+      hot.updateSettings({});
+
+      expectEveryColumnReadsItsRecord();
+    });
+
+    // The engine took a sort as one order, which shifted the cross-row references (the sort limit, DEV-917). The
+    // return sends one order back, as the order reached the engine, so each record shows what it shows on a grid
+    // that clears the sort without leaving the sheet.
+    it('sends one order on the return to a sheet left sorted, as a cleared sort does', () => {
+      const engine = buildCrossRowEngine();
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'A' },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      hot.getPlugin('formulas').switchSheet('B');
+
+      const calls = spyRowOrderCalls(engine);
+
+      hot.getPlugin('formulas').switchSheet('A');
+
+      buildStayingGrid({ columnSorting: true }, (grid) => {
+        grid.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        grid.getPlugin('columnSorting').clearSort();
+      });
+
+      // The load clears the sort.
+      expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(calls.setRowOrder).toHaveBeenCalledTimes(1);
+      expect(calls.moveRows).not.toHaveBeenCalled();
+      expect(shownByRecord()).toEqual(shownByRecord(staying));
+      expect(engineValues(hot)).toEqual(hot.getData());
+
+      hot.updateSettings({});
+
+      expect(shownByRecord()).toEqual(shownByRecord(staying));
+      expect(engineValues(hot)).toEqual(hot.getData());
+    });
+
+    it('sends one order on the return to a sheet left in an order set with setIndexesSequence(), as a reset does', () => {
+      const engine = buildCrossRowEngine();
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'A' },
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.rowIndexMapper.setIndexesSequence([4, 0, 1, 2, 3]);
+      hot.getPlugin('formulas').switchSheet('B');
+
+      const calls = spyRowOrderCalls(engine);
+
+      hot.getPlugin('formulas').switchSheet('A');
+
+      buildStayingGrid({}, (grid) => {
+        grid.rowIndexMapper.setIndexesSequence([4, 0, 1, 2, 3]);
+        grid.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+      });
+
+      expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(shownByRecord()).toEqual(shownByRecord(staying));
+      expect(engineValues(hot)).toEqual(hot.getData());
+      expect(calls.setRowOrder).toHaveBeenCalledTimes(1);
+      expect(calls.moveRows).not.toHaveBeenCalled();
+    });
+  });
 });
+
