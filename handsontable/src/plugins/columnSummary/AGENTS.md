@@ -55,14 +55,15 @@ destination through `#readIncludedSummaryResult()` instead. The option is off by
   are batched, and a trimmed destination is never written, so the cell can hold a stale or no value.
   `Endpoints#resolveDependencyResult()` calculates the dependency on demand and applies its `roundFloat`.
   A dependency whose `roundFloat` gives a string (`roundFloat: 0`) still sums, because the built-in types
-  pass every value through `holdsNoNumber` and `Number()`.
+  test every value with `holdsNoNumber`, and the summing ones convert it with `Number()`.
 - **The memo holds the raw result and lives for one outermost calculation.** `#passResults` keeps the
   result before `setEndpointValue()` rounds `endpoint.result` in place, and `#runPass()` drops it when the
   outermost pass exits (passes nest, because a cell read can run a Formulas resync). A dependency is
   calculated once per pass, whatever the declaration order.
 - **Identity-keyed state must use the pass's own endpoint array.** A function-form `columnSummary` returns
-  new endpoint objects on every call, so `#passResults`, `#resolving` and `#destinationEndpoints` are keyed
-  by the objects `cacheSummaryDestinations()` received, never by a fresh `getAllEndpoints()` result.
+  new endpoint objects on every call, so `#passResults`, `#resolving` and `#destinationEndpoints` hold or are
+  keyed by the objects of the pass's endpoint array (the one `cacheSummaryDestinations()` received), never
+  by a fresh `getAllEndpoints()` result.
 - **The own-destination check compares coordinates as well as identity.** A nested pass under function-form
   settings swaps the destination cache for new endpoint objects while the outer endpoint is still being
   calculated, so its own destination answers a copy of it. Identity alone double counted (254 instead of
@@ -74,8 +75,8 @@ destination through `#readIncludedSummaryResult()` instead. The option is off by
 - **`#withDependents()` exists because the refresh paths select by `sourceColumn`.** An edit in a leaf
   column selects only the endpoints reading that column, so a parent that reads a subtotal column would
   stay stale. The method adds every `includeSummaryResults` endpoint whose range covers the destination row
-  of a selected endpoint, repeated until the set stops growing, so a change reaches a parent through several
-  levels. `refreshChangedEndpoints()` refreshes the selected endpoints in declaration order, not change
+  of another selected endpoint and whose source column is that endpoint's destination column, repeated
+  until the set stops growing, so a change reaches a parent through several levels. `refreshChangedEndpoints()` refreshes the selected endpoints in declaration order, not change
   order. The results are the same, because a dependency is resolved on demand and memoized within the pass.
 - Pinned by `__tests__/includeSummaryResults.unit.js` and
   `tests/e2e/column-summary-include-summary-results.spec.ts`.
