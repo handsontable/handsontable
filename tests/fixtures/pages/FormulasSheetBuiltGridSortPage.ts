@@ -32,17 +32,23 @@ export class FormulasSheetBuiltGridSortPage {
     await awaitBundle(this.page);
   }
 
-  /** A data cell in the master table, by visual row/column, via its stable test id. */
+  /**
+   * A data cell in the master table, by visual row/column, via its stable test id.
+   */
   cell(row: number, col: number): Locator {
     return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
-  /** The sorting label of a column header, scoped to the top overlay. */
+  /**
+   * The sorting label of a column header, scoped to the top overlay.
+   */
   sortLabel(col: number): Locator {
     return this.page.locator('.ht_clone_top').getByTestId(`col-header-${col}`).locator('span.colHeader');
   }
 
-  /** Sort by a column the way a user does: click its header. */
+  /**
+   * Sort by a column the way a user does: click its header.
+   */
   async sortByHeader(col: number): Promise<void> {
     await this.sortLabel(col).click();
   }
@@ -118,7 +124,9 @@ export class FormulasSheetBuiltGridSortPage {
     return box?.width ?? 0;
   }
 
-  /** `getDataAtCol()`, read in the page. */
+  /**
+   * `getDataAtCol()`, read in the page.
+   */
   async dataAtCol(col: number): Promise<CellValue[]> {
     return this.page.evaluate((c) => window.hot.getDataAtCol(c), col);
   }

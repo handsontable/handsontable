@@ -32,17 +32,23 @@ export class FormulasEnableOnLiveGridPage {
     await awaitBundle(this.page);
   }
 
-  /** A data cell in the master table, by visual row/column, via its stable test id. */
+  /**
+   * A data cell in the master table, by visual row/column, via its stable test id.
+   */
   cell(row: number, col: number): Locator {
     return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
-  /** Sort by a column the way a user does: click its header label. */
+  /**
+   * Sort by a column the way a user does: click its header label.
+   */
   async sortByHeader(col: number): Promise<void> {
     await this.page.locator('.ht_clone_top').getByTestId(`col-header-${col}`).locator('span.colHeader').click();
   }
 
-  /** `updateSettings({ formulas: { engine: HyperFormula } })` on the live grid, run in the page. */
+  /**
+   * `updateSettings({ formulas: { engine: HyperFormula } })` on the live grid, run in the page.
+   */
   async enableFormulas(): Promise<void> {
     await this.page.evaluate(() => {
       const { HyperFormula } = window as unknown as { HyperFormula: unknown };
@@ -80,7 +86,9 @@ export class FormulasEnableOnLiveGridPage {
     });
   }
 
-  /** `getData()`, read in the page. */
+  /**
+   * `getData()`, read in the page.
+   */
   async data(): Promise<CellValue[][]> {
     return this.page.evaluate(() => window.hot.getData() as CellValue[][]);
   }

@@ -745,6 +745,18 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   `undoes what a dependent's afterValidate writes with an edit written at once, as before`, and `undoes
   what a dependent's afterValidate writes with a write past the last row, as before`.
 
+**A validator that reads a dependent formula while the change waits sees the pre-change result (intended).** A
+cell the Core can reject reaches the engine only at the apply, so until then every formula that depends on it
+holds its old result, and a validator of another cell that reads such a formula (through `getDataAtCell()` or the
+engine) gets that result. A rejected value must not show through a dependent, and a validator that needs the
+result for the new value reads it from the probe's entry (`#validationValues`) for its own cell only. Do not
+write the pending value into the engine to change this: see "why the probe's write is not kept".
+
+**A validated write a listener makes during an editor save joins the editor's save set.** A `setDataAtCell()` a
+`beforeChange` or `afterChange` listener makes while an editor saves is marked as part of that save's sets
+(`../columnSorting/AGENTS.md`, the header sort's wait), so a validator of that write that never answers keeps a
+header sort waiting, as the editor's own validator would. An API write made outside a save does not.
+
 **Known limit (the predicate is duplicated).** Formulas decides in `afterSetDataAtCell`; the Core reads
 the cell's validator when it validates and `allowInvalid` when the validator answers (`queueValidators()`).
 Any change of the cell's validator or `allowInvalid` between the two (an `afterSetDataAtCell` listener
@@ -1140,8 +1152,8 @@ order change reaches the axis syncers while they point at no engine sheet. The p
   grid held), from which the enable rebuilds the content of a sheet it adds back (`#sheetBuiltContent()`). With an
   order stored, the disable reads the live sheet once (`#keepSheetBuiltBinding()`): equal to the snapshot, only the
   snapshot is kept; different (a host change made after the grid's last write that no comparison found yet: a
-  value, or a `moveRows()` that changes no value), the read is kept as the order's content and the change is marked
-  foreign. A sheet added back with a foreign change is loaded as it is (`#loadSheet()`), because the stored order
+  value, or a `moveRows()` that changes no value), the read is kept as the order's content, the snapshot is dropped
+  (still one copy; a missing snapshot forces a full reload) and the change is marked foreign. A sheet added back with a foreign change is loaded as it is (`#loadSheet()`), because the stored order
   may not describe a host move. A first version kept both copies, two for a sorted grid; a second one read nothing
   and rebuilt from the snapshot, which lost such a host change when the engine class or a host `removeSheet()` made
   the enable add the sheet back (`keeps one copy of the sheet while off`, `with a host change, … before a direct

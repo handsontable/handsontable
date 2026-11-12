@@ -1,4 +1,5 @@
 import {
+  trimTrailingEmptyCells,
   coalesceIndexesToSpans,
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
@@ -403,6 +404,41 @@ describe('Formulas utils', () => {
       setSheetSnapshotCell(rows, 4, 4, null);
 
       expect(rows).toEqual([['a', null, 'c']]);
+    });
+  });
+
+  describe('trimTrailingEmptyCells', () => {
+    it('should return the same array for empty input', () => {
+      const rows: unknown[][] = [];
+
+      expect(trimTrailingEmptyCells(rows)).toBe(rows);
+    });
+
+    it('should return the same array when no row ends in an empty cell', () => {
+      const rows = [['a', null, 'c'], [1, 2], []];
+
+      expect(trimTrailingEmptyCells(rows)).toBe(rows);
+    });
+
+    it('should drop trailing null and undefined cells of each row on its own', () => {
+      expect(trimTrailingEmptyCells([['a', null, null], [1, 2, undefined], ['x', undefined, null, 'y', null]]))
+        .toEqual([['a'], [1, 2], ['x', undefined, null, 'y']]);
+    });
+
+    it('should keep an empty string, which is a value', () => {
+      expect(trimTrailingEmptyCells([['a', ''], ['', null]])).toEqual([['a', ''], ['']]);
+    });
+
+    it('should turn a row of empty cells into an empty row and keep the row count', () => {
+      expect(trimTrailingEmptyCells([[null, undefined], ['a']])).toEqual([[], ['a']]);
+    });
+
+    it('should not change the rows it was given', () => {
+      const rows = [['a', null], ['b']];
+
+      trimTrailingEmptyCells(rows);
+
+      expect(rows).toEqual([['a', null], ['b']]);
     });
   });
 });

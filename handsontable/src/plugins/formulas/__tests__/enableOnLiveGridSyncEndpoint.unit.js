@@ -838,6 +838,35 @@ describe('Formulas enabled on a live grid', () => {
         expect(engineValues(hot)).toEqual(hostSheet);
       });
 
+      it('keeps one copy of the sheet while off, and reloads in full on the re-enable of the same sheet', () => {
+        const engine = buildEngineWithSheet(SHEET_CONTENT);
+
+        hot = new Handsontable(container, {
+          formulas: { engine, sheetName: 'S1' },
+          columnSorting: true,
+          licenseKey: LICENSE_KEY,
+        });
+
+        hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+        hostChange(engine);
+
+        const getSheetSerialized = jest.spyOn(engine, 'getSheetSerialized');
+        const afterLoadData = jest.fn();
+
+        hot.getPlugin('formulas').disablePlugin();
+
+        // One read, kept as the order's content; no second copy (the snapshot) goes with it.
+        expect(getSheetSerialized).toHaveBeenCalledTimes(1);
+
+        hot.getPlugin('formulas').enablePlugin();
+        hot.addHook('afterLoadData', afterLoadData);
+        hot.updateSettings({});
+
+        // A missing snapshot forces a full reload, which keeps the host change.
+        expect(afterLoadData).toHaveBeenCalled();
+        expect(hot.getData()).toEqual(hostSheet);
+      });
+
       it('keeps the host change when the host removed the sheet before the re-enable', () => {
         const engine = buildChangedAndDisabled();
 

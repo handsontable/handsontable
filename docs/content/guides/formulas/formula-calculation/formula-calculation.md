@@ -655,6 +655,20 @@ hyperformulaInstance.batch(() => {
 Don't write to the engine unconditionally from an `afterRender` hook. Each write repaints the grid,
 which runs the hook again. Check that the value differs first.
 
+#### Validation and the engine's undo history
+
+Handsontable also writes to your engine when it validates a change that it can reject. That is a
+cell with a validator and [`allowInvalid`](@/api/options.md#allowinvalid) set to `false`. The
+validator needs the formula's result, so Handsontable writes the formulas into your engine, reads
+the results, and takes the write back in the same task. Nothing paints the result, and no
+[`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook fires for it.
+
+HyperFormula records each write as an undo entry, and the probe adds up to two entries to the stack
+and takes them back. When your engine's `undoLimit` is reached, HyperFormula drops its oldest
+entries, so the probe can remove up to two of your own undo entries. The grid's own undo and redo
+don't use your engine's stack. If `undoLimit` is lower than 2, Handsontable doesn't write a probe,
+and the validator gets each formula's result calculated on its own.
+
 ## Available options and methods
 
 For the full list of configuration options and plugin methods, see the
@@ -848,6 +862,11 @@ On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd>, not <kbd>**Cmd**</k
 This hook fires whenever the calculation engine recomputes cell values - including cells that
 changed directly and all dependent formula cells. Use it to react to recalculations outside of the
 normal `afterChange` flow.
+
+The hook fires when the engine recomputes the values. For a cell that has a validator and
+[`allowInvalid: false`](@/api/options.md#allowinvalid), that is after validation: Handsontable
+writes the change to the engine only when it applies the change, and a rejected value never reaches
+the engine. For any other cell, the write and the hook happen at once.
 
 ::: only-for javascript
 

@@ -2299,7 +2299,8 @@ export class Formulas extends BasePlugin {
    * order stored, the live sheet is read once: a sheet that equals the snapshot is kept as the snapshot alone (one
    * copy), and the enable rebuilds the content from it; any other sheet (a host change made after the grid's last
    * write, a value change or a move that changes no value, which no comparison has found yet) is kept as the order's
-   * content, and the change is marked foreign, so the next reload of the same sheet takes `loadData()`. Rebuilt from
+   * content, the snapshot is dropped so only that one copy is kept, and the change is marked foreign, so the next reload
+   * of the same sheet takes `loadData()` (a missing snapshot forces it). Rebuilt from
    * the snapshot instead, the host change was lost when the enable added the sheet back. With no order (both axes
    * physical) nothing is read: the enable fills an added-back sheet from the source data, and a sheet the engine
    * still holds is compared against the snapshot by the next write or reload.
@@ -2309,7 +2310,7 @@ export class Formulas extends BasePlugin {
    * @returns {object}
    */
   #keepSheetBuiltBinding(engine: HyperFormulaEngine, sheetId: number): SheetBuiltBinding {
-    const snapshot = this.#loadedSheetContent;
+    let snapshot = this.#loadedSheetContent;
     let foreignSheetChange = this.#foreignSheetChange;
     let order = this.exportEngineOrder();
 
@@ -2320,6 +2321,8 @@ export class Formulas extends BasePlugin {
       if (!snapshotHoldsSheet) {
         order = { ...order, content: this.#readableSheet(live) };
         foreignSheetChange = snapshot !== null;
+        // The order carries the content now, so only one copy is kept; a missing snapshot forces a full reload.
+        snapshot = null;
       }
     }
 

@@ -125,7 +125,9 @@ export interface HeaderSortPress {
    * `postAfterValidate`, or `null` when nothing was waiting.
    */
   validation: Promise<void> | null;
-  /** Set when ManualColumnMove ran its move before this press was resolved. */
+  /**
+   * Set when ManualColumnMove ran its move before this press was resolved.
+   */
   consumedByMove: boolean;
 }
 

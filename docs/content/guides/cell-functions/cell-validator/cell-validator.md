@@ -459,6 +459,12 @@ If you call [`loadData()`](@/api/core.md#loaddata) while a cell's validator hasn
 
 [`updateData()`](@/api/core.md#updatedata) doesn't drop the write, because it's meant for the same records in a new array. If the new array holds other records, the value is written into the record at the same row and column. To replace the records and drop the write, use `loadData()`.
 
+### Validators and formulas
+
+With the [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) plugin, a cell that can reject a change (it has a validator and `allowInvalid: false`) reaches HyperFormula only after validation. Until then, formulas that depend on the cell keep their old values, so a rejected value never shows through them. A validator of another cell that reads such a dependent formula while it waits gets the result from before the change.
+
+The validator of a formula cell gets the formula's result, not its text. When a change writes a formula that reads another changed cell, the validator gets the result for the new value. If a validation rejects that other cell, the formula is validated again with its previous result. A validator that answers in its own call keeps what it writes in the edit's undo step in that case. A validator that answers later does not.
+
 ### FAQ: Does the invalid CSS class still apply when <code>allowInvalid</code> is <code>true</code>?
 
 **Yes.** When <code>allowInvalid</code> is and a validator returns <code>false</code>, the value is written to the data source (the editor closes normally), but Handsontable still applies the invalid CSS class to the cell. By default that class is <code>htInvalid</code>; you can change it per-column or globally with the [`invalidCellClassName`](/docs/javascript-data-grid/api/options/#invalidcellclassname) option. The two concerns — whether to accept the value and how to mark the cell — are fully independent. See also the [`allowInvalid`](/docs/javascript-data-grid/api/options/#allowinvalid) option for details.
