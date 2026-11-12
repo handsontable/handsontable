@@ -628,6 +628,16 @@ export default function Core(
    * find the record of a change whose row reads `null`. Weak, so it holds no change alive.
    */
   const waitingChangeRecords: WeakMap<object, WaitingChangeRecords> = new WeakMap();
+  /**
+   * How many validator answers run right now, nested: the microtask that calls a validator, and the callback the
+   * validator answers with (which runs inside that microtask when the validator answers synchronously).
+   */
+  let validatorAnswerDepth = 0;
+  /**
+   * The functions `_runAfterValidatorAnswer()` queued while a validator answer ran. They run when the outermost
+   * answer has released its hold on the transaction of the change it answers (see `leaveValidatorAnswer()`).
+   */
+  const afterValidatorAnswer: Array<() => void> = [];
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -4265,6 +4275,7 @@ export default function Core(
         const previousRunningGeneration = runningValidatorLoadGeneration;
 
         runningValidatorLoadGeneration = loadGeneration;
+        validatorAnswerDepth += 1;
 
         try {
           hold.resume(() => validator.call(cellProperties, value, (valid: boolean) => {
@@ -4274,6 +4285,8 @@ export default function Core(
 
               return;
             }
+
+            validatorAnswerDepth += 1;
 
             try {
               hold.resume(() => {
@@ -4313,6 +4326,7 @@ export default function Core(
             } finally {
               countAnswer();
               hold.release();
+              leaveValidatorAnswer();
             }
           }));
         } catch (error) {
@@ -4321,6 +4335,7 @@ export default function Core(
           throw error;
         } finally {
           runningValidatorLoadGeneration = previousRunningGeneration;
+          leaveValidatorAnswer();
         }
       });
 
@@ -6719,6 +6734,46 @@ export default function Core(
     }
 
     return typeof change[0] === 'number' ? instance.toPhysicalRow(change[0]) : null;
+  };
+
+  /**
+   * Leaves a validator answer. When the outermost one ends, its hold on the transaction of the change it answers
+   * is released, so the functions `_runAfterValidatorAnswer()` queued run as operations of their own. A grid a
+   * listener destroyed meanwhile runs none of them.
+   */
+  function leaveValidatorAnswer(): void {
+    validatorAnswerDepth -= 1;
+
+    if (validatorAnswerDepth > 0) {
+      return;
+    }
+
+    while (afterValidatorAnswer.length > 0) {
+      const callback = afterValidatorAnswer.shift()!;
+
+      if (instance) {
+        callback();
+      }
+    }
+  }
+
+  /**
+   * Runs a function once the validator answer that runs now has released its hold on the transaction of the
+   * change it answers, in the same task, or at once when no answer runs. An answer runs inside that transaction
+   * (`operationScope.hold()`), so an operation started there (a Pagination page change) joins the change's undo
+   * step. The editor uses it to show the page of a record a rejected value reopens it on.
+   *
+   * @private
+   * @param {Function} callback The function to run.
+   */
+  this._runAfterValidatorAnswer = function(callback: () => void): void {
+    if (validatorAnswerDepth === 0) {
+      callback();
+
+      return;
+    }
+
+    afterValidatorAnswer.push(callback);
   };
 
   /**

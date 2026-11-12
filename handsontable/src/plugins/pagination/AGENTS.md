@@ -175,8 +175,9 @@ at the start of the wait.** The user changed the page during the wait, and switc
 navigation, so the editor closes with nothing written. A check made only when the validator answers cannot
 tell the two apart: the record is off the current page either way. The refusal is pinned by
 `src/__tests__/core/validateChangesRecordTracking.unit.js`, the reveal itself by
-`tests/e2e/pending-edit-follows-record.spec.ts`. **The editor runs a reveal of a row that is not rendered in a
-microtask, after the validator's answer released its hold on the change's transaction** (`operationScope.hold()`):
+`tests/e2e/pending-edit-follows-record.spec.ts`. **The editor runs a reveal of a row that is not rendered through
+core's `@private` `_runAfterValidatorAnswer()`, in the same task, right after the validator's answer released its
+hold on the change's transaction** (`operationScope.hold()`):
 run inside it, `setPage()`'s `runOperation('set_page')` joined the change, and UndoRedo recorded an empty
 `change` step instead of `set_page` (pinned by the `undo step of its own` case of the same unit file).
 `#getPageOfRow()` counts the row's position among the rows no other hiding map hides (one pass over the

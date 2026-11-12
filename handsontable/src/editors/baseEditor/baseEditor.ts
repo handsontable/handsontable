@@ -808,7 +808,7 @@ export class BaseEditor {
       return;
     }
 
-    this.hot._registerMicrotask(() => {
+    this.hot._runAfterValidatorAnswer(() => {
       if (this.state === EDITOR_STATE.FINISHED) {
         this.#settleAnswer(isRejected, rowReveal(answeredRow) ? answeredRow : null);
       }
@@ -818,9 +818,9 @@ export class BaseEditor {
   /**
    * Reopens the editor on the row of its record after a rejected value, or closes it. A reveal that changes what a
    * feature shows (Pagination's page) runs as an operation of its own, so `discardEditor()` calls this method for
-   * such a reveal in a microtask: the validator's answer runs inside the transaction of the change it answers
-   * (`operationScope.hold()`), and a page change made there joined that transaction, so UndoRedo recorded the page
-   * change as part of an empty change step.
+   * such a reveal through `Core#_runAfterValidatorAnswer()`, once the validator's answer released its hold on the
+   * transaction of the change it answers (`operationScope.hold()`): a page change made inside it joined that
+   * transaction, so UndoRedo recorded the page change as part of an empty change step.
    *
    * @param {boolean} isRejected Whether the validator rejected the value under `allowInvalid: false`.
    * @param {number|null|undefined} answeredRow The visual row of the record (`null` when no cell of it can be
