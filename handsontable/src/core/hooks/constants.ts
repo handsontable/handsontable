@@ -1545,7 +1545,10 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterValidate
    * @param {boolean} isValid `true` if valid, `false` if not.
    * @param {*} value The value in question.
-   * @param {number} row Visual row index.
+   * @param {number|null} row Visual row index. For a change, the row the edited record has when the validator
+   *                          answers, not the row the change was made at: a sort, a move, a filter, or a row
+   *                          insert or removal can land while the validator runs. `null` when a filter or a trim
+   *                          took the record out of the visual rows, or a removal took it, in the meantime.
    * @param {string|number} prop Property name or column index. For array-based data, this is the physical column
    *                            index. When `columns[i].data` is a function, this is the visual column index.
    * @param {string} [source] String that identifies source of hook call

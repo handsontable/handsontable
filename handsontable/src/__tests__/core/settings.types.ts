@@ -1141,6 +1141,11 @@ const _onAfterChange: Events['afterChange'] = (changes, source) => {
   const _cellChanges: CellChange[] | null = changes;
   const _source: ChangeSource = source;
 };
+const _onAfterValidate: Events['afterValidate'] = (isValid, value, row) => {
+  const _row: number | null = row;
+  // @ts-expect-error The row of a record a filter took out of the visual rows while it was validated is `null`.
+  const _visualRow: number = row;
+};
 const _madeChange: CellChange = [0, 'name', 'a', 'b'];
 const _appliedFromMade: AppliedCellChange = _madeChange;
 // Newly-documented hooks (previously missing from `GridSettings`) resolve to real callback types too.

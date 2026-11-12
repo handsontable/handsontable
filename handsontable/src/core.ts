@@ -127,6 +127,7 @@ import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
 import { createRecordTracker } from './core/recordTracker';
 import type { TrackedRecord } from './core/recordTracker';
 import { captureRecord, createWaitingChangeRecords, resolveRecord } from './core/waitingRecords';
+import { createWaitingMetaStamps } from './core/waitingMetaStamps';
 import type {
   RecordAnchor, RecordReader, TrackedRecordHandle, WaitingChangeRecords,
 } from './core/waitingRecords';
@@ -492,6 +493,15 @@ export default function Core(
    * for the answer) by their physical rows, see `core/recordTracker.ts`.
    */
   const recordTracker = createRecordTracker(() => instance.rowIndexMapper);
+  /**
+   * Keeps the `row` and `visualRow` of the stored cell meta of every validator call made for a change on the
+   * rows its record has, so `this.visualRow` in a validator and the row of `afterValidate` name the record
+   * whatever moved it while the validator ran, see `core/waitingMetaStamps.ts`.
+   */
+  const waitingMetaStamps = createWaitingMetaStamps(
+    () => instance.rowIndexMapper,
+    physicalRow => instance.toVisualRow(physicalRow),
+  );
   /**
    * What the record resolution reads from the grid, see `core/waitingRecords.ts`.
    */
@@ -4220,11 +4230,14 @@ export default function Core(
       const validatedPhysicalRow = isChangeCall ?
         getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
       const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
+      const releaseMetaStamp = validatedRecord === null ? () => {} :
+        waitingMetaStamps.add(validatedRecord, cellProperties);
       const countAnswer = () => {
         if (!isGenerationReleased) {
           isGenerationReleased = true;
 
           if (validatedRecord !== null) {
+            releaseMetaStamp();
             releaseValidatorGeneration(validatedRecord, validatedProp, loadGeneration);
             recordTracker.release(validatedRecord);
           }

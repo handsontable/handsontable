@@ -59,8 +59,8 @@ const hotOptions = {
             return;
         }
         const col = this.propToCol(prop);
-        // Skip a property that names no column.
-        if (col === null) {
+        // Skip a record a filter hid while it was validated, and a property that names no column.
+        if (row === null || col === null) {
             return;
         }
         const td = this.getCell(row, col);

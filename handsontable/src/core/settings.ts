@@ -640,7 +640,7 @@ export interface GridSettings {
     actionPossible: boolean, stateChanged: boolean) => void;
   afterUpdateData?: (sourceData: unknown[], initialLoad: boolean, source: ChangeSource | undefined) => void;
   afterUpdateSettings?: (newSettings: Partial<GridSettings>) => void;
-  afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number,
+  afterValidate?: (isValid: boolean, value: CellValue, row: number | null, prop: string | number,
     source: ChangeSource) => void | boolean;
   afterDataProviderFetch?: (result: DataProviderFetchResult & { isRestored?: boolean }) => void;
   afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;

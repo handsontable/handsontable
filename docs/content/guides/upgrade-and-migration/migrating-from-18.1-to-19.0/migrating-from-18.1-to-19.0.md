@@ -3461,6 +3461,11 @@ In 19.0, the change is written into the record it was made on:
   two hooks is `null`. The same write calls [`modifyData`](@/api/hooks.md#modifydata) with a `null` row.
 - When the record was removed in the meantime, the change is dropped. It isn't written, and `afterChange`
   doesn't report it.
+- In the validator, `this.visualRow` and `this.row` name the row the record has when the validator answers, and
+  so does the row of [`afterValidate`](@/api/hooks.md#aftervalidate). When a filter or `trimRows` took the record
+  out of the visual space, or the record was removed, `this.visualRow` and the `afterValidate` row are `null`. A
+  validator that corrects the value with `this.instance.setDataAtCell(this.visualRow, …)` writes the correction
+  into the edited record, and has to skip the correction when `this.visualRow` is `null`.
 - With [`allowInvalid: false`](@/api/options.md#allowinvalid), a value the validator rejects reopens the editor
   on the row the record has now, with the typed text. When a sort or a move took the record to another
   [`Pagination`](@/api/pagination.md) page, that page is shown first. When you changed the page yourself while
@@ -3468,8 +3473,8 @@ In 19.0, the change is written into the record it was made on:
   or hidden with [`hiddenRows`](@/api/options.md#hiddenrows), the editor closes without saving too.
 
 The TypeScript types follow: the `changes` of `afterChange` and `beforeChangeRender` are `AppliedCellChange[]`,
-whose row is `number | null`, and the `row` of `modifyData` is `number | null`. `CellChange` is unchanged, so
-[`beforeChange`](@/api/hooks.md#beforechange) and the `afterSetDataAtCell` hooks keep it.
+whose row is `number | null`, and the `row` of `modifyData` and `afterValidate` is `number | null`. `CellChange`
+is unchanged, so [`beforeChange`](@/api/hooks.md#beforechange) and the `afterSetDataAtCell` hooks keep it.
 
 ### Who is affected
 
@@ -3478,8 +3483,10 @@ whose row is `number | null`, and the `row` of `modifyData` is `number | null`. 
   lands.
 - Your cells have validators, you use filters, `trimRows`, or `NestedRows`, and your `afterChange`,
   `beforeChangeRender`, or `modifyData` callback uses the row as a number. It can now be `null`.
+- Your validator corrects the value through `this.visualRow`, or your `afterValidate` callback uses the row as a
+  number, and you use filters or `trimRows`. It can now be `null`.
 - You use TypeScript and type the `changes` parameter of `afterChange` or `beforeChangeRender` as
-  `CellChange[]`, or the `row` of `modifyData` as `number`. That no longer compiles.
+  `CellChange[]`, or the `row` of `modifyData` or `afterValidate` as `number`. That no longer compiles.
 
 ### How to migrate
 

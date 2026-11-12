@@ -541,6 +541,115 @@ describe('Core validation of a change while its record moves', () => {
       expect(sourceNames()).toEqual(['p0', 'ZZZ', 'p2', 'p3', 'p4', 'p5']);
       expect(applied[applied.length - 1]).toEqual([[4, 0, 'p1', 'ZZZ']]);
     });
+
+    /**
+     * Creates a grid whose validator corrects `zzz` to `ZZZ` through its own `this.visualRow`, the way a
+     * validator written against the cell meta does.
+     *
+     * @param {object} settings Extra grid settings.
+     * @returns {Handsontable}
+     */
+    function createCorrectingGrid(settings = {}) {
+      return createGrid({
+        cells: (row, col) => (col === 0 ? {
+          validator(value, callback) {
+            pending.push({
+              value,
+              answer: (result) => {
+                if (value === 'zzz') {
+                  this.instance.setDataAtCell(this.visualRow, this.visualCol, 'ZZZ', 'upperValidator');
+                }
+
+                callback(result);
+              },
+            });
+          },
+        } : {}),
+        ...settings,
+      });
+    }
+
+    it('should write the correction made through this.visualRow to the edited record after a sort without a render', async() => {
+      createCorrectingGrid();
+
+      hot.setDataAtCell(1, 0, 'zzz');
+      hot.suspendRender();
+      sortByKey();
+      await answerAll();
+      await answerAll();
+      hot.resumeRender();
+
+      expect(sourceNames()).toEqual(['p0', 'ZZZ', 'p2', 'p3', 'p4', 'p5']);
+    });
+
+    it('should write the correction made through this.visualRow to the edited record after a filter trims a row above it', async() => {
+      createCorrectingGrid();
+
+      hot.setDataAtCell(1, 0, 'zzz');
+      hot.suspendRender();
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [0]);
+      filters.filter();
+      await answerAll();
+      await answerAll();
+      hot.resumeRender();
+
+      expect(sourceNames()).toEqual(['p0', 'ZZZ', 'p2', 'p3', 'p4', 'p5']);
+    });
+
+    it('should write the correction made through this.visualRow to the edited record after a row is inserted above it', async() => {
+      createCorrectingGrid();
+
+      hot.setDataAtCell(1, 0, 'zzz');
+      hot.suspendRender();
+      hot.alter('insert_row_above', 0);
+      await answerAll();
+      await answerAll();
+      hot.resumeRender();
+
+      expect(sourceNames()).toEqual([null, 'p0', 'ZZZ', 'p2', 'p3', 'p4', 'p5']);
+    });
+  });
+
+  describe('the row the validation hooks report', () => {
+    it('should pass afterValidate the visual row the record has after a sort', async() => {
+      createGrid();
+
+      const rows = [];
+
+      hot.addHook('afterValidate', (isValid, value, row) => {
+        rows.push(row);
+      });
+      hot.setDataAtCell(1, 0, 'zzz');
+      hot.suspendRender();
+      sortByKey();
+      await answerAll();
+      hot.resumeRender();
+
+      expect(rows).toEqual([4]);
+    });
+
+    it('should pass afterValidate a null row when a filter took the record out of the visual rows', async() => {
+      createGrid();
+
+      const rows = [];
+
+      hot.addHook('afterValidate', (isValid, value, row) => {
+        rows.push(row);
+      });
+      hot.setDataAtCell(1, 0, 'zzz');
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [5]);
+      filters.filter();
+      await answerAll();
+
+      expect(rows).toEqual([null]);
+      expect(sourceNames()).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+    });
   });
 
   describe('an editor whose value the validator rejects', () => {
@@ -716,6 +825,22 @@ describe('Core validation of a change while its record moves', () => {
 
       const mapper = hot.rowIndexMapper;
       const countListeners = () => (mapper._localHooks.indexesInserted ?? []).length;
+      const idle = countListeners();
+
+      hot.setDataAtCell(1, 0, 'zzz');
+
+      expect(countListeners()).toBe(idle + 1);
+
+      await answerAll();
+
+      expect(countListeners()).toBe(idle);
+    });
+
+    it('should stop listening to the cache updates once no validator call waits', async() => {
+      createGrid();
+
+      const mapper = hot.rowIndexMapper;
+      const countListeners = () => (mapper._localHooks.cacheUpdated ?? []).length;
       const idle = countListeners();
 
       hot.setDataAtCell(1, 0, 'zzz');
