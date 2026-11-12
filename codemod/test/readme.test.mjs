@@ -107,9 +107,11 @@ describe('README documents the command line', () => {
     }
   });
 
-  it('keeps the install placeholders marked as unverified', () => {
+  it('documents the checked install forms and no unverified one', () => {
     assert.match(readme, /^### Install from the repository$/m);
-    assert.equal(readme.match(/^# UNVERIFIED/gm).length, 3);
+    assert.match(readme, /pnpm dlx "github:handsontable\/handsontable#<branch>&path:\/codemod"/);
+    assert.match(readme, /pnpm add -D "github:handsontable\/handsontable#<branch>&path:\/codemod"/);
+    assert.doesNotMatch(readme, /UNVERIFIED/);
   });
 
   it('keeps the product name, the sentence case headings, and no em dash', () => {
