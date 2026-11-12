@@ -13,6 +13,7 @@ import {
   TRIAL_KEY,
   V1_TRIAL_KEY,
   FLAGGED_BASE_KEY,
+  FLAGGED_FEAT_ALL_KEY,
   UNFLAGGED_WITH_TOKENS_KEY,
 } from '../../entitlementLicenseKey/__tests__/fixtures';
 import { buildTestKey } from '../../entitlementLicenseKey/__tests__/buildTestKey';
@@ -145,6 +146,7 @@ describe('resolveLicenseCapabilities()', () => {
     ['an unflagged trial key', TRIAL_KEY],
     ['an unflagged trial key in the first format', V1_TRIAL_KEY],
     ['a key with the retired listed-capabilities flag and no tier', FLAGGED_BASE_KEY],
+    ['a flagged key that lists the feat:all and cell:all tokens and no tier', FLAGGED_FEAT_ALL_KEY],
     ['a key that lists feature ids and no tier', UNFLAGGED_WITH_TOKENS_KEY],
   ])('should unlock everything for %s', (_, licenseKey) => {
     const hot = gridWithKey(licenseKey);
@@ -166,7 +168,7 @@ describe('resolveLicenseCapabilities()', () => {
     expect(hasLicenseCapability(hot, 'feat:nested_rows')).toBe(false);
   });
 
-  it('should grant nothing a key does not list or imply', () => {
+  it('should unlock only the plugins its tier includes', () => {
     const hot = gridWithKey(tierKeyWith(['feat:dropdown_menu']));
 
     expect(hasLicenseCapability(hot, 'feat:dropdown_menu')).toBe(true);
@@ -266,6 +268,23 @@ describe('a key that names a tier', () => {
     expect(_getLicenseState(keyWithTier(['alpha', 'beta'])).tiers).toEqual(['alpha', 'beta']);
     expect(_getLicenseState(SUBSCRIPTION_KEY).tiers).toBe(null);
     expect(_getLicenseState('11111-22222-33333-44444-55555').tiers).toBe(null);
+  });
+
+  it('should not read the registry again for a key whose result is cached', () => {
+    // eslint-disable-next-line global-require
+    const registry = require('handsontable/plugins/registry');
+    const hot = gridWithKey(keyWithTier(['alpha']));
+
+    hasLicenseCapability(hot, 'feat:tier_stub');
+
+    // Every plugin asks on every `updateSettings()`, and the header checkbox on every render.
+    const getPluginsNames = jest.spyOn(registry, 'getPluginsNames');
+
+    hasLicenseCapability(hot, 'feat:tier_stub');
+    hasLicenseCapability(hot, 'feat:filters');
+
+    expect(getPluginsNames).not.toHaveBeenCalled();
+    getPluginsNames.mockRestore();
   });
 
   it('should grant a plugin registered after the key was first resolved', () => {

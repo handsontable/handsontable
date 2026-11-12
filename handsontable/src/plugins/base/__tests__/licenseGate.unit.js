@@ -24,7 +24,7 @@ const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include t
   'They are turned off. To add them, contact sales@handsontable.com.';
 
 /**
- * The license gate keeps a plugin a key does not list off. The console message prints once per page,
+ * The license gate keeps a plugin the key's tiers do not include off. The console message prints once per page,
  * so every test loads a fresh copy of the modules.
  */
 describe('BasePlugin license gate', () => {
