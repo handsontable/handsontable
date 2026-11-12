@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-11T21:02:50.979Z",
+  "generatedAt": "2026-11-12T07:46:15.751Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -57,7 +57,7 @@
       "file": "e2e/formula-builder-picking.spec.ts",
       "line": 701,
       "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "count7": 7,
+      "count7": 6,
       "count30": 8,
       "countAll": 8,
       "runs30": 5,
@@ -269,13 +269,13 @@
       "line": null,
       "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
       "count7": 0,
-      "count30": 6,
+      "count30": 4,
       "countAll": 10,
-      "runs30": 3,
+      "runs30": 2,
       "flakyRuns30": 0,
-      "branches30": 3,
+      "branches30": 2,
       "nightlyRuns30": 0,
-      "openBranches30": 3,
+      "openBranches30": 2,
       "legs": [
         "UMD (theme: classic)",
         "UMD (theme: main)",
