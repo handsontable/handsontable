@@ -226,6 +226,46 @@ describe('BaseEditor validation wait', () => {
     expect(core.getDataAtCol(0).slice(1, 4)).toEqual([18, 7, 7]);
   });
 
+  it('closes at once, not reopened by another cell\'s rejection, when a beforeChange listener drops the edited cell from a fill', async() => {
+    core = createHot(container, {
+      data: createData(5),
+      columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
+      beforeChange(changes) {
+        changes.forEach((change, index) => {
+          if (change && change[0] === 1 && change[1] === 0) {
+            changes[index] = null;
+          }
+        });
+      },
+      cell: [{
+        row: 2,
+        col: 0,
+        // eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- an async validator, driven by fake timers
+        validator: (value, callback) => setTimeout(() => callback(false), 600),
+      }],
+    });
+
+    core.selectCells([[1, 0, 3, 0]]);
+
+    const editor = core.getActiveEditor();
+
+    editor.beginEditing();
+    editor.setValue('7');
+    editor.finishEditing(false, true);
+    await flush();
+
+    // The listener refuses to write the edited cell, so no answer can be the editor's own.
+    expect(editor.state).toBe('STATE_VIRGIN');
+    expect(editor.isOpened()).toBe(false);
+
+    jest.advanceTimersByTime(600); // (2, 0) is rejected, (3, 0) accepted
+    await flush();
+
+    expect(editor.state).toBe('STATE_VIRGIN');
+    expect(editor.isOpened()).toBe(false);
+    expect(core.getDataAtCol(0)).toEqual([18, 18, 18, 7, 18]);
+  });
+
   /**
    * Starts a `validateCells()` batch, then confirms an edit of (1, 0) 300 ms into it, so the batch's answer
    * for the edited cell (its old value) arrives before the editor's own.

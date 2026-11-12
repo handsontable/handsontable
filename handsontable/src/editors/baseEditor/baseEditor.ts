@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../core/types';
-import type { CellChange, CellProperties } from '../../settings';
+import type { CellProperties } from '../../settings';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
@@ -43,22 +43,39 @@ interface ValidationWait {
    */
   acceptsAnyAnswer: boolean;
   /**
-   * The cells the save validated when it never validated the edited cell (a `saveValue()` override or a
-   * `beforeChange` listener moved the write to another cell, or took the edited cell out of a Ctrl+Enter
-   * fill), each as the `postAfterValidate` hook names it, with the source it was validated with. The wait
-   * then ends on the first answer among them. `null` while the save validated the edited cell.
+   * The cells a single-cell save validated when it never validated the edited cell (a `saveValue()` override
+   * or a `beforeChange` listener moved the write to another cell), each as its stored cell meta with the source
+   * it was validated with. The wait then ends on the first answer among them. `null` otherwise.
    */
-  validatedCells: ValidatedCell[] | null;
+  validatedCells: Array<{ meta: CellProperties, source: string | undefined }> | null;
 }
 
 /**
- * A cell a save validated, named the way `postAfterValidate` names it: by its visual row and by its
- * property (or its visual column for a data accessor function), with the validation source.
+ * A cell a save asked to validate, as `beforeValidate` names it: by its visual row and by its property (or
+ * its visual column for a data accessor function), with the validation source.
  */
 interface ValidatedCell {
   row: number;
   col: number | string;
   source: string | undefined;
+}
+
+/**
+ * Tells whether a validation hook's cell (`beforeValidate` or `postAfterValidate`) is the cell of a stored
+ * cell meta. The hooks name the cell the way `Core#validateCell` does: by the meta's `visualRow`, and by its
+ * `prop`, or its `visualCol` when the property is a data accessor function.
+ *
+ * @param {CellProperties} meta The stored cell meta.
+ * @param {number} row The visual row of the hook.
+ * @param {number|string} col The column property of the hook, or the visual column for an accessor.
+ * @returns {boolean}
+ */
+function isCellOfMeta(meta: CellProperties, row: number, col: number | string): boolean {
+  if (row !== meta.visualRow) {
+    return false;
+  }
+
+  return typeof meta.prop === 'function' ? col === meta.visualCol : col === meta.prop;
 }
 
 export const EDITOR_STATE = Object.freeze({
@@ -221,14 +238,6 @@ export class BaseEditor {
   #validationWaitListener: (
     (result: boolean, value: unknown, row: number, col: number | string, source?: string) => void
   ) | null = null;
-
-  /**
-   * The change sets the last save made that waited for their validators when the save returned, as core
-   * lists them (`_getWaitingChangeSets()`). Core applies a set only once every validator of it answered, so a
-   * Ctrl+Enter fill is still unwritten after the edited cell's own answer ended the wait (see
-   * `_hasUnappliedSave()`).
-   */
-  #saveChangeSets: CellChange[][] = [];
 
   /**
    * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
@@ -591,7 +600,7 @@ export class BaseEditor {
       this.state = EDITOR_STATE.WAITING;
 
       if (!this.hot.getCellValidator(this.cellProperties)) {
-        this.#trackSaveChangeSets(() => this.saveValue([[value]], ctrlDown));
+        this.saveValue([[value]], ctrlDown);
 
         // A listener of the save (`beforeChange`, `afterChange`, ...) destroyed the grid, and the
         // editor's DOM went with it.
@@ -619,14 +628,23 @@ export class BaseEditor {
         return;
       }
 
-      if (validatedCells.length > 0) {
+      if (validatedCells.length > 0 && fillsOtherCells) {
+        // A `beforeChange` listener took the edited cell out of a Ctrl+Enter fill, so no answer of the editor's
+        // own will ever come. The editor closes as on a save the listener chose not to write: a rejection of
+        // another cell of the fill must not reopen it on a cell the listener refuses to write (re-confirming
+        // would loop). A veto of the whole write has already canceled the editor (`isWaiting()` is false).
+        finishWait(true);
+
+      } else if (validatedCells.length > 0) {
         if (this.#validationWait) {
-          // The save validated other cells but never the edited one: a `saveValue()` override or a
-          // `beforeChange` listener moved the write to another cell, or took the edited cell out of a
-          // Ctrl+Enter fill. No answer of the edited cell will come, so the first answer among the cells the
-          // save validated ends the wait, and a rejection under `allowInvalid: false` reopens the editor. A
-          // veto of the whole write has already canceled the editor (`isWaiting()` is false).
-          this.#validationWait.validatedCells = validatedCells;
+          // A single-cell save validated another cell but never the edited one: a `saveValue()` override or a
+          // `beforeChange` listener moved the write. The first answer among the cells the save validated ends
+          // the wait, and a rejection under `allowInvalid: false` reopens the editor, as before DEV-3760. The
+          // cells are kept as their stored meta, whose `visualRow` follows the record, as `#isEditedCell()` does.
+          this.#validationWait.validatedCells = validatedCells.map(({ row, col, source }) => ({
+            meta: this.hot.getCellMeta(row, typeof col === 'number' ? col : (this.hot.propToCol(col) as number)),
+            source,
+          }));
         }
 
       } else if (this.#validationWait) {
@@ -667,7 +685,7 @@ export class BaseEditor {
     this.hot.addHook('beforeValidate', onBeforeValidate);
 
     try {
-      this.#trackSaveChangeSets(() => this.saveValue([[value]], ctrlDown));
+      this.saveValue([[value]], ctrlDown);
     } finally {
       if (!this.hot.isDestroyed) {
         this.hot.removeHook('beforeValidate', onBeforeValidate);
@@ -675,49 +693,6 @@ export class BaseEditor {
     }
 
     return { validatesEditedCell, validatedCells };
-  }
-
-  /**
-   * Runs a save and records the change sets it made that wait for their validators (`#saveChangeSets`).
-   *
-   * @param {Function} save Saves the editor value.
-   */
-  #trackSaveChangeSets(save: () => void): void {
-    const waitingBefore = new Set(this.hot._getWaitingChangeSets().map(({ changes }) => changes));
-
-    this.#saveChangeSets = [];
-    save();
-
-    if (this.hot.isDestroyed) {
-      return;
-    }
-
-    this.#saveChangeSets = this.hot._getWaitingChangeSets()
-      .map(({ changes }) => changes)
-      .filter(changes => !waitingBefore.has(changes));
-  }
-
-  /**
-   * Tells whether a change set the editor's last save made still waits for its validators: core has neither
-   * applied it nor dropped it yet. The editor's wait ends on the edited cell's own answer, but core applies
-   * a multi-cell set (a Ctrl+Enter fill) only once every validator of it answered, and a write that
-   * waits is written by visual row. So code that moves rows under the edit (a header sort) waits for this
-   * to read `false` as well as for `isWaiting()`. A set leaves core's list right before its last answer's
-   * `postAfterValidate`, and every `loadData()` drops every set.
-   *
-   * @private
-   * @returns {boolean}
-   */
-  _hasUnappliedSave(): boolean {
-    if (this.#saveChangeSets.length === 0 || this.hot.isDestroyed) {
-      return false;
-    }
-
-    const waiting = new Set(this.hot._getWaitingChangeSets().map(({ changes }) => changes));
-
-    this.#saveChangeSets = this.#saveChangeSets.filter(changes => waiting.has(changes));
-
-    return this.#saveChangeSets.length > 0;
   }
 
   /**
@@ -839,8 +814,8 @@ export class BaseEditor {
 
   /**
    * Tells whether an answer belongs to the wait: the edited cell's, validated with the editor's source or a
-   * source the save validated the cell with, or, when the save never validated the edited cell, an answer
-   * for one of the cells it validated, with the source it validated that cell with.
+   * source the save validated the cell with, or, when a single-cell save never validated the edited cell, an
+   * answer for one of the cells it validated, with the source it validated that cell with.
    *
    * @param {ValidationWait} wait The wait.
    * @param {number} row The visual row the answer is for.
@@ -850,7 +825,7 @@ export class BaseEditor {
    */
   #isAnswerOfWait(wait: ValidationWait, row: number, col: number | string, source?: string): boolean {
     if (wait.validatedCells !== null) {
-      return wait.validatedCells.some(cell => cell.row === row && cell.col === col && cell.source === source);
+      return wait.validatedCells.some(cell => cell.source === source && isCellOfMeta(cell.meta, row, col));
     }
 
     return this.#isEditedCell(row, col) && (source === EDIT_SOURCE || wait.sources.has(source));
@@ -872,13 +847,7 @@ export class BaseEditor {
    * @returns {boolean}
    */
   #isEditedCell(row: number, col: number | string): boolean {
-    const { visualRow, visualCol, prop } = this.cellProperties;
-
-    if (row !== visualRow) {
-      return false;
-    }
-
-    return typeof prop === 'function' ? col === visualCol : col === prop;
+    return isCellOfMeta(this.cellProperties, row, col);
   }
 
   /**
