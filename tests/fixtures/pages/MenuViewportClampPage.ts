@@ -2,10 +2,10 @@ import { type Locator, type Page, expect } from '@playwright/test';
 import { awaitBundle, type Bundle } from '../bundle';
 
 /**
- * Which menu to look at: the context menu, the dropdown menu of a column header, or the "Alignment" submenu of
- * the context menu.
+ * Which menu to look at: the context menu, the dropdown menu of a column header, the "Alignment" submenu of
+ * the context menu, or the Filters condition list that opens under a condition select of the dropdown menu.
  */
-export type MenuKind = 'context' | 'dropdown' | 'submenu';
+export type MenuKind = 'context' | 'dropdown' | 'submenu' | 'conditions';
 
 /**
  * A menu's box and the viewport it must stay inside, read in one evaluation so a scroll or a
@@ -35,10 +35,11 @@ export interface MenuScroll {
 
 // A submenu container carries its parent menu's class as well, and the grid keeps a ghost table of
 // the menu's class to measure it with, so the parent menus leave both out.
-const MENU_SELECTOR: Record<MenuKind, string> = {
+export const MENU_SELECTOR: Record<MenuKind, string> = {
   context: '.htContextMenu:not([class*="htContextMenuSub_"]):not(.htGhostTable)',
   dropdown: '.htDropdownMenu:not([class*="htDropdownMenuSub_"]):not(.htGhostTable)',
   submenu: '.htContextMenuSub_Alignment',
+  conditions: '.htFiltersConditionsMenu:not(.htGhostTable)',
 };
 
 /**
@@ -298,8 +299,8 @@ export class MenuViewportClampPage {
   /**
    * Picks a filter condition in the open dropdown menu the way the condition list reports a choice: the select
    * runs its `select` hook, and the Filters plugin shows the condition's inputs and measures the menu again.
-   * The list itself is not clicked, because it opens under the select and can lie below a short viewport the
-   * window cannot scroll.
+   * The list itself is not clicked here: this helper covers the dropdown menu's re-measurement, and the list has its
+   * own page object (`FiltersConditionListViewportPage`).
    *
    * @param {string} key The condition's key, such as `contains`.
    * @param {number} inputsCount The number of inputs the condition takes.

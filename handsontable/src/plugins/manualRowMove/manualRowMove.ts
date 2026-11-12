@@ -327,6 +327,59 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * Gets the drop index for a pointer in the lower half of a row.
+   *
+   * A gap between two visible rows has two drop indexes when hidden rows sit in it: the lower half of the row above
+   * (it points at the first hidden row) and the upper half of the row below (it points at the visible row). The first
+   * one would land the moved rows in front of the hidden block and the second one after it. Stepping over the hidden
+   * rows gives both the same drop index.
+   *
+   * The index stays right after the hovered row, in front of the hidden rows, when there is no visible row to step
+   * to (the hidden rows run to the end of the grid), and so the drop never leaves the place the guideline shows, in
+   * three more cases. A step that would cross into or out of a fixed-rows band. The NestedRows plugin, which reads the
+   * parent of the row at the drop index, so a step over hidden rows could make the moved row a child of a hidden row.
+   * A step that would put the moved rows inside a merged cell: the visible row after the hidden ones is not the
+   * first row of its merge, so the rows would land between the merged rows and split the merge.
+   *
+   * @private
+   * @param {number} hoveredRow Visual row index of the row the pointer is on.
+   * @returns {number} Visual row index of the first visible row after the hovered one, or `hoveredRow + 1` when the
+   * step is skipped (hidden rows at the end of the grid, a fixed-band edge, NestedRows, or a merged cell).
+   */
+  getLowerHalfDropIndex(hoveredRow: number) {
+    const dropIndex = hoveredRow + 1;
+    const rowIndexMapper = this.hot.rowIndexMapper;
+    // The hovered row is rendered, so the next visible row is the next renderable one: no walk over the hidden rows.
+    const hoveredRenderableRow = rowIndexMapper.getRenderableFromVisualIndex(hoveredRow);
+    const nextVisibleRow = hoveredRenderableRow === null ?
+      null : rowIndexMapper.getVisualFromRenderableIndex(hoveredRenderableRow + 1);
+
+    if (nextVisibleRow === null || nextVisibleRow === dropIndex || this.hot.getPlugin('nestedRows')?.enabled) {
+      return dropIndex;
+    }
+
+    const crossesFixedBand = this.isFixedRowTop(hoveredRow) !== this.isFixedRowTop(nextVisibleRow) ||
+      this.isFixedRowBottom(hoveredRow) !== this.isFixedRowBottom(nextVisibleRow);
+
+    return crossesFixedBand || this.isInsideMergedCell(nextVisibleRow) ? dropIndex : nextVisibleRow;
+  }
+
+  /**
+   * Checks if the provided row is a part of a merged cell, but not its first row.
+   *
+   * @private
+   * @param {number} row Visual row index to check.
+   * @returns {boolean}
+   */
+  isInsideMergedCell(row: number) {
+    const mergeCells = this.hot.getPlugin('mergeCells');
+
+    return mergeCells?.enabled === true &&
+      mergeCells.mergedCellsCollection.mergedCells.some(mergedCell => mergedCell.row < row &&
+        row < mergedCell.row + mergedCell.rowspan);
+  }
+
+  /**
    * Gets the sum of the heights of rows in the provided range.
    *
    * @private
@@ -487,7 +540,10 @@ export class ManualRowMove extends BasePlugin {
       // if hover on lower part of TD - the boundary moves to this row's bottom edge, which is its
       // RENDERED height away (no first-row special case: `tdStartPixel` above is already the real
       // top edge, and `tdHeight` is read from the DOM).
-      this.#target.row = coords.row + 1;
+      // A drop on the lower half of a moved row is the gesture of grabbing a row and releasing it in place:
+      // it stays where it is, so the drop index is not moved past the hidden rows that follow.
+      this.#target.row = this.#rowsToMove.includes(coords.row) ?
+        coords.row + 1 : this.getLowerHalfDropIndex(coords.row);
       tdStartPixel += tdHeight;
 
     } else {

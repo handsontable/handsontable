@@ -1222,6 +1222,11 @@ export class SheetsBar extends BasePlugin {
    */
   #gridNameId: string | null = null;
   /**
+   * The element that held the grid's label `id` at the last `#syncGridName()`, or `null` while the
+   * bar names nothing.
+   */
+  #gridNameTarget: HTMLElement | null = null;
+  /**
    * Watches the grid root's `aria-label` and `aria-labelledby`, so a name the host gives the grid
    * after it was built takes over from the bar's at once (`#syncGridName()`), or `null` while the
    * bar names nothing.
@@ -4904,7 +4909,13 @@ export class SheetsBar extends BasePlugin {
   /**
    * Names the grid after the sheet it shows: the grid's root (the `treegrid`) points at the
    * active tab's label through `aria-labelledby`, so a screen reader entering the grid hears
-   * which sheet it is in, and a rename or a switch updates the name with no write of its own.
+   * which sheet it is in. A switch writes the arriving tab's label `id`. A rename updated in
+   * place changes the label's text only, which every browser follows. A rename ended in the tab
+   * rebuilds the tab, and the new label takes the `id` back from the hidden span that kept the
+   * saved name during the edit (`TabStrip#startRename()`). Firefox kept the name it read from that
+   * span, so NVDA named the grid by the old name. When another element holds the `id` than at the
+   * last sync, the attribute is therefore removed and set back in one task, which makes Firefox
+   * read the name again. Writing the same value alone does nothing: the browser skips it.
    * A name the host gave the grid (an `aria-label` or an `aria-labelledby` the bar did not
    * write) is left alone, and nothing is written while `ariaTags` is off.
    */
@@ -4918,11 +4929,17 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
+    const target = this.#tabStrip?.getActiveLabelElement() ?? null;
+
     if (root.getAttribute('aria-labelledby') !== labelId) {
+      setAttribute(root, [A11Y_LABELED_BY(labelId)]);
+    } else if (target !== this.#gridNameTarget) {
+      removeAttribute(root, 'aria-labelledby');
       setAttribute(root, [A11Y_LABELED_BY(labelId)]);
     }
 
     this.#gridNameId = labelId;
+    this.#gridNameTarget = target;
     this.#watchHostGridName(root);
   }
 
@@ -4972,6 +4989,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#gridNameId = null;
+    this.#gridNameTarget = null;
   }
 
   /**

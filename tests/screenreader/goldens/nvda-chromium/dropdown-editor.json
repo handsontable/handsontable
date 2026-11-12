@@ -6,13 +6,13 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "chromium 151.0.7922.34",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-04T14:03:53.838Z"
+    "at": "2026-11-12T09:15:32.833Z"
   },
   "steps": {
-    "open-editor": "combo box expanded has auto complete multi line editable al list section",
-    "arrow-down-second": "section",
+    "open-editor": "combo box expanded has auto complete multi line editable al",
+    "arrow-down-second": "list section",
     "arrow-down-third": "section",
     "commit-choice": "combo box collapsed has auto complete multi line editable al",
-    "back-to-committed": "alto a row 2 column 2"
+    "back-to-committed": "alfa a row 2 column 2"
   }
 }

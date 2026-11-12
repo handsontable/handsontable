@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the grid's accessible name in Firefox after a sheet is renamed in the sheets bar: screen readers now read the new name.",
+  "type": "fixed",
+  "issueOrPR": 14263,
+  "breaking": false,
+  "framework": "none"
+}
