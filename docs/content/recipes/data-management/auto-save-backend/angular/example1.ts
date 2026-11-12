@@ -93,11 +93,13 @@ export class AppComponent {
         return;
       }
 
-      changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
-        if (visualRow !== null && oldValue !== newValue) {
-          const physicalRow = hot.toPhysicalRow(visualRow);
+      changes.forEach((change) => {
+        const [, , oldValue, newValue] = change;
 
-          if (physicalRow !== null && physicalRow >= 0) {
+        if (oldValue !== newValue) {
+          const physicalRow = hot.getPhysicalRowOfChange(change);
+
+          if (physicalRow !== null) {
             this.dirtyRows.add(physicalRow);
           }
         }

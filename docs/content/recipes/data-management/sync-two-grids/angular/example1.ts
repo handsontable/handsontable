@@ -116,9 +116,11 @@ export class AppComponent {
 
       const changedRows = new Set<number>();
 
-      changes.forEach(([row]) => {
-        if (typeof row === 'number') {
-          changedRows.add(row);
+      changes.forEach((change) => {
+        const physicalRow = masterHot.getPhysicalRowOfChange(change);
+
+        if (physicalRow !== null) {
+          changedRows.add(physicalRow);
         }
       });
 

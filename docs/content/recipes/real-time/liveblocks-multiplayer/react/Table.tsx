@@ -47,13 +47,16 @@ export function Table() {
         return;
       }
 
-      for (const [row, prop, , newVal] of changes) {
-        if (row === null || typeof prop !== "number") {
+      for (const change of changes) {
+        const [, prop, , newVal] = change;
+        const physicalRow = hotRef.current?.hotInstance?.getPhysicalRowOfChange(change) ?? null;
+
+        if (physicalRow === null || typeof prop !== "number") {
           continue;
         }
 
         updateCell(
-          row,
+          physicalRow,
           prop,
           newVal === null || newVal === undefined ? "" : String(newVal)
         );

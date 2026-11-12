@@ -78,11 +78,13 @@ if (rootContainer instanceof HTMLElement) {
         return;
       }
 
-      changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
-        if (oldValue !== newValue) {
-          const physicalRow = hot.toPhysicalRow(visualRow as number);
+      changes.forEach((change) => {
+        const [, , oldValue, newValue] = change;
 
-          if (physicalRow !== null && physicalRow >= 0) {
+        if (oldValue !== newValue) {
+          const physicalRow = hot.getPhysicalRowOfChange(change);
+
+          if (physicalRow !== null) {
             dirtyRows.add(physicalRow);
           }
         }

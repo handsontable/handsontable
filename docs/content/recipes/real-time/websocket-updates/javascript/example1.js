@@ -43,6 +43,10 @@ hot.addHook('afterChange', (changes, source) => {
   }
 
   changes.forEach(([row]) => {
+    if (row === null) {
+      return;
+    }
+
     // Columns 2 (price) and 3 (change) are the ones updated by the simulation.
     [2, 3].forEach((col) => {
       const td = hot.getCell(row, col);

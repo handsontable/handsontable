@@ -209,16 +209,20 @@ export function createGrid(container: HTMLElement) {
       return;
     }
 
-    for (const [visualRow, prop, oldValue, newValue] of changes) {
+    for (const change of changes) {
+      const [, prop, oldValue, newValue] = change;
+
       if (prop !== 'reorderPoint' || oldValue === newValue) {
         continue;
       }
 
-      if (visualRow === null) {
+      const physicalRow = hot.getPhysicalRowOfChange(change);
+
+      if (physicalRow === null) {
         continue;
       }
 
-      const sku = rows[hot.toPhysicalRow(visualRow)].sku;
+      const sku = rows[physicalRow].sku;
       const generation = ++nextGeneration;
       const isCurrent = () => pendingEdits.get(sku)?.generation === generation;
 

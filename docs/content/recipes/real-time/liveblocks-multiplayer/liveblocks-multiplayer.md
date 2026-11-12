@@ -145,13 +145,16 @@ const afterChange = useCallback(
       return;
     }
 
-    for (const [row, prop, , newVal] of changes) {
-      if (row === null || typeof prop !== "number") {
+    for (const change of changes) {
+      const [, prop, , newVal] = change;
+      const physicalRow = hotRef.current?.hotInstance?.getPhysicalRowOfChange(change) ?? null;
+
+      if (physicalRow === null || typeof prop !== "number") {
         continue;
       }
 
       updateCell(
-        row,
+        physicalRow,
         prop,
         newVal === null || newVal === undefined ? "" : String(newVal)
       );
@@ -174,7 +177,7 @@ const clearSelectedCellPresence = useMutation(({ setMyPresence }) => {
 }, []);
 ```
 
-**What's happening:** `afterChange` runs on every local edit. It skips the initial `loadData` pass, then calls `updateCell` for each changed cell so the edit reaches storage. `afterSelection` is wired to `syncSelectedCellToPresence`, which writes the selected cell into the user's presence; the `< 0 ? 0` guards clamp Handsontable's header coordinates (`-1`) to a valid cell. `afterDeselect` clears presence so the border disappears when the user clicks away.
+**What's happening:** `afterChange` runs on every local edit. It skips the initial `loadData` pass, then finds the storage row of each changed cell with `getPhysicalRowOfChange()` and calls `updateCell` so the edit reaches storage. `afterSelection` is wired to `syncSelectedCellToPresence`, which writes the selected cell into the user's presence; the `< 0 ? 0` guards clamp Handsontable's header coordinates (`-1`) to a valid cell. `afterDeselect` clears presence so the border disappears when the user clicks away.
 
 ## Step 6: Render other users' selections
 
