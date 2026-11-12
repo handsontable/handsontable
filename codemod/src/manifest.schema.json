@@ -76,9 +76,33 @@
         { "if": { "properties": { "kind": { "const": "methodRemove" } } }, "then": { "required": ["name"] } },
         { "if": { "properties": { "kind": { "const": "methodMove" } } }, "then": { "required": ["name", "plugin"] } },
         { "if": { "properties": { "kind": { "const": "callUnwrap" } } }, "then": { "required": ["callee"] } },
-        { "if": { "properties": { "kind": { "const": "cssVariable" } } }, "then": { "required": ["from", "to"] } },
-        { "if": { "properties": { "kind": { "const": "themeToken" } } }, "then": { "required": ["from", "to"] } },
-        { "if": { "properties": { "kind": { "const": "dependency" } } }, "then": { "required": ["package", "action"] } },
+        { "if": { "properties": { "kind": { "const": "cssVariable" } } }, "then": { "required": ["from"], "anyOf": [{ "required": ["to"] }, { "required": ["removed"] }] } },
+        { "if": { "properties": { "kind": { "const": "themeToken" } } }, "then": { "required": ["from"], "anyOf": [{ "required": ["to"] }, { "required": ["removed"] }] } },
+        {
+          "if": { "properties": { "kind": { "const": "dependency" } } },
+          "then": {
+            "required": [],
+            "properties": {
+              "bump": { "type": "object", "description": "Package name to target version (MAJOR.MINOR.PATCH). The range keeps the operator the user wrote." },
+              "replaced": { "type": "object", "description": "Package name that has no release for the target to the text of a manual entry that names its replacement." },
+              "add": {
+                "type": "array",
+                "description": "Packages to add. Each item: name, range, whenFact, onlyIfDependsOn (a package name or an array of names).",
+                "items": { "type": "object", "required": ["name", "range"] }
+              },
+              "reportOnly": {
+                "type": "array",
+                "description": "Packages to report but never add. Each item: name, whenFact, optional onlyIfDependsOn and message.",
+                "items": { "type": "object", "required": ["name"] }
+              },
+              "facts": {
+                "type": "array",
+                "description": "Facts to collect from js parts in phase 1. Each item: name and when, one of { import }, { property, withKey? }.",
+                "items": { "type": "object", "required": ["name", "when"] }
+              }
+            }
+          }
+        },
         { "if": { "properties": { "kind": { "const": "detect" } } }, "then": { "required": ["match"] } },
         { "if": { "properties": { "kind": { "const": "custom" } } }, "then": { "required": ["module"] } }
       ]

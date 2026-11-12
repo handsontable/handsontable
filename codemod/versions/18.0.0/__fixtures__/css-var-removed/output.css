@@ -1,0 +1,16 @@
+/* Border drawn by the old variables */
+.ht-theme-main {
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-width): Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }` */
+  --ht-wrapper-border-width: 1px;
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-color): Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }` */
+  --ht-wrapper-border-color: #a0aec0;
+  --ht-wrapper-border-width-extra: 2px;
+}
+
+.card .handsontable {
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-width): Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }` */
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-color): Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }` */
+  box-shadow: 0 0 0 var(--ht-wrapper-border-width) var(--ht-wrapper-border-color);
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-color): Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }` */
+  border-color: var(--ht-wrapper-border-color, red);
+}

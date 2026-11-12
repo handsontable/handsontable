@@ -29,8 +29,13 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/manifest.mjs`, `src/manifest.schema.json` | Manifest loading and validation, `RULE_KINDS`. |
 | `src/types.mjs` | JSDoc typedefs for the contracts below. No runtime code. |
 | `src/transforms/index.mjs` | The registry: `KIND_ORDER`, `PHASE_TWO_KINDS`, the module list. |
-| `src/adapters/*.mjs` | File type to parts and back. `vue.mjs` and `template.mjs` are stubs. |
+| `src/adapters/*.mjs` | File type to parts and back. `template.mjs` is a stub. `vue.mjs` splits a `.vue` file (see Traps). |
+| `src/transforms/css-variables.mjs`, `theme-tokens.mjs` | `cssVariable` (css, js strings, template report) and `themeToken` kinds. |
+| `src/lib/string-literal.mjs` | `replaceStringLiteral()`: edit a string literal and keep its quote style. |
 | `src/lib/todo.mjs` | The only writer of TODO comments. |
+| `src/lib/facts.mjs` | `addFact(ctx, name)` and `hasFactFor(ctx, name)`: facts keyed by name and directory. |
+| `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. |
+| `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportOnly`, `replaced`, and `facts`. `matchesWhen(j, root, when)` is the fact matcher. |
 | `src/discover.mjs`, `git.mjs`, `report.mjs`, `diff.mjs` | Support modules. |
 | `versions/<semver>/` | `manifest.json`, optional `custom/*.mjs`, optional extra rule files, `__fixtures__/`. |
 | `test/*.test.mjs`, `test/helpers/` | Tests (`node:test`). Helpers are not listed in the test script. |
@@ -54,7 +59,11 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    Parse and transform failures become `parse-error` and `transform-error` warning entries, the file is left
    byte for byte alone, and the run ends with exit code 1.
 5. Phase 2 visits only `package.json` files and runs the kinds in `PHASE_TWO_KINDS` (`dependency`) after phase 1
-   has filled `ctx.facts`.
+   has filled `ctx.facts`. Before phase 1 the runner records the directory of every discovered `package.json`
+   (`registerPackageDir`), so a fact is credited to the nearest `package.json` above the file it came from.
+   A phase 2 module that needs facts declares `scan: { fileKinds, precheck? }` on the transform: phase 1 then also
+   calls its `apply`, with its rules, on parts of those kinds, using `scan.precheck` instead of the adapter's.
+   That call collects facts and never edits. The `dependency` module is the only user.
 
 `transformFile({ filePath, source, plan, options, facts, registry, phase })` reads and writes nothing. The run
 loop and the fixture tests both call it, so a fixture needs no temp directory, no git, and no discovery.
@@ -149,7 +158,8 @@ with no registered transform is listed as "not implemented" by `--list` and skip
 - transforms the output again and asserts zero changes (idempotency);
 - treats a fixture whose output equals its input as a negative fixture that must stay byte-identical.
 
-`options.json` may set `aggressive` (boolean) and `only` (array of rule ids). Put the non-match in the fixture of
+`options.json` may set `aggressive` (boolean), `only` (array of rule ids), `phase` (`2` for a `package.json`
+fixture), and `facts` (keys present before the run, such as `["uses-formulas@."]`). Put the non-match in the fixture of
 the rule, for example a longer name that shares a prefix. Fixture directories are excluded from lint by
 `.eslintignore`.
 
@@ -164,6 +174,22 @@ the rule, for example a longer name that shares a prefix. Fixture directories ar
   parses JSX, Flow-style annotations, and top-level await in a `.js` file.
 - A recast reprint changes only the nodes a transform touched. The tool writes only changed files and tells users to
   run their formatter.
+- recast prints a `StringLiteral` with the file-wide quote style and ignores its raw text, so editing `value` flips
+  the quotes of that one string. Use `replaceStringLiteral()` from `src/lib/string-literal.mjs`: it swaps the node
+  for a `Literal` that carries the raw text, which recast prints as is.
+- The `vue` adapter returns parts in source order: a `js` part per `<script>` and `<script setup>` (parser by
+  `lang`), a `css` part per `<style>` (`css`, `postcss`, `scss`), and a `template` part with `root = { content }`.
+  `lineOffset` is the zero-based line of the block content start, which is the tag's line, so part line 1 is the tag
+  line. Parts carry `start` and `end`, and `print` splices changed parts back last to first. A script or style block
+  without a match for the `js` or `css` precheck gets no part, and `less`, `stylus`, `sass`, and `src=` blocks are
+  listed in `handle.skippedBlocks`. A transform edits a template by assigning `root.content` and calling
+  `markChanged()`.
+- `cssVariable` and `themeToken` rules are a rename (`from`, `to`) or a removal (`from`, `removed: true`, `advice`).
+  `RULE_KINDS` cannot express "`to` or `removed`", so the transforms throw on a rule with neither and
+  `test/styles.test.mjs` pins the shipped rules. `themeToken` rewrites keys only inside the arguments of
+  `registerTheme`, `reinitTheme`, and `.params()` (a rule can set `callees`); `createTheme` is not public API.
+- A guide anchor on the docs site drops the list number: `## 6. Update theme wrapper border variables` is
+  `#update-theme-wrapper-border-variables`, not the old `#_6-...` form.
 - The `json` adapter prints with `JSON.stringify`, keeping indent, line ending, and trailing newline. Other
   formatting of an edited `package.json` is normalized.
 - Adding the package changed `pnpm-lock.yaml`. jscodeshift is a new dependency that needs team sign-off before the

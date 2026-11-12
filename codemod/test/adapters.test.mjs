@@ -22,10 +22,10 @@ describe('adapter registry', () => {
     assert.equal(isCandidate('README.md'), false);
   });
 
-  it('marks the Vue and template adapters as stubs', () => {
+  it('marks the template adapter as a stub', () => {
     const stubs = ADAPTERS.filter(adapter => !adapter.implemented).map(adapter => adapter.fileKind);
 
-    assert.deepEqual(stubs.sort(), ['template', 'vue']);
+    assert.deepEqual(stubs.sort(), ['template']);
   });
 
   it('gives every adapter the documented interface', () => {

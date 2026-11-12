@@ -142,13 +142,17 @@ describe('transformFile with the default registry', () => {
   });
 
   it('skips a JS file without parsing it when no registered transform handles js', async() => {
-    const result = await transformFile({ filePath: 'a.js', source: 'this is not valid js handsontable (', plan });
+    const cssOnly = createRegistry([{ kinds: ['cssVariable'], fileKinds: ['css'], apply() {} }]);
+    const source = 'this is not valid js handsontable (';
+    const result = await transformFile({ filePath: 'a.js', source, plan, registry: cssOnly });
 
     assert.deepEqual([result.changed, result.skipped, result.entries], [false, 'no-transform', []]);
   });
 
   it('skips a stub adapter and an unknown extension', async() => {
-    assert.equal((await transformFile({ filePath: 'a.vue', source: '<template/>', plan })).skipped, 'no-adapter');
+    const html = await transformFile({ filePath: 'a.html', source: '<hot-table></hot-table>', plan });
+
+    assert.equal(html.skipped, 'no-adapter');
     assert.equal((await transformFile({ filePath: 'a.md', source: '# x', plan })).skipped, 'no-adapter');
   });
 
@@ -535,7 +539,7 @@ describe('run', () => {
       const result = await run({ cwd: dir, to: '18' });
 
       assert.equal(result.exitCode, 0);
-      assert.deepEqual(result.changedFiles, ['a.css']);
+      assert.deepEqual(result.changedFiles, ['a.css', 'package.json']);
       assert.ok(result.notes.some(note => /Detected --from 17\.1\.0 \(package\.json dependencies\)/.test(note)));
     });
   });

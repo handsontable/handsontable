@@ -77,7 +77,7 @@ describe('cli', () => {
     const { code, out } = await cli(['migrate', '--list', '--from', '17', '--to', '18.1']);
 
     assert.equal(code, 0);
-    assert.match(out, /^18\.0\.0\/css-wrapper-border-radius {2}cssVariable {2}rewrite$/m);
+    assert.match(out, /^18\.0\.0\/css-wrapper-border-radius +cssVariable +rewrite$/m);
   });
 
   it('lists from the beginning when --from is absent and cannot be detected', async() => {

@@ -35,6 +35,41 @@ export function detectQuote(source) {
 }
 
 /**
+ * Cheap test on raw JavaScript text: does it mention Handsontable or a theme variable at all.
+ */
+export const JS_PRECHECK = /handsontable|--ht-/i;
+
+/**
+ * Parse JavaScript or TypeScript text into a `js` part.
+ *
+ * @param {string} source Text to parse.
+ * @param {'ts'|'tsx'|'babylon'} parser jscodeshift parser name, see `parserFor`.
+ * @param {number} [lineOffset] Zero-based line of the text inside its file.
+ * @returns {import('../types.mjs').Part} The part.
+ * @throws {Error} When the text does not parse.
+ */
+export function createJsPart(source, parser, lineOffset = 0) {
+  const j = jscodeshift.withParser(parser);
+
+  return { fileKind: 'js', source, root: j(source), j, lineOffset, changed: false };
+}
+
+/**
+ * Print a `js` part back to text. Recast reprints only the nodes a transform touched. A CRLF source keeps its
+ * line terminator.
+ *
+ * @param {import('../types.mjs').Part} part A part made by `createJsPart`.
+ * @param {string} source Original text of the part, used to detect the quote style and line terminator.
+ * @returns {string} Printed text.
+ */
+export function printJsPart(part, source) {
+  return part.root.toSource({
+    quote: detectQuote(source),
+    lineTerminator: source.includes('\r\n') ? '\r\n' : '\n',
+  });
+}
+
+/**
  * Adapter for JavaScript and TypeScript. The whole file is one `js` part. Printing goes through recast, which
  * reprints only the nodes a transform touched, so an edited file keeps its formatting elsewhere.
  *
@@ -45,7 +80,7 @@ const jsAdapter = {
   fileKinds: ['js'],
   extensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts'],
   implemented: true,
-  precheck: /handsontable|--ht-/i,
+  precheck: JS_PRECHECK,
 
   /**
    * @param {string} source File text.
@@ -53,11 +88,7 @@ const jsAdapter = {
    * @returns {import('../types.mjs').ParseHandle} Handle with one part.
    */
   parse(source, filePath) {
-    const j = jscodeshift.withParser(parserFor(filePath));
-
-    return {
-      parts: [{ fileKind: 'js', source, root: j(source), j, lineOffset: 0, changed: false }],
-    };
+    return { parts: [createJsPart(source, parserFor(filePath))] };
   },
 
   /**
@@ -66,7 +97,7 @@ const jsAdapter = {
    * @returns {string} Printed file.
    */
   print(handle, source) {
-    return handle.parts[0].root.toSource({ quote: detectQuote(source) });
+    return printJsPart(handle.parts[0], source);
   },
 };
 

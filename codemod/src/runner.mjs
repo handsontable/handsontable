@@ -5,6 +5,7 @@ import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
 import { discover } from './discover.mjs';
 import { dirtyPaths, isGitRepo } from './git.mjs';
+import { registerPackageDir } from './lib/facts.mjs';
 import { addCssTodo, addJsTodo, lineOf } from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests } from './manifest.mjs';
 import { Report } from './report.mjs';
@@ -36,8 +37,10 @@ function firstLine(message) {
  *
  * @param {import('./types.mjs').Plan} plan The selected rules.
  * @param {import('./transforms/index.mjs').Registry} registry The transform registry.
- * @param {1|2} phase Phase number. Phase 2 runs only the registry's phase 2 kinds.
- * @returns {Array<{transform: import('./types.mjs').Transform, rules: import('./types.mjs').Rule[]}>} Steps.
+ * @param {1|2} phase Phase number. Phase 2 runs only the registry's phase 2 kinds. Phase 1 also returns the
+ * phase 2 rules of a module that declares `scan`, flagged `scan: true`, so it can collect facts.
+ * @returns {Array<{transform: import('./types.mjs').Transform, rules: import('./types.mjs').Rule[],
+ * scan: boolean}>} Steps.
  */
 function orderSteps(plan, registry, phase) {
   const steps = [];
@@ -47,23 +50,35 @@ function orderSteps(plan, registry, phase) {
 
     for (const kind of registry.order) {
       const transform = registry.byKind.get(kind);
+      const scan = phase === 1 && Boolean(transform?.scan) && registry.phaseTwo.has(kind);
 
-      if (!transform || used.has(transform) || registry.phaseTwo.has(kind) !== (phase === 2)) {
+      if (!transform || used.has(transform) || (registry.phaseTwo.has(kind) !== (phase === 2) && !scan)) {
         continue;
       }
 
       used.add(transform);
 
       const own = rules.filter(rule => transform.kinds.includes(rule.kind)
-        && registry.phaseTwo.has(rule.kind) === (phase === 2));
+        && (registry.phaseTwo.has(rule.kind) === (phase === 2) || scan));
 
       if (own.length > 0) {
-        steps.push({ transform, rules: own });
+        steps.push({ transform, rules: own, scan });
       }
     }
   }
 
   return steps;
+}
+
+/**
+ * File kinds a step may visit. A scan step (a phase 2 module run in phase 1 to collect facts) visits the kinds
+ * its `scan.fileKinds` lists, every other step the module's `fileKinds`.
+ *
+ * @param {{transform: import('./types.mjs').Transform, scan: boolean}} step The step.
+ * @returns {import('./types.mjs').FileKind[]} The kinds.
+ */
+function stepFileKinds(step) {
+  return step.scan ? step.transform.scan.fileKinds : step.transform.fileKinds;
 }
 
 /**
@@ -165,14 +180,17 @@ export async function transformFile({
     return unchanged('no-adapter');
   }
 
-  const steps = orderSteps(plan, registry, phase)
-    .filter(step => step.transform.fileKinds.some(kind => adapter.fileKinds.includes(kind)));
+  const candidates = orderSteps(plan, registry, phase)
+    .filter(step => stepFileKinds(step).some(kind => adapter.fileKinds.includes(kind)));
 
-  if (steps.length === 0) {
+  if (candidates.length === 0) {
     return unchanged('no-transform');
   }
 
-  if (!adapter.precheck.test(source)) {
+  const precheckOf = step => (step.scan && step.transform.scan.precheck) || adapter.precheck;
+  const steps = candidates.filter(step => precheckOf(step).test(source));
+
+  if (steps.length === 0) {
     return unchanged('precheck');
   }
 
@@ -201,9 +219,9 @@ export async function transformFile({
     for (const part of handle.parts) {
       const ctx = createContext({ filePath, part, plan, entries, facts, options: fullOptions });
 
-      for (const { transform, rules } of steps) {
-        if (transform.fileKinds.includes(part.fileKind)) {
-          await transform.apply(ctx, rules);
+      for (const step of steps) {
+        if (stepFileKinds(step).includes(part.fileKind)) {
+          await step.transform.apply(ctx, step.rules);
         }
       }
     }
@@ -328,8 +346,9 @@ export function describeRules(plan, registry = defaultRegistry) {
  * Run a migration: resolve the range, guard the git tree, discover files, transform them in two phases, and
  * write the result. Nothing is written when `write` is `false`.
  *
- * Phase 1 visits every discovered file and applies all kinds except `dependency`. Phase 2 visits only
- * `package.json` files and applies the `dependency` rules, reading the facts phase 1 collected.
+ * Phase 1 visits every discovered file and applies all kinds except `dependency`, plus a scan of the `dependency`
+ * module for facts (see `scan` in the `Transform` typedef). Phase 2 visits only `package.json` files and applies
+ * the `dependency` rules, reading the facts phase 1 collected.
  *
  * @param {object} [options] Options. They mirror the CLI flags.
  * @param {string} [options.cwd] Project directory.
@@ -437,12 +456,16 @@ export async function run({
     }
   };
 
+  const packageFiles = files.filter(candidate => basename(candidate) === 'package.json');
+
+  packageFiles.forEach(file => registerPackageDir(facts, file));
+
   for (const file of files) {
     await visit(file, 1);
   }
 
   if (orderSteps(resolved.plan, registry, 2).length > 0) {
-    for (const file of files.filter(candidate => basename(candidate) === 'package.json')) {
+    for (const file of packageFiles) {
       await visit(file, 2);
     }
   }

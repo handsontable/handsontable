@@ -1,0 +1,9 @@
+[
+  { "ruleId": "18.0.0/theme-token-wrapper-border-radius", "severity": "changed", "line": 7 },
+  { "ruleId": "18.0.0/theme-token-wrapper-border-width", "severity": "manual", "line": 8 },
+  { "ruleId": "18.0.0/theme-token-wrapper-border-color", "severity": "manual", "line": 9 },
+  { "ruleId": "18.0.0/theme-token-wrapper-border-radius", "severity": "changed", "line": 16 },
+  { "ruleId": "18.0.0/theme-token-wrapper-border-radius", "severity": "changed", "line": 24 },
+  { "ruleId": "18.0.0/theme-token-wrapper-border-radius", "severity": "manual", "line": 30 },
+  { "ruleId": "18.0.0/theme-token-wrapper-border-radius", "severity": "manual", "line": 36 }
+]

@@ -1,5 +1,7 @@
 import cssVariables from './css-variables.mjs';
 import custom from './custom.mjs';
+import dependencies from './dependencies.mjs';
+import themeTokens from './theme-tokens.mjs';
 
 /**
  * The fixed order in which rule kinds run inside one version. Import and export rewrites come first so
@@ -44,6 +46,8 @@ export const PHASE_TWO_KINDS = new Set(['dependency']);
 const TRANSFORMS = [
   cssVariables,
   custom,
+  dependencies,
+  themeTokens,
 ];
 
 /**

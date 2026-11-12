@@ -102,7 +102,8 @@
  * was inserted. Files that cannot hold comments (`json`) get the report entry only.
  * @property {Set<string>} facts Set shared across the whole run, phase 1 and phase 2. A transform adds a
  * fact (for example `uses-formulas`) for a later phase to read. Names are lowercase kebab-case, optionally
- * `name:value`.
+ * `name:value`. Use `addFact()` and `hasFactFor()` from `src/lib/facts.mjs`: they also record the directory
+ * the fact came from, as `name@<dir>`, so a monorepo's package.json files do not share facts.
  * @property {{aggressive: boolean, dryRun: boolean}} options Run options. A transform must not write to
  * disk, so `dryRun` is for reporting only.
  * @property {() => void} markChanged Call after every edit of `root`. A part that never calls it is not
@@ -122,6 +123,11 @@
  * @property {FileKind[]} fileKinds File kinds it can edit.
  * @property {(ctx: Ctx, rules: Rule[]) => void|Promise<void>} apply Edit `ctx.root`, call
  * `ctx.markChanged()`, and report.
+ * @property {{fileKinds: FileKind[], precheck?: RegExp}} [scan] Only for a module whose kinds run in phase 2.
+ * In phase 1 the runner also calls `apply`, with the module's rules, on parts of the listed `fileKinds`, so the
+ * module can collect facts. The module must not edit in that call. `precheck` replaces the adapter's precheck for
+ * that visit, so a file that never names Handsontable can still be scanned. Tell the two calls apart by
+ * `ctx.fileKind`: phase 2 visits `package.json` only, so `json` means edit and any other kind means scan.
  */
 
 /**
@@ -133,6 +139,8 @@
  * @property {object} root Parsed form of this part.
  * @property {object|null} j The jscodeshift API for `js` parts, otherwise `null`.
  * @property {number} lineOffset Zero-based line of the part inside the file, added to reported lines.
+ * @property {number} [start] Offset of the part's text inside the file. Set by the Vue adapter.
+ * @property {number} [end] Offset where the part's text ends inside the file. Set by the Vue adapter.
  * @property {boolean} changed Set by `ctx.markChanged()`.
  */
 

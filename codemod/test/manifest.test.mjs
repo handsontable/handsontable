@@ -142,7 +142,7 @@ describe('validateRule', () => {
     const css = { id: '18.0.0/x', kind: 'cssVariable', from: 'a', to: 'b' };
 
     assert.match(first({ id: '18.0.0/x', kind: 'nope' }), /unknown kind/);
-    assert.match(first({ id: css.id, kind: css.kind, from: 'a' }), /missing required field "to"/);
+    assert.match(first({ id: css.id, kind: 'optionRename', from: 'a' }), /missing required field "to"/);
     assert.match(first({ ...css, to: 1 }), /"to" must be of type string/);
     assert.match(first({ ...remove, id: '17.0.0/x' }), /must start with "18\.0\.0\/"/);
     assert.match(first({ ...remove, id: '18.0.0/' }), /no slug/);

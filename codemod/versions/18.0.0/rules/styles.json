@@ -1,0 +1,56 @@
+{
+  "rules": [
+    {
+      "id": "18.0.0/css-wrapper-border-radius",
+      "kind": "cssVariable",
+      "safe": true,
+      "guide": "update-theme-wrapper-border-variables",
+      "from": "--ht-wrapper-border-radius",
+      "to": "--ht-border-radius"
+    },
+    {
+      "id": "18.0.0/css-wrapper-border-width",
+      "kind": "cssVariable",
+      "safe": false,
+      "guide": "update-theme-wrapper-border-variables",
+      "from": "--ht-wrapper-border-width",
+      "removed": true,
+      "advice": "Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
+    },
+    {
+      "id": "18.0.0/css-wrapper-border-color",
+      "kind": "cssVariable",
+      "safe": false,
+      "guide": "update-theme-wrapper-border-variables",
+      "from": "--ht-wrapper-border-color",
+      "removed": true,
+      "advice": "Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
+    },
+    {
+      "id": "18.0.0/theme-token-wrapper-border-radius",
+      "kind": "themeToken",
+      "safe": true,
+      "guide": "update-theme-wrapper-border-variables",
+      "from": "wrapperBorderRadius",
+      "to": "borderRadius"
+    },
+    {
+      "id": "18.0.0/theme-token-wrapper-border-width",
+      "kind": "themeToken",
+      "safe": false,
+      "guide": "update-theme-wrapper-border-variables",
+      "from": "wrapperBorderWidth",
+      "removed": true,
+      "advice": "Removed in 18.0. Delete this token. To keep a visible border, draw it with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
+    },
+    {
+      "id": "18.0.0/theme-token-wrapper-border-color",
+      "kind": "themeToken",
+      "safe": false,
+      "guide": "update-theme-wrapper-border-variables",
+      "from": "wrapperBorderColor",
+      "removed": true,
+      "advice": "Removed in 18.0. Delete this token. To keep a visible border, draw it with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
+    }
+  ]
+}

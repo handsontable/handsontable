@@ -1,0 +1,27 @@
+// Theme override for the grid
+$radius: 8px;
+
+.ht-theme-main {
+  --ht-border-radius: #{$radius};
+  --ht-wrapper-border-radius-extra: 2px;
+
+  .inner {
+    border-radius: var(--ht-border-radius);
+    margin: calc(var(--ht-border-radius, 4px) * 2);
+  }
+}
+
+// Both names are already set here, so this rule is left alone
+.both-defined {
+  --ht-wrapper-border-radius: 3px;
+  --ht-border-radius: 5px;
+  padding: var(--ht-wrapper-border-radius);
+}
+
+@media (min-width: 600px) {
+  .ht-theme-main {
+    --ht-border-radius: 2px;
+  }
+}
+
+@include theme-override((--ht-border-radius: 1px));

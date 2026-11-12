@@ -69,7 +69,9 @@ export async function listFixtures(versionsDir = VERSIONS_DIR) {
  * Run a fixture through `transformFile` with only the rules of its own version. Nothing touches the disk
  * except reading the fixture files.
  *
- * `options.json` may set `aggressive` and `only` (an array of rule ids).
+ * `options.json` may set `aggressive`, `only` (an array of rule ids), `phase` (1 or 2, default 1), and `facts`
+ * (fact keys present before the run, for example `["uses-formulas@."]`; see `src/lib/facts.mjs`). A `package.json`
+ * fixture needs `"phase": 2`.
  *
  * @param {Fixture} fixture The fixture.
  * @param {string} [versionsDir] Directory with the manifests.
@@ -85,12 +87,23 @@ export async function runFixture(fixture, versionsDir = VERSIONS_DIR) {
   const options = JSON.parse(await readOptional(join(fixture.dir, 'options.json')) ?? '{}');
   const plan = buildPlan([manifest], options.only ?? []);
   const transformOptions = { aggressive: Boolean(options.aggressive) };
-  const first = await transformFile({ filePath: fixture.inputName, source: input, plan, options: transformOptions });
+  const phase = options.phase ?? 1;
+  const facts = new Set(options.facts ?? []);
+  const first = await transformFile({
+    filePath: fixture.inputName,
+    source: input,
+    plan,
+    options: transformOptions,
+    facts,
+    phase,
+  });
   const second = await transformFile({
     filePath: fixture.outputName,
     source: first.output,
     plan,
     options: transformOptions,
+    facts,
+    phase,
   });
 
   return {

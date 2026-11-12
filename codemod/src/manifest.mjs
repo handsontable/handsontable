@@ -20,12 +20,15 @@ export const VERSIONS_DIR = join(PACKAGE_ROOT, 'versions');
  * - `strings`: an array of non-empty strings.
  * - `object`: a plain object.
  * - `boolean`: `true` or `false`.
+ * - `objects`: an array whose items are all plain objects.
  */
 const FIELD_TYPES = {
   string: value => typeof value === 'string' && value.length > 0,
   strings: value => Array.isArray(value) && value.length > 0 && value.every(item => typeof item === 'string' && item),
   object: value => value !== null && typeof value === 'object' && !Array.isArray(value),
   boolean: value => typeof value === 'boolean',
+  objects: value => Array.isArray(value) && value.every(item => item !== null && typeof item === 'object'
+    && !Array.isArray(item)),
 };
 
 /**
@@ -61,9 +64,12 @@ export const RULE_KINDS = {
   methodRemove: { required: { name: 'string' }, optional: {} },
   methodMove: { required: { name: 'string', plugin: 'string' }, optional: { to: 'string' } },
   callUnwrap: { required: { callee: 'string' }, optional: {} },
-  cssVariable: { required: { from: 'string', to: 'string' }, optional: {} },
-  themeToken: { required: { from: 'string', to: 'string' }, optional: {} },
-  dependency: { required: { package: 'string', action: 'string' }, optional: { to: 'string' } },
+  cssVariable: { required: { from: 'string' }, optional: { to: 'string', removed: 'boolean' } },
+  themeToken: { required: { from: 'string' }, optional: { to: 'string', removed: 'boolean', callees: 'strings' } },
+  dependency: {
+    required: {},
+    optional: { bump: 'object', replaced: 'object', add: 'objects', reportOnly: 'objects', facts: 'objects' },
+  },
   detect: { required: { match: 'object' }, optional: { emits: 'string' } },
   custom: { required: { module: 'string' }, optional: {} },
 };
