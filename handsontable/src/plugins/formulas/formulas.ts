@@ -672,10 +672,13 @@ export class Formulas extends BasePlugin {
   /**
    * What `disablePlugin()` keeps of a grid built from an engine sheet without `data`, for the next `enablePlugin()`
    * to bind the sheet again as the grid left it (`#setupSyncEndpointForSheetBuiltGrid()`), or `null` for a grid built
-   * with `data` or bound to no sheet: the engine sheet; the grid's row and column counts; the order, with the content,
-   * the engine held the sheet in (`exportEngineOrder(true)`, `null` while both axes are physical); and the reload
-   * snapshot (`#loadedSheetContent`, the same array, not a copy) with `#foreignSheetChange`. Cleared by the next
-   * enable and by `destroy()`.
+   * with `data` or bound to no sheet: the engine sheet; the grid's row and column counts; the order the engine held
+   * the sheet in (`exportEngineOrder()`, `null` while both axes are physical); and the reload snapshot
+   * (`#loadedSheetContent`, the same array the grid held, not a copy) with `#foreignSheetChange`. One copy of the
+   * sheet is kept while the plugin is off: the snapshot, from which the enable rebuilds the content of a sheet it adds
+   * back (`#sheetBuiltContent()`). Only without a snapshot that holds the sheet (none, or a foreign change found) does
+   * the order carry the content itself (`exportEngineOrder(true)`), read at the disable. Cleared by the next enable and
+   * by `destroy()`.
    */
   #sheetBuiltBindingAtDisable: SheetBuiltBinding | null = null;
 
@@ -1403,7 +1406,7 @@ export class Formulas extends BasePlugin {
       // grid's source data holds the formula text of that order (`#sourceHasStaleFormulas`), so the sheet filled
       // from it in physical order and then sorted read other cells (an engine class builds a new engine).
       const sheetBuiltContent = this.#hotWasInitializedWithEmptyData && this.hot.view
-        ? sheetBuiltBinding?.order?.content : undefined;
+        ? this.#sheetBuiltContent(sheetBuiltBinding) : undefined;
       let sourceDataArray = sheetBuiltContent;
 
       if (sourceDataArray === undefined) {
@@ -1634,19 +1637,23 @@ export class Formulas extends BasePlugin {
     this.#sheetIdAtLastSync = null;
     this.#sheetResyncPending = false;
     // A grid built from an engine sheet leaves the sheet in the grid's order, which only these syncers know, and the
-    // snapshot its next reload compares against: the next enable takes both over. Read after `#notifyEngineDetach()`,
-    // whose listeners can still write the sheet.
+    // snapshot its next reload compares against: the next enable takes both over, and the snapshot is the one copy
+    // of the sheet kept while the plugin is off (see `#sheetBuiltBindingAtDisable`). Read after
+    // `#notifyEngineDetach()`, whose listeners can still write the sheet.
+    const snapshotHoldsSheet = this.#loadedSheetContent !== null && !this.#foreignSheetChange;
+
     this.#sheetBuiltBindingAtDisable = this.#hotWasInitializedWithEmptyData && this.engine && this.sheetId !== null
       && this.#hasOwnSheet() ? {
         engine: this.engine,
         sheetId: this.sheetId,
         rowCount: this.hot.rowIndexMapper.getNumberOfIndexes(),
         columnCount: this.hot.columnIndexMapper.getNumberOfIndexes(),
-        order: this.exportEngineOrder(true),
+        order: this.exportEngineOrder(!snapshotHoldsSheet),
         snapshot: this.#loadedSheetContent,
         foreignSheetChange: this.#foreignSheetChange,
       } : null;
-    // The next load of a sheet starts the comparison over (and the content is not kept alive meanwhile).
+    // Any other grid's next load of a sheet starts the comparison over; a sheet-built grid's binding above holds the
+    // snapshot for its next enable.
     this.#loadedSheetContent = null;
     this.#foreignSheetChange = false;
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
@@ -2243,6 +2250,29 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Returns the content a re-enable adds back the sheet of a grid built from an engine sheet with, in the stored
+   * engine order (`#sheetBuiltBindingAtDisable`), or `undefined` when no order was stored (the source data then
+   * fills the sheet in physical order). The order carries the content when the disable found no snapshot holding the
+   * sheet; otherwise it is rebuilt from the snapshot, which holds the sheet as the engine held it after the grid's
+   * last load or write (`getSheetSerialized()` form). A host change made after that write and not yet told by a
+   * comparison is not in it; it only matters when the engine lost the sheet while the plugin was off.
+   *
+   * @param {object|null} binding What the disable kept.
+   * @returns {Array<Array<*>>|undefined}
+   */
+  #sheetBuiltContent(binding: SheetBuiltBinding | null): unknown[][] | undefined {
+    if (binding === null || binding.order === null) {
+      return undefined;
+    }
+
+    if (binding.order.content !== undefined) {
+      return binding.order.content;
+    }
+
+    return binding.snapshot === null ? undefined : this.#readableSheet(binding.snapshot);
+  }
+
+  /**
    * Binds again the sheet of a grid built from an engine sheet on a re-enable, as the grid left it at the disable
    * (`#sheetBuiltBindingAtDisable`): the engine holds it in the grid's order of then, or the enable has just added it
    * back from the content the engine held then (an engine class builds a new engine). The new syncers take that
@@ -2264,7 +2294,8 @@ export class Formulas extends BasePlugin {
    * engine's rows where they were, so the formula column showed the wrong records' results.
    *
    * @param {object|null} binding What the disable kept.
-   * @param {boolean} addedFromContent Whether the enable has just added the sheet from `binding.order.content`.
+   * @param {boolean} addedFromContent Whether the enable has just added the sheet from the stored content
+   *   (`#sheetBuiltContent()`).
    * @returns {boolean} `false` when the caller has to load the sheet into the grid instead.
    */
   #setupSyncEndpointForSheetBuiltGrid(

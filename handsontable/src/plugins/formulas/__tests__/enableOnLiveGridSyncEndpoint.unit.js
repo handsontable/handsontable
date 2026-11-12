@@ -768,6 +768,31 @@ describe('Formulas enabled on a live grid', () => {
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
+    it('keeps one copy of the sheet while off: the disable of a sorted grid reads no sheet', () => {
+      const engine = buildEngineWithSheet(SHEET_CONTENT);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      const getSheetSerialized = jest.spyOn(engine, 'getSheetSerialized');
+
+      // The reload snapshot is kept, and the content of a sheet added back is rebuilt from it on the enable. Called
+      // directly: `updateSettings({ formulas: false })` reloads the sheet first, as every update of this grid does.
+      hot.getPlugin('formulas').disablePlugin();
+
+      expect(getSheetSerialized).not.toHaveBeenCalled();
+
+      hot.updateSettings({ formulas: { engine: HyperFormula, sheetName: 'S1' } });
+
+      expect(hot.getData()).toEqual(SORTED_DESC);
+      expect(engineValues(hot)).toEqual(SORTED_DESC);
+    });
+
     it('sends no order on a re-enable when the grid kept the order the engine holds', () => {
       const engine = buildEngineWithSheet(SHEET_CONTENT);
 

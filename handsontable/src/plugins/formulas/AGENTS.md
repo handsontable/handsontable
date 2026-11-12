@@ -1052,10 +1052,15 @@ order change reaches the axis syncers while they point at no engine sheet. The p
   kept its rows: sheet `[b, 2, =B1*2], [a, 1, =B2*2], [c, 3, =B3*2], [d, 4, =B4*2]`, sort B desc, re-enable, sort
   asc gave C `8, 6, 4, 2` for `2, 4, 6, 8`, and only the `noSyncEndpoint` warning fired. Only the old syncers knew
   the order the engine holds the sheet in, so `disablePlugin()` keeps the binding (`#sheetBuiltBindingAtDisable`:
-  the engine sheet, the grid's row and column counts, the order with the content from `exportEngineOrder(true)`,
-  `null` while both axes are physical, and the reload snapshot `#loadedSheetContent` with `#foreignSheetChange`;
-  cleared by the next enable and by `destroy()`; the content is one copy of the sheet while the plugin is off, the
-  snapshot is the same array the grid held). The enable sets the endpoint up without an order and the new syncers
+  the engine sheet, the grid's row and column counts, the order from `exportEngineOrder()`, `null` while both axes
+  are physical, and the reload snapshot `#loadedSheetContent` with `#foreignSheetChange`; cleared by the next enable
+  and by `destroy()`). **One copy of the sheet is kept while the plugin is off**: the snapshot (the same array the
+  grid held), from which the enable rebuilds the content of a sheet it adds back (`#sheetBuiltContent()`). Only when
+  no snapshot holds the sheet (none, or a foreign change was found) does the order carry the content itself
+  (`exportEngineOrder(true)`, read at the disable). A grid with `data`, or a sheet-built grid that never loaded a
+  snapshot, keeps none. A first version kept both, two copies for a sorted grid (`keeps one copy of the sheet while
+  off`). The rebuilt content misses a host change made after the grid's last write and not yet found by a
+  comparison; that matters only when the engine lost the sheet while the plugin was off. The enable sets the endpoint up without an order and the new syncers
   adopt the stored one (`adoptEngineOrder()`), so the engine follows the grid's current order from it: a grid that
   kept its order sends nothing, and a sort or a move made while the plugin was off reaches the engine as one order
   (the rule above). **The snapshot is put back too** (taken anew for a sheet added back from the content), so the
@@ -1072,8 +1077,10 @@ order change reaches the axis syncers while they point at no engine sheet. The p
   count changed while the plugin was off (a row removed showed the results of other records, a row inserted showed a
   formula's text). The grid then shows the sheet as the engine holds it, in the engine's order, and the insert or
   removal made while off is dropped: the engine never got it, and a sheet-built grid reads the engine as its data.
-  Edits made while the plugin was off show in the grid until the next settings update reloads the sheet, which drops
-  them, as before (in between, an edited number shows next to a formula result computed from the old one); a sheet
+  A host edit of the engine sheet made while the plugin was off shows mixed values until the next settings update:
+  the grid keeps its source data, and the formula results read the host's values (pre-existing; the reload then
+  shows the host's sheet). Edits made in the grid while the plugin was off show in the grid until the next settings
+  update reloads the sheet, which drops them, as before (in between, an edited number shows next to a formula result computed from the old one); a sheet
   added back from the stored content does not hold them either (measured), while a fill from the source data (an
   engine class with no stored order) keeps them. Pinned by the `again after it was turned off, on a grid built from
   an engine sheet` cases and `sorts a grid built from an engine sheet that was sorted before Formulas was turned off
