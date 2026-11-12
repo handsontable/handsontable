@@ -8,12 +8,17 @@ export const PLUGIN_DEPS: readonly string[] = [
 ];
 
 // The license token of the ContextMenu plugin, its display name, where it is checked (`gate`), and the
-// tokens it requires (`implies`), which a license key that lists it grants with it.
+// tokens it requires (`implies`), which a license key that lists it grants with it, and the license tiers
+// that include it (`tiers`).
 export const LICENSE: PluginLicense = Object.freeze({
   capability: 'feat:context_menu',
   name: 'Context menu',
   gate: 'enable',
   implies: Object.freeze([
     'feat:auto_column_size',
+  ]),
+  tiers: Object.freeze([
+    'standard',
+    'professional',
   ]),
 });

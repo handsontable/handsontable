@@ -7,6 +7,7 @@ import {
   LISTED_CAPABILITIES_FLAG,
   XLSX_CAPABILITY_IDS,
   XLSX_FLAG_BY_ID,
+  XLSX_TIERS_BY_ID,
 } from '../../src/utils/xlsxEngine/licenseCapabilities.generated';
 
 import {
@@ -463,13 +464,46 @@ describe('feature manifest', () => {
         version: '19.0.0',
         keyFlag: 'listed-capabilities',
       });
+      expect(Object.keys(manifest)).toEqual([
+        'schemaVersion', 'product', 'version', 'tokenRule', 'keyFlag', 'tiers', 'capabilities',
+      ]);
       expect(new RegExp(manifest.tokenRule).test('xlsx:conditional_formatting')).toBe(true);
       expect(manifest.capabilities).toHaveLength(byId.size);
       manifest.capabilities.forEach((capability) => {
         expect(Object.keys(capability)).toEqual([
           'id', 'kind', 'module', 'plugins', 'name', 'description', 'since', 'status', 'licensing', 'gate',
-          'requires', 'enforceAtInit', 'packages', 'implies',
+          'requires', 'enforceAtInit', 'packages', 'implies', 'tiers',
         ]);
+      });
+    });
+
+    it('should publish the tier names and the tiers of every capability', () => {
+      const manifest = buildManifest(sources, '19.0.0');
+
+      expect(manifest.schemaVersion).toBe(1);
+      expect(manifest.tiers).toEqual(sources.tiers);
+      manifest.capabilities.forEach((capability) => {
+        expect({ id: capability.id, tiers: capability.tiers })
+          .toEqual({ id: capability.id, tiers: entryOf(capability.id).tiers ?? [] });
+        expect(capability.tiers.length > 0).toBe(capability.licensing === 'token');
+      });
+    });
+
+    it('should give every sold plugin its tiers in the generated LICENSE', () => {
+      listEntries(sources)
+        .filter(({ entry }) => entry.kind === 'plugin' && entry.licensing === 'token')
+        .forEach(({ entry, folder }) => {
+          // eslint-disable-next-line global-require, import/no-dynamic-require
+          const { LICENSE } = require(`../../src/plugins/${folder}/feature.generated`);
+
+          expect({ id: entry.id, tiers: [...LICENSE.tiers] }).toEqual({ id: entry.id, tiers: entry.tiers });
+        });
+    });
+
+    it('should give every xlsx id its tiers', () => {
+      expect(Object.keys(XLSX_TIERS_BY_ID)).toEqual([...XLSX_CAPABILITY_IDS]);
+      XLSX_CAPABILITY_IDS.forEach((id) => {
+        expect({ id, tiers: [...XLSX_TIERS_BY_ID[id]] }).toEqual({ id, tiers: entryOf(id).tiers });
       });
     });
   });

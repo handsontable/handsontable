@@ -26,4 +26,8 @@ export interface PluginLicense {
    * grants these too, so a key keeps working when a later release adds a requirement.
    */
   readonly implies: readonly string[];
+  /**
+   * The license tiers that include the plugin. A key that names one of them unlocks it.
+   */
+  readonly tiers: readonly string[];
 }

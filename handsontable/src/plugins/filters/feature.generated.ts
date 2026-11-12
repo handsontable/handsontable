@@ -10,7 +10,8 @@ export const PLUGIN_DEPS: readonly string[] = [
 ];
 
 // The license token of the Filters plugin, its display name, where it is checked (`gate`), and the
-// tokens it requires (`implies`), which a license key that lists it grants with it.
+// tokens it requires (`implies`), which a license key that lists it grants with it, and the license tiers
+// that include it (`tiers`).
 export const LICENSE: PluginLicense = Object.freeze({
   capability: 'feat:filters',
   name: 'Filters',
@@ -20,5 +21,9 @@ export const LICENSE: PluginLicense = Object.freeze({
     'feat:auto_column_size',
     'feat:dropdown_menu',
     'feat:hidden_rows',
+  ]),
+  tiers: Object.freeze([
+    'standard',
+    'professional',
   ]),
 });

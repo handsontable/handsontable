@@ -11,6 +11,7 @@ export {
   IMPORT_FILE_CAPABILITY_IDS,
   EXPORT_FILE_CAPABILITY_IDS,
   XLSX_FLAG_BY_ID,
+  XLSX_TIERS_BY_ID,
   LISTED_CAPABILITIES_FLAG,
 } from './licenseCapabilities.generated';
 

@@ -54,5 +54,43 @@ export const XLSX_FLAG_BY_ID: Readonly<Record<string, string>> = Object.freeze({
   'xlsx:protection': 'protection',
 });
 
+// The license tiers that include each feature.
+export const XLSX_TIERS_BY_ID: Readonly<Record<string, string[]>> = Object.freeze({
+  'xlsx:import': [
+    'standard',
+    'professional',
+  ],
+  'xlsx:export': [
+    'standard',
+    'professional',
+  ],
+  'xlsx:formulas': [
+    'standard',
+    'professional',
+  ],
+  'xlsx:layout': [
+    'standard',
+    'professional',
+  ],
+  'xlsx:number_formats': [
+    'professional',
+  ],
+  'xlsx:comments': [
+    'professional',
+  ],
+  'xlsx:styles': [
+    'professional',
+  ],
+  'xlsx:conditional_formatting': [
+    'professional',
+  ],
+  'xlsx:data_validation': [
+    'professional',
+  ],
+  'xlsx:protection': [
+    'professional',
+  ],
+});
+
 // The per-product key flag that makes a key unlock exactly the tokens it lists (the manifest's `keyFlag`).
 export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
