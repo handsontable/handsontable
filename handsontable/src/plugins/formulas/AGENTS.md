@@ -1475,7 +1475,7 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   defect of `validateDependentCells()` (top of this file), with the option and without it.
 - **Ownership is `owned` AND `engine.isEvaluationSuspended()`.** An `evaluationSuspended` listener sets `owned`
   from `suspending`, which is set only around the plugin's own `suspendEvaluation()`. HyperFormula 3.3.0 emits
-  `valuesUpdated` BEFORE `evaluationResumed` (the plan said otherwise), and a listener of the first can suspend the
+  `valuesUpdated` BEFORE `evaluationResumed`, and a listener of the first can suspend the
   engine again, so the `evaluationResumed` listener always records the change list, but drops `owned` and runs the
   deferred reads (`runAfterEvaluationFlush()`) only while the engine is still resumed. Every resume is recorded,
   whoever makes it: a host's `resumeEvaluation()` that ends the plugin's suspension leaves nothing to resume

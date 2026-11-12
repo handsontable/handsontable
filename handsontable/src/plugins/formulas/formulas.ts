@@ -515,13 +515,17 @@ function toSyncedRows(rows: unknown[][]): unknown[][] {
  * To test out HyperFormula, see [this guide](@/guides/formulas/formula-calculation/formula-calculation.md#available-functions).
  *
  * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option set to `true`, the
- * writes the grid makes while its execution is suspended ({@link Core#batch}, {@link Core#batchExecution},
- * {@link Core#suspendExecution}) are recalculated by HyperFormula once, when the execution resumes, instead of
- * once per write. A read of a formula cell in between recalculates first, so reads through the grid stay
- * fresh, and so does every render. The saving is therefore the largest in {@link Core#batch}, which suspends
- * rendering too. The suspension covers the whole engine: after a write and until the next grid read or the
- * resume, a direct HyperFormula read (`engine.getCellValue()`) throws "Computations are suspended", also in
- * a grid that shares the engine and did not opt in.
+ * writes the grid makes while its execution is suspended are recalculated by HyperFormula once, when the
+ * execution resumes, instead of once per write. {@link Core#batch} is the way to get that saving, because it
+ * suspends rendering too.
+ *
+ * A read of a formula cell through the grid recalculates first, so reads stay fresh, and so does every
+ * render. For that reason {@link Core#batchExecution}, or a {@link Core#suspendExecution} and
+ * {@link Core#resumeExecution} pair, saves nothing when each write renders.
+ *
+ * After a write and until the next grid read or the resume, a direct HyperFormula read
+ * (`engine.getCellValue()`) throws "Computations are suspended". That includes a grid that shares the engine
+ * and did not opt in.
  *
  * @plugin Formulas
  * @class Formulas
@@ -2663,6 +2667,11 @@ export class Formulas extends BasePlugin {
         dependents.push(change);
       }
     });
+
+    // Most holds end with nothing to validate (every render's autosizing), so the registry is not read for them.
+    if (dependentsBySheet.size === 0) {
+      return;
+    }
 
     const boundGrids = getRegisteredHotInstances(engine);
 

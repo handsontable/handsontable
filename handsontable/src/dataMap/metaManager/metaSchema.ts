@@ -4208,17 +4208,19 @@ export default (): Record<string, unknown> => {
      * | `hyperlinks` | `true` \|<br>`false` (default) \|<br>An object with `target` and `schemes`                                                                                                                                                   |
      * | `batchEvaluation` | `true` \|<br>`false` (default)                                                                                                                                                                                  |
      *
-     * Set `batchEvaluation` to `true` to make HyperFormula recalculate once for all the writes the grid makes
-     * while its execution is suspended: inside [`batch()`](@/api/core.md#batch),
-     * [`batchExecution()`](@/api/core.md#batchexecution), or between
-     * [`suspendExecution()`](@/api/core.md#suspendexecution) and [`resumeExecution()`](@/api/core.md#resumeexecution).
-     * Without it, every write recalculates. A read of a formula cell through the grid (`getDataAtCell()`, a render)
-     * recalculates first, so it never returns a stale value, and so does each render. The saving is therefore the
-     * largest in `batch()`, which suspends rendering too: `batchExecution()` renders after each write, and each render
-     * recalculates. The pause
-     * covers the whole engine: after a write, and until the next grid read or the end of the batch, a direct
-     * HyperFormula read (`engine.getCellValue()`) throws "Computations are suspended", also in another grid that
-     * shares the engine. Read through the grid inside the batch, or read the engine after it.
+     * Set `batchEvaluation` to `true` to make HyperFormula recalculate once for the writes the grid makes while
+     * its execution is suspended. [`batch()`](@/api/core.md#batch) is the way to get that saving, because it
+     * suspends rendering too. Without the setting, every write recalculates.
+     *
+     * A read of a formula cell through the grid, such as `getDataAtCell()`, recalculates first, so it never
+     * returns a stale value. Each render recalculates too. For that reason
+     * [`batchExecution()`](@/api/core.md#batchexecution), or a
+     * [`suspendExecution()`](@/api/core.md#suspendexecution) and
+     * [`resumeExecution()`](@/api/core.md#resumeexecution) pair, saves nothing when each write renders.
+     *
+     * After a write, and until the next grid read or the end of the batch, a direct HyperFormula read
+     * (`engine.getCellValue()`) throws "Computations are suspended". That includes another grid that shares the
+     * engine. Read through the grid inside the batch, or read the engine after it.
      *
      * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
      * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose

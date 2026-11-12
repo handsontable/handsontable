@@ -138,7 +138,7 @@ By using these methods, you can suspend:
 - execution
 - both rendering and the execution.
 
-The term "rendering" refers directly to DOM rendering, and the term "execution" refers to all operations that are different from DOM rendering. By default, suspending the execution postpones only the indexing recalculation. To also recalculate formulas once for a batch of changes, set the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option to `true`, and make the changes inside [`batch()`](@/api/core.md#batch). For details, see [Batch formula recalculation](@/guides/formulas/formula-calculation/formula-calculation.md#batch-formula-recalculation).
+The term "rendering" refers directly to DOM rendering, and the term "execution" refers to all operations that are different from DOM rendering. By default, suspending the execution postpones only the indexing recalculation. To also recalculate formulas once for a batch of changes, set the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option to `true`. Then make the changes inside [`batch()`](@/api/core.md#batch). For details, see [Batch formula recalculation](@/guides/formulas/formula-calculation/formula-calculation.md#batch-formula-recalculation).
 
 Method names that are prefixed with `batch\*`, i.e., [`batch()`](@/api/core.md#batch), [`batchRender()`](@/api/core.md#batchrender), and [`batchExecution()`](@/api/core.md#batchexecution) are recommended to be used as the first choice if you don't need to batch async operations.
 Methods names that are prefixed with `suspend\*`, i.e., [`suspendRender()`](@/api/core.md#suspendrender) and [`suspendExecution()`](@/api/core.md#suspendexecution), are the second choice. These are useful when you need to batch async operations. Essentially they work the same way as `batch\*` methods, but the render has to be resumed manually.
@@ -233,7 +233,8 @@ When the execution changes from resumed to suspended, Handsontable fires the [`b
 
 - The hooks fire only on that change. A nested [`suspendExecution()`](@/api/core.md#suspendexecution) or [`resumeExecution()`](@/api/core.md#resumeexecution) call fires nothing.
 - [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend and resume the execution the same way, so they fire the hooks too. Handsontable also suspends the execution on its own, for example to size columns on a render.
-- The hooks can't cancel the change. Handsontable ignores their return values.
+- The hooks can't cancel the change. Handsontable ignores their return values. A listener that throws in `beforeSuspendExecution` stops the suspension, and the error reaches the caller.
+- A listener can suspend and resume the execution of the same instance. Those calls belong to the change in progress, so they fire no hooks.
 
 ```js
 hot.addHook('afterResumeExecution', () => {

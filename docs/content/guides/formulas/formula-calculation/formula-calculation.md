@@ -946,12 +946,70 @@ Ten `setDataAtCell()` calls mean ten recalculations, even inside [`batch()`](@/a
 To recalculate once for the whole batch, set the `batchEvaluation` setting of the
 [`formulas`](@/api/options.md#formulas) option to `true`. The setting is off by default.
 
-```js
-const formulasSettings = {
-  engine: HyperFormula,
-  batchEvaluation: true,
-};
+::: only-for javascript
 
+```js
+new Handsontable(element, {
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  formulas={{
+    engine: HyperFormula,
+    batchEvaluation: true,
+  }}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const configurationOptions: GridSettings = {
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+Then wrap your changes in [`batch()`](@/api/core.md#batch), called on the Handsontable instance (`hot`).
+In React, Angular, and Vue, get the instance from the component's `hotInstance` property.
+
+```js
 // Update the stock of five products. HyperFormula recalculates once, after the callback.
 const updatedStock = [142, 0, 67, 25, 310];
 
@@ -961,8 +1019,6 @@ hot.batch(() => {
   });
 });
 ```
-
-Pass `formulasSettings` to the `formulas` option of your grid.
 
 With `batchEvaluation` on, Handsontable pauses HyperFormula's recalculation at the first change inside
 the batch. When the batch ends, HyperFormula recalculates once, the
@@ -990,15 +1046,15 @@ The setting has these limits:
   [`suspendExecution()`](@/api/core.md#suspendexecution) and
   [`resumeExecution()`](@/api/core.md#resumeexecution) pair don't suspend rendering. Each render inside
   them recalculates the formulas.
-- A formula written into a validated column (for example, a `numeric`, `date`, or `dropdown` column)
-  recalculates the changes made before it too. The validator checks the formula's result, so Handsontable
-  reads it right after the change.
+- Writing formulas into a validated column (for example, a `numeric`, `date`, or `dropdown` column) saves
+  nothing. The validator checks each formula's result, so Handsontable reads it right after the change, and
+  that read recalculates the changes made before it.
 - Inserting, removing, or moving rows or columns inside the batch recalculates the changes made before
   it. Handsontable validates their dependent cells before the structure changes, as it does without the
   setting. A removal also recalculates before the next change.
 - Loading data with [`loadData()`](@/api/core.md#loaddata) or [`updateData()`](@/api/core.md#updatedata)
-  inside the batch replaces the cells that the changes made before it affected. Handsontable doesn't
-  validate those cells.
+  inside the batch replaces the data. Handsontable doesn't validate the formula cells that depend on the
+  changes made before the load.
 
 For more on batching, see [Batch operations](@/guides/optimization/batch-operations/batch-operations.md).
 
