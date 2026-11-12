@@ -385,7 +385,7 @@ describe('notes of type rules', () => {
 
   it('marks the note of a namespaceType rule as a note for the whole run', async() => {
     const rule = manifest.rules.find(item => item.kind === 'namespaceType' && item.note);
-    const member = toList(rule.from)[0].replace('*', 'ColumnSorting');
+    const member = toList(rule.from)[0].replaceAll('*', 'ColumnSorting');
     const notes = await notesOf(`import Handsontable from 'handsontable';\nexport let a: ${member};\n`);
 
     assert.ok(notes.length > 0 && notes.every(note => note.scope === 'run'), JSON.stringify(notes));

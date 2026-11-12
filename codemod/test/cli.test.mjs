@@ -130,7 +130,8 @@ describe('cli', () => {
   });
 
   it('exits 2 and lists the known migrations when --from is not below --to', async() => {
-    const known = (await loadManifests()).map(manifest => manifest.version).join(', ').replace(/\./g, '\\.');
+    const known = (await loadManifests()).map(manifest => manifest.version).join(', ')
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     for (const args of [['--from', '18.1', '--to', '18.1'], ['--from', '18.1', '--to', '18'],
       ['--from', '19', '--to', '18.0']]) {

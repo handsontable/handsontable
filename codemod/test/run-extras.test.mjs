@@ -95,10 +95,19 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
 
     assert.deepEqual(await skippedOf('index.html', source), [{
       line: 3,
-      message: '2 inline <script> elements that use Handsontable was not analyzed. The tool reads no JavaScript '
-        + 'inside an HTML page. Check it by hand.',
+      message: '2 inline <script> elements that use Handsontable were not analyzed. The tool reads no JavaScript '
+        + 'inside an HTML page. Check them by hand.',
     }]);
     assert.deepEqual(await skippedOf('a.html', '<script>var x = 1;</script>\n<div class="ht-theme-main"></div>\n'), []);
+    assert.deepEqual(
+      await skippedOf('b.html', '<script>new Handsontable(a, {});</script\t\n bar>\n'
+        + '<script>new Handsontable(b, {});</script>\n'),
+      [{
+        line: 1,
+        message: '2 inline <script> elements that use Handsontable were not analyzed. The tool reads no JavaScript '
+          + 'inside an HTML page. Check them by hand.',
+      }]
+    );
   });
 
   it('skips a file above the size limit with a warning, and reads one at the limit', async() => {

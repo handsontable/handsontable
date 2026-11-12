@@ -285,7 +285,7 @@ async function expandWildcards(pkgDir, exportsMap) {
     for (const file of files) {
       if (file.startsWith(prefix) && file.endsWith(suffix) && file.length >= prefix.length + suffix.length) {
         const captured = file.slice(prefix.length, file.length - suffix.length);
-        const replaceStar = target => (typeof target === 'string' ? target.replace('*', captured) : target);
+        const replaceStar = target => (typeof target === 'string' ? target.replaceAll('*', captured) : target);
         const substitute = (nested) => {
           if (typeof nested === 'string') {
             return replaceStar(nested);
@@ -300,7 +300,7 @@ async function expandWildcards(pkgDir, exportsMap) {
             nested;
         };
 
-        expanded[key.replace('*', captured)] = substitute(value);
+        expanded[key.replaceAll('*', captured)] = substitute(value);
       }
     }
   }

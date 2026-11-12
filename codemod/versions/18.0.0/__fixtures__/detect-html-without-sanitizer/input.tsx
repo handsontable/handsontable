@@ -9,7 +9,7 @@ new Handsontable(container, {
 
 new Handsontable(container, {
   colHeaders: ['<b>Name</b>'],
-  sanitizer: (html: string) => html.replace(/<script/g, ''),
+  sanitizer: (html: string) => htmlCleaner.clean(html),
 });
 
 new Handsontable(container, {

@@ -9,7 +9,7 @@ export const TEMPLATE_PRECHECK = /--ht-|\bht-|\bht[A-Z]|[Hh]andsontable|hot-tabl
 /**
  * An inline `<script>` element: its tag, no `src` attribute, and its text.
  */
-const INLINE_SCRIPT = /<script\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\s*>/gi;
+const INLINE_SCRIPT = /<script\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\b[^>]*>/gi;
 
 /**
  * Adapter for HTML templates: Angular component templates and plain pages. `parse` returns one read-only
@@ -53,7 +53,8 @@ const templateAdapter = {
       line: lines[0],
       message: `${lines.length === 1 ? 'An inline <script> that uses'
         : `${lines.length} inline <script> elements that use`} `
-        + 'Handsontable was not analyzed. The tool reads no JavaScript inside an HTML page. Check it by hand.',
+        + `Handsontable ${lines.length === 1 ? 'was' : 'were'} not analyzed. The tool reads no JavaScript inside an `
+        + `HTML page. Check ${lines.length === 1 ? 'it' : 'them'} by hand.`,
     }];
   },
 
