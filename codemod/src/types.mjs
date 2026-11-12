@@ -191,6 +191,8 @@
  * @property {number} [start] Offset of the part's text inside the file. Set by the Vue adapter.
  * @property {number} [end] Offset where the part's text ends inside the file. Set by the Vue adapter.
  * @property {boolean} changed Set by `ctx.markChanged()`.
+ * @property {import('./lib/carrier.mjs').MarkerCarriers} [carriers] The array elements of a `js` part whose markers
+ * `printJsPart()` splices in as text. Set by `applyMarkers()`.
  */
 
 /**

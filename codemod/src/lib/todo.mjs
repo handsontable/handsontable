@@ -315,7 +315,8 @@ export function hasJsTodo(target, ruleId, text, guideUrl = null, scan = null) {
 
 /**
  * Leave a TODO comment before a JavaScript or TypeScript AST node, unless the same comment is already in front
- * of it. This module and `addCssTodo` are the only writers of TODO comments in the codemod.
+ * of it. This module and `addCssTodo` write TODO comments into a tree. `MarkerCarriers` places the same text after
+ * printing, for an untouched array element.
  *
  * The comment is a `//` line comment before the node. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX
  * comment next to the element instead (see `addJsxTodo`).

@@ -297,6 +297,9 @@ the tool reads the version from `package.json`, which the run raised, and answer
 - When a rewrite adds or removes a key, the printer reprints that object: a one-line object can spread over several
   lines, a blank line can appear around a multi-line key, and a trailing comma can go. A removed option leaves its
   TODO above the next property, or the previous one when it was last. Run your formatter afterwards.
+- A TODO marker on a one-line array element (an object in `columns`, say) is one added comment line, and the element
+  keeps its layout. When the element is also rewritten, is wrapped in parentheses, or spans several lines, the printer
+  reprints it as described above.
 - After a rewrite, a default import can become unused. The tool does not remove an import that may be needed for its side
   effects, so your linter reports it.
 - Moving `numericFormat.culture` to `locale` can leave `numericFormat: {}` behind. The tool keeps it on purpose: in

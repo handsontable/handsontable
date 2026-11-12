@@ -7,8 +7,9 @@ import { discover, leavesDirectory, resolvesInside } from './discover.mjs';
 import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { registerPackageDir } from './lib/facts.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
-import { createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
-import { addCssTodo, addJsTodo, collectComments, hasJsTodo, lineOf } from './lib/todo.mjs';
+import { MarkerCarriers } from './lib/carrier.mjs';
+import { arrayOfTarget, createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
+import { addCssTodo, addJsTodo, collectComments, formatTodo, hasJsTodo, lineOf } from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
 import { Report, SKIPPED_RULE_ID, plural } from './report.mjs';
 import { registry as defaultRegistry } from './transforms/index.mjs';
@@ -430,7 +431,9 @@ function applyMarkers(part, marks, plan) {
     return;
   }
 
-  const find = part.fileKind === 'js' ? createMarkerIndex(part.j, part.root) : line => cssTargetAt(part.root, line);
+  const isJs = part.fileKind === 'js';
+  const find = isJs ? createMarkerIndex(part.j, part.root) : line => cssTargetAt(part.root, line);
+  const carriers = isJs ? new MarkerCarriers(part.j, part.source) : null;
 
   for (const mark of marks) {
     const owner = plan.rulesById.get(mark.ruleId);
@@ -444,14 +447,22 @@ function applyMarkers(part, marks, plan) {
         continue;
       }
 
-      // The same comment further up the chain counts: an earlier run may have put it on the element of a one-line
-      // object that the printer then spread over several lines.
-      const scan = part.fileKind === 'js' ? commentScan(part) : null;
-      const there = part.fileKind === 'js'
-        && targets.some(target => hasJsTodo(target, mark.ruleId, mark.text, guideUrl, scan));
-      const inserted = !there && (part.fileKind === 'js'
-        ? addJsTodo(part.j, targets[0], mark.ruleId, mark.text, guideUrl, scan)
-        : addCssTodo(targets[0], mark.ruleId, mark.text, guideUrl, part.document));
+      let inserted = false;
+
+      if (isJs) {
+        // The same comment further up the chain counts: an earlier run may have put it on the element of a one-line
+        // object that the printer then spread over several lines.
+        const scan = commentScan(part);
+        const body = formatTodo(mark.ruleId, mark.text, guideUrl);
+        const there = targets.some(target => hasJsTodo(target, mark.ruleId, mark.text, guideUrl, scan))
+          || carriers.has(targets[0], body);
+
+        // An untouched array element takes its comment as text, so the printer leaves its layout alone.
+        inserted = !there && (carriers.add(arrayOfTarget(targets[0]), targets[0], body)
+          || addJsTodo(part.j, targets[0], mark.ruleId, mark.text, guideUrl, scan));
+      } else {
+        inserted = addCssTodo(targets[0], mark.ruleId, mark.text, guideUrl, part.document);
+      }
 
       part.changed = part.changed || inserted;
       placed = true;
@@ -460,6 +471,11 @@ function applyMarkers(part, marks, plan) {
     if (placed) {
       mark.stored.marked = true;
     }
+  }
+
+  if (carriers) {
+    carriers.commit();
+    part.carriers = carriers;
   }
 }
 

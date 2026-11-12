@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 import { main } from '../src/cli.mjs';
+import { spliceCarriers } from '../src/lib/carrier.mjs';
 import { Report, renderConsole, renderMarkdown } from '../src/report.mjs';
 import { resolvePlan, run, transformFile } from '../src/runner.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests } from '../src/manifest.mjs';
@@ -125,6 +126,123 @@ describe('TODO markers for manual entries', () => {
 
     assert.equal(result.output, page);
     assert.equal(result.entries.some(entry => entry.marked), false);
+  });
+});
+
+describe('a marker on a one-line array element', () => {
+  const NUMBRO = '// TODO(handsontable-codemod 18.0.0/numbro-pattern): Replace numericFormat.pattern with '
+    + 'Intl.NumberFormat options. See https://handsontable.com/docs/javascript-data-grid/'
+    + 'migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat';
+  const DATE = '// TODO(handsontable-codemod 18.0.0/moment-date-format): ';
+  const ELEMENT = '{ data: \'vat\', type: \'numeric\', numericFormat: { pattern: \'0.0%\' } },';
+  const BODY = indent => ['new Handsontable(document.getElementById(\'grid\'), {', '  columns: [',
+    `${indent}${ELEMENT}`, '  ],', '});', ''];
+  const FILE = `${HOT}\n${BODY('    ').join('\n')}`;
+
+  /**
+   * The expectation for an untouched element: the input with one line added above it.
+   *
+   * @param {string} input The file text.
+   * @param {string} eol Line terminator of the file.
+   * @returns {string} The input with the numbro marker above the element.
+   */
+  function withMarker(input, eol = '\n') {
+    const lines = input.split(eol);
+    const at = lines.findIndex(line => line.includes('data: \'vat\''));
+
+    return [...lines.slice(0, at), `${lines[at].match(/^\s*/)[0]}${NUMBRO}`, ...lines.slice(at)].join(eol);
+  }
+
+  it('adds one comment line and changes no other byte of a .js file', async() => {
+    const result = await chain(FILE, 'm.js');
+
+    assert.equal(result.output, withMarker(FILE));
+    assert.equal(result.entries.find(entry => entry.ruleId === '18.0.0/numbro-pattern').marked, true);
+  });
+
+  it('does the same in a .ts file and in the script of a Vue component', async() => {
+    const ts = await chain(FILE, 'm.ts');
+    const vue = `<template>\n  <div ref="grid"></div>\n</template>\n\n<script setup>\n${FILE}</script>\n`;
+    const component = await chain(vue, 'M.vue');
+
+    assert.equal(ts.output, withMarker(FILE));
+    assert.equal(component.output, withMarker(vue));
+  });
+
+  it('keeps tab indentation and a CRLF line terminator, byte for byte', async() => {
+    const tabs = `${HOT}\n${BODY('\t\t').join('\n').replace('  columns', '\tcolumns').replace('  ],', '\t],')}`;
+    const crlf = FILE.replace(/\n/g, '\r\n');
+    const tabbed = await chain(tabs, 'm.js');
+    const windows = await chain(crlf, 'm.js');
+
+    assert.equal(JSON.stringify(tabbed.output.split('\n')), JSON.stringify(withMarker(tabs).split('\n')));
+    assert.equal(JSON.stringify(windows.output.split('\r\n')), JSON.stringify(withMarker(crlf, '\r\n').split('\r\n')));
+    assert.equal(/(?<!\r)\n/.test(windows.output), false);
+  });
+
+  it('is idempotent over three runs', async() => {
+    const first = await chain(FILE, 'm.js');
+    const second = await chain(first.output, 'm.js');
+    const third = await chain(second.output, 'm.js');
+
+    assert.equal(second.changed, false);
+    assert.equal(third.changed, false);
+    assert.equal(third.output, first.output);
+    assert.equal(first.output.match(/TODO\(/g).length, 1);
+  });
+
+  it('keeps the comments of the element where they are, and puts the marker after the leading ones', async() => {
+    const source = `${HOT}new Handsontable(el, {\n  columns: [\n    // note\n`
+      + '    { data: \'v\', numericFormat: { pattern: \'0\' } }, // x\n  ],\n});\n';
+    const result = await chain(source, 'a.js');
+    const expected = `${HOT}new Handsontable(el, {\n  columns: [\n    // note\n    ${NUMBRO}\n`
+      + '    { data: \'v\', numericFormat: { pattern: \'0\' } }, // x\n  ],\n});\n';
+
+    assert.equal(result.output, expected);
+    assert.equal((await chain(result.output, 'a.js')).changed, false);
+  });
+
+  it('puts the markers of two rules on one element in the order of the entries, in one run', async() => {
+    const source = `${HOT}new Handsontable(el, {\n  columns: [\n`
+      + '    { type: \'date\', dateFormat: \'D\', numericFormat: { pattern: \'0\' } },\n  ],\n});\n';
+    const result = await chain(source, 'a.js');
+    const lines = result.output.split('\n');
+
+    assert.equal(lines.length, source.split('\n').length + 2);
+    assert.match(lines[3], /^ {4}\/\/ TODO\(handsontable-codemod 18\.0\.0\/numbro-pattern\)/);
+    assert.ok(lines[4].startsWith(`    ${DATE}`));
+    assert.equal(lines[5], '    { type: \'date\', dateFormat: \'D\', numericFormat: { pattern: \'0\' } },');
+    assert.equal((await chain(result.output, 'a.js')).changed, false);
+  });
+
+  it('still reprints an element that a rule rewrote', async() => {
+    const source = `${HOT}new Handsontable(el, {\n  columns: [\n`
+      + '    { data: \'a\', correctFormat: true, numericFormat: { pattern: \'0.0%\' } },\n  ],\n});\n';
+    const result = await chain(source, 'a.js');
+
+    assert.match(result.output, /^ {4}\{\n {6}data: 'a',\n/m);
+    assert.match(result.output, /\/\/ TODO\(handsontable-codemod 18\.0\.0\/numbro-pattern\)/);
+    assert.match(result.output, /\/\/ TODO\(handsontable-codemod 18\.0\.0\/correct-format-removed\)/);
+    assert.equal((await chain(result.output, 'a.js')).changed, false);
+  });
+
+  it('leaves no carrier text in the output, even when the file uses the name the carrier starts with', async() => {
+    const plain = await chain(FILE, 'm.js');
+    const clash = `${FILE}const __codemodMarker0__ = 1;\n`;
+    const result = await chain(clash, 'm.js');
+
+    assert.equal(/marker/i.test(plain.output.replace(/handsontable-codemod/g, '')), false);
+    assert.equal(result.output, withMarker(clash));
+  });
+
+  it('throws, so the file stays untouched, when a sentinel is lost or stands twice', () => {
+    const carriers = { committed: [{ sentinel: '__codemodMarker0__', bodies: ['TODO(x): y.'] }] };
+
+    assert.throws(() => spliceCarriers(carriers, 'a;\n', '\n'), /could not be placed/);
+    assert.throws(() => spliceCarriers(carriers, '__codemodMarker0__ __codemodMarker0__', '\n'),
+      /could not be placed/);
+    assert.equal(spliceCarriers(carriers, 'a;\n\t__codemodMarker0__{}\n', '\r\n'), 'a;\n\t// TODO(x): y.\r\n\t{}\n');
+    assert.equal(spliceCarriers(undefined, 'a;\n', '\n'), 'a;\n');
   });
 });
 

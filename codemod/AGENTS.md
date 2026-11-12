@@ -46,7 +46,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `versions/18.1.0/custom/sanitizer-source.mjs` | Two `custom` rules for the `sanitizer` option, picked by the rule's `mode` (see Traps). |
 | `src/transforms/css-variables.mjs`, `theme-tokens.mjs` | `cssVariable` (css, js strings, template report) and `themeToken` kinds. |
 | `src/lib/string-literal.mjs` | `replaceStringLiteral()`: edit a string literal and keep its quote style. |
-| `src/lib/todo.mjs` | The only writer of TODO comments: `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
+| `src/lib/todo.mjs` | The writer of TODO comments in the AST, and the only source of their text (`formatTodo()`; `carrier.mjs` places the same text after printing): `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
 | `src/lib/anchor.mjs` | Where a comment about a property can go: `enclosingAnchor()`, `hasOwnLines()`, `anchorForProperty()`. |
 | `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
 | `src/adapters/unsupported-style.mjs` | `.less`, `.styl`, `.stylus`, `.sass`: never parsed, only reported through `skipReason`. |
@@ -58,6 +58,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, ...) and `isUnresolvedReceiver()`. |
 | `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
 | `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
+| `src/lib/carrier.mjs` | `MarkerCarriers` and `spliceCarriers()`: a generic marker on an untouched one-line array element is added as text after printing, so recast does not reprint the element (see "TODO comments"). |
 | `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. |
 | `src/transforms/import-source.mjs`, `export-rename.mjs`, `namespace-type.mjs`, `export-removed.mjs` | `importSource`, `exportRename`, `namespaceType`, and `exportRemoved` (rule shapes in Traps). |
 | `src/lib/type-rules.mjs` | Shared by those four: `*` module and path patterns, option keys and advice placeholders, `chooseSource()` (which candidate module a name is imported from), `reportOpaqueReferences()`. |
@@ -327,15 +328,30 @@ entry): `createContext()` collects them and `applyMarkers()` places them after a
 names the node it was taken from. The anchor is the outermost node that starts on the line (a function body on the line
 of its signature never takes it), then `markerTargets()` climbs to a property, array element, or statement on lines of
 its own, a JSX element, or a declaration; a `BlockStatement` is never an anchor. A run is idempotent because
-`hasJsTodo()` looks for the same comment on every place of that chain, and `addCssTodo()` looks through the run of
-comments before the node (a marker that spread a one-line object over lines turns a property into one with its own
-line). The default is on for a `manual` entry in a js or css part. It is off for a `scope: 'run'` note, an entry with
-`todo: false`, a rule with `todo: false` (`18.1.0/license-key-missing`, whose advice holds for every environment, and
+`hasJsTodo()` looks for the same comment on every place of that chain (an earlier run, or a rewrite of the element,
+can have spread a one-line object over lines, which turns a property into one with its own line), and `addCssTodo()`
+looks through the run of comments before the node. The default is on for a `manual` entry in a js or css part. It is
+off for a `scope: 'run'` note, an entry with `todo: false`, a rule with `todo: false` (`18.1.0/license-key-missing`, whose advice holds for every environment, and
 `18.1.0/synthetic-header-mousedown`, which flags test code), and any part that cannot hold comments (templates, HTML,
 `package.json`). `stored.marked` says a marker is in the code, `counts().marked` totals them, and the CLI prints
 "N of M are marked in the code" from it. The first sentence of every advice or message starts with an action verb:
 `test/advice.test.mjs` checks the rule files, and the TODO text of every fixture output.
 A SCSS file that already has `//` comments gets a `//` marker on a line of its own (`CssDocument` `lineComments`).
+
+A comment on a node makes recast print that node again, and recast prints an object it prints again over several
+lines, so a marker on the `{ ... }` of a one-line array element would spread it although no key changed. A node of a
+different type is patched on its own range, with no layout, so `applyMarkers()` hands such an element to
+`MarkerCarriers` (`src/lib/carrier.mjs`) instead of `addJsTodo()`. After the last mark, `commit()` swaps the element
+for an identifier named by a sentinel and the exact text of the element, and `printJsPart()` calls `spliceCarriers()`,
+which turns each sentinel into the `//` lines, in the indentation and line terminator of the line it stands on. Only
+the text of the part is touched after printing, so tabs and CRLF stay as they were. The swap is checked, and fails
+closed: an element is carried only when it is an expression on lines of its own, a single line, not in parentheses,
+has the comments the parser found, and prints (`printWithoutComments()`, recast's own printer on a copy without
+comments) as its original text, so a carrier can never undo a rewrite. Any other element goes through the AST as
+before and is reprinted. A sentinel that is missing or stands twice throws, and `transformFile()` turns that into a
+`transform-error` that leaves the file alone. Only an array element takes this path: a property or statement keeps its
+children's text when it is printed again, so its comment never moves anything. The comment text always comes from
+`formatTodo()`, and `hasJsTodo()` and `MarkerCarriers.has()` are the two dedupes of one run.
 
 A TODO comment is `TODO(handsontable-codemod <ruleId>): <first sentence of the advice> See <guide link>`. The advice
 is cut to about 100 characters by `shortenAdvice()`: the first sentence, plus the next one while the first is under

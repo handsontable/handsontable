@@ -1,5 +1,6 @@
 import { extname } from 'node:path';
 import jscodeshift from 'jscodeshift';
+import { spliceCarriers } from '../lib/carrier.mjs';
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.mts', '.cts']);
 
@@ -63,12 +64,10 @@ export function createJsPart(source, parser, lineOffset = 0) {
  * @returns {string} Printed text.
  */
 export function printJsPart(part, source) {
-  const printed = part.root.toSource({
-    quote: detectQuote(source),
-    lineTerminator: source.includes('\r\n') ? '\r\n' : '\n',
-  });
+  const lineTerminator = source.includes('\r\n') ? '\r\n' : '\n';
+  const printed = part.root.toSource({ quote: detectQuote(source), lineTerminator });
 
-  return stripStraySemicolons(part, printed, source);
+  return stripStraySemicolons(part, spliceCarriers(part.carriers, printed, lineTerminator), source);
 }
 
 /**

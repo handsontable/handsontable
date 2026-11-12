@@ -2,6 +2,17 @@ import { enclosingAnchor, hasOwnLines } from './anchor.mjs';
 
 const MEMBER_NODES = new Set(['ObjectProperty', 'ObjectMethod', 'Property', 'ClassProperty', 'ClassMethod']);
 const JSX_ELEMENTS = new Set(['JSXElement', 'JSXOpeningElement']);
+const ARRAYS = new WeakMap();
+
+/**
+ * The array literal that a marker target is an element of, when `markerTargets()` chose it as an array element.
+ *
+ * @param {object} node A node from the result of `markerTargets()`.
+ * @returns {object|null} The `ArrayExpression` node, or `null` for any other target.
+ */
+export function arrayOfTarget(node) {
+  return ARRAYS.get(node) ?? null;
+}
 
 /**
  * How deep a path sits in the tree.
@@ -74,6 +85,7 @@ export function markerTargets(path) {
     if (MEMBER_NODES.has(node.type) && (parent?.node.type !== 'ObjectExpression' || hasOwnLines(parent.node, node))) {
       found.push(node);
     } else if (parent?.node.type === 'ArrayExpression' && hasOwnArrayLines(parent.node, node)) {
+      ARRAYS.set(node, parent.node);
       found.push(node);
     } else if (/(?:Statement|Declaration)$/.test(node.type) && node.type !== 'BlockStatement') {
       // A block is no place for a comment about the line it opens: the comment would sit between a signature and its
