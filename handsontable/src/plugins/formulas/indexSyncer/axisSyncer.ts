@@ -43,6 +43,7 @@ export interface EngineOrder {
   paddedElements: number[];
   orderShifts?: Array<[number, number]>;
   orderBase?: number[] | null;
+  orderPoint?: number[] | null;
 }
 
 interface ParentIndexSyncer {
@@ -129,6 +130,16 @@ class AxisSyncer {
    * @type {Array<number>|null}
    */
   #orderBase: number[] | null = null;
+  /**
+   * The grid's sequence the engine was brought to by the last order it took as one order (a sort, a sequence set, a
+   * load's order on an engine where moves were refused), while that order's shifts are kept. Moves after it keep the
+   * shifts, so an engine order whose grid order goes back to this point differs from it by moves alone: a release
+   * that finds the grid there sends the difference as moves (`releaseAdoptedOrderAsMoves()`). `null` while no order
+   * was sent, and dropped with the shifts and wherever `#orderBase` is.
+   *
+   * @type {Array<number>|null}
+   */
+  #orderPoint: number[] | null = null;
   /**
    * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
    *
@@ -231,6 +242,7 @@ class AxisSyncer {
     // it (an undo removes the grid's row only), and what the set holds is a line that may be empty, not a row.
     this.#indexMapper.addLocalHook('indexesInserted', (insertedIndexes: number[]) => {
       this.#orderBase = null;
+      this.#orderPoint = null;
 
       if (this.#paddedElements.size > 0) {
         this.#paddedElements = new Set(
@@ -247,6 +259,7 @@ class AxisSyncer {
     });
     this.#indexMapper.addLocalHook('indexesRemoved', (removedIndexes: number[]) => {
       this.#orderBase = null;
+      this.#orderPoint = null;
 
       if (this.#paddedElements.size > 0) {
         this.#paddedElements = new Set(getDecreasedIndexes(Array.from(this.#paddedElements), removedIndexes));
@@ -323,7 +336,7 @@ class AxisSyncer {
     const reloadedByMoves = this.#reloadedWhileHeld === true && !this.#orderChangedWhileHeld
       && !this.#isOrderSorted();
     const adoptedByMoves = this.#adoptedByMoves && this.#adoptedWhileHeld && !this.#orderChangedWhileHeld
-      && !this.#isOrderSorted();
+      && !this.#isOrderSorted() && (this.#orderShifts.size === 0 || this.#isAtOrderPoint());
     const heldOrderBase = this.#reloadedWhileHeld === false ? this.#heldOrderBase : null;
 
     this.#orderHeld = held;
@@ -345,12 +358,29 @@ class AxisSyncer {
    * it, so every reference in it, in other sheets and in named expressions follows the moves that order was reached
    * by; the grid's order on the return (the move plugins' arrays applied again) is reached from it by moves too. One
    * order between them kept each moved formula's relative offsets: a reference across the moved lines turned into
-   * `#REF!` or read another line. Only an order reached by moves alone qualifies (no order shifts, no order base); a
-   * sort or a sequence set on the visit before, or in the hold, still sends one order, as it reached the engine.
+   * `#REF!` or read another line. An order qualifies when moves alone reached it from the engine's physical order
+   * (no order shifts, no order base), or from the last order it took as one order (`#orderPoint`) when the grid's
+   * order at the release is that point again (`#isAtOrderPoint()`): the difference is then the moves undone. A sort
+   * or a sequence set on the visit before that the grid does not return to, or one set in the hold, still sends one
+   * order, as such a reset reaches the engine on a grid that stays on the sheet.
    */
   releaseAdoptedOrderAsMoves() {
-    this.#adoptedByMoves = this.#orderHeld && this.#adoptedWhileHeld && this.#orderShifts.size === 0
-      && this.#orderBase === null;
+    this.#adoptedByMoves = this.#orderHeld && this.#adoptedWhileHeld && this.#orderBase === null
+      && (this.#orderShifts.size === 0 || this.#orderPoint !== null);
+  }
+
+  /**
+   * Tells whether the grid's current order is the one the last order the engine took as one order brought it to
+   * (`#orderPoint`).
+   *
+   * @returns {boolean}
+   */
+  #isAtOrderPoint(): boolean {
+    const point = this.#orderPoint;
+    const sequence = this.#indexMapper.getIndexesSequence();
+
+    return point !== null && point.length === sequence.length
+      && point.every((physicalIndex, position) => physicalIndex === sequence[position]);
   }
 
   /**
@@ -463,6 +493,7 @@ class AxisSyncer {
       paddedElements: Array.from(this.#paddedElements),
       orderShifts: Array.from(this.#orderShifts),
       ...(this.#orderBase === null ? {} : { orderBase: this.#orderBase.slice() }),
+      ...(this.#orderPoint === null ? {} : { orderPoint: this.#orderPoint.slice() }),
     };
   }
 
@@ -500,6 +531,7 @@ class AxisSyncer {
     this.#paddedElements = new Set<number>(order.paddedElements.filter(physicalIndex => held.has(physicalIndex)));
     this.#orderShifts = new Map(order.orderShifts ?? []);
     this.#orderBase = order.orderBase && this.#orderShifts.size > 0 ? order.orderBase.slice() : null;
+    this.#orderPoint = order.orderPoint && this.#orderShifts.size > 0 ? order.orderPoint.slice() : null;
     this.#heldOrderBase = null;
     this.#translationCache = null;
 
@@ -990,6 +1022,7 @@ class AxisSyncer {
       this.#paddedElements = new Set<number>();
       this.#orderShifts = new Map<number, number>();
       this.#orderBase = null;
+      this.#orderPoint = null;
 
       return false;
     }
@@ -1002,6 +1035,7 @@ class AxisSyncer {
     );
     const heldSize = engineOrder.length;
     let sentAsMoves = false;
+    let sentOrder = false;
 
     // The engine records an undo entry and clears its redo stack for any order it is handed, so an order
     // that changes nothing costs the user their redo history. Compression makes that common: every sort
@@ -1057,11 +1091,17 @@ class AxisSyncer {
       if (!written) {
         return false;
       }
+
+      sentOrder = !sentAsMoves;
     }
 
     // A move keeps every reference on its cell, so the engine's text keeps the data's meaning.
     if (!sentAsMoves) {
       this.#addOrderShifts(engineElements, engineOrder);
+    }
+
+    if (sentOrder) {
+      this.#orderPoint = targetSequence.slice();
     }
     this.#indexesSequence = reordered;
     this.#fillSequence = this.#followsPhysicalOrderBehind(reordered, targetSequence) ? null : targetSequence.slice();
@@ -1220,6 +1260,7 @@ class AxisSyncer {
 
     if (this.#orderShifts.size === 0) {
       this.#orderBase = null;
+      this.#orderPoint = null;
     }
   }
 
@@ -1382,6 +1423,7 @@ class AxisSyncer {
         this.#paddedElements = new Set<number>();
         this.#orderShifts = new Map<number, number>();
         this.#orderBase = null;
+        this.#orderPoint = null;
 
         // The grid's order was reset (`initIndexMappers()`, a `columns` update without `data`) and no engine
         // call followed it, so the engine still holds the order it had, and the order stored above is not it.
@@ -1470,6 +1512,7 @@ class AxisSyncer {
     this.#paddedElements = new Set<number>();
     this.#orderShifts = new Map<number, number>();
     this.#orderBase = null;
+    this.#orderPoint = null;
     this.#translationCache = null;
 
     if (this.#orderHeld) {

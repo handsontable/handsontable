@@ -451,6 +451,156 @@ describe('Formulas switchSheet() back to a visited sheet', () => {
       expect(calls.setRowOrder).toHaveBeenCalledTimes(1);
       expect(calls.moveRows).not.toHaveBeenCalled();
     });
+
+    it('sends one order on the return to a sheet left in a sequence set and then dragged, as a reset does', () => {
+      const engine = buildCrossRowEngine();
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'A' },
+        manualRowMove: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.rowIndexMapper.setIndexesSequence([4, 0, 1, 2, 3]);
+      hot.getPlugin('manualRowMove').moveRows([4], 0);
+      hot.render();
+      hot.getPlugin('formulas').switchSheet('B');
+
+      const calls = spyRowOrderCalls(engine);
+
+      hot.getPlugin('formulas').switchSheet('A');
+
+      buildStayingGrid({ manualRowMove: true }, (grid) => {
+        grid.rowIndexMapper.setIndexesSequence([4, 0, 1, 2, 3]);
+        grid.getPlugin('manualRowMove').moveRows([4], 0);
+        grid.render();
+        grid.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+      });
+
+      // The return order is not the one the sequence left the engine in, so the difference is a reset of the order,
+      // which goes as one order, as on a grid that resets its sequence without leaving the sheet.
+      expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(shownByRecord()).toEqual(shownByRecord(staying));
+      expect(engineValues(hot)).toEqual(hot.getData());
+      expect(calls.setRowOrder).toHaveBeenCalledTimes(1);
+      expect(calls.moveRows).not.toHaveBeenCalled();
+    });
+
+    /**
+     * A grid built with `data` on an engine with another sheet gets its move array at init as one order (a load's
+     * readers-outside-the-sheet fallback, a documented limit), so its cross-row references are off from init. A drag
+     * after it and the return to the sheet must not shift them further: the return order is the one that init order
+     * left, so the difference is the drag undone, which goes as moves.
+     */
+    describe('a grid built with data on an engine with another sheet that reads it', () => {
+      /**
+       * Builds the engine: sheet `A` with the given content, sheet `B` reading two cells of `A`.
+       *
+       * @param {Array[]} content The content of sheet `A`.
+       * @returns {HyperFormula}
+       */
+      function buildReadEngine(content) {
+        const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+        engine.addSheet('A');
+        engine.setSheetContent(engine.getSheetId('A'), content);
+        engine.addSheet('B');
+        engine.setSheetContent(engine.getSheetId('B'), [['=\'A\'!A1', '=\'A\'!B2']]);
+
+        return engine;
+      }
+
+      /**
+       * Reads the values and the formula text of sheet `B`.
+       *
+       * @param {HyperFormula} engine The engine.
+       * @returns {object}
+       */
+      function readersOf(engine) {
+        const sheetId = engine.getSheetId('B');
+
+        return {
+          values: engine.getSheetValues(sheetId)
+            .map(row => row.map(value => (value !== null && typeof value === 'object' ? value.value : value))),
+          formulas: engine.getSheetSerialized(sheetId),
+        };
+      }
+
+      it('keeps what each record and the other sheet show when the grid returns to a sheet it dragged a row of', () => {
+        const content = () => crossRowSheet().map(([id, formula]) => [id, formula]);
+        const engine = buildReadEngine(content());
+
+        hot = new Handsontable(container, {
+          data: content(),
+          formulas: { engine, sheetName: 'A' },
+          manualRowMove: [2, 0, 1, 4, 3],
+          licenseKey: LICENSE_KEY,
+        });
+
+        const shownAtInit = shownByRecord();
+        const readersAtInit = readersOf(engine);
+
+        hot.getPlugin('manualRowMove').moveRows([4], 0);
+        hot.render();
+
+        expect(shownByRecord()).toEqual(shownAtInit);
+
+        hot.getPlugin('formulas').switchSheet('B');
+
+        const calls = spyRowOrderCalls(engine);
+
+        hot.getPlugin('formulas').switchSheet('A');
+
+        expect(hot.getDataAtCol(0)).toEqual([3, 1, 2, 5, 4]);
+        expect(hot.getDataAtCol(1)).not.toContain('#REF!');
+        expect(shownByRecord()).toEqual(shownAtInit);
+        expect(readersOf(engine)).toEqual(readersAtInit);
+        expect(engineValues(hot)).toEqual(hot.getData());
+        expect(calls.setRowOrder).not.toHaveBeenCalled();
+        expect(calls.moveRows).toHaveBeenCalled();
+      });
+
+      it('keeps what each record and the other sheet show when the grid returns to a sheet it dragged a column of', () => {
+        // Column `i` of the formula row reads the number of another column.
+        const content = () => [
+          [1, 2, 3, 4, 5],
+          ['=C1+100', '=D1+100', '=E1+100', '=A1+100', '=B1+100'],
+        ];
+        const engine = buildReadEngine(content());
+
+        hot = new Handsontable(container, {
+          data: content(),
+          formulas: { engine, sheetName: 'A' },
+          manualColumnMove: [2, 0, 1, 4, 3],
+          licenseKey: LICENSE_KEY,
+        });
+
+        const shownByColumn = () => new Map(
+          hot.getDataAtRow(0).map((id, column) => [id, hot.getDataAtCell(1, column)]),
+        );
+        const shownAtInit = shownByColumn();
+        const readersAtInit = readersOf(engine);
+
+        hot.getPlugin('manualColumnMove').moveColumns([4], 0);
+        hot.render();
+
+        expect(shownByColumn()).toEqual(shownAtInit);
+
+        hot.getPlugin('formulas').switchSheet('B');
+
+        const moveColumns = jest.spyOn(engine, 'moveColumns');
+        const setColumnOrder = jest.spyOn(engine, 'setColumnOrder');
+
+        hot.getPlugin('formulas').switchSheet('A');
+
+        expect(hot.getDataAtRow(0)).toEqual([3, 1, 2, 5, 4]);
+        expect(hot.getDataAtRow(1)).not.toContain('#REF!');
+        expect(shownByColumn()).toEqual(shownAtInit);
+        expect(readersOf(engine)).toEqual(readersAtInit);
+        expect(engineValues(hot)).toEqual(hot.getData());
+        expect(setColumnOrder).not.toHaveBeenCalled();
+        expect(moveColumns).toHaveBeenCalled();
+      });
+    });
   });
 });
-

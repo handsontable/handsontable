@@ -1356,14 +1356,23 @@ physical, and a later load of that sheet reads it back in physical order through
 over (`#reloadKeepingOrder(data, plan, false)`: the order held, the order the load's listeners apply kept). When
 nothing moved the lines after the array, the re-applied array lands on the order the engine holds and nothing is
 sent. **A reorder made on the visit before (a drag) leaves the engine elsewhere**, and the hold's release sends the
-difference. An order the engine reached by moves alone (no order shifts, no order base) is marked with
-`AxisSyncer#releaseAdoptedOrderAsMoves()`, and the release sends the difference as moves (`sheetKept`: the sheet was
-not rewritten, so other sheets and named expressions followed every move too, and `#planSafeMoves()` skips its
-readers-outside-the-sheet fallback; its array, `maxRows` and cost fallbacks stay). One order there kept each moved
-formula's relative offsets: drag, switch away and back showed `#REF!` and an empty-cell `1000` (659bb5878a until
-this fix). An order a sort or `setIndexesSequence()` reached the engine as, or a sort or sequence set in the hold,
-still goes back as one order, as a cleared sort does. The flag is cleared by every release, a later adoption or
-reload in the hold, and an order change other than a move. A record of another engine, or of a
+difference. The release sends it as moves (`AxisSyncer#releaseAdoptedOrderAsMoves()`) when the difference is moves:
+either moves alone reached the left order from physical (no order shifts, no order base), or moves reached it from
+the last order the engine took as one order (`#orderPoint`, the grid sequence that order brought it to, kept with
+the shifts, exported and adopted with the engine order) and the grid's order at the release is that point again.
+The second case is a grid built with `data` on an engine with another sheet: its move array reaches the engine at
+init as one order (the load fallback below), so the left order carries shifts, and a drag on top of it is undone by
+moves on the return. `sheetKept`: the sheet was not rewritten, so other sheets and named expressions followed every
+move too, and `#planSafeMoves()` skips its readers-outside-the-sheet fallback; its array, `maxRows` and cost
+fallbacks stay. One order there kept each moved formula's relative offsets: drag, switch away and back showed
+`#REF!` (also in another sheet's `='A'!B2`) and an empty-cell `1000` (659bb5878a until this fix). A sort or a
+`setIndexesSequence()` the grid does not return to (the load resets it), with or without a drag after it, or one set
+in the hold, still goes back as one order, as a cleared sort or a reset sequence does on a grid that stays on the
+sheet. The flag is cleared by every release, a later adoption or reload in the hold, and an order change other than a
+move. **Pre-existing develop behavior, not changed here:** that data-built grid's cross-row references are off from
+init (its move array goes as one order on a multi-sheet engine), and the next `updateSettings({})` after the return
+moves them again (the loaded source data holds the engine's formula text, and the reload sends the one order on top
+of it); develop drifts the same way, without `#REF!`. A record of another engine, or of a
 sheet whose dimensions changed meanwhile (a host insert or removal), is dropped and the sheet loads as the engine
 holds it; a host move that keeps the dimensions is not told apart (grid and engine stay equal, the records show in
 the host's order). A sheet sorted on its last visit shows in its own order again (the load clears the sort) and
