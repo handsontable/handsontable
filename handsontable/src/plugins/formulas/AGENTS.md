@@ -1051,22 +1051,33 @@ order change reaches the axis syncers while they point at no engine sheet. The p
   other branch set an endpoint, so a grid sorted before the disable reordered on its next sort while the engine
   kept its rows: sheet `[b, 2, =B1*2], [a, 1, =B2*2], [c, 3, =B3*2], [d, 4, =B4*2]`, sort B desc, re-enable, sort
   asc gave C `8, 6, 4, 2` for `2, 4, 6, 8`, and only the `noSyncEndpoint` warning fired. Only the old syncers knew
-  the order the engine holds the sheet in, so `disablePlugin()` stores it with the content
-  (`exportEngineOrder(true)` into `#sheetBuiltOrderAtDisable`, `null` while both axes are physical; cleared by the
-  next enable and by `destroy()`; a copy of the sheet lives only while the plugin is off). The enable sets the
-  endpoint up without an order and the new syncers adopt the stored one (`adoptEngineOrder()`), so the engine
-  follows the grid's current order from it: a grid that kept its order sends nothing, and a sort or a move made
-  while the plugin was off reaches the engine as one order (the rule above). The stored order is adopted only for
-  the same engine sheet, or for the sheet the enable adds back from the stored content when the engine no longer
-  holds it (an engine class builds a new engine). That content is written instead of the source data: the grid's
-  source data holds the formula text of the engine's order (`#sourceHasStaleFormulas`), and filled in physical
-  order and then reordered it read other cells (`#REF!` and zeros). Another engine instance's sheet of the same
-  name, or a grid with fewer rows or columns than the stored order, drops the stored order, and the setup sends the
-  grid's order as one order. Edits made while the plugin was off show in the grid until the next settings update
-  reloads the sheet, which drops them, as before; a sheet added back from the stored content does not hold them
-  either (measured), while a fill from the source data (an engine class with no stored order) keeps them. Pinned by the `again after it was turned off, on a grid built from an engine sheet`
-  cases and `sorts a grid built from an engine sheet that was sorted before Formulas was turned off and on` in
-  `tests/e2e/formulas-enable-on-live-grid.spec.ts`.
+  the order the engine holds the sheet in, so `disablePlugin()` keeps the binding (`#sheetBuiltBindingAtDisable`:
+  the engine sheet, the grid's row and column counts, the order with the content from `exportEngineOrder(true)`,
+  `null` while both axes are physical, and the reload snapshot `#loadedSheetContent` with `#foreignSheetChange`;
+  cleared by the next enable and by `destroy()`; the content is one copy of the sheet while the plugin is off, the
+  snapshot is the same array the grid held). The enable sets the endpoint up without an order and the new syncers
+  adopt the stored one (`adoptEngineOrder()`), so the engine follows the grid's current order from it: a grid that
+  kept its order sends nothing, and a sort or a move made while the plugin was off reaches the engine as one order
+  (the rule above). **The snapshot is put back too** (taken anew for a sheet added back from the content), so the
+  next settings update reloads in place and keeps the sort state and the cell meta, as on a grid never turned off;
+  without it that reload took `loadData()` and dropped both. A host change made while the plugin was off is still
+  told by the comparison (a host `moveRows()` that changes no value makes the reload take `loadData()`).
+  The binding is taken over only for the same engine sheet, or for the sheet the enable adds back from the stored
+  content when the engine no longer holds it (an engine class builds a new engine). That content is written instead
+  of the source data: the grid's source data holds the formula text of the engine's order
+  (`#sourceHasStaleFormulas`), and filled in physical order and then reordered it read other cells (`#REF!` and
+  zeros). **Otherwise the enable loads the engine sheet into the grid** (`#loadSheet()` once the plugin is enabled,
+  as a switch to it would): another engine instance holding a sheet of the same name (it showed the first engine's
+  records mapped onto the other sheet, and sent the grid's sort to the host's sheet), and a grid whose row or column
+  count changed while the plugin was off (a row removed showed the results of other records, a row inserted showed a
+  formula's text). The grid then shows the sheet as the engine holds it, in the engine's order, and the insert or
+  removal made while off is dropped: the engine never got it, and a sheet-built grid reads the engine as its data.
+  Edits made while the plugin was off show in the grid until the next settings update reloads the sheet, which drops
+  them, as before (in between, an edited number shows next to a formula result computed from the old one); a sheet
+  added back from the stored content does not hold them either (measured), while a fill from the source data (an
+  engine class with no stored order) keeps them. Pinned by the `again after it was turned off, on a grid built from
+  an engine sheet` cases and `sorts a grid built from an engine sheet that was sorted before Formulas was turned off
+  and on` in `tests/e2e/formulas-enable-on-live-grid.spec.ts`.
 
 The setup sends the grid's current order as one order (`setRowOrder` / `setColumnOrder`), as every other load
 does, so a grid sorted or moved before the enable ends as a grid built with Formulas in that order: values are

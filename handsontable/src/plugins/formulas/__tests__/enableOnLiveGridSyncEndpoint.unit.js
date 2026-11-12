@@ -620,6 +620,105 @@ describe('Formulas enabled on a live grid', () => {
       });
     });
 
+    Object.entries(reenables).forEach(([name, reenable]) => {
+      it(`keeps the sort state and the cell meta over a settings update after ${name}`, () => {
+        const engine = buildEngineWithSheet(SHEET_CONTENT);
+
+        hot = new Handsontable(container, {
+          formulas: { engine, sheetName: 'S1' },
+          columnSorting: true,
+          licenseKey: LICENSE_KEY,
+        });
+
+        hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+        reenable(engine);
+        hot.setCellMeta(0, 0, 'probeMeta', 'X');
+        // A sheet-built grid reloads its sheet on every settings update. With the snapshot of the disable put back,
+        // the reload stays in place; without it, it took `loadData()`, which dropped the sort state and the meta.
+        hot.updateSettings({});
+
+        expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+        expect(hot.getCellMeta(0, 0).probeMeta).toBe('X');
+        expect(hot.getData()).toEqual(SORTED_DESC);
+        expect(engineValues(hot)).toEqual(SORTED_DESC);
+
+        hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+        expect(hot.getData()).toEqual(SORTED_ASC);
+        expect(engineValues(hot)).toEqual(SORTED_ASC);
+      });
+    });
+
+    it('tells a host change made while the plugin was off on the next settings update', () => {
+      const engine = buildEngineWithSheet(SHEET_CONTENT);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      hot.updateSettings({ formulas: false });
+      // Changes no value, so the engine reports no event: only the snapshot comparison sees it.
+      engine.moveRows(engine.getSheetId('S1'), 0, 1, 4);
+      hot.updateSettings({ formulas: { engine, sheetName: 'S1' } });
+      hot.setCellMeta(0, 0, 'probeMeta', 'X');
+      hot.updateSettings({});
+
+      // The reload took `loadData()`, which drops the meta keyed by physical rows that no longer hold the same record.
+      expect(hot.getCellMeta(0, 0).probeMeta).toBeUndefined();
+      expect(engineValues(hot)).toEqual(hot.getData());
+      expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a', 'd']);
+    });
+
+    it.each([
+      ['removed', grid => grid.alter('remove_row', 0, 1)],
+      ['inserted', grid => grid.alter('insert_row_above', 0, 1)],
+    ])('loads the engine sheet on a re-enable when a row was %s while the plugin was off', (_, alter) => {
+      const engine = buildEngineWithSheet(SHEET_CONTENT);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      hot.updateSettings({ formulas: false });
+      alter(hot);
+      hot.updateSettings({ formulas: { engine, sheetName: 'S1' } });
+
+      // The engine never got the change, so the grid shows the sheet as the engine holds it.
+      expect(hot.getData()).toEqual(SORTED_DESC);
+      expect(engineValues(hot)).toEqual(SORTED_DESC);
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      expect(hot.getData()).toEqual(SORTED_ASC);
+      expect(engineValues(hot)).toEqual(SORTED_ASC);
+    });
+
+    it('loads the sheet of another engine instance with other content on a re-enable', () => {
+      const engine = buildEngineWithSheet(SHEET_CONTENT);
+      const otherEngine = buildEngineWithSheet([['x', 10, '=B1*2'], ['y', 20, '=B2*2'], ['z', 30, '=B3*2'],
+        ['w', 40, '=B4*2']]);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      hot.updateSettings({ formulas: false });
+      hot.updateSettings({ formulas: { engine: otherEngine, sheetName: 'S1' } });
+
+      // Not the first engine's records mapped onto the other sheet, and the host's sheet keeps its order.
+      expect(hot.getData()).toEqual([['x', 10, 20], ['y', 20, 40], ['z', 30, 60], ['w', 40, 80]]);
+      expect(engineValues(hot)).toEqual(hot.getData());
+    });
+
     it('sorts after a re-enable with another engine instance that holds the sheet in physical order', () => {
       const engine = buildEngineWithSheet(SHEET_CONTENT);
       const otherEngine = buildEngineWithSheet(SHEET_CONTENT);
@@ -634,8 +733,9 @@ describe('Formulas enabled on a live grid', () => {
       hot.updateSettings({ formulas: false });
       hot.updateSettings({ formulas: { engine: otherEngine, sheetName: 'S1' } });
 
-      // The order stored at the disable describes the first engine's sheet, so the other one gets the grid's order.
-      expect(engineValues(hot)).toEqual(SORTED_DESC);
+      // The order stored at the disable describes the first engine's sheet, so the grid loads the other one as it is.
+      expect(hot.getData()).toEqual([['b', 2, 4], ['a', 1, 2], ['c', 3, 6], ['d', 4, 8]]);
+      expect(engineValues(hot)).toEqual(hot.getData());
 
       hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
