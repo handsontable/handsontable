@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "scenario": "license-powered-by",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T15:15:07.323Z"
+  },
+  "steps": {
+    "tab-to-badge": "powered by handsontable data grid link",
+    "shift-tab-to-grid": "table c 1 c row 2 column 4",
+    "tab-to-badge-again": "powered by handsontable data grid link"
+  }
+}

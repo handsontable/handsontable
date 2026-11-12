@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "license-bar",
+  "surface": "The license notice under a grid whose key expired: Tab out of the grid to its links, the notice's text read with the reader's own cursor, and Shift+Tab back into the grid.",
+  "group": "status",
+  "page": "license-bar",
+  "start": "page",
+  "criteria": ["1.3.1", "2.1.1", "2.4.3", "2.4.4", "4.1.2"],
+  "setup": [{"selectCell": [0, 1]}],
+  "steps": [
+    {
+      "id": "tab-to-renew",
+      "action": {"press": "Tab"},
+      "expect": [["renew"], ["link"]],
+      "note": "The page's grid has an expired license key on purpose (the catalog fixture), so the license notice shows in the bar under it. Tab from B1, the last column, leaves the grid for the notice's first link, Renew. Required: the link's name and role. The reader starts on the page (`start: page`): entered on the grid, VoiceOver kept its cursor inside the grid after Tab moved the focus to the link, so its reading steps read cells, not the notice. Finding: VoiceOver with WebKit does not follow the focus out of the grid to the notice: it says nothing here, its cursor stays in the grid for the reading step, and it reads each link a key late (the sales link on the step that returns to Renew)."
+    },
+    {
+      "id": "read-notice",
+      "action": {"read": "previous"},
+      "expect": [["expired"]],
+      "note": "The reader's own cursor moves back from the link to the notice's text, which says the key expired and is not valid for the installed version. Required: that it expired. Both NVDA lanes stop at `installed`; VoiceOver with Chromium reads the whole sentence, with the version, `18.1.0`. That version is `HOT_VERSION` in `hot.config.js`, which the build bakes in and a release bumps, not `handsontable/package.json`'s version, so after a release the vo-chromium golden differs here by the version alone: record the golden again, it is not a regression."
+    },
+    {
+      "id": "tab-to-sales",
+      "action": {"press": "Tab"},
+      "expect": [["sales"], ["link"]],
+      "note": "Tab moves to the notice's second link, the sales e-mail address."
+    },
+    {
+      "id": "shift-tab-to-renew",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["renew"]],
+      "note": "Shift+Tab moves back to Renew."
+    },
+    {
+      "id": "shift-tab-to-grid",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["b1", "b 1"]],
+      "note": "Shift+Tab moves back into the grid, on B1, the cell the focus left from."
+    }
+  ]
+}
