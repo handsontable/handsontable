@@ -1,3 +1,10 @@
-[
-  { "ruleId": "18.0.0/wrapper-dom-selectors", "severity": "manual", "line": 5 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/wrapper-dom-selectors",
+      "severity": "manual",
+      "line": 5
+    }
+  ]
+}

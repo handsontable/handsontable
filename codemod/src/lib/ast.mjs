@@ -154,6 +154,48 @@ export function calleeName(callee) {
 }
 
 /**
+ * The one-based line of a node, for a report entry.
+ *
+ * @param {object|null|undefined} node An AST node.
+ * @returns {number|undefined} The line, `undefined` for a node another transform created.
+ */
+export function lineOfNode(node) {
+  return node?.loc?.start?.line;
+}
+
+/**
+ * Name of a JSX attribute.
+ *
+ * @param {object} node A `JSXAttribute` or `JSXSpreadAttribute` node.
+ * @returns {string|null} The name, or `null` for a spread or a namespaced name.
+ */
+export function attributeName(node) {
+  return node.type === 'JSXAttribute' && node.name.type === 'JSXIdentifier' ? node.name.name : null;
+}
+
+/**
+ * The plugin key of a `<x>.getPlugin('<key>')` call, optional chaining included.
+ *
+ * @param {object|null|undefined} node An expression node.
+ * @returns {string|null} The key, or `null` when the node is not such a call or the key is not a literal.
+ */
+export function pluginKeyOf(node) {
+  const call = node ? unwrapNode(node) : null;
+
+  if (!call || (call.type !== 'CallExpression' && call.type !== 'OptionalCallExpression')) {
+    return null;
+  }
+
+  const callee = unwrapNode(call.callee);
+
+  if (!MEMBER_TYPES.has(callee.type) || memberName(callee) !== 'getPlugin') {
+    return null;
+  }
+
+  return stringValue(call.arguments[0]);
+}
+
+/**
  * The type arguments of a call or `new` expression.
  *
  * @param {object} node A `CallExpression`, `OptionalCallExpression`, or `NewExpression`.

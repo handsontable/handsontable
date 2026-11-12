@@ -1,6 +1,8 @@
 import { reportInstead, rewrites } from '../lib/safety.mjs';
+import { removalAdvice } from '../lib/rename-key.mjs';
 import { replaceStringLiteral } from '../lib/string-literal.mjs';
 import { TODO_PREFIX } from '../lib/todo.mjs';
+import { assertRenameOrRemoval, problemsOf } from '../lib/validate.mjs';
 
 /**
  * Escape a string for use inside a regular expression.
@@ -47,9 +49,7 @@ function tokenPattern(name, flags = '') {
 function buildEntries(rules, source) {
   return rules
     .filter((rule) => {
-      if (rule.removed !== true && typeof rule.to !== 'string') {
-        throw new Error(`Rule ${rule.id} needs "to" or "removed": true.`);
-      }
+      assertRenameOrRemoval(rule);
 
       return source.includes(rule.from);
     })
@@ -60,16 +60,6 @@ function buildEntries(rules, source) {
       test: tokenPattern(rule.from),
       all: tokenPattern(rule.from, 'g'),
     }));
-}
-
-/**
- * Text for a TODO comment or a manual entry about a removed variable.
- *
- * @param {import('../types.mjs').Rule} rule A removal rule.
- * @returns {string} The advice of the rule, or a generic sentence.
- */
-function removalAdvice(rule) {
-  return rule.advice ?? rule.message ?? `${rule.from} was removed.`;
 }
 
 /**
@@ -107,13 +97,13 @@ function leaveTodo(ctx, node, rule) {
       ruleId: rule.id,
       severity: 'manual',
       line: node.source?.start?.line,
-      message: removalAdvice(rule),
+      message: removalAdvice(rule, rule.from),
     });
 
     return;
   }
 
-  ctx.todo(node, rule.id, removalAdvice(rule));
+  ctx.todo(node, rule.id, removalAdvice(rule, rule.from));
 }
 
 /**
@@ -265,7 +255,7 @@ function applyToJs(ctx, entries) {
   for (const { rule, test, removed } of entries.filter(entry => entry.removed || !entry.edits)) {
     const report = (line) => {
       if (removed) {
-        ctx.report({ ruleId: rule.id, severity: 'manual', line, message: removalAdvice(rule) });
+        ctx.report({ ruleId: rule.id, severity: 'manual', line, message: removalAdvice(rule, rule.from) });
       } else {
         reportRename(ctx, rule, line);
       }
@@ -346,7 +336,7 @@ function reportInTemplate(ctx, entries) {
     for (const match of ctx.source.matchAll(all)) {
       const line = ctx.source.slice(0, match.index).split('\n').length;
       const message = removed
-        ? removalAdvice(rule)
+        ? removalAdvice(rule, rule.from)
         : `Rename ${rule.from} to ${rule.to} here. The codemod does not rewrite templates.`;
 
       ctx.report({ ruleId: rule.id, severity: 'manual', line, message });
@@ -377,6 +367,14 @@ function reportInTemplate(ctx, entries) {
 const cssVariables = {
   kinds: ['cssVariable'],
   fileKinds: ['css', 'js', 'template'],
+
+  /**
+   * @param {import('../types.mjs').Rule} rule A `cssVariable` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => assertRenameOrRemoval(rule));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `css`, `js`, or `template` part.

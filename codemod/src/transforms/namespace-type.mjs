@@ -2,6 +2,7 @@ import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { addNamedImport } from '../lib/imports.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { lookup, referenceSpace } from '../lib/scope.mjs';
+import { problemsOf } from '../lib/validate.mjs';
 import {
   chooseSource,
   expandAdvice,
@@ -235,6 +236,14 @@ function rewrite(ctx, match, isModular, noted) {
 const namespaceType = {
   kinds: ['namespaceType'],
   fileKinds: ['js'],
+
+  /**
+   * @param {import('../types.mjs').Rule} rule A `namespaceType` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => assertRule(rule));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js` part.

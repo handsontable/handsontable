@@ -1,24 +1,12 @@
-/**
- * Find the indentation of a JSON text: the leading whitespace of the first indented line.
- *
- * @param {string} source JSON text.
- * @returns {string|number} A tab character, or a number of spaces (2 when the text has no indented line).
- */
-export function detectIndent(source) {
-  const match = /^([ \t]+)\S/m.exec(source);
+import { JsonDocument, detectIndent } from '../lib/json-edit.mjs';
 
-  if (!match) {
-    return 2;
-  }
-
-  return match[1].startsWith('\t') ? '\t' : match[1].length;
-}
+export { detectIndent };
 
 /**
  * Adapter for JSON, in practice `package.json`. The whole file is one `json` part whose `root` is the parsed
- * value. A transform edits it in place. Printing writes the value back with the original indentation, line
- * ending, and trailing newline. Formatting that JSON.stringify does not produce (for example a short array
- * on one line) is normalized.
+ * value, for reading. A transform changes the file through `part.json` (a `JsonDocument`, see `lib/json-edit.mjs`),
+ * which edits the text by offset and keeps `root` in step. Printing returns that text, so every byte outside an
+ * edited value stays as it was.
  *
  * @type {import('../types.mjs').Adapter}
  */
@@ -34,8 +22,18 @@ const jsonAdapter = {
    * @returns {import('../types.mjs').ParseHandle} Handle with one part.
    */
   parse(source) {
+    const root = JSON.parse(source);
+
     return {
-      parts: [{ fileKind: 'json', source, root: JSON.parse(source), j: null, lineOffset: 0, changed: false }],
+      parts: [{
+        fileKind: 'json',
+        source,
+        root,
+        json: new JsonDocument(source, root),
+        j: null,
+        lineOffset: 0,
+        changed: false,
+      }],
     };
   },
 
@@ -45,11 +43,7 @@ const jsonAdapter = {
    * @returns {string} Printed file.
    */
   print(handle, source) {
-    const eol = source.includes('\r\n') ? '\r\n' : '\n';
-    const trailing = /\r?\n$/.test(source) ? eol : '';
-    const text = JSON.stringify(handle.parts[0].root, null, detectIndent(source));
-
-    return (eol === '\n' ? text : text.replace(/\n/g, eol)) + trailing;
+    return handle.parts[0].json?.text ?? source;
   },
 };
 

@@ -73,6 +73,9 @@ const TRANSFORMS = [
  * @property {Map<string, import('../types.mjs').Transform>} byKind Module per rule kind.
  * @property {string[]} order The fixed kind order.
  * @property {Set<string>} phaseTwo Kinds that run in phase 2.
+ * @property {(rule: import('../types.mjs').Rule) => string[]} validate The problems a module finds in a rule of
+ * its kinds, from its optional `validate(rule)` hook. An empty list for a kind with no hook or no module. The
+ * manifest loader calls it, so a malformed rule fails at load.
  */
 
 /**
@@ -100,7 +103,12 @@ export function createRegistry(transforms, order = KIND_ORDER, phaseTwo = PHASE_
     }
   }
 
-  return { byKind, order, phaseTwo };
+  return {
+    byKind,
+    order,
+    phaseTwo,
+    validate: rule => byKind.get(rule.kind)?.validate?.(rule) ?? [],
+  };
 }
 
 /**

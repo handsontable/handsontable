@@ -1,22 +1,26 @@
-import { readFile, stat, writeFile } from 'node:fs/promises';
-import { basename, join, resolve } from 'node:path';
+import { lstat, readFile, stat, writeFile } from 'node:fs/promises';
+import { basename, join, relative, resolve, sep } from 'node:path';
 import { adapterFor } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
-import { discover } from './discover.mjs';
-import { dirtyPaths, isGitRepo } from './git.mjs';
+import { discover, resolvesInside } from './discover.mjs';
+import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { registerPackageDir } from './lib/facts.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
 import { addCssTodo, addJsTodo, collectComments, lineOf } from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
-import { Report, SKIPPED_RULE_ID } from './report.mjs';
+import { Report, SKIPPED_RULE_ID, plural } from './report.mjs';
 import { registry as defaultRegistry } from './transforms/index.mjs';
 import {
+  compareVersions,
   defaultTo,
   detectProjectVersion,
+  oldestCovered,
+  parseVersion,
   resolveFrom,
   resolveTo,
   selectManifests,
+  uncoveredSteps,
 } from './versions.mjs';
 
 const SEVERITIES = new Set(['changed', 'manual', 'warning']);
@@ -31,6 +35,16 @@ export const MAX_FILE_BYTES = 1024 * 1024;
  * Milliseconds between progress reports while a run visits files.
  */
 export const PROGRESS_INTERVAL_MS = 2000;
+
+/**
+ * A size for a message: bytes below 1 KB, kilobytes with one decimal above.
+ *
+ * @param {number} bytes The size in bytes.
+ * @returns {string} For example `300 bytes`, `1 byte`, or `1.5 KB`.
+ */
+export function formatSize(bytes) {
+  return bytes < 1024 ? `${bytes} ${bytes === 1 ? 'byte' : 'bytes'}` : `${(bytes / 1024).toFixed(1)} KB`;
+}
 
 /**
  * The report entry that says a file, or a block of it, was not analyzed.
@@ -212,20 +226,26 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     part.changed = true;
   };
 
-  const todo = (target, ruleId, text, comment) => {
+  const comment = (target, ruleId, text) => {
     const owner = plan.rulesById.get(ruleId);
     const guideUrl = owner?.guide ? owner.guideUrl : null;
     let inserted = false;
 
     if (part.fileKind === 'js') {
-      inserted = addJsTodo(part.j, target, ruleId, comment ?? text, guideUrl, commentScan(part));
+      inserted = addJsTodo(part.j, target, ruleId, text, guideUrl, commentScan(part));
     } else if (part.fileKind === 'css') {
-      inserted = addCssTodo(target, ruleId, comment ?? text, guideUrl);
+      inserted = addCssTodo(target, ruleId, text, guideUrl);
     }
 
     if (inserted) {
       markChanged();
     }
+
+    return inserted;
+  };
+
+  const todo = (target, ruleId, text, shortText) => {
+    const inserted = comment(target, ruleId, shortText ?? text);
 
     report({ ruleId, severity: 'manual', line: lineOf(target) ?? undefined, message: text });
 
@@ -238,8 +258,10 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     source: part.source,
     j: part.j,
     root: part.root,
+    json: part.json ?? null,
     report,
     todo,
+    comment,
     facts,
     options,
     markChanged,
@@ -344,7 +366,7 @@ export async function transformFile({
         severity: 'warning',
         file: filePath,
         line: null,
-        message: `A transform failed and the file was left unchanged: ${error.message}`,
+        message: `The tool failed on this file and left it unchanged: ${error.message}`,
         guideUrl: null,
       }],
     };
@@ -353,6 +375,40 @@ export async function transformFile({
   const output = handle.parts.some(part => part.changed) ? adapter.print(handle, source) : source;
 
   return { output, changed: output !== source, entries, skipped: null };
+}
+
+/**
+ * Refuse a report path that would overwrite something that is not a previous report: a file git tracks, a file the
+ * run is about to migrate, or a symbolic link, which `writeFile` would follow. A file that does not exist, or an
+ * untracked file that is not a project file (the report of the previous run), is fine.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string} reportPath The `--report` value.
+ * @param {string[]} files The discovered project files.
+ * @param {boolean} repo Whether `cwd` is inside a git work tree.
+ * @returns {Promise<void>}
+ * @throws {UsageError} When the report would overwrite a project file.
+ */
+async function assertReportTarget(cwd, reportPath, files, repo) {
+  const target = resolve(cwd, reportPath);
+  const info = await lstat(target).catch(() => null);
+
+  if (!info) {
+    return;
+  }
+
+  if (info.isSymbolicLink()) {
+    throw new UsageError(`--report ${reportPath} is a symbolic link, and the report would be written through it. `
+      + 'Choose another file.');
+  }
+
+  const rel = relative(cwd, target).split(sep).join('/');
+  const projectFile = files.includes(rel) || (repo && await isTracked(cwd, target));
+
+  if (projectFile) {
+    throw new UsageError(`--report ${reportPath} would overwrite a project file. Choose another file, for example `
+      + 'migration-report.md.');
+  }
 }
 
 /**
@@ -366,11 +422,14 @@ export async function transformFile({
  * @param {string} [args.to] The `--to` text. Defaults to the latest released manifest.
  * @param {string[]} [args.only] Rule ids to keep.
  * @param {boolean} [args.includeDraft] Whether draft manifests may run.
+ * @param {boolean} [args.allowUncovered] When `true`, a `--from` below the oldest covered version runs anyway, with
+ * a note instead of a refusal.
  * @param {string} [args.versionsDir] Directory with the manifests.
  * @param {boolean} [args.lenientFrom] When `true`, a missing `--from` that cannot be detected means "from the
  * beginning" instead of an error.
  * @returns {Promise<{plan: import('./types.mjs').Plan, selected: import('./types.mjs').Manifest[],
- * notes: string[], fromText: string, toText: string}>} The plan and the facts about the range.
+ * notes: string[], reportNotes: string[], fromText: string, toText: string}>} The plan and the facts about the
+ * range. `reportNotes` are the notes that also go at the top of the report.
  * @throws {UsageError} For an unusable range, an unknown rule id, or an undetectable `--from`.
  */
 export async function resolvePlan({
@@ -382,46 +441,76 @@ export async function resolvePlan({
   includeDraft = false,
   versionsDir = VERSIONS_DIR,
   lenientFrom = false,
+  allowUncovered = false,
 }) {
   const manifests = await loadManifests(versionsDir);
   const notes = [];
+  const reportNotes = [];
   const toText = to ?? defaultTo(manifests, includeDraft);
 
   if (!toText) {
-    throw new UsageError('No released manifest is available. Pass --to, or --include-draft to use a draft one.');
+    throw new UsageError('No released migration is available. Pass --to, or --include-draft to use a draft one.');
   }
 
   let fromText = from;
+  let detected = null;
 
   if (!fromText) {
-    const detected = await detectProjectVersion(cwd, paths);
+    detected = await detectProjectVersion(cwd, paths);
 
-    if (detected) {
+    if (detected?.version) {
       fromText = detected.version;
       notes.push(`Detected --from ${fromText} (${detected.source}).`);
+    } else if (detected) {
+      throw new UsageError(`${detected.source.replace(/ \w+Dependencies$| dependencies$/, '')} names handsontable `
+        + `as "${detected.range}", which is not a version. Pass --from.`);
     } else if (!lenientFrom) {
       throw new UsageError('Cannot tell which Handsontable version this project uses: there is no installed '
         + 'handsontable package and no handsontable range in package.json. Pass --from, for example --from 17.1.');
     }
   }
 
+  const fromBound = fromText ? resolveFrom(fromText) : null;
+  const oldest = oldestCovered(manifests);
+
+  if (fromBound && oldest && compareVersions(fromBound, oldest) < 0) {
+    const guideBase = manifests[0].guide.url.slice(0, manifests[0].guide.url.lastIndexOf('/') + 1);
+    const steps = uncoveredSteps(fromBound, oldest, guideBase);
+    const list = steps.map(step => `  ${step.from} to ${step.to}: ${step.url}`).join('\n');
+    const note = `Handsontable ${fromText} is older than the oldest version this tool migrates from `
+      + `(${oldest.text}). It does not cover:\n${list}`;
+
+    if (!allowUncovered) {
+      throw new UsageError(`${note}\nFollow those guides first and upgrade to ${oldest.text}, then run the tool `
+        + 'again. To run the migrations it has anyway, pass --allow-uncovered.');
+    }
+
+    notes.push(note);
+    reportNotes.push(note);
+  }
+
   const { selected, skippedDrafts } = selectManifests(manifests, {
-    from: fromText ? resolveFrom(fromText) : null,
+    from: fromBound,
     to: resolveTo(toText, manifests.map(manifest => manifest.version)),
     includeDraft,
   });
 
   if (skippedDrafts.length > 0) {
-    notes.push(`Skipped draft manifests: ${skippedDrafts.map(manifest => manifest.version).join(', ')}. `
+    notes.push(`Skipped draft migrations: ${skippedDrafts.map(manifest => manifest.version).join(', ')}. `
       + 'Use --include-draft to run them.');
   }
 
   if (selected.length === 0) {
-    const known = manifests.map(manifest => `${manifest.version}${manifest.status === 'draft' ? ' (draft)' : ''}`);
+    throw new UsageError(nothingToMigrate({ manifests, fromText, toText, detected, skippedDrafts }));
+  }
 
-    throw new UsageError(`Nothing to migrate from ${fromText ?? 'the beginning'} to ${toText}. `
-      + `A migration runs when its version is above --from and not above --to. Known migrations: ${known.join(', ')}.`
-      + `${skippedDrafts.length > 0 ? ' Only draft manifests are in range, add --include-draft to run them.' : ''}`);
+  const newest = selected[selected.length - 1];
+
+  if (isNewerLine(parseVersion(toText), parseVersion(newest.version))) {
+    const note = `No migration for ${toText} is known. Migrated up to ${newest.version}.`;
+
+    notes.push(note);
+    reportNotes.push(note);
   }
 
   const ids = selected.flatMap(manifest => manifest.rules.map(rule => rule.id));
@@ -436,9 +525,73 @@ export async function resolvePlan({
     plan: buildPlan(selected, only),
     selected,
     notes,
+    reportNotes,
     fromText: fromText ?? '',
     toText,
   };
+}
+
+/**
+ * Whether a requested `--to` is on a later minor line than a version: `19` and `18.2` are above `18.1.0`, while
+ * `18` and `18.1.5` are not.
+ *
+ * @param {import('./versions.mjs').ParsedVersion} wanted The parsed `--to`.
+ * @param {import('./versions.mjs').ParsedVersion} known The parsed version of the newest migration in range.
+ * @returns {boolean} `true` when `wanted` names a later line.
+ */
+function isNewerLine(wanted, known) {
+  const wantedMinor = wanted.parts >= 2 ? wanted.minor : 0;
+
+  return wanted.major > known.major || (wanted.major === known.major && wantedMinor > known.minor);
+}
+
+/**
+ * The text of the usage error for a range that selects no migration. It lists the known migrations, and it
+ * says what to do when the version came from the project itself (a `package.json` the tool already raised, say)
+ * or was a partial `--from` that stands for the end of its line.
+ *
+ * @param {object} args Arguments.
+ * @param {import('./types.mjs').Manifest[]} args.manifests All loaded migrations.
+ * @param {string|undefined} args.fromText The `--from` text, given or detected.
+ * @param {string} args.toText The `--to` text.
+ * @param {{version: string|null, source: string}|null} args.detected What the project told, when `--from` was not
+ * given.
+ * @param {import('./types.mjs').Manifest[]} args.skippedDrafts Draft migrations in range that were left out.
+ * @returns {string} The message.
+ */
+function nothingToMigrate({ manifests, fromText, toText, detected, skippedDrafts }) {
+  const known = manifests.map(manifest => `${manifest.version}${manifest.status === 'draft' ? ' (draft)' : ''}`);
+  const parts = [];
+
+  if (detected?.version) {
+    const where = detected.source.replace(/ \w*[dD]ependencies$/, '');
+    const subject = where === 'node_modules/handsontable' ? 'The installed handsontable package is'
+      : `${where} already names`;
+    const guide = /migration-from-(\d+\.\d+)-to-/.exec(manifests[0]?.guide.url ?? '');
+
+    parts.push(`${subject} ${fromText}, so there is nothing to migrate to ${toText}. To run the migration again, `
+      + `pass --from <your previous version>, for example --from ${guide ? guide[1] : manifests[0]?.from}.`);
+  } else {
+    parts.push(`Nothing to migrate from ${fromText ?? 'the beginning'} to ${toText}.`);
+  }
+
+  const partial = fromText && /^\d+$/.test(fromText)
+    ? manifests.find(manifest => /^\d+\.\d+$/.test(manifest.from) && manifest.from.startsWith(`${fromText}.`))
+    : null;
+
+  if (partial) {
+    parts.push(`--from ${fromText} means any ${fromText}.x release, which is above every ${fromText}.x migration. `
+      + `To run the migration to ${partial.version}, pass --from ${partial.from}.`);
+  }
+
+  parts.push('A migration runs when its version is above --from and not above --to. '
+    + `Known migrations: ${known.join(', ')}.`);
+
+  if (skippedDrafts.length > 0) {
+    parts.push('Only draft migrations are in range, add --include-draft to run them.');
+  }
+
+  return parts.join(' ');
 }
 
 /**
@@ -479,6 +632,7 @@ export function describeRules(plan, registry = defaultRegistry) {
  * @param {string[]} [options.only] Rule ids to run.
  * @param {boolean} [options.aggressive] Lower the option-object confidence bar.
  * @param {boolean} [options.includeDraft] Run draft manifests.
+ * @param {boolean} [options.allowUncovered] Run although the project is older than the oldest covered version.
  * @param {boolean} [options.allowDirty] Do not refuse a dirty git tree.
  * @param {boolean} [options.write] Write changed files. Defaults to `!dryRun`.
  * @param {string} [options.versionsDir] Directory with the manifests.
@@ -505,6 +659,7 @@ export async function run({
   only = [],
   aggressive = false,
   includeDraft = false,
+  allowUncovered = false,
   allowDirty = false,
   write = !dryRun,
   versionsDir = VERSIONS_DIR,
@@ -516,30 +671,44 @@ export async function run({
   onWarning,
 } = {}) {
   const report = new Report();
-  const result = { changedFiles: [], report, diffs: [], exitCode: 0, notes: [], error: null };
+  const result = { changedFiles: [], report, diffs: [], exitCode: 0, notes: [], error: null, from: '', to: '' };
   let files;
   let resolved;
 
   try {
-    resolved = await resolvePlan({ cwd, paths, from, to, only, includeDraft, versionsDir });
+    resolved = await resolvePlan({ cwd, paths, from, to, only, includeDraft, versionsDir, allowUncovered });
     result.notes = resolved.notes;
+    result.from = resolved.fromText;
+    result.to = resolved.selected[resolved.selected.length - 1].version;
+    report.notes.push(...resolved.reportNotes);
 
     const repo = await isGitRepo(cwd);
 
     if (write && !repo) {
-      onWarning?.('Not a git repository: changes cannot be reviewed with git diff. Use --dry-run first.');
+      onWarning?.('Not a git repository: you cannot review the changes with git diff. Stop now and use --dry-run '
+        + 'if you want a preview.');
     }
 
     if (write && !allowDirty && repo) {
       const dirty = await dirtyPaths(cwd, { ignoreUntracked: reportPath ? [resolve(cwd, reportPath)] : [] });
 
       if (dirty.length > 0) {
-        throw new UsageError(`The git tree has ${dirty.length} uncommitted change${dirty.length === 1 ? '' : 's'}. `
-          + 'Commit or stash them so the migration shows up as one clean diff, or pass --allow-dirty.');
+        throw new UsageError(`The git tree has ${plural(dirty.length, 'uncommitted change')}. `
+          + `Commit or stash ${dirty.length === 1 ? 'it' : 'them'} so the migration shows up as one clean diff, `
+          + 'or pass --allow-dirty.');
       }
     }
 
-    files = await discover({ cwd, paths });
+    const links = [];
+
+    files = await discover({ cwd, paths, skipped: links });
+
+    if (reportPath) {
+      await assertReportTarget(cwd, reportPath, files, repo);
+    }
+
+    links.forEach(link => report.add(skippedEntry(link.file, null, 'This is a symbolic link, so it was not '
+      + 'followed. A link can point outside the project. Migrate the file it points to in its own project.')));
   } catch (error) {
     if (error instanceof UsageError) {
       return { ...result, exitCode: 2, error: error.message };
@@ -566,8 +735,8 @@ export async function run({
 
       if (size > maxFileSize) {
         if (phase === 1) {
-          report.add(skippedEntry(file, null, `The file is ${Math.ceil(size / 1024)} KB, above the limit of `
-            + `${Math.ceil(maxFileSize / 1024)} KB, so it was not analyzed. Raise the limit with --max-file-size.`));
+          report.add(skippedEntry(file, null, `The file is ${formatSize(size)}, above the limit of `
+            + `${formatSize(maxFileSize)}, so it was not analyzed. Raise the limit with --max-file-size.`));
         }
 
         return;
@@ -596,6 +765,13 @@ export async function run({
     });
 
     report.addAll(outcome.entries);
+
+    if (outcome.changed && !(await resolvesInside(cwd, file))) {
+      report.add(skippedEntry(file, null, 'It resolves to a place outside the project directory, so it was not '
+        + 'changed.'));
+
+      return;
+    }
 
     if (outcome.changed) {
       result.changedFiles.push(file);

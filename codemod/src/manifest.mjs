@@ -3,6 +3,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ManifestError } from './errors.mjs';
 import { REPORT_ONLY_KINDS, requiresSafe } from './lib/safety.mjs';
+import { registry } from './transforms/index.mjs';
 
 /**
  * Absolute path of the package root (the directory that holds `versions/`).
@@ -33,6 +34,8 @@ const FIELD_TYPES = {
   boolean: value => typeof value === 'boolean',
   objects: value => Array.isArray(value) && value.every(item => item !== null && typeof item === 'object'
     && !Array.isArray(item)),
+  stringOrObject: value => (typeof value === 'string' && value.length > 0)
+    || (value !== null && typeof value === 'object' && !Array.isArray(value)),
 };
 
 /**
@@ -86,21 +89,35 @@ export const RULE_KINDS = {
   optionRename: { required: { from: 'string', to: 'string' }, optional: { context: 'object' } },
   optionMove: { required: { from: 'string', to: 'string' }, optional: { report: 'string' } },
   optionRemove: { required: { name: 'string' }, optional: { todo: 'boolean' } },
-  methodRemove: { required: { methods: 'strings', receiver: 'string' }, optional: {} },
+  methodRemove: { required: { methods: 'strings', receiver: 'stringOrObject' }, optional: {} },
   methodMove: {
-    required: { methods: 'object', via: 'object', receiver: 'string' },
-    optional: { properties: 'object', anyReceiver: 'strings' },
+    required: { methods: 'object', via: 'object', receiver: 'stringOrObject' },
+    optional: { properties: 'object' },
   },
   callUnwrap: { required: { callee: 'string' }, optional: {} },
   cssVariable: { required: { from: 'string' }, optional: { to: 'string', removed: 'boolean' } },
   themeToken: { required: { from: 'string' }, optional: { to: 'string', removed: 'boolean', callees: 'strings' } },
   dependency: {
     required: {},
-    optional: { bump: 'object', replaced: 'object', add: 'objects', reportOnly: 'objects', facts: 'objects' },
+    optional: {
+      bump: 'object',
+      replaced: 'object',
+      add: 'objects',
+      reportMissing: 'objects',
+      reportPresent: 'objects',
+      facts: 'objects',
+    },
   },
   detect: {
     required: { match: 'object' },
-    optional: { emitsFact: 'string', severity: 'string', files: 'strings', requires: 'string' },
+    optional: {
+      emitsFact: 'string',
+      severity: 'string',
+      files: 'strings',
+      requires: 'string',
+      unlessFileMatches: 'string',
+      mergeKey: 'string',
+    },
   },
   custom: { required: { module: 'string' }, optional: {} },
 };
@@ -108,6 +125,26 @@ export const RULE_KINDS = {
 const STATUSES = ['released', 'draft'];
 const CONFIDENCES = ['high', 'medium'];
 const SEMVER = /^\d+\.\d+\.\d+$/;
+const FROM_PATTERN = /^\d+(?:\.\d+){0,2}$/;
+
+/**
+ * Compare two lists of version numbers, a missing part counting as 0.
+ *
+ * @param {number[]} a Left numbers.
+ * @param {number[]} b Right numbers.
+ * @returns {number} Negative, zero, or positive.
+ */
+function compareParts(a, b) {
+  for (let index = 0; index < 3; index += 1) {
+    const difference = (a[index] ?? 0) - (b[index] ?? 0);
+
+    if (difference !== 0) {
+      return difference;
+    }
+  }
+
+  return 0;
+}
 
 /**
  * Check one rule and return the problems found.
@@ -192,6 +229,13 @@ function validateHeader(raw, dirName) {
 
   if (!STATUSES.includes(raw.status)) {
     problems.push(`"status" must be one of ${STATUSES.join(', ')}`);
+  }
+
+  if (!FROM_PATTERN.test(String(raw.from))) {
+    problems.push('"from" must name the version line the migration starts from, such as "17" or "18.0"');
+  } else if (SEMVER.test(dirName)
+    && compareParts(raw.from.split('.').map(Number), dirName.split('.').map(Number)) >= 0) {
+    problems.push(`"from" (${raw.from}) must be below the version "${dirName}"`);
   }
 
   if (!FIELD_TYPES.object(raw.guide) || !FIELD_TYPES.string(raw.guide.url) || !FIELD_TYPES.string(raw.guide.source)) {
@@ -286,8 +330,16 @@ export async function loadManifest(dir) {
   rawRules.forEach((rule, index) => {
     const ruleLabel = `${label} rules[${index}]${typeof rule?.id === 'string' ? ` (${rule.id})` : ''}`;
 
-    for (const problem of validateRule(rule, dirName)) {
+    const shape = validateRule(rule, dirName);
+
+    for (const problem of shape) {
       problems.push(`${ruleLabel}: ${problem}`);
+    }
+
+    if (shape.length === 0) {
+      for (const problem of registry.validate(rule)) {
+        problems.push(`${ruleLabel}: ${problem}`);
+      }
     }
 
     if (typeof rule?.id === 'string') {
@@ -332,6 +384,7 @@ export async function loadManifest(dir) {
 
   return {
     version: dirName,
+    from: raw.from,
     status: raw.status,
     guide: raw.guide,
     rules: loadedRules,

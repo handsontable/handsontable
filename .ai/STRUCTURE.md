@@ -55,7 +55,6 @@ packages:
   - examples
   - docs
   - docs/angular-type-check
-  - tests
   - codemod
 ```
 

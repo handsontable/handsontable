@@ -4,12 +4,17 @@
   "title": "Handsontable codemod version manifest",
   "description": "Documentation of versions/<semver>/manifest.json. The validator in src/manifest.mjs is the enforcing copy; test/manifest.test.mjs pins the kind list and the required fields of each kind against this file.",
   "type": "object",
-  "required": ["version", "status", "guide"],
+  "required": ["version", "from", "status", "guide"],
   "properties": {
     "version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
       "description": "Must equal the directory name."
+    },
+    "from": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d+){0,2}$",
+      "description": "The version line the migration starts from: \"17\" for 18.0.0, \"18.0\" for 18.1.0. A partial version stands for the whole line. It must be below `version`. The lowest `from` of all manifests is the oldest version the tool covers."
     },
     "status": {
       "enum": ["released", "draft"],
@@ -144,7 +149,15 @@
                 "type": "object",
                 "description": "Without it the rule renames a key of Handsontable option objects and wrapper attributes. { \"callArg\": [method names] } renames it in object-literal arguments of method calls with those names instead.",
                 "required": ["callArg"],
-                "properties": { "callArg": { "type": "array", "items": { "type": "string" } } }
+                "properties": {
+                  "callArg": { "type": "array", "items": { "type": "string" } },
+                  "receiver": {
+                    "type": "object",
+                    "required": ["plugin"],
+                    "properties": { "plugin": { "oneOf": [{ "type": "string" }, { "type": "array", "minItems": 1, "items": { "type": "string" } }] } },
+                    "description": "Rewrite only calls on `x.getPlugin('<key>')` or a variable or this member the file sets from it. Calls on another receiver in a Handsontable file are reported when the argument sets the key."
+                  }
+                }
               }
             }
           }
@@ -176,7 +189,17 @@
             "required": ["methods", "receiver"],
             "properties": {
               "methods": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Method names to remove." },
-              "receiver": { "enum": ["any", "instance"], "description": "`any`: the names are unique to Handsontable and are removed on any receiver in a Handsontable file. `instance`: only on a receiver confirmed to be a grid instance." }
+              "receiver": {
+                "oneOf": [
+                  { "enum": ["any", "instance"] },
+                  {
+                    "type": "object",
+                    "required": ["plugin"],
+                    "properties": { "plugin": { "oneOf": [{ "type": "string" }, { "type": "array", "minItems": 1, "items": { "type": "string" } }] } }
+                  }
+                ],
+                "description": "`any`: the names are unique to Handsontable and are removed on any receiver in a Handsontable file. `instance`: only on a receiver confirmed to be a grid instance. `{ plugin }`: only on `x.getPlugin('<key>')` or a variable or this member the file sets from it."
+              }
             }
           }
         },
@@ -192,9 +215,17 @@
                 "properties": { "method": { "type": "string" }, "args": { "type": "array", "items": { "type": "string" } } },
                 "description": "The call that reaches the new home, for example { method: getPlugin, args: [undoRedo] }."
               },
-              "receiver": { "enum": ["any", "instance"] },
-              "properties": { "type": "object", "additionalProperties": { "type": "null" }, "description": "Property names that become the `via` call itself." },
-              "anyReceiver": { "type": "array", "items": { "type": "string" }, "description": "Method names distinctive enough to rewrite on any receiver in a Handsontable file." }
+              "receiver": {
+                "oneOf": [
+                  { "enum": ["instance"] },
+                  {
+                    "type": "object",
+                    "required": ["plugin"],
+                    "properties": { "plugin": { "oneOf": [{ "type": "string" }, { "type": "array", "minItems": 1, "items": { "type": "string" } }] } }
+                  }
+                ]
+              },
+              "properties": { "type": "object", "additionalProperties": { "type": "null" }, "description": "Property names that become the `via` call itself." }
             }
           }
         },
@@ -222,10 +253,15 @@
                 "description": "Packages to add. Each item: name, range, whenFact, onlyIfDependsOn (a package name or an array of names).",
                 "items": { "type": "object", "required": ["name", "range"] }
               },
-              "reportOnly": {
+              "reportMissing": {
                 "type": "array",
-                "description": "Packages to report but never add. Each item: name, whenFact, optional onlyIfDependsOn and message.",
+                "description": "Packages to report when the package.json does not declare them and, with whenFact, phase 1 found that fact. Never added. Each item: name, optional whenFact, onlyIfDependsOn, and message.",
                 "items": { "type": "object", "required": ["name"] }
+              },
+              "reportPresent": {
+                "type": "array",
+                "description": "Packages to report when the package.json declares them and, with whenFact, phase 1 found that fact. Each item: name, message, optional whenFact and onlyIfDependsOn.",
+                "items": { "type": "object", "required": ["name", "message"] }
               },
               "facts": {
                 "type": "array",
@@ -244,7 +280,9 @@
               "files": { "type": "array", "items": { "enum": ["js", "css", "template"] }, "description": "Part kinds the rule reads. The js-only matchers need [\"js\"]." },
               "severity": { "enum": ["manual", "warning"], "description": "Defaults to manual." },
               "requires": { "enum": ["hot-file", "option-object", "none"], "description": "Defaults to hot-file." },
-              "emitsFact": { "type": "string", "description": "Fact name added when the rule matches in a part." }
+              "emitsFact": { "type": "string", "description": "Fact name added when the rule matches in a part." },
+              "unlessFileMatches": { "type": "string", "description": "Regular expression on the text of the part. The rule skips a part that matches it." },
+              "mergeKey": { "type": "string", "description": "Rules of different versions that share a mergeKey report a spot once: the later rule replaces the earlier one on the same line of the same part." }
             }
           }
         },

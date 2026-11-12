@@ -109,7 +109,8 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
       const result = await run({ cwd: dir, from: '17.1', to: '18.1', maxFileSize: limit });
 
       assert.deepEqual(result.report.skipped().map(entry => entry.file), ['big.js']);
-      assert.match(result.report.skipped()[0].message, /above the limit of \d+ KB, so it was not analyzed/);
+      assert.match(result.report.skipped()[0].message,
+        /The file is \d\.\d KB, above the limit of \d+ bytes, so it was not analyzed/);
       assert.deepEqual(result.changedFiles, ['ok.js']);
       assert.equal(await readFile(join(dir, 'big.js'), 'utf8').then(text => text.startsWith('import')), true);
     });
@@ -243,8 +244,8 @@ describe('the CLI around a run', () => {
 
       assert.equal(dry.stderr.includes('Not a git repository'), false);
       assert.equal(real.status, 0, real.stderr);
-      assert.ok(real.stderr.includes(
-        'Not a git repository: changes cannot be reviewed with git diff. Use --dry-run first.\n'));
+      assert.ok(real.stderr.includes('Not a git repository: you cannot review the changes with git diff. '
+        + 'Stop now and use --dry-run if you want a preview.\n'));
       assert.match(await readFile(join(dir, 'a.css'), 'utf8'), /--ht-border-radius/);
     });
   });

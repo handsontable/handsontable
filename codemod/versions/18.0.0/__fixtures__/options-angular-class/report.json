@@ -1,4 +1,15 @@
-[
-  { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 15 },
-  { "ruleId": "18.0.0/correct-format-removed", "severity": "manual", "line": 16 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/numeric-format-culture",
+      "severity": "manual",
+      "line": 15
+    },
+    {
+      "ruleId": "18.0.0/correct-format-removed",
+      "severity": "manual",
+      "line": 16
+    }
+  ]
+}

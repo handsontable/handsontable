@@ -1,4 +1,20 @@
-[
-  { "ruleId": "18.0.0/numbro-pattern", "severity": "manual", "line": 3 },
-  { "ruleId": "18.0.0/numbro-pattern", "severity": "manual", "line": 4 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/numeric-format-culture",
+      "severity": "manual",
+      "line": 7
+    },
+    {
+      "ruleId": "18.0.0/numbro-pattern",
+      "severity": "manual",
+      "line": 3
+    },
+    {
+      "ruleId": "18.0.0/numbro-pattern",
+      "severity": "manual",
+      "line": 4
+    }
+  ]
+}

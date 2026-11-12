@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import { PACKAGE_ROOT, VERSIONS_DIR, buildPlan, loadManifest } from '../src/manifest.mjs';
+import { VERSIONS_DIR, buildPlan, loadManifest } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
+import { guidePath, skipWithoutGuides } from './helpers/guide-source.mjs';
 
 const manifest = await loadManifest(join(VERSIONS_DIR, '18.0.0'));
 const plan = buildPlan([manifest]);
@@ -51,8 +52,12 @@ describe('style rules', () => {
     }
   });
 
-  it('points every rule at a heading of the migration guide and states the guide recommendation', async() => {
-    const guide = await readFile(join(PACKAGE_ROOT, '..', manifest.guide.source), 'utf8');
+  it('points every rule at a heading of the migration guide and states the guide recommendation', async(context) => {
+    if (skipWithoutGuides(context, [manifest])) {
+      return;
+    }
+
+    const guide = await readFile(guidePath(manifest), 'utf8');
     const anchors = [...guide.matchAll(/^##+ (.+)$/gm)].map(match => slug(match[1]));
 
     for (const rule of rules) {
@@ -172,6 +177,40 @@ describe('themeToken', () => {
     const { output } = await run('a.js', source);
 
     assert.equal(output, source.replace('wrapperBorderRadius', 'borderRadius'));
+  });
+
+  it('rewrites params() only on a theme receiver', async() => {
+    const source = 'import Handsontable from \'handsontable\';\n'
+      + 'import { registerTheme, getTheme, mainTheme } from \'handsontable/themes\';\n'
+      + 'import * as themes from \'handsontable/themes\';\n'
+      + 'const bound = registerTheme(\'b\', {});\n'
+      + 'registerTheme(\'t\', {}).params({ wrapperBorderRadius: 1 });\n'
+      + 'getTheme(\'main\')?.params({ wrapperBorderRadius: 2 });\n'
+      + 'mainTheme.params({ wrapperBorderRadius: 3 });\n'
+      + 'themes.getTheme(\'x\').params({ wrapperBorderRadius: 4 });\n'
+      + 'bound.params({ wrapperBorderRadius: 5 });\n'
+      + 'axios.get(url).params({ wrapperBorderRadius: 6 });\n'
+      + 'router.params({ wrapperBorderRadius: 7 });\n';
+    const { output } = await run('a.js', source);
+    const renamed = [...output.matchAll(/borderRadius: (\d)/g)].map(match => match[0]);
+
+    assert.equal(output.includes('axios.get(url).params({ wrapperBorderRadius: 6 })'), true);
+    assert.equal(output.includes('router.params({ wrapperBorderRadius: 7 })'), true);
+    assert.equal(renamed.filter(text => !text.startsWith('wrapper')).length, 5);
+  });
+
+  it('does not descend into function bodies inside a theme argument', async() => {
+    const source = 'import { registerTheme } from \'handsontable/themes\';\n'
+      + 'registerTheme(\'t\', {\n'
+      + '  onChange() { return { wrapperBorderRadius: 1 }; },\n'
+      + '  other: () => ({ wrapperBorderRadius: 2 }),\n'
+      + '  tokens: { wrapperBorderRadius: 3 },\n'
+      + '});\n';
+    const { output } = await run('a.js', source);
+
+    assert.match(output, /return \{ wrapperBorderRadius: 1 \}/);
+    assert.match(output, /\(\{ wrapperBorderRadius: 2 \}\)/);
+    assert.match(output, /tokens: \{ borderRadius: 3 \}/);
   });
 
   it('does nothing in a file that has no connection to Handsontable', async() => {

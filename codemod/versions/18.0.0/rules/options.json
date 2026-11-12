@@ -4,7 +4,6 @@
       "id": "18.0.0/numeric-format-culture",
       "kind": "optionMove",
       "safe": true,
-      "minConfidence": "medium",
       "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
       "from": "numericFormat.culture",
       "to": "locale"
@@ -33,7 +32,10 @@
       "safe": true,
       "from": "columnHeaders",
       "to": "colHeaders",
-      "context": { "callArg": ["exportAsString", "exportAsBlob", "exportAsBlobAsync", "downloadFile", "downloadFileAsync"] },
+      "context": {
+        "callArg": ["exportAsString", "exportAsBlob", "exportAsBlobAsync", "downloadFile", "downloadFileAsync"],
+        "receiver": { "plugin": "exportFile" }
+      },
       "message": "The columnHeaders export option has been deprecated since 17.1 and is removed in 19.0. colHeaders is the replacement and keeps the meaning of the value."
     }
   ]

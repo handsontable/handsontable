@@ -12,6 +12,7 @@
 import {
   calleeName,
   memberName,
+  pluginKeyOf,
   propertyName,
   stringValue,
   typeArguments,
@@ -38,6 +39,10 @@ import { invalidateScope, lookup, moduleBindings, referenceSpace } from './scope
  * `Handsontable.Core`, or a `Core` or `HotInstance` type imported from Handsontable, `this.x` assigned from
  * `new <namespace>(...)`, and `ref.current` or `ref.value` of a `useRef`, `createRef`, or `ref` holder typed as
  * one of those. An unrelated `.undo()` receiver gives `false`.
+ * @property {(path: object, keys: string[]) => boolean} isPluginReceiver Whether an expression NodePath is a
+ * plugin of one of the keys: a direct `<x>.getPlugin('<key>')` call (optional chaining included), or a variable
+ * or `this` member that the file sets from such a call. One hop, and every value the name is set from must be a
+ * listed plugin.
  * @property {(path: object) => string|null} resolveNamespaceMember For a `MemberExpression`,
  * `OptionalMemberExpression`, or `TSQualifiedName` chain rooted at a namespace binding, the dotted path after
  * the root (`helper.sanitize`, `plugins.ColumnSorting.Settings`). `null` for any other expression, for a
@@ -106,6 +111,56 @@ function requireOf(init) {
   }
 
   return null;
+}
+
+const LOCAL_VALUE_TYPES = new Set([
+  'ObjectExpression',
+  'NewExpression',
+  'ClassExpression',
+  'ArrayExpression',
+  'StringLiteral',
+  'NumericLiteral',
+  'BooleanLiteral',
+  'Literal',
+  'TemplateLiteral',
+]);
+
+/**
+ * Whether a receiver is unresolved: the file shows neither what it is nor that it is something else. A `this` or
+ * `super` receiver, a member chain rooted at one, a local object, class, function, or import, and a plugin
+ * looked up by key are resolved. A global, a parameter, and the result of another call are not.
+ *
+ * @param {object} path The receiver NodePath.
+ * @returns {boolean} `true` when a call on it may still be on the thing a rule is about.
+ */
+export function isUnresolvedReceiver(path) {
+  let current = unwrapPath(path);
+
+  while (current.node.type === 'MemberExpression' || current.node.type === 'OptionalMemberExpression') {
+    current = unwrapPath(current.get('object'));
+  }
+
+  const { node } = current;
+
+  if (node.type === 'ThisExpression' || node.type === 'Super' || pluginKeyOf(node) !== null) {
+    return false;
+  }
+
+  if (node.type !== 'Identifier') {
+    return true;
+  }
+
+  const binding = lookup(current, node.name, 'value');
+
+  if (!binding) {
+    return true;
+  }
+
+  if (['function', 'class', 'import'].includes(binding.kind)) {
+    return false;
+  }
+
+  return !(binding.init && LOCAL_VALUE_TYPES.has(unwrapNode(binding.init).type));
 }
 
 /**
@@ -645,6 +700,119 @@ export function collectHotBindings(j, root) {
     }
   }
 
+  /**
+   * Plugin keys each binding and each `this` member is set from, filled on the first query.
+   *
+   * @type {{ids: Map<object, Set<string>>, members: WeakMap<object, Map<string, Set<string>>>}|null}
+   */
+  let pluginTable = null;
+
+  /**
+   * Fill `pluginTable` from the declarators, assignments, and class properties of the file.
+   *
+   * @returns {{ids: Map<object, Set<string>>, members: WeakMap<object, Map<string, Set<string>>>}} The table.
+   */
+  const buildPluginTable = () => {
+    const ids = new Map();
+    const members = new WeakMap();
+    const note = (table, key, pluginKey) => {
+      if (!table.has(key)) {
+        table.set(key, new Set());
+      }
+
+      table.get(key).add(pluginKey);
+    };
+    const noteMember = (classNode, name, pluginKey) => {
+      if (!members.has(classNode)) {
+        members.set(classNode, new Map());
+      }
+
+      note(members.get(classNode), name, pluginKey);
+    };
+
+    declarators.forEach((path) => {
+      const pluginKey = pluginKeyOf(path.node.init);
+
+      if (path.node.id.type === 'Identifier' && pluginKey !== null) {
+        note(ids, path.node.id, pluginKey);
+      }
+    });
+
+    assignments.forEach((path) => {
+      const pluginKey = path.node.operator === '=' ? pluginKeyOf(path.node.right) : null;
+      const left = unwrapPath(path.get('left'));
+
+      if (pluginKey === null) {
+        return;
+      }
+
+      if (left.node.type === 'Identifier') {
+        const binding = lookup(left, left.node.name, 'value');
+
+        if (binding) {
+          note(ids, binding.idNode, pluginKey);
+        }
+      } else if ((left.node.type === 'MemberExpression' || left.node.type === 'OptionalMemberExpression')
+        && left.node.object.type === 'ThisExpression') {
+        const classNode = enclosingClass(left);
+        const name = memberName(left.node);
+
+        if (classNode && name !== null) {
+          noteMember(classNode, name, pluginKey);
+        }
+      }
+    });
+
+    classProperties.forEach((path) => {
+      const classNode = enclosingClass(path);
+      const name = propertyName(path.node);
+      const pluginKey = pluginKeyOf(path.node.value);
+
+      if (classNode && name !== null && pluginKey !== null) {
+        noteMember(classNode, name, pluginKey);
+      }
+    });
+
+    return { ids, members };
+  };
+
+  /**
+   * Whether an expression is a plugin of one of the given keys: a direct `<x>.getPlugin('<key>')` call, or a
+   * variable or `this` member that the file sets from such a call. Every value the name
+   * is set from must be a listed plugin.
+   *
+   * @param {object} path Expression NodePath.
+   * @param {string[]} keys Plugin keys the receiver may be.
+   * @returns {boolean} `true` when the file shows the receiver is one of those plugins.
+   */
+  const isPluginReceiver = (path, keys) => {
+    const allowed = new Set(keys);
+    const target = unwrapPath(path);
+    const direct = pluginKeyOf(target.node);
+
+    if (direct !== null) {
+      return allowed.has(direct);
+    }
+
+    pluginTable = pluginTable ?? buildPluginTable();
+
+    let found = null;
+
+    if (target.node.type === 'Identifier') {
+      const binding = lookup(target, target.node.name, 'value');
+
+      found = binding ? pluginTable.ids.get(binding.idNode) : null;
+    } else if ((target.node.type === 'MemberExpression' || target.node.type === 'OptionalMemberExpression')
+      && target.node.object.type === 'ThisExpression') {
+      const classNode = enclosingClass(target);
+      const name = memberName(target.node);
+
+      found = classNode && name !== null ? pluginTable.members.get(classNode)?.get(name) : null;
+    }
+
+    return Boolean(found) && [...found].every(key => allowed.has(key));
+  };
+
   const getComponent = (path) => {
     let target = path;
 
@@ -685,6 +853,7 @@ export function collectHotBindings(j, root) {
     isHotFile: flags.hotImport || namespace.length > 0 || componentIds.size > 0 || flags.angular || flags.vue,
     isModular: valueSources.has('base') && !valueSources.has('handsontable'),
     isInstance: path => classify(path),
+    isPluginReceiver,
     resolveNamespaceMember,
     isNamespaceIdentifier,
     getComponent,

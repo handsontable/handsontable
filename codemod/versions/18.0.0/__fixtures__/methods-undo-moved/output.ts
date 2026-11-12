@@ -37,7 +37,7 @@ export function useHistory() {
 }
 
 function legacy(other) {
-  return other.getPlugin('undoRedo').clear();
+  return other.clearUndo();
 }
 
 hot.getPlugin('undoRedo').undo();

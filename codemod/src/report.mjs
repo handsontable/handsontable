@@ -42,9 +42,17 @@ function compareRuleIds(a, b) {
  */
 export class Report {
   constructor() {
-    /** @type {import('./types.mjs').ReportEntry[]} */
+    /**
+     * @type {import('./types.mjs').ReportEntry[]}
+     */
     this.entries = [];
     this.keys = new Map();
+    /**
+     * Notes about the run itself, such as a `--to` above every known migration. Both renderers print them first.
+     *
+     * @type {string[]}
+     */
+    this.notes = [];
   }
 
   /**
@@ -231,6 +239,48 @@ function messageOf(entry) {
 }
 
 /**
+ * The line numbers an entry stands for, when it stands for several, as `Lines: 3, 9-11.`.
+ *
+ * @param {import('./types.mjs').ReportEntry} entry The entry.
+ * @returns {string} The text, or an empty string.
+ */
+function linesOf(entry) {
+  return entry.lines?.length > 1 ? `Lines: ${formatLines(entry.lines)}.` : '';
+}
+
+/**
+ * Split the entries of one rule into runs that share a message. A message that more than one entry carries is
+ * stated once and the locations follow it. An entry with a message of its own keeps it.
+ *
+ * @param {import('./types.mjs').ReportEntry[]} entries The entries of one rule, in print order.
+ * @returns {Array<{message: string|null, entries: import('./types.mjs').ReportEntry[]}>} The runs. `message` is
+ * `null` for a run of one entry that carries its own message.
+ */
+export function clusterByMessage(entries) {
+  const counts = new Map();
+
+  entries.forEach(entry => counts.set(entry.message, (counts.get(entry.message) ?? 0) + 1));
+
+  const clusters = [];
+  const shared = new Map();
+
+  for (const entry of entries) {
+    if (counts.get(entry.message) < 2) {
+      clusters.push({ message: null, entries: [entry] });
+    } else if (shared.has(entry.message)) {
+      shared.get(entry.message).entries.push(entry);
+    } else {
+      const cluster = { message: entry.message, entries: [entry] };
+
+      shared.set(entry.message, cluster);
+      clusters.push(cluster);
+    }
+  }
+
+  return clusters;
+}
+
+/**
  * The one line that sums up a run. The console report and the Markdown report both print it.
  *
  * @param {Report} report The report.
@@ -278,6 +328,8 @@ function fileList(files, limit) {
 export function renderConsole(report, { filesChanged = 0, dryRun = false, limit = CONSOLE_LIMIT } = {}) {
   const lines = [];
 
+  report.notes.forEach(note => lines.push(note, ''));
+
   report.byRule().forEach((group) => {
     const counts = {};
 
@@ -286,8 +338,19 @@ export function renderConsole(report, { filesChanged = 0, dryRun = false, limit 
     });
 
     lines.push(`${group.ruleId} (${Object.entries(counts).map(([name, count]) => `${count} ${name}`).join(', ')})`);
-    group.entries.slice(0, limit).forEach((entry) => {
-      lines.push(`  [${entry.severity}] ${location(entry)}  ${messageOf(entry)}`);
+    clusterByMessage(group.entries.slice(0, limit)).forEach((cluster) => {
+      if (cluster.message === null) {
+        const [entry] = cluster.entries;
+
+        lines.push(`  [${entry.severity}] ${location(entry)}  ${messageOf(entry)}`);
+
+        return;
+      }
+
+      lines.push(`  ${cluster.message}`);
+      cluster.entries.forEach((entry) => {
+        lines.push(`    [${entry.severity}] ${location(entry)}${linesOf(entry) ? `  ${linesOf(entry)}` : ''}`);
+      });
     });
 
     if (group.entries.length > limit) {
@@ -337,17 +400,29 @@ export function renderConsole(report, { filesChanged = 0, dryRun = false, limit 
  *
  * @param {Report} report The report.
  * @param {object} [options] Options.
- * @param {string} [options.title] Document title.
+ * @param {string} [options.title] Document title. Without it the title says `Handsontable migration report`, and
+ * adds `from`, `to`, and `date` when they are given.
+ * @param {string} [options.from] Version the project was on.
+ * @param {string} [options.to] Version the run migrated to.
+ * @param {string} [options.date] Date of the run, `YYYY-MM-DD`.
  * @param {number} [options.filesChanged] Files the run changed, or would change.
  * @param {boolean} [options.dryRun] Whether nothing was written.
  * @returns {string} Markdown that ends with a newline.
  */
 export function renderMarkdown(report, {
-  title = 'Handsontable migration report',
+  title,
+  from,
+  to,
+  date,
   filesChanged = 0,
   dryRun = false,
 } = {}) {
-  const lines = [`# ${title}`, '', summaryLine(report, { filesChanged, dryRun }), ''];
+  const range = from && to ? `: ${from} to ${to}` : '';
+  const heading = title ?? `Handsontable migration report${range}${date ? ` (${date})` : ''}`;
+  const lines = [`# ${heading}`, ''];
+
+  report.notes.forEach(note => lines.push(note, ''));
+  lines.push(summaryLine(report, { filesChanged, dryRun }), '');
 
   if (report.entries.length === 0) {
     lines.push('Nothing to report.', '');
@@ -360,11 +435,22 @@ export function renderMarkdown(report, {
       lines.push(`Guide: ${group.guideUrl}`, '');
     }
 
-    group.entries.forEach((entry) => {
-      const mark = entry.severity === 'changed' ? 'x' : ' ';
-      const tag = entry.severity === 'warning' ? '(warning) ' : '';
+    clusterByMessage(group.entries).forEach((cluster) => {
+      if (cluster.message !== null) {
+        lines.push(cluster.message, '');
+      }
 
-      lines.push(`- [${mark}] ${location(entry)} ${tag}${messageOf(entry)}`);
+      cluster.entries.forEach((entry) => {
+        const mark = entry.severity === 'changed' ? 'x' : ' ';
+        const tag = entry.severity === 'warning' ? '(warning) ' : '';
+        const text = cluster.message === null ? messageOf(entry) : linesOf(entry);
+
+        lines.push(`- [${mark}] ${location(entry)}${text || tag ? ` ${tag}${text}` : ''}`.trimEnd());
+      });
+
+      if (cluster.message !== null) {
+        lines.push('');
+      }
     });
 
     lines.push('');
@@ -388,5 +474,5 @@ export function renderMarkdown(report, {
     lines.push('');
   }
 
-  return `${lines.join('\n')}`;
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n');
 }

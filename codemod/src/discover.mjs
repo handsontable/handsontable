@@ -1,5 +1,5 @@
-import { readdir, stat } from 'node:fs/promises';
-import { join, relative, resolve, sep } from 'node:path';
+import { lstat, readdir, realpath, stat } from 'node:fs/promises';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { isCandidate } from './adapters/index.mjs';
 import { UsageError } from './errors.mjs';
 import { isGitRepo, listFiles } from './git.mjs';
@@ -38,38 +38,119 @@ export function isSkipped(filePath) {
 }
 
 /**
- * Walk a directory without git, skipping the skipped directories and symbolic links.
+ * A symbolic link that discovery did not follow.
+ *
+ * @typedef {object} SkippedLink
+ * @property {string} file Project-relative path with forward slashes of the link itself.
+ */
+
+/**
+ * Tell whether a path from `path.relative()` leaves the directory it was made relative to.
+ *
+ * @param {string} rel Relative path with the platform separator.
+ * @returns {boolean} `true` for `..`, a path that starts with `..` and a separator, and an absolute path (another
+ * drive on Windows). A name that merely starts with two dots, such as `..odd`, stays inside.
+ */
+function leavesDirectory(rel) {
+  return rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel);
+}
+
+/**
+ * Walk a directory without git, skipping the skipped directories. A symbolic link is never followed: a link to a
+ * file that a rule could edit, or to a directory, is handed to `onLink`.
  *
  * @param {string} dir Absolute directory path.
  * @param {string} cwd Project directory that paths are made relative to.
  * @param {string[]} out Collected project-relative paths.
+ * @param {(file: string) => void} onLink Called with the project-relative path of a link that was left out.
  * @returns {Promise<void>}
  */
-async function walk(dir, cwd, out) {
+async function walk(dir, cwd, out, onLink) {
   const entries = await readdir(dir, { withFileTypes: true });
 
   for (const entry of entries) {
+    const path = join(dir, entry.name);
+
     if (entry.isDirectory()) {
       if (!SKIPPED_DIRECTORIES.has(entry.name)) {
-        await walk(join(dir, entry.name), cwd, out);
+        await walk(path, cwd, out, onLink);
       }
     } else if (entry.isFile()) {
-      out.push(toPosix(relative(cwd, join(dir, entry.name))));
+      out.push(toPosix(relative(cwd, path)));
+    } else if (entry.isSymbolicLink()) {
+      const rel = toPosix(relative(cwd, path));
+      const target = await stat(path).catch(() => null);
+      const matters = target?.isDirectory() ? !SKIPPED_DIRECTORIES.has(entry.name)
+        : Boolean(target) && isCandidate(rel) && !isSkipped(rel);
+
+      if (matters) {
+        onLink(rel);
+      }
     }
   }
 }
 
 /**
- * Tell whether a regular file exists at a path.
+ * Tell whether a regular file exists at a path. A symbolic link is not a regular file, so it is reported to
+ * `onLink` and left out.
  *
  * @param {string} path Absolute path.
+ * @param {() => void} onLink Called when the path is a symbolic link.
  * @returns {Promise<boolean>} `true` for an existing regular file.
  */
-async function isFile(path) {
+async function isFile(path, onLink) {
   try {
-    return (await stat(path)).isFile();
+    const info = await lstat(path);
+
+    if (info.isSymbolicLink()) {
+      onLink();
+
+      return false;
+    }
+
+    return info.isFile();
   } catch {
     // A path git still lists but that is gone from disk (deleted, not yet staged) is not a file to migrate.
+    return false;
+  }
+}
+
+/**
+ * Find the first symbolic link on the way from the project directory to a path, the path itself included.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string} rel Relative path with the platform separator, inside `cwd`.
+ * @returns {Promise<string|null>} The relative path of the link, or `null` when no component is a link.
+ */
+async function firstLinkOn(cwd, rel) {
+  const segments = rel.split(sep).filter(Boolean);
+
+  for (let count = 1; count <= segments.length; count += 1) {
+    const prefix = segments.slice(0, count).join(sep);
+    const info = await lstat(join(cwd, prefix)).catch(() => null);
+
+    if (info?.isSymbolicLink()) {
+      return prefix;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Tell whether a file's real location, with every link resolved, is inside the project's real directory. The run
+ * checks it before it writes.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string} file Project-relative path.
+ * @returns {Promise<boolean>} `true` when the file resolves to a place inside the project.
+ */
+export async function resolvesInside(cwd, file) {
+  try {
+    const [root, real] = await Promise.all([realpath(cwd), realpath(join(cwd, file))]);
+
+    return !leavesDirectory(relative(root, real));
+  } catch {
     return false;
   }
 }
@@ -83,20 +164,39 @@ async function isFile(path) {
  * @param {object} options Options.
  * @param {string} options.cwd Project directory. Returned paths are relative to it.
  * @param {string[]} [options.paths] Files or directories to search, relative to `cwd`. Defaults to `cwd`.
+ * @param {SkippedLink[]} [options.skipped] Receives one item per symbolic link that was left out: a file or
+ * directory link met while searching, a path argument that is a link or sits below one. Symbolic links are never
+ * followed, because a link can point outside the project.
  * @returns {Promise<string[]>} Sorted project-relative paths with forward slashes.
  */
-export async function discover({ cwd, paths = [] }) {
+export async function discover({ cwd, paths = [], skipped = [] }) {
   const roots = paths.length > 0 ? paths : ['.'];
   const found = new Set();
+  const links = new Set();
   const repo = await isGitRepo(cwd);
   const tracked = repo ? await listFiles(cwd) : null;
+  const noteLink = (file) => {
+    if (!links.has(file)) {
+      links.add(file);
+      skipped.push({ file });
+    }
+  };
 
   for (const root of roots) {
     const absolute = resolve(cwd, root);
-    const rel = toPosix(relative(cwd, absolute));
+    const raw = relative(cwd, absolute);
 
-    if (rel.startsWith('..')) {
+    if (leavesDirectory(raw)) {
       throw new UsageError(`"${root}" is outside the project directory.`);
+    }
+
+    const rel = toPosix(raw);
+    const link = await firstLinkOn(cwd, raw);
+
+    if (link !== null) {
+      noteLink(toPosix(link));
+
+      continue;
     }
 
     let info;
@@ -122,11 +222,11 @@ export async function discover({ cwd, paths = [] }) {
 
       candidates.push(...tracked.filter(file => file.startsWith(prefix)));
     } else {
-      await walk(absolute, cwd, candidates);
+      await walk(absolute, cwd, candidates, noteLink);
     }
 
     for (const file of candidates) {
-      if (isCandidate(file) && !isSkipped(file) && (await isFile(join(cwd, file)))) {
+      if (isCandidate(file) && !isSkipped(file) && (await isFile(join(cwd, file), () => noteLink(file)))) {
         found.add(file);
       }
     }

@@ -122,6 +122,8 @@ describe('the CLI on a 17.1 project', () => {
     assert.match(result.stdout, /^Summary: 7 files changed, /m);
     assert.match(result.stdout, /^Next: run your formatter and linter on the changed files\.$/m);
     assert.match(result.stdout, /^Next: run tsc and your tests\.$/m);
+    assert.match(result.stdout, /^Next: work through the \d+ manual steps in the report\. Find the markers with: /m);
+    assert.ok(result.stdout.includes('git grep "TODO(handsontable-codemod"'));
     assert.deepEqual(changedFiles(dir), MIGRATED);
     await assertUntouched(dir, UNTOUCHED);
 
@@ -170,8 +172,10 @@ describe('the CLI on a 17.1 project', () => {
 
     assert.match(report, /^## 18\.0\.0\/numbro-pattern$/m);
     assert.ok(report.includes(`Guide: ${GUIDE}#`));
-    assert.match(report, /^- \[ \] src\/grid\.js:7 Handsontable 18\.0 removed Numbro\.js/m);
-    assert.match(report, /^- \[ \] src\/App\.tsx:\d+ Handsontable 18\.0 removed Numbro\.js/m);
+    assert.match(report, /^# Handsontable migration report: 17\.1 to 18\.1\.0 \(\d{4}-\d{2}-\d{2}\)$/m);
+    assert.equal(report.match(/Handsontable 18\.0 removed Numbro\.js/g).length, 1);
+    assert.match(report, /^- \[ \] src\/grid\.js:7$/m);
+    assert.match(report, /^- \[ \] src\/App\.tsx:\d+$/m);
     assert.match(report, /^- \[ \] src\/angular\.component\.html:1 Rename --ht-wrapper-border-radius to /m);
     assert.ok(report.includes('- [x] package.json Updated handsontable in dependencies from "^17.1.0" to "^18.1.0".'));
   }));

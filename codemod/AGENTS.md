@@ -51,14 +51,18 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
 | `src/adapters/unsupported-style.mjs` | `.less`, `.styl`, `.stylus`, `.sass`: never parsed, only reported through `skipReason`. |
 | `src/lib/safety.mjs` | The meaning of `safe`: `rewrites(rule)`, `modeOf(rule)`, `requiresSafe(kind)`, `reportInstead()`. |
+| `src/lib/json-edit.mjs` | `JsonDocument`: edits a `package.json` by offset (`setString()`, `addMember()`), `scanJson()`, `memberPosition()`. Every edit is verified against the parsed model. |
+| `src/lib/validate.mjs` | `problemsOf()` and `assertRenameOrRemoval()`, the helpers behind the `validate(rule)` hook of a transform. |
+| `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
+| `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, ...) and `isUnresolvedReceiver()`. |
 | `src/lib/facts.mjs` | `addFact(ctx, name)` and `hasFactFor(ctx, name)`: facts keyed by name and directory. |
 | `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. |
 | `src/transforms/import-source.mjs`, `export-rename.mjs`, `namespace-type.mjs`, `export-removed.mjs` | `importSource`, `exportRename`, `namespaceType`, and `exportRemoved` (rule shapes in Traps). |
 | `src/lib/type-rules.mjs` | Shared by those four: `*` module and path patterns, option keys and advice placeholders, `chooseSource()` (which candidate module a name is imported from), `reportOpaqueReferences()`. |
 | `src/transforms/methods.mjs`, `call-unwrap.mjs` | `methodRemove` and `methodMove` (receiver rule, see Traps), and `callUnwrap`. |
 | `src/transforms/options.mjs` | `optionRename`, `optionMove`, `optionRemove` on option objects, wrapper attributes, and `context.callArg` arguments (see Traps). |
-| `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportOnly`, `replaced`, and `facts`. `matchesWhen(j, root, when)` is the fact matcher. |
-| `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id), `renderConsole()`, `renderMarkdown()`, `summaryLine()` (both renderers print it), `SKIPPED_RULE_ID`. |
+| `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportMissing`, `reportPresent`, `replaced`, and `facts` (item fields in "Rule fields by kind"). `matchesWhen(j, root, when)` is the fact matcher. |
+| `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id, `notes` for the top of the report), `renderConsole()`, `renderMarkdown()` (title with the versions and the date), `summaryLine()` (both renderers print it), `clusterByMessage()` (a message that several locations share is printed once, then the locations), `SKIPPED_RULE_ID`. |
 | `src/discover.mjs`, `git.mjs`, `diff.mjs` | Support modules. |
 | `versions/<semver>/` | `manifest.json`, optional `custom/*.mjs`, optional extra rule files, `__fixtures__/`. |
 | `test/*.test.mjs`, `test/helpers/` | Tests (`node:test`). Helpers are not listed in the test script. |
@@ -74,13 +78,26 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    A range with no manifest (`--from` not below `--to`) is a usage error that lists the known migrations. The
    auto-detect (`detectProjectVersion()`) runs once per path argument, from the path up to `cwd`, and paths that
    resolve to different versions are a usage error that asks for `--from`.
+   The `from` of every manifest says which line it migrates from, and the lowest one is the oldest covered version
+   (`oldestCovered()`). A `--from` below it is a usage error that names the earlier guides from `EARLIER_GUIDES` in
+   `versions.mjs` (`uncoveredSteps()`), unless `--allow-uncovered` turns the same text into a note at the top of the
+   report. A `--to` on a later minor line than the newest migration in range (`isNewerLine()`) runs up to that
+   migration and says so, in the notes and at the top of the report. An empty range explains itself through
+   `nothingToMigrate()`: a version that came from `package.json` or `node_modules` gets "already names", and a
+   partial `--from` gets the `--from <minor>` hint taken from the `from` of a manifest. A `handsontable` range that
+   names no version (`latest`) is a usage error that asks for `--from`.
 2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. It does not apply to `--dry-run`,
    `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
    the first write. An untracked file at the `--report` path (`reportPath`) is not a change.
 3. `discover()` lists files (`git ls-files -z --cached --others --exclude-standard`, or an fs walk), drops
    `node_modules`, `dist`, `build`, `coverage`, `.git`, `*.min.*`, `*.d.ts`, files deleted on disk, and any
    extension no adapter handles. JSON is limited to `package.json`. A file named on the command line bypasses the
-   generated-output filter.
+   generated-output filter. It never follows a symbolic link: a link to a file or a directory, a path argument that
+   is one or sits below one, goes to its `skipped` list and the report shows it under "Skipped files". A path
+   check uses `leavesDirectory()`, so a directory named `..odd` is inside the project. Before a write, `run()` asks
+   `resolvesInside()`: the real path of the file must be inside the real project directory. `--report` is refused
+   (exit 2) when its target is a symbolic link, a file git tracks, or a file the run migrates
+   (`assertReportTarget()`).
 4. Phase 1 visits every file through `transformFile()`: adapter by extension, skip when no selected rule has a
    registered transform for the adapter's kinds, skip when the adapter's cheap `precheck` regex does not match,
    parse once, run versions ascending and kinds in `KIND_ORDER`, print only parts that called `markChanged()`.
@@ -126,6 +143,8 @@ of its earliest kind in `KIND_ORDER`.
 | `root` | Parsed form, edited in place. `js`: a jscodeshift Collection. `css`: a postcss Root. `json`: the parsed value. |
 | `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. |
 | `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
+| `comment(target, ruleId, text)` | The comment half of `todo()`: the same TODO comment, no report entry. A removal uses it, so its one `changed` entry carries the advice. |
+| `json` | For a `json` part, the `JsonDocument` that edits the text by offset: `setString(section, name, value)` and `addMember(section, name, value)` return `false` and change nothing when the scan of the text and the parsed file disagree, and the transform then reports `manual`. `null` for every other kind. A transform never prints a `package.json` with `JSON.stringify`. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
 | `options` | `{ aggressive, dryRun }`. Never write to disk from a transform. |
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
@@ -153,16 +172,73 @@ kind list and each required list against the schema, and `KIND_ORDER` against bo
 `custom` rules name a module, relative to the version directory, that default-exports
 `{ fileKinds, apply(ctx, rule) }`; `src/transforms/custom.mjs` runs it with the same `ctx`.
 
+A transform may export `validate(rule)`: it returns the problems of one rule that the table cannot express (a
+`cssVariable` with neither `to` nor `removed`, a `methodMove` with a bad `via`, a `detect` without `message`). The
+registry exposes it as `registry.validate(rule)` and `loadManifest()` calls it for every rule that passed the shape
+check, so a malformed rule fails `--list` and `manifest.test.mjs` with the rule id and the field, and never shows up
+as a per-file `transform-error`. Write the check as a function that throws, use it in `apply`, and wrap it with
+`problemsOf()`.
+
+### Rule fields by kind
+
+Fields differ between kinds on purpose (`from` is an option name, a module, or a CSS variable): do not rename a field
+across kinds. Every kind also takes the common fields, and `safe` is required except for `detect` and
+`exportRemoved`. `*` marks a required field.
+
+| Kind | Fields |
+|---|---|
+| `importSource` | `from*` module, `exports*` (name to `{ to, note }` or `{ removed, advice }`), `fallback`, `moduleRemoved`, `todo` |
+| `exportRename` | `source*` (module or list), `from*`, `to*`, `toSource`, `note`, `todo` |
+| `namespaceType` | `from*` (path or list), `to: { name?, source }` or `removed` + `advice`, `positions`, `optionKeys`, `noKeyAdvice`, `note`, `todo` |
+| `exportRemoved` | `source*` (module, list, or `handsontable/plugins/*`), `name*`, `advice*`, `except`, `optionKeys`, `noKeyAdvice`, `message` (replaces the lead sentence "is no longer exported from"; same placeholders as `advice`) |
+| `optionRename` | `from*`, `to*`, `context: { callArg: [methods], receiver?: { plugin } }` |
+| `optionMove` | `from*` (`<option>.<key>`), `to*` (a sibling), `report` |
+| `optionRemove` | `name*`, `todo`, `advice` |
+| `methodRemove` | `methods*`, `receiver*` (`"any"`, `"instance"`, or `{ plugin: key or keys }`), `advice` |
+| `methodMove` | `methods*` (old to new name), `via*` (`{ method, args }`), `receiver*` (`"instance"` or `{ plugin }`), `properties` |
+| `callUnwrap` | `callee*` (dotted path), `arg` |
+| `cssVariable`, `themeToken` | `from*`, then `to` or `removed` + `advice`; `themeToken` also `callees` |
+| `dependency` | `bump`, `replaced`, `add`, `reportMissing`, `reportPresent`, `facts` (item fields below) |
+| `detect` | `match*`, `files`, `message`, `severity`, `requires`, `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the later one wins) |
+| `custom` | `module*`, plus whatever the module reads (`mode`) |
+
+`dependency` item fields: `bump` maps a package name to a target version. `replaced` maps a package name to the
+manual text that names its replacement. `add` items take `name*`, `range*`, `whenFact`, `onlyIfDependsOn` (a package
+name or a list; the item applies when the `package.json` declares one of them). `reportMissing` items (the package
+is not declared) take `name*`, `whenFact`, `onlyIfDependsOn`, `message`. `reportPresent` items (the package is
+declared) take `name*`, `message*`, `whenFact`, `onlyIfDependsOn`. `whenFact` names a fact that phase 1 found for the
+project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `{ import: "<module>" }` or
+`{ property: "<key>", withKey?: "<key>" }`, and phase 1 adds the fact when a js part matches.
+
 ## How to add a version
 
-1. Create `versions/<major.minor.patch>/manifest.json` with `version` (equal to the directory name), `status`
+1. Create `versions/<major.minor.patch>/manifest.json` with `version` (equal to the directory name), `from` (the
+   version line it migrates from: `"17"` for 18.0.0, `"18.0"` for 18.1.0; it must be below `version`), `status`
    (`released` or `draft`), `guide: { url, source }`, and `rules`. `guide.source` is the repository path of the
    migration guide page. `guide.url` is `https://handsontable.com/docs/javascript-data-grid/<permalink>`
-   without a trailing slash, with the permalink read from the guide's frontmatter.
-2. Give each rule an id `<version>/<slug>`, a `guide` anchor that exists on the page, and `safe` (a boolean, except on
-   `detect` and `exportRemoved` rules). Add the rule to the counts in `README.md`.
-3. Add fixtures (below). `manifest.test.mjs` already checks that every manifest loads, ids are unique and
-   prefixed, and the guide source file exists.
+   without a trailing slash, with the permalink read from the guide's frontmatter. Put the rules in
+   `rules/*.json` files and list them in `include`.
+2. Generate the exports diff when the release changed the typings: run `tools/derive-type-map.mjs` on the two
+   packed releases and save the result as `versions/<version>/exports-diff.generated.json`.
+   `test/type-rules.test.mjs` loops over every diff file and fails until every removed export and every removed
+   `Handsontable` namespace member has a rule. A version without a diff file is skipped.
+3. Give each rule an id `<version>/<slug>`, a `guide` anchor that exists on the page (leave it out when the page
+   has no section for the rule), and `safe` (a boolean, except on `detect` and `exportRemoved` rules). Pick the kind
+   and its fields from "Rule fields by kind". A malformed rule fails when the manifests load.
+4. Add fixtures (below), one per rule at least, with a negative case next to each positive one.
+5. Add a row to the "Supported migrations" table of `README.md` and update the kind table. The first column is
+   `<from line> to <major.minor>`, for example `18.0 to 18.1`. `test/readme.test.mjs` requires one row per released
+   manifest and compares the counts with `--list`.
+6. Decide `status`. A `draft` manifest runs only with `--include-draft`, and `--to` defaults to the latest
+   `released` one, so a migration under work stays `draft` until its guide is final.
+7. Run the package tests, the lint, and the smoke test. `manifest.test.mjs` checks that every manifest loads, ids
+   are unique and prefixed, `from` is valid, and the guide source file and anchors exist.
+
+### Planned for 19.0
+
+A first read of the 19.0 migration guide sorted its sections into four buckets: 18 can be written with the existing
+kinds, 11 need a small extension of a kind, 4 need a custom module, and 26 cannot be automated. Draft the manifest
+in that order and start with the first bucket.
 
 ## How to add a rule
 
@@ -186,8 +262,12 @@ with no registered transform is listed as "not implemented" by `--list` and skip
 `options.json`. `test/fixtures.test.mjs` finds every fixture by itself and, per fixture:
 
 - transforms the input with only that version's manifest and asserts the output equals `output.<ext>`;
+- asserts that no entry is a `parse-error` or a `transform-error`;
 - compares `report.json`, an array of `{ ruleId, severity, line? }`: every expected entry must match a distinct
-  actual entry on the fields it names, and extra actual entries are allowed;
+  actual entry on the fields it names, and extra actual entries are allowed. `report.json` may also be
+  `{ "exact": true, "entries": [...] }`: the actual report must then have exactly that many entries, each matched on
+  the fields it names. Every `detect-*` fixture and every negative fixture uses exact mode (an empty list for a
+  negative fixture that reports nothing), and a fixture whose run reports anything has a `report.json`;
 - transforms the output again and asserts zero changes (idempotency);
 - treats a fixture whose output equals its input as a negative fixture that must stay byte-identical.
 
@@ -261,13 +341,26 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `markChanged()`.
 - `cssVariable` and `themeToken` rules are a rename (`from`, `to`) or a removal (`from`, `removed: true`, `advice`).
   `RULE_KINDS` cannot express "`to` or `removed`", so the transforms throw on a rule with neither and
-  `test/styles.test.mjs` pins the shipped rules. `themeToken` rewrites keys only inside the arguments of
-  `registerTheme`, `reinitTheme`, and `.params()` (a rule can set `callees`); `createTheme` is not public API.
+  `validate(rule)` of both kinds checks it at load. `themeToken` rewrites keys only inside the arguments of
+  `registerTheme`, `reinitTheme`, and `.params()` (a rule can set `callees`); `createTheme` is not public API. A
+  `.params()` call needs a theme receiver (`isThemeReceiver()`): a call chain rooted at a binding of
+  `handsontable/themes` (import, namespace import, or `require`), or a variable that holds one (`addThemeVariables()`,
+  one hop). `axios.get(url).params({ ... })` stays untouched. The search for keys stops at a function nested in the
+  argument (`insideNestedFunction()`), because code that runs later is not the theme configuration.
 - A guide anchor on the docs site drops the list number: `## 6. Update theme wrapper border variables` is
   `#update-theme-wrapper-border-variables`, not the old `#_6-...` form.
 - Option rules (`options.mjs`): a rule rewrites an object when its confidence from `findOptionObjects` reaches the
   rule's `minConfidence` (default `high`, `--aggressive` lowers every rule to `medium`); below the bar the key is
-  only reported. `medium` objects exist only in a file that imports or uses Handsontable (`isHotFile`), so a file with
+  only reported. No shipped rule sets `minConfidence`, so a heuristic object is reported until `--aggressive`.
+  `optionRemove` keeps every comment of the removed property (`carryComments()` moves them in front of the next
+  property, else the previous one, else the enclosing anchor). It deletes the property only when its value is
+  inert (`isInertValue()`: a literal, an identifier, a member read, a function expression, or an operator, object,
+  array, or template over those). A value with a call, `new`, or `await` keeps the property, leaves a TODO, and
+  reports `manual`. A deletion makes one `changed` entry that carries the advice, and the comment comes from
+  `ctx.comment()`. `optionMove` moves nothing into an object that has a spread (or a JSX element with a spread
+  attribute), because the spread may already set the destination. `optionRename` with `context.callArg` and
+  `context.receiver: { plugin }` rewrites only calls on `x.getPlugin('<key>')` or a variable the file sets from it, and
+  reports a `manual` entry for a call on another unresolved receiver in a hot file that sets the key. `medium` objects exist only in a file that imports or uses Handsontable (`isHotFile`), so a file with
   none is never edited, even under `--aggressive`. A `heuristic` object also needs `corroborated()`: at least two known
   option names besides the key the rule acts on (`ownKey()`), one of them outside `GENERIC_OPTIONS`. So
   `{ locale, numericFormat: {...} }` and `{ correctFormat, datePickerConfig }` stay reports in a hot file. A
@@ -282,23 +375,45 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   The `advice` never says the property was deleted, because the rule may not be safe. The comment of a deletion starts
   with `Deleted <name> here.`. A rule that is not safe leaves the property and puts the TODO before it (before the
   enclosing property, statement, or array element when the object is on one line).
-- The `json` adapter prints with `JSON.stringify`, keeping indent, line ending, and trailing newline. Other
-  formatting of an edited `package.json` is normalized.
-- Adding the package changed `pnpm-lock.yaml`. jscodeshift is a new dependency that needs team sign-off before the
-  package leaves draft.
+- The `json` adapter does not print the parsed value. A `package.json` is edited by offset through
+  `JsonDocument` (`ctx.json`), so every byte outside the edited value stays: escapes (`é`, `\/`), number
+  spelling (`1.0`, `1e3`), key order, tabs, CRLF, a minified file. An added dependency is one new line (or one new
+  member in a minified file) that copies the indentation, separators, and key order of its neighbors. The edited text
+  is parsed again and must equal the intended model, else nothing changes and the transform reports `manual`.
+  A repeated key in a section also gives `manual`.
+- Adding the package changed `pnpm-lock.yaml`, and it must change nothing else. The root `pnpm.overrides` pins
+  `postcss` to `^8.5.23`, so a new importer that asks for `postcss` re-resolves the existing consumers to the newest
+  match (css-loader and others moved from 8.5.23 to 8.5.31, with vue and nanoid moving along). The importer therefore
+  names `postcss` 8.5.23 and `@vue/compiler-sfc` 3.5.43, versions the lockfile already holds. After a change, restore
+  the lockfile of the merge base, add the importer by hand if needed, run `pnpm install --lockfile-only`, and check
+  that `git diff <merge base> -- pnpm-lock.yaml` has no removed line. jscodeshift is a new dependency that needs team
+  sign-off before the package leaves draft.
+- `package.json` `files` limits the package to `bin`, `src`, the manifests, `rules/**`, and `custom/**` of every version,
+  and the README. Tests, fixtures, tools, and the generated diffs stay out. After a change to it, run `npm pack
+  --dry-run --json` in a copy of the package outside the monorepo.
 - **Method rules have no type information, so the receiver is the safety story.** `methodMove` rules use
   `receiver: "instance"`: a call is rewritten only on a receiver that `isInstance()` confirms. An unconfirmed receiver
   gets a `manual` entry only when its name is on a short grid-name list (`GRID_NAME` in `methods.mjs`: `hot`, `grid`,
-  `table`, ...). A generic receiver (`editor.undo()`) stays silent, because `undo` and `redo` are common names.
-  `anyReceiver` lists names distinctive enough to rewrite anywhere in a Handsontable file. Keep plugin methods out of
-  it: `isUndoAvailable()` is a valid call on the plugin, so a rewrite on any receiver would break working code. A
+  `table`, ...). A generic receiver (`editor.undo()`) stays silent, because `undo` and `redo` are common names. A
   receiver that is already a `via` call (`x.getPlugin('undoRedo')`) is never rewritten, which keeps the rule
-  idempotent. `methodRemove` with `receiver: "any"` removes a name unique to Handsontable on any receiver, but skips a
-  name the file declares itself (a class that defines `saveManualColumnWidths()` is calling its own code). No method
-  rule touches a file that `isHotFile` rejects.
-- `methodRemove` deletes a call only when it is a whole expression statement (`await` and `void` allowed), and drops
-  the comments attached to that statement. A used result, an arrow expression body, and the body of a braceless `if`
-  or loop keep the call and get a TODO on the enclosing statement. A removal can leave an empty block, which stays.
+  idempotent. A rule has no list of names that rewrite on any receiver: `isUndoAvailable()` is a valid call on the
+  plugin, so such a rewrite would break working code.
+- **`receiver: { plugin }`** (`methodRemove` and `methodMove`, and `context.receiver` of `optionRename`) names the
+  plugin key or keys the receiver must be. `isPluginReceiver(path, keys)` in `lib/hot-bindings.mjs` says yes for
+  `<x>.getPlugin('<key>')` (any `x`, optional chaining included) and for a variable or `this` member that the file
+  sets from such a call, one hop, when every value of the name is a listed plugin. Anything else is never edited. A
+  report `manual` happens only when the receiver is unresolved (`isUnresolvedReceiver()`: a global, a parameter, or the
+  result of another call) and is not `this`, `super`, a member chain rooted at one, a local object or class, an import,
+  or the plugin of another key. `18.0.0/resize-state-methods` uses it, so `storage.saveManualColumnWidths()` and
+  `super.loadManualRowHeights()` stay untouched. `receiver: "any"` remains for a `methodRemove` rule whose names are
+  unique to Handsontable, and it skips a name the file declares itself.
+- `methodRemove` deletes a call only when it is a whole expression statement (`await` and `void` allowed), the call
+  has no arguments, and the receiver chain is made of identifiers, `this`, member reads, and `getPlugin('<literal>')`
+  (`isSimpleReceiver()`): `createGrid().getPlugin(...)` and `(await init()).getPlugin(...)` keep the call, because the
+  statement has effects of its own. The comments of a removed statement are never dropped (`pruneKeepingComments()`):
+  they move to the next statement, else the previous one, else the enclosing statement, and a license header on the
+  first statement survives. A used result, an arrow expression body, and the body of a braceless `if` or loop keep the
+  call and get a TODO on the enclosing statement. A removal can leave an empty block, which stays.
 - `methodMove` rule shape: `methods` maps the old name to the new one, `via` is the call that reaches the new home,
   `properties` lists names that become the `via` call (`undoRedo: null`). Optional chaining is kept by building the
   new links as optional-chain nodes: the first link takes over the `?.`. Computed access (`hot['undo']()`),
@@ -330,17 +445,22 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   such as `_OperationType`, `PageSizeOption`, and `NumbroFormatOptions`. They count as removed exports in the diff and
   have rules. The 17.1.0 typings also declared the theme registry (`registerTheme`, `mainTheme`, ...) on the `handsontable`
   and `handsontable/base` entry points although the runtime exported them only from `handsontable/themes`.
-- Rules whose guide has no section (`18.0.0/core-undo-methods`) omit `guide`. The core undo methods were already gone
-  from runtime and typings in 17.0, so that rule is a cleanup that belongs in a 17.0 manifest, which does not exist.
+- Rules whose guide has no section (`18.0.0/core-undo-methods`, `18.0.0/export-column-headers`) omit `guide`: the
+  anchor must exist on the page of the manifest. The core undo methods were already gone from runtime and typings in
+  17.0, so that rule is a cleanup that belongs in a 17.0 manifest, which does not exist. The `columnHeaders` export
+  option is deprecated in 17.1 and removed in 19.0, and only the 19.0 guide has a section for it.
 - **`detect` rule shape:** `{ id, kind: "detect", severity?: "manual" | "warning", files: ["js" | "css" | "template"],
-  requires?: "hot-file" | "option-object" | "none", emitsFact?, match, message, guide }`. `message` and `files` are
-  required by `validateDetectRule()` (the manifest validator only requires `match`). `requires` defaults to
+  requires?: "hot-file" | "option-object" | "none", emitsFact?, unlessFileMatches?, mergeKey?, match, message, guide }`.
+  `message` and `files` are required by `validateDetectRule()`, which runs when the manifests load (the shape check
+  only requires `match`). `unlessFileMatches` is a regex on the part text, and `mergeKey` makes the reports of two
+  rules on one line collapse into the later one. `requires` defaults to
   `hot-file`: a js part must import or use Handsontable. `option-object` makes `property` and `hook` matchers sit in
   an object `findOptionObjects` finds, or on a wrapper element. It never applies to css or template parts.
   `match` is one matcher object, `{ anyOf: [...] }`, or `{ allOf: [first, ...gates] }` (the first reports, the others
   must match somewhere in the part).
 - **`detect` matchers** (js only unless noted): `import` (module or `module/...`, import, re-export, `require`,
-  `import()`), `property` (dotted path; `withKey`, `valueMatches` on literal strings only, `in: "option-object"`),
+  `import()`), `property` (dotted path; `withKey`, `valueMatches` on literal strings only, `valueIs` for the other
+  values: `true`, `false`, `null`, `"array"`, `"function"`, `"object"`, `in: "option-object"`),
   `call` (`argMatches` reads every string inside the arguments, `receiver` is `"instance"` or the receiver text),
   `hook` (option key, JSX prop, `addHook`, `addHookOnce`, `Handsontable.hooks.add`/`once`), `string`, `selector` and
   `regex` (also css and template), `missingOption` (`whenAnyKey`, `whenValueMatches`, `unlessFileMatches`). `selector`

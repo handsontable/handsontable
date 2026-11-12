@@ -1,6 +1,25 @@
-[
-  { "ruleId": "18.1.0/license-key-missing", "severity": "manual", "line": 6 },
-  { "ruleId": "18.1.0/license-key-missing", "severity": "manual", "line": 10 },
-  { "ruleId": "18.1.0/license-key-missing", "severity": "manual", "line": 19 },
-  { "ruleId": "18.1.0/license-key-missing", "severity": "manual", "line": 21 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.1.0/license-key-missing",
+      "severity": "manual",
+      "line": 6
+    },
+    {
+      "ruleId": "18.1.0/license-key-missing",
+      "severity": "manual",
+      "line": 10
+    },
+    {
+      "ruleId": "18.1.0/license-key-missing",
+      "severity": "manual",
+      "line": 19
+    },
+    {
+      "ruleId": "18.1.0/license-key-missing",
+      "severity": "manual",
+      "line": 21
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import {
   reportOpaqueReferences,
   toList,
 } from '../lib/type-rules.mjs';
+import { problemsOf } from '../lib/validate.mjs';
 
 /**
  * Check the shape of a rule. The manifest validator cannot express the nested `exports` map.
@@ -187,6 +188,14 @@ function applyRule(ctx, rule) {
 const importSource = {
   kinds: ['importSource'],
   fileKinds: ['js'],
+
+  /**
+   * @param {import('../types.mjs').Rule} rule An `importSource` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => assertRule(rule));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js` part.

@@ -1,5 +1,6 @@
 import { findReExports, getImportedBindings } from '../lib/imports.mjs';
 import { expandAdvice, moduleMatcher, pluginOfModule, toList } from '../lib/type-rules.mjs';
+import { problemsOf } from '../lib/validate.mjs';
 
 /**
  * Check the shape of a rule. The manifest validator cannot say that `advice` is required here.
@@ -17,7 +18,8 @@ function assertRule(rule) {
 }
 
 /**
- * Text of the TODO for one removed name.
+ * Text of the TODO for one removed name. The lead sentence says the name is no longer exported. A rule `message`
+ * replaces it, with the same placeholders as the advice, for a name that is deprecated and still exported.
  *
  * @param {import('../types.mjs').Rule} rule The rule.
  * @param {string} name The removed name.
@@ -25,9 +27,13 @@ function assertRule(rule) {
  * @returns {string} The text.
  */
 function todoText(rule, name, source) {
-  const advice = expandAdvice(rule, { plugin: pluginOfModule(source), name, source });
+  const context = { plugin: pluginOfModule(source), name, source };
+  const advice = expandAdvice(rule, context);
+  const lead = typeof rule.message === 'string'
+    ? expandAdvice({ ...rule, advice: rule.message, noKeyAdvice: rule.message }, context)
+    : `${name} is no longer exported from "${source}".`;
 
-  return `${name} is no longer exported from "${source}". ${advice}`;
+  return `${lead} ${advice}`;
 }
 
 /**
@@ -121,6 +127,14 @@ function applyRule(ctx, rule, handled) {
 const exportRemoved = {
   kinds: ['exportRemoved'],
   fileKinds: ['js'],
+
+  /**
+   * @param {import('../types.mjs').Rule} rule An `exportRemoved` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => assertRule(rule));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js` part.

@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import { PACKAGE_ROOT, VERSIONS_DIR, buildPlan, loadManifest } from '../src/manifest.mjs';
+import { VERSIONS_DIR, buildPlan, loadManifest, loadManifests } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { COLLAPSE_AFTER, stringsIn, validateDetectRule } from '../src/transforms/detect.mjs';
 import { anchorsOf } from './helpers/guide-anchors.mjs';
+import { guidePath, skipWithoutGuides } from './helpers/guide-source.mjs';
 import { parse } from './helpers/parse.mjs';
 
 /**
@@ -46,12 +47,12 @@ async function run(detectRule, source, filePath = 'a.ts', facts = new Set()) {
 
 const HOT = 'import Handsontable from "handsontable";\n';
 
+const SHIPPED_VERSIONS = (await loadManifests()).map(manifest => manifest.version);
+
 describe('shipped detect rules', () => {
-  for (const version of ['18.0.0', '18.1.0']) {
-    it(`are valid and point at a heading of the ${version} guide`, async() => {
+  for (const version of SHIPPED_VERSIONS) {
+    it(`are valid and point at a heading of the ${version} guide`, async(context) => {
       const manifest = await loadManifest(join(VERSIONS_DIR, version));
-      const guide = await readFile(join(PACKAGE_ROOT, '..', manifest.guide.source), 'utf8');
-      const anchors = anchorsOf(guide);
       const rules = manifest.rules.filter(item => item.kind === 'detect');
 
       assert.ok(rules.length > 0);
@@ -60,10 +61,16 @@ describe('shipped detect rules', () => {
         assert.deepEqual(validateDetectRule(item), [], item.id);
         assert.equal(item.safe, false, item.id);
         assert.doesNotMatch(item.message, /—/, item.id);
+      }
 
-        if (item.guide) {
-          assert.ok(anchors.has(item.guide), `${item.id} anchor ${item.guide}`);
-        }
+      if (skipWithoutGuides(context, [manifest])) {
+        return;
+      }
+
+      const anchors = anchorsOf(await readFile(guidePath(manifest), 'utf8'));
+
+      for (const item of rules.filter(candidate => candidate.guide)) {
+        assert.ok(anchors.has(item.guide), `${item.id} anchor ${item.guide}`);
       }
 
       for (const item of manifest.rules.filter(candidate => candidate.kind === 'custom' && candidate.guide)) {
@@ -225,6 +232,36 @@ describe('property matcher', () => {
       + 'const e = { dateFormat: `${x}` };\n'; // eslint-disable-line no-template-curly-in-string
 
     assert.deepEqual((await run(matcher, source)).lines, [2, 3]);
+  });
+
+  it('tests valueIs on values that are not strings', async() => {
+    const matcher = value => rule({ match: { property: 'opt', valueIs: value } });
+    const source = `${HOT}const a = { opt: true };
+const b = { opt: false };
+const c = { opt: null };
+const d = { opt: [1] };
+const e = { opt: () => 1 };
+const f = { opt() {} };
+const g = { opt: { x: 1 } };
+const h = { opt: 'text' };
+`;
+    const lines = async value => (await run(matcher(value), source)).lines;
+
+    assert.deepEqual(await lines(true), [2]);
+    assert.deepEqual(await lines(false), [3]);
+    assert.deepEqual(await lines(null), [4]);
+    assert.deepEqual(await lines('array'), [5]);
+    assert.deepEqual(await lines('function'), [6, 7]);
+    assert.deepEqual(await lines('object'), [8]);
+  });
+
+  it('rejects a valueIs it cannot test', () => {
+    const problems = value => validateDetectRule(rule({ match: { property: 'opt', valueIs: value } }));
+
+    assert.deepEqual(problems('array'), []);
+    assert.match(problems('string')[0], /valueIs must be true, false, null, "array", "function", or "object"/);
+    assert.match(validateDetectRule(rule({ files: ['js', 'template'], match: { property: 'opt', valueIs: true } }))[0],
+      /valueIs reads js only/);
   });
 
   it('matches without valueMatches whatever the value is', async() => {
@@ -523,6 +560,46 @@ describe('compound matchers', () => {
   });
 });
 
+describe('rule gates and merging', () => {
+  it('skips a part whose text matches unlessFileMatches, for any matcher', async() => {
+    const detectRule = rule({
+      files: ['css', 'js'],
+      match: { selector: '\\.pika-single' },
+      unlessFileMatches: 'pikaday',
+    });
+    const css = '.pika-single { color: red; }\n';
+
+    assert.deepEqual((await run(detectRule, css, 'a.css')).lines, [1]);
+    assert.deepEqual((await run(detectRule, `/* pikaday recipe */\n${css}`, 'a.css')).lines, []);
+    assert.deepEqual((await run(rule({ match: { string: 'x' }, unlessFileMatches: 'skipme' }),
+      `${HOT}const a = 'x'; // skipme\n`)).lines, []);
+  });
+
+  it('rejects a gate that is not a regular expression and a mergeKey that is not a string', () => {
+    assert.match(validateDetectRule(rule({ match: { string: 'a' }, unlessFileMatches: '(' }))[0],
+      /"unlessFileMatches" is not a valid regular expression/);
+    assert.match(validateDetectRule(rule({ match: { string: 'a' }, unlessFileMatches: 1 }))[0],
+      /"unlessFileMatches" must be a string/);
+    assert.match(validateDetectRule(rule({ match: { string: 'a' }, mergeKey: 1 }))[0], /"mergeKey" must be a string/);
+  });
+
+  it('lets two rules with one mergeKey report a spot once, with the later rule', async() => {
+    const shared = { files: ['css'], mergeKey: 'p' };
+    const first = rule({ ...shared, id: 'x/one', match: { selector: '\\.pika-' }, message: 'old' });
+    const second = rule({ ...shared, id: 'x/two', match: { selector: '\\.pika-single' }, message: 'new' });
+    const plan = {
+      versions: [{ version: 'x', rules: [first, second] }],
+      rulesById: new Map([[first.id, first], [second.id, second]]),
+    };
+    const { entries } = await transformFile({ filePath: 'a.css', source: '.pika-single {}\n.pika-next {}\n', plan });
+
+    assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line, entry.message]), [
+      ['x/two', 1, 'new'],
+      ['x/one', 2, 'old'],
+    ]);
+  });
+});
+
 describe('reporting', () => {
   it('reports each match with the rule severity, message, and a line', async() => {
     const result = await run(rule({ severity: 'warning', message: 'Look here.', match: { property: 'a' } }),
@@ -679,11 +756,20 @@ describe('sanitizer custom rules', () => {
 
     for (const sanitizer of sources) {
       const result = await runSanitizer(grid(sanitizer));
+      const tests = result.entries.filter(entry => entry.ruleId === SOURCE && /innerHTML/.test(entry.message));
 
       assert.equal(result.changed, false, sanitizer);
-      assert.ok(result.entries.some(entry => entry.ruleId === SOURCE && entry.severity === 'manual'
-        && /innerHTML/.test(entry.message)), sanitizer);
+      assert.ok(tests.some(entry => entry.severity === 'manual'), sanitizer);
+      assert.equal(tests.some(entry => /already handles/.test(entry.message)), false, sanitizer);
     }
+  });
+
+  it('does not call an innerHTML test redundant when its || chain tests another value than header', async() => {
+    const result = await runSanitizer(grid('(c, src) => (src === \'innerHTML\' || src === \'x\' ? a(c) : b(c))'));
+    const tests = result.entries.filter(entry => entry.ruleId === SOURCE && /innerHTML/.test(entry.message));
+
+    assert.ok(tests.length > 0);
+    assert.equal(tests.some(entry => /already handles/.test(entry.message)), false);
   });
 
   it('never touches a comparison of another variable or a function it cannot see', async() => {

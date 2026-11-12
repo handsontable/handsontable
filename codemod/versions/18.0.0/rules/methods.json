@@ -5,7 +5,7 @@
       "kind": "methodRemove",
       "guide": "stop-calling-deprecated-resize-state-methods",
       "safe": true,
-      "receiver": "any",
+      "receiver": { "plugin": ["manualColumnResize", "manualRowResize"] },
       "methods": [
         "saveManualColumnWidths",
         "loadManualColumnWidths",
@@ -29,7 +29,6 @@
         "isRedoAvailable": "isRedoAvailable"
       },
       "properties": { "undoRedo": null },
-      "anyReceiver": ["clearUndo"],
       "message": "Core lost the undo methods and the undoRedo property in 17.0, so this is a cleanup for code that still uses them.",
       "advice": "Core no longer has the undo methods or the undoRedo property. Call them on the plugin: hot.getPlugin('undoRedo')."
     },

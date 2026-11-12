@@ -87,6 +87,7 @@
       "files": ["css", "js", "template"],
       "requires": "hot-file",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
+      "mergeKey": "pikaday",
       "match": { "selector": "(?<![\\w-])(?:htDatepickerHolder|pika-[a-z])" },
       "message": "Handsontable 18.0 removed Pikaday. The date picker is now the browser's native date input, so the .htDatepickerHolder and .pika-* elements no longer exist. Remove this code, or style the native input instead."
     },

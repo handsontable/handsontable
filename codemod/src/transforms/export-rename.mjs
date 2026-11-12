@@ -1,6 +1,20 @@
 import { getImportedBindings, moveNamedImport, renameBinding } from '../lib/imports.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { chooseSource, lazyModular, reportOpaqueReferences, toList } from '../lib/type-rules.mjs';
+import { problemsOf } from '../lib/validate.mjs';
+
+/**
+ * Check the shape of a rule. The manifest validator cannot say that `source` may not be an empty list.
+ *
+ * @param {import('../types.mjs').Rule} rule An `exportRename` rule.
+ * @returns {void}
+ * @throws {Error} When the rule names no source module.
+ */
+function assertRule(rule) {
+  if (toList(rule.source).length === 0) {
+    throw new Error(`Rule ${rule.id} needs a "source".`);
+  }
+}
 
 /**
  * Message for a rename that did not happen.
@@ -135,6 +149,14 @@ const exportRename = {
   fileKinds: ['js'],
 
   /**
+   * @param {import('../types.mjs').Rule} rule An `exportRename` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => assertRule(rule));
+  },
+
+  /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js` part.
    * @param {import('../types.mjs').Rule[]} rules `exportRename` rules.
    * @returns {void}
@@ -148,9 +170,7 @@ const exportRename = {
         continue;
       }
 
-      if (toList(rule.source).length === 0) {
-        throw new Error(`Rule ${rule.id} needs a "source".`);
-      }
+      assertRule(rule);
 
       for (const source of toList(rule.source)) {
         renameInModule(ctx, rule, source, isModular, noted);

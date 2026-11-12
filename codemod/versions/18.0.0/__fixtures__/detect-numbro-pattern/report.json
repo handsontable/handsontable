@@ -1,3 +1,10 @@
-[
-  { "ruleId": "18.0.0/numbro-pattern", "severity": "manual", "line": 7 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/numbro-pattern",
+      "severity": "manual",
+      "line": 7
+    }
+  ]
+}

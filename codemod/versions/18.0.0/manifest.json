@@ -1,5 +1,6 @@
 {
   "version": "18.0.0",
+  "from": "17",
   "status": "released",
   "guide": {
     "url": "https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0",

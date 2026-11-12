@@ -39,7 +39,7 @@
       "kind": "dependency",
       "safe": false,
       "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
-      "reportOnly": [
+      "reportMissing": [
         {
           "name": "numbro",
           "whenFact": "imports-numbro",
@@ -55,7 +55,7 @@
       "kind": "dependency",
       "safe": false,
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
-      "reportOnly": [
+      "reportMissing": [
         {
           "name": "moment",
           "whenFact": "imports-moment",
@@ -77,7 +77,7 @@
       "kind": "dependency",
       "safe": false,
       "guide": "replace-built-in-dompurify-with-a-custom-sanitizer",
-      "reportOnly": [
+      "reportMissing": [
         {
           "name": "dompurify",
           "whenFact": "imports-dompurify",

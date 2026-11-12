@@ -7,6 +7,7 @@ import { ManifestError } from '../src/errors.mjs';
 import { PACKAGE_ROOT, RULE_KINDS, buildPlan, loadManifest, loadManifests, validateRule } from '../src/manifest.mjs';
 import { KIND_ORDER, registry } from '../src/transforms/index.mjs';
 import { anchorsOf, slugOf } from './helpers/guide-anchors.mjs';
+import { guidePath, skipWithoutGuides } from './helpers/guide-source.mjs';
 
 const schema = JSON.parse(await readFile(join(PACKAGE_ROOT, 'src', 'manifest.schema.json'), 'utf8'));
 
@@ -25,6 +26,7 @@ async function writeVersion(root, version, manifest, files = {}) {
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, 'manifest.json'), JSON.stringify({
     version,
+    from: String(Number(version.split('.')[0]) - 1),
     status: 'released',
     guide: { url: 'https://example.com/guide', source: 'docs/guide.md' },
     ...manifest,
@@ -76,18 +78,31 @@ describe('every shipped manifest', () => {
     }
   });
 
-  it('points every guide source at an existing file and builds a public URL', async() => {
-    for (const manifest of await loadManifests()) {
-      const source = join(PACKAGE_ROOT, '..', manifest.guide.source);
+  it('points every guide source at an existing file and builds a public URL', async(context) => {
+    const manifests = await loadManifests();
 
-      assert.ok((await readFile(source, 'utf8')).length > 0, manifest.guide.source);
+    for (const manifest of manifests) {
       assert.match(manifest.guide.url, /^https:\/\/handsontable\.com\/docs\/javascript-data-grid\/[^/]+$/);
+    }
+
+    if (skipWithoutGuides(context, manifests)) {
+      return;
+    }
+
+    for (const manifest of manifests) {
+      assert.ok((await readFile(guidePath(manifest), 'utf8')).length > 0, manifest.guide.source);
     }
   });
 
-  it('names an anchor in every rule `guide` that is a heading of the guide page', async() => {
-    for (const manifest of await loadManifests()) {
-      const page = await readFile(join(PACKAGE_ROOT, '..', manifest.guide.source), 'utf8');
+  it('names an anchor in every rule `guide` that is a heading of the guide page', async(context) => {
+    const manifests = await loadManifests();
+
+    if (skipWithoutGuides(context, manifests)) {
+      return;
+    }
+
+    for (const manifest of manifests) {
+      const page = await readFile(guidePath(manifest), 'utf8');
       const anchors = anchorsOf(page);
 
       for (const rule of manifest.rules.filter(item => item.guide)) {
@@ -151,7 +166,14 @@ describe('validateRule', () => {
       const rule = { id: '18.0.0/x', kind, safe: false };
 
       Object.entries(spec.required).forEach(([field, type]) => {
-        rule[field] = { string: 'a', strings: ['a'], stringOrStrings: 'a', object: { a: 1 }, boolean: true }[type];
+        rule[field] = {
+          string: 'a',
+          strings: ['a'],
+          stringOrStrings: 'a',
+          stringOrObject: 'a',
+          object: { a: 1 },
+          boolean: true,
+        }[type];
       });
 
       assert.deepEqual(validateRule(rule, '18.0.0'), [], kind);
@@ -197,8 +219,8 @@ describe('loadManifest', () => {
     await withVersionsDir(async(root) => {
       const dir = await writeVersion(root, '18.0.0', {
         rules: [
-          { id: '18.0.0/d', kind: 'detect', match: { string: 'a' } },
-          { id: '18.0.0/r', kind: 'exportRemoved', source: 'a', name: 'b' },
+          { id: '18.0.0/d', kind: 'detect', match: { string: 'a' }, files: ['js'], message: 'm' },
+          { id: '18.0.0/r', kind: 'exportRemoved', source: 'a', name: 'b', advice: 'a' },
           { id: '18.0.0/o', kind: 'optionRemove', name: 'a', safe: true },
         ],
       });
@@ -227,6 +249,91 @@ describe('loadManifest', () => {
         return /"version" is "18\.0\.1"/.test(error.message) && /"status"/.test(error.message);
       });
     });
+  });
+
+  it('rejects a malformed rule of every kind at load, naming the rule and the field', async() => {
+    const bad = [
+      ['detect', { kind: 'detect', safe: false, match: { string: 'a' } }, /"message" is required/],
+      ['cssVariable', { kind: 'cssVariable', safe: true, from: '--a' }, /needs "to" or "removed": true/],
+      ['themeToken', { kind: 'themeToken', safe: true, from: 'a' }, /needs "to" or "removed": true/],
+      ['methodRemove', { kind: 'methodRemove', safe: true, methods: ['a'], receiver: 'sometimes' }, /"receiver"/],
+      ['methodRemove', { kind: 'methodRemove', safe: true, methods: ['a'], receiver: { plugin: [] } },
+        /"receiver.plugin" must be a plugin key/],
+      ['methodMove', {
+        kind: 'methodMove',
+        safe: true,
+        methods: { a: 'b' },
+        via: { method: 'x' },
+        receiver: 'instance',
+      }, /"via"/],
+      ['namespaceType', { kind: 'namespaceType', safe: true, from: 'Handsontable.A' }, /needs "to"/],
+      ['exportRemoved', { kind: 'exportRemoved', source: 'a', name: 'b' }, /needs "advice"/],
+      ['importSource', { kind: 'importSource', safe: true, from: 'a', exports: { X: {} } }, /"X" needs "to"/],
+      ['callUnwrap', { kind: 'callUnwrap', safe: false, callee: 'sanitize' }, /"callee" to be a dotted path/],
+      ['optionMove', { kind: 'optionMove', safe: true, from: 'culture', to: 'locale' },
+        /"from" must be "<option>.<key>"/],
+      ['optionRename', {
+        kind: 'optionRename',
+        safe: true,
+        from: 'a',
+        to: 'b',
+        context: { callArg: ['x'], receiver: 1 },
+      }, /"context.receiver"/],
+      ['exportRename', { kind: 'exportRename', safe: true, source: ['a'], from: 'A', to: 'B' }, null],
+    ];
+
+    for (const [kind, fields, expected] of bad) {
+      await withVersionsDir(async(root) => {
+        const dir = await writeVersion(root, '18.0.0', { rules: [{ id: `18.0.0/${kind}-x`, ...fields }] });
+
+        if (expected === null) {
+          assert.ok(await loadManifest(dir));
+
+          return;
+        }
+
+        await assert.rejects(loadManifest(dir), (error) => {
+          assert.ok(error.message.includes(`18.0.0/${kind}-x`), error.message);
+          assert.match(error.message, expected);
+
+          return true;
+        });
+      });
+    }
+  });
+
+  it('rejects a malformed rule when every manifest loads, and never as a per-file error', async() => {
+    await withVersionsDir(async(root) => {
+      await writeVersion(root, '18.0.0', {
+        rules: [{ id: '18.0.0/css-x', kind: 'cssVariable', safe: true, from: '--a' }],
+      });
+      await assert.rejects(loadManifests(root), /18\.0\.0\/css-x.*needs "to" or "removed": true/);
+    });
+  });
+
+  it('requires from: the version line the migration starts from, below its own version', async() => {
+    await withVersionsDir(async(root) => {
+      const missing = await writeVersion(root, '18.0.0', { from: undefined });
+      const word = await writeVersion(root, '19.0.0', { from: 'seventeen' });
+      const above = await writeVersion(root, '20.0.0', { from: '20' });
+      const ok = await writeVersion(root, '21.0.0', { from: '20.1' });
+
+      await assert.rejects(loadManifest(missing), /"from" must name the version line/);
+      await assert.rejects(loadManifest(word), /"from" must name the version line/);
+      await assert.rejects(loadManifest(above), /"from" \(20\) must be below the version "20\.0\.0"/);
+      assert.equal((await loadManifest(ok)).from, '20.1');
+    });
+  });
+
+  it('ships a from for every released migration', async() => {
+    const manifests = await loadManifests();
+
+    for (const manifest of manifests) {
+      assert.match(manifest.from, /^\d+(\.\d+){0,2}$/, manifest.version);
+    }
+
+    assert.equal(manifests.find(manifest => manifest.version === '18.0.0').from, '17');
+    assert.equal(manifests.find(manifest => manifest.version === '18.1.0').from, '18.0');
   });
 
   it('lists every problem at once', async() => {

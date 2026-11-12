@@ -11,5 +11,6 @@ export function exportOrders(hot: Handsontable): void {
   exportFile.exportAsString('csv', { columnHeaders: true, colHeaders: false });
   exportFile.exportAsString('csv', { colHeaders: true });
   downloadFile('orders.csv', { columnHeaders: true });
+  xlsx.downloadFile({ columnHeaders: ['a', 'b'] });
   console.log({ columnHeaders: true });
 }

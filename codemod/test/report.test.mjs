@@ -215,7 +215,8 @@ describe('renderMarkdown', () => {
 
     assert.match(text, /^# Handsontable migration report$/m);
     assert.match(text, /^## 18\.0\.0\/a$/m);
-    assert.match(text, /^- \[x\] src\/a\.css:2 Renamed\.$/m);
+    assert.match(text, /^Renamed\.\n\n- \[x\] src\/a\.css:2\n- \[x\] src\/b\.css:9\n/m);
+    assert.equal(text.match(/Renamed\./g).length, 1);
     assert.match(text, /^- \[ \] src\/z\.ts:4 Replace by hand\.$/m);
     assert.match(text, /^- \[ \] src\/bad\.ts \(warning\) Could not parse\.$/m);
     assert.match(text, /^Guide: https:\/\/example\.com\/g#b$/m);
@@ -223,6 +224,34 @@ describe('renderMarkdown', () => {
 
   it('says so when there is nothing to report', () => {
     assert.match(renderMarkdown(new Report()), /Nothing to report\./);
+  });
+
+  it('puts the versions and the date in the title and the run notes first', () => {
+    const report = new Report();
+
+    report.notes.push('No migration for 19 is known. Migrated up to 18.1.0.');
+
+    const text = renderMarkdown(report, { from: '17.1', to: '18.1.0', date: '2026-11-12' });
+
+    assert.match(text,
+      /^# Handsontable migration report: 17\.1 to 18\.1\.0 \(2026-11-12\)\n\nNo migration for 19 is known/);
+    assert.match(renderConsole(report), /^No migration for 19 is known\. Migrated up to 18\.1\.0\.\n/);
+  });
+
+  it('prints the message of a rule once, in the console and in the Markdown', () => {
+    const report = new Report();
+
+    for (const file of ['a.ts', 'b.ts', 'c.ts']) {
+      report.add({ ruleId: '18.0.0/n', severity: 'manual', file, line: 3, message: 'Same advice for all.' });
+    }
+
+    report.add({ ruleId: '18.0.0/n', severity: 'manual', file: 'd.ts', line: 1, message: 'Different advice.' });
+
+    for (const text of [renderConsole(report), renderMarkdown(report)]) {
+      assert.equal(text.match(/Same advice for all\./g).length, 1);
+      assert.equal(text.match(/Different advice\./g).length, 1);
+      assert.ok(text.includes('a.ts:3') && text.includes('b.ts:3') && text.includes('c.ts:3'));
+    }
   });
 });
 

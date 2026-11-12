@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
-import { discover, isSkipped } from '../src/discover.mjs';
+import { discover, isSkipped, resolvesInside } from '../src/discover.mjs';
 import { buildPlan } from '../src/manifest.mjs';
-import { describeRules, resolvePlan, run, transformFile } from '../src/runner.mjs';
+import { describeRules, formatSize, resolvePlan, run, transformFile } from '../src/runner.mjs';
 import { createRegistry } from '../src/transforms/index.mjs';
 
 const RADIUS_CSS = 'a {\n  border-radius: var(--ht-wrapper-border-radius, 4px);\n}\n';
@@ -84,6 +84,7 @@ async function makeVersionsDir(versions) {
     await mkdir(join(root, version), { recursive: true });
     await writeFile(join(root, version, 'manifest.json'), JSON.stringify({
       version,
+      from: String(Number(version.split('.')[0]) - 1),
       status: 'released',
       guide: { url: `https://example.com/${version}`, source: 'docs/x.md' },
       rules: [],
@@ -272,7 +273,8 @@ describe('transformFile and the transform contract', () => {
     }, { filePath: 'dir/a.css', facts, options: { aggressive: true } });
 
     assert.deepEqual(Object.keys(seen).sort(), [
-      'facts', 'fileKind', 'filePath', 'j', 'markChanged', 'options', 'report', 'root', 'source', 'todo',
+      'comment', 'facts', 'fileKind', 'filePath', 'j', 'json', 'markChanged', 'options', 'report', 'root',
+      'source', 'todo',
     ]);
     assert.equal(seen.filePath, 'dir/a.css');
     assert.equal(seen.fileKind, 'css');
@@ -413,6 +415,153 @@ describe('resolvePlan and describeRules', () => {
 
     await assert.rejects(resolvePlan({ cwd, from: '17', only: ['18.0.0/nope'] }), /Unknown rule id: 18\.0\.0\/nope/);
     await assert.rejects(resolvePlan({ cwd, from: '18', to: '18.1' }), /Nothing to migrate/);
+  });
+});
+
+describe('which versions a run covers', () => {
+  const GUIDES = 'https://handsontable.com/docs/javascript-data-grid/';
+  const noRepo = { repo: false };
+
+  it('refuses a project below the oldest covered version and names the guides of the steps left out', async() => {
+    await assert.rejects(resolvePlan({ cwd: tmpdir(), from: '16.2' }), (error) => {
+      assert.match(error.message, /Handsontable 16\.2 is older than the oldest version this tool migrates from \(17\)/);
+      assert.ok(error.message.includes(`${GUIDES}migration-from-16.2-to-17.0`));
+      assert.match(error.message, /--allow-uncovered/);
+
+      return true;
+    });
+    await assert.rejects(resolvePlan({ cwd: tmpdir(), from: '15.0' }), (error) => {
+      for (const step of ['15.3-to-16.0', '16.0-to-16.1', '16.2-to-17.0']) {
+        assert.ok(error.message.includes(`${GUIDES}migration-from-${step}`), step);
+      }
+
+      assert.equal(error.message.includes('migration-from-14.6-to-15.0'), false);
+
+      return true;
+    });
+  });
+
+  it('covers every 17.x project and runs an uncovered one with --allow-uncovered, noting what it skips', async() => {
+    const covered = await resolvePlan({ cwd: tmpdir(), from: '17.0.0' });
+    const allowed = await resolvePlan({ cwd: tmpdir(), from: '16.2', allowUncovered: true });
+
+    assert.deepEqual(covered.reportNotes, []);
+    assert.equal(allowed.reportNotes.length, 1);
+    assert.ok(allowed.reportNotes[0].includes(`${GUIDES}migration-from-16.2-to-17.0`));
+    assert.deepEqual(allowed.selected.map(manifest => manifest.version), ['18.0.0', '18.1.0']);
+  });
+
+  it('puts the note about an uncovered start at the top of the report of a run', async() => {
+    await withProject({ 'a.css': RADIUS_CSS }, async(dir) => {
+      const result = await run({ cwd: dir, from: '16.2', to: '18', allowUncovered: true });
+
+      assert.equal(result.exitCode, 0);
+      assert.match(result.report.notes[0], /It does not cover:\n {2}16\.2 to 17\.0: /);
+    });
+  });
+
+  it('migrates up to the highest known version when --to is above every migration, and says so', async() => {
+    for (const to of ['19', '18.2']) {
+      const { reportNotes, selected } = await resolvePlan({ cwd: tmpdir(), from: '17', to });
+
+      assert.deepEqual(reportNotes, [`No migration for ${to} is known. Migrated up to 18.1.0.`], to);
+      assert.equal(selected[selected.length - 1].version, '18.1.0');
+    }
+
+    for (const to of ['18', '18.1', '18.1.5']) {
+      assert.deepEqual((await resolvePlan({ cwd: tmpdir(), from: '17', to })).reportNotes, [], to);
+    }
+  });
+
+  it('raises the dependency ranges to the highest known version, not to the requested one', async() => {
+    const manifest = `${JSON.stringify({ dependencies: { handsontable: '^17.1.0' } }, null, 2)}\n`;
+
+    await withProject({ 'package.json': manifest }, async(dir) => {
+      const result = await run({ cwd: dir, from: '17.1', to: '19' });
+
+      assert.equal(result.exitCode, 0);
+      assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /"handsontable": "\^18\.1\.0"/);
+      assert.equal(result.report.notes.length, 1);
+    }, noRepo);
+  });
+
+  it('says that package.json already names the target when a rerun finds nothing to migrate', async() => {
+    const manifest = `${JSON.stringify({ dependencies: { handsontable: '^18.1.0' } })}\n`;
+
+    await withProject({ 'package.json': manifest }, async(dir) => {
+      await assert.rejects(resolvePlan({ cwd: dir }), (error) => {
+        assert.match(error.message,
+          /^package\.json already names 18\.1\.0, so there is nothing to migrate to 18\.1\.0\./);
+        assert.match(error.message,
+          /To run the migration again, pass --from <your previous version>, for example --from 17\.1\./);
+
+        return true;
+      });
+    }, noRepo);
+
+    await withProject({ 'node_modules/handsontable/package.json': '{ "name": "handsontable", "version": "18.1.2" }' },
+      async(dir) => {
+        await assert.rejects(resolvePlan({ cwd: dir }),
+          { message: /^The installed handsontable package is 18\.1\.2, so / });
+      }, noRepo);
+  });
+
+  it('suggests the minor line for a partial --from that stands for the end of its line', async() => {
+    await assert.rejects(resolvePlan({ cwd: tmpdir(), from: '18', to: '18.1' }), (error) => {
+      assert.match(error.message, /--from 18 means any 18\.x release, which is above every 18\.x migration\./);
+      assert.match(error.message, /pass --from 18\.0\./);
+
+      return true;
+    });
+  });
+
+  it('says that a latest range is not a version', async() => {
+    const manifest = `${JSON.stringify({ dependencies: { handsontable: 'latest' } })}\n`;
+
+    await withProject({ 'package.json': manifest }, async(dir) => {
+      await assert.rejects(resolvePlan({ cwd: dir }), {
+        message: 'package.json names handsontable as "latest", which is not a version. Pass --from.',
+      });
+    }, noRepo);
+  });
+
+  it('reports a Pikaday style rule once in a chained run, with the advice of the later migration', async() => {
+    await withProject({ 'theme.css': '.pika-single { color: red; }\n' }, async(dir) => {
+      const result = await run({ cwd: dir, from: '17', to: '18.1', dryRun: true });
+      const entries = result.report.entries.filter(entry => entry.file === 'theme.css');
+
+      assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]), [['18.1.0/pikaday-theme-leftovers', 1]]);
+      assert.match(entries[0].message, /Remove this rule unless you load Pikaday yourself\./);
+    });
+  });
+
+  it('writes sizes in bytes below 1 KB and with one decimal above', () => {
+    assert.equal(formatSize(1), '1 byte');
+    assert.equal(formatSize(300), '300 bytes');
+    assert.equal(formatSize(1023), '1023 bytes');
+    assert.equal(formatSize(1536), '1.5 KB');
+    assert.equal(formatSize(1048576), '1024.0 KB');
+  });
+
+  it('counts the uncommitted changes in the refusal', async() => {
+    await withProject({ 'a.css': RADIUS_CSS }, async(dir) => {
+      await writeFile(join(dir, 'one.txt'), 'x');
+
+      assert.match((await run({ cwd: dir, from: '17', to: '18' })).error,
+        /has 1 uncommitted change\. Commit or stash it /);
+
+      await writeFile(join(dir, 'two.txt'), 'x');
+
+      assert.match((await run({ cwd: dir, from: '17', to: '18' })).error,
+        /has 2 uncommitted changes\. Commit or stash them /);
+    });
+  });
+
+  it('does not call a rule file a manifest in a message to the user', async() => {
+    await assert.rejects(resolvePlan({ cwd: tmpdir(), from: '18', to: '18.1', includeDraft: false }),
+      error => !/manifest/i.test(error.message));
+    await assert.rejects(resolvePlan({ cwd: tmpdir(), from: '17', only: ['18.0.0/nope'] }),
+      error => !/manifest/i.test(error.message));
   });
 });
 
@@ -576,7 +725,7 @@ describe('run', () => {
       await withProject({ 'a.css': 'a { --ht-a: 1; --ht-c: 2; }\n' }, async(dir) => {
         const skipped = await run({ cwd: dir, from: '17', to: '19', dryRun: true, versionsDir });
 
-        assert.ok(skipped.notes.some(note => /Skipped draft manifests: 19\.0\.0/.test(note)));
+        assert.ok(skipped.notes.some(note => /Skipped draft migrations: 19\.0\.0/.test(note)));
         assert.match(skipped.diffs[0].diff, /--ht-d/);
         assert.doesNotMatch(skipped.diffs[0].diff, /--ht-b/);
 
@@ -599,7 +748,7 @@ describe('run', () => {
       kinds: ['dependency'],
       fileKinds: ['json'],
       apply(ctx) {
-        ctx.root.dependencies.handsontable = '^18.0.0';
+        ctx.json.setString('dependencies', 'handsontable', '^18.0.0');
         ctx.markChanged();
       },
     };
@@ -621,6 +770,106 @@ describe('run', () => {
     } finally {
       await rm(versionsDir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('symbolic links and the project boundary', () => {
+  /**
+   * Create a project and a directory outside it with a file the tool would rewrite, link to it from inside the
+   * project, and run the callback.
+   *
+   * @param {{repo: boolean, tracked?: boolean}} options Whether the project is a git repository, and whether the
+   * links are committed.
+   * @param {(context: {dir: string, outside: string, outsideFile: string}) => Promise<void>} callback Test body.
+   * @returns {Promise<void>}
+   */
+  async function withLinks({ repo, tracked = true }, callback) {
+    const outside = await mkdtemp(join(tmpdir(), 'codemod-outside-'));
+    const outsideFile = join(outside, 'target.css');
+
+    await writeFile(outsideFile, RADIUS_CSS);
+    await writeFile(join(outside, 'inner.css'), RADIUS_CSS);
+
+    await withProject({ 'src/own.css': RADIUS_CSS, 'README.md': '#' }, async(dir) => {
+      await symlink(outsideFile, join(dir, 'src', 'link.css'));
+      await symlink(outside, join(dir, 'linkdir'));
+
+      if (repo && tracked) {
+        git(dir, ['add', '-A']);
+        git(dir, ['commit', '-q', '-m', 'links']);
+      }
+
+      try {
+        await callback({ dir, outside, outsideFile });
+      } finally {
+        await rm(outside, { recursive: true, force: true });
+      }
+    }, { repo });
+  }
+
+  for (const [label, options] of [
+    ['a tracked link in git', { repo: true }],
+    ['an untracked link in git', { repo: true, tracked: false }],
+    ['a link outside git', { repo: false }],
+  ]) {
+    it(`never writes through a file or directory link (${label})`, async() => {
+      await withLinks(options, async({ dir, outsideFile }) => {
+        const result = await run({ cwd: dir, from: '17', to: '18', allowDirty: true });
+
+        assert.deepEqual(result.changedFiles, ['src/own.css']);
+        assert.equal(await readFile(outsideFile, 'utf8'), RADIUS_CSS);
+        assert.equal(await readFile(join(dir, 'src', 'own.css'), 'utf8'), RADIUS_CSS_DONE);
+
+        const skipped = result.report.skipped().map(entry => entry.file);
+
+        assert.ok(skipped.includes('src/link.css'), skipped.join(','));
+        assert.equal(result.report.skipped().find(entry => entry.file === 'src/link.css').severity, 'warning');
+        assert.match(result.report.skipped()[0].message, /symbolic link/);
+      });
+    });
+  }
+
+  it('skips a directory link named as a path argument, and a file below one', async() => {
+    await withLinks({ repo: false }, async({ dir, outside }) => {
+      const asDirectory = await run({ cwd: dir, paths: ['linkdir'], from: '17', to: '18' });
+      const below = await run({ cwd: dir, paths: ['linkdir/inner.css'], from: '17', to: '18' });
+      const direct = await run({ cwd: dir, paths: ['src/link.css'], from: '17', to: '18' });
+
+      for (const result of [asDirectory, below, direct]) {
+        assert.deepEqual(result.changedFiles, []);
+        assert.equal(result.report.skipped().length, 1);
+      }
+
+      assert.equal(await readFile(join(outside, 'inner.css'), 'utf8'), RADIUS_CSS);
+    });
+  });
+
+  it('knows which real locations are inside the project before a write', async() => {
+    await withLinks({ repo: false }, async({ dir }) => {
+      assert.equal(await resolvesInside(dir, 'src/own.css'), true);
+      assert.equal(await resolvesInside(dir, 'src/link.css'), false);
+      assert.equal(await resolvesInside(dir, 'linkdir/inner.css'), false);
+      assert.equal(await resolvesInside(dir, 'src/missing.css'), false);
+    });
+  });
+
+  it('lists a link once, however many roots reach it', async() => {
+    await withLinks({ repo: false }, async({ dir }) => {
+      const skipped = [];
+
+      await discover({ cwd: dir, paths: ['src', 'src', 'src/link.css'], skipped });
+
+      assert.deepEqual(skipped.map(entry => entry.file), ['src/link.css']);
+    });
+  });
+
+  it('accepts a project directory whose name starts with two dots', async() => {
+    await withProject({ '..odd/a.css': RADIUS_CSS }, async(dir) => {
+      assert.deepEqual(await discover({ cwd: dir, paths: ['..odd'] }), ['..odd/a.css']);
+      assert.deepEqual(await discover({ cwd: dir, paths: ['..odd/a.css'] }), ['..odd/a.css']);
+      await assert.rejects(discover({ cwd: dir, paths: ['..'] }), /outside the project directory/);
+      await assert.rejects(discover({ cwd: dir, paths: ['../x'] }), /outside the project directory/);
+    });
   });
 });
 

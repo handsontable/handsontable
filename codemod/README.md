@@ -54,6 +54,17 @@ handsontable-codemod migrate --from 17.1 --to 18.1 --report migration-report.md
 path up to the current directory. Paths that resolve to different versions need `--from`. `--to` defaults to the
 latest released migration.
 
+### Which versions it covers
+
+The tool migrates a project that is on Handsontable 17.0 or later (see "Supported migrations"). A project on an
+older version stops with exit code 2 and a message that names the earlier migration guides, for example
+`migration-from-16.2-to-17.0`. Follow those guides first. To run the covered migrations anyway, pass
+`--allow-uncovered`: the report then starts with the guides of the steps the tool does not cover.
+
+`--to` above the newest migration the tool knows (`--to 19`, `--to 18.2`) is not an error. The tool migrates up to
+the newest one, prints "No migration for 19 is known. Migrated up to 18.1.0.", and puts the same line at the top of
+the report. The `handsontable` ranges in `package.json` go to that newest known version, never beyond it.
+
 ### Install from the repository
 
 The package is not on npm yet. Three ways to run it from the repository are candidates. Treat all three as
@@ -99,8 +110,10 @@ command line skips the generated-output filter.
 | `--list` | List the rules in the version range and exit. `rewrite` rules edit code, `report` rules only report. |
 | `--aggressive` | Also rewrite settings objects found with medium confidence. |
 | `--include-draft` | Run migrations that are still drafts. |
+| `--allow-uncovered` | Run although the project is older than the oldest version the tool migrates from (see "Which versions it covers"). The report starts with the guides of the steps the tool does not cover. |
 | `--max-file-size <bytes>` | Skip files larger than this and list them under "Skipped files". The default is 1048576 (1 MB). |
-| `--help` | Show the help. |
+| `--version` | Print the version of the tool. |
+| `-h`, `--help` | Show the help. |
 
 A migration for version `v` runs when `from < v <= to`. `--from 17` means any 17.x, so it runs every migration from
 18.0 on.
@@ -115,9 +128,10 @@ A migration for version `v` runs when `from < v <= to`. `--from 17` means any 17
 
 ### Output
 
-The console report groups the entries by rule, ordered by version and then by rule id. Each rule lists up to 10
-locations as `file:line`, then the number of the others. A rule that matched many times in one file lists every
-line number in its one entry. Two more sections follow the rules:
+The console report groups the entries by rule, ordered by version and then by rule id. A message that several
+locations share is printed once, and the locations follow it. Each rule lists up to 10 locations as `file:line`, then
+the number of the others. A rule that matched many times in one file lists every line number in its one entry. Notes
+about the run itself, such as a `--to` above every known migration, come first. Two more sections follow the rules:
 
 - **Read once.** A note that holds for every file, such as "CellValue is now `unknown`", appears one time with the
   files it applies to, not once per file.
@@ -126,8 +140,9 @@ line number in its one entry. Two more sections follow the rules:
   `--max-file-size`. Check them by hand.
 
 The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The file from `--report`
-starts with the same line, has every location, one checkbox per entry, and a link to the migration guide section of
-each rule. A rewrite is checked. A manual step is not. On a terminal, a long run prints a progress line to the
+has a title with the versions and the date, then the same line, every location, one checkbox per entry, and a link to
+the migration guide section of each rule. The tool refuses a `--report` path that is a symbolic link, a file git
+tracks, or a file it migrates. A rewrite is checked. A manual step is not. On a terminal, a long run prints a progress line to the
 standard error stream every two seconds.
 
 ## Supported migrations
@@ -218,11 +233,22 @@ A rule rewrites an object at high confidence. At medium confidence it reports th
 4. Delete a comment when you have done what it says. The tool does not add it again, and a second run changes
    nothing.
 
+To run the migration again, for example after a `git reset`, pass `--from` with your previous version. Without it
+the tool reads the version from `package.json`, which the run raised, and answers "package.json already names 18.1.0".
+`--from 18` means any 18.x release. To migrate from 18.0, pass `--from 18.0`.
+
 ## Limitations
 
 - The tool reads one file at a time. It does not follow a settings object across files.
 - A receiver it cannot confirm as a grid instance is not rewritten. A generic name such as `editor.undo()` is
-  silent.
+  silent. The same holds for a plugin: it rewrites `saveManualColumnWidths()` and `downloadFile({ columnHeaders })`
+  only on `hot.getPlugin('<key>')` or a variable the file sets from it, and a call on any other receiver is
+  reported or left alone. A call whose receiver or arguments can have effects of their own is kept, with a TODO.
+- It never follows a symbolic link, and it never writes a file whose real path is outside the project directory. A
+  link goes to "Skipped files".
+- It edits `package.json` by text offset, so only the changed values and one added line differ. When it cannot
+  find a value in the text in a way that agrees with the parsed file (a repeated key, say), it reports the step
+  instead of editing.
 - A `.vue` file is read block by block. `less`, `stylus`, `sass`, and `src=` blocks are not read. They are listed
   under "Skipped files", and so are Less, Stylus, and Sass files.
 - A file that does not parse is skipped and reported, and the run exits with code 1.

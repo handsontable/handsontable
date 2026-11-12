@@ -1,4 +1,15 @@
-[
-  { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 10 },
-  { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 14 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/core-undo-methods",
+      "severity": "manual",
+      "line": 10
+    },
+    {
+      "ruleId": "18.0.0/core-undo-methods",
+      "severity": "manual",
+      "line": 14
+    }
+  ]
+}

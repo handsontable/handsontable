@@ -1,6 +1,9 @@
+import { attributeName, propertyName } from '../lib/ast.mjs';
 import { planRange, rangeAdmits } from '../lib/dependency-range.mjs';
 import { addFact, dirOf, hasFactFor } from '../lib/facts.mjs';
+import { memberPosition } from '../lib/json-edit.mjs';
 import { rewrites } from '../lib/safety.mjs';
+import { problemsOf } from '../lib/validate.mjs';
 
 /**
  * The `package.json` sections that declare dependencies.
@@ -73,15 +76,7 @@ function importsModule(j, root, name) {
  * @returns {string|null} The name.
  */
 function keyName(node) {
-  if (node.type === 'JSXAttribute') {
-    return node.name?.type === 'JSXIdentifier' ? node.name.name : null;
-  }
-
-  if (node.computed) {
-    return null;
-  }
-
-  return node.key?.type === 'Identifier' ? node.key.name : (node.key?.value ?? null);
+  return node.type === 'JSXAttribute' ? attributeName(node) : propertyName(node);
 }
 
 /**
@@ -211,6 +206,26 @@ function dependsOnAny(manifest, names) {
 const writtenRanges = new WeakMap();
 
 /**
+ * Write a new range into a `package.json` entry. The text is edited by offset when the file has a `JsonDocument`,
+ * so nothing outside the value changes. A scan that disagrees with the parsed file edits nothing.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {string} section Section name.
+ * @param {string} name Package name.
+ * @param {string} value The new range.
+ * @returns {boolean} `true` when the range was written.
+ */
+function setRange(ctx, section, name, value) {
+  if (ctx.json) {
+    return ctx.json.setString(section, name, value);
+  }
+
+  ctx.root[section][name] = value;
+
+  return true;
+}
+
+/**
  * Raise the range of every listed package that the `package.json` declares, keeping the operator style. A range
  * that already allows the target version is left alone and not reported. Two migration steps that touch the same
  * entry produce one report entry that states the net change.
@@ -244,9 +259,16 @@ function bump(ctx, rule) {
           mergeKey,
           message: `Update ${name} in ${section} from "${original}" to "${plan.value}".`,
         });
+      } else if (plan.action === 'rewrite' && !setRange(ctx, section, name, plan.value)) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          mergeKey,
+          message: `Could not edit ${name} in ${section} without reformatting package.json. `
+            + `Set it from "${original}" to "${plan.value}" by hand.`,
+        });
       } else if (plan.action === 'rewrite') {
         written.set(key, original);
-        ctx.root[section][name] = plan.value;
         ctx.markChanged();
         ctx.report({
           ruleId: rule.id,
@@ -407,38 +429,38 @@ function reportReplaced(ctx, rule) {
 }
 
 /**
- * Insert a dependency into a section. Keys stay in alphabetical order when they already were, and the new key
- * goes last otherwise. A missing section is created before `devDependencies`, or last.
+ * Add a dependency to a section. Keys stay in alphabetical order when they already were, and the new key goes last
+ * otherwise. A missing section is created before `devDependencies`, or last. The text is edited by offset (see
+ * `JsonDocument`), so the only new bytes are the new line.
  *
- * @param {object} manifest The parsed `package.json`.
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
  * @param {string} section Section name.
  * @param {string} name Package name.
  * @param {string} range Version range.
- * @returns {void}
+ * @returns {boolean} `true` when the dependency was added. `false` edits nothing: the scan of the text and the
+ * parsed file disagree.
  */
-function insertDependency(manifest, section, name, range) {
-  if (!isObject(manifest[section])) {
-    const entries = Object.entries(manifest);
-    const index = entries.findIndex(([key]) => key === 'devDependencies');
+function addMember(ctx, section, name, range) {
+  if (!ctx.json) {
+    const manifest = ctx.root;
 
-    entries.splice(index === -1 ? entries.length : index, 0, [section, {}]);
-    Object.keys(manifest).forEach(key => delete manifest[key]);
+    if (!isObject(manifest[section])) {
+      manifest[section] = {};
+    }
+
+    const keys = Object.keys(manifest[section]);
+    const entries = Object.entries(manifest[section]);
+
+    entries.splice(memberPosition(keys, name), 0, [name, range]);
+    Object.keys(manifest[section]).forEach(key => delete manifest[section][key]);
     entries.forEach(([key, value]) => {
-      manifest[key] = value;
+      manifest[section][key] = value;
     });
+
+    return true;
   }
 
-  const entries = Object.entries(manifest[section]);
-  const compare = (left, right) => left.localeCompare(right, 'en');
-  const sorted = entries.every(([key], index) => index === 0 || compare(entries[index - 1][0], key) <= 0);
-  const before = entries.filter(([key]) => compare(key, name) < 0);
-  const after = entries.filter(([key]) => compare(key, name) > 0);
-  const next = sorted ? [...before, [name, range], ...after] : [...entries, [name, range]];
-
-  Object.keys(manifest[section]).forEach(key => delete manifest[section][key]);
-  next.forEach(([key, value]) => {
-    manifest[section][key] = value;
-  });
+  return ctx.json.addMember(section, name, range);
 }
 
 /**
@@ -480,7 +502,16 @@ function addPackages(ctx, rule) {
       continue;
     }
 
-    insertDependency(ctx.root, section, item.name, item.range);
+    if (!addMember(ctx, section, item.name, item.range)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        message: `Could not add ${item.name} to ${section} without reformatting package.json. Add `
+          + `${item.name}@${item.range} by hand. Handsontable no longer installs it.`,
+      });
+      continue;
+    }
+
     ctx.markChanged();
     ctx.report({
       ruleId: rule.id,
@@ -491,15 +522,61 @@ function addPackages(ctx, rule) {
 }
 
 /**
+ * Report packages the `package.json` does declare, for a rule that says a declared package needs a decision (a
+ * deprecated package, say). With `whenFact`, only when phase 1 found that fact for this project. Nothing is edited.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `reportPresent` list of
+ * `{ name, message, whenFact?, onlyIfDependsOn? }`.
+ * @returns {void}
+ */
+function reportPresent(ctx, rule) {
+  for (const item of Array.isArray(rule.reportPresent) ? rule.reportPresent : []) {
+    if (!declares(ctx.root, item.name) || !dependsOnAny(ctx.root, item.onlyIfDependsOn)
+      || (item.whenFact && !hasFactFor(ctx, item.whenFact))) {
+      continue;
+    }
+
+    ctx.report({ ruleId: rule.id, severity: 'manual', message: item.message });
+  }
+}
+
+/**
+ * Check the items of a rule's `add`, `reportMissing`, and `reportPresent` lists.
+ *
+ * @param {import('../types.mjs').Rule} rule A `dependency` rule.
+ * @returns {void}
+ * @throws {Error} When an item has no `name`, an `add` item no `range`, or a `reportPresent` item no `message`.
+ */
+function assertItems(rule) {
+  const needs = { add: ['name', 'range'], reportMissing: ['name'], reportPresent: ['name', 'message'] };
+
+  for (const [list, fields] of Object.entries(needs)) {
+    (Array.isArray(rule[list]) ? rule[list] : []).forEach((item, index) => {
+      for (const field of fields) {
+        if (typeof item?.[field] !== 'string' || item[field] === '') {
+          throw new Error(`Rule ${rule.id}: "${list}[${index}].${field}" must be a string.`);
+        }
+      }
+    });
+  }
+
+  if ('reportOnly' in rule) {
+    throw new Error(`Rule ${rule.id}: "reportOnly" is now "reportMissing".`);
+  }
+}
+
+/**
  * Report packages Handsontable used to install and no longer does, when the project imports them and does not
  * declare them. Nothing is added.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
- * @param {import('../types.mjs').Rule} rule A rule with a `reportOnly` list of `{ name, whenFact, message? }`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `reportMissing` list of
+ * `{ name, whenFact?, onlyIfDependsOn?, message? }`.
  * @returns {void}
  */
 function reportMissing(ctx, rule) {
-  for (const item of Array.isArray(rule.reportOnly) ? rule.reportOnly : []) {
+  for (const item of Array.isArray(rule.reportMissing) ? rule.reportMissing : []) {
     if (declares(ctx.root, item.name) || !dependsOnAny(ctx.root, item.onlyIfDependsOn)
       || (item.whenFact && !hasFactFor(ctx, item.whenFact))) {
       continue;
@@ -528,6 +605,14 @@ const dependencies = {
   kinds: ['dependency'],
   fileKinds: ['json', 'js', 'template'],
   scan: { fileKinds: ['js', 'template'], precheck: SCAN_PRECHECK },
+
+  /**
+   * @param {import('../types.mjs').Rule} rule A `dependency` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => assertItems(rule));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx The transform context.
@@ -559,6 +644,7 @@ const dependencies = {
       reportReplaced(ctx, rule);
       addPackages(ctx, rule);
       reportMissing(ctx, rule);
+      reportPresent(ctx, rule);
     }
   },
 };

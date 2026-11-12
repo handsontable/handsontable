@@ -102,6 +102,24 @@ export async function dirtyPaths(cwd, { ignoreUntracked = [] } = {}) {
 }
 
 /**
+ * Tell whether git tracks a path.
+ *
+ * @param {string} cwd Directory inside the work tree.
+ * @param {string} path Absolute or `cwd`-relative path.
+ * @returns {Promise<boolean>} `true` when the path is in the index.
+ */
+export async function isTracked(cwd, path) {
+  try {
+    await git(['ls-files', '--error-unmatch', '--', path], cwd);
+
+    return true;
+  } catch {
+    // `git ls-files --error-unmatch` exits 1 for a path that is not in the index.
+    return false;
+  }
+}
+
+/**
  * List the files git knows under a directory: tracked, plus untracked files that are not ignored. Paths are
  * relative to `cwd` and use forward slashes.
  *

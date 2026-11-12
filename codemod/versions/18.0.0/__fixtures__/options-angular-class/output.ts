@@ -12,14 +12,7 @@ export class OrdersComponent {
     colHeaders: true,
     rowHeaders: true,
     columns: [
-      {
-        type: 'numeric',
-        locale: 'de-DE',
-
-        numericFormat: {
-          pattern: '0,0.00'
-        }
-      },
+      { type: 'numeric', numericFormat: { pattern: '0,0.00', culture: 'de-DE' } },
       { type: 'date', correctFormat: true },
     ],
   };

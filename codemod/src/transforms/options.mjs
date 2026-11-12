@@ -1,6 +1,6 @@
 import { enclosingAnchor, hasOwnLines } from '../lib/anchor.mjs';
-import { memberName, stringValue, unwrapNode, unwrapPath } from '../lib/ast.mjs';
-import { collectHotBindings } from '../lib/hot-bindings.mjs';
+import { attributeName, lineOfNode, memberName, stringValue, unwrapNode, unwrapPath } from '../lib/ast.mjs';
+import { collectHotBindings, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import {
   GENERIC_OPTIONS,
@@ -11,8 +11,8 @@ import {
 } from '../lib/option-objects.mjs';
 import { invalidateScope, lookup } from '../lib/scope.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
-import { replaceStringLiteral } from '../lib/string-literal.mjs';
-import { TODO_PREFIX } from '../lib/todo.mjs';
+import { removalAdvice, renameKey } from '../lib/rename-key.mjs';
+import { problemsOf } from '../lib/validate.mjs';
 
 const REPORT_BELOW_BAR = 'This object only looks like a Handsontable options object, so it was not changed. '
   + 'Re-run with --aggressive or edit by hand.';
@@ -72,16 +72,23 @@ function assertRule(rule) {
   if (rule.kind === 'optionRename' && rule.context !== undefined && !Array.isArray(rule.context.callArg)) {
     throw new Error(`Rule ${rule.id}: "context" must be { "callArg": [method names] }.`);
   }
+
+  if (rule.kind === 'optionRename' && rule.context?.receiver !== undefined && receiverKeys(rule) === null) {
+    throw new Error(`Rule ${rule.id}: "context.receiver" must be { "plugin": <key or keys> }.`);
+  }
 }
 
 /**
- * Line of a node.
+ * The plugin keys a `context.callArg` rule requires of the receiver.
  *
- * @param {object} node An AST node.
- * @returns {number|undefined} One-based line.
+ * @param {import('../types.mjs').Rule} rule An `optionRename` rule.
+ * @returns {string[]|null} The keys, or `null` when the rule names no receiver or names a malformed one.
  */
-function lineOf(node) {
-  return node?.loc?.start?.line;
+function receiverKeys(rule) {
+  const plugin = rule.context?.receiver?.plugin;
+  const keys = typeof plugin === 'string' ? [plugin] : plugin;
+
+  return Array.isArray(keys) && keys.length > 0 && keys.every(key => typeof key === 'string' && key) ? keys : null;
 }
 
 /**
@@ -158,7 +165,7 @@ function reportBelowBar(env, node, what) {
   env.ctx.report({
     ruleId: rule.id,
     severity: 'manual',
-    line: lineOf(node),
+    line: lineOfNode(node),
     message: [what, corroborated(env) ? REPORT_BELOW_BAR : REPORT_UNCORROBORATED, rule.advice]
       .filter(Boolean).join(' '),
   });
@@ -205,16 +212,6 @@ function attributeValue(attribute) {
 }
 
 /**
- * Name of a JSX attribute.
- *
- * @param {object} attribute A `JSXAttribute` or `JSXSpreadAttribute` node.
- * @returns {string|null} The name, or `null` for a spread or a namespaced name.
- */
-function attributeName(attribute) {
-  return attribute.type === 'JSXAttribute' && attribute.name.type === 'JSXIdentifier' ? attribute.name.name : null;
-}
-
-/**
  * Find the places the rules may act. Option objects come from `findOptionObjects`; wrapper elements and the
  * properties of a resolved `{...spread}` attribute come from `findJsxOptionAttributes`.
  *
@@ -250,73 +247,88 @@ function collectTargets(j, root) {
 }
 
 /**
- * Rename the key of a property, keeping the quote style of a quoted key and the value. A shorthand property
- * (`{ columnHeaders }`) becomes `colHeaders: columnHeaders`.
- *
- * @param {object} j The jscodeshift API.
- * @param {object} path NodePath of the property.
- * @param {string} from Old key.
- * @param {string} to New key.
- * @returns {void}
- */
-function renameKey(j, path, from, to) {
-  const { node } = path;
-
-  if (node.shorthand) {
-    node.shorthand = false;
-    node.value = j.identifier(from);
-    node.key = j.identifier(to);
-  } else if (node.key.type === 'Identifier') {
-    node.key = j.identifier(to);
-  } else {
-    replaceStringLiteral(j, path.get('key'), text => text.replace(from, to));
-  }
-}
-
-/**
- * Whether a comment is one this tool wrote.
- *
- * @param {object} comment A comment node.
- * @returns {boolean} `true` for a `TODO(handsontable-codemod ...)` comment.
- */
-function isCodemodTodo(comment) {
-  return comment.value.trim().startsWith(TODO_PREFIX);
-}
-
-/**
- * Comments of a removed property that survive it. A comment on the lines right above the property or at the end
- * of its line describes the property and goes with it. A leading comment followed by a blank line is a section
- * header and survives. A TODO comment from this tool always survives, so removing the property it was attached
- * to does not lose the instruction.
- *
- * @param {object} node The removed property.
- * @returns {object[]} The comments to keep, in source order.
- */
-function survivingComments(node) {
-  return (node.comments ?? []).filter((comment) => {
-    if (isCodemodTodo(comment)) {
-      return true;
-    }
-
-    return comment.leading !== false && comment.trailing !== true && comment.loc && node.loc
-      && node.loc.start.line - comment.loc.end.line > 1;
-  });
-}
-
-/**
- * Put surviving comments of a removed node in front of the node that takes its place.
+ * Move every comment of a removed node in front of the node that takes its place (the next property, else the
+ * previous one, else the enclosing anchor), so no comment is lost. A comment may describe the removed node, but
+ * the tool cannot tell, and deleting a comment is not its call. recast prints a trailing line comment before its
+ * node anyway, so the moved comments are leading ones.
  *
  * @param {object} removed The removed node.
  * @param {object} anchor The node that takes the comments.
- * @param {boolean} adjacent Whether the anchor is the node that follows the removed one. Section headers only
- * move to a following node.
  * @returns {void}
  */
-function carryComments(removed, anchor, adjacent) {
-  const carried = survivingComments(removed).filter(comment => adjacent || isCodemodTodo(comment));
+function carryComments(removed, anchor) {
+  const carried = removed.comments ?? [];
 
-  if (carried.length > 0) {
-    anchor.comments = [...carried, ...(anchor.comments ?? [])];
+  if (carried.length === 0) {
+    return;
+  }
+
+  carried.forEach((comment) => {
+    comment.leading = true;
+    comment.trailing = false;
+  });
+  anchor.comments = [...carried, ...(anchor.comments ?? [])];
+}
+
+/**
+ * Whether a value expression has no effect when the code that holds it is deleted: a literal, an identifier, a
+ * member read, a function expression, or an operator, object, array, or template over such values. A call, `new`,
+ * `await`, an assignment, or a tagged template is not.
+ *
+ * @param {object|null|undefined} value An expression node, a JSX attribute value, or `null` for a bare attribute.
+ * @returns {boolean} `true` when deleting the value drops nothing but the value.
+ */
+function isInertValue(value) {
+  const node = value ? unwrapNode(value) : null;
+
+  if (!node) {
+    return true;
+  }
+
+  switch (node.type) {
+    case 'Identifier':
+    case 'ThisExpression':
+    case 'StringLiteral':
+    case 'NumericLiteral':
+    case 'BooleanLiteral':
+    case 'NullLiteral':
+    case 'BigIntLiteral':
+    case 'RegExpLiteral':
+    case 'Literal':
+    case 'FunctionExpression':
+    case 'ArrowFunctionExpression':
+      return true;
+    case 'JSXExpressionContainer':
+      return isInertValue(node.expression);
+    case 'TemplateLiteral':
+      return node.expressions.every(isInertValue);
+    case 'MemberExpression':
+    case 'OptionalMemberExpression':
+      return isInertValue(node.object) && (!node.computed || isInertValue(node.property));
+    case 'UnaryExpression':
+      return node.operator !== 'delete' && isInertValue(node.argument);
+    case 'BinaryExpression':
+    case 'LogicalExpression':
+      return isInertValue(node.left) && isInertValue(node.right);
+    case 'ConditionalExpression':
+      return isInertValue(node.test) && isInertValue(node.consequent) && isInertValue(node.alternate);
+    case 'ObjectExpression':
+      return node.properties.every((property) => {
+        if (property.type === 'ObjectMethod') {
+          return !property.computed || isInertValue(property.key);
+        }
+
+        if (property.type === 'SpreadElement' || property.type === 'SpreadProperty') {
+          return isInertValue(property.argument);
+        }
+
+        return (!property.computed || isInertValue(property.key)) && isInertValue(property.value);
+      });
+    case 'ArrayExpression':
+      return node.elements.every(element => element === null
+        || isInertValue(element.type === 'SpreadElement' ? element.argument : element));
+    default:
+      return false;
   }
 }
 
@@ -327,11 +339,11 @@ function carryComments(removed, anchor, adjacent) {
  * @param {Env} env The state.
  * @param {object} objectPath NodePath of the `ObjectExpression`.
  * @param {object} node The property node to delete.
- * @param {string|null} todoText Text of the TODO report entry, or `null` for no TODO.
- * @param {string} [comment] Short text of the TODO comment, when it differs from `todoText`.
+ * @param {string|null} commentText Text of the TODO comment, or `null` for no comment. The comment adds no report
+ * entry: the entry of the removal carries the advice.
  * @returns {void}
  */
-function removeProperty(env, objectPath, node, todoText, comment) {
+function removeProperty(env, objectPath, node, commentText) {
   const list = objectPath.node.properties;
   const index = list.indexOf(node);
   const next = list[index + 1];
@@ -339,22 +351,12 @@ function removeProperty(env, objectPath, node, todoText, comment) {
   const anchor = next ?? previous ?? enclosingAnchor(objectPath);
 
   list.splice(index, 1);
-  carryComments(node, anchor, anchor === next);
+  carryComments(node, anchor);
   env.ctx.markChanged();
 
-  if (todoText) {
-    env.ctx.todo(anchor, env.rule.id, todoText, comment);
+  if (commentText) {
+    env.ctx.comment(anchor, env.rule.id, commentText);
   }
-}
-
-/**
- * The advice of a removal rule, as the text of its report entry.
- *
- * @param {import('../types.mjs').Rule} rule An `optionRemove` rule.
- * @returns {string} The advice, or a generic sentence.
- */
-function removalAdvice(rule) {
-  return rule.advice ?? rule.message ?? `${rule.name} was removed.`;
 }
 
 /**
@@ -377,18 +379,20 @@ function deletedComment(name, advice) {
  * @param {object} target The node that takes the TODO: the property, or the statement that holds a wrapper element.
  * @param {number|undefined} line Line of the property.
  * @param {string} what What the rule would remove, for the report, for example `the correctFormat property`.
+ * @param {string} [reason] Why the rule did not remove it, when the rule would have removed it.
  * @returns {void}
  */
-function adviseRemoval(env, target, line, what) {
+function adviseRemoval(env, target, line, what, reason) {
   const { ctx, rule } = env;
+  const advice = [reason, removalAdvice(rule, rule.name)].filter(Boolean).join(' ');
 
   if (rule.todo === false) {
-    reportInstead(ctx, rule, line, `Remove ${what}. ${removalAdvice(rule)}`.trim());
+    reportInstead(ctx, rule, line, `Remove ${what}. ${advice}`.trim());
 
     return;
   }
 
-  ctx.todo(target, rule.id, removalAdvice(rule));
+  ctx.todo(target, rule.id, advice);
 }
 
 /**
@@ -407,7 +411,7 @@ function renameInObject(env, objectPath, confidence) {
     return;
   }
 
-  const line = lineOf(property.node);
+  const line = lineOfNode(property.node);
 
   if (!rewrites(rule)) {
     reportInstead(ctx, rule, line, `Rename ${rule.from} to ${rule.to}.`);
@@ -459,7 +463,7 @@ function renameOnElement(env, openingPath) {
   }
 
   if (!rewrites(rule)) {
-    reportInstead(ctx, rule, lineOf(attribute), `Rename the ${rule.from} attribute to ${rule.to}.`);
+    reportInstead(ctx, rule, lineOfNode(attribute), `Rename the ${rule.from} attribute to ${rule.to}.`);
 
     return;
   }
@@ -468,7 +472,7 @@ function renameOnElement(env, openingPath) {
     ctx.report({
       ruleId: rule.id,
       severity: 'manual',
-      line: lineOf(attribute),
+      line: lineOfNode(attribute),
       message: `Both ${rule.from} and ${rule.to} are set on this element. Remove ${rule.from} by hand.`,
     });
 
@@ -480,7 +484,7 @@ function renameOnElement(env, openingPath) {
   ctx.report({
     ruleId: rule.id,
     severity: 'changed',
-    line: lineOf(attribute),
+    line: lineOfNode(attribute),
     message: [`Renamed the ${rule.from} attribute to ${rule.to}.`, rule.message].filter(Boolean).join(' '),
   });
 }
@@ -495,6 +499,8 @@ function renameOnElement(env, openingPath) {
 function renameInCallArguments(env) {
   const { j, rule } = env;
   const names = rule.context.callArg;
+  const pluginKeys = receiverKeys(rule);
+  const bindings = pluginKeys ? collectHotBindings(j, env.ctx.root) : null;
   const seen = new Set();
   const calls = [...env.ctx.root.find(j.CallExpression).paths(), ...env.ctx.root.find(j.OptionalCallExpression).paths()]
     .filter(call => !seen.has(call.node) && seen.add(call.node));
@@ -506,10 +512,29 @@ function renameInCallArguments(env) {
       continue;
     }
 
+    const calleeObject = unwrapPath(call.get('callee')).get('object');
+    const receiver = pluginKeys && !bindings.isPluginReceiver(calleeObject, pluginKeys) ? calleeObject : null;
+
     call.node.arguments.forEach((argument, index) => {
       const objectPath = unwrapPath(call.get('arguments', index));
 
       if (objectPath.node.type !== 'ObjectExpression') {
+        return;
+      }
+
+      if (receiver) {
+        const property = getProperty(objectPath, rule.from);
+
+        if (property && bindings.isHotFile && isUnresolvedReceiver(receiver)) {
+          env.ctx.report({
+            ruleId: rule.id,
+            severity: 'manual',
+            line: lineOfNode(property.node),
+            message: `Could not confirm that this is the ${pluginKeys.join(' or ')} plugin, so ${rule.from} was `
+              + `left alone. If it is: rename ${rule.from} to ${rule.to}.`,
+          });
+        }
+
         return;
       }
 
@@ -546,7 +571,7 @@ function removeInObject(env, objectPath, confidence) {
 
   for (const node of nodes) {
     if (!rewrites(rule)) {
-      adviseRemoval(env, hasOwnLines(objectPath.node, node) ? node : enclosingAnchor(objectPath), lineOf(node),
+      adviseRemoval(env, hasOwnLines(objectPath.node, node) ? node : enclosingAnchor(objectPath), lineOfNode(node),
         `the ${rule.name} property`);
 
       continue;
@@ -558,11 +583,23 @@ function removeInObject(env, objectPath, confidence) {
       continue;
     }
 
-    const line = lineOf(node);
-    const text = removalAdvice(rule);
+    if (!isInertValue(node.value)) {
+      adviseRemoval(env, hasOwnLines(objectPath.node, node) ? node : enclosingAnchor(objectPath), lineOfNode(node),
+        `the ${rule.name} property`, `${rule.name} is computed here, so it was kept.`);
 
-    removeProperty(env, objectPath, node, rule.todo === false ? null : text, deletedComment(rule.name, text));
-    ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Removed ${rule.name}.` });
+      continue;
+    }
+
+    const line = lineOfNode(node);
+    const text = removalAdvice(rule, rule.name);
+
+    removeProperty(env, objectPath, node, rule.todo === false ? null : deletedComment(rule.name, text));
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'changed',
+      line,
+      message: rule.todo === false ? `Removed ${rule.name}.` : `Removed ${rule.name}. ${text}`,
+    });
   }
 }
 
@@ -581,24 +618,38 @@ function removeOnElement(env, openingPath) {
 
   if (!rewrites(rule) && found.length > 0) {
     // The attribute stays, so one TODO next to the element covers all of them.
-    adviseRemoval(env, openingPath, lineOf(found[0]), `the ${rule.name} attribute`);
+    adviseRemoval(env, openingPath, lineOfNode(found[0]), `the ${rule.name} attribute`);
 
     return;
   }
 
   for (const attribute of found) {
-    const line = lineOf(attribute);
-    const text = removalAdvice(rule);
+    const line = lineOfNode(attribute);
+    const text = removalAdvice(rule, rule.name);
+
+    if (!isInertValue(attribute.value)) {
+      adviseRemoval(env, openingPath, line, `the ${rule.name} attribute`,
+        `${rule.name} is computed here, so it was kept.`);
+
+      continue;
+    }
 
     attributes.splice(attributes.indexOf(attribute), 1);
-    carryComments(attribute, enclosingAnchor(openingPath), false);
+    carryComments(attribute, enclosingAnchor(openingPath));
     ctx.markChanged();
 
     if (rule.todo !== false) {
-      ctx.todo(openingPath, rule.id, text, deletedComment(rule.name, text));
+      ctx.comment(openingPath, rule.id, deletedComment(rule.name, text));
     }
 
-    ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Removed the ${rule.name} attribute.` });
+    const removed = `Removed the ${rule.name} attribute.`;
+
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'changed',
+      line,
+      message: rule.todo === false ? removed : `${removed} ${text}`,
+    });
   }
 }
 
@@ -629,15 +680,27 @@ function declaredObject(j, root, path) {
  * @param {Env} env The state.
  * @param {object} child The nested property node (`culture`).
  * @param {object|null} existing The node of the value already set at the destination, or `null`.
+ * @param {boolean} hasSpread Whether the object or element that receives the destination holds a spread.
  * @returns {'move'|'dedupe'|null} What to do: move the key, drop it because the destination has the same value,
  * or nothing.
  */
-function planMove(env, child, existing) {
+function planMove(env, child, existing, hasSpread) {
   const { ctx, j, rule } = env;
-  const line = lineOf(child);
+  const line = lineOfNode(child);
 
   if (child.type !== 'ObjectProperty') {
     ctx.report({ ruleId: rule.id, severity: 'manual', line, message: `Move ${rule.from} to ${rule.to} by hand.` });
+
+    return null;
+  }
+
+  if (hasSpread) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line,
+      message: `${rule.from} was not moved, because a spread may already set ${rule.to} here. Move it by hand.`,
+    });
 
     return null;
   }
@@ -683,7 +746,7 @@ function planMove(env, child, existing) {
  */
 function reportMove(env, child, done) {
   const { ctx, rule } = env;
-  const line = lineOf(child);
+  const line = lineOfNode(child);
 
   ctx.report({ ruleId: rule.id, severity: 'changed', line, message: done });
 
@@ -751,7 +814,7 @@ function moveInObject(env, objectPath, confidence) {
       ctx.report({
         ruleId: rule.id,
         severity: 'manual',
-        line: lineOf(parent.node),
+        line: lineOfNode(parent.node),
         message: `${parentKey} comes from a variable that sets ${childKey}. Move ${rule.from} to ${rule.to} by hand.`,
       });
     }
@@ -770,7 +833,7 @@ function moveInObject(env, objectPath, confidence) {
   }
 
   if (!rewrites(rule)) {
-    reportInstead(ctx, rule, lineOf(child.node), `Move ${rule.from} to ${rule.to}.`);
+    reportInstead(ctx, rule, lineOfNode(child.node), `Move ${rule.from} to ${rule.to}.`);
 
     return;
   }
@@ -782,7 +845,8 @@ function moveInObject(env, objectPath, confidence) {
   }
 
   const existingProperty = getProperty(objectPath, rule.to);
-  const plan = planMove(env, child.node, existingProperty ? existingProperty.node.value : null);
+  const hasSpread = objectPath.node.properties.some(item => /^(Spread|ExperimentalSpread)/.test(item.type));
+  const plan = planMove(env, child.node, existingProperty ? existingProperty.node.value : null, hasSpread);
 
   if (plan === null) {
     return;
@@ -857,7 +921,7 @@ function moveOnElement(env, openingPath) {
         ctx.report({
           ruleId: rule.id,
           severity: 'manual',
-          line: lineOf(attributes[index]),
+          line: lineOfNode(attributes[index]),
           message: `${parentKey} comes from a variable that sets ${childKey}. Move ${rule.from} to ${rule.to} by hand.`,
         });
       }
@@ -873,14 +937,15 @@ function moveOnElement(env, openingPath) {
   }
 
   if (!rewrites(rule)) {
-    reportInstead(ctx, rule, lineOf(child.node), `Move ${rule.from} to the ${rule.to} attribute.`);
+    reportInstead(ctx, rule, lineOfNode(child.node), `Move ${rule.from} to the ${rule.to} attribute.`);
 
     return;
   }
 
   const existingAttribute = attributes.find(item => attributeName(item) === rule.to);
   const existing = existingAttribute ? (attributeValue(existingAttribute) ?? j.identifier('true')) : null;
-  const plan = planMove(env, child.node, existing);
+  const hasSpread = attributes.some(item => item.type === 'JSXSpreadAttribute');
+  const plan = planMove(env, child.node, existing, hasSpread);
 
   if (plan === null) {
     return;
@@ -917,7 +982,7 @@ function siteOf(rule) {
     };
   }
 
-  return { name: rule.name, instruction: `Remove ${rule.name}. ${removalAdvice(rule)}`.trim() };
+  return { name: rule.name, instruction: `Remove ${rule.name}. ${removalAdvice(rule, rule.name)}`.trim() };
 }
 
 /**
@@ -1015,6 +1080,14 @@ function reportDynamicOptions(ctx, rules) {
 const options = {
   kinds: ['optionRename', 'optionMove', 'optionRemove'],
   fileKinds: ['js', 'template'],
+
+  /**
+   * @param {import('../types.mjs').Rule} rule An `optionRename`, `optionMove`, or `optionRemove` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => assertRule(rule));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js` or `template` part.

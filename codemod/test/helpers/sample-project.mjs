@@ -55,6 +55,7 @@ export function App() {
 `,
   'src/angular.component.ts': `import { Component } from '@angular/core';
 import { HotTableModule } from '@handsontable/angular-wrapper';
+import type { GridSettings } from 'handsontable/settings';
 
 @Component({
   selector: 'app-orders',
@@ -63,7 +64,7 @@ import { HotTableModule } from '@handsontable/angular-wrapper';
   templateUrl: './angular.component.html',
 })
 export class OrdersComponent {
-  gridSettings = {
+  gridSettings: GridSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     columns: [{ type: 'numeric', numericFormat: { pattern: '0,0.00', culture: 'fr-FR' } }],
   };

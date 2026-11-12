@@ -42,7 +42,55 @@ describe('methodRemove', () => {
   it('shipped rule is safe and points at the guide section', () => {
     assert.equal(REMOVE.safe, true);
     assert.equal(REMOVE.guide, 'stop-calling-deprecated-resize-state-methods');
-    assert.equal(REMOVE.receiver, 'any');
+    assert.deepEqual(REMOVE.receiver, { plugin: ['manualColumnResize', 'manualRowResize'] });
+  });
+
+  it('never deletes on a receiver that is not one of the two resize plugins', async() => {
+    const source = `${HEAD}${[
+      'class B extends Base { save() { this.saveManualColumnWidths(); super.loadManualRowHeights(); } }',
+      'storage.saveManualColumnWidths();',
+      'const store = {};',
+      'store.loadManualRowHeights();',
+      'hot.getPlugin(\'filters\').saveManualColumnWidths();',
+      'hot.saveManualRowHeights();',
+    ].join('\n')}\n`;
+    const { output, changed, entries } = await run(source, rules);
+
+    assert.equal(changed, false);
+    assert.equal(output, source);
+    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]), [['manual', 4]]);
+    assert.match(entries[0].message, /manualColumnResize or manualRowResize plugin/);
+  });
+
+  it('follows a plugin held in a variable, an assignment, or a this member', async() => {
+    const { output } = await run(`${HEAD}${[
+      'let p;',
+      'p = hot.getPlugin(\'manualRowResize\');',
+      'p.loadManualRowHeights();',
+      'class K { go() { this.q = hot.getPlugin(\'manualColumnResize\'); this.q.saveManualColumnWidths(); } }',
+    ].join('\n')}\n`, rules);
+
+    assert.doesNotMatch(output, /loadManualRowHeights|saveManualColumnWidths/);
+  });
+
+  it('keeps a call whose receiver or arguments can have side effects and leaves a TODO', async() => {
+    const body = [
+      'createGrid().getPlugin(\'manualColumnResize\').saveManualColumnWidths();',
+      'async function f() { (await initGrid()).getPlugin(\'manualColumnResize\').saveManualColumnWidths(); }',
+      'plugin.saveManualColumnWidths(sideEffect());',
+      'plugin.saveManualColumnWidths(true);',
+    ].join('\n');
+    const { output, entries } = await removal(body);
+
+    assert.equal(output.includes('createGrid().getPlugin(\'manualColumnResize\').saveManualColumnWidths();'), true);
+    assert.equal(
+      output.includes('(await initGrid()).getPlugin(\'manualColumnResize\').saveManualColumnWidths();'),
+      true
+    );
+    assert.equal(output.includes('plugin.saveManualColumnWidths(sideEffect());'), true);
+    assert.equal(output.includes('plugin.saveManualColumnWidths(true);'), true);
+    assert.equal((output.match(/TODO\(handsontable-codemod 18\.0\.0\/resize-state-methods\)/g) ?? []).length, 4);
+    assert.equal(entries.filter(entry => entry.severity === 'changed').length, 0);
   });
 
   it('removes a call that is a whole statement, with await, void, and optional chaining', async() => {
@@ -58,7 +106,7 @@ describe('methodRemove', () => {
     assert.equal(entries.filter(entry => entry.severity === 'changed').length, 5);
   });
 
-  it('drops the comments attached to a removed statement and keeps the others', async() => {
+  it('moves the comments of a removed statement to the next statement', async() => {
     const { output } = await removal([
       '// keep: about the plugin',
       'const x = 1;',
@@ -70,8 +118,32 @@ describe('methodRemove', () => {
     ].join('\n'));
 
     assert.match(output, /\/\/ keep: about the plugin/);
-    assert.doesNotMatch(output, /describes the call below|trailing note/);
+    assert.match(output, /\/\/ describes the call below\n\/\/ trailing note\n/);
     assert.match(output, /const y = 2;/);
+  });
+
+  it('keeps the comments of a removed last statement on the previous statement or the block', async() => {
+    const last = await removal('const x = 1;\n// about the call\nplugin.saveManualColumnWidths();');
+
+    assert.match(last.output, /const x = 1;\n\/\/ about the call\n?$/);
+
+    const only = await removal('function f() {\n  // about the call\n  plugin.saveManualColumnWidths();\n}');
+
+    assert.match(only.output, /\/\/ about the call\nfunction f\(\) \{\}/);
+
+    const alone = await run('import Handsontable from \'handsontable\';\n'
+      + 'hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths(); // trailing\n', rules);
+
+    assert.match(alone.output, /\/\/ trailing/);
+  });
+
+  it('keeps a license header on the first statement byte for byte', async() => {
+    const header = '/*! Copyright (c) Example\n * All rights reserved. */';
+    const source = `${header}\nhot.getPlugin('manualColumnResize').saveManualColumnWidths();\n`
+      + 'import Handsontable from \'handsontable\';\nconst y = 2;\n';
+    const { output } = await run(source, rules);
+
+    assert.equal(output, `${header}\nimport Handsontable from 'handsontable';\nconst y = 2;\n`);
   });
 
   it('keeps the call and leaves a TODO when its result is used', async() => {
@@ -131,7 +203,10 @@ describe('methodRemove', () => {
   it('reports a method reference and a destructuring without editing them', async() => {
     const body = 'const f = plugin.saveManualColumnWidths;\nplugin.saveManualColumnWidths.bind(plugin);\n'
       + 'const { loadManualColumnWidths } = plugin;';
-    const { output, entries, changed } = await run(`${HEAD}const plugin = hot.getPlugin('a');\n${body}\n`, rules);
+    const { output, entries, changed } = await run(
+      `${HEAD}const plugin = hot.getPlugin('manualColumnResize');\n${body}\n`,
+      rules
+    );
 
     assert.equal(changed, false);
     assert.equal(output.includes(body), true);
@@ -140,7 +215,7 @@ describe('methodRemove', () => {
   });
 
   it('never rewrites with safe: false, it reports', async() => {
-    const { changed, entries } = await run(`${HEAD}hot.getPlugin('a').saveManualColumnWidths();\n`, [
+    const { changed, entries } = await run(`${HEAD}hot.getPlugin('manualColumnResize').saveManualColumnWidths();\n`, [
       { ...REMOVE, safe: false },
     ]);
 
@@ -227,7 +302,7 @@ describe('methodMove', () => {
     assert.equal(MOVE.safe, true);
     assert.equal(MOVE.receiver, 'instance');
     assert.deepEqual(MOVE.via, { method: 'getPlugin', args: ['undoRedo'] });
-    assert.deepEqual(MOVE.anyReceiver, ['clearUndo']);
+    assert.equal('anyReceiver' in MOVE, false);
   });
 
   it('moves each method, keeping arguments, await, return, and chains', async() => {
@@ -348,15 +423,23 @@ describe('methodMove', () => {
     assert.deepEqual(entries, []);
   });
 
-  it('rewrites an anyReceiver name on any receiver, unless the file declares it', async() => {
-    const any = await move('other.clearUndo();\nother.undo();');
+  it('rewrites only tracked instances, so clearUndo on an untracked receiver is left alone', async() => {
+    const untracked = await move('other.clearUndo();\nother.undo();\nhot.clearUndo();');
 
-    assert.match(any.output, /other\.getPlugin\('undoRedo'\)\.clear\(\);/);
-    assert.match(any.output, /other\.undo\(\);/);
+    assert.match(untracked.output, /other\.clearUndo\(\);/);
+    assert.match(untracked.output, /other\.undo\(\);/);
+    assert.match(untracked.output, /hot\.getPlugin\('undoRedo'\)\.clear\(\);/);
 
-    const declared = await move('class B { clearUndo() {} run() { this.clearUndo(); } }');
+    const grid = await move('function f(grid) { grid.clearUndo(); }');
 
-    assert.equal(declared.changed, false);
+    assert.equal(grid.changed, false);
+    assert.equal(grid.entries.filter(entry => entry.severity === 'manual').length, 1);
+  });
+
+  it('rejects receiver "any" on a move rule', async() => {
+    const { entries } = await run(`${HEAD}hot.undo();\n`, [{ ...MOVE, receiver: 'any' }]);
+
+    assert.equal(entries[0].ruleId, 'transform-error');
   });
 
   it('reports references, computed access, and write targets without editing them', async() => {

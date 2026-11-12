@@ -1,7 +1,8 @@
 import { detectQuote } from '../adapters/js.mjs';
-import { memberName, propertyName, unwrapNode } from '../lib/ast.mjs';
-import { collectHotBindings } from '../lib/hot-bindings.mjs';
+import { lineOfNode, memberName, pluginKeyOf, propertyName, unwrapNode } from '../lib/ast.mjs';
+import { collectHotBindings, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
 import { rewrites } from '../lib/safety.mjs';
+import { problemsOf } from '../lib/validate.mjs';
 
 const RECEIVERS = new Set(['any', 'instance']);
 const MEMBER_TYPES = ['MemberExpression', 'OptionalMemberExpression'];
@@ -30,10 +31,10 @@ const GRID_NAME = new RegExp('^[_$]*(hot|hotInstance|hotInst|hotTable|hotRef|hot
  * @typedef {object} Spec
  * @property {import('../types.mjs').Rule} rule The manifest rule.
  * @property {'remove'|'move'} type Rule kind.
- * @property {'any'|'instance'} receiver Which receivers the rule may rewrite.
+ * @property {'any'|'instance'|'plugin'} receiver Which receivers the rule may rewrite.
+ * @property {string[]|null} pluginKeys Plugin keys a `plugin` receiver may be (`receiver: { plugin }`).
  * @property {Map<string, string>} methods Method name to its new name (`move`), or to itself (`remove`).
  * @property {Map<string, true>} properties Property name that becomes the `via` call (`move` only).
- * @property {Set<string>} anyReceiver Names the rule rewrites on any receiver in a Handsontable file.
  * @property {{method: string, args: string[]}|null} via The call that reaches the new home (`move` only).
  */
 
@@ -46,18 +47,26 @@ const GRID_NAME = new RegExp('^[_$]*(hot|hotInstance|hotInst|hotTable|hotRef|hot
  */
 function prepare(rule) {
   const type = rule.kind === 'methodRemove' ? 'remove' : 'move';
+  const plugin = rule.receiver !== null && typeof rule.receiver === 'object' ? rule.receiver.plugin : undefined;
+  const pluginKeys = typeof plugin === 'string' ? [plugin] : plugin;
 
-  if (!RECEIVERS.has(rule.receiver)) {
-    throw new Error(`Rule ${rule.id} needs "receiver" to be "any" or "instance".`);
+  if (plugin !== undefined) {
+    if (!Array.isArray(pluginKeys) || pluginKeys.length === 0
+      || !pluginKeys.every(key => typeof key === 'string' && key)) {
+      throw new Error(`Rule ${rule.id}: "receiver.plugin" must be a plugin key or a list of plugin keys.`);
+    }
+  } else if (!RECEIVERS.has(rule.receiver) || (type === 'move' && rule.receiver === 'any')) {
+    throw new Error(`Rule ${rule.id} needs "receiver" to be ${type === 'remove' ? '"any", ' : ''}"instance", `
+      + 'or { "plugin": <key or keys> }.');
   }
 
   const spec = {
     rule,
     type,
-    receiver: rule.receiver,
+    receiver: plugin === undefined ? rule.receiver : 'plugin',
+    pluginKeys: plugin === undefined ? null : pluginKeys,
     methods: new Map(),
     properties: new Map(),
-    anyReceiver: new Set(rule.anyReceiver ?? []),
     via: null,
   };
 
@@ -180,8 +189,10 @@ function isViaCall(path, spec) {
  * Decide what to do with a member access on a receiver.
  *
  * - `rewrite`: the receiver is a confirmed grid instance, or the name is distinctive enough to rewrite on any
- *   receiver (`receiver: "any"`, or listed in `anyReceiver`) and the file does not declare the name itself.
- * - `manual`: the receiver is not confirmed but its name suggests a grid.
+ *   receiver (`receiver: "any"`) and the file does not declare the name itself. With
+ *   `receiver: { plugin }` only a confirmed plugin of those keys rewrites.
+ * - `manual`: the receiver is not confirmed but its name suggests a grid (for a `plugin` receiver: it is
+ *   unresolved, see `isUnresolvedReceiver`).
  * - `skip`: anything else, silently.
  *
  * @param {Spec} spec The rule.
@@ -196,11 +207,19 @@ function decide(spec, name, receiver, bindings, declared) {
     return 'skip';
   }
 
+  if (spec.pluginKeys) {
+    if (bindings.isPluginReceiver(receiver, spec.pluginKeys)) {
+      return 'rewrite';
+    }
+
+    return !declared.has(name) && isUnresolvedReceiver(receiver) ? 'manual' : 'skip';
+  }
+
   if (bindings.isInstance(receiver)) {
     return 'rewrite';
   }
 
-  if (spec.receiver === 'any' || spec.anyReceiver.has(name)) {
+  if (spec.receiver === 'any') {
     return declared.has(name) ? 'skip' : 'rewrite';
   }
 
@@ -347,16 +366,6 @@ function moveMethod(j, member, spec, newName, quote) {
 }
 
 /**
- * Line of a node for a report entry.
- *
- * @param {object} node An AST node.
- * @returns {number|undefined} One-based line.
- */
-function lineOf(node) {
-  return node.loc?.start?.line;
-}
-
-/**
  * Report a destructuring such as `const { undo } = hot`, which takes a method off a grid without a call.
  *
  * @param {import('../types.mjs').Ctx} ctx Context.
@@ -375,7 +384,7 @@ function reportDestructuring(ctx, path, specs, bindings, declared) {
       ctx.report({
         ruleId: spec.rule.id,
         severity: 'manual',
-        line: lineOf(property),
+        line: lineOfNode(property),
         message: `${name} is taken off the grid here without a call. ${guidance(spec, name)}`,
       });
     }
@@ -415,13 +424,17 @@ function guidance(spec, name) {
  */
 function act(ctx, { path, spec, name, decision, usage }, quote) {
   const { rule } = spec;
-  const line = lineOf(path.node);
+  const line = lineOfNode(path.node);
   const isProperty = spec.properties.has(name);
   const manual = message => ctx.report({ ruleId: rule.id, severity: 'manual', line, message });
 
   if (decision === 'manual') {
-    manual(`Could not confirm that this is a Handsontable instance, so ${name}${isProperty ? '' : '()'} was left `
-      + `alone. If it is one: ${guidance(spec, name)}`);
+    const subject = spec.pluginKeys
+      ? `the ${spec.pluginKeys.join(' or ')} plugin`
+      : 'a Handsontable instance';
+
+    manual(`Could not confirm that this is ${subject}, so ${name}${isProperty ? '' : '()'} was left `
+      + `alone. If it is: ${guidance(spec, name)}`);
 
     return;
   }
@@ -489,9 +502,76 @@ function moveProperty(ctx, path, spec, name, quote) {
   ctx.report({
     ruleId: spec.rule.id,
     severity: 'changed',
-    line: lineOf(node),
+    line: lineOfNode(node),
     message: `Replaced .${name} with ${viaText(spec)}.${spec.rule.message ? ` ${spec.rule.message}` : ''}`,
   });
+}
+
+/**
+ * Whether a receiver is a plain chain: identifiers, `this`, member reads, and `getPlugin('<literal>')` calls. Such a
+ * chain has no effects of its own, so dropping the statement that calls a no-op method on it loses nothing.
+ *
+ * @param {object} node The receiver node.
+ * @returns {boolean} `true` for a chain without other calls, `new`, `await`, or operators.
+ */
+function isSimpleReceiver(node) {
+  const current = unwrapNode(node);
+
+  switch (current.type) {
+    case 'Identifier':
+    case 'ThisExpression':
+      return true;
+    case 'MemberExpression':
+    case 'OptionalMemberExpression':
+      return (!current.computed || memberName(current) !== null || current.property.type === 'NumericLiteral')
+        && isSimpleReceiver(current.object);
+    case 'CallExpression':
+    case 'OptionalCallExpression':
+      return pluginKeyOf(current) !== null && current.arguments.length === 1
+        && isSimpleReceiver(unwrapNode(current.callee).object);
+    default:
+      return false;
+  }
+}
+
+/**
+ * Remove a statement and keep its comments. They move to the next statement, or to the previous one when there is
+ * none, or to the enclosing node when it was the only statement.
+ *
+ * @param {object} statement The statement NodePath, an item of a statement list.
+ * @returns {void}
+ */
+function pruneKeepingComments(statement) {
+  const comments = statement.node.comments ?? [];
+  const list = statement.parentPath.value;
+  const next = list[statement.name + 1];
+  const previous = list[statement.name - 1];
+
+  if (comments.length > 0) {
+    if (next) {
+      comments.forEach((comment) => {
+        comment.leading = true;
+        comment.trailing = false;
+      });
+      next.comments = [...comments, ...(next.comments ?? [])];
+    } else if (previous) {
+      comments.forEach((comment) => {
+        comment.leading = false;
+        comment.trailing = true;
+      });
+      previous.comments = [...(previous.comments ?? []), ...comments];
+    } else {
+      const holder = enclosingStatement(statement.parentPath.parentPath).node;
+
+      comments.forEach((comment) => {
+        comment.leading = true;
+        comment.trailing = false;
+      });
+      holder.comments = [...comments, ...(holder.comments ?? [])];
+    }
+  }
+
+  statement.prune();
 }
 
 /**
@@ -511,7 +591,7 @@ function removeCall(ctx, path, usage, spec, name) {
     ctx.report({
       ruleId: rule.id,
       severity: 'manual',
-      line: lineOf(path.node),
+      line: lineOfNode(path.node),
       message: `${name} is used without a call. ${guidance(spec, name)}`,
     });
 
@@ -519,11 +599,12 @@ function removeCall(ctx, path, usage, spec, name) {
   }
 
   const { statement, braceless } = statementOf(usage.call);
+  const effects = !isSimpleReceiver(path.node.object) || usage.call.node.arguments.length > 0;
 
-  if (statement) {
-    const line = lineOf(statement.node);
+  if (statement && !effects) {
+    const line = lineOfNode(statement.node);
 
-    statement.prune();
+    pruneKeepingComments(statement);
     ctx.markChanged();
     ctx.report({
       ruleId: rule.id,
@@ -535,13 +616,16 @@ function removeCall(ctx, path, usage, spec, name) {
     return;
   }
 
-  const reason = braceless
-    ? 'It is the whole body of a statement without braces, so the call was kept.'
-    : 'Its result is used here, so the call was kept.';
+  let reason = 'Its result is used here, so the call was kept.';
+  let short = reason;
 
-  const short = braceless
-    ? 'It has no braces, so the call was kept.'
-    : 'Its result is used here, so the call was kept.';
+  if (effects) {
+    reason = 'Its receiver or its arguments may do more than the removed call, so the call was kept.';
+    short = 'Its receiver or arguments may have effects, so the call was kept.';
+  } else if (braceless) {
+    reason = 'It is the whole body of a statement without braces, so the call was kept.';
+    short = 'It has no braces, so the call was kept.';
+  }
 
   ctx.todo(enclosingStatement(usage.call), rule.id, `${name}() is removed. ${reason} ${guidance(spec, name)}`,
     `${name}() is removed. ${short}`);
@@ -559,15 +643,25 @@ function removeCall(ctx, path, usage, spec, name) {
  *
  * The receiver is the whole safety story, because there is no type information (see `decide`). With
  * `receiver: "instance"` a call is rewritten only on a receiver `isInstance` confirms. An unconfirmed receiver is
- * reported when its name looks like a grid and ignored otherwise. A rule with `receiver: "any"`, and the names in
- * `anyReceiver`, rewrite on any receiver unless the file declares the name itself. A file that is not a Handsontable
- * file is never touched. A rule whose `safe` is not `true` never edits: every match is reported as `manual`.
+ * reported when its name looks like a grid and ignored otherwise. A rule with `receiver: { plugin }` rewrites only on
+ * a receiver `isPluginReceiver` confirms and reports an unresolved one. A `methodRemove` rule with
+ * `receiver: "any"` rewrites on any receiver unless the file declares the name itself. A file that is not a
+ * Handsontable file is never touched. A rule whose `safe` is not `true` never edits: every match is reported as
+ * `manual`.
  *
  * @type {import('../types.mjs').Transform}
  */
 const methods = {
   kinds: ['methodRemove', 'methodMove'],
   fileKinds: ['js'],
+
+  /**
+   * @param {import('../types.mjs').Rule} rule A `methodRemove` or `methodMove` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => prepare(rule));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js` part.

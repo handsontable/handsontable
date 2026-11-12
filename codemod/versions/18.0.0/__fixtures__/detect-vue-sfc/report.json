@@ -1,5 +1,20 @@
-[
-  { "ruleId": "18.0.0/pikaday-leftovers", "severity": "manual", "line": 2 },
-  { "ruleId": "18.0.0/numbro-pattern", "severity": "manual", "line": 14 },
-  { "ruleId": "18.0.0/wrapper-dom-selectors", "severity": "manual", "line": 22 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/pikaday-leftovers",
+      "severity": "manual",
+      "line": 2
+    },
+    {
+      "ruleId": "18.0.0/numbro-pattern",
+      "severity": "manual",
+      "line": 14
+    },
+    {
+      "ruleId": "18.0.0/wrapper-dom-selectors",
+      "severity": "manual",
+      "line": 22
+    }
+  ]
+}

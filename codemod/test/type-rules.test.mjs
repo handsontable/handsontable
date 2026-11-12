@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import { PACKAGE_ROOT, VERSIONS_DIR, buildPlan, loadManifest } from '../src/manifest.mjs';
+import { VERSIONS_DIR, buildPlan, loadManifests } from '../src/manifest.mjs';
 import {
   expandAdvice,
   matchDotted,
@@ -12,9 +13,12 @@ import {
   toList,
 } from '../src/lib/type-rules.mjs';
 import { transformFile } from '../src/runner.mjs';
+import { guidePath, skipWithoutGuides } from './helpers/guide-source.mjs';
 
-const VERSION = '18.0.0';
-const manifest = await loadManifest(join(VERSIONS_DIR, VERSION));
+const manifests = await loadManifests();
+// The type rules of the first migration that has them: the version of the tests below that name its rules.
+const manifest = manifests.find(item => item.rules.some(rule => rule.id.endsWith('/type-exportfile-settings')));
+const VERSION = manifest.version;
 const plan = buildPlan([manifest]);
 const diff = JSON.parse(await readFile(join(VERSIONS_DIR, VERSION, 'exports-diff.generated.json'), 'utf8'));
 const TYPE_KINDS = ['importSource', 'exportRename', 'exportRemoved', 'namespaceType'];
@@ -109,18 +113,19 @@ function coversMember(rule, path) {
 }
 
 /**
- * Every removed export of every entry point in the generated diff, as `[entry point, name]`.
+ * Every removed export of every entry point in a generated diff, as `[entry point, name]`.
  *
+ * @param {object} [source] The diff. Defaults to the diff of the version the tests below name.
  * @returns {Array<[string, string]>} The pairs.
  */
-function removedExports() {
+function removedExports(source = diff) {
   const pairs = [];
 
-  for (const entry of diff.entryPoints.removed) {
+  for (const entry of source.entryPoints.removed) {
     entry.exports.forEach(item => pairs.push([entry.specifier, item.name]));
   }
 
-  for (const [specifier, entry] of Object.entries(diff.entryPoints.changed)) {
+  for (const [specifier, entry] of Object.entries(source.entryPoints.changed)) {
     (entry.removed ?? []).forEach(item => pairs.push([specifier, item.name]));
   }
 
@@ -256,23 +261,6 @@ describe('type rules of 18.0.0', () => {
     assert.deepEqual([...used].filter(key => !keys.has(key)), []);
   });
 
-  it('covers every export the 17.1.0 to 18.0.0 diff removed', () => {
-    const uncovered = removedExports()
-      .filter(([specifier, name]) => !rules.some(rule => coversExport(rule, specifier, name))
-        && !ALLOWED_EXPORTS.has(`${specifier} ${name}`))
-      .map(([specifier, name]) => `${specifier} ${name}`);
-
-    assert.deepEqual(uncovered, [], `exports without a rule:\n${uncovered.join('\n')}`);
-  });
-
-  it('covers every type member the diff removed from the Handsontable namespace', () => {
-    const uncovered = diff.namespace.removed
-      .filter(item => !rules.some(rule => coversMember(rule, item.path)) && !ALLOWED_NAMESPACE.has(item.path))
-      .map(item => `${item.path} (${item.space})`);
-
-    assert.deepEqual(uncovered, [], `namespace members without a rule:\n${uncovered.join('\n')}`);
-  });
-
   it('allows only members that are value members and that the diff really lists', () => {
     const removed = new Map(diff.namespace.removed.map(item => [item.path, item.space]));
 
@@ -286,8 +274,12 @@ describe('type rules of 18.0.0', () => {
     }
   });
 
-  it('points every guide anchor at a heading of the migration guide', async() => {
-    const guide = await readFile(join(PACKAGE_ROOT, '..', manifest.guide.source), 'utf8');
+  it('points every guide anchor at a heading of the migration guide', async(context) => {
+    if (skipWithoutGuides(context, [manifest])) {
+      return;
+    }
+
+    const guide = await readFile(guidePath(manifest), 'utf8');
     const anchors = [...guide.matchAll(/^##+ (.+)$/gm)].map(match => slug(match[1]));
 
     for (const rule of rules.filter(item => item.guide)) {
@@ -332,7 +324,142 @@ describe('type rules of 18.0.0', () => {
   });
 });
 
+describe('every migration covers what its exports diff removed', () => {
+  for (const item of manifests) {
+    const file = join(VERSIONS_DIR, item.version, 'exports-diff.generated.json');
+    const available = existsSync(file);
+
+    it(`covers every removed export and namespace member of ${item.version}`, { skip: !available && 'no exports diff' },
+      async() => {
+        const versionDiff = JSON.parse(await readFile(file, 'utf8'));
+        const versionRules = item.rules.filter(rule => TYPE_KINDS.includes(rule.kind));
+        const first = item.version === VERSION;
+        const uncovered = removedExports(versionDiff)
+          .filter(([specifier, name]) => !versionRules.some(rule => coversExport(rule, specifier, name))
+            && !(first && ALLOWED_EXPORTS.has(`${specifier} ${name}`)))
+          .map(([specifier, name]) => `${specifier} ${name}`);
+        const members = (versionDiff.namespace?.removed ?? [])
+          .filter(entry => !versionRules.some(rule => coversMember(rule, entry.path))
+            && !(first && ALLOWED_NAMESPACE.has(entry.path)))
+          .map(entry => `${entry.path} (${entry.space})`);
+
+        assert.deepEqual(uncovered, [], `exports without a rule:\n${uncovered.join('\n')}`);
+        assert.deepEqual(members, [], `namespace members without a rule:\n${members.join('\n')}`);
+      });
+  }
+
+  it('has an exports diff for at least one migration', () => {
+    assert.ok(manifests.some(item => existsSync(join(VERSIONS_DIR, item.version, 'exports-diff.generated.json'))));
+  });
+});
+
+describe('notes of type rules', () => {
+  /**
+   * The `manual` entries a run of the real rules reports for a snippet, with their `scope`.
+   *
+   * @param {string} source File text.
+   * @returns {Promise<Array<{ruleId: string, scope: string|undefined}>>} The note entries.
+   */
+  async function notesOf(source) {
+    const result = await run('a.ts', source);
+
+    return result.entries.filter(entry => entry.severity === 'manual').map(entry => ({
+      ruleId: entry.ruleId,
+      scope: entry.scope,
+    }));
+  }
+
+  it('marks the note of an importSource rule as a note for the whole run', async() => {
+    const notes = await notesOf('import type { CellValue } from \'handsontable/common\';\nexport let a: CellValue;\n');
+
+    assert.deepEqual(notes, [{ ruleId: `${VERSION}/common-imports`, scope: 'run' }]);
+  });
+
+  it('marks the note of an exportRename rule as a note for the whole run', async() => {
+    const notes = await notesOf(
+      'import type { Config } from \'handsontable/plugins/columnSorting\';\nexport let a: Config;\n'
+    );
+
+    assert.deepEqual(notes, [{ ruleId: `${VERSION}/type-columnsorting-config`, scope: 'run' }]);
+  });
+
+  it('marks the note of a namespaceType rule as a note for the whole run', async() => {
+    const rule = manifest.rules.find(item => item.kind === 'namespaceType' && item.note);
+    const member = toList(rule.from)[0].replace('*', 'ColumnSorting');
+    const notes = await notesOf(`import Handsontable from 'handsontable';\nexport let a: ${member};\n`);
+
+    assert.ok(notes.length > 0 && notes.every(note => note.scope === 'run'), JSON.stringify(notes));
+    assert.equal(notes[0].ruleId, rule.id);
+  });
+});
+
+describe('exportRemoved lead sentence', () => {
+  const base = {
+    id: 'x/deprecated',
+    kind: 'exportRemoved',
+    version: 'x',
+    safe: false,
+    guideUrl: null,
+    source: 'handsontable/plugins/*',
+    name: 'Settings',
+    advice: 'Use {plugin} settings instead.',
+  };
+  const sample = 'import type { Settings } from \'handsontable/plugins/autofill\';\nexport type A = Settings;\n';
+
+  /**
+   * Run an `exportRemoved` rule over the sample and return the report messages.
+   *
+   * @param {object} rule The rule.
+   * @returns {Promise<string[]>} The messages.
+   */
+  async function messagesOf(rule) {
+    const single = { versions: [{ version: 'x', rules: [rule] }], rulesById: new Map([[rule.id, rule]]) };
+    const result = await transformFile({ filePath: 'a.ts', source: sample, plan: single });
+
+    return result.entries.map(entry => entry.message);
+  }
+
+  it('says the name is no longer exported unless the rule has a message', async() => {
+    assert.deepEqual(await messagesOf(base), [
+      'Settings is no longer exported from "handsontable/plugins/autofill". Use autofill settings instead.',
+    ]);
+  });
+
+  it('lets a rule message replace that sentence, with the placeholders filled', async() => {
+    const rule = { ...base, message: '{name} of {plugin} is deprecated and goes in 19.0.' };
+
+    assert.deepEqual(await messagesOf(rule), [
+      'Settings of autofill is deprecated and goes in 19.0. Use autofill settings instead.',
+    ]);
+  });
+});
+
 describe('type rule transforms', () => {
+  it('does not leave a second semicolon after a directive when a merged import is removed', async() => {
+    for (const quote of ['\'', '"']) {
+      const directive = `${quote}use client${quote};`;
+      const result = await run('a.ts', [
+        directive,
+        'import { RowObject } from \'handsontable\';',
+        'import { CellValue } from \'handsontable/common\';',
+        'export let a: CellValue | RowObject;',
+        '',
+      ].join('\n'));
+
+      assert.equal(result.output, [
+        directive,
+        'import { RowObject, CellValue } from \'handsontable\';',
+        'export let a: CellValue | RowObject;',
+        '',
+      ].join('\n'));
+    }
+
+    const kept = await run('a.ts',
+      '\'use client\';;\nimport { CellValue } from \'handsontable/common\';\nlet a: CellValue;\n');
+
+    assert.match(kept.output, /^'use client';;\n/);
+  });
+
   it('moves a name from handsontable/common to handsontable and keeps the alias and the import kind', async() => {
     const result = await run('a.ts', [
       'import { RowObject as Row } from \'handsontable/common\';',

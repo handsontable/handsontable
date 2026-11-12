@@ -1,11 +1,13 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
 import { plural, renderConsole, renderMarkdown } from './report.mjs';
 import { describeRules, resolvePlan, run } from './runner.mjs';
 
-export const HELP = `Usage: handsontable-codemod migrate [paths...] [options]
+const USAGE_LINE = 'Usage: handsontable-codemod migrate [paths...] [options]';
+
+export const HELP = `${USAGE_LINE}
 
 Apply the mechanical part of a Handsontable upgrade to your project and report the rest.
 
@@ -32,8 +34,11 @@ Options:
                         rules only report.
   --aggressive          Also rewrite settings objects found with medium confidence.
   --include-draft       Run migrations that are still drafts.
+  --allow-uncovered     Run although the project is older than the oldest version the tool migrates from. The
+                        report starts with the guides of the steps the tool does not cover.
   --max-file-size <n>   Skip files larger than <n> bytes and list them in the report. Default: 1048576.
-  --help                Show this help.
+  --version             Print the version of the tool.
+  -h, --help            Show this help.
 
 Exit codes:
   0  Done.
@@ -52,9 +57,42 @@ const OPTIONS = {
   list: { type: 'boolean' },
   aggressive: { type: 'boolean' },
   'include-draft': { type: 'boolean' },
+  'allow-uncovered': { type: 'boolean' },
   'max-file-size': { type: 'string' },
-  help: { type: 'boolean' },
+  version: { type: 'boolean' },
+  help: { type: 'boolean', short: 'h' },
 };
+
+/**
+ * Say what is wrong with the arguments in one sentence, without the extra advice of `parseArgs`.
+ *
+ * @param {Error & {code?: string}} error The error `parseArgs` threw.
+ * @returns {string} For example `Unknown option "--bogus".`.
+ */
+function describeUsageError(error) {
+  const named = /'(-[^']*?)(?: <value>)?'/.exec(error.message)?.[1];
+
+  if (error.code === 'ERR_PARSE_ARGS_UNKNOWN_OPTION' && named) {
+    return `Unknown option "${named}".`;
+  }
+
+  if (error.code === 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE' && named) {
+    return `Option "${named}" needs a value.`;
+  }
+
+  return error.message.split('. ')[0].replace(/'/g, '"').replace(/\.?$/, '.');
+}
+
+/**
+ * The version in the `package.json` of the tool.
+ *
+ * @returns {Promise<string>} The version text.
+ */
+async function packageVersion() {
+  const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+
+  return manifest.version;
+}
 
 /**
  * Format the rules of a plan as an aligned text table with a line of counts at the end.
@@ -99,7 +137,7 @@ export async function main(argv, {
   try {
     parsed = parseArgs({ args: argv, options: OPTIONS, allowPositionals: true, strict: true });
   } catch (error) {
-    stderr(`${error.message}\n\n${HELP}`);
+    stderr(`${describeUsageError(error)}\n${USAGE_LINE}\nRun with --help for all options.\n`);
 
     return 2;
   }
@@ -112,12 +150,18 @@ export async function main(argv, {
     return 0;
   }
 
+  if (values.version) {
+    stdout(`${await packageVersion()}\n`);
+
+    return 0;
+  }
+
   const [command, ...paths] = positionals;
 
   if (command !== 'migrate') {
     const problem = command ? `Unknown command "${command}".` : 'Missing command.';
 
-    stderr(`${problem} Use: handsontable-codemod migrate\n\n${HELP}`);
+    stderr(`${problem} Use: handsontable-codemod migrate\n${USAGE_LINE}\nRun with --help for all options.\n`);
 
     return 2;
   }
@@ -137,6 +181,7 @@ export async function main(argv, {
     to: values.to,
     only: values.only ?? [],
     includeDraft: Boolean(values['include-draft']),
+    allowUncovered: Boolean(values['allow-uncovered']),
   };
 
   try {
@@ -181,13 +226,27 @@ export async function main(argv, {
     stdout(renderConsole(result.report, summary));
 
     if (values.report) {
-      await writeFile(resolve(cwd, values.report), renderMarkdown(result.report, summary));
+      const date = new Date().toISOString().slice(0, 10);
+
+      await writeFile(resolve(cwd, values.report), renderMarkdown(result.report, {
+        ...summary,
+        from: result.from,
+        to: result.to,
+        date,
+      }));
       stdout(`Report written to ${values.report}.\n`);
     }
 
     if (!dryRun && result.changedFiles.length > 0) {
+      const manual = result.report.counts().manual;
+
       stdout('Next: run your formatter and linter on the changed files.\n'
         + 'Next: run tsc and your tests.\n');
+
+      if (manual > 0) {
+        stdout(`Next: work through the ${plural(manual, 'manual step')} in the report. `
+          + 'Find the markers with: git grep "TODO(handsontable-codemod"\n');
+      }
     }
 
     return result.exitCode;

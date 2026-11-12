@@ -139,6 +139,58 @@ export function resolveTo(input, knownVersions) {
 }
 
 /**
+ * The migration guides that came before the first manifest, as `[from, to]` pairs. The tool has no manifest for
+ * them, so a project below the oldest covered version is pointed at these pages. Each guide lives at
+ * `migration-from-<from>-to-<to>` next to the guides the manifests name.
+ */
+export const EARLIER_GUIDES = [
+  ['7.4', '8.0'],
+  ['8.4', '9.0'],
+  ['9.0', '10.0'],
+  ['10.0', '11.0'],
+  ['11.1', '12.0'],
+  ['12.4', '13.0'],
+  ['13.1', '14.0'],
+  ['14.6', '15.0'],
+  ['15.3', '16.0'],
+  ['16.0', '16.1'],
+  ['16.2', '17.0'],
+];
+
+/**
+ * The oldest version the manifests cover: the lowest `from` of all of them, read as the start of its line.
+ *
+ * @param {Array<{from: string}>} manifests All loaded manifests.
+ * @returns {{major: number, minor: number, patch: number, prerelease: string, text: string}|null} The version,
+ * with the text the manifest wrote (`17`), or `null` without manifests.
+ */
+export function oldestCovered(manifests) {
+  const starts = manifests.map((manifest) => {
+    const { major, minor, patch } = parseVersion(manifest.from);
+
+    return { major, minor, patch, prerelease: '', text: manifest.from };
+  }).sort(compareVersions);
+
+  return starts[0] ?? null;
+}
+
+/**
+ * The earlier migration steps a project still has to take by hand: the guides whose target is above the project
+ * version and not above the oldest covered version.
+ *
+ * @param {{major: number, minor: number, patch: number, prerelease?: string}} from The project version, as
+ * `resolveFrom` gives it.
+ * @param {{major: number, minor: number, patch: number}} oldest The oldest covered version.
+ * @param {string} guideBase URL up to and including the last slash of a manifest's guide URL.
+ * @returns {Array<{from: string, to: string, url: string}>} The steps in order.
+ */
+export function uncoveredSteps(from, oldest, guideBase) {
+  return EARLIER_GUIDES
+    .filter(([, to]) => compareVersions(parseVersion(to), from) > 0 && compareVersions(parseVersion(to), oldest) <= 0)
+    .map(([start, to]) => ({ from: start, to, url: `${guideBase}migration-from-${start}-to-${to}` }));
+}
+
+/**
  * Pick the manifests that run: `from < version <= to`, in ascending order. Drafts are left out unless
  * requested, and the left-out ones are returned so the caller can say so.
  *
@@ -215,7 +267,8 @@ export function minimumOfRange(range) {
  * @param {string} start Directory to start from, usually the project directory.
  * @param {object} [options] Options.
  * @param {string} [options.stopAt] The highest directory whose package.json counts. Defaults to `start`.
- * @returns {Promise<{version: string, source: string}|null>} The version and where it came from, or `null`.
+ * @returns {Promise<{version: string|null, source: string, range?: string}|null>} The version and where it came
+ * from, or `null`. A `handsontable` range that names no version (`latest`) gives `version: null` with the `range`.
  */
 export async function detectInstalledVersion(start, { stopAt = start } = {}) {
   let dir = start;
@@ -236,22 +289,28 @@ export async function detectInstalledVersion(start, { stopAt = start } = {}) {
     dir = parent;
   }
 
+  let unversioned = null;
+
   for (dir = start; ; dir = dirname(dir)) {
     const manifest = await readJson(join(dir, 'package.json'));
 
     for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
       const range = manifest?.[field]?.handsontable;
       const minimum = typeof range === 'string' ? minimumOfRange(range) : null;
+      const where = relative(stopAt, dir).split(sep).join('/');
+      const source = `${where ? `${where}/` : ''}package.json ${field}`;
 
       if (minimum) {
-        const where = relative(stopAt, dir).split(sep).join('/');
+        return { version: minimum, source };
+      }
 
-        return { version: minimum, source: `${where ? `${where}/` : ''}package.json ${field}` };
+      if (typeof range === 'string' && !unversioned) {
+        unversioned = { version: null, range, source };
       }
     }
 
     if (dir === stopAt || dirname(dir) === dir) {
-      return null;
+      return unversioned;
     }
   }
 }
@@ -262,7 +321,8 @@ export async function detectInstalledVersion(start, { stopAt = start } = {}) {
  *
  * @param {string} cwd Project directory.
  * @param {string[]} [paths] Path arguments relative to `cwd`.
- * @returns {Promise<{version: string, source: string}|null>} The version and where it came from, or `null`.
+ * @returns {Promise<{version: string|null, source: string, range?: string}|null>} The version and where it came
+ * from, or `null`. See `detectInstalledVersion` for `version: null`.
  * @throws {UsageError} When the paths resolve to different versions.
  */
 export async function detectProjectVersion(cwd, paths = []) {
@@ -278,14 +338,16 @@ export async function detectProjectVersion(cwd, paths = []) {
     }
   }
 
-  if (new Set(found.map(item => item.version)).size > 1) {
-    const list = found.map(item => `${item.path}: ${item.version}`).join(', ');
+  const versioned = found.filter(item => item.version !== null);
+
+  if (new Set(versioned.map(item => item.version)).size > 1) {
+    const list = versioned.map(item => `${item.path}: ${item.version}`).join(', ');
 
     throw new UsageError(`The paths use different Handsontable versions (${list}). `
       + 'Pass --from to say which one to migrate from, or run each path on its own.');
   }
 
-  return found[0] ?? null;
+  return versioned[0] ?? found[0] ?? null;
 }
 
 /**

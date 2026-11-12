@@ -1,4 +1,15 @@
-[
-  { "ruleId": "18.0.0/html-without-sanitizer", "severity": "manual", "line": 6 },
-  { "ruleId": "18.0.0/html-without-sanitizer", "severity": "manual", "line": 24 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/html-without-sanitizer",
+      "severity": "manual",
+      "line": 6
+    },
+    {
+      "ruleId": "18.0.0/html-without-sanitizer",
+      "severity": "manual",
+      "line": 24
+    }
+  ]
+}

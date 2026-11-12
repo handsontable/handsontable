@@ -8,7 +8,7 @@ import { planRange } from '../src/lib/dependency-range.mjs';
 import { PACKAGE_FACT, addFact, hasFactFor, registerPackageDir } from '../src/lib/facts.mjs';
 import { buildPlan } from '../src/manifest.mjs';
 import { run, transformFile } from '../src/runner.mjs';
-import { matchesWhen } from '../src/transforms/dependencies.mjs';
+import dependencies, { matchesWhen } from '../src/transforms/dependencies.mjs';
 import { createRegistry } from '../src/transforms/index.mjs';
 
 /**
@@ -653,6 +653,65 @@ describe('adding HyperFormula', () => {
     }, { to: '18.0' }, async({ read }) => {
       assert.equal(JSON.parse(await read('package.json')).dependencies.hyperformula, '^3.0.0');
     });
+  });
+});
+
+describe('reportMissing and reportPresent', () => {
+  const rule = fields => ({ id: 'x/r', kind: 'dependency', version: 'x', safe: false, guideUrl: null, ...fields });
+
+  /**
+   * Run one rule over a package.json in phase 2.
+   *
+   * @param {object} dependencyRule The rule.
+   * @param {object} manifest The manifest.
+   * @param {string[]} [facts] Facts present before the run.
+   * @returns {Promise<string[]>} The messages of the report entries.
+   */
+  async function messages(dependencyRule, manifest, facts = []) {
+    const plan = {
+      versions: [{ version: 'x', rules: [dependencyRule] }],
+      rulesById: new Map([[dependencyRule.id, dependencyRule]]),
+    };
+    const result = await transformFile({
+      filePath: 'package.json',
+      source: pkg({ name: 'handsontable-app', ...manifest }),
+      plan,
+      phase: 2,
+      facts: new Set(facts),
+    });
+
+    return result.entries.map(entry => entry.message);
+  }
+
+  it('reportPresent reports a declared package, with an optional fact and host condition', async() => {
+    const present = rule({
+      reportPresent: [{ name: 'moment', message: 'Drop moment.', onlyIfDependsOn: 'handsontable' }],
+    });
+    const gated = rule({ reportPresent: [{ name: 'moment', message: 'Drop moment.', whenFact: 'imports-moment' }] });
+    const declared = { dependencies: { handsontable: '^17.1.0', moment: '^2' } };
+
+    assert.deepEqual(await messages(present, declared), ['Drop moment.']);
+    assert.deepEqual(await messages(present, { dependencies: { moment: '^2' } }), []);
+    assert.deepEqual(await messages(present, { dependencies: { handsontable: '^17.1.0' } }), []);
+    assert.deepEqual(await messages(gated, declared), []);
+    assert.deepEqual(await messages(gated, declared, ['imports-moment@.']), ['Drop moment.']);
+  });
+
+  it('reportMissing reports a package that is not declared', async() => {
+    const missing = rule({ reportMissing: [{ name: 'numbro', message: 'Add numbro.' }] });
+
+    assert.deepEqual(await messages(missing, { dependencies: {} }), ['Add numbro.']);
+    assert.deepEqual(await messages(missing, { dependencies: { numbro: '^2' } }), []);
+  });
+
+  it('validates the items of every list when the manifests load', () => {
+    const problems = fields => createRegistry([dependencies]).validate(rule(fields));
+
+    assert.deepEqual(problems({ reportPresent: [{ name: 'a', message: 'm' }] }), []);
+    assert.match(problems({ reportPresent: [{ name: 'a' }] })[0], /"reportPresent\[0\]\.message" must be a string/);
+    assert.match(problems({ reportMissing: [{ message: 'm' }] })[0], /"reportMissing\[0\]\.name" must be a string/);
+    assert.match(problems({ add: [{ name: 'a' }] })[0], /"add\[0\]\.range" must be a string/);
+    assert.match(problems({ reportOnly: [{ name: 'a' }] })[0], /"reportOnly" is now "reportMissing"/);
   });
 });
 

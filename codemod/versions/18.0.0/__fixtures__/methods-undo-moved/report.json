@@ -10,6 +10,5 @@
   { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 24 },
   { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 27 },
   { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 34 },
-  { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 35 },
-  { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 40 }
+  { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 35 }
 ]

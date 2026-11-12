@@ -1,4 +1,11 @@
-import { calleeName, propertyName, stringValue, unwrapNode } from '../lib/ast.mjs';
+import {
+  attributeName,
+  calleeName,
+  lineOfNode,
+  propertyName,
+  stringValue,
+  unwrapNode,
+} from '../lib/ast.mjs';
 import { addFact } from '../lib/facts.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { findDynamicImports, findImports, findReExports, findRequires } from '../lib/imports.mjs';
@@ -19,13 +26,14 @@ const REQUIRES = ['hot-file', 'option-object', 'none'];
 const JS_ONLY_MATCHERS = ['import', 'property', 'call', 'hook', 'string', 'missingOption', 'namespaceMember',
   'annotatedObject'];
 const ANY_MATCHERS = ['regex', 'selector'];
+const VALUE_KINDS = [true, false, null, 'array', 'function', 'object'];
 
 /**
  * The fields each matcher may carry besides its own key. A field with no entry here is a typo.
  */
 const MODIFIERS = {
   import: [],
-  property: ['withKey', 'siblingKey', 'valueMatches', 'in', 'flags'],
+  property: ['withKey', 'siblingKey', 'valueMatches', 'valueIs', 'in', 'flags'],
   annotatedObject: ['flags'],
   call: ['argMatches', 'receiver', 'flags'],
   hook: [],
@@ -146,6 +154,16 @@ function validateMatch(spec, files, where) {
     problems.push(`${where}.in must be "option-object"`);
   }
 
+  if (spec.valueIs !== undefined) {
+    if (!VALUE_KINDS.includes(spec.valueIs)) {
+      problems.push(`${where}.valueIs must be true, false, null, "array", "function", or "object"`);
+    }
+
+    if (files.includes('template')) {
+      problems.push(`${where}: valueIs reads js only, so "files" must not list template`);
+    }
+  }
+
   for (const field of ['valueMatches', 'argMatches', 'whenValueMatches', 'unlessFileMatches', 'flags']) {
     if (field in spec && typeof spec[field] !== 'string') {
       problems.push(`${where}.${field} must be a string`);
@@ -195,6 +213,22 @@ export function validateDetectRule(rule) {
 
   if (rule.requires !== undefined && !REQUIRES.includes(rule.requires)) {
     problems.push(`"requires" must be one of ${REQUIRES.join(', ')}`);
+  }
+
+  if (rule.unlessFileMatches !== undefined) {
+    if (typeof rule.unlessFileMatches !== 'string') {
+      problems.push('"unlessFileMatches" must be a string');
+    } else {
+      try {
+        regexOf(rule.unlessFileMatches);
+      } catch (error) {
+        problems.push(`"unlessFileMatches" is not a valid regular expression: ${error.message}`);
+      }
+    }
+  }
+
+  if (rule.mergeKey !== undefined && (typeof rule.mergeKey !== 'string' || rule.mergeKey === '')) {
+    problems.push('"mergeKey" must be a string');
   }
 
   return [...problems, ...validateMatch(rule.match, files, 'match')];
@@ -274,6 +308,7 @@ function compileRule(rule) {
       files: rule.files,
       requires: rule.requires ?? 'hot-file',
       severity: rule.severity ?? 'manual',
+      unlessFile: regexOf(rule.unlessFileMatches),
     });
   }
 
@@ -298,16 +333,6 @@ function memo(compute) {
 
     return value;
   };
-}
-
-/**
- * The one-based line of a node.
- *
- * @param {object|null|undefined} node An AST node.
- * @returns {number|undefined} The line, `undefined` for a node another transform created.
- */
-function lineOfNode(node) {
-  return node?.loc?.start?.line;
 }
 
 /**
@@ -509,16 +534,6 @@ function holderOf(container) {
 }
 
 /**
- * Name of a JSX attribute.
- *
- * @param {object} node A `JSXAttribute` node.
- * @returns {string|null} The name, or `null` for a namespaced name.
- */
-function attributeName(node) {
-  return node.name.type === 'JSXIdentifier' ? node.name.name : null;
-}
-
-/**
  * Resolve where a property sits for a dotted key path: below which option object, or on which JSX element.
  *
  * @param {object} propertyPath NodePath of the last property (or JSX attribute) of the path.
@@ -572,6 +587,41 @@ function valueOfProperty(node) {
   }
 
   return node.type === 'ObjectMethod' ? null : node.value;
+}
+
+/**
+ * Whether the value of a property is of the kind a `valueIs` modifier asks for.
+ *
+ * @param {object|null} property The `ObjectProperty`, `ObjectMethod`, or `JSXAttribute` node, `null` for an
+ * assignment.
+ * @param {object|null|undefined} value The value node.
+ * @param {boolean|null|'array'|'function'|'object'} expected `true`, `false`, `null`, or a kind name.
+ * @returns {boolean} `true` when the value is that.
+ */
+function isValueKind(property, value, expected) {
+  const node = value ? unwrapNode(value) : null;
+
+  if (property?.type === 'ObjectMethod') {
+    return expected === 'function';
+  }
+
+  if (!node) {
+    return false;
+  }
+
+  switch (expected) {
+    case 'array':
+      return node.type === 'ArrayExpression';
+    case 'object':
+      return node.type === 'ObjectExpression';
+    case 'function':
+      return node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression';
+    case null:
+      return node.type === 'NullLiteral' || (node.type === 'Literal' && node.value === null && !node.regex);
+    default:
+      return (node.type === 'BooleanLiteral' || (node.type === 'Literal' && typeof node.value === 'boolean'))
+        && node.value === expected;
+  }
 }
 
 /**
@@ -649,6 +699,10 @@ function matchProperty(env, node) {
         }
       }
 
+      if (spec.valueIs !== undefined && !isValueKind(path.node, value, spec.valueIs)) {
+        continue;
+      }
+
       matches.push({ line: lineOfNode(path.node) });
     }
   };
@@ -702,6 +756,10 @@ function matchDynamicProperty(env, node) {
     }
 
     if (set && spec.withKey !== undefined && !objectHasKey(site.value, spec.withKey)) {
+      return false;
+    }
+
+    if (spec.valueIs !== undefined && !isValueKind(null, site.value, spec.valueIs)) {
       return false;
     }
 
@@ -1174,6 +1232,10 @@ function applyRule(env, rule) {
     return;
   }
 
+  if (compiled.unlessFile?.test(ctx.source)) {
+    return;
+  }
+
   env.requires = compiled.requires;
 
   const matches = uniqueByLine(evaluate(env, compiled.tree));
@@ -1192,6 +1254,7 @@ function applyRule(env, rule) {
       severity: compiled.severity,
       line: match.line,
       message: rule.message,
+      ...(rule.mergeKey && match.line !== undefined ? { mergeKey: `${rule.mergeKey}:${match.line}` } : {}),
     }));
 
     return;
@@ -1254,6 +1317,7 @@ function applyRule(env, rule) {
 const detect = {
   kinds: ['detect'],
   fileKinds: ['js', 'css', 'template'],
+  validate: validateDetectRule,
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js`, `css`, or `template` part.

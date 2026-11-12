@@ -333,6 +333,62 @@ describe('resolveNamespaceMember', () => {
   });
 });
 
+describe('isPluginReceiver', () => {
+  /**
+   * Check, for every `<receiver>.probe()` call in the source, whether the receiver is a plugin of the given keys.
+   *
+   * @param {string} source Source text with `x.probe()` calls.
+   * @param {string[]} keys Plugin keys.
+   * @returns {boolean[]} One answer per call, in source order.
+   */
+  function pluginProbes(source, keys) {
+    const { j, root, bindings } = bind(source);
+
+    return root.find(j.CallExpression)
+      .filter(path => path.node.callee.property?.name === 'probe')
+      .paths()
+      .map(path => bindings.isPluginReceiver(path.get('callee', 'object'), keys));
+  }
+
+  const KEYS = ['manualColumnResize', 'manualRowResize'];
+
+  it('accepts a direct getPlugin call with a listed key on any object, optional chaining included', () => {
+    assert.deepEqual(pluginProbes([
+      'hot.getPlugin(\'manualColumnResize\').probe();',
+      'this.hot.getPlugin("manualRowResize").probe();',
+      'hot?.getPlugin(\'manualColumnResize\')?.probe();',
+      'hot.getPlugin(\'manualColumnResize\')!.probe();',
+      'hot.getPlugin(\'filters\').probe();',
+      'hot.getPlugin(key).probe();',
+      'hot.getOther(\'manualColumnResize\').probe();',
+    ].join('\n'), KEYS), [true, true, true, true, false, false, false]);
+  });
+
+  it('follows a variable, an assignment, and a this member for one hop', () => {
+    assert.deepEqual(pluginProbes([
+      'const a = hot.getPlugin(\'manualColumnResize\');',
+      'let b;',
+      'b = hot.getPlugin(\'manualRowResize\');',
+      'const c = other();',
+      'class K {',
+      '  go() { this.p = hot.getPlugin(\'manualColumnResize\'); this.p.probe(); this.q.probe(); }',
+      '}',
+      'a.probe();',
+      'b.probe();',
+      'c.probe();',
+      'const d = hot.getPlugin(\'filters\');',
+      'd.probe();',
+    ].join('\n'), KEYS), [true, false, true, true, false, false]);
+  });
+
+  it('does not follow a shadowed name', () => {
+    assert.deepEqual(pluginProbes([
+      'const a = hot.getPlugin(\'manualColumnResize\');',
+      'function f(a) { a.probe(); }',
+    ].join('\n'), KEYS), [false]);
+  });
+});
+
 describe('queries do not edit the tree', () => {
   it('leaves the printed source untouched', () => {
     const source = 'import   Handsontable from \'handsontable\';\nconst hot = new  Handsontable(el, {  a: 1 });\n';

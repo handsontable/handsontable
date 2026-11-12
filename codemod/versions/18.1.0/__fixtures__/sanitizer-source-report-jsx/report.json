@@ -1,4 +1,35 @@
-[
-  { "ruleId": "18.1.0/sanitizer-source", "severity": "manual", "line": 10 },
-  { "ruleId": "18.1.0/sanitizer-source", "severity": "manual", "line": 20 }
-]
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 10
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 9
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 20
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 19
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-new-sources",
+      "severity": "manual",
+      "line": 9
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-new-sources",
+      "severity": "manual",
+      "line": 19
+    }
+  ]
+}

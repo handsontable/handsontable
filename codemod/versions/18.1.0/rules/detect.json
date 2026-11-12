@@ -69,8 +69,10 @@
       "severity": "manual",
       "files": ["css"],
       "requires": "none",
+      "mergeKey": "pikaday",
+      "unlessFileMatches": "pikaday",
       "match": { "selector": "\\.pika-(?:single|next|prev)(?![\\w-])" },
-      "message": "The 18.1 themes no longer ship Pikaday styles, and Handsontable has not used Pikaday since 18.0. This .pika-* rule has nothing to style. Remove it."
+      "message": "Handsontable no longer ships Pikaday styles. Remove this rule unless you load Pikaday yourself."
     },
     {
       "id": "18.1.0/sanitizer-source",

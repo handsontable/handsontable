@@ -20,7 +20,7 @@ const CALLS = {
   kind: 'optionRename',
   from: 'columnHeaders',
   to: 'colHeaders',
-  context: { callArg: ['downloadFile', 'exportAsString'] },
+  context: { callArg: ['downloadFile', 'exportAsString'], receiver: { plugin: 'exportFile' } },
 };
 
 /**
@@ -199,8 +199,10 @@ export const App = () => <Other oldName={1} />;
 });
 
 describe('optionRename with context.callArg', () => {
+  const PLUGIN = `${IMPORT}const plugin = hot.getPlugin('exportFile');\n`;
+
   it('renames in object-literal arguments of method calls, at any position and in sheets entries', async() => {
-    const source = `${IMPORT}plugin.downloadFile('csv', { columnHeaders: true });
+    const source = `${PLUGIN}plugin.downloadFile('csv', { columnHeaders: true });
 plugin?.exportAsString('csv', { filename: 'a' }, { columnHeaders: true });
 plugin.downloadFile('xlsx', { sheets: [{ columnHeaders: true }, { colHeaders: true }] });
 `;
@@ -210,8 +212,32 @@ plugin.downloadFile('xlsx', { sheets: [{ columnHeaders: true }, { colHeaders: tr
     assert.equal(result.output.includes('columnHeaders'), false);
   });
 
+  it('rewrites only where the receiver is the exportFile plugin, and reports the other receivers', async() => {
+    const source = `${PLUGIN}xlsx.downloadFile({ columnHeaders: ['a', 'b'] });
+hot.getPlugin('filters').exportAsString('csv', { columnHeaders: true });
+axios.downloadFile('csv', { filename: 'a' });
+this.hot.getPlugin('exportFile').downloadFile('csv', { columnHeaders: true });
+const other = makeExporter();
+other?.downloadFile('csv', { columnHeaders: true });
+`;
+    const result = await run(source, [CALLS]);
+
+    assert.match(result.output, /xlsx\.downloadFile\(\{ columnHeaders: \['a', 'b'\] \}\);/);
+    assert.match(result.output, /getPlugin\('filters'\)\.exportAsString\('csv', \{ columnHeaders: true \}\);/);
+    assert.match(result.output, /getPlugin\('exportFile'\)\.downloadFile\('csv', \{ colHeaders: true \}\);/);
+    assert.match(result.output, /other\?\.downloadFile\('csv', \{ columnHeaders: true \}\);/);
+    assert.deepEqual(summary(result.entries), ['3:manual', '6:changed', '8:manual']);
+    assert.match(result.entries[0].message, /exportFile plugin/);
+  });
+
+  it('stays silent about a receiver in a file that does not use Handsontable', async() => {
+    const result = await run('xlsx.downloadFile({ columnHeaders: true });\n', [CALLS]);
+
+    assert.deepEqual([result.changed, result.entries.length], [false, 0]);
+  });
+
   it('skips bare calls, other methods, and non-literal arguments', async() => {
-    const source = `${IMPORT}downloadFile('csv', { columnHeaders: true });
+    const source = `${PLUGIN}downloadFile('csv', { columnHeaders: true });
 plugin.save('csv', { columnHeaders: true });
 plugin.downloadFile('csv', options);
 plugin.downloadFile('csv', ...rest);
@@ -222,15 +248,15 @@ const unrelated = { columnHeaders: true };
   });
 
   it('ignores the confidence of the surrounding file and reports a clash', async() => {
-    const source = `${IMPORT}plugin.downloadFile('csv', { columnHeaders: true, colHeaders: false });\n`;
+    const source = `${PLUGIN}plugin.downloadFile('csv', { columnHeaders: true, colHeaders: false });\n`;
     const result = await run(source, [CALLS]);
 
     assert.equal(result.changed, false);
-    assert.deepEqual(summary(result.entries), ['2:manual']);
+    assert.deepEqual(summary(result.entries), ['3:manual']);
   });
 
   it('appends the rule message to the changed entry', async() => {
-    const source = `${IMPORT}plugin.downloadFile('csv', { columnHeaders: true });\n`;
+    const source = `${PLUGIN}plugin.downloadFile('csv', { columnHeaders: true });\n`;
     const result = await run(source, [{ ...CALLS, message: 'Removed in 19.0.' }]);
 
     assert.match(result.entries[0].message, /Renamed columnHeaders to colHeaders\. Removed in 19\.0\./);
@@ -308,6 +334,21 @@ describe('optionMove', () => {
 
     assert.equal(result.output.includes('culture'), false);
     assert.equal(result.output.match(/de-DE/g).length, 1);
+  });
+
+  it('does not move when the object that would receive the key holds a spread', async() => {
+    const after = await run(grid('{ numericFormat: { culture: \'de-DE\' }, ...base }'), [MOVE]);
+    const before = await run(grid('{ ...base, numericFormat: { culture: \'de-DE\' } }'), [MOVE]);
+    const element = await run('import { HotColumn } from \'@handsontable/react-wrapper\';\n'
+      + 'export const A = () => <HotColumn {...base} numericFormat={{ culture: \'de-DE\' }} />;\n', [MOVE],
+    { filePath: 'a.tsx' });
+
+    for (const result of [after, before, element]) {
+      assert.equal(result.changed, false);
+      assert.equal(result.entries.length, 1);
+      assert.equal(result.entries[0].severity, 'manual');
+      assert.match(result.entries[0].message, /a spread may already set locale/);
+    }
   });
 
   it('does nothing without the nested key, for a non-object parent, or for an unrecognized object', async() => {
@@ -389,6 +430,19 @@ describe('optionRemove', () => {
     assert.deepEqual(summary(result.entries), ['2:changed']);
   });
 
+  it('reports a deletion once, as a change that carries the advice, whether or not it leaves a TODO', async() => {
+    const withTodo = await run(grid('{ a: 1, gone: true, b: 2 }'), [REMOVE]);
+    const attribute = await run('import { HotColumn } from \'@handsontable/react-wrapper\';\n'
+      + 'export const App = () => <HotColumn gone />;\n', [REMOVE], { filePath: 'a.tsx' });
+
+    assert.deepEqual(summary(withTodo.entries), ['2:changed']);
+    assert.equal(withTodo.entries[0].message, 'Removed gone. It is gone.');
+    assert.equal(attribute.entries.length, 1);
+    assert.equal(attribute.entries[0].severity, 'changed');
+    assert.match(attribute.entries[0].message, /It is gone\.$/);
+    assert.match(withTodo.output, /TODO\(handsontable-codemod 18\.0\.0\/remove\): Deleted gone here\./);
+  });
+
   it('leaves one TODO before the next property and does not add a second one on a rerun', async() => {
     const first = await run(grid('{\n  a: 1,\n  gone: true,\n  b: 2,\n}'), [REMOVE]);
     const second = await run(first.output, [REMOVE]);
@@ -420,17 +474,59 @@ describe('optionRemove', () => {
     assert.match(inReturn.output, /return \{\};/);
   });
 
-  it('drops comments that describe the removed property and keeps a section header and a TODO', async() => {
+  it('keeps every comment of a removed property, on the next property or else on the previous one', async() => {
     const described = await run(grid('{\n  a: 1,\n  // describes gone\n  gone: true, // also gone\n  b: 2,\n}'),
       [quiet]);
     const header = await run(grid('{\n  // Date columns\n\n  gone: true,\n  b: 2,\n}'), [quiet]);
     const todo = await run(grid('{\n  // TODO(handsontable-codemod other): keep me\n  gone: true,\n  b: 2,\n}'),
       [quiet]);
+    const last = await run(grid('{\n  a: 1,\n  // describes gone\n  gone: true,\n}'), [quiet]);
+    const only = await run(grid('{\n  // describes gone\n  gone: true,\n}'), [quiet]);
 
-    assert.equal(described.output.includes('describes gone'), false);
-    assert.equal(described.output.includes('also gone'), false);
+    assert.match(described.output, /\/\/ describes gone\s+(\/\/ also gone\s+)?b: 2/);
+    assert.match(described.output, /\/\/ also gone/);
     assert.match(header.output, /\/\/ Date columns\s+b: 2/);
     assert.match(todo.output, /keep me\s+b: 2/);
+    assert.match(last.output, /\/\/ describes gone/);
+    assert.match(only.output, /\/\/ describes gone/);
+
+    for (const result of [described, header, todo, last, only]) {
+      assert.doesNotThrow(() => parse(result.output, 'babylon'));
+    }
+  });
+
+  it('keeps the comments of a removed attribute', async() => {
+    const source = 'import { HotColumn } from \'@handsontable/react-wrapper\';\n'
+      + 'export const App = () => <HotColumn\n  data="a"\n  // describes gone\n  gone\n/>;\n';
+    const result = await run(source, [quiet], { filePath: 'a.tsx' });
+
+    assert.match(result.output, /describes gone/);
+  });
+
+  it('keeps a property whose value is computed and reports it', async() => {
+    const call = await run(grid('{\n  a: 1,\n  gone: compute(),\n  b: 2,\n}'), [REMOVE]);
+    const nested = await run(grid('{\n  gone: { firstDay: pick(), i18n: {} },\n  b: 2,\n}'), [REMOVE]);
+    const inert = await run(grid('{\n  gone: { firstDay: 1, onSelect: () => {}, list: [a.b, \'c\'] },\n  b: 2,\n}'),
+      [REMOVE]);
+
+    for (const result of [call, nested]) {
+      assert.match(result.output, /gone: (compute\(\)|\{)/);
+      assert.match(result.output, /TODO\(handsontable-codemod 18\.0\.0\/remove\): gone is computed/);
+      assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 0);
+      assert.equal(result.entries.filter(entry => entry.severity === 'manual').length, 1);
+    }
+
+    assert.equal(inert.output.includes('gone:'), false);
+    assert.equal(inert.entries.filter(entry => entry.severity === 'changed').length, 1);
+  });
+
+  it('keeps an attribute whose value is a call', async() => {
+    const source = 'import { HotColumn } from \'@handsontable/react-wrapper\';\n'
+      + 'export const App = () => <HotColumn gone={compute()} />;\n';
+    const result = await run(source, [REMOVE], { filePath: 'a.tsx' });
+
+    assert.match(result.output, /gone=\{compute\(\)\}/);
+    assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 0);
   });
 
   it('keeps the TODO of one rule when a later rule removes the property that carried it', async() => {

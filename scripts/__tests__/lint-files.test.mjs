@@ -48,9 +48,21 @@ test('lintable drops codemod manifests and fixtures, which its own lint ignores'
     lintable([
       'codemod/versions/18.0.0/__fixtures__/x/input.js',
       'codemod/versions/18.0.0/manifest.json',
+      'codemod/versions/18.0.0/rules/methods.json',
       'codemod/package.json',
     ]),
     [],
+  );
+});
+
+test('lintable keeps the codemod custom rule modules, which its own lint covers', () => {
+  assert.deepEqual(
+    lintable([
+      'codemod/versions/18.1.0/custom/sanitizer-source.mjs',
+      'codemod/versions/18.1.0/custom/__fixtures__/x.mjs',
+      'codemod/versions/18.1.0/__fixtures__/x/custom/input.js',
+    ]),
+    ['codemod/versions/18.1.0/custom/sanitizer-source.mjs'],
   );
 });
 

@@ -2,6 +2,7 @@ import { propertyName, unwrapPath } from '../lib/ast.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { lookup, referenceSpace } from '../lib/scope.mjs';
+import { problemsOf } from '../lib/validate.mjs';
 
 const CALL_TYPES = new Set(['CallExpression', 'OptionalCallExpression']);
 const MEMBER_TYPES = ['MemberExpression', 'OptionalMemberExpression'];
@@ -132,6 +133,14 @@ function specOf(path, specs, aliases, bindings) {
 const callUnwrap = {
   kinds: ['callUnwrap'],
   fileKinds: ['js'],
+
+  /**
+   * @param {import('../types.mjs').Rule} rule A `callUnwrap` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => prepare(rule));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js` part.

@@ -4,13 +4,32 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { loadManifests } from '../src/manifest.mjs';
 import { describeRules, resolvePlan } from '../src/runner.mjs';
 
 const PACKAGE_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const readme = await readFile(join(PACKAGE_ROOT, 'README.md'), 'utf8');
 const cliSource = await readFile(join(PACKAGE_ROOT, 'src', 'cli.mjs'), 'utf8');
-const { plan } = await resolvePlan({ cwd: tmpdir(), from: '17', to: '18.1' });
+const manifests = (await loadManifests()).filter(manifest => manifest.status === 'released');
+const { plan } = await resolvePlan({
+  cwd: tmpdir(),
+  from: manifests[0].from,
+  to: manifests[manifests.length - 1].version,
+});
 const rows = describeRules(plan);
+
+/**
+ * The first cell of the "Supported migrations" row of a migration, as the README writes it: the line it starts from
+ * and the line it reaches, for example `17.x to 18.0` or `18.0 to 18.1`.
+ *
+ * @param {{version: string, from: string}} manifest A loaded migration.
+ * @returns {string} The label.
+ */
+function labelOf(manifest) {
+  const [major, minor] = manifest.version.split('.');
+
+  return `${manifest.from}${manifest.from.includes('.') ? '' : '.x'} to ${major}.${minor}`;
+}
 
 /**
  * Cells of the README table row that starts with a label, without the label.
@@ -37,16 +56,25 @@ function counts(list) {
 }
 
 describe('README tables stay in step with the rules', () => {
-  const migrations = [['17.x to 18.0', '18.0.0'], ['18.0 to 18.1', '18.1.0']];
+  for (const manifest of manifests) {
+    const label = labelOf(manifest);
 
-  for (const [label, version] of migrations) {
-    it(`counts the ${label} rules as --list does`, () => {
+    it(`has a Supported migrations row for ${manifest.version}, with the counts --list gives`, () => {
       const cells = rowOf(label);
 
       assert.ok(cells, `no row "${label}" in the README`);
-      assert.deepEqual(cells.slice(0, 3).map(Number), counts(rows.filter(row => row.version === version)));
+      assert.deepEqual(cells.slice(0, 3).map(Number), counts(rows.filter(row => row.version === manifest.version)));
     });
   }
+
+  it('lists no migration row that has no released migration', () => {
+    const labels = new Set(manifests.map(labelOf));
+    const listed = readme.split('\n')
+      .map(line => /^\| (\d+(?:\.\d+|\.x) to \d+\.\d+) \| \d+ \| \d+ \| \d+ \|/.exec(line)?.[1]).filter(Boolean);
+
+    assert.deepEqual(listed.filter(label => !labels.has(label)), []);
+    assert.equal(listed.length, manifests.length);
+  });
 
   it('lists every kind with its rewrite and report counts', () => {
     const kinds = [...new Set(rows.map(row => row.kind))];

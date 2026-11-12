@@ -151,8 +151,8 @@ describe('json adapter', () => {
     const source = '{\n    "dependencies": {\n        "handsontable": "^17.1.0"\n    }\n}\n';
     const handle = jsonAdapter.parse(source);
 
-    handle.parts[0].root.dependencies.handsontable = '^18.0.0';
-
+    assert.equal(handle.parts[0].json.setString('dependencies', 'handsontable', '^18.0.0'), true);
+    assert.equal(handle.parts[0].root.dependencies.handsontable, '^18.0.0');
     assert.equal(jsonAdapter.print(handle, source), source.replace('^17.1.0', '^18.0.0'));
   });
 });

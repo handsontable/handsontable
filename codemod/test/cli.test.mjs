@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { main } from '../src/cli.mjs';
+import { loadManifests } from '../src/manifest.mjs';
 
 const BIN = fileURLToPath(new URL('../bin/handsontable-codemod.mjs', import.meta.url));
 const CSS = 'a {\n  border-radius: var(--ht-wrapper-border-radius);\n}\n';
@@ -66,13 +67,38 @@ describe('cli', () => {
     assert.match(out, /--include-draft/);
   });
 
+  it('answers a bad option with one sentence, the usage line, and exit code 2', async() => {
+    const unknown = await cli(['migrate', '--bogus']);
+    const missing = await cli(['migrate', '--from']);
+
+    assert.equal(unknown.code, 2);
+    assert.equal(unknown.err,
+      'Unknown option "--bogus".\nUsage: handsontable-codemod migrate [paths...] [options]\n'
+      + 'Run with --help for all options.\n');
+    assert.equal(missing.code, 2);
+    assert.match(missing.err, /^Option "--from" needs a value\.\nUsage: /);
+  });
+
+  it('prints the help for -h and the package version for --version', async() => {
+    const short = await cli(['-h']);
+    const version = await cli(['--version']);
+    const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+
+    assert.equal(short.code, 0);
+    assert.match(short.out, /^Usage: handsontable-codemod migrate/);
+    assert.equal(version.code, 0);
+    assert.equal(version.out, `${manifest.version}\n`);
+  });
+
   it('documents every flag and every exit code in the help', async() => {
     const { out } = await cli(['--help']);
 
     for (const flag of ['from', 'to', 'dry-run', 'allow-dirty', 'report', 'only', 'list', 'aggressive',
-      'include-draft', 'help']) {
+      'include-draft', 'allow-uncovered', 'version']) {
       assert.match(out, new RegExp(`^ {2}--${flag}\\b`, 'm'), flag);
     }
+
+    assert.match(out, /^ {2}-h, --help /m);
 
     assert.match(out, /^ {2}paths /m);
     assert.match(out, /^ {2}0 {2}Done\./m);
@@ -104,13 +130,15 @@ describe('cli', () => {
   });
 
   it('exits 2 and lists the known migrations when --from is not below --to', async() => {
+    const known = (await loadManifests()).map(manifest => manifest.version).join(', ').replace(/\./g, '\\.');
+
     for (const args of [['--from', '18.1', '--to', '18.1'], ['--from', '18.1', '--to', '18'],
       ['--from', '19', '--to', '18.0']]) {
       const { code, err } = await cli(['migrate', ...args]);
 
       assert.equal(code, 2, args.join(' '));
       assert.match(err, /Nothing to migrate from .* to /);
-      assert.match(err, /Known migrations: 18\.0\.0, 18\.1\.0\./);
+      assert.match(err, new RegExp(`Known migrations: ${known}\\.`));
     }
   });
 
@@ -229,6 +257,49 @@ describe('cli', () => {
       assert.match(out, /^Next: run your formatter and linter on the changed files\.$/m);
       assert.match(out, /^Next: run tsc and your tests\.$/m);
       assert.match(await readFile(join(dir, 'report.md'), 'utf8'), /- \[x\] a\.css:2 /);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses a --report path that is a tracked file or a file the run would migrate', async() => {
+    for (const repo of [true, false]) {
+      const dir = await makeProject(repo);
+
+      try {
+        const { code, err } = await cli(['migrate', '--from', '17', '--to', '18', '--report', 'a.css'], dir);
+        const dry = await cli(['migrate', '--from', '17', '--to', '18', '--dry-run', '--report', 'a.css'], dir);
+
+        for (const result of [{ code, err }, { code: dry.code, err: dry.err }]) {
+          assert.equal(result.code, 2);
+          assert.match(result.err, /--report a\.css would overwrite a project file/);
+        }
+
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS);
+      } finally {
+        await rm(dir, { recursive: true, force: true });
+      }
+    }
+  });
+
+  it('overwrites an untracked report from the previous run, and refuses a report that is a link', async() => {
+    const dir = await makeProject(true);
+
+    try {
+      await writeFile(join(dir, 'report.md'), 'old report\n');
+
+      const again = await cli(['migrate', '--from', '17', '--to', '18', '--report', 'report.md'], dir);
+
+      assert.equal(again.code, 0, again.err);
+      assert.match(await readFile(join(dir, 'report.md'), 'utf8'), /- \[x\] a\.css:2 /);
+
+      await rm(join(dir, 'report.md'));
+      await symlink(join(dir, 'a.css'), join(dir, 'link.md'));
+
+      const linked = await cli(['migrate', '--from', '17', '--to', '18', '--dry-run', '--report', 'link.md'], dir);
+
+      assert.equal(linked.code, 2);
+      assert.match(linked.err, /symbolic link/);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

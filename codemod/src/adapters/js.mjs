@@ -63,10 +63,37 @@ export function createJsPart(source, parser, lineOffset = 0) {
  * @returns {string} Printed text.
  */
 export function printJsPart(part, source) {
-  return part.root.toSource({
+  const printed = part.root.toSource({
     quote: detectQuote(source),
     lineTerminator: source.includes('\r\n') ? '\r\n' : '\n',
   });
+
+  return stripStraySemicolons(part, printed, source);
+}
+
+/**
+ * Remove the second `;` that recast prints after a directive (`'use client';;`) when a statement below it was
+ * removed. The tree has no empty statement there, so the text is fixed after printing. Only a `;;` the source did
+ * not already have is removed.
+ *
+ * @param {import('../types.mjs').Part} part A part made by `createJsPart`.
+ * @param {string} printed The text recast printed.
+ * @param {string} source Original text of the part.
+ * @returns {string} The text without the stray semicolons.
+ */
+function stripStraySemicolons(part, printed, source) {
+  const program = part.root.find(part.j.Program).paths()[0]?.node;
+  let text = printed;
+
+  for (const directive of program?.directives ?? []) {
+    const raw = directive.value?.extra?.raw ?? directive.extra?.raw;
+
+    if (typeof raw === 'string' && text.includes(`${raw};;`) && !source.includes(`${raw};;`)) {
+      text = text.replace(`${raw};;`, `${raw};`);
+    }
+  }
+
+  return text;
 }
 
 /**

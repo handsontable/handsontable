@@ -116,6 +116,11 @@
  * entry that carries the whole `text`. `comment` replaces `text` as the source of the comment when the caller
  * has a better short form. The link is added only for a rule that has a `guide` anchor. Returns whether a comment
  * was inserted. Files that cannot hold comments (`json`) get the report entry only.
+ * @property {(target: object, ruleId: string, text: string) => boolean} comment The comment half of `todo`: leave
+ * the TODO comment, with `text` as its source, and add no report entry. A transform whose own entry already carries
+ * the advice (a removal) uses it, so the report says it once. Returns whether a comment was inserted.
+ * @property {import('./lib/json-edit.mjs').JsonDocument|null} json For a `json` part, the document that edits the
+ * text by offset and keeps `root` in step: `setString()` and `addMember()`. `null` for every other kind.
  * @property {Set<string>} facts Set shared across the whole run, phase 1 and phase 2. A transform adds a
  * fact (for example `uses-formulas`) for a later phase to read. Names are lowercase kebab-case, optionally
  * `name:value`. Use `addFact()` and `hasFactFor()` from `src/lib/facts.mjs`: they also record the directory
@@ -139,6 +144,10 @@
  * @property {FileKind[]} fileKinds File kinds it can edit.
  * @property {(ctx: Ctx, rules: Rule[]) => void|Promise<void>} apply Edit `ctx.root`, call
  * `ctx.markChanged()`, and report.
+ * @property {(rule: Rule) => string[]} [validate] Check the fields of one rule of the module's kinds that the manifest
+ * validator cannot express, and return the problems (an empty list for a valid rule). The manifest loader calls it,
+ * so a malformed rule fails `--list` and the manifest tests with the rule id and the field, and never surfaces as a
+ * per-file `transform-error`.
  * @property {{fileKinds: FileKind[], precheck?: RegExp}} [scan] Only for a module whose kinds run in phase 2.
  * In phase 1 the runner also calls `apply`, with the module's rules, on parts of the listed `fileKinds`, so the
  * module can collect facts. The module must not edit in that call. `precheck` replaces the adapter's precheck for
@@ -153,6 +162,7 @@
  * @property {FileKind} fileKind Kind of this part.
  * @property {string} source Text of this part.
  * @property {object} root Parsed form of this part.
+ * @property {import('./lib/json-edit.mjs').JsonDocument} [json] The editor of a `json` part.
  * @property {object|null} j The jscodeshift API for `js` parts, otherwise `null`.
  * @property {number} lineOffset Zero-based line of the part inside the file, added to reported lines.
  * @property {number} [start] Offset of the part's text inside the file. Set by the Vue adapter.

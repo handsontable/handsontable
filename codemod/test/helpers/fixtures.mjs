@@ -66,6 +66,23 @@ export async function listFixtures(versionsDir = VERSIONS_DIR) {
 }
 
 /**
+ * Read a `report.json`. It is an array of expected entries (a subset: extra actual entries are allowed), or
+ * `{ "exact": true, "entries": [...] }`, where the actual report must have exactly those entries and no others.
+ *
+ * @param {string|null} text The file text, `null` when the fixture has no `report.json`.
+ * @returns {{entries: object[], exact: boolean}} The expected entries and whether the report must match exactly.
+ */
+export function parseReport(text) {
+  const value = text === null ? [] : JSON.parse(text);
+
+  if (Array.isArray(value)) {
+    return { entries: value, exact: false };
+  }
+
+  return { entries: value.entries ?? [], exact: value.exact === true };
+}
+
+/**
  * Run a fixture through `transformFile` with only the rules of its own version. Nothing touches the disk
  * except reading the fixture files.
  *
@@ -76,14 +93,15 @@ export async function listFixtures(versionsDir = VERSIONS_DIR) {
  * @param {Fixture} fixture The fixture.
  * @param {string} [versionsDir] Directory with the manifests.
  * @returns {Promise<{input: string, output: string, expected: string, expectedReport: object[],
- * entries: object[], changed: boolean, rerun: {output: string, changed: boolean}}>} Everything the assertions
- * need. `rerun` is the result of transforming the output a second time.
+ * exactReport: boolean, entries: object[], changed: boolean, rerun: {output: string, changed: boolean}}>}
+ * Everything the assertions need. `rerun` is the result of transforming the output a second time.
  */
 export async function runFixture(fixture, versionsDir = VERSIONS_DIR) {
   const manifest = await loadManifest(join(versionsDir, fixture.version));
   const input = await readFile(join(fixture.dir, fixture.inputName), 'utf8');
   const expected = await readFile(join(fixture.dir, fixture.outputName), 'utf8');
-  const expectedReport = JSON.parse(await readOptional(join(fixture.dir, 'report.json')) ?? '[]');
+  const reportText = await readOptional(join(fixture.dir, 'report.json'));
+  const { entries: expectedReport, exact: exactReport } = parseReport(reportText);
   const options = JSON.parse(await readOptional(join(fixture.dir, 'options.json')) ?? '{}');
   const plan = buildPlan([manifest], options.only ?? []);
   const transformOptions = { aggressive: Boolean(options.aggressive) };
@@ -111,6 +129,7 @@ export async function runFixture(fixture, versionsDir = VERSIONS_DIR) {
     output: first.output,
     expected,
     expectedReport,
+    exactReport,
     entries: first.entries,
     changed: first.changed,
     rerun: { output: second.output, changed: second.changed },

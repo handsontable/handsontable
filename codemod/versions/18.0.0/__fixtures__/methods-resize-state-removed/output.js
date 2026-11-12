@@ -6,6 +6,9 @@ const rows = hot.getPlugin('manualRowResize');
 
 hot.addHook('afterColumnResize', () => {});
 
+// restore the sizes on load
+// persist
+
 // TODO(handsontable-codemod 18.0.0/resize-state-methods): loadManualColumnWidths() is removed. Its result is used here, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
 const widths = columns.loadManualColumnWidths();
 
