@@ -627,6 +627,14 @@ export class ColumnSummary extends BasePlugin {
       return null;
     }
 
+    const includedResult = this.#readIncludedSummaryResult(row, col);
+
+    // Another endpoint's result counts as it is, so it skips `forceNumeric` and the data-type check:
+    // a result that holds no number has already been turned into `null`.
+    if (includedResult !== null) {
+      return includedResult.value;
+    }
+
     let cellValue: number | string | null = (visualRowIndex !== null
       ? this.hot.getDataAtCell(visualRowIndex, visualColumnIndex)
       : this.hot.getSourceDataAtCell(row, visualColumnIndex)) as number | string | null;
@@ -716,6 +724,33 @@ export class ColumnSummary extends BasePlugin {
 
     return Boolean(cellMeta.readOnly) &&
       normalizeClassNames(cellMeta.className as string | string[]).includes('columnSummaryResult');
+  }
+
+  /**
+   * Reads the result another endpoint writes into a cell, for an endpoint calculated with
+   * `includeSummaryResults`. The result comes from the endpoint, calculated in the same pass, never
+   * from the cell. The calculated endpoint's own destination is read as before.
+   *
+   * @param {number} row Physical row index.
+   * @param {number} col Physical column index.
+   * @returns {{value: number|string|null}|null} The included value, or `null` when the cell is read as
+   * before.
+   */
+  #readIncludedSummaryResult(row: number, col: number): { value: number | string | null } | null {
+    const endpoints = this.endpoints!;
+    const currentEndpoint = endpoints.currentEndpoint!;
+
+    if (currentEndpoint.includeSummaryResults !== true) {
+      return null;
+    }
+
+    const destinationEndpoint = endpoints.getDestinationEndpoint(row, col);
+
+    if (destinationEndpoint === undefined || destinationEndpoint === currentEndpoint) {
+      return null;
+    }
+
+    return { value: endpoints.resolveDependencyResult(destinationEndpoint) };
   }
 
   /**

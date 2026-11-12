@@ -1,10 +1,11 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, ColumnSummary } from 'handsontable/plugins';
+import { registerPlugin, ColumnSummary, TrimRows } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
+registerPlugin(TrimRows);
 
 // Physical rows: 0 total | 1, 2 leaves | 3 subtotal | 4, 5, 6 leaves. Column 1 holds the values.
 const createData = () => [
@@ -66,5 +67,122 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
 
     expect(hot.getDataAtCell(3, 1)).toBe(24);
     expect(hot.getDataAtCell(0, 1)).toBe(11);
+  });
+
+  describe('with `includeSummaryResults: true`', () => {
+    const nested = (order = 'parentFirst') => {
+      const parent = endpoint(0, [[1, 3]], { includeSummaryResults: true });
+      const child = endpoint(3, [[4, 6]]);
+
+      return order === 'parentFirst' ? [parent, child] : [child, parent];
+    };
+
+    it.each(['parentFirst', 'childFirst'])('adds a nested subtotal into the parent (%s)', (order) => {
+      hot = buildGrid(nested(order));
+
+      expect(hot.getDataAtCell(3, 1)).toBe(24);
+      expect(hot.getDataAtCell(0, 1)).toBe(35);
+    });
+
+    it('follows two consecutive leaf edits', () => {
+      hot = buildGrid(nested());
+      hot.setDataAtCell(5, 1, 100);
+      expect(hot.getDataAtCol(1)).toEqual([127, 5, 6, 116, 7, 100, 9]);
+      hot.setDataAtCell(6, 1, 1);
+      expect(hot.getDataAtCol(1)).toEqual([119, 5, 6, 108, 7, 100, 1]);
+    });
+
+    it('counts a subtotal as one entry for `count`, `average`, `min`, and `max`', () => {
+      const results = {};
+
+      ['count', 'average', 'min', 'max'].forEach((type) => {
+        hot = buildGrid([
+          endpoint(3, [[4, 6]], { type }),
+          endpoint(0, [[1, 3]], { type, includeSummaryResults: true }),
+        ]);
+        results[type] = hot.getDataAtCell(0, 1);
+        hot.destroy();
+        hot = null;
+      });
+
+      // count: 2 leaves + subtotal 3 as one numeric entry -> 3. average: (5 + 6 + 8) / 3.
+      expect(results.count).toBe(3);
+      expect(results.average).toBeCloseTo(19 / 3, 10);
+      expect(results.min).toBe(5); // min(5, 6, child min 7)
+      expect(results.max).toBe(9); // max(5, 6, child max 9)
+    });
+
+    it('works with settings declared as a function', () => {
+      hot = buildGrid(() => nested());
+      expect(hot.getDataAtCell(0, 1)).toBe(35);
+      hot.setDataAtCell(5, 1, 100);
+      expect(hot.getDataAtCell(0, 1)).toBe(127);
+    });
+
+    it('uses the fresh result of a dependency whose destination row is trimmed', () => {
+      hot = buildGrid(nested(), { trimRows: true });
+      hot.getPlugin('trimRows').trimRow(3);
+
+      expect(hot.toVisualRow(5)).toBe(4);
+
+      hot.setDataAtCell(hot.toVisualRow(5), 1, 100);
+
+      expect(hot.getDataAtCell(0, 1)).toBe(127);
+    });
+
+    it('uses the rounded value the dependency cell receives', () => {
+      hot = buildGrid([
+        endpoint(3, [[4, 6]], { type: 'average', roundFloat: 0 }), // 8
+        endpoint(0, [[1, 3]], { includeSummaryResults: true }),
+      ]);
+      hot.setDataAtCell(4, 1, 7.4); // average 8.133 -> 8
+
+      // `roundFloat: 0` formats the result with `toFixed()`, so the subtotal cell holds the string '8'.
+      expect(Number(hot.getDataAtCell(3, 1))).toBe(8);
+      expect(hot.getDataAtCell(0, 1)).toBe(19);
+    });
+
+    it('adds nothing for a dependency that has not enough data, and does not throw', () => {
+      const data = createData();
+
+      data[4][1] = null; data[5][1] = null; data[6][1] = null;
+
+      expect(() => {
+        hot = buildGrid([
+          endpoint(3, [[4, 6]], { type: 'max' }),
+          endpoint(0, [[1, 3]], { includeSummaryResults: true, suppressDataTypeErrors: false }),
+        ], { data });
+      }).not.toThrow();
+      expect(hot.getDataAtCell(3, 1)).toBe('Not enough data');
+      expect(hot.getDataAtCell(0, 1)).toBe(11);
+    });
+
+    it('warns once and stays finite when two endpoints include each other', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = buildGrid([
+        endpoint(0, [[1, 3]], { includeSummaryResults: true }),
+        endpoint(3, [[0, 0], [4, 6]], { includeSummaryResults: true }),
+      ]);
+
+      expect(Number.isFinite(hot.getDataAtCell(0, 1))).toBe(true);
+      expect(Number.isFinite(hot.getDataAtCell(3, 1))).toBe(true);
+      expect(warnSpy.mock.calls.filter(([message]) => /ColumnSummary/.test(message)).length).toBe(1);
+      warnSpy.mockRestore();
+    });
+
+    it('does not double count with a whole-subtree range when the option is off (control)', () => {
+      hot = buildGrid([endpoint(3, [[4, 6]]), endpoint(0, [[1, 6]])]);
+
+      expect(hot.getDataAtCell(0, 1)).toBe(35);
+    });
+
+    it('keeps the nested total after a row is inserted above the subtotal', () => {
+      hot = buildGrid(nested());
+      hot.alter('insert_row_above', 2);
+      hot.setDataAtCell(2, 1, 10);
+
+      expect(hot.getDataAtCell(0, 1)).toBe(45);
+    });
   });
 });

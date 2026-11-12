@@ -1,7 +1,8 @@
 import type { HotInstance } from '../../core/types';
 import { arrayEach } from '../../helpers/array';
 import { warn } from '../../helpers/console';
-import { roundFloat } from './utils';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { holdsNoNumber, roundFloat } from './utils';
 import type { ColumnSummary } from './columnSummary';
 
 /**
@@ -96,6 +97,32 @@ class Endpoints {
    * `readOnly` state of a read-only summary cell.
    */
   #summaryDestinations: Map<number, Map<number, boolean>> | null = null;
+  /**
+   * The endpoint whose result each destination receives, keyed by physical destination row and then
+   * by destination column. Built with `#summaryDestinations`, from the endpoints of the same pass, so
+   * an `includeSummaryResults` endpoint finds the very objects the pass calculates.
+   */
+  #destinationEndpoints: Map<number, Map<number, EndpointConfig>> | null = null;
+  /**
+   * The raw (unrounded) results calculated in the current pass, keyed by endpoint. It lets an endpoint
+   * that another one includes be calculated once per pass, whatever the declaration order. It holds
+   * the raw result because `setEndpointValue()` rounds `endpoint.result` in place.
+   */
+  #passResults: Map<EndpointConfig, number | string | undefined> = new Map();
+  /**
+   * The endpoints whose calculation is running, used to stop a loop of `includeSummaryResults`
+   * endpoints that include each other.
+   */
+  #resolving: Set<EndpointConfig> = new Set();
+  /**
+   * Whether the current pass already warned about a loop of endpoints.
+   */
+  #cycleWarned = false;
+  /**
+   * How many refresh passes are running, nested. The memo of results is dropped when the outermost
+   * one exits, so a later pass never reads a result calculated from older data.
+   */
+  #passDepth = 0;
 
   /**
    * Initializes the endpoints manager with a reference to the ColumnSummary plugin and the summary endpoint configuration.
@@ -250,19 +277,71 @@ class Endpoints {
    */
   cacheSummaryDestinations(endpoints: EndpointConfig[]) {
     this.#summaryDestinations = new Map();
+    this.#destinationEndpoints = new Map();
+    this.#resetPassResults();
 
     arrayEach(endpoints, (endpoint: EndpointConfig) => {
       let columns = this.#summaryDestinations!.get(endpoint.destinationRow!);
+      let columnEndpoints = this.#destinationEndpoints!.get(endpoint.destinationRow!);
 
       if (columns === undefined) {
         columns = new Map();
         this.#summaryDestinations!.set(endpoint.destinationRow!, columns);
       }
 
+      if (columnEndpoints === undefined) {
+        columnEndpoints = new Map();
+        this.#destinationEndpoints!.set(endpoint.destinationRow!, columnEndpoints);
+      }
+
       // Two endpoints sharing one destination is a misconfiguration. The last one wins, as it does
       // when `setEndpointValue` writes the cell's `readOnly`, so the lock always matches the meta.
       columns.set(endpoint.destinationColumn!, Boolean(endpoint.readOnly));
+      columnEndpoints.set(endpoint.destinationColumn!, endpoint);
     });
+  }
+
+  /**
+   * Returns the endpoint whose result a physical cell receives, from the endpoints of the current
+   * pass. When two endpoints share a destination, the last one wins, as in `isSummaryDestination()`.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {number} physicalColumn Physical column index.
+   * @returns {object|undefined}
+   */
+  getDestinationEndpoint(physicalRow: number, physicalColumn: number): EndpointConfig | undefined {
+    if (this.#destinationEndpoints === null) {
+      this.cacheSummaryDestinations(this.getAllEndpoints());
+    }
+
+    return this.#destinationEndpoints!.get(physicalRow)?.get(physicalColumn);
+  }
+
+  /**
+   * Returns the result an endpoint writes into its destination cell, for an `includeSummaryResults`
+   * endpoint that has that cell in its range. The endpoint is calculated once per pass, so the value
+   * is fresh whatever the declaration order, and it is read from the endpoint, not from the cell: the
+   * cell writes are batched, and a trimmed destination is never written.
+   *
+   * The value is rounded the way `setEndpointValue()` rounds it. A result that holds no number
+   * (`'Not enough data'`) answers `null`, and so does an endpoint whose calculation is already running
+   * (two endpoints include each other), which warns once per pass.
+   *
+   * @param {object} endpoint The endpoint whose result is included.
+   * @returns {number|string|null}
+   */
+  resolveDependencyResult(endpoint: EndpointConfig): number | string | null {
+    if (this.#resolving.has(endpoint)) {
+      this.#warnAboutCycle(endpoint);
+
+      return null;
+    }
+
+    this.#calculateInPass(endpoint);
+
+    const result = roundFloat(endpoint.result, endpoint.roundFloat) as number | string | undefined;
+
+    return holdsNoNumber(result) ? null : result!;
   }
 
   /**
@@ -643,10 +722,11 @@ class Endpoints {
     this.cellsToSetCache = [];
     this.cacheSummaryDestinations(endpoints);
 
-    arrayEach(endpoints, (value: EndpointConfig) => {
-      this.currentEndpoint = value;
-      this.plugin.calculate(value as unknown as Parameters<typeof this.plugin.calculate>[0]);
-      this.setEndpointValue(value, 'init');
+    this.#runPass(() => {
+      arrayEach(endpoints, (value: EndpointConfig) => {
+        this.#calculateInPass(value);
+        this.setEndpointValue(value, 'init');
+      });
     });
     this.currentEndpoint = null;
 
@@ -692,8 +772,10 @@ class Endpoints {
       });
     });
 
-    arrayEach(needToRefresh, (value: number) => {
-      this.refreshEndpoint(endpoints[value]);
+    this.#runPass(() => {
+      arrayEach(needToRefresh, (value: number) => {
+        this.refreshEndpoint(endpoints[value]);
+      });
     });
 
     if (this.cellsToSetCache.length) {
@@ -722,8 +804,10 @@ class Endpoints {
     // the ranges of the endpoints being refreshed, whatever their own source column is.
     this.cacheSummaryDestinations(endpoints);
 
-    arrayEach(matched, (endpoint) => {
-      this.refreshEndpoint(endpoint as EndpointConfig);
+    this.#runPass(() => {
+      arrayEach(matched, (endpoint) => {
+        this.refreshEndpoint(endpoint as EndpointConfig);
+      });
     });
 
     if (this.cellsToSetCache.length) {
@@ -766,12 +850,10 @@ class Endpoints {
    * @param {object} endpoint Contains the endpoint information.
    */
   refreshEndpoint(endpoint: EndpointConfig) {
-    const previousEndpoint = this.currentEndpoint;
-
-    this.currentEndpoint = endpoint;
-    this.plugin.calculate(endpoint as unknown as Parameters<typeof this.plugin.calculate>[0]);
-    this.setEndpointValue(endpoint, undefined);
-    this.currentEndpoint = previousEndpoint;
+    this.#runPass(() => {
+      this.#calculateInPass(endpoint);
+      this.setEndpointValue(endpoint, undefined);
+    });
   }
 
   /**
@@ -866,6 +948,84 @@ class Endpoints {
     const count = this.countAddressableRows();
 
     return count > 0 ? [[0, count - 1]] : [];
+  }
+
+  /**
+   * Runs a refresh pass. The passes nest (a cell read can run a pending Formulas resync, which
+   * refreshes the endpoints again), and the memo of results is dropped when the outermost one exits,
+   * so the next pass never reuses a result calculated from older data.
+   *
+   * @param {Function} callback The pass.
+   */
+  #runPass(callback: () => void) {
+    this.#passDepth += 1;
+
+    try {
+      callback();
+    } finally {
+      this.#passDepth -= 1;
+
+      if (this.#passDepth === 0) {
+        this.#resetPassResults();
+      }
+    }
+  }
+
+  /**
+   * Drops the results memoized in the current pass and its loop warning.
+   */
+  #resetPassResults() {
+    this.#passResults.clear();
+    this.#cycleWarned = false;
+  }
+
+  /**
+   * Calculates an endpoint once per pass. A second call in the same pass puts the memoized raw result
+   * back on the endpoint (`setEndpointValue()` rounds it in place) instead of calculating it again.
+   * The endpoint the calculation replaces as `currentEndpoint` is put back on exit, because the
+   * calculation can run inside another endpoint's one.
+   *
+   * @param {object} endpoint The endpoint to calculate.
+   */
+  #calculateInPass(endpoint: EndpointConfig) {
+    if (this.#passResults.has(endpoint)) {
+      endpoint.result = this.#passResults.get(endpoint);
+
+      return;
+    }
+
+    const previousEndpoint = this.currentEndpoint;
+
+    this.currentEndpoint = endpoint;
+    this.#resolving.add(endpoint);
+
+    try {
+      this.plugin.calculate(endpoint as unknown as Parameters<typeof this.plugin.calculate>[0]);
+    } finally {
+      this.#resolving.delete(endpoint);
+      this.currentEndpoint = previousEndpoint;
+    }
+
+    this.#passResults.set(endpoint, endpoint.result);
+  }
+
+  /**
+   * Warns, once per pass, that two endpoints include each other's results.
+   *
+   * @param {object} endpoint The endpoint whose result closes the loop.
+   */
+  #warnAboutCycle(endpoint: EndpointConfig) {
+    if (this.#cycleWarned) {
+      return;
+    }
+
+    const includingEndpoint = this.currentEndpoint!;
+
+    this.#cycleWarned = true;
+    warn(toSingleLine`ColumnSummary plugin: the endpoints at (${endpoint.destinationRow},\x20
+      ${endpoint.destinationColumn}) and (${includingEndpoint.destinationRow},\x20
+      ${includingEndpoint.destinationColumn}) include each other's results through\x20
+      \`includeSummaryResults\`. The result that closes the loop is skipped.`);
   }
 
   /**
