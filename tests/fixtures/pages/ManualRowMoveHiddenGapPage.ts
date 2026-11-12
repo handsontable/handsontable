@@ -60,7 +60,11 @@ export class ManualRowMoveHiddenGapPage {
    */
   async dragRowHeader(fromRenderedRow: number, toRenderedRow: number, half: 'upper' | 'lower'): Promise<void> {
     // The API selects the row: a header click followed by a press on the same point would read as a double click.
-    await this.page.evaluate((r) => (window as any).hot.selectRows(r), fromRenderedRow);
+    await this.page.evaluate((r) => {
+      const hot = (window as any).hot;
+
+      hot.selectRows(hot.rowIndexMapper.getVisualFromRenderableIndex(r));
+    }, fromRenderedRow);
     await expect(this.firstColumnTexts().first()).toBeVisible();
 
     const source = await this.rowHeader(fromRenderedRow).boundingBox();

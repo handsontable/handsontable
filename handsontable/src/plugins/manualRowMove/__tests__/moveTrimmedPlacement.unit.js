@@ -1,10 +1,11 @@
 import Handsontable from 'handsontable/base';
-import { ManualRowMove, registerPlugin } from 'handsontable/plugins';
+import { ManualRowMove, NestedRows, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ManualRowMove);
+registerPlugin(NestedRows);
 
 describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
   let container;
@@ -26,14 +27,16 @@ describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
    *
    * @param {number[]} rows Physical indexes of the skipped rows.
    * @param {'trimming'|'hiding'} mapType Kind of the index map that skips the rows.
+   * @param {object} [settings] Extra settings of the grid.
    * @returns {ManualRowMove}
    */
-  function createGrid(rows, mapType = 'trimming') {
+  function createGrid(rows, mapType = 'trimming', settings = {}) {
     hot?.destroy();
     hot = new Handsontable(container, {
       licenseKey: TEST_LICENSE_KEY,
       data: Array.from({ length: 6 }, (_, index) => [`r${index}`]),
       manualRowMove: true,
+      ...settings,
     });
 
     const map = hot.rowIndexMapper.createAndRegisterIndexMap('test-skip', mapType);
@@ -162,23 +165,23 @@ describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
         const plugin = createGrid([2, 3], 'hiding');
 
         // The pointer in the lower half of the row above the block resolves to 2.
-        expect(plugin.skipHiddenRowsFrom(2)).toBe(4);
-        expect(plugin.skipHiddenRowsFrom(3)).toBe(4);
+        expect(plugin.skipHiddenRowsFrom(2, 1)).toBe(4);
+        expect(plugin.skipHiddenRowsFrom(3, 1)).toBe(4);
       });
 
       it('should leave a drop index that points at a visible row', () => {
         const plugin = createGrid([2, 3], 'hiding');
 
-        expect(plugin.skipHiddenRowsFrom(0)).toBe(0);
-        expect(plugin.skipHiddenRowsFrom(1)).toBe(1);
-        expect(plugin.skipHiddenRowsFrom(4)).toBe(4);
-        expect(plugin.skipHiddenRowsFrom(6)).toBe(6);
+        expect(plugin.skipHiddenRowsFrom(0, 0)).toBe(0);
+        expect(plugin.skipHiddenRowsFrom(1, 0)).toBe(1);
+        expect(plugin.skipHiddenRowsFrom(4, 3)).toBe(4);
+        expect(plugin.skipHiddenRowsFrom(6, 5)).toBe(6);
       });
 
       it('should leave a drop index when the hidden rows run to the end of the grid', () => {
         const plugin = createGrid([4, 5], 'hiding');
 
-        expect(plugin.skipHiddenRowsFrom(4)).toBe(4);
+        expect(plugin.skipHiddenRowsFrom(4, 3)).toBe(4);
       });
 
       it('should step over hidden rows that sit next to trimmed ones', () => {
@@ -191,9 +194,40 @@ describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
         hiding.setValueAtIndex(2, true);
         hiding.setValueAtIndex(3, true);
 
-        expect(plugin.skipHiddenRowsFrom(1)).toBe(3);
+        expect(plugin.skipHiddenRowsFrom(1, 0)).toBe(3);
 
         hot.rowIndexMapper.unregisterMap('test-hide');
+      });
+
+      it('should leave a drop index that would step out of the fixedRowsTop band', () => {
+        const plugin = createGrid([1, 2], 'hiding', { fixedRowsTop: 3 });
+
+        // Row 0 is in the frozen band, the next visible row (3) is below it.
+        expect(plugin.skipHiddenRowsFrom(1, 0)).toBe(1);
+      });
+
+      it('should leave a drop index that would step into the fixedRowsBottom band', () => {
+        const plugin = createGrid([3, 4], 'hiding', { fixedRowsBottom: 3 });
+
+        // Rows 3, 4 and 5 are the bottom band. Row 2 is above it, the next visible row (5) is inside it.
+        expect(plugin.skipHiddenRowsFrom(3, 2)).toBe(3);
+      });
+
+      it('should step over hidden rows that sit inside one fixed band', () => {
+        const plugin = createGrid([1, 2], 'hiding', { fixedRowsTop: 4 });
+
+        expect(plugin.skipHiddenRowsFrom(1, 0)).toBe(3);
+      });
+
+      it('should leave a drop index when the NestedRows plugin is enabled', () => {
+        const plugin = createGrid([2, 3], 'hiding', {
+          data: Array.from({ length: 6 }, (_, index) => ({ a: `r${index}` })),
+          nestedRows: true,
+        });
+
+        // The target parent comes from the row at the drop index, so a step over hidden rows could
+        // make the moved row a child of a hidden one.
+        expect(plugin.skipHiddenRowsFrom(2, 1)).toBe(2);
       });
     });
   });

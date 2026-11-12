@@ -19,15 +19,38 @@ test.describe('a row dragged into a gap that holds hidden rows', { tag: [CROSS_B
     // Rendered rows are the physical rows 0, 1, 4, 5: rendered 1 is the row above the hidden block.
     await grid.dragRowHeader(0, 1, 'lower');
 
-    await expect.poll(() => grid.latestMove()).toMatchObject({ movePossible: true, orderChanged: true });
+    // The hooks report the resolved drop: the next visible row (4), not the first hidden row (2).
+    await expect.poll(() => grid.latestMove()).toMatchObject({
+      movePossible: true,
+      orderChanged: true,
+      dropIndex: 4,
+      finalIndex: 3,
+    });
     expect(await grid.rowSequence()).toEqual([1, 2, 3, 0, 4, 5]);
   });
 
   test('lands after the hidden block when dropped on the upper half of the row below it', async() => {
     await grid.dragRowHeader(0, 2, 'upper');
 
-    await expect.poll(() => grid.latestMove()).toMatchObject({ movePossible: true, orderChanged: true });
+    await expect.poll(() => grid.latestMove()).toMatchObject({
+      movePossible: true,
+      orderChanged: true,
+      dropIndex: 4,
+      finalIndex: 3,
+    });
     expect(await grid.rowSequence()).toEqual([1, 2, 3, 0, 4, 5]);
+  });
+
+  test('leaves the row in place when it is dragged up to the lower half of the row above the hidden block', async() => {
+    // Rendered row 2 is the physical row 4. The drop resolves to right before the row itself, so nothing moves.
+    await grid.dragRowHeader(2, 1, 'lower');
+
+    await expect.poll(() => grid.latestMove()).toMatchObject({
+      movePossible: true,
+      orderChanged: false,
+      dropIndex: 4,
+    });
+    expect(await grid.rowSequence()).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
   test('leaves the row in place when it is released on its own lower half', async() => {

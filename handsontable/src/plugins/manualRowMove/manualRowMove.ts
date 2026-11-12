@@ -335,12 +335,27 @@ export class ManualRowMove extends BasePlugin {
    * rows gives both the same drop index. When the hidden rows run to the end of the grid there is no visible row to
    * point at, and the drop index stays as it is.
    *
+   * The drop index stays as it is in two more cases, so the drop never leaves the place the guideline shows. The first
+   * one is a step that would cross into or out of a fixed-rows band. The second one is the NestedRows plugin, which
+   * reads the parent of the row at the drop index, so a step over hidden rows could make the moved row a child of
+   * a hidden row.
+   *
    * @private
    * @param {number} dropIndex Visual row index, being a drop index for the moved rows.
+   * @param {number} hoveredRow Visual row index of the row the pointer is on.
    * @returns {number} Visual row index of the first visible row at or after the drop index.
    */
-  skipHiddenRowsFrom(dropIndex: number) {
-    return this.hot.rowIndexMapper.getNearestNotHiddenIndex(dropIndex, 1) ?? dropIndex;
+  skipHiddenRowsFrom(dropIndex: number, hoveredRow: number) {
+    const nextVisibleRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(dropIndex, 1);
+
+    if (nextVisibleRow === null || nextVisibleRow === dropIndex || this.hot.getPlugin('nestedRows')?.enabled) {
+      return dropIndex;
+    }
+
+    const crossesFixedBand = this.isFixedRowTop(hoveredRow) !== this.isFixedRowTop(nextVisibleRow) ||
+      this.isFixedRowBottom(hoveredRow) !== this.isFixedRowBottom(nextVisibleRow);
+
+    return crossesFixedBand ? dropIndex : nextVisibleRow;
   }
 
   /**
@@ -507,7 +522,7 @@ export class ManualRowMove extends BasePlugin {
       // A drop on the lower half of a moved row is the gesture of grabbing a row and releasing it in place:
       // it stays where it is, so the drop index is not moved past the hidden rows that follow.
       this.#target.row = this.#rowsToMove.includes(coords.row) ?
-        coords.row + 1 : this.skipHiddenRowsFrom(coords.row + 1);
+        coords.row + 1 : this.skipHiddenRowsFrom(coords.row + 1, coords.row);
       tdStartPixel += tdHeight;
 
     } else {

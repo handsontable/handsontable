@@ -3402,7 +3402,7 @@ To check whether the `Dialog` plugin is enabled, read `hot.getPlugin('dialog').e
 
 ## 60. A row dragged into a gap with hidden rows lands after them
 
-When some rows are hidden with the [`HiddenRows`](@/api/hiddenRows.md) plugin, the gap between two visible rows has two places to drop a row: the lower half of the row above the hidden rows, and the upper half of the row below them. Both look the same on the screen.
+When some rows are hidden with the [`HiddenRows`](@/api/hiddenRows.md) plugin or with another hiding index map, such as the one [`Pagination`](@/api/pagination.md) uses, the gap between two visible rows has two places to drop a row: the lower half of the row above the hidden rows, and the upper half of the row below them. Both look the same on the screen.
 
 In 18.1, the two drops put the moved row on different sides of the hidden rows. The lower half put it in front of the hidden rows. The upper half put it after them. The visible order was the same, but the order of all rows, which you see when you show the hidden rows again, depended on where the pointer was.
 
@@ -3421,6 +3421,10 @@ For example, take six rows with the rows 2 and 3 hidden. You drag row 0 into the
 
 The [`beforeRowMove`](@/api/hooks.md#beforerowmove) and [`afterRowMove`](@/api/hooks.md#afterrowmove) hooks report the drop that Handsontable resolved. A lower-half drop above hidden rows now reports the visual index of the next visible row as `dropIndex` (`4` in the example, not `2`), and the matching `finalIndex` (`3`, not `1`).
 
+A drag that ends right before the moved row itself changes too. Drag row 4 up to the lower half of row 1: in 18.1, `getIndexesSequence()` returned `[0, 1, 4, 2, 3, 5]` and `afterRowMove` reported `orderChanged: true`. In 19.0, `dropIndex` is `4`, `orderChanged` is `false`, and nothing moves. Check `orderChanged` in your `afterRowMove` listener with this in mind.
+
+The exceptions: a row dropped on its own lower half stays where it is, so a row right above the hidden rows does not jump over them. The drop index also stays as it was when landing after the hidden rows would cross the edge of the fixed rows at the top or at the bottom, and when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled.
+
 The [`moveRows()`](@/api/manualRowMove.md#moverows), [`moveRow()`](@/api/manualRowMove.md#moverow), [`dragRows()`](@/api/manualRowMove.md#dragrows), and [`dragRow()`](@/api/manualRowMove.md#dragrow) methods are not affected. They use the index you pass, so `dragRow(0, 2)` still puts the row in front of the hidden rows.
 
 ### Who is affected
@@ -3433,6 +3437,6 @@ If you don't hide rows, or you hide them and move rows with the API only, nothin
 
 ### How to migrate
 
-You don't need to change anything to keep the same visible order. If you saved a row order for a grid with hidden rows, save it again after the first drag in 19.0.
+You don't need to change anything to keep the same visible order.
 
 To put a row in front of the hidden rows, as 18.1 did for a lower-half drop, call [`dragRows()`](@/api/manualRowMove.md#dragrows) with the visual index of the first hidden row.

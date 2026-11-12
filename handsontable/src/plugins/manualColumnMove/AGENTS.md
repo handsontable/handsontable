@@ -44,7 +44,8 @@ columns. The rule is pinned by `__tests__/moveTrimmedPlacement.unit.js`, which m
 the same name, and the column-moving guide documents it. Landing on the other side of a trimmed block would
 change the physical order users see after untrimming, so it is a breaking change. With HIDDEN columns the drop
 target steps over the zero-width hidden columns (next section), so a pointer drop on either side of a hidden
-block gives one physical order, with the columns after the block. `tests/e2e/manual-row-move-hidden-gap.spec.ts`
+block between two visible columns gives one physical order, with the columns after the block. Hidden columns that
+end the grid are stepped past too, and there is no self-drop exemption, which the row plugin has. `tests/e2e/manual-row-move-hidden-gap.spec.ts`
 pins it for both axes, and the row plugin steps over hidden rows the same way (`skipHiddenRowsFrom()`).
 
 ## `isDragging()` is the shared click-versus-drag verdict
