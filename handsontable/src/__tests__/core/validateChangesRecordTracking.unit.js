@@ -474,6 +474,39 @@ describe('Core validation of a change while its record moves', () => {
 
       expect(sourceNames()).toEqual(['p5', 'zzz', 'p3', 'p2', 'p1', 'p0']);
     });
+
+    it('should write into the record its row object names when updateData() brings the same objects back in another order', async() => {
+      const data = Array.from({ length: 6 }, (_, row) => [`p${row}`, (row * 5) % 7]);
+
+      createGrid({ data });
+
+      hot.setDataAtCell(1, 0, 'zzz');
+      await settle();
+      hot.updateData([...data].reverse());
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p5', 'p4', 'p3', 'p2', 'zzz', 'p0']);
+      expect(dropped).toEqual([]);
+    });
+
+    it('should keep the change of a record whose key column is edited while the change waits', async() => {
+      createGrid({
+        data: Array.from({ length: 6 }, (_, row) => ({ id: `id${row}`, name: `p${row}`, v: (row * 5) % 7 })),
+        columns: [{ data: 'name' }, { data: 'id' }],
+        cells: (row, col) => (col === 0 ? { validator: heldValidator } : {}),
+        rowId: 'id',
+      });
+
+      hot.setDataAtCell(1, 0, 'zzz');
+      await settle();
+      hot.setDataAtCell(1, 1, 'idX');
+      await answerAll();
+
+      expect(hot.getSourceData().map(row => [row.id, row.name])).toEqual([
+        ['id0', 'p0'], ['idX', 'zzz'], ['id2', 'p2'], ['id3', 'p3'], ['id4', 'p4'], ['id5', 'p5'],
+      ]);
+      expect(dropped).toEqual([]);
+    });
   });
 
   describe('the write order of one cell', () => {

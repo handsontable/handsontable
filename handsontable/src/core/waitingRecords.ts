@@ -93,31 +93,63 @@ export function captureRecord(tracker: RecordTracker, reader: RecordReader, phys
 }
 
 /**
- * Tells whether the tracked physical row of an anchor still holds the record. A record captured with a row id is
- * named by that id alone: the row holds it when it holds the same id. `updateData()` keeps the cell meta by
- * physical row, so after it brought the records back in another order the stored meta at the row is the captured
- * one while the record is another. Without an id, the row holds the record when the stored meta captured with it
- * is the one stored there, or the row object is the one captured.
+ * Finds the physical rows of source row objects. Returns the physical row that holds an object, `null` when more
+ * than one row holds it (so it names no record), or `undefined` when no row holds it.
+ */
+export type RowObjectLocator = (rowObject: object) => number | null | undefined;
+
+/**
+ * Creates a locator that scans every physical row for each object it is asked about.
  *
  * @param {object} reader Reads the grid.
- * @param {object} anchor The record anchor.
- * @param {number} physicalRow The tracked physical row.
- * @returns {boolean}
+ * @returns {Function}
  */
-function holdsRecord(reader: RecordReader, anchor: RecordAnchor, physicalRow: number): boolean {
-  if (physicalRow >= reader.countPhysicalRows()) {
-    return false;
-  }
+function createScanningLocator(reader: RecordReader): RowObjectLocator {
+  return (rowObject) => {
+    const rowsCount = reader.countPhysicalRows();
+    let found: number | null | undefined;
 
-  if (hasRowId(anchor)) {
-    return reader.readKeyedRowId(physicalRow) === anchor.rowId;
-  }
+    for (let physicalRow = 0; physicalRow < rowsCount; physicalRow++) {
+      if (reader.readRowObject(physicalRow) === rowObject) {
+        if (found !== undefined) {
+          return null;
+        }
 
-  if (anchor.meta !== null && reader.getStoredMeta(physicalRow, anchor.metaColumn) === anchor.meta) {
-    return true;
-  }
+        found = physicalRow;
+      }
+    }
 
-  return isRowObject(anchor.rowObject) && reader.readRowObject(physicalRow) === anchor.rowObject;
+    return found;
+  };
+}
+
+/**
+ * Creates a locator that indexes every physical row once, on its first call, and answers from that index. Use it
+ * while the source rows cannot change, for example for the records of one change set resolved at once.
+ *
+ * @param {object} reader Reads the grid.
+ * @returns {Function}
+ */
+export function createIndexedLocator(reader: RecordReader): RowObjectLocator {
+  let index: Map<object, number | null> | null = null;
+
+  return (rowObject) => {
+    if (index === null) {
+      index = new Map();
+
+      const rowsCount = reader.countPhysicalRows();
+
+      for (let physicalRow = 0; physicalRow < rowsCount; physicalRow++) {
+        const rowAtRow = reader.readRowObject(physicalRow);
+
+        if (isRowObject(rowAtRow)) {
+          index.set(rowAtRow, index.has(rowAtRow) ? null : physicalRow);
+        }
+      }
+    }
+
+    return index.get(rowObject);
+  };
 }
 
 /**
@@ -141,56 +173,96 @@ function isRowObject(rowObject: unknown): rowObject is object {
 }
 
 /**
- * Finds the physical row of a record whose tracked row no longer holds it: by its row id when a row key is
- * configured, otherwise by its source row object. A reference that more than one row holds names no record.
+ * Resolves a record captured with a row id. An edit of the key column changes the id the row holds, so the row
+ * object the record was captured with names it first, at the tracked row. Then the id names it, at the tracked row
+ * or anywhere else (`updateData()` with copies brings new row objects), and last the row object anywhere else.
  *
  * @param {object} reader Reads the grid.
  * @param {object} anchor The record anchor.
+ * @param {number|null} trackedRow The tracked physical row, or `null` when a removal took it.
+ * @param {Function} locate Finds the physical row of a row object.
  * @returns {number|null}
  */
-function findRecord(reader: RecordReader, anchor: RecordAnchor): number | null {
-  if (hasRowId(anchor)) {
-    return reader.findPhysicalRowById(anchor.rowId);
+function resolveKeyedRecord(
+  reader: RecordReader,
+  anchor: RecordAnchor,
+  trackedRow: number | null,
+  locate: RowObjectLocator,
+): number | null {
+  if (trackedRow !== null && reader.readKeyedRowId(trackedRow) === anchor.rowId) {
+    return trackedRow;
   }
 
-  if (!isRowObject(anchor.rowObject)) {
-    return null;
+  const rowById = reader.findPhysicalRowById(anchor.rowId);
+
+  if (rowById !== null) {
+    return rowById;
   }
 
-  const rowsCount = reader.countPhysicalRows();
-  let found: number | null = null;
+  return isRowObject(anchor.rowObject) ? locate(anchor.rowObject) ?? null : null;
+}
 
-  for (let physicalRow = 0; physicalRow < rowsCount; physicalRow++) {
-    if (reader.readRowObject(physicalRow) === anchor.rowObject) {
-      if (found !== null) {
-        return null;
-      }
+/**
+ * Resolves a record captured without a row id. The row object names it wherever it is now. `updateData()` keeps
+ * the cell meta by physical row, so the stored meta captured with the record names it only when no row holds the
+ * row object any more (the data was replaced by copies): then the tracked row holds the record when it still
+ * stores that meta.
+ *
+ * @param {object} reader Reads the grid.
+ * @param {object} anchor The record anchor.
+ * @param {number|null} trackedRow The tracked physical row, or `null` when a removal took it.
+ * @param {Function} locate Finds the physical row of a row object.
+ * @returns {number|null}
+ */
+function resolveUnkeyedRecord(
+  reader: RecordReader,
+  anchor: RecordAnchor,
+  trackedRow: number | null,
+  locate: RowObjectLocator,
+): number | null {
+  const rowByObject = isRowObject(anchor.rowObject) ? locate(anchor.rowObject) : undefined;
 
-      found = physicalRow;
-    }
+  if (rowByObject !== undefined) {
+    return rowByObject;
   }
 
-  return found;
+  if (trackedRow !== null && anchor.meta !== null &&
+      reader.getStoredMeta(trackedRow, anchor.metaColumn) === anchor.meta) {
+    return trackedRow;
+  }
+
+  return null;
 }
 
 /**
  * Returns the physical row a captured record holds now, or `null` when the record is gone.
  *
- * 1. The tracked physical row, when it still holds the record (`holdsRecord()`).
- * 2. Otherwise, or when a removal took the tracked row, the row `findRecord()` finds.
+ * 1. The tracked physical row, when it holds the row object the record was captured with.
+ * 2. With a row id, the row the id names (`resolveKeyedRecord()`).
+ * 3. Without one, the row the row object names, or the tracked row by its stored meta (`resolveUnkeyedRecord()`).
  *
  * @param {object} reader Reads the grid.
  * @param {object} anchor The record anchor.
+ * @param {Function} [locate] Finds the physical row of a row object. Scans the rows on every call by default.
  * @returns {number|null}
  */
-export function resolveRecord(reader: RecordReader, anchor: RecordAnchor): number | null {
+export function resolveRecord(
+  reader: RecordReader,
+  anchor: RecordAnchor,
+  locate: RowObjectLocator = createScanningLocator(reader),
+): number | null {
   const { physicalRow } = anchor.record;
+  const trackedRow = physicalRow !== null && physicalRow < reader.countPhysicalRows() ? physicalRow : null;
 
-  if (physicalRow !== null && holdsRecord(reader, anchor, physicalRow)) {
-    return physicalRow;
+  if (trackedRow !== null && isRowObject(anchor.rowObject) && reader.readRowObject(trackedRow) === anchor.rowObject) {
+    return trackedRow;
   }
 
-  return findRecord(reader, anchor);
+  if (hasRowId(anchor)) {
+    return resolveKeyedRecord(reader, anchor, trackedRow, locate);
+  }
+
+  return resolveUnkeyedRecord(reader, anchor, trackedRow, locate);
 }
 
 /**
@@ -330,6 +402,7 @@ export function createWaitingChangeRecords(
 
       const resolved = new Map<RecordAnchor, number | null>();
       const removed: CellChange[] = [];
+      const locate = createIndexedLocator(reader);
 
       for (let i = changes.length - 1; i >= 0; i--) {
         const change = changes[i];
@@ -340,7 +413,7 @@ export function createWaitingChangeRecords(
         }
 
         if (!resolved.has(anchor)) {
-          resolved.set(anchor, resolveRecord(reader, anchor));
+          resolved.set(anchor, resolveRecord(reader, anchor, locate));
         }
 
         const physicalRow = resolved.get(anchor)!;
