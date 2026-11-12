@@ -61,7 +61,8 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
-import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { ColumnSizeSettings } from './core/columnSizeSettings';
+import { RowSizeSettings, type RowSizeOption } from './core/rowSizeSettings';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
@@ -109,6 +110,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { PluginRequirements } from './core/pluginRequirements';
 import { normalizeFixedColumnsAlias, withCallerFixedColumnsName } from './core/fixedColumnsAlias';
 import { watchFontLoads } from './core/fontLoad';
 import {
@@ -552,6 +554,10 @@ export default function Core(
    */
   const filterSettings = (settings: SettingsUpdate) => settingsFilters
     .reduce((payload, filter) => filter(payload), settings);
+  /**
+   * The plugins other plugins need running (see `_requirePlugin()`).
+   */
+  const pluginRequirements = new PluginRequirements();
   /**
    * The functions told about a change set that waited for its validators while `loadData()` replaced the
    * data, and that is therefore never applied (see `_addDroppedChangesListener()`).
@@ -1951,20 +1957,13 @@ export default function Core(
 
             if (colDelta) {
               // `getColHeader()` reads the array by the physical index, so the empty entries go in at the
-              // physical index the created column takes, the same as `colWidths` below. The array is changed
-              // in place, because the user holds it and UndoRedo refills it in place.
+              // physical index the created column takes. The array is changed in place, because the user holds
+              // it and UndoRedo refills it in place.
               if (Array.isArray(tableMeta.colHeaders)) {
                 const spliceArray = [startColumnPhysicalIndex!, 0];
 
                 spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
-              }
-
-              // `colWidths` is addressed by the physical index, which a created column takes in the middle of
-              // the physical order after any column move, so the widths after it shift with their columns.
-              if (Array.isArray(tableMeta.colWidths)) {
-                tableMeta.colWidths =
-                  insertColWidths(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
               }
 
               selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
@@ -2122,7 +2121,7 @@ export default function Core(
                 // The physical indexes of the columns the removal takes, read before it renumbers them.
                 const removedPhysicalColumns: number[] = [];
 
-                if (Array.isArray(tableMeta.colWidths) || Array.isArray(tableMeta.colHeaders)) {
+                if (Array.isArray(tableMeta.colHeaders)) {
                   const firstRemovedVisualColumn = isEmpty(groupIndex) ?
                     Math.max(totalColumnsBefore - groupAmount, 0) : calcIndex;
 
@@ -2218,10 +2217,6 @@ export default function Core(
                   });
                 }
 
-                if (Array.isArray(tableMeta.colWidths)) {
-                  tableMeta.colWidths = removeColWidths(tableMeta.colWidths, removedPhysicalColumns);
-                }
-
                 offset += groupAmount;
               });
             };
@@ -2250,9 +2245,9 @@ export default function Core(
 
         // The index mapper update already asked for a full render and dropped the size caches, but a
         // `hot.render()` a hook made from inside this call consumed that request and rebuilt the caches from
-        // state this call had not finished writing, such as the `colHeaders` and `colWidths` arrays. The
+        // state this call had not finished writing, such as the `colHeaders` array and the fixed counts. The
         // closing render must repaint the headers and re-measure the widths. It sits in the `finally`, so a
-        // hook that throws after the arrays were written does not leave the next fast draw with that paint.
+        // hook that throws after the state was written does not leave the next fast draw with that paint.
         instance.forceFullRender = true;
         instance.view.invalidateColumnWidthCache();
       }
@@ -6323,6 +6318,43 @@ export default function Core(
   };
 
   /**
+   * Marks a plugin as needed by another object, usually another plugin, so the required plugin's
+   * `isEnabled()` answers `true` while its own option is off. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that needs the plugin running.
+   */
+  this._requirePlugin = function(pluginKey: string, requirer: object) {
+    pluginRequirements.require(pluginKey, requirer);
+  };
+
+  /**
+   * Drops the requirement `_requirePlugin()` recorded for a plugin. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that no longer needs the plugin running.
+   */
+  this._releasePlugin = function(pluginKey: string, requirer: object) {
+    pluginRequirements.release(pluginKey, requirer);
+  };
+
+  /**
+   * Checks whether any object requires the plugin through `_requirePlugin()`. The rules are in
+   * `PluginRequirements` (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the plugin, as in its `PLUGIN_KEY`.
+   * @returns {boolean}
+   */
+  this._isPluginRequired = function(pluginKey: string): boolean {
+    return pluginRequirements.isRequired(pluginKey);
+  };
+
+  /**
    * Removes a function `_addSettingsFilter()` added. Removing one that is not there changes nothing.
    *
    * @private
@@ -6572,8 +6604,8 @@ export default function Core(
     // That creates an own property which shadows the global value written above, so a later
     // `updateSettings()` would be ignored. Drop the shadow when the value really changes. A wrapper
     // re-sends every prop on each commit, and an unchanged value must not undo the state kept there.
-    // Only the frozen counts are handled: other own table-meta values (the Loading plugin's `dialog`,
-    // the theme options) are shadows kept on purpose.
+    // Only the frozen counts are handled: other own table-meta values (the theme options) are shadows
+    // kept on purpose.
     if (FROZEN_COUNT_OPTIONS.has(key) && settings[key] !== previousValue) {
       Reflect.deleteProperty(tableMeta, key);
 
@@ -8308,8 +8340,24 @@ export default function Core(
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
+   * This method fires [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell). It doesn't fire
+   * [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange), so a custom
+   * `source` never reaches those two hooks. To pass a custom `source` to `afterChange`, use
+   * [`setDataAtCell()`](@/api/core.md#setdataatcell) or
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
+   *
+   * The hook also lists a change that the [`sourceDataValidator`](@/api/options.md#sourcedatavalidator)
+   * rejects. When [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, the grid doesn't store that
+   * value, but the `changes` array of the hook still lists it.
+   *
    * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
    * editor shows the new value.
+   *
+   * __Note__: this method takes physical row and column indexes. {@link Core#setDataAtCell} takes a visual
+   * row and a visual column, and {@link Core#setDataAtRowProp} takes a visual row. Swapping one call for the
+   * other with the same numbers can write to a different row when the grid is sorted or filtered. To
+   * translate an index, use {@link Core#toVisualRow} or {@link Core#toVisualColumn}. A trimmed row has no
+   * visual index, so neither of those two methods can write it.
    *
    * @memberof Core#
    * @function setSourceDataAtCell
@@ -8317,7 +8365,11 @@ export default function Core(
    * @param {number|string|Function} column Physical column index, prop name, or a `columns[].data`
    *   accessor function (called as `accessor(rowObject, value)`).
    * @param {*} value The value to be set at the provided coordinates.
-   * @param {string} [source] Source of the change as a string.
+   * @param {string} [source] Source of the change as a string. The method passes it to the
+   *   `afterSetSourceDataAtCell` hook. In the array form, pass it as the fourth argument
+   *   (`setSourceDataAtCell(changes, undefined, undefined, source)`): a source in the second
+   *   argument only reaches the undo step, and the hook gets `undefined`.
+   * @fires Hooks#afterSetSourceDataAtCell
    */
 
   this.setSourceDataAtCell = function(
@@ -9531,16 +9583,6 @@ export default function Core(
   };
 
   /**
-   * Translates a visual column index to the index that the `colWidths` array and function use.
-   * Headers (negative indexes) and columns outside the index mapper have no physical index,
-   * so they keep the index they were given.
-   *
-   * @param {number} col Visual col index.
-   * @returns {number}
-   */
-  const toPhysicalWidthIndex = (col: number): number => (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
-
-  /**
    * Return column width from settings (no guessing). Private use intended.
    *
    * A `null` width names no width and is returned as `undefined`, the way `AutoColumnSize#isEnabled()`
@@ -9550,8 +9592,9 @@ export default function Core(
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {number} col Visual col index. The `colWidths` array and function are read by the
-   * matching physical index.
+   * @param {number} col Visual col index. The `colWidths` function is called with the matching physical index,
+   * and the `colWidths` array is read at the entry that column was declared at, which it keeps when columns are
+   * inserted or removed (`ColumnSizeSettings`). A column outside the grid gets no width from either.
    * @returns {number|undefined}
    */
   this._getColWidthFromSettings = function(col: number) {
@@ -9568,13 +9611,30 @@ export default function Core(
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
-        case 'object': // array, addressed by the physical column index
-          width = (width as Record<number, unknown>)[toPhysicalWidthIndex(col)];
-          break;
+        case 'object': { // array, addressed by the physical column index
+          if (col < 0) {
+            width = (width as Record<number, unknown>)[col];
+            break;
+          }
 
-        case 'function': // called with the physical column index
-          width = (width as (col: number) => unknown)(toPhysicalWidthIndex(col));
+          const physicalColumn = instance.toPhysicalColumn(col);
+          // The grid-level array is read through the entry each column was declared at, which the column keeps
+          // when columns are inserted or removed. A column inserted between others has none. A column outside
+          // the index mapper has no physical index and keeps the index it was given.
+          const entry = physicalColumn === null ?
+            col : columnSizeSettings.getDeclaredIndex(physicalColumn, width as unknown[]);
+
+          width = entry === null ? undefined : (width as Record<number, unknown>)[entry];
           break;
+        }
+
+        case 'function': { // called with the physical column index
+          // A header, and a column outside the index mapper, keep the index they were given.
+          const physicalColumn = (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
+
+          width = (width as (col: number) => unknown)(physicalColumn);
+          break;
+        }
         default:
           break;
       }
@@ -9614,6 +9674,46 @@ export default function Core(
   };
 
   /**
+   * Resolves one row's value out of the `rowHeights` or `minRowHeights` setting. The function is called
+   * with the physical row index, and the array is read at the entry the row was declared at (the physical
+   * index at the time of the declaration, kept by `RowSizeSettings` across row inserts and removals), so a
+   * height stays with its row when rows are moved, sorted, trimmed, filtered, collapsed, inserted, or
+   * removed. Headers (negative indexes) have no physical index, so they keep the index they were given, and a row
+   * outside the index mapper gets no value. A number and a string apply to every row, so they skip the translation.
+   *
+   * @param {string} option `rowHeights` or `minRowHeights`.
+   * @param {number} row Visual row index.
+   * @returns {number|undefined|null}
+   */
+  const resolveRowHeightByPhysicalIndex = (option: RowSizeOption, row: number) => {
+    const setting: unknown = tableMeta[option];
+
+    if (typeof setting !== 'object' && typeof setting !== 'function') {
+      return resolveRowHeightSetting(setting, row);
+    }
+
+    if (row < 0) {
+      return resolveRowHeightSetting(setting, row);
+    }
+
+    const physicalRow = instance.toPhysicalRow(row);
+
+    // A row outside the index mapper has no physical index, so no entry of the array or the function applies.
+    if (physicalRow === null) {
+      return undefined;
+    }
+
+    if (!Array.isArray(setting)) {
+      return resolveRowHeightSetting(setting, physicalRow);
+    }
+
+    const declaredIndex = rowSizeSettings.getDeclaredIndex(option, physicalRow);
+
+    // A row created after the declaration has no entry of its own.
+    return declaredIndex === null ? undefined : resolveRowHeightSetting(setting, declaredIndex);
+  };
+
+  /**
    * Tells whether the row renders at exactly the height the `rowHeights` option gives it, with
    * taller content clipped, instead of at a minimum the content can grow past. Private use intended.
    *
@@ -9623,7 +9723,8 @@ export default function Core(
    * @private
    * @memberof Core#
    * @function _isRowHeightExact
-   * @param {number} row Visual row index.
+   * @param {number} row Visual row index. The `rowHeights` array and function are read by the matching
+   * physical index.
    * @returns {boolean}
    */
   this._isRowHeightExact = function(row: number) {
@@ -9631,7 +9732,7 @@ export default function Core(
       return false;
     }
 
-    return isExactRowHeight(resolveRowHeightSetting(tableMeta.rowHeights, row));
+    return isExactRowHeight(resolveRowHeightByPhysicalIndex('rowHeights', row));
   };
 
   /**
@@ -9640,11 +9741,12 @@ export default function Core(
    * @private
    * @memberof Core#
    * @function _getRowHeightFromSettings
-   * @param {number} row Visual row index.
+   * @param {number} row Visual row index. The `rowHeights` and `minRowHeights` array and function are
+   * read by the matching physical index.
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row: number) {
-    const rowHeights = resolveRowHeightSetting(tableMeta.rowHeights, row);
+    const rowHeights = resolveRowHeightByPhysicalIndex('rowHeights', row);
     const hasOwnHeight = isExactRowHeight(rowHeights);
 
     // Resolved once: a `rowHeights` function runs for every rendered row on every draw.
@@ -9657,7 +9759,7 @@ export default function Core(
     const hasRowHeightsOption = tableMeta.rowHeights !== undefined && tableMeta.rowHeights !== null;
     const fallbackHeight = hasRowHeightsOption ? rowHeights : undefined;
     const height = hasOwnHeight ?
-      rowHeights : (resolveRowHeightSetting(tableMeta.minRowHeights, row) ?? fallbackHeight);
+      rowHeights : (resolveRowHeightByPhysicalIndex('minRowHeights', row) ?? fallbackHeight);
 
     const numHeight = height;
     const numDefaultRowHeight = defaultRowHeight as number | null;
@@ -9681,6 +9783,9 @@ export default function Core(
    *   4. `undefined`, if neither [`ManualRowResize`](@/api/manualRowResize.md),
    *     nor [`rowHeights`](@/api/options.md#rowheights),
    *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
+   *
+   * The [`rowHeights`](@/api/options.md#rowheights) array and function are read by the physical index
+   * of `row`, so a height stays with its row when rows are moved, sorted, filtered, trimmed, or collapsed.
    *
    * Passing [`rowHeights`](@/api/options.md#rowheights) to
    * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
@@ -11197,6 +11302,43 @@ export default function Core(
   };
 
   /**
+   * Moves the slots of rows a plugin just inserted through `rowIndexMapper.insertIndexes()` to the physical
+   * index the rows really took in the data, in the maps that keep the `rowHeights` and `minRowHeights`
+   * arrays on their rows. For a hand-built insert whose index-mapper index differs from the data's (the
+   * NestedRows plugin's). Private use intended.
+   *
+   * @private
+   * @param {number} physicalRow The physical index of the first inserted row.
+   * @param {number} amount The number of inserted rows.
+   */
+  this._alignInsertedRowSizes = function(physicalRow: number, amount: number) {
+    rowSizeSettings.alignInsertedRows(physicalRow, amount);
+  };
+
+  /**
+   * Returns a copy of the maps that keep the `rowHeights` and `minRowHeights` arrays on their rows, for a
+   * plugin that moves rows by rewriting the data rather than through the index mapper (NestedRows), or
+   * `null` when neither option is an array. Private use intended.
+   *
+   * @private
+   * @returns {Map<string, Array>|null} For each option, the array entry index each physical row was declared at.
+   */
+  this._readRowSizeOrigins = function() {
+    return rowSizeSettings.readOrigins();
+  };
+
+  /**
+   * Writes back the maps `_readRowSizeOrigins()` returned, after the caller rearranged them to the rows'
+   * new physical indexes. Private use intended.
+   *
+   * @private
+   * @param {Map<string, Array>} origins For each option, the array entry index of each physical row.
+   */
+  this._writeRowSizeOrigins = function(origins: Map<RowSizeOption, unknown[]>) {
+    rowSizeSettings.writeOrigins(origins);
+  };
+
+  /**
    * Gets the instance of the MetaManager.
    *
    * @private
@@ -11229,6 +11371,8 @@ export default function Core(
   });
 
   const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
+  const columnSizeSettings = new ColumnSizeSettings(instance);
+  const rowSizeSettings = new RowSizeSettings(instance);
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
     // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).

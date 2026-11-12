@@ -307,6 +307,10 @@ Known limit: in the bottom-end corner cell both shifts apply, and on a dropdown 
 there the handle lands on the top-start part of `.htAutocompleteArrow`, which itself lies mostly in
 the strips. Shifting one axis only would put the handle back under the other scrollbar.
 
+## Row header widths are resolved per level, in one place
+
+`resolveRowHeaderWidths()` (`axisSizing/rowHeaderWidths.ts`) is the only reader of `onModifyRowHeaderWidth`: it hands the hook the per-level `rowHeaderWidth` setting (never a sum of the levels), reads a number answer as the width of every level, keeps the setting when the hook gives no answer (`null` or `undefined`, which is also what the unset Walkontable default gives), and gives a missing, `null` or non-finite level `defaultColumnWidth`. `ColumnUtils#calculateWidths` (the `col` widths) and `Viewport#getRowHeaderWidth` (the sum the hider, the column calculators and the inline-end overlay use) both go through it. A second reader that sums first or reads the answer as a total puts the `fixedColumnsEnd` clone off its column and the hider past the table whenever a handler answers per level (RowSelection, NestedRows, AutoRowHeaderSize). Pinned by `test/unit/axisSizing/rowHeaderWidths.unit.ts` and `tests/e2e/row-header-width-per-level.spec.ts`.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.

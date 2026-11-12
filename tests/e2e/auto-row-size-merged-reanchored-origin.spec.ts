@@ -6,9 +6,10 @@ import {
 
 /**
  * With AutoRowSize on, a merge whose first rows are trimmed or filtered out is drawn from the next visible
- * row. That cell was covered by the merge before, so MergeCells had stored `hidden` on it, and the sampler
- * skipped it: the text written into it afterwards was never measured. The master grew to the text and the
- * row headers kept the default height.
+ * row. A row or column move that splits a merge can draw a fragment from another cell the same way. That cell
+ * was covered by the merge before, so MergeCells had stored `hidden` on it, and the sampler skipped it: the text
+ * written into it afterwards was never measured. The master grew to the text and the row headers kept the
+ * default height.
  *
  * Every case builds the merge `{ row: 1, col: 4, rowspan: 3, colspan: 2 }` over 10 x 10 spreadsheet data,
  * hides or removes the merge's first row or rows, and then writes text into the cell the merge is drawn from. It expects
@@ -35,8 +36,8 @@ test.describe('row headers beside a merge that a trim or a filter drew from anot
    * Builds the control grid: the block the trim leaves, made in place with nothing hidden, and the text in
    * its first cell. Returns the height of the tallest row once it has settled.
    */
-  async function controlTallestRow(settings: GridSettings, row: number): Promise<number> {
-    await grid.build(settings, { row, col: 4, value: LINES });
+  async function controlTallestRow(settings: GridSettings, row: number, col = 4): Promise<number> {
+    await grid.build(settings, { row, col, value: LINES });
     await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
     await expect.poll(() => grid.misalignedRows()).toEqual([]);
 
@@ -97,6 +98,82 @@ test.describe('row headers beside a merge that a trim or a filter drew from anot
     await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
     await expect.poll(() => grid.misalignedRows()).toEqual([]);
     await expect.poll(tallestRow).toBe(control);
+  });
+
+  test('moving the first row of the merge down, then writing the text', async() => {
+    // The move splits the merge: two of its rows stay together, drawn from the row that followed the moved one.
+    const control = await controlTallestRow({ mergeCells: [{ row: 1, col: 4, rowspan: 2, colspan: 2 }] }, 1);
+
+    await grid.buildWithoutText({ mergeCells: TALL_MERGE, manualRowMove: true });
+    await grid.callPlugin('manualRowMove', 'moveRow', 1, 6);
+    await grid.setDataAtCell(1, 4, LINES);
+
+    await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
+    await expect.poll(() => grid.misalignedRows()).toEqual([]);
+    await expect.poll(tallestRow).toBe(control);
+    // A copy quotes a value that holds line breaks.
+    expect(await grid.copyableText(1, 4)).toBe(`"${LINES}"`);
+  });
+
+  test('moving the first column of the merge away, then writing the text', async() => {
+    // The move leaves the merge's second column alone: a block of one column and three rows.
+    const control = await controlTallestRow({ mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }] }, 1);
+
+    await grid.buildWithoutText({ mergeCells: TALL_MERGE, manualColumnMove: true });
+    await grid.callPlugin('manualColumnMove', 'moveColumn', 4, 8);
+    await grid.setDataAtCell(1, 4, LINES);
+
+    await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
+    await expect.poll(() => grid.misalignedRows()).toEqual([]);
+    await expect.poll(tallestRow).toBe(control);
+    // A copy quotes a value that holds line breaks.
+    expect(await grid.copyableText(1, 4)).toBe(`"${LINES}"`);
+  });
+
+  test('freezing the second column of the merge, then writing the text', async() => {
+    // The freeze takes column 5 to the first position and splits the merge into two blocks of one column.
+    const control = await controlTallestRow({ mergeCells: [{ row: 1, col: 0, rowspan: 3, colspan: 1 }] }, 1, 0);
+
+    await grid.buildWithoutText({ mergeCells: TALL_MERGE, manualColumnFreeze: true });
+    await grid.callPlugin('manualColumnFreeze', 'freezeColumn', 5);
+    await grid.setDataAtCell(1, 0, LINES);
+
+    await expect.poll(() => grid.tallestRowExtra()).toBeGreaterThan(GROWN_BY_AT_LEAST);
+    await expect.poll(() => grid.misalignedRows()).toEqual([]);
+    await expect.poll(tallestRow).toBe(control);
+    // A copy quotes a value that holds line breaks.
+    expect(await grid.copyableText(1, 0)).toBe(`"${LINES}"`);
+  });
+
+  // A move takes the merge's middle row out of it. While a row is trimmed or filtered, the cell kept the `hidden`
+  // and `copyable: false` the merge had stored on it, so a copy of its text returned an empty string and the
+  // sampler skipped it.
+  test('moving a row out of the merge while a row is trimmed, then copying its text', async() => {
+    await grid.buildWithoutText({
+      mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+      trimRows: true,
+      manualRowMove: true,
+    });
+    await grid.callPlugin('trimRows', 'trimRows', [8]);
+    await grid.callPlugin('manualRowMove', 'moveRow', 2, 7);
+    // The row sits at visual row 7 now, outside the merge.
+    await grid.setDataAtCell(7, 4, 'released');
+
+    expect(await grid.copyableText(7, 4)).toBe('released');
+  });
+
+  test('moving a row out of the merge on a filtered grid, then copying its text', async() => {
+    await grid.buildWithoutText({
+      mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+      filters: true,
+      manualRowMove: true,
+    });
+    // Row 8 of the spreadsheet data holds `A9` in the first column.
+    await grid.filterOutValue(0, 'A9');
+    await grid.callPlugin('manualRowMove', 'moveRow', 2, 7);
+    await grid.setDataAtCell(7, 4, 'released');
+
+    expect(await grid.copyableText(7, 4)).toBe('released');
   });
 
   // A guard, not a repro of the bug: the untrim makes the original cell the top-left again, and that cell never

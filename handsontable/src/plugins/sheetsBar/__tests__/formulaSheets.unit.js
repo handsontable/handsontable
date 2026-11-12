@@ -978,6 +978,43 @@ describe('SheetsBar formula sheets', () => {
       expect(engine.getSheetSerialized(engine.getSheetId('A'))).toEqual(expected.engine);
     });
 
+    // The engine of a workbook holds several sheets, so a reload that writes the sheet sends one order (the moves
+    // would move the other sheets' references a second time): the hold's replay of the moves under the sort is
+    // never reached here, and the moves reach the engine on the first visit through the move path instead.
+    it('shows a move array and an initial sort as a plain grid does, on the first visit and on a return', () => {
+      const rows = () => [1, 2, 3, 4, 5].map((id, index) => [id, `=A${((index + 2) % 5) + 1}+1000`]);
+      const settings = {
+        manualRowMove: [2, 3, 4, 0, 1],
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'desc' } },
+      };
+      const plainContainer = document.createElement('div');
+
+      document.body.appendChild(plainContainer);
+
+      const plain = new Handsontable(plainContainer, {
+        data: rows(),
+        ...settings,
+        formulas: { engine: HyperFormula },
+        licenseKey: LICENSE_KEY,
+      });
+      const expected = plain.getData();
+
+      plain.destroy();
+      plainContainer.remove();
+
+      const engine = buildEngine();
+
+      hot = build([boundSheet(engine, 'B', [[9]]), boundSheet(engine, 'A', rows(), settings)]);
+      sheetsBar().setActiveSheet('A');
+
+      expect(hot.getData()).toEqual(expected);
+
+      sheetsBar().setActiveSheet('B');
+      sheetsBar().setActiveSheet('A');
+
+      expect(hot.getData()).toEqual(expected);
+    });
+
     it('keeps each row reading its own cells when a listener sorts the sheet as it is left', () => {
       const engine = buildEngine();
       let sortOnLeave = true;
