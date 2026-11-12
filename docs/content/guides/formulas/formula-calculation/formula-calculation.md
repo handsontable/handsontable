@@ -661,7 +661,10 @@ Handsontable also writes to your engine when it validates a change that it can r
 cell with a validator and [`allowInvalid`](@/api/options.md#allowinvalid) set to `false`. The
 validator needs the formula's result, so Handsontable writes the formulas into your engine, reads
 the results, and takes the write back in the same task. Nothing paints the result, and no
-[`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook fires for it.
+[`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook fires for it. The
+exception is a volatile function (`RAND()`, `NOW()`, or `TODAY()`) in your engine: the values it
+recalculated during the write are reported once to every grid on the engine, and those grids repaint.
+This happens whether the validator accepts the change or not.
 
 HyperFormula records each write as an undo entry, and the probe adds up to two entries to the stack
 and takes them back. When your engine's `undoLimit` is reached, HyperFormula drops its oldest

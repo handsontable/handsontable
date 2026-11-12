@@ -127,8 +127,13 @@ Everything about that machinery is load-bearing:
   validates or any set waits. It reads the validator from `activeEditor.cellProperties`, the meta the save
   validates: a `modifyGetCellCoords` listener can redirect the save to a validated cell from one without a
   validator, and reading the press cell's validator took no wait there. Known limit: an editor save's set
-  whose validator never answers, or throws asynchronously, never leaves core's list, so a sort pressed while it
-  waits never runs (the editor itself stays `WAITING` then too). The listener sits at
+  whose validator never answers, or throws asynchronously, never leaves core's list, so every header sort
+  pressed while it waits stays queued until the set is written or dropped (`loadData()`). That holds also when
+  the editor is already closed: a Ctrl+Enter fill whose edited cell answered closes the editor while another
+  filled cell still waits, and each later press snapshots the same set again. Sorting earlier would let core
+  write the late cell by visual row onto another record. Once the set is written, the queued sorts run once
+  each, in press order. Pinned by "should keep every later header sort queued while a closed editor's fill
+  waits for one cell (known limit)". The listener sits at
   `orderIndex: Number.MAX_SAFE_INTEGER` as a defensive measure, so an editor listener added after it would
   still decide first. It is not pinned: in the unit flows measured (a changed and an unchanged edit) the editor
   is already done before `postAfterValidate` runs (core's `onQueueEmpty` cancels it, or the validation callback

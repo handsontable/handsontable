@@ -690,12 +690,8 @@ export class BaseEditor {
    *
    * It also lists every cell the save asked to validate, which a save that writes later leaves empty, and
    * the cells of the change sets the save made that wait for their validators (`[visualRow, prop]`, copied
-   * before any answer takes a rejected change out of its set).
-   *
-   * @param {*} value The value to save.
-   * @param {boolean} [ctrlDown] If `true`, applies the value to each cell in every selected range.
-   * And it tells whether the save started a write (`beforeChange` ran during it), which a save that writes
-   * later does not.
+   * before any answer takes a rejected change out of its set). And it tells whether the save started a write
+   * (`beforeChange` ran during it), which a save that writes later does not.
    *
    * @param {*} value The value to save.
    * @param {boolean} [ctrlDown] If `true`, applies the value to each cell in every selected range.

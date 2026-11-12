@@ -744,4 +744,54 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     expect(loadData).not.toHaveBeenCalled();
     expect(readEngineThroughGrid()).toEqual(hot.getData());
   });
+
+  describe('the hooks a reload through updateSettings() fires', () => {
+    /**
+     * Builds a sheet-built grid, edits a cell, runs `beforeReload`, and records the load,
+     * update and change hooks of an `updateSettings({})` call.
+     *
+     * @param {Function} beforeReload Runs between the edit and the reload.
+     * @returns {{ loads: Array, updates: Array, changeSources: Array }}
+     */
+    async function reloadAfterEdit(beforeReload) {
+      const engine = buildEngine();
+      const loads = [];
+      const updates = [];
+      const changeSources = [];
+
+      buildGrid(engine);
+      hot.setDataAtCell(0, 0, 'z');
+      await flush();
+      beforeReload(engine);
+
+      hot.addHook('afterLoadData', (data, initialLoad, source) => loads.push(source));
+      hot.addHook('afterUpdateData', (data, initialLoad, source) => updates.push(source));
+      hot.addHook('afterChange', (changes, source) => changeSources.push(source));
+
+      hot.updateSettings({});
+      await flush();
+
+      return { loads, updates, changeSources };
+    }
+
+    it('fires afterUpdateData and afterChange with the updateData source when only the grid changed the sheet', async() => {
+      const { loads, updates, changeSources } = await reloadAfterEdit(() => {});
+
+      expect(updates).toEqual(['Formulas.switchSheet']);
+      expect(loads).toEqual([]);
+      expect(changeSources).toEqual(['updateData']);
+      expect(hot.getDataAtCell(0, 0)).toBe('z');
+    });
+
+    it('fires afterLoadData and afterChange with the loadData source when the host changed the sheet', async() => {
+      const { loads, updates, changeSources } = await reloadAfterEdit((engine) => {
+        engine.setCellContents({ sheet: engine.getSheetId('S1'), row: 2, col: 0 }, 'host');
+      });
+
+      expect(loads).toEqual(['Formulas.switchSheet']);
+      expect(updates).toEqual([]);
+      expect(changeSources).toEqual(['loadData']);
+      expect(hot.getDataAtCell(2, 0)).toBe('host');
+    });
+  });
 });

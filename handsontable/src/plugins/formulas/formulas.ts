@@ -6371,10 +6371,11 @@ export class Formulas extends BasePlugin {
    * and one that reads itself through a dependent is a cycle. A set without a formula skips the round
    * trip. Its changes still get an entry, so a value written over a formula cell is validated as the
    * value, not as the result the engine still holds. The other grids on the engine paint once, when the
-   * write scope ends, and this grid fires no `afterFormulasValuesUpdate` for it.
+   * write scope ends, and this grid fires no `afterFormulasValuesUpdate` for the probe's write; the
+   * volatile values the round trip changed are announced to every grid (`#announceProbeChangesKept()`).
    *
-   * An engine that keeps no undo history (`undoLimit: 0`) cannot take a batch back without risking an
-   * array formula's spill, so each formula is calculated on its own there (`#calculateDetached()`).
+   * An engine that keeps fewer than two undo entries (`undoLimit` below 2) cannot take a two-batch probe back
+   * without risking an array formula's spill, so each formula is calculated on its own there (`#calculateDetached()`).
    *
    * A formula of the set written at once that reads a deferred cell of the set (`#findReadersOfDeferred()`)
    * gets an entry too, so its validator sees the result the cell holds once the deferred cells are written:
@@ -6665,7 +6666,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * Calculates a formula for its validator without writing it (`calculateFormula()`), for an engine that
-   * keeps no undo history. The engine evaluates it on its own, as if it were in the first cell, so a cycle
+   * keeps fewer than two undo entries (`undoLimit` below 2). The engine evaluates it on its own, as if it were in the first cell, so a cycle
    * through the cell itself, a reference to another deferred cell of the set, `ROW()` and a spill are not
    * what the cell would hold; a parse error reads as the formula text. An engine without the method hands
    * the formula text to the validator.

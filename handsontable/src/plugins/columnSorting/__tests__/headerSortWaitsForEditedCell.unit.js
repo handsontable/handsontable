@@ -267,6 +267,38 @@ describe.each([
     expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'zzz', 'zzz', 'p4', 'p5']);
   });
 
+  it('should keep every later header sort queued while a closed editor\'s fill waits for one cell (known limit)', async() => {
+    buildGrid();
+
+    const applyHeaderClickSort = jest.spyOn(hot.getPlugin(pluginKey), 'applyHeaderClickSort');
+
+    await fillColumnA();
+    await answer(call => call.row === 1); // the edited cell: the editor closes
+    await answer(call => call.row === 2); // row 3 stays unanswered, so the fill is not written
+
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(hot.getActiveEditor().isWaiting()).toBe(false);
+
+    pressHeader(1);
+    releaseHeader(1);
+    pressHeader(1);
+    releaseHeader(1);
+    pressHeader(0);
+    releaseHeader(0);
+    await flush();
+
+    // Accepted limit: a sort now would move the rows before core writes the fill by visual row.
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+    expect(applyHeaderClickSort).not.toHaveBeenCalled();
+    expect(hot._getWaitingChangeSets()).toHaveLength(1);
+
+    await answer(call => call.row === 3);
+
+    expect(applyHeaderClickSort.mock.calls.map(([press]) => press.column)).toEqual([1, 1, 0]);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'zzz', 'zzz', 'p4', 'p5']);
+  });
+
   it('should wait for a Ctrl+Enter fill whose edited cell answered before the press', async() => {
     buildGrid();
     await fillColumnA();
