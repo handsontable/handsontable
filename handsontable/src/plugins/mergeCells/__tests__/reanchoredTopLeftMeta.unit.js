@@ -481,4 +481,177 @@ describe('MergeCells re-anchored top-left cell meta', () => {
       expect(hot.getCellMeta(7, 4).copyable).toBe(false);
     });
   });
+
+  describe('span keys after a move or a freeze', () => {
+    const SPAN_KEYS = ['spanned', 'rowspan', 'colspan'];
+
+    /**
+     * Asserts that no cell holds a span of its own unless a merge is drawn from it. Reads the stored meta only,
+     * so the `afterGetCellMeta` hook cannot write the keys back first.
+     */
+    function expectSpanKeysOnlyOnTopLefts() {
+      const { mergedCells } = hot.getPlugin('mergeCells').mergedCellsCollection;
+      const topLefts = new Set(
+        mergedCells.map(({ row, col }) => `${hot.toPhysicalRow(row)}:${hot.toPhysicalColumn(col)}`)
+      );
+
+      for (let physicalRow = 0; physicalRow < hot.countSourceRows(); physicalRow++) {
+        for (let physicalColumn = 0; physicalColumn < hot.countSourceCols(); physicalColumn++) {
+          if (!topLefts.has(`${physicalRow}:${physicalColumn}`)) {
+            SPAN_KEYS.forEach((key) => {
+              expect([physicalRow, physicalColumn, key, hasStoredFlag(physicalRow, physicalColumn, key)])
+                .toEqual([physicalRow, physicalColumn, key, false]);
+            });
+          }
+        }
+      }
+    }
+
+    it('should check the precondition: the top-left stores the span keys before the move', () => {
+      createGrid({ manualRowMove: true });
+
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+    });
+
+    it('should clear the span keys from the former top-left a row move leaves in no merge', () => {
+      createGrid({ manualRowMove: true, mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }] });
+
+      hot.getPlugin('manualRowMove').moveRow(1, 6);
+
+      // The 2x1 fragment is drawn from physical (2, 4); physical (1, 4) sits alone at visual row 6.
+      expect(hot.toPhysicalRow(1)).toBe(2);
+      expect(hot.toVisualRow(1)).toBe(6);
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(false));
+      expectSpanKeysOnlyOnTopLefts();
+      expect(hot.getCellMeta(6, 4).spanned).toBeUndefined();
+      expect(hot.getCellMeta(6, 4).rowspan).toBeUndefined();
+      expect(hot.getCellMeta(1, 4).rowspan).toBe(2);
+    });
+
+    it('should clear the span keys from the former top-left a merge a row move breaks into single cells', () => {
+      createGrid({ manualRowMove: true, mergeCells: [{ row: 1, col: 4, rowspan: 2, colspan: 1 }] });
+
+      expect(hasStoredFlag(1, 4, 'spanned')).toBe(true);
+
+      hot.getPlugin('manualRowMove').moveRow(5, 2);
+
+      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(0);
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(false));
+      expect(hot.getCellMeta(1, 4).rowspan).toBeUndefined();
+    });
+
+    it('should clear the span keys from the row a move takes out of a merge that stays in one piece', () => {
+      createGrid({ manualRowMove: true, mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }] });
+
+      hot.getPlugin('manualRowMove').moveRow(1, 7);
+
+      // The merge is drawn from physical (2, 4) now, and physical (1, 4) belongs to no merge.
+      expect(hot.toPhysicalRow(1)).toBe(2);
+      expect(hot.getCellMeta(1, 4).rowspan).toBe(2);
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(false));
+      expectSpanKeysOnlyOnTopLefts();
+    });
+
+    it('should clear the span keys from the former top-left of a merge a row move keeps whole', () => {
+      createGrid({ manualRowMove: true });
+
+      // The merge keeps its three rows and is drawn from physical row 2. Physical row 1 is covered, not the top-left.
+      hot.getPlugin('manualRowMove').moveRow(1, 2);
+
+      expect(hot.toPhysicalRow(1)).toBe(2);
+      expect(hot.toVisualRow(1)).toBe(2);
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(false));
+      expectSpanKeysOnlyOnTopLefts();
+      expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+      expect(hot.getCellMeta(2, 4).rowspan).toBeUndefined();
+      expect(hot.getCellMeta(2, 4).hidden).toBe(true);
+    });
+
+    it('should clear the span keys from the former top-left of a merge a column move keeps whole', () => {
+      createGrid({ manualColumnMove: true });
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 5);
+
+      // The merge keeps its two columns and is drawn from physical column 5.
+      expect(hot.toPhysicalColumn(4)).toBe(5);
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(false));
+      expectSpanKeysOnlyOnTopLefts();
+      expect(hot.getCellMeta(1, 4).colspan).toBe(2);
+      expect(hot.getCellMeta(1, 5).colspan).toBeUndefined();
+    });
+
+    it('should clear the span keys from the former top-left a column move leaves in no merge', () => {
+      createGrid({ manualColumnMove: true, mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }] });
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 8);
+
+      // The merge is drawn from physical (1, 5) now, and physical (1, 4) sits alone at visual column 8.
+      expect(hot.toPhysicalColumn(4)).toBe(5);
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(false));
+      expectSpanKeysOnlyOnTopLefts();
+      expect(hot.getCellMeta(1, 4).colspan).toBe(2);
+      expect(hot.getCellMeta(1, 8).colspan).toBeUndefined();
+    });
+
+    it('should clear the span keys from the former top-left a column freeze leaves in no merge', () => {
+      createGrid({ manualColumnFreeze: true, mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }] });
+
+      hot.getPlugin('manualColumnFreeze').freezeColumn(4);
+
+      // Physical column 4 is the first visual column and no merge is drawn from it. The merge keeps columns 5 and 6.
+      expect(hot.toPhysicalColumn(0)).toBe(4);
+      expect(hot.getCellMeta(1, 5).colspan).toBe(2);
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(false));
+      expectSpanKeysOnlyOnTopLefts();
+      expect(hot.getCellMeta(1, 0).colspan).toBeUndefined();
+    });
+
+    it('should leave a span only on the cells a merge is drawn from after a column freeze splits it', () => {
+      createGrid({ manualColumnFreeze: true, mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 3 }] });
+
+      hot.getPlugin('manualColumnFreeze').freezeColumn(5);
+
+      expect(hot.toPhysicalColumn(0)).toBe(5);
+      expectSpanKeysOnlyOnTopLefts();
+      expect(hot.getCellMeta(1, 0).rowspan).toBe(3);
+      expect(hot.getCellMeta(1, 0).colspan).toBe(1);
+    });
+
+    it('should keep the span keys of a merge a move does not touch', () => {
+      createGrid({ manualRowMove: true });
+
+      hot.getPlugin('manualRowMove').moveRow(7, 8);
+
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+      expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+      expect(hot.getCellMeta(1, 4).colspan).toBe(2);
+    });
+
+    it('should keep a `rowspan` and a `colspan` recorded on the former top-left', () => {
+      createGrid({ manualRowMove: true, mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }] });
+
+      hot.setCellMeta(1, 4, 'rowspan', 9);
+      hot.setCellMeta(1, 4, 'colspan', 8);
+
+      hot.getPlugin('manualRowMove').moveRow(1, 6);
+
+      // `spanned` is the merge's own mark and goes, the recorded keys are the user's and stay.
+      expect(hasStoredFlag(1, 4, 'spanned')).toBe(false);
+      expect(hasStoredFlag(1, 4, 'rowspan')).toBe(true);
+      expect(hasStoredFlag(1, 4, 'colspan')).toBe(true);
+    });
+
+    it('should keep a `rowspan` the user set on a cell that no merge stored a span on', () => {
+      createGrid({ manualRowMove: true, mergeCells: [{ row: 1, col: 4, rowspan: 2, colspan: 1 }] });
+
+      // The covered cell carries no `spanned`, so its `rowspan` is not the merge's.
+      hot.setCellMeta(2, 4, 'rowspan', 9);
+
+      hot.getPlugin('manualRowMove').moveRow(5, 2);
+
+      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(hasStoredFlag(2, 4, 'hidden')).toBe(false);
+      expect(hot.getCellMeta(hot.toVisualRow(2), 4).rowspan).toBe(9);
+    });
+  });
 });
