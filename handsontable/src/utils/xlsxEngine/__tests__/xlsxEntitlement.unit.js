@@ -2,7 +2,8 @@ import { buildTestKey } from '../../entitlementLicenseKey/__tests__/buildTestKey
 import { SUBSCRIPTION_KEY, HF_ONLY_KEY } from '../../entitlementLicenseKey/__tests__/fixtures';
 import { UNRESTRICTED_GRANTS } from '../../entitlementLicenseKey';
 import { _getLicenseState } from '../../../helpers/mixed';
-import { XLSX_CAPABILITY_IDS, XLSX_FLAG_BY_ID } from '../licenseCapabilities';
+import { XLSX_CAPABILITY_IDS, XLSX_FLAG_BY_ID, XLSX_TIERS_BY_ID } from '../licenseCapabilities';
+import { keyWithTier } from '../../entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import {
   UNRESTRICTED_XLSX_ENTITLEMENT,
   resolveXlsxEntitlement,
@@ -164,5 +165,51 @@ describe('xlsxEngine/xlsxEntitlement', () => {
       .toBe('The xlsx export skipped features your license does not unlock: xlsx:styles, xlsx:protection.');
     expect(formatMissingCapabilitiesWarning('import', ['xlsx:styles']))
       .toBe('The xlsx import skipped features your license does not unlock: xlsx:styles.');
+  });
+
+  describe('a key that names a tier', () => {
+    const tiersById = Object.fromEntries(XLSX_CAPABILITY_IDS.map(id => [id, ['beta']]));
+
+    tiersById['xlsx:import'] = ['alpha', 'beta'];
+    tiersById['xlsx:export'] = ['alpha', 'beta'];
+
+    const entitlementOf = (key) => {
+      const { grants, tiers } = _getLicenseState(key);
+
+      return resolveXlsxEntitlement(grants, tiers, tiersById);
+    };
+
+    it('turns on exactly the features whose tiers list it', () => {
+      const entitlement = entitlementOf(keyWithTier(['alpha']));
+
+      expect(entitlement.import).toBe(true);
+      expect(entitlement.export).toBe(true);
+      expect(entitlement.styles).toBe(false);
+      expect(entitlement.missing)
+        .toEqual(XLSX_CAPABILITY_IDS.filter(id => id !== 'xlsx:import' && id !== 'xlsx:export'));
+    });
+
+    it('turns on every feature for a tier every feature lists', () => {
+      expect(entitlementOf(keyWithTier(['beta'])).missing).toEqual([]);
+    });
+
+    it('turns everything off but the report for a tier no feature lists', () => {
+      const entitlement = entitlementOf(keyWithTier(['zz_unknown']));
+
+      expect(entitlement.importReport).toBe(true);
+      expect(entitlement.missing).toEqual([...XLSX_CAPABILITY_IDS]);
+    });
+
+    it('does not throw for a tier named after an Object.prototype member', () => {
+      expect(() => entitlementOf(keyWithTier(['constructor']))).not.toThrow();
+      expect(entitlementOf(keyWithTier(['constructor'])).styles).toBe(false);
+    });
+
+    it('reads the generated map by default', () => {
+      const [tier] = XLSX_TIERS_BY_ID['xlsx:export'];
+      const { grants, tiers } = _getLicenseState(keyWithTier([tier]));
+
+      expect(resolveXlsxEntitlement(grants, tiers).export).toBe(true);
+    });
   });
 });

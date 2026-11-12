@@ -7,6 +7,7 @@ import {
   XLSX_ALL_CAPABILITY,
   XLSX_CAPABILITY_IDS,
   XLSX_FLAG_BY_ID,
+  XLSX_TIERS_BY_ID,
 } from './licenseCapabilities';
 
 /**
@@ -62,10 +63,40 @@ export const UNRESTRICTED_XLSX_ENTITLEMENT: XlsxEntitlement = Object.freeze({
  * grants, and so to the unrestricted entitlement here. With the flag, only the listed tokens unlock,
  * and `xlsx:all` unlocks every one of them.
  *
+ * When the key names tiers (`tiers` is a list), the tiers alone decide: a feature is granted when
+ * its tier list contains one of them, and `grants` is not read.
+ *
  * @param {LicenseGrants} grants The resolved grants.
+ * @param {string[]|null} [tiers] The tiers the key names, or `null` when it names none.
+ * @param {object} [tiersById] The tiers that unlock each feature.
  * @returns {XlsxEntitlement}
  */
-export function resolveXlsxEntitlement(grants: LicenseGrants): XlsxEntitlement {
+export function resolveXlsxEntitlement(
+  grants: LicenseGrants,
+  tiers: readonly string[] | null = null,
+  tiersById: Readonly<Record<string, readonly string[]>> = XLSX_TIERS_BY_ID,
+): XlsxEntitlement {
+  if (tiers !== null) {
+    const tierFlags = {} as Record<XlsxFlagName, boolean>;
+    const tierMissing: string[] = [];
+
+    XLSX_CAPABILITY_IDS.forEach((id) => {
+      const granted = (tiersById[id] ?? []).some(tier => tiers.includes(tier));
+
+      tierFlags[XLSX_FLAG_BY_ID[id] as XlsxFlagName] = granted;
+
+      if (!granted) {
+        tierMissing.push(id);
+      }
+    });
+
+    return Object.freeze({
+      ...tierFlags,
+      importReport: true,
+      missing: Object.freeze(tierMissing) as unknown as string[],
+    });
+  }
+
   if (grants.unrestricted) {
     return UNRESTRICTED_XLSX_ENTITLEMENT;
   }

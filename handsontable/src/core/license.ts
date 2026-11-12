@@ -61,7 +61,9 @@ export function getXlsxEntitlement(hot: HotInstance): XlsxEntitlement {
   let entitlement = xlsxEntitlementsByKey.get(licenseKey);
 
   if (!entitlement) {
-    entitlement = resolveXlsxEntitlement(_getLicenseState(licenseKey).grants);
+    const { grants, tiers } = _getLicenseState(licenseKey);
+
+    entitlement = resolveXlsxEntitlement(grants, tiers);
     xlsxEntitlementsByKey.set(licenseKey, entitlement);
   }
 
