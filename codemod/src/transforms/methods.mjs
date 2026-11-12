@@ -586,6 +586,8 @@ function pruneKeepingComments(statement) {
  */
 function removeCall(ctx, path, usage, spec, name) {
   const { rule } = spec;
+  const named = typeof rule.message === 'string' && rule.message.includes('{name}');
+  const message = typeof rule.message === 'string' ? rule.message.replaceAll('{name}', `${name}()`) : '';
 
   if (usage.role !== 'call') {
     ctx.report({
@@ -610,7 +612,7 @@ function removeCall(ctx, path, usage, spec, name) {
       ruleId: rule.id,
       severity: 'changed',
       line,
-      message: `Removed the call to ${name}().${rule.message ? ` ${rule.message}` : ''}`,
+      message: `Removed the call to ${name}().${message ? ` ${message}` : ''}`,
     });
 
     return;
@@ -627,8 +629,10 @@ function removeCall(ctx, path, usage, spec, name) {
     short = 'It has no braces, so the call was kept.';
   }
 
-  ctx.todo(enclosingStatement(usage.call), rule.id, `${name}() is removed. ${reason} ${guidance(spec, name)}`,
-    `${name}() is removed. ${short}`);
+  const lead = named ? message : `${name}() is removed.`;
+
+  ctx.todo(enclosingStatement(usage.call), rule.id, `${lead} ${reason} ${guidance(spec, name)}`,
+    `${lead} ${short}`);
 }
 
 /**

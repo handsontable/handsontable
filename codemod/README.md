@@ -157,7 +157,7 @@ Each migration follows one page of the Handsontable migration guide, and each ru
 
 | Migration | Rules | Rewrite | Report |
 |---|---|---|---|
-| 17.x to 18.0 | 99 | 41 | 58 |
+| 17.x to 18.0 | 103 | 41 | 62 |
 | 18.0 to 18.1 | 8 | 1 | 7 |
 
 `npm run test --prefix codemod` fails when these numbers differ from the output of `--list`. A rule is a `rewrite`
@@ -167,8 +167,8 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 |---|---|---|---|
 | `importSource` | 3 | 0 | Named imports that moved to another entry point, such as `handsontable/common`. |
 | `exportRename` | 13 | 0 | Type names that changed. A rename to a type of another shape is applied, and its rule reports one note that says what changed in the shape. |
-| `namespaceType` | 15 | 10 | `Handsontable.X` types that became named imports, and the ones that were removed. |
-| `exportRemoved` | 0 | 33 | Names that an entry point no longer exports. The import stays and gets a TODO. |
+| `namespaceType` | 15 | 12 | `Handsontable.X` types that became named imports, and the ones that were removed. |
+| `exportRemoved` | 0 | 35 | Names that an entry point no longer exports. The import stays and gets a TODO. |
 | `optionRename` | 1 | 0 | An option that changed its name. |
 | `optionMove` | 1 | 0 | An option that moved, such as `numericFormat.culture` to `locale`. |
 | `optionRemove` | 2 | 0 | An option that Handsontable ignores. The tool deletes it and leaves a TODO. |
@@ -195,7 +195,8 @@ The tool rewrites:
   the behavior. A TODO comment stays where the option was.
 - `columnHeaders` to `colHeaders` in the arguments of the export methods.
 - The `--ht-wrapper-border-radius` custom property and the `wrapperBorderRadius` theme token.
-- Calls to the removed resize-state methods, when the call is a whole statement. Other calls get a TODO.
+- Calls to the deprecated resize-state methods, which do nothing, when the call is a whole statement. Other calls get a
+  TODO.
 - The `handsontable` and wrapper ranges in `package.json`, and a `hyperformula` dependency when the project uses
   formulas.
 

@@ -25,19 +25,19 @@ export interface Marker extends CellCoords {
 
 export let borders: BorderSettings;
 
-// TODO(handsontable-codemod 18.0.0/ns-plugin-settings): Use `GridSettings['columnSorting']` (import type { GridSettings } from 'handsontable').
+// TODO(handsontable-codemod 18.0.0/ns-plugin-settings): Use `GridSettings['columnSorting']` (import type { GridSettings } from 'handsontable'). See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
 export let sorting: Handsontable.plugins.ColumnSorting.Settings;
 
-// TODO(handsontable-codemod 18.0.0/ns-plugin-settings): Use `GridSettings['contextMenu']` (import type { GridSettings } from 'handsontable').
+// TODO(handsontable-codemod 18.0.0/ns-plugin-settings): Use `GridSettings['contextMenu']` (import type { GridSettings } from 'handsontable'). See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
 export let menu: Handsontable.plugins.ContextMenu.Settings;
 
-// TODO(handsontable-codemod 18.0.0/ns-plugin-settings): Use `GridSettings['undo']` (import type { GridSettings } from 'handsontable').
+// TODO(handsontable-codemod 18.0.0/ns-plugin-settings): Use `GridSettings['undo']` (import type { GridSettings } from 'handsontable'). See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
 export let undo: Handsontable.plugins.UndoRedo.Settings;
 
-// TODO(handsontable-codemod 18.0.0/ns-plugin-settings): The TouchScroll plugin has no typed option in 18.0, so there is no replacement type.
+// TODO(handsontable-codemod 18.0.0/ns-boolean-settings): Use `boolean`. `GridSettings` has no typed key for this option in 18.0. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
 export let touch: Handsontable.plugins.TouchScroll.Settings;
 
-// TODO(handsontable-codemod 18.0.0/ns-numericformatoptions): Removed in 18.0, so use `Intl.NumberFormatOptions` instead. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
+// TODO(handsontable-codemod 18.0.0/ns-numericformatoptions): Removed in 18.0, so use `Intl.NumberFormatOptions` instead. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
 export let numeric: Handsontable.NumericFormatOptions;
 
 export let provider: DataProviderFetchOptions;
@@ -48,5 +48,8 @@ export const mapper = new IndexMapper();
 
 export let mapperType: IndexMapper;
 
-// TODO(handsontable-codemod 18.0.0/ns-eventmanager): Not public API, and removed from the Handsontable typings in 18.0.
+// TODO(handsontable-codemod 18.0.0/ns-eventmanager): There is no public type for EventManager in 18.0, and using it fails with TS18046. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
 export const manager = new Handsontable.EventManager(hot);
+
+// TODO(handsontable-codemod 18.0.0/ns-notification-settings): Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification').`GridSettings` has... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
+export let notice: Handsontable.plugins.Notification.Settings;

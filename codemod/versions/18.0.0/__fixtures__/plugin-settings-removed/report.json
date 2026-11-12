@@ -1,10 +1,11 @@
 [
   { "ruleId": "18.0.0/type-plugin-settings", "severity": "manual", "line": 1 },
-  { "ruleId": "18.0.0/type-plugin-settings", "severity": "manual", "line": 2 },
+  { "ruleId": "18.0.0/type-boolean-settings", "severity": "manual", "line": 2 },
   { "ruleId": "18.0.0/type-plugin-settings", "severity": "manual", "line": 3 },
   { "ruleId": "18.0.0/type-contextmenu-detailedsettings", "severity": "manual", "line": 3 },
   { "ruleId": "18.0.0/type-nestedheaders-settings", "severity": "manual", "line": 4 },
   { "ruleId": "18.0.0/type-plugin-settings", "severity": "manual", "line": 5 },
   { "ruleId": "18.0.0/type-sortordertype", "severity": "manual", "line": 6 },
-  { "ruleId": "18.0.0/type-plugin-settings", "severity": "manual", "line": 8 }
+  { "ruleId": "18.0.0/type-plugin-settings", "severity": "manual", "line": 8 },
+  { "ruleId": "18.0.0/type-notification-settings", "severity": "manual", "line": 24 }
 ]

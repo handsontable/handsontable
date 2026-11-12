@@ -20,3 +20,7 @@ export const nested: NestedSettings = [];
 export const stretch: StretchSettings = true;
 
 export const order: SortOrderType = 'asc';
+
+import type { Settings as NotificationSettings } from 'handsontable/plugins/notification';
+
+export const notice: NotificationSettings = true;

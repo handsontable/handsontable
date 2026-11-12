@@ -166,7 +166,7 @@ describe('methodRemove', () => {
   it('puts the TODO of an arrow expression body on its own statement', async() => {
     const { output } = await removal('const persist = () => plugin.saveManualColumnWidths();');
 
-    assert.match(output, /\/\/ TODO\(handsontable-codemod [^)]+\): saveManualColumnWidths\(\) is removed\. Its result/);
+    assert.match(output, /\/\/ TODO\(handsontable-codemod [^)]+\): saveManualColumnWidths\(\) is a no-op\. Its result/);
     assert.match(output, /\nconst persist = \(\) => plugin\.saveManualColumnWidths\(\);/);
   });
 

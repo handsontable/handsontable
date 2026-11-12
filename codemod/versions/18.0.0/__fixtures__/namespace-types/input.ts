@@ -41,3 +41,5 @@ export const mapper = new Handsontable.RecordTranslation.IndexMapper();
 export let mapperType: Handsontable.RecordTranslation.IndexMapper;
 
 export const manager = new Handsontable.EventManager(hot);
+
+export let notice: Handsontable.plugins.Notification.Settings;

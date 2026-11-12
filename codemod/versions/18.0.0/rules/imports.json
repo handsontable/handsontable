@@ -35,7 +35,7 @@
         "IndexMapper": { "to": ["handsontable", "handsontable/base"] },
         "SimpleCellCoords": {
           "removed": true,
-          "advice": "Removed in 18.0 with no replacement. Use the inline type `{ row: number; col: number }`."
+          "advice": "Removed in 18.0 with no replacement. Use the inline type `{ row: number; col: number }`. The `CellCoords` class does not match this shape, because its `row` and `col` can be `null`."
         },
         "NumericFormatOptions": {
           "removed": true,

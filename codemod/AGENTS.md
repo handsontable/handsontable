@@ -407,6 +407,9 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   or the plugin of another key. `18.0.0/resize-state-methods` uses it, so `storage.saveManualColumnWidths()` and
   `super.loadManualRowHeights()` stay untouched. `receiver: "any"` remains for a `methodRemove` rule whose names are
   unique to Handsontable, and it skips a name the file declares itself.
+- A `methodRemove` rule's `message` may use `{name}` for the method (`name()`). The report entry and the TODO then lead
+  with it instead of "`name()` is removed", which is wrong for a deprecated no-op (`18.0.0/resize-state-methods`).
+  Keep that lead under 40 characters, so the TODO still gets the next sentence that says why the call was kept.
 - `methodRemove` deletes a call only when it is a whole expression statement (`await` and `void` allowed), the call
   has no arguments, and the receiver chain is made of identifiers, `this`, member reads, and `getPlugin('<literal>')`
   (`isSimpleReceiver()`): `createGrid().getPlugin(...)` and `(await init()).getPlugin(...)` keep the call, because the
