@@ -90,7 +90,7 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 | ------- | ------------- | ----------- | --------------- |
 | `correctFormat` and `datePickerConfig` options | 17.0 | `valueParser` and `valueSetter` | [Migrate from 17.1 to 18.0 -> `correctFormat` option](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#correctformat-option) |
 | `numericFormat.pattern` and `numericFormat.culture` | 17.0 | `Intl.NumberFormat` options and the `locale` option | [Migrate from 17.1 to 18.0 -> Numeric formatting](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat) |
-| `handsontable/common` import subpath | -- (never documented) | `handsontable` or `handsontable/base` | [Migrate from 17.1 to 18.0 -> Imports](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-handsontablecommon-imports) |
+| `handsontable/common` import subpath | -- (not in the API reference) | `handsontable`, `handsontable/base`, or `handsontable/settings`, depending on the type. Four types are removed | [Migrate from 17.1 to 18.0 -> Imports](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-handsontablecommon-imports) |
 
 ## Removed in version 17.0
 

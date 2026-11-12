@@ -49,8 +49,22 @@ two trimmed rows that have a visible row between them). The rule is specified an
 trimmed block would change the physical order users see after untrimming, so it is a breaking change.
 
 With HIDDEN rows the same visible gap has two drop indexes: the lower half of the row above the hidden block
-and the upper half of the row below it. They land on either side of the block, and the visible order is the
-same. The test pins only the visible order.
+and the upper half of the row below it. `moveIndexes()` counts a hidden row as an item, so the lower-half index
+(it points at the first hidden row) would land the rows in front of the block and the upper-half one after it.
+The pointer resolution steps over the hidden rows (`getLowerHalfDropIndex()`, called from the lower-half branch of
+`refreshPositions()`), so both give the same drop index and the rows land after the block, right before
+the next visible row, the same side as the trimmed rule and as `ManualColumnMove` (which gets it from its
+zero-width hidden columns). Do not move the fix into `moveIndexes()` or `countFinalIndex()`: `dragRows()` and
+`moveRows()` keep the literal meaning of the index a caller passes, and `moveIndexes()` is a public mapper method.
+When the hidden rows run to the end of the grid there is no visible row to step to, and the index is left
+alone, so the rows land in front of the trailing hidden rows, as they do in front of trailing trimmed ones.
+**The step is skipped in four more cases.** (1) A step that would cross into or out of a fixedRowsTop or fixedRowsBottom band: the guideline shows the old spot, and the row would land in the other band. (2) The NestedRows plugin is enabled: its move path reads the parent of the row at the drop index, so a step over hidden rows could make the row a child of a hidden row. (3) The visible row after the hidden ones is inside a merged cell but not its first row (the merge starts at a hidden row): landing before it would put the rows between the merged rows, and the MergeCells `afterRowMove` handler would shrink the merge (`isInsideMergedCell()`). (4) **The hovered row is one of the moved rows.** Grabbing a row and releasing it on its own
+lower half is the "drop it back in place" gesture, which must stay a no-op: stepping would move the row across
+the hidden block, fire `afterRowMove` with `orderChanged: true` and record an undo step for a visibly unchanged
+grid. Pinned by the self-drop case of `tests/e2e/manual-row-move-hidden-gap.spec.ts`.
+The hooks report the resolved drop index. Landing on the far side is a change from 18.1 for the lower-half drop
+(migration guide, section 60). Pinned by `__tests__/moveTrimmedPlacement.unit.js` (`getLowerHalfDropIndex()`, bands and NestedRows included) and
+`tests/e2e/manual-row-move-hidden-gap.spec.ts`. NestedRows moves rows by its own path and the e2e spec does not drive it; the unit tests only pin that the step is skipped.
 
 ## Row heights are read defensively
 
