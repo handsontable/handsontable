@@ -149,10 +149,10 @@ describe('transformFile with the default registry', () => {
     assert.deepEqual([result.changed, result.skipped, result.entries], [false, 'no-transform', []]);
   });
 
-  it('skips a stub adapter and an unknown extension', async() => {
-    const html = await transformFile({ filePath: 'a.html', source: '<hot-table></hot-table>', plan });
+  it('skips an unknown extension and a page the template precheck rejects', async() => {
+    const html = await transformFile({ filePath: 'a.html', source: '<p>hello</p>', plan });
 
-    assert.equal(html.skipped, 'no-adapter');
+    assert.equal(html.skipped, 'precheck');
     assert.equal((await transformFile({ filePath: 'a.md', source: '# x', plan })).skipped, 'no-adapter');
   });
 
@@ -380,7 +380,9 @@ describe('resolvePlan and describeRules', () => {
     try {
       const { plan } = await resolvePlan({ cwd: tmpdir(), from: '17', versionsDir });
 
-      assert.deepEqual(describeRules(plan).map(row => [row.id, row.implemented]), [
+      const registry = createRegistry([{ kinds: ['cssVariable'], fileKinds: ['css'], apply() {} }]);
+
+      assert.deepEqual(describeRules(plan, registry).map(row => [row.id, row.implemented]), [
         ['18.0.0/opt', false],
         ['18.0.0/css', true],
       ]);

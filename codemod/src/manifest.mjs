@@ -21,10 +21,13 @@ export const VERSIONS_DIR = join(PACKAGE_ROOT, 'versions');
  * - `object`: a plain object.
  * - `boolean`: `true` or `false`.
  * - `objects`: an array whose items are all plain objects.
+ * - `stringOrStrings`: a non-empty string or an array of non-empty strings.
  */
 const FIELD_TYPES = {
   string: value => typeof value === 'string' && value.length > 0,
   strings: value => Array.isArray(value) && value.length > 0 && value.every(item => typeof item === 'string' && item),
+  stringOrStrings: value => (typeof value === 'string' && value.length > 0)
+    || (Array.isArray(value) && value.length > 0 && value.every(item => typeof item === 'string' && item)),
   object: value => value !== null && typeof value === 'object' && !Array.isArray(value),
   boolean: value => typeof value === 'boolean',
   objects: value => Array.isArray(value) && value.every(item => item !== null && typeof item === 'object'
@@ -54,15 +57,37 @@ export const COMMON_FIELDS = {
  * `manifest.test.mjs` parity test pins the kind list and each required list against the schema file.
  */
 export const RULE_KINDS = {
-  importSource: { required: { from: 'string', to: 'string' }, optional: { names: 'strings' } },
-  exportRename: { required: { module: 'string', from: 'string', to: 'string' }, optional: {} },
-  namespaceType: { required: { from: 'string', module: 'string' }, optional: { to: 'string' } },
-  exportRemoved: { required: { module: 'string', name: 'string' }, optional: {} },
-  optionRename: { required: { from: 'string', to: 'string' }, optional: {} },
-  optionMove: { required: { from: 'string', to: 'string' }, optional: {} },
-  optionRemove: { required: { name: 'string' }, optional: {} },
-  methodRemove: { required: { name: 'string' }, optional: {} },
-  methodMove: { required: { name: 'string', plugin: 'string' }, optional: { to: 'string' } },
+  importSource: {
+    required: { from: 'string', exports: 'object' },
+    optional: { fallback: 'object', moduleRemoved: 'boolean' },
+  },
+  exportRename: {
+    required: { source: 'stringOrStrings', from: 'string', to: 'string' },
+    optional: { toSource: 'stringOrStrings', note: 'string' },
+  },
+  namespaceType: {
+    required: { from: 'stringOrStrings' },
+    optional: {
+      to: 'object',
+      removed: 'boolean',
+      positions: 'string',
+      optionKeys: 'object',
+      noKeyAdvice: 'string',
+      note: 'string',
+    },
+  },
+  exportRemoved: {
+    required: { source: 'stringOrStrings', name: 'stringOrStrings' },
+    optional: { except: 'strings', optionKeys: 'object', noKeyAdvice: 'string' },
+  },
+  optionRename: { required: { from: 'string', to: 'string' }, optional: { context: 'object' } },
+  optionMove: { required: { from: 'string', to: 'string' }, optional: { report: 'string' } },
+  optionRemove: { required: { name: 'string' }, optional: { todo: 'boolean' } },
+  methodRemove: { required: { methods: 'strings', receiver: 'string' }, optional: {} },
+  methodMove: {
+    required: { methods: 'object', via: 'object', receiver: 'string' },
+    optional: { properties: 'object', anyReceiver: 'strings' },
+  },
   callUnwrap: { required: { callee: 'string' }, optional: {} },
   cssVariable: { required: { from: 'string' }, optional: { to: 'string', removed: 'boolean' } },
   themeToken: { required: { from: 'string' }, optional: { to: 'string', removed: 'boolean', callees: 'strings' } },
@@ -70,7 +95,10 @@ export const RULE_KINDS = {
     required: {},
     optional: { bump: 'object', replaced: 'object', add: 'objects', reportOnly: 'objects', facts: 'objects' },
   },
-  detect: { required: { match: 'object' }, optional: { emits: 'string' } },
+  detect: {
+    required: { match: 'object' },
+    optional: { emitsFact: 'string', severity: 'string', files: 'strings', requires: 'string' },
+  },
   custom: { required: { module: 'string' }, optional: {} },
 };
 

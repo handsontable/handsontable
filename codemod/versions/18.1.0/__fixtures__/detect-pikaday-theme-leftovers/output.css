@@ -1,0 +1,16 @@
+.pika-single {
+  border-radius: 4px;
+}
+
+.pika-prev,
+.pika-next {
+  opacity: 0.5;
+}
+
+.pika-button {
+  color: inherit;
+}
+
+.picker-pika-single {
+  color: red;
+}

@@ -29,12 +29,18 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/manifest.mjs`, `src/manifest.schema.json` | Manifest loading and validation, `RULE_KINDS`. |
 | `src/types.mjs` | JSDoc typedefs for the contracts below. No runtime code. |
 | `src/transforms/index.mjs` | The registry: `KIND_ORDER`, `PHASE_TWO_KINDS`, the module list. |
-| `src/adapters/*.mjs` | File type to parts and back. `template.mjs` is a stub. `vue.mjs` splits a `.vue` file (see Traps). |
+| `src/adapters/*.mjs` | File type to parts and back. `template.mjs` gives an `.html` or `.htm` file one read-only `template` part. `vue.mjs` splits a `.vue` file (see Traps). |
+| `src/transforms/detect.mjs` | The `detect` kind: report-only matchers (vocabulary in Traps). `validateDetectRule()` checks a rule. |
+| `versions/18.1.0/custom/sanitizer-source.mjs` | Two `custom` rules for the `sanitizer` option, picked by the rule's `mode` (see Traps). |
 | `src/transforms/css-variables.mjs`, `theme-tokens.mjs` | `cssVariable` (css, js strings, template report) and `themeToken` kinds. |
 | `src/lib/string-literal.mjs` | `replaceStringLiteral()`: edit a string literal and keep its quote style. |
 | `src/lib/todo.mjs` | The only writer of TODO comments. |
 | `src/lib/facts.mjs` | `addFact(ctx, name)` and `hasFactFor(ctx, name)`: facts keyed by name and directory. |
 | `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. |
+| `src/transforms/import-source.mjs`, `export-rename.mjs`, `namespace-type.mjs`, `export-removed.mjs` | `importSource`, `exportRename`, `namespaceType`, and `exportRemoved` (rule shapes in Traps). |
+| `src/lib/type-rules.mjs` | Shared by those four: `*` module and path patterns, option keys and advice placeholders, `chooseSource()` (which candidate module a name is imported from), `reportOpaqueReferences()`. |
+| `src/transforms/methods.mjs`, `call-unwrap.mjs` | `methodRemove` and `methodMove` (receiver rule, see Traps), and `callUnwrap`. |
+| `src/transforms/options.mjs` | `optionRename`, `optionMove`, `optionRemove` on option objects, wrapper attributes, and `context.callArg` arguments (see Traps). |
 | `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportOnly`, `replaced`, and `facts`. `matchesWhen(j, root, when)` is the fact matcher. |
 | `src/discover.mjs`, `git.mjs`, `report.mjs`, `diff.mjs` | Support modules. |
 | `versions/<semver>/` | `manifest.json`, optional `custom/*.mjs`, optional extra rule files, `__fixtures__/`. |
@@ -190,7 +196,100 @@ the rule, for example a longer name that shares a prefix. Fixture directories ar
   `registerTheme`, `reinitTheme`, and `.params()` (a rule can set `callees`); `createTheme` is not public API.
 - A guide anchor on the docs site drops the list number: `## 6. Update theme wrapper border variables` is
   `#update-theme-wrapper-border-variables`, not the old `#_6-...` form.
+- Option rules (`options.mjs`): a rule rewrites an object when its confidence from `findOptionObjects` reaches the
+  rule's `minConfidence` (default `high`, `--aggressive` lowers every rule to `medium`); below the bar the key is
+  only reported. Rule shapes: `optionRename` `{ from, to, context?: { callArg: [method names] } }` (with `callArg` it
+  acts on object-literal arguments of member calls, whatever the finder says); `optionMove` `{ from: "<option>.<key>",
+  to, report? }` (`to` is a sibling of `<option>`, the key lands before `<option>`); `optionRemove` `{ name, todo?,
+  advice }` (`todo` defaults to true). Edits splice `properties`, so recast reprints the whole object: expect a
+  blank line before a commented property and an expanded one-line object. Anchor a TODO only on a property,
+  statement, declaration, or array element, never on an object after `return`, where `return // c` ends the
+  statement. Removing the property that carries a TODO moves the TODO on, so rules sharing an object lose none.
+  The comment text lives in `advice` and is the rule's whole message: the property is already gone.
 - The `json` adapter prints with `JSON.stringify`, keeping indent, line ending, and trailing newline. Other
   formatting of an edited `package.json` is normalized.
 - Adding the package changed `pnpm-lock.yaml`. jscodeshift is a new dependency that needs team sign-off before the
   package leaves draft.
+- **`safe: false` means report-only for `methodRemove`, `methodMove`, and `callUnwrap`.** A rule that omits `safe`
+  loads as `false`, so a rule of those kinds rewrites only with an explicit `safe: true`. `cssVariable` and
+  `themeToken` rules do not follow this: `safe` only labels them in `--list`. Use `safe: false` for a rewrite that
+  changes behavior. `18.0.0/helper-sanitize` is one: `Handsontable.helper.sanitize` ran DOMPurify in 17.1 and is a
+  pass-through in 18.0, so unwrapping it would drop sanitization the project relies on.
+- **Method rules have no type information, so the receiver is the safety story.** `methodMove` rules use
+  `receiver: "instance"`: a call is rewritten only on a receiver that `isInstance()` confirms. An unconfirmed receiver
+  gets a `manual` entry only when its name is on a short grid-name list (`GRID_NAME` in `methods.mjs`: `hot`, `grid`,
+  `table`, ...). A generic receiver (`editor.undo()`) stays silent, because `undo` and `redo` are common names.
+  `anyReceiver` lists names distinctive enough to rewrite anywhere in a Handsontable file. Keep plugin methods out of
+  it: `isUndoAvailable()` is a valid call on the plugin, so a rewrite on any receiver would break working code. A
+  receiver that is already a `via` call (`x.getPlugin('undoRedo')`) is never rewritten, which keeps the rule
+  idempotent. `methodRemove` with `receiver: "any"` removes a name unique to Handsontable on any receiver, but skips a
+  name the file declares itself (a class that defines `saveManualColumnWidths()` is calling its own code). No method
+  rule touches a file that `isHotFile` rejects.
+- `methodRemove` deletes a call only when it is a whole expression statement (`await` and `void` allowed), and drops
+  the comments attached to that statement. A used result, an arrow expression body, and the body of a braceless `if`
+  or loop keep the call and get a TODO on the enclosing statement. A removal can leave an empty block, which stays.
+- `methodMove` rule shape: `methods` maps the old name to the new one, `via` is the call that reaches the new home,
+  `properties` lists names that become the `via` call (`undoRedo: null`). Optional chaining is kept by building the
+  new links as optional-chain nodes: the first link takes over the `?.`. Computed access (`hot['undo']()`),
+  assignment targets, references without a call, and destructuring are reported, never rewritten.
+- `callUnwrap` resolves the callee through `resolveNamespaceMember` or a `const` alias (`const { sanitize } =
+  Handsontable.helper`). The 17.1 exports map has no `handsontable/helpers/*` entry, so a named import of the helper
+  never existed and is not handled. The alias declaration is left in place.
+- Import and type rule shapes (`rules/imports.json`, `rules/types.json`). `importSource`: `from`, `exports` (name to
+  `{ to, note }` or `{ removed: true, advice }`; `to` is a module or a list of candidates), optional `fallback` entry
+  for unlisted names, and `moduleRemoved` (report every namespace import, `export *`, dynamic import, and `require`
+  of the module, not only the ones that name an entry of `exports`). `exportRename`: `source` (module or list), `from`,
+  `to`, optional `toSource` (module or candidates) and `note`. `namespaceType`: `from` (path or list, `*` is one
+  segment), `to: { name?, source }` or `removed: true` with `advice`, `positions` `type` (default) or `any`.
+  `exportRemoved`: `source` (module, list, or `handsontable/plugins/*`), optional `except`, `name` (or list), `advice`.
+  Advice placeholders: `{plugin}`, `{optionKey}`, `{name}`, `{source}`. `optionKeys` maps a plugin to its option key
+  (default: the plugin name with a lower-case first letter, `null` for a plugin with no option, which then uses
+  `noKeyAdvice`). Within one run the first matching rule wins for `exportRemoved` and `namespaceType`, so a specific
+  rule goes before the wildcard, or the wildcard lists it in `except`.
+- The four transforms never delete a name they cannot replace. `importSource` leaves a removed name in a residual
+  import from the old module with one TODO per declaration, `exportRemoved` keeps the import and adds a TODO, and a
+  removed `namespaceType` member gets a TODO on the enclosing statement or member. A name collision, a global
+  `Handsontable`, a re-export, a namespace import, and a destructured `require` are reported `manual` and left alone.
+  A `namespaceType` rewrite adds only `import type` for a type position and a value import for an `any` position, and
+  it does so before type-only ones, so a value use does not collide with an earlier type import of the same name.
+- `test/type-rules.test.mjs` checks the 18.0.0 rules against `versions/18.0.0/exports-diff.generated.json`: every
+  removed export and every removed type member of the `Handsontable` namespace must be matched by a rule, or sit in
+  the commented allowlist of that test. Regenerate the diff with `tools/derive-type-map.mjs` before a new major.
+- A `.d.ts` module exports every top-level declaration unless it has an `export {}`, so the 17.x typings leaked names
+  such as `_OperationType`, `PageSizeOption`, and `NumbroFormatOptions`. They count as removed exports in the diff and
+  have rules. The 17.1.0 typings also declared the theme registry (`registerTheme`, `mainTheme`, ...) on the `handsontable`
+  and `handsontable/base` entry points although the runtime exported them only from `handsontable/themes`.
+- Rules whose guide has no section (`18.0.0/core-undo-methods`) omit `guide`. The core undo methods were already gone
+  from runtime and typings in 17.0, so that rule is a cleanup that belongs in a 17.0 manifest, which does not exist.
+- **`detect` rule shape:** `{ id, kind: "detect", severity?: "manual" | "warning", files: ["js" | "css" | "template"],
+  requires?: "hot-file" | "option-object" | "none", emitsFact?, match, message, guide }`. `message` and `files` are
+  required by `validateDetectRule()` (the manifest validator only requires `match`). `requires` defaults to
+  `hot-file`: a js part must import or use Handsontable. `option-object` makes `property` and `hook` matchers sit in
+  an object `findOptionObjects` finds, or on a wrapper element. It never applies to css or template parts.
+  `match` is one matcher object, `{ anyOf: [...] }`, or `{ allOf: [first, ...gates] }` (the first reports, the others
+  must match somewhere in the part).
+- **`detect` matchers** (js only unless noted): `import` (module or `module/...`, import, re-export, `require`,
+  `import()`), `property` (dotted path; `withKey`, `valueMatches` on literal strings only, `in: "option-object"`),
+  `call` (`argMatches` reads every string inside the arguments, `receiver` is `"instance"` or the receiver text),
+  `hook` (option key, JSX prop, `addHook`, `addHookOnce`, `Handsontable.hooks.add`/`once`), `string`, `selector` and
+  `regex` (also css and template), `missingOption` (`whenAnyKey`, `whenValueMatches`, `unlessFileMatches`). `selector`
+  tests stylesheet rule selectors, js strings, and raw template text. SCSS nesting is not resolved.
+- **`missingOption` looks only at configurations the file builds:** `new Handsontable(el, {...})` (also through one
+  variable) and `<HotTable>` elements with their `settings`. Not `updateSettings()` (the license key is read once),
+  not annotated or spread objects, and nothing hidden behind a spread, a computed key, or an unresolved `settings`.
+- A `detect` rule reports up to `COLLAPSE_AFTER` (5) matches per part, then one entry with the count. A Vue file has
+  several parts, so the limit is per part. The Vue adapter's `skippedBlocks` (less, stylus, `src=`) are not reachable
+  from `ctx`, so detect rules never report them. The js precheck also skips a test file that never says
+  `handsontable`, and an inline `<script>` or `<style>` of an `.html` file is raw text for `selector` and `regex`
+  only.
+- **The `18.1.0/sanitizer-*` custom rules are report-only and find the sanitizer by function, not by name:** a
+  `sanitizer` property of an option object or a `<HotTable>` prop, whose value is a function written there or a
+  same-file function the option names. `Handsontable.dom.fastInnerHTML()` still defaults its `context` to
+  `'innerHTML'` in 18.1 (and did in 18.0), so a sanitizer the project also passes there without a context still
+  receives it, and the guide's "delete the `'innerHTML'` branch" would change that call. The rules never edit. They
+  report each test of the source argument against `'innerHTML'`, with a "delete it" wording when the function
+  already handles `'header'` in the same `||` chain or fall-through group, and once per function that reads its source
+  argument (dialog content is now `'dialog'`, not `undefined`). `sanitizer-new-sources` reports a function that reads
+  its source or looks like it escapes HTML.
+- Detect negative fixtures must pass the adapter precheck, or they prove nothing: put the word Handsontable in a
+  comment. `report.json` is matched as a subset, so `test/detect.test.mjs` asserts the empty reports.

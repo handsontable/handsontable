@@ -1,0 +1,6 @@
+[
+  { "ruleId": "18.0.0/helper-sanitize", "severity": "manual", "line": 5 },
+  { "ruleId": "18.0.0/helper-sanitize", "severity": "manual", "line": 6 },
+  { "ruleId": "18.0.0/helper-sanitize", "severity": "manual", "line": 7 },
+  { "ruleId": "18.0.0/helper-sanitize", "severity": "manual", "line": 8 }
+]

@@ -1,0 +1,93 @@
+{
+  "rules": [
+    {
+      "id": "18.0.0/common-imports",
+      "kind": "importSource",
+      "safe": true,
+      "guide": "replace-handsontablecommon-imports",
+      "from": "handsontable/common",
+      "moduleRemoved": true,
+      "exports": {
+        "CellChange": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "CellValue": {
+          "to": ["handsontable", "handsontable/base", "handsontable/settings"],
+          "note": "CellValue is now `unknown`. It was `any`. Code that calls members of a cell value, or passes it where a specific type is expected, needs a type check or a cast."
+        },
+        "ChangeSource": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "RowObject": {
+          "to": ["handsontable", "handsontable/base", "handsontable/settings"],
+          "note": "The values of a RowObject are now `unknown`. They were `any`. Narrow or cast a property before you use it."
+        },
+        "SelectOptionsObject": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "SourceRowData": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "OverlayType": { "to": ["handsontable", "handsontable/base"] },
+        "RangeType": { "to": ["handsontable", "handsontable/base"] },
+        "ColumnDataGetterSetterFunction": { "to": ["handsontable/settings"] },
+        "GridSettings": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "ColumnSettings": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "CellProperties": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "CellMeta": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "Events": { "to": ["handsontable", "handsontable/base"] },
+        "HotInstance": { "to": ["handsontable", "handsontable/base"] },
+        "HooksRegistry": { "to": ["handsontable", "handsontable/base"] },
+        "CellCoords": { "to": ["handsontable", "handsontable/base"] },
+        "CellRange": { "to": ["handsontable", "handsontable/base"] },
+        "IndexMapper": { "to": ["handsontable", "handsontable/base"] },
+        "SimpleCellCoords": {
+          "removed": true,
+          "advice": "Removed in 18.0 with no replacement. Use the inline type `{ row: number; col: number }`."
+        },
+        "NumericFormatOptions": {
+          "removed": true,
+          "advice": "Removed in 18.0 with no replacement. The `numericFormat` option is typed `object`. Use `Intl.NumberFormatOptions`. The Numbro.js `pattern` and `culture` keys no longer apply."
+        },
+        "NumbroFormatOptions": {
+          "removed": true,
+          "advice": "Removed in 18.0 together with Numbro.js. Use `Intl.NumberFormatOptions`."
+        },
+        "LabelOptions": {
+          "removed": true,
+          "advice": "Removed in 18.0 with no replacement. The `label` option is typed `object`. Use the inline type `{ property?: string; position?: 'before' | 'after'; value?: string | (() => string) }`."
+        }
+      },
+      "fallback": {
+        "removed": true,
+        "advice": "The `handsontable/common` entry point was removed in 18.0, and the codemod knows no entry point that exports this name."
+      }
+    },
+    {
+      "id": "18.0.0/theme-registry-imports-main",
+      "kind": "importSource",
+      "safe": true,
+      "from": "handsontable",
+      "exports": {
+        "registerTheme": { "to": "handsontable/themes" },
+        "reinitTheme": { "to": "handsontable/themes" },
+        "getTheme": { "to": "handsontable/themes" },
+        "getThemes": { "to": "handsontable/themes" },
+        "getThemeNames": { "to": "handsontable/themes" },
+        "hasTheme": { "to": "handsontable/themes" },
+        "mainTheme": { "to": "handsontable/themes" },
+        "classicTheme": { "to": "handsontable/themes" },
+        "horizonTheme": { "to": "handsontable/themes" }
+      }
+    },
+    {
+      "id": "18.0.0/theme-registry-imports-base",
+      "kind": "importSource",
+      "safe": true,
+      "from": "handsontable/base",
+      "exports": {
+        "registerTheme": { "to": "handsontable/themes" },
+        "reinitTheme": { "to": "handsontable/themes" },
+        "getTheme": { "to": "handsontable/themes" },
+        "getThemes": { "to": "handsontable/themes" },
+        "getThemeNames": { "to": "handsontable/themes" },
+        "hasTheme": { "to": "handsontable/themes" },
+        "mainTheme": { "to": "handsontable/themes" },
+        "classicTheme": { "to": "handsontable/themes" },
+        "horizonTheme": { "to": "handsontable/themes" }
+      }
+    }
+  ]
+}

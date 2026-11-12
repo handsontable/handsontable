@@ -1,0 +1,4 @@
+[
+  { "ruleId": "18.0.0/ns-core-types", "severity": "manual", "line": 4 },
+  { "ruleId": "18.0.0/ns-core-types", "severity": "manual", "line": 6 }
+]

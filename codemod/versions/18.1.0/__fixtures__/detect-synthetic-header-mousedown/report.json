@@ -1,0 +1,5 @@
+[
+  { "ruleId": "18.1.0/synthetic-header-mousedown", "severity": "manual", "line": 7 },
+  { "ruleId": "18.1.0/synthetic-header-mousedown", "severity": "manual", "line": 8 },
+  { "ruleId": "18.1.0/synthetic-header-mousedown", "severity": "manual", "line": 9 }
+]

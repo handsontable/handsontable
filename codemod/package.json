@@ -18,7 +18,7 @@
   },
   "scripts": {
     "lint": "eslint --ext .mjs,.cjs --no-error-on-unmatched-pattern bin src test tools versions",
-    "test": "node --test test/adapters.test.mjs test/cli.test.mjs test/dependencies.test.mjs test/fixtures.test.mjs test/hot-bindings.test.mjs test/imports.test.mjs test/manifest.test.mjs test/option-objects.test.mjs test/report.test.mjs test/runner.test.mjs test/styles.test.mjs test/test-list.test.mjs test/todo.test.mjs test/versions.test.mjs test/vue-adapter.test.mjs"
+    "test": "node --test test/adapters.test.mjs test/cli.test.mjs test/dependencies.test.mjs test/detect.test.mjs test/fixtures.test.mjs test/hot-bindings.test.mjs test/imports.test.mjs test/manifest.test.mjs test/methods.test.mjs test/option-objects.test.mjs test/options.test.mjs test/report.test.mjs test/runner.test.mjs test/styles.test.mjs test/template-adapter.test.mjs test/test-list.test.mjs test/todo.test.mjs test/type-rules.test.mjs test/versions.test.mjs test/vue-adapter.test.mjs"
   },
   "dependencies": {
     "@vue/compiler-sfc": "3.5.43",

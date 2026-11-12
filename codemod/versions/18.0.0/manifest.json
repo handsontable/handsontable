@@ -5,6 +5,6 @@
     "url": "https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0",
     "source": "docs/content/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md"
   },
-  "include": ["rules/dependencies.json", "rules/styles.json"],
+  "include": ["rules/dependencies.json", "rules/styles.json", "rules/options.json", "rules/methods.json", "rules/imports.json", "rules/types.json", "rules/detect.json"],
   "rules": []
 }

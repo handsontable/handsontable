@@ -1,0 +1,12 @@
+[
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 14 },
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 15 },
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 16 },
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 17 },
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 18 },
+  { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 3 },
+  { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 11 },
+  { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 12 },
+  { "ruleId": "18.0.0/date-picker-config-removed", "severity": "changed", "line": 12 },
+  { "ruleId": "18.0.0/date-picker-config-removed", "severity": "changed", "line": 19 }
+]

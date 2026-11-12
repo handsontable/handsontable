@@ -1,0 +1,40 @@
+{
+  "rules": [
+    {
+      "id": "18.0.0/numeric-format-culture",
+      "kind": "optionMove",
+      "safe": true,
+      "minConfidence": "medium",
+      "guide": "migrate-numeric-format-from-numbro-js-pattern-and-culture-to-intl-numberformat",
+      "from": "numericFormat.culture",
+      "to": "locale"
+    },
+    {
+      "id": "18.0.0/correct-format-removed",
+      "kind": "optionRemove",
+      "safe": false,
+      "guide": "correctformat-option",
+      "name": "correctFormat",
+      "todo": true,
+      "advice": "The correctFormat option was removed in 18.0 and was deleted here. The date, time, intl-date, and intl-time cell types work with ISO 8601 values and do not reformat input. To normalize or correct entered values, use the valueParser or valueSetter option."
+    },
+    {
+      "id": "18.0.0/date-picker-config-removed",
+      "kind": "optionRemove",
+      "safe": false,
+      "guide": "datepickerconfig-option",
+      "name": "datePickerConfig",
+      "todo": true,
+      "advice": "The datePickerConfig option was removed in 18.0 and was deleted here. The date and intl-date cell types use the browser's native date input instead of Pikaday."
+    },
+    {
+      "id": "18.0.0/export-column-headers",
+      "kind": "optionRename",
+      "safe": true,
+      "from": "columnHeaders",
+      "to": "colHeaders",
+      "context": { "callArg": ["exportAsString", "exportAsBlob", "exportAsBlobAsync", "downloadFile", "downloadFileAsync"] },
+      "message": "The columnHeaders export option has been deprecated since 17.1 and is removed in 19.0. colHeaders is the replacement and keeps the meaning of the value."
+    }
+  ]
+}

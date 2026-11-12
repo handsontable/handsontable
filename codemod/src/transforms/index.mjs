@@ -1,6 +1,14 @@
+import callUnwrap from './call-unwrap.mjs';
 import cssVariables from './css-variables.mjs';
 import custom from './custom.mjs';
 import dependencies from './dependencies.mjs';
+import detect from './detect.mjs';
+import exportRemoved from './export-removed.mjs';
+import exportRename from './export-rename.mjs';
+import importSource from './import-source.mjs';
+import methods from './methods.mjs';
+import namespaceType from './namespace-type.mjs';
+import options from './options.mjs';
 import themeTokens from './theme-tokens.mjs';
 
 /**
@@ -44,9 +52,17 @@ export const PHASE_TWO_KINDS = new Set(['dependency']);
  * @type {import('../types.mjs').Transform[]}
  */
 const TRANSFORMS = [
+  callUnwrap,
   cssVariables,
   custom,
   dependencies,
+  detect,
+  exportRemoved,
+  exportRename,
+  importSource,
+  methods,
+  namespaceType,
+  options,
   themeTokens,
 ];
 

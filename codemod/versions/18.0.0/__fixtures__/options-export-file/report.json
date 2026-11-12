@@ -1,0 +1,7 @@
+[
+  { "ruleId": "18.0.0/export-column-headers", "severity": "changed", "line": 7 },
+  { "ruleId": "18.0.0/export-column-headers", "severity": "changed", "line": 8 },
+  { "ruleId": "18.0.0/export-column-headers", "severity": "changed", "line": 9 },
+  { "ruleId": "18.0.0/export-column-headers", "severity": "changed", "line": 10 },
+  { "ruleId": "18.0.0/export-column-headers", "severity": "manual", "line": 11 }
+]

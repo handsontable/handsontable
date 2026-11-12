@@ -1,0 +1,5 @@
+[
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 14 },
+  { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 13 },
+  { "ruleId": "18.0.0/date-picker-config-removed", "severity": "changed", "line": 13 }
+]

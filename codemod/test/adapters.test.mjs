@@ -22,10 +22,10 @@ describe('adapter registry', () => {
     assert.equal(isCandidate('README.md'), false);
   });
 
-  it('marks the template adapter as a stub', () => {
+  it('implements every adapter', () => {
     const stubs = ADAPTERS.filter(adapter => !adapter.implemented).map(adapter => adapter.fileKind);
 
-    assert.deepEqual(stubs.sort(), ['template']);
+    assert.deepEqual(stubs, []);
   });
 
   it('gives every adapter the documented interface', () => {

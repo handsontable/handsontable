@@ -1,0 +1,17 @@
+[
+  { "ruleId": "18.0.0/ns-core-types", "severity": "changed", "line": 7 },
+  { "ruleId": "18.0.0/ns-core-types", "severity": "manual", "line": 11 },
+  { "ruleId": "18.0.0/ns-settings-types", "severity": "changed", "line": 15 },
+  { "ruleId": "18.0.0/ns-theme-types", "severity": "changed", "line": 15 },
+  { "ruleId": "18.0.0/ns-customborders-borderoptions", "severity": "changed", "line": 23 },
+  { "ruleId": "18.0.0/ns-customborders-borderoptions", "severity": "manual", "line": 23 },
+  { "ruleId": "18.0.0/ns-plugin-settings", "severity": "manual", "line": 25 },
+  { "ruleId": "18.0.0/ns-plugin-settings", "severity": "manual", "line": 27 },
+  { "ruleId": "18.0.0/ns-plugin-settings", "severity": "manual", "line": 29 },
+  { "ruleId": "18.0.0/ns-plugin-settings", "severity": "manual", "line": 31 },
+  { "ruleId": "18.0.0/ns-numericformatoptions", "severity": "manual", "line": 33 },
+  { "ruleId": "18.0.0/ns-dataprovider-options", "severity": "changed", "line": 35 },
+  { "ruleId": "18.0.0/ns-indexmapper", "severity": "changed", "line": 39 },
+  { "ruleId": "18.0.0/ns-indexmapper", "severity": "changed", "line": 41 },
+  { "ruleId": "18.0.0/ns-eventmanager", "severity": "manual", "line": 43 }
+]

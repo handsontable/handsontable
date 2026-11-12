@@ -129,7 +129,7 @@ describe('validateRule', () => {
       const rule = { id: '18.0.0/x', kind };
 
       Object.entries(spec.required).forEach(([field, type]) => {
-        rule[field] = { string: 'a', strings: ['a'], object: { a: 1 }, boolean: true }[type];
+        rule[field] = { string: 'a', strings: ['a'], stringOrStrings: 'a', object: { a: 1 }, boolean: true }[type];
       });
 
       assert.deepEqual(validateRule(rule, '18.0.0'), [], kind);

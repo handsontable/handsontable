@@ -1,0 +1,4 @@
+[
+  { "ruleId": "18.1.0/sanitizer-source", "severity": "manual", "line": 10 },
+  { "ruleId": "18.1.0/sanitizer-source", "severity": "manual", "line": 20 }
+]

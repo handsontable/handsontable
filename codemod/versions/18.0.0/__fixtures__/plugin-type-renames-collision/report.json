@@ -1,0 +1,5 @@
+[
+  { "ruleId": "18.0.0/type-columnsummary-endpoint", "severity": "changed", "line": 1 },
+  { "ruleId": "18.0.0/type-columnsummary-detailedsettings", "severity": "changed", "line": 1 },
+  { "ruleId": "18.0.0/type-filters-operationtype", "severity": "changed", "line": 2 }
+]
