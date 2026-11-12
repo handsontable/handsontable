@@ -55,6 +55,24 @@ const MERGE_META_KEYS = [...COVERED_CELL_META_KEYS, 'spanned', 'rowspan', 'colsp
 const DRAWN_CELL_COLUMN_STRIDE = 2 ** 24;
 
 /**
+ * The visual indexes along one axis that a move permutes. A merge outside it covers the same cells before and
+ * after the move.
+ */
+interface MoveWindow {
+  axis: 'column' | 'row';
+  from: number;
+  to: number;
+}
+
+/**
+ * The cells the merges covered before a change, and the window they were collected for.
+ */
+interface CoveredCellsRecord {
+  cells: Set<number>;
+  window: MoveWindow | null;
+}
+
+/**
  * The physical description of a merged cell: every physical row it covers, and its physical left
  * column. Physical indexes survive trimming and reordering, so this stays authoritative while the
  * merge's visual coordinates are a derived value.
@@ -427,15 +445,15 @@ export class MergeCells extends BasePlugin {
   } | null = null;
 
   /**
-   * The physical cells the merges were drawn from, recorded right before the row index mapper changes.
-   * `afterGetCellMeta` stores the span keys on the cell a merge is drawn from, and a trim, a filter or a
-   * sort moves the merge to another cell. {@link MergeCells#clearSpanKeysOfCellsNoLongerDrawnFrom} clears the
-   * keys from the cells no merge is drawn from afterwards. Kept as a set of cells, not per merge: a move and
-   * an undo replace the merge objects.
+   * The physical cells the merges were drawn from, recorded right before a trim or a filter changes in the
+   * row index mapper. `afterGetCellMeta` stores the span keys on the cell a merge is drawn from, and a trim or a
+   * filter moves the merge to another cell. `#clearSpanKeysOfCellsNoLongerDrawnFrom()` clears the keys from the
+   * cells no merge is drawn from afterwards. Kept as a set of cells, not per merge: a move and an undo replace
+   * the merge objects.
    *
-   * @type {{ rowCount: number, cells: Set<number> } | null}
+   * @type {Set<number> | null}
    */
-  #drawnFromBeforeCacheUpdate: { rowCount: number, cells: Set<number> } | null = null;
+  #drawnFromBeforeCacheUpdate: Set<number> | null = null;
 
   /**
    * The physical cells the merges were drawn from right before a row move, a column move or a column freeze
@@ -454,7 +472,7 @@ export class MergeCells extends BasePlugin {
    *
    * @type {Set<number> | null}
    */
-  #coveredBeforeMove: Set<number> | null = null;
+  #coveredBeforeMove: CoveredCellsRecord | null = null;
 
   /**
    * Whether the clipboard block of the paste currently being processed is a single cell. A single
@@ -1967,6 +1985,7 @@ export class MergeCells extends BasePlugin {
 
     this.#reanchorMergesToVisibleRows();
     this.#clearSpanKeysOfCellsNoLongerDrawnFrom(drawnFromBefore);
+
     this.hot.markAllCellsChanged();
   }
 
@@ -2055,8 +2074,23 @@ export class MergeCells extends BasePlugin {
    * @returns {boolean}
    */
   #hasVisibleTopLeft(anchor: MergeAnchor): boolean {
-    return this.hot.toVisualColumn(anchor.physicalColumn) !== null &&
-      anchor.physicalRows.some(physicalRow => this.hot.toVisualRow(physicalRow) !== null);
+    return this.#getTopLeftPhysicalRow(anchor) !== null;
+  }
+
+  /**
+   * Returns the physical row of the cell a merge is drawn from: the first row of its anchor that has a visual
+   * index, or `null` when there is none or the anchor's column has none. The one rule behind the re-anchor,
+   * the purge and the record of the cells the merges are drawn from, so the three cannot drift apart.
+   *
+   * @param {MergeAnchor} anchor The anchor.
+   * @returns {number | null}
+   */
+  #getTopLeftPhysicalRow(anchor: MergeAnchor): number | null {
+    if (this.hot.toVisualColumn(anchor.physicalColumn) === null) {
+      return null;
+    }
+
+    return anchor.physicalRows.find(physicalRow => this.hot.toVisualRow(physicalRow) !== null) ?? null;
   }
 
   /**
@@ -2180,8 +2214,13 @@ export class MergeCells extends BasePlugin {
    *   boolean }} changes Cache flags.
    */
   #onRowIndexCacheUpdated = (
-    { trimmedIndexesChanged, hiddenIndexesChanged, indexesSequenceChanged }:
-    { trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean, indexesSequenceChanged: boolean }
+    { trimmedIndexesChanged, hiddenIndexesChanged, indexesSequenceChanged, indexesChangeSource }:
+    {
+      trimmedIndexesChanged: boolean,
+      hiddenIndexesChanged: boolean,
+      indexesSequenceChanged: boolean,
+      indexesChangeSource?: string,
+    }
   ) => {
     const foreignRowsBefore = this.#foreignRowsBeforeCacheUpdate;
     const drawnFromBefore = this.#drawnFromBeforeCacheUpdate;
@@ -2198,9 +2237,11 @@ export class MergeCells extends BasePlugin {
     if (trimmedIndexesChanged || hiddenIndexesChanged || indexesSequenceChanged) {
       this.#reanchorMergesToVisibleRows();
 
-      // Like below, a changed row count means the recording holds physical rows that were renumbered.
-      if (drawnFromBefore && drawnFromBefore.rowCount === this.hot.rowIndexMapper.getNumberOfIndexes()) {
-        this.#clearSpanKeysOfCellsNoLongerDrawnFrom(drawnFromBefore.cells);
+      // An insert or a remove renumbers the physical rows the recording holds, and the plugin shifts its anchors
+      // only afterwards, so the two do not describe the same rows yet. The row count cannot tell: the index
+      // mapper changes the sequence before this hook, so it already holds the new count on both sides.
+      if (drawnFromBefore && indexesChangeSource !== 'insert' && indexesChangeSource !== 'remove') {
+        this.#clearSpanKeysOfCellsNoLongerDrawnFrom(drawnFromBefore);
       }
     }
 
@@ -2213,9 +2254,12 @@ export class MergeCells extends BasePlugin {
   /**
    * Row index mapper `beforeCacheUpdate` callback. Records, while the mapping still describes what is
    * on screen, the rows of other records each merge draws over (see
-   * {@link MergeCells#foreignRowsBeforeCacheUpdate}).
+   * {@link MergeCells#foreignRowsBeforeCacheUpdate}), and, when a trim or a filter changes, the cells the merges
+   * are drawn from.
+   *
+   * @param {{ trimmedIndexesChanged: boolean }} changes Cache flags.
    */
-  #onBeforeRowIndexCacheUpdate = () => {
+  #onBeforeRowIndexCacheUpdate = ({ trimmedIndexesChanged }: { trimmedIndexesChanged: boolean }) => {
     this.#foreignRowsBeforeCacheUpdate = null;
     this.#drawnFromBeforeCacheUpdate = null;
 
@@ -2223,10 +2267,11 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    this.#drawnFromBeforeCacheUpdate = {
-      rowCount: this.hot.rowIndexMapper.getNumberOfIndexes(),
-      cells: this.#snapshotDrawnFromCells(),
-    };
+    // Only a trim or a filter moves the cell a merge is drawn from: a sort, a hidden row and a forced update leave
+    // the first visible row of every anchor where it was.
+    if (trimmedIndexesChanged) {
+      this.#drawnFromBeforeCacheUpdate = this.#snapshotDrawnFromCells();
+    }
 
     const merges = this.#collectForeignDrawnRows();
 
@@ -2997,24 +3042,15 @@ export class MergeCells extends BasePlugin {
       }
 
       const visualColumn = this.hot.toVisualColumn(anchor.physicalColumn);
-      let visualRow: number | null = null;
-      let topLeftPhysicalRow: number | null = null;
+      const topLeftPhysicalRow = this.#getTopLeftPhysicalRow(anchor);
+      const visualRow = topLeftPhysicalRow === null ? null : this.hot.toVisualRow(topLeftPhysicalRow);
       let visualRowspan = 0;
 
-      if (visualColumn !== null) {
+      if (topLeftPhysicalRow !== null) {
         anchor.physicalRows.forEach((physicalRow) => {
-          const rowIndex = this.hot.toVisualRow(physicalRow);
-
-          if (rowIndex === null) {
-            return;
+          if (this.hot.toVisualRow(physicalRow) !== null) {
+            visualRowspan += 1;
           }
-
-          if (visualRow === null) {
-            visualRow = rowIndex;
-            topLeftPhysicalRow = physicalRow;
-          }
-
-          visualRowspan += 1;
         });
       }
 
@@ -3238,8 +3274,8 @@ export class MergeCells extends BasePlugin {
   /**
    * Returns the physical cell a merge is drawn from, packed into one number, or `null` when none is: every
    * row of the merge is trimmed, or its column is. It is the first row of the merge's anchor that has
-   * a visual index, the derivation {@link MergeCells#reanchorMergesToVisibleRows} makes, so it reads the anchor
-   * and not the merge's visual coordinates, which are stale while a merge is purged and while an undo has
+   * a visual index, the derivation the re-anchor makes (both call `#getTopLeftPhysicalRow()`), so it reads the
+   * anchor and not the merge's visual coordinates, which are stale while a merge is purged and while an undo has
    * restored the index maps but not the merges yet. A merge with no anchor falls back to its visual
    * coordinates, the only description it has.
    *
@@ -3256,8 +3292,8 @@ export class MergeCells extends BasePlugin {
     let physicalColumn: number | null;
 
     if (anchor) {
-      physicalRow = anchor.physicalRows.find(row => this.hot.toVisualRow(row) !== null) ?? null;
-      physicalColumn = this.hot.toVisualColumn(anchor.physicalColumn) === null ? null : anchor.physicalColumn;
+      physicalRow = this.#getTopLeftPhysicalRow(anchor);
+      physicalColumn = anchor.physicalColumn;
     } else {
       physicalRow = this.hot.toPhysicalRow(merge.row);
       physicalColumn = this.hot.toPhysicalColumn(merge.col);
@@ -3290,18 +3326,44 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Collects the physical cells the merges cover now, the top-left cells included. A merge covers the
-   * physical rows of its anchor, trimmed ones too, in the physical columns under its visual columns.
+   * Tells whether a move that permutes the visual indexes of `window` cannot change the cells a merge covers.
    *
+   * @param {MergedCellCoords} merge The merge.
+   * @param {MoveWindow | null} window The visual indexes the move permutes, or `null` for none excluded.
+   * @returns {boolean}
+   */
+  #isOutsideMoveWindow(merge: MergedCellCoords, window: MoveWindow | null): boolean {
+    if (window === null) {
+      return false;
+    }
+
+    if (window.axis === 'column') {
+      return merge.col > window.to || merge.col + merge.colspan - 1 < window.from;
+    }
+
+    return this.#purgedMerges.has(merge) || merge.row > window.to || merge.row + merge.rowspan - 1 < window.from;
+  }
+
+  /**
+   * Collects the physical cells the merges cover now, the top-left cells included. A merge covers the
+   * physical rows of its anchor, trimmed ones too, in the physical columns under its visual columns. A merge
+   * whose rows are all trimmed is included: its anchor rows and its columns still describe it, and a column
+   * move splits it like any other.
+   *
+   * A move permutes only the visual indexes inside its window, so the merges outside it cover the same cells
+   * before and after and are left out. A row move cannot reach a merge whose rows are all trimmed.
+   *
+   * @param {{ axis: 'column' | 'row', from: number, to: number } | null} [window] The visual indexes a move
+   * permutes, or `null` for every merge.
    * @returns {Set<number>} The cells, packed like {@link MergeCells#snapshotDrawnFromCells}.
    */
-  #snapshotCoveredCells(): Set<number> {
+  #snapshotCoveredCells(window: MoveWindow | null = null): Set<number> {
     const cells = new Set<number>();
 
     this.mergedCellsCollection.mergedCells.forEach((merge) => {
       const anchor = this.#mergeAnchors.get(merge);
 
-      if (!anchor || this.#purgedMerges.has(merge)) {
+      if (!anchor || this.#isOutsideMoveWindow(merge, window)) {
         return;
       }
 
@@ -3320,20 +3382,23 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Removes `hidden` and `copyable` from the cells the merges covered before a move and do not cover now. The
-   * untrimmed path walks the footprint the move released (`#cleanReleasedCells`); while a row is trimmed that
-   * footprint cannot be rebuilt from the visual coordinates, so the cells covered before and after are compared.
+   * Removes `hidden` and `copyable` from the cells the merges covered before a move or an undo and do not cover
+   * now. The untrimmed path walks the footprint the move released (`#cleanReleasedCells`); while a row is trimmed
+   * that footprint cannot be rebuilt from the visual coordinates, so the cells covered before and after are
+   * compared. A cell another merge still covers may be cleaned too: `afterGetCellMeta` stores the flags again
+   * on the next read.
    *
-   * @param {Set<number>} before The cells the merges covered before the move.
+   * @param {{ cells: Set<number>, window: MoveWindow | null }} before The cells the merges covered before the
+   * change, and the window they were collected for.
    */
-  #clearCoveredFlagsOfCellsNoLongerCovered(before: Set<number>) {
-    if (before.size === 0) {
+  #clearCoveredFlagsOfCellsNoLongerCovered(before: { cells: Set<number>, window: MoveWindow | null }) {
+    if (before.cells.size === 0) {
       return;
     }
 
-    const after = this.#snapshotCoveredCells();
+    const after = this.#snapshotCoveredCells(before.window);
 
-    before.forEach((key) => {
+    before.cells.forEach((key) => {
       if (!after.has(key)) {
         this.#clearCoveredFlagsOfTopLeftCell(
           Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE),
@@ -3853,7 +3918,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} dropIndex Drop index from drag.
    * @param {boolean} movePossible Whether the move is allowed.
    */
-  #onBeforeColumnMove = (_columns: number[], _finalIndex: number, _dropIndex: number, movePossible: boolean) => {
+  #onBeforeColumnMove = (columns: number[], finalIndex: number, _dropIndex: number, movePossible: boolean) => {
     if (!movePossible || !this.#initialized) {
       this.#columnMoveSnapshot = null;
       this.#drawnFromBeforeMove = null;
@@ -3863,7 +3928,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
-    this.#captureDrawnFromBeforeMove();
+    this.#captureDrawnFromBeforeMove(this.#getMoveWindow('column', columns, finalIndex));
   };
 
   /**
@@ -3871,11 +3936,37 @@ export class MergeCells extends BasePlugin {
    * {@link MergeCells#settleMergesAfterAxisMove} runs while a row is trimmed. Without a trimmed row that method
    * cleans the cells the move released from the move snapshot, and the walk is not made.
    */
-  #captureDrawnFromBeforeMove() {
+  #captureDrawnFromBeforeMove(window: MoveWindow | null = null) {
     const isTrimmed = this.#isRowTrimmingActive();
 
     this.#drawnFromBeforeMove = isTrimmed ? this.#snapshotDrawnFromCells() : null;
-    this.#coveredBeforeMove = isTrimmed ? this.#snapshotCoveredCells() : null;
+    this.#coveredBeforeMove = isTrimmed ? { cells: this.#snapshotCoveredCells(window), window } : null;
+  }
+
+  /**
+   * Returns the visual indexes a move of `indexes` to `finalIndex` permutes: from the lowest of them and the drop
+   * position to the highest of them and the end of the dropped block.
+   *
+   * @param {'column' | 'row'} axis The moved axis.
+   * @param {number[]} indexes The visual indexes being moved.
+   * @param {number} finalIndex The visual index of the first moved index after the move.
+   * @returns {MoveWindow | null} `null` for an empty move.
+   */
+  #getMoveWindow(axis: 'column' | 'row', indexes: number[], finalIndex: number): MoveWindow | null {
+    if (indexes.length === 0) {
+      return null;
+    }
+
+    // A loop, not `Math.min(...indexes)`: a move can carry every row of a large grid.
+    let from = finalIndex;
+    let to = finalIndex + indexes.length - 1;
+
+    indexes.forEach((index) => {
+      from = Math.min(from, index);
+      to = Math.max(to, index);
+    });
+
+    return { axis, from, to };
   }
 
   /**
@@ -3923,7 +4014,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} dropIndex Drop index from drag.
    * @param {boolean} movePossible Whether the move is allowed.
    */
-  #onBeforeRowMove = (_rows: number[], _finalIndex: number, _dropIndex: number, movePossible: boolean) => {
+  #onBeforeRowMove = (rows: number[], finalIndex: number, _dropIndex: number, movePossible: boolean) => {
     if (!movePossible || !this.#initialized) {
       this.#rowMoveSnapshot = null;
       this.#drawnFromBeforeMove = null;
@@ -3940,7 +4031,7 @@ export class MergeCells extends BasePlugin {
     // it back on the rows the transferred anchor names. A trimmed row inside a partly visible merge
     // makes no difference either way, since it has no visual index to translate.
     this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
-    this.#captureDrawnFromBeforeMove();
+    this.#captureDrawnFromBeforeMove(this.#getMoveWindow('row', rows, finalIndex));
   };
 
   /**
