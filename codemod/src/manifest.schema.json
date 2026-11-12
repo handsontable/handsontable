@@ -59,12 +59,15 @@
           ]
         },
         "guide": { "type": "string", "description": "Anchor in the migration guide, without the #." },
-        "safe": { "type": "boolean", "description": "The rewrite is mechanical and needs no review." },
+        "safe": { "type": "boolean", "description": "true: the tool applies the rewrite by default. false: the tool never edits code for the rule. It reports manual entries and may leave a TODO comment. Required for every kind except detect and exportRemoved, which only report and take false or no value." },
         "minConfidence": { "enum": ["high", "medium"] },
         "message": { "type": "string" },
         "advice": { "type": "string" }
       },
       "additionalProperties": true,
+      "if": { "properties": { "kind": { "enum": ["detect", "exportRemoved"] } }, "required": ["kind"] },
+      "then": { "properties": { "safe": { "const": false } } },
+      "else": { "required": ["safe"] },
       "allOf": [
         {
           "if": { "properties": { "kind": { "const": "importSource" } } },
@@ -86,7 +89,8 @@
                 }
               },
               "fallback": { "type": "object", "description": "Entry for names that `exports` does not list. Same shape as an `exports` entry." },
-              "moduleRemoved": { "type": "boolean", "description": "The module no longer exists. Every namespace import, `export *`, dynamic import, and `require` of it is reported, not only the ones that name an entry of `exports`." }
+              "moduleRemoved": { "type": "boolean", "description": "The module no longer exists. Every namespace import, `export *`, dynamic import, and `require` of it is reported, not only the ones that name an entry of `exports`." },
+              "todo": { "type": "boolean", "description": "For a rule that is not safe: leave a TODO comment on the old import besides the manual entry." }
             }
           }
         },
@@ -97,7 +101,8 @@
             "properties": {
               "source": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "A module or the list of modules the name was exported from." },
               "toSource": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "The module, or candidates, the new name is imported from when it moves." },
-              "note": { "type": "string", "description": "Text of a manual entry added once per file after a rewrite." }
+              "note": { "type": "string", "description": "Text of a manual entry added once per file after a rewrite." },
+              "todo": { "type": "boolean", "description": "For a rule that is not safe: leave a TODO comment on the old import besides the manual entry." }
             }
           }
         },
@@ -112,7 +117,8 @@
               "note": { "type": "string", "description": "Text of a manual entry added once per file after a rewrite." },
               "positions": { "enum": ["type", "any"], "description": "`type` (default) rewrites type positions only." },
               "optionKeys": { "type": "object", "description": "Plugin name to option key, or null for a plugin with no option, for the {optionKey} placeholder of the advice." },
-              "noKeyAdvice": { "type": "string", "description": "Advice used instead of `advice` for a plugin whose option key is null." }
+              "noKeyAdvice": { "type": "string", "description": "Advice used instead of `advice` for a plugin whose option key is null." },
+              "todo": { "type": "boolean", "description": "For a rule that is not safe: leave a TODO comment on the statement besides the manual entry." }
             }
           }
         },

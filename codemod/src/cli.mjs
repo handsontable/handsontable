@@ -7,25 +7,34 @@ import { describeRules, resolvePlan, run } from './runner.mjs';
 
 export const HELP = `Usage: handsontable-codemod migrate [paths...] [options]
 
-Apply the mechanical part of a Handsontable upgrade and report the rest.
+Apply the mechanical part of a Handsontable upgrade to your project and report the rest.
+
+Arguments:
+  paths                 Files or directories to migrate, relative to the current directory. Default: the
+                        current directory.
 
 Options:
-  --from <version>      Version the project is on (17, 17.1, 18.0.0). Detected from node_modules or
-                        package.json when omitted.
-  --to <version>        Version to migrate to. Defaults to the latest released migration.
+  --from <version>      Version your project is on: 17, 17.1, or 18.0.0. A partial version means any version
+                        of that line. Detected from node_modules/handsontable, then from the handsontable
+                        range in package.json, when omitted.
+  --to <version>        Version to migrate to. A partial version means the highest known release of that line.
+                        Defaults to the latest released migration.
   --dry-run             Print a unified diff and write nothing.
   --allow-dirty         Run even when the git tree has uncommitted changes.
-  --report <file>       Also write the report as a Markdown checklist to <file>.
-  --only <ruleId>       Run only this rule. Repeat the flag for several rules.
-  --list                List the rules in the version range and exit.
+  --report <file>       Also write the full report to <file> as a Markdown checklist.
+  --only <ruleId>       Run only this rule. Repeat the flag for several rules. A trailing * matches a prefix,
+                        for example --only "18.0.0/type-*".
+  --list                List the rules in the version range and exit. "rewrite" rules edit code, "report"
+                        rules only report.
   --aggressive          Also rewrite settings objects found with medium confidence.
   --include-draft       Run migrations that are still drafts.
   --help                Show this help.
 
 Exit codes:
   0  Done.
-  1  A file could not be read, parsed, or transformed.
-  2  Usage error, or a refusal (dirty git tree, empty version range).
+  1  A file could not be read, parsed, or transformed. The other files are still migrated.
+  2  Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to
+     migrate, unknown rule id.
 `;
 
 const OPTIONS = {
@@ -42,7 +51,7 @@ const OPTIONS = {
 };
 
 /**
- * Format the rules of a plan as an aligned text table.
+ * Format the rules of a plan as an aligned text table with a line of counts at the end.
  *
  * @param {ReturnType<typeof describeRules>} rows Rows from `describeRules`.
  * @returns {string} Text that ends with a newline.
@@ -50,15 +59,13 @@ const OPTIONS = {
 function renderList(rows) {
   const idWidth = Math.max(...rows.map(row => row.id.length), 2);
   const kindWidth = Math.max(...rows.map(row => row.kind.length), 4);
-  const lines = rows.map((row) => {
-    let state = 'not implemented';
+  const state = row => (row.implemented ? row.mode : 'not implemented');
+  const lines = rows.map(row => `${row.id.padEnd(idWidth)}  ${row.kind.padEnd(kindWidth)}  ${state(row)}`);
+  const count = name => rows.filter(row => state(row) === name).length;
+  const missing = count('not implemented');
 
-    if (row.implemented) {
-      state = row.safe ? 'rewrite' : 'review';
-    }
-
-    return `${row.id.padEnd(idWidth)}  ${row.kind.padEnd(kindWidth)}  ${state}`;
-  });
+  lines.push('', `${rows.length} rules: ${count('rewrite')} rewrite, ${count('report')} report`
+    + `${missing > 0 ? `, ${missing} not implemented` : ''}.`);
 
   return `${lines.join('\n')}\n`;
 }
@@ -83,7 +90,7 @@ export async function main(argv, {
   try {
     parsed = parseArgs({ args: argv, options: OPTIONS, allowPositionals: true, strict: true });
   } catch (error) {
-    stderr(`${error.message}\nRun with --help for usage.\n`);
+    stderr(`${error.message}\n\n${HELP}`);
 
     return 2;
   }
@@ -99,8 +106,9 @@ export async function main(argv, {
   const [command, ...paths] = positionals;
 
   if (command !== 'migrate') {
-    stderr(`${command ? `Unknown command "${command}".` : 'Missing command.'} Use: handsontable-codemod migrate\n`
-      + 'Run with --help for usage.\n');
+    const problem = command ? `Unknown command "${command}".` : 'Missing command.';
+
+    stderr(`${problem} Use: handsontable-codemod migrate\n\n${HELP}`);
 
     return 2;
   }
@@ -123,10 +131,11 @@ export async function main(argv, {
       return 0;
     }
 
+    const dryRun = Boolean(values['dry-run']);
     const result = await run({
       ...range,
       paths,
-      dryRun: Boolean(values['dry-run']),
+      dryRun,
       aggressive: Boolean(values.aggressive),
       allowDirty: Boolean(values['allow-dirty']),
     });
@@ -139,17 +148,20 @@ export async function main(argv, {
       return result.exitCode;
     }
 
-    if (values['dry-run']) {
+    if (dryRun) {
       result.diffs.forEach(({ diff }) => stdout(diff));
     }
 
-    stdout(renderConsole(result.report));
-    stdout(`${result.changedFiles.length} file${result.changedFiles.length === 1 ? '' : 's'} ${
-      values['dry-run'] ? 'would change' : 'changed'}.\n`);
+    stdout(renderConsole(result.report, { filesChanged: result.changedFiles.length, dryRun }));
 
     if (values.report) {
       await writeFile(resolve(cwd, values.report), renderMarkdown(result.report));
       stdout(`Report written to ${values.report}.\n`);
+    }
+
+    if (!dryRun && result.changedFiles.length > 0) {
+      stdout('Next: run your formatter and linter on the changed files.\n'
+        + 'Next: run tsc and your tests.\n');
     }
 
     return result.exitCode;

@@ -87,6 +87,7 @@ describe('shipped detect rules', () => {
       .filter(item => item.kind === 'detect' || item.id.includes('sanitizer')).map(item => item.id).sort();
 
     assert.deepEqual(await ids('18.0.0'), [
+      '18.0.0/helper-typings-only',
       '18.0.0/html-without-sanitizer',
       '18.0.0/moment-date-format',
       '18.0.0/moment-time-format',
@@ -160,6 +161,38 @@ describe('import matcher', () => {
     const source = `${HOT}import x from 'numbro-extra';\nimport y from 'my-numbro';\n`;
 
     assert.deepEqual((await run(importRule, source)).lines, []);
+  });
+});
+
+describe('namespaceMember matcher', () => {
+  const member = rule({ match: { namespaceMember: ['helper.log', 'helper.isIE'] } });
+
+  it('matches a read of the member through the file\'s own Handsontable binding, called or not', async() => {
+    const source = `${HOT}Handsontable.helper.log('a');\nconst f = Handsontable.helper.isIE;\n`
+      + 'Handsontable?.helper.log("b");\nHandsontable.helper.isNumeric(1);\n';
+
+    assert.deepEqual((await run(member, source)).lines, [2, 3, 4]);
+  });
+
+  it('ignores a same-shaped chain on another object and a name that only shares the prefix', async() => {
+    const source = `${HOT}const other = { helper: { log() {} } };\nother.helper.log();\n`
+      + 'Handsontable.helper.logger();\nHandsontable.helper;\n';
+
+    assert.deepEqual((await run(member, source)).lines, []);
+  });
+
+  it('reads through a namespace import and the global build', async() => {
+    const namespace = 'import * as HOT from "handsontable";\nHOT.helper.log(1);\n';
+    const global = '/* Handsontable global */\nHandsontable.helper.log(1);\n';
+
+    assert.deepEqual((await run(member, namespace)).lines, [2]);
+    assert.deepEqual((await run(member, global)).lines, [2]);
+  });
+
+  it('wants a member path or a list of them', () => {
+    assert.match(validateDetectRule(rule({ match: { namespaceMember: 1 } })).join(), /namespaceMember must be/);
+    assert.match(validateDetectRule(rule({ match: { namespaceMember: 'a', files: ['css'] }, files: ['css'] })).join(),
+      /reads js only/);
   });
 });
 

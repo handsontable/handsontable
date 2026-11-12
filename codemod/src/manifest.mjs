@@ -2,6 +2,7 @@ import { access, readdir, readFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ManifestError } from './errors.mjs';
+import { REPORT_ONLY_KINDS, requiresSafe } from './lib/safety.mjs';
 
 /**
  * Absolute path of the package root (the directory that holds `versions/`).
@@ -35,7 +36,8 @@ const FIELD_TYPES = {
 };
 
 /**
- * Fields every rule may carry. `id` and `kind` are required, the rest is optional.
+ * Fields every rule may carry. `id` and `kind` are required, the rest is optional. `safe` is required too, except for
+ * the kinds that only report (see `lib/safety.mjs`); `validateRule()` checks that apart from this table.
  */
 export const COMMON_FIELDS = {
   required: { id: 'string', kind: 'string' },
@@ -59,11 +61,11 @@ export const COMMON_FIELDS = {
 export const RULE_KINDS = {
   importSource: {
     required: { from: 'string', exports: 'object' },
-    optional: { fallback: 'object', moduleRemoved: 'boolean' },
+    optional: { fallback: 'object', moduleRemoved: 'boolean', todo: 'boolean' },
   },
   exportRename: {
     required: { source: 'stringOrStrings', from: 'string', to: 'string' },
-    optional: { toSource: 'stringOrStrings', note: 'string' },
+    optional: { toSource: 'stringOrStrings', note: 'string', todo: 'boolean' },
   },
   namespaceType: {
     required: { from: 'stringOrStrings' },
@@ -74,6 +76,7 @@ export const RULE_KINDS = {
       optionKeys: 'object',
       noKeyAdvice: 'string',
       note: 'string',
+      todo: 'boolean',
     },
   },
   exportRemoved: {
@@ -140,6 +143,14 @@ export function validateRule(rule, version) {
     if (field in rule && !FIELD_TYPES[type](rule[field])) {
       problems.push(`field "${field}" must be of type ${type}`);
     }
+  }
+
+  if (kindSpec && requiresSafe(rule.kind) && !('safe' in rule)) {
+    problems.push('missing required field "safe" (true: the tool applies the rewrite, false: it only reports)');
+  }
+
+  if (kindSpec && !requiresSafe(rule.kind) && rule.safe === true) {
+    problems.push(`${rule.kind} rules only report, so "safe" must be false or omitted`);
   }
 
   if (typeof rule.id === 'string' && !rule.id.startsWith(`${version}/`)) {
@@ -294,7 +305,7 @@ export async function loadManifest(dir) {
 
   const loadedRules = await Promise.all(rules.map(async(rule) => {
     const loaded = {
-      safe: false,
+      ...(rule?.kind && REPORT_ONLY_KINDS.includes(rule.kind) ? { safe: false } : {}),
       ...rule,
       version: dirName,
       guideUrl: guideUrl && rule?.guide ? `${guideUrl}#${rule.guide}` : guideUrl,
@@ -353,19 +364,31 @@ export async function loadManifests(versionsDir = VERSIONS_DIR) {
 }
 
 /**
+ * Whether a rule id is named by an `--only` pattern: the full id, or a prefix that ends in `*`
+ * (`18.0.0/type-*`).
+ *
+ * @param {string} pattern The pattern.
+ * @param {string} id A rule id.
+ * @returns {boolean} `true` when the pattern names the id.
+ */
+export function matchesOnly(pattern, id) {
+  return pattern.endsWith('*') ? id.startsWith(pattern.slice(0, -1)) : pattern === id;
+}
+
+/**
  * Group the rules of the selected manifests into a plan, optionally keeping only some rule ids.
  *
  * @param {import('./types.mjs').Manifest[]} manifests Selected manifests in ascending version order.
- * @param {string[]} [only] Rule ids to keep. Empty or absent keeps every rule.
+ * @param {string[]} [only] Rule ids to keep, or prefixes that end in `*`. Empty or absent keeps every rule.
  * @returns {import('./types.mjs').Plan} The plan. Versions left without rules are dropped.
  */
 export function buildPlan(manifests, only = []) {
-  const keep = only.length > 0 ? new Set(only) : null;
+  const keep = only.length > 0 ? only : null;
   const rulesById = new Map();
   const versions = [];
 
   for (const manifest of manifests) {
-    const rules = manifest.rules.filter(rule => !keep || keep.has(rule.id));
+    const rules = manifest.rules.filter(rule => !keep || keep.some(pattern => matchesOnly(pattern, rule.id)));
 
     rules.forEach(rule => rulesById.set(rule.id, rule));
 

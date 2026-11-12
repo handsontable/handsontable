@@ -59,19 +59,43 @@ describe('Report', () => {
 });
 
 describe('renderConsole', () => {
-  it('returns an empty string for an empty report', () => {
-    assert.equal(renderConsole(new Report()), '');
+  it('prints only the summary for an empty report', () => {
+    assert.equal(
+      renderConsole(new Report()),
+      'Summary: 0 files changed, 0 rewrites applied, 0 manual steps, 0 warnings.\n'
+    );
   });
 
   it('groups entries under their rule with locations, guide links, and a summary', () => {
-    const text = renderConsole(sampleReport());
+    const text = renderConsole(sampleReport(), { filesChanged: 2 });
 
-    assert.match(text, /^18\.0\.0\/b \(1 entry, manual\)$/m);
+    assert.match(text, /^18\.0\.0\/b \(1 manual\)$/m);
     assert.match(text, /^ {2}\[manual\] src\/z\.ts:4 {2}Replace by hand\.$/m);
-    assert.match(text, /^18\.0\.0\/a \(2 entries, changed\)$/m);
+    assert.match(text, /^18\.0\.0\/a \(2 changed\)$/m);
     assert.match(text, /^ {2}Guide: https:\/\/example\.com\/g#a$/m);
     assert.match(text, /\[warning\] src\/bad\.ts {2}Could not parse\./);
-    assert.match(text, /Summary: 2 changed, 1 manual, 1 warning\.\n$/);
+    assert.match(text, /Summary: 2 files changed, 2 rewrites applied, 1 manual step, 1 warning\.\n$/);
+  });
+
+  it('says would for a dry run', () => {
+    assert.match(renderConsole(sampleReport(), { filesChanged: 1, dryRun: true }),
+      /Summary: 1 file would change, 2 rewrites would be applied, 1 manual step, 1 warning\.\n$/);
+  });
+
+  it('lists ten locations of a rule, then the number of the others, and the markdown lists all', () => {
+    const report = new Report();
+
+    for (let line = 1; line <= 14; line += 1) {
+      report.add({ ruleId: '18.0.0/many', severity: 'manual', file: 'src/a.ts', line, message: `Fix ${line}.` });
+    }
+
+    const text = renderConsole(report);
+
+    assert.match(text, /^18\.0\.0\/many \(14 manual\)$/m);
+    assert.match(text, /src\/a\.ts:10 {2}Fix 10\./);
+    assert.doesNotMatch(text, /src\/a\.ts:11 /);
+    assert.match(text, /^ {2}\+4 more \(use --report <file> for the full list\)$/m);
+    assert.match(renderMarkdown(report), /^- \[ \] src\/a\.ts:14 Fix 14\.$/m);
   });
 });
 
@@ -81,9 +105,9 @@ describe('renderMarkdown', () => {
 
     assert.match(text, /^# Handsontable migration report$/m);
     assert.match(text, /^## 18\.0\.0\/a$/m);
-    assert.match(text, /^- \[x\] `src\/a\.css:2`: Renamed\.$/m);
-    assert.match(text, /^- \[ \] `src\/z\.ts:4`: Replace by hand\.$/m);
-    assert.match(text, /^- \[ \] `src\/bad\.ts` \(warning\): Could not parse\.$/m);
+    assert.match(text, /^- \[x\] src\/a\.css:2 Renamed\.$/m);
+    assert.match(text, /^- \[ \] src\/z\.ts:4 Replace by hand\.$/m);
+    assert.match(text, /^- \[ \] src\/bad\.ts \(warning\) Could not parse\.$/m);
     assert.match(text, /^Guide: https:\/\/example\.com\/g#b$/m);
   });
 

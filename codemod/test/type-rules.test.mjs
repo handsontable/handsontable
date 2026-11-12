@@ -35,8 +35,8 @@ const ALLOWED_EXPORTS = new Map();
  *
  * - The theme registry functions and themes (`Handsontable.registerTheme` and the rest). The 17.1.0 runtime never
  *   set them on the namespace (it set `Handsontable.themes.registerTheme`), so no working code reads them there.
- * - `Handsontable.helper.*` functions: removed helpers. No rule of any kind covers them yet, and a type rule
- *   has nothing to rewrite.
+ * - `Handsontable.helper.*` functions: removed from the typings only. The runtime never set them on the namespace
+ *   (see the `18.0.0/helper-typings-only` detect rule), so a type rule has nothing to rewrite.
  * - `sortByRelevance` statics, `baseVersion`, and the `RecordTranslation` namespace object: runtime members with
  *   no type position.
  *

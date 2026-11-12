@@ -1,4 +1,5 @@
 import { getImportedBindings, moveNamedImport } from '../lib/imports.mjs';
+import { reportInstead, rewrites } from '../lib/safety.mjs';
 import {
   chooseSource,
   describeMoves,
@@ -34,8 +35,10 @@ function assertRule(rule) {
 function todoResidual(ctx, rule, residual) {
   for (const [declaration, items] of residual) {
     const text = items.map(item => `${item.name}: ${item.advice}`).join(' ');
+    const names = items.map(item => item.name).join(', ');
 
-    ctx.todo(declaration, rule.id, items.length === 1 ? text : `${rule.from} no longer exports these names. ${text}`);
+    ctx.todo(declaration, rule.id, items.length === 1 ? text : `${rule.from} no longer exports these names. ${text}`,
+      items.length === 1 ? text : `${names} are no longer exported from "${rule.from}".`);
   }
 }
 
@@ -87,6 +90,14 @@ function applyRule(ctx, rule) {
     }
 
     const target = chooseSource(j, root, toList(entry.to), { name: binding.imported, isModular });
+
+    if (!rewrites(rule)) {
+      reportInstead(ctx, rule, line, [`Import ${binding.imported} from "${target}" instead of "${rule.from}".`,
+        entry.note].filter(Boolean).join(' '), binding.declaration.node);
+
+      continue;
+    }
+
     const result = moveNamedImport(j, root, binding.declaration, binding.specifier, target);
 
     if (result.moved) {
@@ -128,6 +139,9 @@ function applyRule(ctx, rule) {
  * exactly that line. Namespace imports, default imports, `export ... from`, dynamic `import()`, and `require()`
  * of the old module are reported as `manual` and left alone. A local-name collision in the target skips that
  * name and reports `manual`.
+ *
+ * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
+ * when the rule asks for one (see `lib/safety.mjs`).
  *
  * @type {import('../types.mjs').Transform}
  */

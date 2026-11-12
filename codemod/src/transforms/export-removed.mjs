@@ -31,6 +31,19 @@ function todoText(rule, name, source) {
 }
 
 /**
+ * Short text of the TODO comment for one removed name: the name and the advice, whose first sentence says what to
+ * use instead.
+ *
+ * @param {import('../types.mjs').Rule} rule The rule.
+ * @param {string} name The removed name.
+ * @param {string} source The module the file reads it from.
+ * @returns {string} The text.
+ */
+function commentText(rule, name, source) {
+  return `${name}: ${expandAdvice(rule, { plugin: pluginOfModule(source), name, source })}`;
+}
+
+/**
  * Apply one `exportRemoved` rule to a file.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context of a `js` part.
@@ -57,7 +70,8 @@ function applyRule(ctx, rule, handled) {
 
       const source = String(binding.declaration.node.source.value);
 
-      ctx.todo(binding.declaration.node, rule.id, todoText(rule, binding.imported, source));
+      ctx.todo(binding.declaration.node, rule.id, todoText(rule, binding.imported, source),
+        commentText(rule, binding.imported, source));
     });
 
   findReExports(j, root, matches).forEach((path) => {
@@ -67,7 +81,8 @@ function applyRule(ctx, rule, handled) {
       .filter(specifier => specifier.local && names.has(specifier.local.name) && !handled.has(specifier))
       .forEach((specifier) => {
         handled.add(specifier);
-        ctx.todo(path.node, rule.id, todoText(rule, specifier.local.name, source));
+        ctx.todo(path.node, rule.id, todoText(rule, specifier.local.name, source),
+          commentText(rule, specifier.local.name, source));
       });
   });
 

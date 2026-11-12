@@ -1,7 +1,10 @@
 import { ColumnSorting, ColumnSortingConfig } from 'handsontable/plugins/columnSorting';
-import type { ColumnSortingConfig as MultiConfig } from 'handsontable/plugins/columnSorting';
-import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
-import type { UndoRedoAction as UndoAction } from 'handsontable/plugins/undoRedo';
+// TODO(handsontable-codemod 18.0.0/type-multicolumnsorting-config): Replace Config with ColumnSortingConfig from "handsontable/plugins/columnSorting".
+import type { Config as MultiConfig } from 'handsontable/plugins/multiColumnSorting';
+// TODO(handsontable-codemod 18.0.0/type-columnsummary-endpoint): Replace Endpoint with SummaryEndpoint.
+import type { Endpoint } from 'handsontable/plugins/columnSummary';
+// TODO(handsontable-codemod 18.0.0/type-undoredo-action): Replace Action with UndoRedoAction.
+import type { Action as UndoAction } from 'handsontable/plugins/undoRedo';
 import type { RangeType } from 'handsontable';
 import type { NestedHeaderSettings } from 'handsontable/plugins/nestedHeaders';
 import { arAR } from 'handsontable/i18n';
@@ -18,7 +21,7 @@ export function shadowed(Config: number): number {
   return Config + 1;
 }
 
-export function lastRow(endpoint: SummaryEndpoint): number {
+export function lastRow(endpoint: Endpoint): number {
   return endpoint.destinationRow ?? 0;
 }
 

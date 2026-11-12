@@ -2,10 +2,10 @@
  * Cell helpers for the orders grid.
  */
 import Handsontable, { GridSettings, CellChange, ChangeSource } from 'handsontable';
-// TODO(handsontable-codemod 18.0.0/common-imports): SimpleCellCoords: Removed in 18.0 with no replacement. Use the inline type `{ row: number; col: number }`.
+// TODO(handsontable-codemod 18.0.0/common-imports): SimpleCellCoords: Removed in 18.0 with no replacement. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-handsontablecommon-imports
 import type { SimpleCellCoords } from 'handsontable/common';
 import type { CellValue as Value, RowObject } from 'handsontable';
-// TODO(handsontable-codemod 18.0.0/common-imports): NumericFormatOptions: Removed in 18.0 with no replacement. The `numericFormat` option is typed `object`. Use `Intl.NumberFormatOptions`. The Numbro.js `pattern` and `culture` keys no longer apply.
+// TODO(handsontable-codemod 18.0.0/common-imports): NumericFormatOptions: Removed in 18.0, so use `Intl.NumberFormatOptions` instead. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-handsontablecommon-imports
 import { NumericFormatOptions } from 'handsontable/common';
 import { HotTable } from '@handsontable/react-wrapper';
 

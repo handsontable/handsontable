@@ -66,6 +66,85 @@ describe('cli', () => {
     assert.match(out, /--include-draft/);
   });
 
+  it('documents every flag and every exit code in the help', async() => {
+    const { out } = await cli(['--help']);
+
+    for (const flag of ['from', 'to', 'dry-run', 'allow-dirty', 'report', 'only', 'list', 'aggressive',
+      'include-draft', 'help']) {
+      assert.match(out, new RegExp(`^ {2}--${flag}\\b`, 'm'), flag);
+    }
+
+    assert.match(out, /^ {2}paths /m);
+    assert.match(out, /^ {2}0 {2}Done\./m);
+    assert.match(out, /^ {2}1 {2}A file could not be read/m);
+    assert.match(out, /^ {2}2 {2}Usage error or refusal/m);
+  });
+
+  it('prints the usage on stderr for an unknown flag, with exit code 2', async() => {
+    const { code, out, err } = await cli(['migrate', '--bogus']);
+
+    assert.equal(code, 2);
+    assert.equal(out, '');
+    assert.match(err, /--bogus/);
+    assert.match(err, /Usage: handsontable-codemod migrate/);
+  });
+
+  it('exits 2 with a clear message when --from is missing and cannot be detected', async() => {
+    const dir = await mkdtemp(join(tmpdir(), 'codemod-cli-empty-'));
+
+    try {
+      const { code, err } = await cli(['migrate'], dir);
+
+      assert.equal(code, 2);
+      assert.match(err, /Cannot tell which Handsontable version this project uses/);
+      assert.match(err, /Pass --from/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('exits 2 and lists the known migrations when --from is not below --to', async() => {
+    for (const args of [['--from', '18.1', '--to', '18.1'], ['--from', '18.1', '--to', '18'],
+      ['--from', '19', '--to', '18.0']]) {
+      const { code, err } = await cli(['migrate', ...args]);
+
+      assert.equal(code, 2, args.join(' '));
+      assert.match(err, /Nothing to migrate from .* to /);
+      assert.match(err, /Known migrations: 18\.0\.0, 18\.1\.0\./);
+    }
+  });
+
+  it('exits 2 when --only selects no rule', async() => {
+    const { code, err } = await cli(['migrate', '--from', '17', '--only', '18.0.0/type-nope-*']);
+
+    assert.equal(code, 2);
+    assert.match(err, /Unknown rule id: 18\.0\.0\/type-nope-\*/);
+  });
+
+  it('accepts a full rule id and a prefix that ends in * for --only', async() => {
+    const one = await cli(['migrate', '--list', '--from', '17', '--only', '18.0.0/css-wrapper-border-radius']);
+    const prefix = await cli(['migrate', '--list', '--from', '17', '--only', '18.0.0/type-*']);
+    const both = await cli(['migrate', '--list', '--from', '17', '--only', '18.0.0/type-*', '--only',
+      '18.0.0/css-wrapper-border-radius']);
+    const ids = text => text.split('\n').filter(line => /^\d+\.\d+\.\d+\//.test(line));
+
+    assert.equal(ids(one.out).length, 1);
+    assert.ok(ids(prefix.out).length > 10);
+    assert.ok(ids(prefix.out).every(line => line.startsWith('18.0.0/type-')));
+    assert.equal(ids(both.out).length, ids(prefix.out).length + 1);
+  });
+
+  it('ends the list with the number of rules that rewrite and that only report', async() => {
+    const { out } = await cli(['migrate', '--list', '--from', '17', '--to', '18.1']);
+    const rows = out.split('\n').filter(line => /^\d+\.\d+\.\d+\//.test(line));
+    const rewrite = rows.filter(line => /\srewrite$/.test(line)).length;
+    const report = rows.filter(line => /\sreport$/.test(line)).length;
+
+    assert.ok(rewrite > 0 && report > 0);
+    assert.equal(rewrite + report, rows.length, 'every rule has a transform');
+    assert.match(out, new RegExp(`^${rows.length} rules: ${rewrite} rewrite, ${report} report\\.$`, 'm'));
+  });
+
   it('exits 2 for an unknown flag, a missing command, and an unknown command', async() => {
     assert.equal((await cli(['migrate', '--bogus'])).code, 2);
     assert.equal((await cli([])).code, 2);
@@ -97,7 +176,7 @@ describe('cli', () => {
     const empty = await cli(['migrate', '--from', '18', '--to', '18.1']);
 
     assert.equal(empty.code, 2);
-    assert.match(empty.err, /No migration to run/);
+    assert.match(empty.err, /Nothing to migrate/);
     assert.equal((await cli(['migrate', '--list', '--from', '17', '--only', '18.0.0/nope'])).code, 2);
     assert.equal((await cli(['migrate', '--list', '--from', 'banana'])).code, 2);
   });
@@ -131,7 +210,8 @@ describe('cli', () => {
 
       assert.equal(code, 0);
       assert.match(out, /^--- a\/a\.css/m);
-      assert.match(out, /1 file would change\./);
+      assert.match(out, /Summary: 1 file would change, 1 rewrite would be applied/);
+      assert.doesNotMatch(out, /Next:/);
       assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS);
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -145,8 +225,10 @@ describe('cli', () => {
       const { code, out } = await cli(['migrate', '--from', '17', '--to', '18', '--report', 'report.md'], dir);
 
       assert.equal(code, 0);
-      assert.match(out, /18\.0\.0\/css-wrapper-border-radius \(1 entry, changed\)/);
-      assert.match(await readFile(join(dir, 'report.md'), 'utf8'), /- \[x\] `a\.css:2`/);
+      assert.match(out, /18\.0\.0\/css-wrapper-border-radius \(1 changed\)/);
+      assert.match(out, /^Next: run your formatter and linter on the changed files\.$/m);
+      assert.match(out, /^Next: run tsc and your tests\.$/m);
+      assert.match(await readFile(join(dir, 'report.md'), 'utf8'), /- \[x\] a\.css:2 /);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

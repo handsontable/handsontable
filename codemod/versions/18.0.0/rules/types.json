@@ -13,6 +13,7 @@
       "id": "18.0.0/type-multicolumnsorting-config",
       "kind": "exportRename",
       "safe": false,
+      "todo": true,
       "source": "handsontable/plugins/multiColumnSorting",
       "from": "Config",
       "to": "ColumnSortingConfig",
@@ -32,6 +33,7 @@
       "id": "18.0.0/type-columnsummary-endpoint",
       "kind": "exportRename",
       "safe": false,
+      "todo": true,
       "source": "handsontable/plugins/columnSummary",
       "from": "Endpoint",
       "to": "SummaryEndpoint",
@@ -41,6 +43,7 @@
       "id": "18.0.0/type-columnsummary-detailedsettings",
       "kind": "exportRename",
       "safe": false,
+      "todo": true,
       "guide": "replace-the-removed-detailedsettings-type-exports",
       "source": "handsontable/plugins/columnSummary",
       "from": "DetailedSettings",
@@ -51,6 +54,7 @@
       "id": "18.0.0/type-undoredo-action",
       "kind": "exportRename",
       "safe": false,
+      "todo": true,
       "source": "handsontable/plugins/undoRedo",
       "from": "Action",
       "to": "UndoRedoAction",
@@ -60,6 +64,7 @@
       "id": "18.0.0/type-customborders-borderoptions",
       "kind": "exportRename",
       "safe": false,
+      "todo": true,
       "source": "handsontable/plugins/customBorders",
       "from": "BorderOptions",
       "to": "BorderSettings",
@@ -514,6 +519,7 @@
       "id": "18.0.0/ns-customborders-borderoptions",
       "kind": "namespaceType",
       "safe": false,
+      "todo": true,
       "from": "Handsontable.plugins.CustomBorders.BorderOptions",
       "to": { "name": "BorderSettings", "source": "handsontable/plugins/customBorders" },
       "note": "BorderSettings has an index signature, and `style` is no longer a named field (it reads as `unknown`)."
@@ -638,7 +644,7 @@
       "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
       "from": "Handsontable.NumericFormatOptions",
       "removed": true,
-      "advice": "Removed in 18.0 with no replacement. The `numericFormat` option is typed `object`. Use `Intl.NumberFormatOptions`. The Numbro.js `pattern` and `culture` keys no longer apply."
+      "advice": "Removed in 18.0, so use `Intl.NumberFormatOptions` instead. The `numericFormat` option is typed `object`, and the Numbro.js `pattern` and `culture` keys no longer apply."
     },
     {
       "id": "18.0.0/ns-recordtranslation-types",
@@ -667,7 +673,7 @@
       "from": "Handsontable.EventManager",
       "removed": true,
       "positions": "any",
-      "advice": "Removed from the Handsontable typings in 18.0. It is not public API. The runtime still sets Handsontable.EventManager, so JavaScript code keeps working."
+      "advice": "Not public API, and removed from the Handsontable typings in 18.0. The runtime still sets Handsontable.EventManager, so JavaScript code keeps working."
     },
     {
       "id": "18.0.0/ns-intl-celltype",

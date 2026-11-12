@@ -15,7 +15,7 @@
       "guide": "update-theme-wrapper-border-variables",
       "from": "--ht-wrapper-border-width",
       "removed": true,
-      "advice": "Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
+      "advice": "Removed in 18.0, so draw the outer border with a box-shadow on the root wrapper. Use `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`."
     },
     {
       "id": "18.0.0/css-wrapper-border-color",
@@ -24,7 +24,7 @@
       "guide": "update-theme-wrapper-border-variables",
       "from": "--ht-wrapper-border-color",
       "removed": true,
-      "advice": "Removed in 18.0. Draw the outer border with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
+      "advice": "Removed in 18.0, so draw the outer border with a box-shadow on the root wrapper. Use `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`."
     },
     {
       "id": "18.0.0/theme-token-wrapper-border-radius",

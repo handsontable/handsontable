@@ -3,7 +3,6 @@
   { "ruleId": "18.0.0/ns-core-types", "severity": "manual", "line": 11 },
   { "ruleId": "18.0.0/ns-settings-types", "severity": "changed", "line": 15 },
   { "ruleId": "18.0.0/ns-theme-types", "severity": "changed", "line": 15 },
-  { "ruleId": "18.0.0/ns-customborders-borderoptions", "severity": "changed", "line": 23 },
   { "ruleId": "18.0.0/ns-customborders-borderoptions", "severity": "manual", "line": 23 },
   { "ruleId": "18.0.0/ns-plugin-settings", "severity": "manual", "line": 25 },
   { "ruleId": "18.0.0/ns-plugin-settings", "severity": "manual", "line": 27 },

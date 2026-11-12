@@ -1,6 +1,7 @@
 import { detectQuote } from '../adapters/js.mjs';
 import { memberName, propertyName, unwrapNode } from '../lib/ast.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
+import { rewrites } from '../lib/safety.mjs';
 
 const RECEIVERS = new Set(['any', 'instance']);
 const MEMBER_TYPES = ['MemberExpression', 'OptionalMemberExpression'];
@@ -425,7 +426,7 @@ function act(ctx, { path, spec, name, decision, usage }, quote) {
     return;
   }
 
-  if (rule.safe !== true) {
+  if (!rewrites(rule)) {
     manual(`${name}${isProperty ? '' : '()'} needs a review. ${guidance(spec, name)}`);
 
     return;
@@ -538,7 +539,12 @@ function removeCall(ctx, path, usage, spec, name) {
     ? 'It is the whole body of a statement without braces, so the call was kept.'
     : 'Its result is used here, so the call was kept.';
 
-  ctx.todo(enclosingStatement(usage.call), rule.id, `${name}() is removed. ${reason} ${guidance(spec, name)}`);
+  const short = braceless
+    ? 'It has no braces, so the call was kept.'
+    : 'Its result is used here, so the call was kept.';
+
+  ctx.todo(enclosingStatement(usage.call), rule.id, `${name}() is removed. ${reason} ${guidance(spec, name)}`,
+    `${name}() is removed. ${short}`);
 }
 
 /**

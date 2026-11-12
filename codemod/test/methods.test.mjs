@@ -107,7 +107,8 @@ describe('methodRemove', () => {
 
     assert.doesNotMatch(output, /if \(ok\)\s*;/);
     assert.match(output, /plugin\.saveManualColumnWidths\(\);/);
-    assert.match(output, /without braces/);
+    assert.match(output, /It has no braces, so the call was kept\./);
+    assert.ok(entries.some(entry => /without braces/.test(entry.message)));
     assert.equal(entries.filter(entry => entry.severity === 'changed').length, 0);
   });
 

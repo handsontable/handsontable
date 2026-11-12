@@ -1,4 +1,5 @@
 import { getImportedBindings, moveNamedImport, renameBinding } from '../lib/imports.mjs';
+import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { chooseSource, lazyModular, reportOpaqueReferences, toList } from '../lib/type-rules.mjs';
 
 /**
@@ -37,6 +38,14 @@ function renameInModule(ctx, rule, source, isModular, noted) {
     let keptLocal = false;
     const renames = rule.to !== rule.from;
     const candidates = toList(rule.toSource);
+
+    if (!rewrites(rule)) {
+      reportInstead(ctx, rule, line, `Replace ${rule.from} with ${rule.to}`
+        + `${candidates.length > 0 ? ` from "${candidates[0]}"` : ''}.`, binding.declaration.node);
+
+      continue;
+    }
+
     const target = candidates.length > 0 ? chooseSource(j, root, candidates, { name: rule.to, isModular }) : source;
     const moves = target !== source;
     let changed = false;
@@ -115,6 +124,9 @@ function renameInModule(ctx, rule, source, isModular, noted) {
  * every reference follows the rename. A collision with a name the file declares skips the rename and reports
  * `manual`. Re-exports, namespace reads, dynamic `import()`, and `require()` of the name are reported and left
  * alone.
+ *
+ * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
+ * when the rule asks for one (see `lib/safety.mjs`).
  *
  * @type {import('../types.mjs').Transform}
  */

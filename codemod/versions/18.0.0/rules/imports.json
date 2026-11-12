@@ -39,7 +39,7 @@
         },
         "NumericFormatOptions": {
           "removed": true,
-          "advice": "Removed in 18.0 with no replacement. The `numericFormat` option is typed `object`. Use `Intl.NumberFormatOptions`. The Numbro.js `pattern` and `culture` keys no longer apply."
+          "advice": "Removed in 18.0, so use `Intl.NumberFormatOptions` instead. The `numericFormat` option is typed `object`, and the Numbro.js `pattern` and `culture` keys no longer apply."
         },
         "NumbroFormatOptions": {
           "removed": true,

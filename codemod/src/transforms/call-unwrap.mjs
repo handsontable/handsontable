@@ -1,5 +1,6 @@
 import { propertyName, unwrapPath } from '../lib/ast.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
+import { rewrites } from '../lib/safety.mjs';
 import { lookup, referenceSpace } from '../lib/scope.mjs';
 
 const CALL_TYPES = new Set(['CallExpression', 'OptionalCallExpression']);
@@ -181,7 +182,7 @@ const callUnwrap = {
         manual(spec, call.node, `${label} is called through an optional chain, so it was left alone.`);
       } else if (args.length !== spec.arg + 1 || args.some(arg => arg.type === 'SpreadElement')) {
         manual(spec, call.node, `${label} has other arguments than the one that replaces it, so it was left alone.`);
-      } else if (spec.rule.safe !== true) {
+      } else if (!rewrites(spec.rule)) {
         manual(spec, call.node, `${label} needs a review.`);
       } else {
         const argument = args[spec.arg];

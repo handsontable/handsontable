@@ -83,6 +83,29 @@
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
       "match": { "selector": "(?<![\\w-])(?:htDatepickerHolder|pika-[a-z])" },
       "message": "Handsontable 18.0 removed Pikaday. The date picker is now the browser's native date input, so the .htDatepickerHolder and .pika-* elements no longer exist. Remove this code, or style the native input instead."
+    },
+    {
+      "id": "18.0.0/helper-typings-only",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "match": {
+        "namespaceMember": [
+          "helper.error",
+          "helper.hasCaptionProblem",
+          "helper.info",
+          "helper.isIE",
+          "helper.isIE9",
+          "helper.isMSBrowser",
+          "helper.isValidDate",
+          "helper.log",
+          "helper.toSingleLine",
+          "helper.warn"
+        ]
+      },
+      "message": "The 17.x typings declared this function on Handsontable.helper, and the 18.0 typings do not. The runtime never set it there, in 17.1 or in 18.0, so this code already fails with \"is not a function\" when it runs. Remove the call, or use your own function."
     }
   ]
 }

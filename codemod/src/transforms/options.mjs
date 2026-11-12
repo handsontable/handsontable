@@ -7,6 +7,7 @@ import {
   getProperty,
 } from '../lib/option-objects.mjs';
 import { invalidateScope, lookup } from '../lib/scope.mjs';
+import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { replaceStringLiteral } from '../lib/string-literal.mjs';
 import { TODO_PREFIX } from '../lib/todo.mjs';
 
@@ -305,10 +306,11 @@ function carryComments(removed, anchor, adjacent) {
  * @param {Env} env The state.
  * @param {object} objectPath NodePath of the `ObjectExpression`.
  * @param {object} node The property node to delete.
- * @param {string|null} todoText Text of the TODO comment, or `null` for none.
+ * @param {string|null} todoText Text of the TODO report entry, or `null` for no TODO.
+ * @param {string} [comment] Short text of the TODO comment, when it differs from `todoText`.
  * @returns {void}
  */
-function removeProperty(env, objectPath, node, todoText) {
+function removeProperty(env, objectPath, node, todoText, comment) {
   const list = objectPath.node.properties;
   const index = list.indexOf(node);
   const next = list[index + 1];
@@ -320,8 +322,69 @@ function removeProperty(env, objectPath, node, todoText) {
   env.ctx.markChanged();
 
   if (todoText) {
-    env.ctx.todo(anchor, env.rule.id, todoText);
+    env.ctx.todo(anchor, env.rule.id, todoText, comment);
   }
+}
+
+/**
+ * The advice of a removal rule, as the text of its report entry.
+ *
+ * @param {import('../types.mjs').Rule} rule An `optionRemove` rule.
+ * @returns {string} The advice, or a generic sentence.
+ */
+function removalAdvice(rule) {
+  return rule.advice ?? rule.message ?? `${rule.name} was removed.`;
+}
+
+/**
+ * The comment text for a removal that deleted the property. Only a comment that follows a deletion says so: the
+ * advice never makes that claim, because a rule that is not safe leaves the property.
+ *
+ * @param {string} name The option name.
+ * @param {string} advice The advice.
+ * @returns {string} A first sentence that names the deletion, followed by the advice.
+ */
+function deletedComment(name, advice) {
+  return `Deleted ${name} here. ${advice}`;
+}
+
+/**
+ * Whether a property of an object literal sits on lines of its own, so a comment before it does not land in the
+ * middle of a line.
+ *
+ * @param {object} objectPath NodePath of the `ObjectExpression`.
+ * @param {object} node The property node.
+ * @returns {boolean} `true` when no other property or brace shares a line with it.
+ */
+function hasOwnLines(objectPath, node) {
+  const list = objectPath.node.properties;
+  const index = list.indexOf(node);
+  const before = list[index - 1]?.loc?.end.line ?? objectPath.node.loc?.start.line;
+  const after = list[index + 1]?.loc?.start.line ?? objectPath.node.loc?.end.line;
+
+  return Boolean(node.loc) && before < node.loc.start.line && after > node.loc.end.line;
+}
+
+/**
+ * Handle a removal that the rule does not apply: the property stays. With `todo` on, a TODO comment goes before
+ * the property. Otherwise the occurrence is reported.
+ *
+ * @param {Env} env The state.
+ * @param {object} target The node that takes the TODO: the property, or the statement that holds a wrapper element.
+ * @param {number|undefined} line Line of the property.
+ * @param {string} what What the rule would remove, for the report, for example `the correctFormat property`.
+ * @returns {void}
+ */
+function adviseRemoval(env, target, line, what) {
+  const { ctx, rule } = env;
+
+  if (rule.todo === false) {
+    reportInstead(ctx, rule, line, `Remove ${what}. ${removalAdvice(rule)}`.trim());
+
+    return;
+  }
+
+  ctx.todo(target, rule.id, removalAdvice(rule));
 }
 
 /**
@@ -341,6 +404,12 @@ function renameInObject(env, objectPath, confidence) {
   }
 
   const line = lineOf(property.node);
+
+  if (!rewrites(rule)) {
+    reportInstead(ctx, rule, line, `Rename ${rule.from} to ${rule.to}.`);
+
+    return;
+  }
 
   if (!clearsBar(env, confidence)) {
     reportBelowBar(env, property.node, `${rule.from} is set.`);
@@ -382,6 +451,12 @@ function renameOnElement(env, openingPath) {
   const attribute = attributes.find(item => attributeName(item) === rule.from);
 
   if (!attribute) {
+    return;
+  }
+
+  if (!rewrites(rule)) {
+    reportInstead(ctx, rule, lineOf(attribute), `Rename the ${rule.from} attribute to ${rule.to}.`);
+
     return;
   }
 
@@ -466,6 +541,13 @@ function removeInObject(env, objectPath, confidence) {
     .map(property => property.path.node);
 
   for (const node of nodes) {
+    if (!rewrites(rule)) {
+      adviseRemoval(env, hasOwnLines(objectPath, node) ? node : enclosingAnchor(objectPath), lineOf(node),
+        `the ${rule.name} property`);
+
+      continue;
+    }
+
     if (!clearsBar(env, confidence)) {
       reportBelowBar(env, node, `${rule.name} is set.`);
 
@@ -473,9 +555,9 @@ function removeInObject(env, objectPath, confidence) {
     }
 
     const line = lineOf(node);
-    const text = rule.advice ?? rule.message ?? `${rule.name} was removed.`;
+    const text = removalAdvice(rule);
 
-    removeProperty(env, objectPath, node, rule.todo === false ? null : text);
+    removeProperty(env, objectPath, node, rule.todo === false ? null : text, deletedComment(rule.name, text));
     ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Removed ${rule.name}.` });
   }
 }
@@ -493,16 +575,23 @@ function removeOnElement(env, openingPath) {
   const attributes = openingPath.node.attributes;
   const found = attributes.filter(item => attributeName(item) === rule.name);
 
+  if (!rewrites(rule) && found.length > 0) {
+    // The attribute stays, so a TODO anchored on the statement is left once for the whole element.
+    adviseRemoval(env, enclosingAnchor(openingPath), lineOf(found[0]), `the ${rule.name} attribute`);
+
+    return;
+  }
+
   for (const attribute of found) {
     const line = lineOf(attribute);
-    const text = rule.advice ?? rule.message ?? `${rule.name} was removed.`;
+    const text = removalAdvice(rule);
 
     attributes.splice(attributes.indexOf(attribute), 1);
     carryComments(attribute, enclosingAnchor(openingPath), false);
     ctx.markChanged();
 
     if (rule.todo !== false) {
-      ctx.todo(enclosingAnchor(openingPath), rule.id, text);
+      ctx.todo(enclosingAnchor(openingPath), rule.id, text, deletedComment(rule.name, text));
     }
 
     ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Removed the ${rule.name} attribute.` });
@@ -676,6 +765,12 @@ function moveInObject(env, objectPath, confidence) {
     return;
   }
 
+  if (!rewrites(rule)) {
+    reportInstead(ctx, rule, lineOf(child.node), `Move ${rule.from} to ${rule.to}.`);
+
+    return;
+  }
+
   if (!clearsBar(env, confidence)) {
     reportBelowBar(env, child.node, `${rule.from} is set.`);
 
@@ -773,6 +868,12 @@ function moveOnElement(env, openingPath) {
     return;
   }
 
+  if (!rewrites(rule)) {
+    reportInstead(ctx, rule, lineOf(child.node), `Move ${rule.from} to the ${rule.to} attribute.`);
+
+    return;
+  }
+
   const existingAttribute = attributes.find(item => attributeName(item) === rule.to);
   const existing = existingAttribute ? (attributeValue(existingAttribute) ?? j.identifier('true')) : null;
   const plan = planMove(env, child.node, existing);
@@ -817,6 +918,9 @@ function moveOnElement(env, openingPath) {
  *   enclosing property, statement, or array element). A run that finds no such property adds nothing, so the
  *   comment is never written twice. Comments on the removed property go with it, except a section header
  *   (followed by a blank line) and a TODO of this tool, which move to the anchor.
+ *
+ * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
+ * when the rule asks for one (see `lib/safety.mjs`).
  *
  * @type {import('../types.mjs').Transform}
  */

@@ -1,3 +1,4 @@
+import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { replaceStringLiteral } from '../lib/string-literal.mjs';
 
 /**
@@ -112,6 +113,9 @@ function renameKey(j, path, from, to) {
  *   already has the new key, nothing changes and a `manual` entry is reported.
  * - Removal (`removed: true`): the property stays and gets a TODO comment with the rule's advice, once.
  *
+ * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
+ * when the rule asks for one (see `lib/safety.mjs`).
+ *
  * @type {import('../types.mjs').Transform}
  */
 const themeTokens = {
@@ -149,6 +153,12 @@ const themeTokens = {
 
       if (rule.removed === true) {
         ctx.todo(property, rule.id, rule.advice ?? rule.message ?? `${rule.from} was removed.`);
+
+        return;
+      }
+
+      if (!rewrites(rule)) {
+        reportInstead(ctx, rule, property.node.loc?.start?.line, `Rename the ${rule.from} token to ${rule.to}.`);
 
         return;
       }

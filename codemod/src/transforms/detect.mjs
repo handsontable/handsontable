@@ -15,7 +15,7 @@ export const COLLAPSE_AFTER = 5;
 const FILE_KINDS = ['js', 'css', 'template'];
 const SEVERITIES = ['manual', 'warning'];
 const REQUIRES = ['hot-file', 'option-object', 'none'];
-const JS_ONLY_MATCHERS = ['import', 'property', 'call', 'hook', 'string', 'missingOption'];
+const JS_ONLY_MATCHERS = ['import', 'property', 'call', 'hook', 'string', 'missingOption', 'namespaceMember'];
 const ANY_MATCHERS = ['regex', 'selector'];
 
 /**
@@ -26,6 +26,7 @@ const MODIFIERS = {
   property: ['withKey', 'valueMatches', 'in', 'flags'],
   call: ['argMatches', 'receiver', 'flags'],
   hook: [],
+  namespaceMember: [],
   string: ['flags'],
   selector: ['flags'],
   regex: ['flags'],
@@ -120,6 +121,10 @@ function validateMatch(spec, files, where) {
 
   if (key === 'property' && !listOf(spec.property).every(item => typeof item === 'string' && item)) {
     problems.push(`${where}.property must be a dotted key path or a list of them`);
+  }
+
+  if (key === 'namespaceMember' && !listOf(spec.namespaceMember).every(item => typeof item === 'string' && item)) {
+    problems.push(`${where}.namespaceMember must be a member path after the namespace or a list of them`);
   }
 
   if (spec.in !== undefined && spec.in !== 'option-object') {
@@ -709,6 +714,28 @@ function matchHook(env, node) {
 }
 
 /**
+ * Find the matches of a `namespaceMember` matcher: a read of `<namespace>.<path>` where the root is the file's own
+ * `Handsontable` binding (a default import, a namespace import, or the global), with no call needed.
+ *
+ * @param {Env} env Part state.
+ * @param {Compiled} node The compiled matcher.
+ * @returns {Match[]} The matches.
+ */
+function matchNamespaceMember(env, node) {
+  const names = listOf(node.spec.namespaceMember);
+  const matches = [];
+
+  [env.j.MemberExpression, env.j.OptionalMemberExpression].filter(Boolean).forEach(type => env.root.find(type)
+    .forEach((path) => {
+      if (names.includes(env.bindings().resolveNamespaceMember(path))) {
+        matches.push({ line: lineOfNode(path.node) });
+      }
+    }));
+
+  return matches;
+}
+
+/**
  * Collect the string literals and template text of a js part.
  *
  * @param {Env} env Part state.
@@ -931,6 +958,8 @@ function evaluate(env, node) {
       return matchCall(env, node);
     case 'hook':
       return matchHook(env, node);
+    case 'namespaceMember':
+      return matchNamespaceMember(env, node);
     case 'string':
       return matchStrings(env, node.re.primary);
     case 'selector':
@@ -1039,6 +1068,9 @@ function applyRule(env, rule) {
  *   the text of the receiver, such as `fireEvent`.
  * - `hook`: a hook name, or a list, used as an option key in an option object, as a `<HotTable>` prop, in
  *   `addHook()` and `addHookOnce()`, or in `Handsontable.hooks.add()` and `.once()`.
+ * - `namespaceMember`: a member path after the namespace, or a list, such as `helper.log`. Matches a read of
+ *   `Handsontable.helper.log`, called or not, when `Handsontable` is the file's own import or global. A destructured
+ *   alias (`const { log } = Handsontable.helper`) is not followed.
  * - `string`: a regular expression tested against string literals and template text.
  * - `selector` (`js`, `css`, `template`): a regular expression tested against the selector of every stylesheet
  *   rule, against string literals in js, and against the raw text of a template. A selector nested in SCSS

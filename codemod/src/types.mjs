@@ -55,8 +55,12 @@
  * @property {string} id Stable id, `<version>/<slug>`.
  * @property {string} kind One of the rule kinds.
  * @property {string} version Version of the manifest that owns the rule.
+ * @property {string} [guide] Anchor in the migration guide, without the `#`. A TODO comment links to the guide only
+ * for a rule that has one.
  * @property {string|null} guideUrl Link to the guide section for this rule, or `null`.
- * @property {boolean} safe Whether the rewrite is mechanical and needs no review.
+ * @property {boolean} safe `true`: the tool applies the rewrite by default. `false`: the tool never edits code for the
+ * rule, it reports `manual` entries and may leave a TODO comment. Required in a manifest, except for `detect` and
+ * `exportRemoved` rules, which only report and load as `false`. See `lib/safety.mjs`.
  * @property {'high'|'medium'} [minConfidence] Lowest option-object confidence the rule rewrites at.
  * @property {string} [message] Text for report entries.
  * @property {string} [advice] Text for TODO comments and manual entries.
@@ -96,9 +100,11 @@
  * @property {object} root The parsed form of this part, edited in place. `js`: a jscodeshift Collection.
  * `css`: a postcss Root. `json`: the parsed JSON value. Other kinds: whatever the adapter documents.
  * @property {(entry: ReportInput) => void} report Add a report entry. Identical entries collapse.
- * @property {(target: object, ruleId: string, text: string) => boolean} todo Leave a
- * `TODO(handsontable-codemod <ruleId>): <text>` comment before `target` (a js AST node or path, or a postcss
- * node) unless that exact comment is already there, and add a `manual` report entry. Returns whether a comment
+ * @property {(target: object, ruleId: string, text: string, comment?: string) => boolean} todo Leave a
+ * `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` comment before `target` (a js
+ * AST node or path, or a postcss node) unless that exact comment is already there, and add a `manual` report
+ * entry that carries the whole `text`. `comment` replaces `text` as the source of the comment when the caller
+ * has a better short form. The link is added only for a rule that has a `guide` anchor. Returns whether a comment
  * was inserted. Files that cannot hold comments (`json`) get the report entry only.
  * @property {Set<string>} facts Set shared across the whole run, phase 1 and phase 2. A transform adds a
  * fact (for example `uses-formulas`) for a later phase to read. Names are lowercase kebab-case, optionally

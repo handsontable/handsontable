@@ -1,5 +1,6 @@
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { addNamedImport } from '../lib/imports.mjs';
+import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { lookup, referenceSpace } from '../lib/scope.mjs';
 import {
   chooseSource,
@@ -226,6 +227,9 @@ function rewrite(ctx, match, isModular, noted) {
  * first letter). The root must be a namespace the file imports. A global `Handsontable` and a name collision are
  * reported as `manual` and left alone.
  *
+ * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
+ * when the rule asks for one (see `lib/safety.mjs`).
+ *
  * @type {import('../types.mjs').Transform}
  */
 const namespaceType = {
@@ -274,8 +278,15 @@ const namespaceType = {
           plugin: plugin ?? null,
           name: `${NAMESPACE_PREFIX}${match.member}`,
         }));
-      } else {
+      } else if (rewrites(match.rule)) {
         rewrite(ctx, match, isModular, noted);
+      } else {
+        const name = match.rule.to.name ?? match.member.split('.').pop();
+        const source = toList(match.rule.to.source)[0];
+
+        reportInstead(ctx, match.rule, match.path.node.loc?.start?.line,
+          `Replace ${NAMESPACE_PREFIX}${match.member} with ${name} from "${source}".`, enclosingStatement(match.path),
+          `Use ${name} from "${source}" instead.`);
       }
     }
   },

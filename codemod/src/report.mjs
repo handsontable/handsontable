@@ -96,27 +96,50 @@ function location(entry) {
 }
 
 /**
- * Render the report for a terminal, grouped by rule.
+ * Most locations of one rule that the console report lists before it says `+N more`.
+ */
+export const CONSOLE_LIMIT = 10;
+
+/**
+ * Count with a noun, for example `1 file` or `3 files`.
+ *
+ * @param {number} count The count.
+ * @param {string} noun Singular noun.
+ * @returns {string} The phrase.
+ */
+function plural(count, noun) {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
+}
+
+/**
+ * Render the report for a terminal, grouped by rule. A rule lists at most `limit` locations and then the number
+ * of the others, because the full list is in the `--report` file. The last line sums up the run.
  *
  * @param {Report} report The report.
- * @returns {string} Text that ends with a newline, or an empty string for an empty report.
+ * @param {object} [options] Options.
+ * @param {number} [options.filesChanged] Files the run changed, or would change.
+ * @param {boolean} [options.dryRun] Whether nothing was written.
+ * @param {number} [options.limit] Locations listed per rule.
+ * @returns {string} Text that ends with a newline.
  */
-export function renderConsole(report) {
-  if (report.entries.length === 0) {
-    return '';
-  }
-
+export function renderConsole(report, { filesChanged = 0, dryRun = false, limit = CONSOLE_LIMIT } = {}) {
   const lines = [];
 
   report.byRule().forEach((group) => {
-    const severities = [...new Set(group.entries.map(entry => entry.severity))].join(', ');
+    const counts = {};
 
-    const noun = group.entries.length === 1 ? 'entry' : 'entries';
-
-    lines.push(`${group.ruleId} (${group.entries.length} ${noun}, ${severities})`);
     group.entries.forEach((entry) => {
+      counts[entry.severity] = (counts[entry.severity] ?? 0) + 1;
+    });
+
+    lines.push(`${group.ruleId} (${Object.entries(counts).map(([name, count]) => `${count} ${name}`).join(', ')})`);
+    group.entries.slice(0, limit).forEach((entry) => {
       lines.push(`  [${entry.severity}] ${location(entry)}  ${entry.message}`);
     });
+
+    if (group.entries.length > limit) {
+      lines.push(`  +${group.entries.length - limit} more (use --report <file> for the full list)`);
+    }
 
     if (group.guideUrl) {
       lines.push(`  Guide: ${group.guideUrl}`);
@@ -126,15 +149,19 @@ export function renderConsole(report) {
   });
 
   const counts = report.counts();
+  const applied = dryRun ? 'would be applied' : 'applied';
 
-  lines.push(`Summary: ${counts.changed} changed, ${counts.manual} manual, ${counts.warning} warning.`);
+  lines.push(`Summary: ${plural(filesChanged, 'file')} ${dryRun ? 'would change' : 'changed'}, `
+    + `${plural(counts.changed, 'rewrite')} ${applied}, ${plural(counts.manual, 'manual step')}, `
+    + `${plural(counts.warning, 'warning')}.`);
 
   return `${lines.join('\n')}\n`;
 }
 
 /**
- * Render the report as a Markdown checklist: one section per rule, one checkbox per entry. A rewrite is
- * checked, work left to the user is not.
+ * Render the report as a Markdown checklist: one section per rule with its guide link, one checkbox per entry
+ * (`- [ ] path:line message`). A rewrite is checked, work left to the user is not. The list is complete: the
+ * limit of the console report does not apply.
  *
  * @param {Report} report The report.
  * @param {object} [options] Options.
@@ -163,9 +190,9 @@ export function renderMarkdown(report, { title = 'Handsontable migration report'
 
     group.entries.forEach((entry) => {
       const mark = entry.severity === 'changed' ? 'x' : ' ';
-      const tag = entry.severity === 'warning' ? ' (warning)' : '';
+      const tag = entry.severity === 'warning' ? '(warning) ' : '';
 
-      lines.push(`- [${mark}] \`${location(entry)}\`${tag}: ${entry.message}`);
+      lines.push(`- [${mark}] ${location(entry)} ${tag}${entry.message}`);
     });
 
     lines.push('');

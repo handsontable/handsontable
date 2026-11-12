@@ -2,9 +2,49 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import jscodeshift from 'jscodeshift';
 import postcss from 'postcss';
-import { addCssTodo, addJsTodo, formatTodo, lineOf } from '../src/lib/todo.mjs';
+import { addCssTodo, addJsTodo, formatTodo, lineOf, shortenAdvice } from '../src/lib/todo.mjs';
+
+describe('shortenAdvice', () => {
+  it('keeps the first sentence and leaves version numbers and dotted names whole', () => {
+    assert.equal(
+      shortenAdvice('The correctFormat option was removed in 18.0. Use Handsontable.helper.x instead.'),
+      'The correctFormat option was removed in 18.0.'
+    );
+  });
+
+  it('takes the next sentence along when the first one is very short and both fit', () => {
+    assert.equal(
+      shortenAdvice('Removed in 18.0. Delete this token by hand. Then more.'),
+      'Removed in 18.0. Delete this token by hand.'
+    );
+    assert.equal(
+      shortenAdvice(`Removed in 18.0. ${'Draw the border with a long selector '.repeat(4)}.`),
+      'Removed in 18.0.'
+    );
+  });
+
+  it('cuts a long sentence at a word boundary and ends it with three dots', () => {
+    const short = shortenAdvice(`Replace ${'word '.repeat(40)}now.`);
+
+    assert.ok(short.length <= 100, short.length);
+    assert.match(short, /word\.\.\.$/);
+  });
+
+  it('flattens line breaks and ends the text with a full stop', () => {
+    assert.equal(shortenAdvice('Do this\n   now'), 'Do this now.');
+    assert.equal(shortenAdvice(''), '');
+  });
+});
 
 describe('formatTodo', () => {
+  it('adds the guide link after the first sentence, and only when there is one', () => {
+    assert.equal(
+      formatTodo('18.0.0/x', 'Replace the old import with the new one. Then do B.', 'https://example.com/guide#a'),
+      'TODO(handsontable-codemod 18.0.0/x): Replace the old import with the new one. See https://example.com/guide#a'
+    );
+    assert.equal(formatTodo('18.0.0/x', 'Replace A.'), 'TODO(handsontable-codemod 18.0.0/x): Replace A.');
+  });
+
   it('uses the fixed marker and flattens the text to one line', () => {
     assert.equal(
       formatTodo('18.0.0/x', 'First line.\n   Second line.'),

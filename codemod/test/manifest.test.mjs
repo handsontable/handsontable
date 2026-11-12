@@ -126,7 +126,7 @@ describe('validator and schema parity', () => {
 describe('validateRule', () => {
   it('accepts a minimal rule of each kind', () => {
     for (const [kind, spec] of Object.entries(RULE_KINDS)) {
-      const rule = { id: '18.0.0/x', kind };
+      const rule = { id: '18.0.0/x', kind, safe: false };
 
       Object.entries(spec.required).forEach(([field, type]) => {
         rule[field] = { string: 'a', strings: ['a'], stringOrStrings: 'a', object: { a: 1 }, boolean: true }[type];
@@ -138,8 +138,8 @@ describe('validateRule', () => {
 
   it('reports unknown kinds, missing fields, wrong types, and bad ids', () => {
     const first = rule => validateRule(rule, '18.0.0')[0];
-    const remove = { id: '18.0.0/x', kind: 'optionRemove', name: 'a' };
-    const css = { id: '18.0.0/x', kind: 'cssVariable', from: 'a', to: 'b' };
+    const remove = { id: '18.0.0/x', kind: 'optionRemove', name: 'a', safe: true };
+    const css = { id: '18.0.0/x', kind: 'cssVariable', from: 'a', to: 'b', safe: true };
 
     assert.match(first({ id: '18.0.0/x', kind: 'nope' }), /unknown kind/);
     assert.match(first({ id: css.id, kind: 'optionRename', from: 'a' }), /missing required field "to"/);
@@ -151,17 +151,44 @@ describe('validateRule', () => {
     assert.deepEqual(validateRule('text', '18.0.0'), ['the rule is not an object']);
   });
 
+  it('requires safe on every kind except detect and exportRemoved, which only report', () => {
+    const problems = rule => validateRule({ id: '18.0.0/x', ...rule }, '18.0.0');
+
+    assert.match(problems({ kind: 'optionRemove', name: 'a' })[0], /missing required field "safe"/);
+    assert.match(problems({ kind: 'dependency' })[0], /missing required field "safe"/);
+    assert.match(problems({ kind: 'custom', module: 'a.mjs' })[0], /missing required field "safe"/);
+    assert.deepEqual(problems({ kind: 'detect', match: { string: 'a' } }), []);
+    assert.deepEqual(problems({ kind: 'exportRemoved', source: 'a', name: 'b', safe: false }), []);
+    assert.match(problems({ kind: 'detect', match: { string: 'a' }, safe: true })[0], /only report/);
+    assert.match(problems({ kind: 'exportRemoved', source: 'a', name: 'b', safe: true })[0], /only report/);
+  });
+
   it('allows extra properties so a transform can grow', () => {
-    const rule = { id: '18.0.0/x', kind: 'optionRemove', name: 'a', futureField: [1] };
+    const rule = { id: '18.0.0/x', kind: 'optionRemove', name: 'a', safe: true, futureField: [1] };
 
     assert.deepEqual(validateRule(rule, '18.0.0'), []);
   });
 });
 
 describe('loadManifest', () => {
+  it('gives the report-only kinds safe: false and never invents safe for another kind', async() => {
+    await withVersionsDir(async(root) => {
+      const dir = await writeVersion(root, '18.0.0', {
+        rules: [
+          { id: '18.0.0/d', kind: 'detect', match: { string: 'a' } },
+          { id: '18.0.0/r', kind: 'exportRemoved', source: 'a', name: 'b' },
+          { id: '18.0.0/o', kind: 'optionRemove', name: 'a', safe: true },
+        ],
+      });
+      const manifest = await loadManifest(dir);
+
+      assert.deepEqual(manifest.rules.map(rule => rule.safe), [false, false, true]);
+    });
+  });
+
   it('rejects a duplicate id', async() => {
     await withVersionsDir(async(root) => {
-      const rule = { id: '18.0.0/a', kind: 'optionRemove', name: 'x' };
+      const rule = { id: '18.0.0/a', kind: 'optionRemove', name: 'x', safe: true };
       const dir = await writeVersion(root, '18.0.0', { rules: [rule, rule] });
 
       await assert.rejects(loadManifest(dir), (error) => {
@@ -192,15 +219,17 @@ describe('loadManifest', () => {
     await withVersionsDir(async(root) => {
       const dir = await writeVersion(root, '18.0.0', {
         include: ['rules/types.json'],
-        rules: [{ id: '18.0.0/inline', kind: 'optionRemove', name: 'a' }],
+        rules: [{ id: '18.0.0/inline', kind: 'optionRemove', name: 'a', safe: true }],
       }, {
-        'rules/types.json': JSON.stringify({ rules: [{ id: '18.0.0/included', kind: 'optionRemove', name: 'b' }] }),
+        'rules/types.json': JSON.stringify({
+          rules: [{ id: '18.0.0/included', kind: 'optionRemove', name: 'b', safe: true }],
+        }),
       });
       const manifest = await loadManifest(dir);
 
       assert.deepEqual(manifest.rules.map(rule => rule.id), ['18.0.0/inline', '18.0.0/included']);
 
-      const clash = { rules: [{ id: '18.0.0/inline', kind: 'optionRemove', name: 'b' }] };
+      const clash = { rules: [{ id: '18.0.0/inline', kind: 'optionRemove', name: 'b', safe: true }] };
 
       await writeFile(join(dir, 'rules', 'types.json'), JSON.stringify(clash));
       await assert.rejects(loadManifest(dir), /duplicate id/);
@@ -224,7 +253,7 @@ describe('loadManifest', () => {
   it('resolves a custom module relative to the version directory and requires it to exist', async() => {
     await withVersionsDir(async(root) => {
       const dir = await writeVersion(root, '18.1.0', {
-        rules: [{ id: '18.1.0/c', kind: 'custom', module: 'custom/x.mjs' }],
+        rules: [{ id: '18.1.0/c', kind: 'custom', module: 'custom/x.mjs', safe: false }],
       }, { 'custom/x.mjs': 'export default {};' });
       const manifest = await loadManifest(dir);
 
@@ -239,15 +268,15 @@ describe('loadManifest', () => {
     await withVersionsDir(async(root) => {
       const dir = await writeVersion(root, '18.0.0', {
         rules: [
-          { id: '18.0.0/a', kind: 'optionRemove', name: 'a', guide: '_1-step' },
-          { id: '18.0.0/b', kind: 'optionRemove', name: 'b' },
+          { id: '18.0.0/a', kind: 'optionRemove', name: 'a', safe: true, guide: '_1-step' },
+          { id: '18.0.0/b', kind: 'optionRemove', name: 'b', safe: true },
         ],
       });
       const manifest = await loadManifest(dir);
 
       assert.equal(manifest.rules[0].guideUrl, 'https://example.com/guide#_1-step');
       assert.equal(manifest.rules[1].guideUrl, 'https://example.com/guide');
-      assert.equal(manifest.rules[0].safe, false);
+      assert.equal(manifest.rules[0].safe, true);
       assert.equal(manifest.rules[0].version, '18.0.0');
     });
   });

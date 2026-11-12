@@ -372,8 +372,8 @@ describe('resolvePlan and describeRules', () => {
   it('lists every rule with whether its kind has a transform', async() => {
     const versionsDir = await makeVersionsDir({
       '18.0.0': { rules: [
-        { id: '18.0.0/css', kind: 'cssVariable', from: 'a', to: 'b' },
-        { id: '18.0.0/opt', kind: 'optionRemove', name: 'x' },
+        { id: '18.0.0/css', kind: 'cssVariable', from: 'a', to: 'b', safe: true },
+        { id: '18.0.0/opt', kind: 'optionRemove', name: 'x', safe: false },
       ] },
     });
 
@@ -382,9 +382,9 @@ describe('resolvePlan and describeRules', () => {
 
       const registry = createRegistry([{ kinds: ['cssVariable'], fileKinds: ['css'], apply() {} }]);
 
-      assert.deepEqual(describeRules(plan, registry).map(row => [row.id, row.implemented]), [
-        ['18.0.0/opt', false],
-        ['18.0.0/css', true],
+      assert.deepEqual(describeRules(plan, registry).map(row => [row.id, row.implemented, row.mode]), [
+        ['18.0.0/opt', false, 'report'],
+        ['18.0.0/css', true, 'rewrite'],
       ]);
     } finally {
       await rm(versionsDir, { recursive: true, force: true });
@@ -395,7 +395,7 @@ describe('resolvePlan and describeRules', () => {
     const cwd = tmpdir();
 
     await assert.rejects(resolvePlan({ cwd, from: '17', only: ['18.0.0/nope'] }), /Unknown rule id: 18\.0\.0\/nope/);
-    await assert.rejects(resolvePlan({ cwd, from: '18', to: '18.1' }), /No migration to run/);
+    await assert.rejects(resolvePlan({ cwd, from: '18', to: '18.1' }), /Nothing to migrate/);
   });
 });
 
@@ -473,8 +473,8 @@ describe('run', () => {
   it('keeps only the rules named by --only', async() => {
     const versionsDir = await makeVersionsDir({
       '18.0.0': { rules: [
-        { id: '18.0.0/one', kind: 'cssVariable', from: '--ht-one', to: '--ht-uno' },
-        { id: '18.0.0/two', kind: 'cssVariable', from: '--ht-two', to: '--ht-dos' },
+        { id: '18.0.0/one', kind: 'cssVariable', from: '--ht-one', to: '--ht-uno', safe: true },
+        { id: '18.0.0/two', kind: 'cssVariable', from: '--ht-two', to: '--ht-dos', safe: true },
       ] },
     });
 
@@ -548,8 +548,11 @@ describe('run', () => {
 
   it('notes draft manifests it left out and runs them with includeDraft', async() => {
     const versionsDir = await makeVersionsDir({
-      '19.0.0': { status: 'draft', rules: [{ id: '19.0.0/x', kind: 'cssVariable', from: '--ht-a', to: '--ht-b' }] },
-      '18.0.0': { rules: [{ id: '18.0.0/y', kind: 'cssVariable', from: '--ht-c', to: '--ht-d' }] },
+      '19.0.0': {
+        status: 'draft',
+        rules: [{ id: '19.0.0/x', kind: 'cssVariable', from: '--ht-a', to: '--ht-b', safe: true }],
+      },
+      '18.0.0': { rules: [{ id: '18.0.0/y', kind: 'cssVariable', from: '--ht-c', to: '--ht-d', safe: true }] },
     });
 
     try {
@@ -571,7 +574,9 @@ describe('run', () => {
 
   it('updates package.json in phase 2 only when a dependency transform exists', async() => {
     const versionsDir = await makeVersionsDir({
-      '18.0.0': { rules: [{ id: '18.0.0/dep', kind: 'dependency', package: 'handsontable', action: 'bump' }] },
+      '18.0.0': {
+        rules: [{ id: '18.0.0/dep', kind: 'dependency', package: 'handsontable', action: 'bump', safe: true }],
+      },
     });
     const dependency = {
       kinds: ['dependency'],

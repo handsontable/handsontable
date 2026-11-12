@@ -1,3 +1,4 @@
+import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { replaceStringLiteral } from '../lib/string-literal.mjs';
 import { TODO_PREFIX } from '../lib/todo.mjs';
 
@@ -29,6 +30,7 @@ function tokenPattern(name, flags = '') {
  * @typedef {object} Entry
  * @property {import('../types.mjs').Rule} rule The manifest rule.
  * @property {boolean} removed Whether the variable is removed instead of renamed.
+ * @property {boolean} edits Whether the rule may edit code. A rename of a rule that is not safe is only reported.
  * @property {RegExp} test Pattern without the `g` flag, safe for repeated `test`.
  * @property {RegExp} all Global pattern, for replacing and for collecting matches.
  */
@@ -54,6 +56,7 @@ function buildEntries(rules, source) {
     .map(rule => ({
       rule,
       removed: rule.removed === true,
+      edits: rewrites(rule),
       test: tokenPattern(rule.from),
       all: tokenPattern(rule.from, 'g'),
     }));
@@ -114,6 +117,18 @@ function leaveTodo(ctx, node, rule) {
 }
 
 /**
+ * Report a rename that the rule does not apply because it is not safe.
+ *
+ * @param {import('../types.mjs').Ctx} ctx Context of a `css` or `js` part.
+ * @param {import('../types.mjs').Rule} rule A rename rule.
+ * @param {number|undefined} line One-based line.
+ * @returns {void}
+ */
+function reportRename(ctx, rule, line) {
+  reportInstead(ctx, rule, line, `Rename ${rule.from} to ${rule.to} here.`);
+}
+
+/**
  * Tell whether a rule or at-rule block already declares a custom property directly.
  *
  * @param {object} container A postcss container.
@@ -144,6 +159,12 @@ function applyToDeclaration(ctx, declaration, entry) {
 
   if (removed) {
     leaveTodo(ctx, declaration, rule);
+
+    return;
+  }
+
+  if (!entry.edits) {
+    reportRename(ctx, rule, line);
 
     return;
   }
@@ -194,6 +215,12 @@ function applyToAtRule(ctx, atRule, entry) {
     return;
   }
 
+  if (!entry.edits) {
+    reportRename(ctx, rule, atRule.source?.start?.line);
+
+    return;
+  }
+
   atRule.params = atRule.params.replace(all, rule.to);
   ctx.markChanged();
   ctx.report({
@@ -233,11 +260,15 @@ function applyToCss(ctx, entries) {
  */
 function applyToJs(ctx, entries) {
   const { j, root } = ctx;
-  const rename = entries.filter(entry => !entry.removed);
+  const rename = entries.filter(entry => !entry.removed && entry.edits);
 
-  for (const { rule, test } of entries.filter(entry => entry.removed)) {
+  for (const { rule, test, removed } of entries.filter(entry => entry.removed || !entry.edits)) {
     const report = (line) => {
-      ctx.report({ ruleId: rule.id, severity: 'manual', line, message: removalAdvice(rule) });
+      if (removed) {
+        ctx.report({ ruleId: rule.id, severity: 'manual', line, message: removalAdvice(rule) });
+      } else {
+        reportRename(ctx, rule, line);
+      }
     };
 
     root.find(j.Literal).forEach((path) => {
@@ -337,6 +368,9 @@ function reportInTemplate(ctx, entries) {
  *
  * A removed variable (`removed: true`) is never deleted. In CSS it gets a TODO comment with the rule's advice,
  * once, before the declaration that defines or uses it. In JavaScript and templates it is reported.
+ *
+ * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
+ * when the rule asks for one (see `lib/safety.mjs`).
  *
  * @type {import('../types.mjs').Transform}
  */

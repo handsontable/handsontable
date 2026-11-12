@@ -1,5 +1,6 @@
 import { planRange } from '../lib/dependency-range.mjs';
 import { addFact, dirOf, hasFactFor } from '../lib/facts.mjs';
+import { rewrites } from '../lib/safety.mjs';
 
 /**
  * The `package.json` sections that declare dependencies.
@@ -214,7 +215,13 @@ function bump(ctx, rule) {
 
       const plan = planRange(current, target);
 
-      if (plan.action === 'rewrite') {
+      if (plan.action === 'rewrite' && !rewrites(rule)) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          message: `Update ${name} in ${section} from "${current}" to "${plan.value}".`,
+        });
+      } else if (plan.action === 'rewrite') {
         ctx.root[section][name] = plan.value;
         ctx.markChanged();
         ctx.report({
@@ -313,6 +320,15 @@ function addPackages(ctx, rule) {
       continue;
     }
 
+    if (!rewrites(rule)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        message: `Add ${item.name}@${item.range} to ${section}. Handsontable no longer installs it.`,
+      });
+      continue;
+    }
+
     insertDependency(ctx.root, section, item.name, item.range);
     ctx.markChanged();
     ctx.report({
@@ -351,6 +367,9 @@ function reportMissing(ctx, rule) {
  * Handles `dependency` rules. In phase 2 it edits a `package.json`: it raises the Handsontable package
  * ranges, reports replaced wrapper packages, adds packages that a project now has to install itself, and
  * reports the ones it will not add. In phase 1 it scans js parts for the facts those steps read.
+ *
+ * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
+ * when the rule asks for one (see `lib/safety.mjs`).
  *
  * @type {import('../types.mjs').Transform}
  */

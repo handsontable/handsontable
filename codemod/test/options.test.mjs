@@ -363,7 +363,9 @@ describe('optionRemove', () => {
     const first = await run(grid('{\n  a: 1,\n  gone: true,\n  b: 2,\n}'), [REMOVE]);
     const second = await run(first.output, [REMOVE]);
 
-    assert.equal(first.output.match(/TODO\(handsontable-codemod 18\.0\.0\/remove\): It is gone\./g).length, 1);
+    const todos = first.output.match(/\(handsontable-codemod 18\.0\.0\/remove\): Deleted gone here\. It is gone\./g);
+
+    assert.equal(todos.length, 1);
     assert.match(first.output, /\/\/ TODO[^\n]*\n\s*b: 2/);
     assert.deepEqual([second.changed, second.entries.length], [false, 0]);
   });
@@ -406,15 +408,15 @@ describe('optionRemove', () => {
     const result = await run(grid('{\n  a: 1,\n  gone: true,\n  also: true,\n}'), [REMOVE, other]);
 
     assert.equal(result.output.match(/TODO/g).length, 2);
-    assert.match(result.output, /It is gone\.\n\s+\/\/ TODO[^\n]*Also gone\.\n\s+a: 1/);
+    assert.match(result.output, /It is gone\.\n\s+\/\/ TODO[^\n]*Deleted also here\. Also gone\.\n\s+a: 1/);
   });
 
   it('uses the message, then a generic text, when a rule has no advice', async() => {
     const message = await run(grid('{ gone: 1, b: 2 }'), [{ ...REMOVE, advice: undefined, message: 'Use b.' }]);
     const bare = await run(grid('{ gone: 1, b: 2 }'), [{ ...REMOVE, advice: undefined }]);
 
-    assert.match(message.output, /: Use b\./);
-    assert.match(bare.output, /: gone was removed\./);
+    assert.match(message.output, /: Deleted gone here\. Use b\./);
+    assert.match(bare.output, /: Deleted gone here\. gone was removed\./);
   });
 
   it('reports a medium object and removes nothing', async() => {

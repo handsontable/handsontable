@@ -12,20 +12,20 @@
     {
       "id": "18.0.0/correct-format-removed",
       "kind": "optionRemove",
-      "safe": false,
+      "safe": true,
       "guide": "correctformat-option",
       "name": "correctFormat",
       "todo": true,
-      "advice": "The correctFormat option was removed in 18.0 and was deleted here. The date, time, intl-date, and intl-time cell types work with ISO 8601 values and do not reformat input. To normalize or correct entered values, use the valueParser or valueSetter option."
+      "advice": "The correctFormat option was removed in 18.0. The date, time, intl-date, and intl-time cell types work with ISO 8601 values and do not reformat input. To normalize or correct entered values, use the valueParser or valueSetter option."
     },
     {
       "id": "18.0.0/date-picker-config-removed",
       "kind": "optionRemove",
-      "safe": false,
+      "safe": true,
       "guide": "datepickerconfig-option",
       "name": "datePickerConfig",
       "todo": true,
-      "advice": "The datePickerConfig option was removed in 18.0 and was deleted here. The date and intl-date cell types use the browser's native date input instead of Pikaday."
+      "advice": "The datePickerConfig option was removed in 18.0. The date and intl-date cell types use the browser's native date input instead of Pikaday."
     },
     {
       "id": "18.0.0/export-column-headers",

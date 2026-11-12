@@ -6,8 +6,9 @@ import { UsageError } from './errors.mjs';
 import { discover } from './discover.mjs';
 import { dirtyPaths, isGitRepo } from './git.mjs';
 import { registerPackageDir } from './lib/facts.mjs';
+import { modeOf, rewrites } from './lib/safety.mjs';
 import { addCssTodo, addJsTodo, lineOf } from './lib/todo.mjs';
-import { VERSIONS_DIR, buildPlan, loadManifests } from './manifest.mjs';
+import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
 import { Report } from './report.mjs';
 import { registry as defaultRegistry } from './transforms/index.mjs';
 import {
@@ -99,6 +100,12 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
       throw new Error(`Invalid report entry: ${JSON.stringify(entry)}`);
     }
 
+    const owner = plan.rulesById.get(entry.ruleId);
+
+    if (entry.severity === 'changed' && owner && !rewrites(owner)) {
+      throw new Error(`Rule ${entry.ruleId} is not safe, so it must not edit code: ${entry.message}`);
+    }
+
     entries.push({
       ruleId: entry.ruleId,
       severity: entry.severity,
@@ -113,13 +120,15 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     part.changed = true;
   };
 
-  const todo = (target, ruleId, text) => {
+  const todo = (target, ruleId, text, comment) => {
+    const owner = plan.rulesById.get(ruleId);
+    const guideUrl = owner?.guide ? owner.guideUrl : null;
     let inserted = false;
 
     if (part.fileKind === 'js') {
-      inserted = addJsTodo(part.j, target, ruleId, text);
+      inserted = addJsTodo(part.j, target, ruleId, comment ?? text, guideUrl);
     } else if (part.fileKind === 'css') {
-      inserted = addCssTodo(target, ruleId, text);
+      inserted = addCssTodo(target, ruleId, comment ?? text, guideUrl);
     }
 
     if (inserted) {
@@ -286,7 +295,8 @@ export async function resolvePlan({
       fromText = detected.version;
       notes.push(`Detected --from ${fromText} (${detected.source}).`);
     } else if (!lenientFrom) {
-      throw new UsageError('Cannot detect the installed Handsontable version. Pass --from, for example --from 17.1.');
+      throw new UsageError('Cannot tell which Handsontable version this project uses: there is no installed '
+        + 'handsontable package and no handsontable range in package.json. Pass --from, for example --from 17.1.');
     }
   }
 
@@ -302,15 +312,19 @@ export async function resolvePlan({
   }
 
   if (selected.length === 0) {
-    throw new UsageError(`No migration to run from ${fromText ?? 'the beginning'} to ${toText}.`
-      + `${skippedDrafts.length > 0 ? ' Only draft manifests are in range.' : ''}`);
+    const known = manifests.map(manifest => `${manifest.version}${manifest.status === 'draft' ? ' (draft)' : ''}`);
+
+    throw new UsageError(`Nothing to migrate from ${fromText ?? 'the beginning'} to ${toText}. `
+      + `A migration runs when its version is above --from and not above --to. Known migrations: ${known.join(', ')}.`
+      + `${skippedDrafts.length > 0 ? ' Only draft manifests are in range, add --include-draft to run them.' : ''}`);
   }
 
-  const known = new Set(selected.flatMap(manifest => manifest.rules.map(rule => rule.id)));
-  const unknown = only.filter(id => !known.has(id));
+  const ids = selected.flatMap(manifest => manifest.rules.map(rule => rule.id));
+  const unknown = only.filter(pattern => !ids.some(id => matchesOnly(pattern, id)));
 
   if (unknown.length > 0) {
-    throw new UsageError(`Unknown rule id: ${unknown.join(', ')}. Run with --list to see the ids in range.`);
+    throw new UsageError(`Unknown rule id: ${unknown.join(', ')}. Run with --list to see the ids in range. `
+      + 'A trailing * names every id with that prefix, for example --only "18.0.0/type-*".');
   }
 
   return {
@@ -327,8 +341,8 @@ export async function resolvePlan({
  *
  * @param {import('./types.mjs').Plan} plan The plan.
  * @param {import('./transforms/index.mjs').Registry} [registry] Transform registry.
- * @returns {Array<{id: string, kind: string, version: string, safe: boolean, implemented: boolean}>} Rows in
- * run order.
+ * @returns {Array<{id: string, kind: string, version: string, safe: boolean, mode: 'rewrite'|'report',
+ * implemented: boolean}>} Rows in run order. `mode` is what the rule does when it runs (see `lib/safety.mjs`).
  */
 export function describeRules(plan, registry = defaultRegistry) {
   return plan.versions.flatMap(({ rules }) => [...rules]
@@ -337,7 +351,8 @@ export function describeRules(plan, registry = defaultRegistry) {
       id: rule.id,
       kind: rule.kind,
       version: rule.version,
-      safe: rule.safe,
+      safe: rewrites(rule),
+      mode: modeOf(rule),
       implemented: registry.byKind.has(rule.kind),
     })));
 }
