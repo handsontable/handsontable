@@ -1169,6 +1169,17 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
      sheet with the snapshot, and a difference sets `#foreignSheetChange` until the next load. The two reads are
      noise next to the operation (a sort of 10,000 rows takes about 1.9 s in jsdom, a drag shows no change), and
      keeping them keeps a sorted or dragged grid in place on the next re-render, which is the point of the reload.
+     Measured in headless Chrome on a 100,000 x 5 sheet-built grid (two formula columns, median of 5): the two
+     reads add about 80 ms to a header sort ascending (8.19 s against 8.24 s for a data-built grid on develop, which
+     cannot sort a sheet-built grid at all), about 160 ms to a descending one (17.03 s against 16.95 s), and about
+     80 ms to a one-row move (0.77 s against 0.78 s; 0.27 s of serialization against 0.19 s). **Do not replace the
+     read after with a permutation of the snapshot**: the engine rewrites formula text on every order it takes,
+     so a permuted snapshot never equals `getSheetSerialized()` and every reload would fall back to `loadData()`.
+     Measured on `[b, 2, =B1*2, =SUM($B$1:$B$4)]...`: a sort turns `=B1*2` into `=B3*2` and `=A1` into `=#REF!`
+     (relative offsets kept), a move turns `=B1+1` into `=B4+1` and `$B$1:$B$4` into `$B$1:$B$3` (references follow
+     their cells, and a range shrinks). Keeping the snapshot in step without the read means reimplementing the
+     engine's reference transformation. The snapshot is a second full copy of the sheet for the grid's lifetime,
+     needed because the engine reports no event for a host's structural change that changes no value.
   3. **An insert or a removal** of rows or columns (`'resets'`) reads nothing and drops the snapshot when it ends,
      so the next reload takes `loadData()`, as every reload did before this path existed, and takes a new snapshot;
      the re-render after it reloads in place again. The two full reads cost an insert or a removal about 20 ms at
