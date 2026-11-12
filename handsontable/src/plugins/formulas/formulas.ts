@@ -656,6 +656,14 @@ export class Formulas extends BasePlugin {
   #reloadEngineOrder: { row: EngineOrder; column: EngineOrder } | null = null;
 
   /**
+   * The order, with the content, the engine held the bound sheet in when `disablePlugin()` turned off a grid
+   * built from an engine sheet without `data` (`exportEngineOrder(true)`), or `null` when the order was
+   * physical on both axes or the grid was built with `data`. The next `enablePlugin()` takes it over
+   * (`#setupSyncEndpointForSheetBuiltGrid()`) and clears it.
+   */
+  #sheetBuiltOrderAtDisable: FormulasEngineSheetOrder | null = null;
+
+  /**
    * The `formulas.sheetName` setting the binding last followed (see `#requestedSheetName()`), or
    * `undefined` before the first one.
    *
@@ -1353,6 +1361,15 @@ export class Formulas extends BasePlugin {
     let sheetPaintErrors: unknown[] = [];
     // Set when this enable fills a new sheet from the grid's data; the sync endpoint is set up once the syncers exist.
     let filledSheet = false;
+    // Set when this enable binds again the sheet a grid built from it was turned off on, or adds that sheet back from
+    // the content the engine held at the disable. The endpoint is set up once the syncers exist, taking over the
+    // order the engine holds the sheet in (`#setupSyncEndpointForSheetBuiltGrid()`).
+    let reboundSheetBuiltGrid = false;
+    // Set when this enable added that sheet back from the stored content, which is in the stored order.
+    let addedSheetBuiltContent = false;
+    const sheetBuiltOrder = this.#sheetBuiltOrderAtDisable;
+
+    this.#sheetBuiltOrderAtDisable = null;
     // Set when this enable binds a sheet the engine still holds and owes it a resync; the endpoint is set up once
     // the syncers exist, without an order, which the resync's `#writeSheet()` sends.
     let boundHeldSheet = false;
@@ -1363,18 +1380,36 @@ export class Formulas extends BasePlugin {
       this.sheetId = null;
 
     } else if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
-      const sourceDataArray = this.#getProcessedSourceDataArray();
+      // A grid built from an engine sheet gets the sheet back as the engine held it, in that engine order: the
+      // grid's source data holds the formula text of that order (`#sourceHasStaleFormulas`), so the sheet filled
+      // from it in physical order and then sorted read other cells (an engine class builds a new engine).
+      const sheetBuiltContent = this.#hotWasInitializedWithEmptyData && this.hot.view
+        ? sheetBuiltOrder?.content : undefined;
+      let sourceDataArray = sheetBuiltContent;
 
-      this.#escapeSourceDataArray(sourceDataArray);
+      if (sourceDataArray === undefined) {
+        sourceDataArray = this.#getProcessedSourceDataArray();
+        this.#escapeSourceDataArray(sourceDataArray);
+      }
 
       const { addedSheetName, paintErrors } = this.#addSheet(this.sheetName, sourceDataArray);
 
       if (typeof addedSheetName === 'string') {
         this.#updateSheetNameAndSheetId(addedSheetName);
-        filledSheet = true;
+        filledSheet = sheetBuiltContent === undefined;
+        reboundSheetBuiltGrid = sheetBuiltContent !== undefined;
+        addedSheetBuiltContent = reboundSheetBuiltGrid;
       }
 
       sheetPaintErrors = paintErrors;
+
+    } else if (this.sheetName !== null && this.hot.view && this.#hotWasInitializedWithEmptyData
+      && !this.isDataLoadPending()) {
+      // A grid built from an engine sheet reads the sheet as its data, so nothing is written to it: the engine
+      // holds it as the grid left it, in the order the grid had at the disable. The next settings update
+      // reloads it from the engine, as every settings update of such a grid does.
+      this.#updateSheetNameAndSheetId(this.sheetName);
+      reboundSheetBuiltGrid = true;
 
     } else if (this.sheetName !== null && this.hot.view && !this.#hotWasInitializedWithEmptyData
       && !this.isDataLoadPending()) {
@@ -1436,6 +1471,9 @@ export class Formulas extends BasePlugin {
 
     if (filledSheet) {
       this.#setupSyncEndpointForFilledSheet();
+
+    } else if (reboundSheetBuiltGrid) {
+      this.#setupSyncEndpointForSheetBuiltGrid(sheetBuiltOrder, addedSheetBuiltContent);
 
     } else if (boundHeldSheet && this.sheetId !== null) {
       // An order change before the resync drains (a sort or a move with rendering suspended, or right after a
@@ -1572,6 +1610,9 @@ export class Formulas extends BasePlugin {
     this.#sourceRowCountAtLastSync = null;
     this.#sheetIdAtLastSync = null;
     this.#sheetResyncPending = false;
+    // A grid built from an engine sheet leaves the sheet in the grid's order, which only these syncers know: the
+    // next enable takes it over. Read after `#notifyEngineDetach()`, whose listeners can still write the sheet.
+    this.#sheetBuiltOrderAtDisable = this.#hotWasInitializedWithEmptyData ? this.exportEngineOrder(true) : null;
     // The next load of a sheet starts the comparison over (and the content is not kept alive meanwhile).
     this.#loadedSheetContent = null;
     this.#foreignSheetChange = false;
@@ -1876,6 +1917,7 @@ export class Formulas extends BasePlugin {
 
     this.engine = null;
     this.#ownSheetExists = null;
+    this.#sheetBuiltOrderAtDisable = null;
     this.#loadedSheetContent = null;
 
     super.destroy();
@@ -2150,6 +2192,41 @@ export class Formulas extends BasePlugin {
     }
 
     this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId);
+  }
+
+  /**
+   * Points the order syncers at the sheet a grid built from an engine sheet binds again on a re-enable, which the
+   * engine holds in the order the grid had when the plugin was turned off (`#sheetBuiltOrderAtDisable`), or which
+   * the enable has just added back from the content the engine held then. The new syncers take that order over, so
+   * the engine follows the grid's current order from it: a sort or a move made while the plugin was off reaches the
+   * engine as one order, and a grid that kept its order sends nothing. With no stored order (the engine held the
+   * physical order on both axes) the setup sends the grid's order as one order, as `#setupSyncEndpointForFilledSheet()`
+   * does. A stored order of another engine sheet (an engine instance other than the one turned off, which the enable
+   * did not fill from the stored content), or of a grid with fewer rows or columns than it describes, tells nothing
+   * about the sheet the engine holds now, and is dropped the same way.
+   *
+   * Before DEV-3760 no path set the endpoint up here: a sorted grid's next sort reordered the grid and left the
+   * engine's rows where they were, so the formula column showed the wrong records' results.
+   *
+   * @param {object|null} order The order the engine held the sheet in at the disable.
+   * @param {boolean} addedFromContent Whether the enable has just added the sheet from `order.content`.
+   */
+  #setupSyncEndpointForSheetBuiltGrid(order: FormulasEngineSheetOrder | null, addedFromContent: boolean): void {
+    if (this.engine === null || this.sheetId === null) {
+      return;
+    }
+
+    const adoptable = order !== null
+      && (addedFromContent || (order.engine === this.engine && order.sheetId === this.sheetId))
+      && order.rowOrder.sequence.length <= this.hot.rowIndexMapper.getNumberOfIndexes()
+      && order.columnOrder.sequence.length <= this.hot.columnIndexMapper.getNumberOfIndexes();
+
+    this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId, !adoptable);
+
+    if (adoptable) {
+      this.rowAxisSyncer!.adoptEngineOrder(order.rowOrder);
+      this.columnAxisSyncer!.adoptEngineOrder(order.columnOrder);
+    }
   }
 
   /**

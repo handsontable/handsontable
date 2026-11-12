@@ -5,7 +5,8 @@ import type { CellValue } from './windowTypes';
 
 /**
  * Page object for the live grid fixture (`formulas-enable-on-live-grid.html`): a grid built without
- * Formulas, with `columnSorting` and `manualRowMove`, that a spec turns Formulas on for.
+ * Formulas, with `columnSorting` and `manualRowMove`, that a spec turns Formulas on for. Opened with
+ * `goto('sheet')`, the grid is built without `data` from the `S1` sheet of an engine instance instead.
  */
 export class FormulasEnableOnLiveGridPage {
   readonly page: Page;
@@ -18,10 +19,15 @@ export class FormulasEnableOnLiveGridPage {
     this.bundle = bundle;
   }
 
-  /** Open the fixture and wait for the bundle. */
-  async goto(): Promise<void> {
+  /**
+   * Open the fixture and wait for the bundle.
+   *
+   * @param build `'sheet'` builds the grid without `data`, from the `S1` sheet of an engine instance.
+   */
+  async goto(build: 'data' | 'sheet' = 'data'): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/formulas-enable-on-live-grid.html?theme=${this.theme}&bundle=${this.bundle}`
+        + `&build=${build}`
     );
     await awaitBundle(this.page);
   }
@@ -42,6 +48,19 @@ export class FormulasEnableOnLiveGridPage {
       const { HyperFormula } = window as unknown as { HyperFormula: unknown };
 
       window.hot.updateSettings({ formulas: { engine: HyperFormula } } as never);
+    });
+  }
+
+  /**
+   * `updateSettings({ formulas: false })` and back to the engine instance and sheet of a grid opened with
+   * `goto('sheet')`, run in the page.
+   */
+  async reenableSheetFormulas(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { engine } = window as unknown as { engine: unknown };
+
+      window.hot.updateSettings({ formulas: false } as never);
+      window.hot.updateSettings({ formulas: { engine, sheetName: 'S1' } } as never);
     });
   }
 

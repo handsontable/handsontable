@@ -500,6 +500,249 @@ describe('Formulas enabled on a live grid', () => {
     });
   });
 
+  /**
+   * A grid built from an engine sheet without `data` reads the sheet as its data, and the engine holds the sheet in
+   * the grid's order once the grid is sorted or moved. A re-enable has to point the new syncers at that sheet and
+   * take over the order the engine holds, or the next sort reorders the grid while the engine keeps its rows: the
+   * formula column then showed `8, 6, 4, 2` instead of `2, 4, 6, 8`, and only the no-endpoint warning fired.
+   */
+  describe('again after it was turned off, on a grid built from an engine sheet', () => {
+    const SHEET_CONTENT = [['b', 2, '=B1*2'], ['a', 1, '=B2*2'], ['c', 3, '=B3*2'], ['d', 4, '=B4*2']];
+    const SORTED_ASC = [['a', 1, 2], ['b', 2, 4], ['c', 3, 6], ['d', 4, 8]];
+    const SORTED_DESC = [['d', 4, 8], ['c', 3, 6], ['b', 2, 4], ['a', 1, 2]];
+
+    /**
+     * Builds an engine holding `content` in the `S1` sheet.
+     *
+     * @param {Array[]} content The sheet content.
+     * @returns {HyperFormula}
+     */
+    function buildEngineWithSheet(content) {
+      const engine = buildEngine();
+
+      engine.addSheet('S1');
+      engine.setSheetContent(engine.getSheetId('S1'), copy(content));
+
+      return engine;
+    }
+
+    /**
+     * Counts the order calls an engine gets from now on.
+     *
+     * @param {HyperFormula} engine The engine.
+     * @returns {Function} Returns the number of calls made since.
+     */
+    function countOrderCalls(engine) {
+      const spies = ['moveRows', 'setRowOrder', 'moveColumns', 'setColumnOrder'].map(name => jest.spyOn(engine, name));
+
+      return () => spies.reduce((count, spy) => count + spy.mock.calls.length, 0);
+    }
+
+    const reenables = {
+      'disablePlugin() and enablePlugin()': () => {
+        const plugin = hot.getPlugin('formulas');
+
+        plugin.disablePlugin();
+        plugin.enablePlugin();
+      },
+      'updateSettings() back to the same engine instance and sheet name': (engine) => {
+        hot.updateSettings({ formulas: false });
+        hot.updateSettings({ formulas: { engine, sheetName: 'S1' } });
+      },
+      'updateSettings() back to the same engine instance without a sheet name': (engine) => {
+        hot.updateSettings({ formulas: false });
+        hot.updateSettings({ formulas: { engine } });
+      },
+      'updateSettings() to an engine class with the sheet name': () => {
+        hot.updateSettings({ formulas: false });
+        hot.updateSettings({ formulas: { engine: HyperFormula, sheetName: 'S1' } });
+      },
+    };
+
+    Object.entries(reenables).forEach(([name, reenable]) => {
+      it(`sorts a grid sorted before the re-enable, after ${name} (the reported case)`, () => {
+        const engine = buildEngineWithSheet(SHEET_CONTENT);
+        const warnSpy = jest.spyOn(console, 'warn');
+
+        hot = new Handsontable(container, {
+          formulas: { engine, sheetName: 'S1' },
+          columnSorting: true,
+          licenseKey: LICENSE_KEY,
+        });
+
+        hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+        reenable(engine);
+
+        expect(hot.getData()).toEqual(SORTED_DESC);
+        expect(engineValues(hot)).toEqual(SORTED_DESC);
+
+        hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+        expect(hot.getData()).toEqual(SORTED_ASC);
+        expect(engineValues(hot)).toEqual(SORTED_ASC);
+        expect(warnSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    it('sorts after a re-enable with another engine instance that holds the sheet in physical order', () => {
+      const engine = buildEngineWithSheet(SHEET_CONTENT);
+      const otherEngine = buildEngineWithSheet(SHEET_CONTENT);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      hot.updateSettings({ formulas: false });
+      hot.updateSettings({ formulas: { engine: otherEngine, sheetName: 'S1' } });
+
+      // The order stored at the disable describes the first engine's sheet, so the other one gets the grid's order.
+      expect(engineValues(hot)).toEqual(SORTED_DESC);
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      expect(hot.getData()).toEqual(SORTED_ASC);
+      expect(engineValues(hot)).toEqual(SORTED_ASC);
+    });
+
+    it('moves the columns of a grid whose columns were moved before the re-enable', () => {
+      const engine = buildEngineWithSheet(SHEET_CONTENT);
+      const warnSpy = jest.spyOn(console, 'warn');
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        manualColumnMove: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('manualColumnMove').moveColumns([2], 0);
+      hot.render();
+
+      const plugin = hot.getPlugin('formulas');
+
+      plugin.disablePlugin();
+      plugin.enablePlugin();
+      hot.getPlugin('manualColumnMove').moveColumns([1], 2);
+      hot.render();
+
+      expect(hot.getData()).toEqual([[4, 2, 'b'], [2, 1, 'a'], [6, 3, 'c'], [8, 4, 'd']]);
+      expect(engineValues(hot)).toEqual(hot.getData());
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('sends no order on a re-enable when the grid kept the order the engine holds', () => {
+      const engine = buildEngineWithSheet(SHEET_CONTENT);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      const plugin = hot.getPlugin('formulas');
+      const orderCalls = countOrderCalls(engine);
+
+      plugin.disablePlugin();
+      plugin.enablePlugin();
+
+      expect(orderCalls()).toBe(0);
+    });
+
+    it('sends a sort made while the plugin was off as one order on the re-enable', () => {
+      const engine = buildEngineWithSheet(SHEET_CONTENT);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      hot.updateSettings({ formulas: false });
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+
+      hot.updateSettings({ formulas: { engine, sheetName: 'S1' } });
+
+      expect(setRowOrder).toHaveBeenCalledTimes(1);
+      expect(hot.getData()).toEqual(SORTED_ASC);
+      expect(engineValues(hot)).toEqual(SORTED_ASC);
+    });
+
+    it('keeps the cross-row results of a grid moved before and after the re-enable', () => {
+      // Each formula reads the number of the next record (the last one the first). A move keeps every reference
+      // on its cell, so each record keeps its result whatever order the moves leave.
+      const engine = buildEngineWithSheet(CROSS_ROW_CONTENT);
+      const warnSpy = jest.spyOn(console, 'warn');
+      const resultsByLetter = () => Object.fromEntries(hot.getData().map(([letter, , result]) => [letter, result]));
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        manualRowMove: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      const expected = resultsByLetter();
+
+      hot.getPlugin('manualRowMove').moveRows([3], 0);
+      hot.render();
+      hot.updateSettings({ formulas: false });
+      hot.updateSettings({ formulas: { engine, sheetName: 'S1' } });
+
+      expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a', 'd']);
+      expect(resultsByLetter()).toEqual(expected);
+      expect(engineValues(hot)).toEqual(hot.getData());
+
+      hot.getPlugin('manualRowMove').moveRows([1], 3);
+      hot.render();
+
+      expect(hot.getDataAtCol(0)).toEqual(['c', 'a', 'd', 'b']);
+      expect(resultsByLetter()).toEqual(expected);
+      expect(engineValues(hot)).toEqual(hot.getData());
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('sends a move made while the plugin was off as one order, as a sheet-built grid given that order gets it', () => {
+      const engine = buildEngineWithSheet(CROSS_ROW_CONTENT);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1' },
+        manualRowMove: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([3], 0);
+      hot.render();
+      hot.updateSettings({ formulas: false });
+      hot.getPlugin('manualRowMove').moveRows([0], 2);
+      hot.render();
+      hot.updateSettings({ formulas: { engine, sheetName: 'S1' } });
+
+      // The oracle: a grid built from the same sheet, moved the same way while the plugin was on, then brought to
+      // the final order with one order.
+      const referenceContainer = document.createElement('div');
+
+      container.appendChild(referenceContainer);
+      reference = new Handsontable(referenceContainer, {
+        formulas: { engine: buildEngineWithSheet(CROSS_ROW_CONTENT), sheetName: 'S1' },
+        manualRowMove: true,
+        licenseKey: LICENSE_KEY,
+      });
+      reference.getPlugin('manualRowMove').moveRows([3], 0);
+      reference.render();
+      reference.rowIndexMapper.setIndexesSequence(hot.rowIndexMapper.getIndexesSequence());
+
+      expect(hot.getDataAtCol(0)).toEqual(['b', 'a', 'c', 'd']);
+      expect(hot.getData()).toEqual(reference.getData());
+      expect(engineValues(hot)).toEqual(hot.getData());
+    });
+  });
+
   it('warns once, and does not throw, when an order reaches a syncer that is bound to no engine sheet', () => {
     hot = new Handsontable(container, {
       data: copy(OWN_ROW_CONTENT),
@@ -509,8 +752,8 @@ describe('Formulas enabled on a live grid', () => {
 
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // No path of the plugin leaves the syncers without an endpoint (the shared-engine re-enable cases above pin the
-    // last one), so the contract is checked on syncers unbound by hand.
+    // No known path of the plugin leaves the syncers without an endpoint (the shared-engine and sheet-built re-enable
+    // cases above pin the last two), so the contract is checked on syncers unbound by hand.
     hot.getPlugin('formulas').indexSyncer.setupSyncEndpoint(null, null, false);
 
     expect(() => {

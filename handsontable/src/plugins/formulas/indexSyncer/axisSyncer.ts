@@ -821,11 +821,13 @@ class AxisSyncer {
 
     // No endpoint: every path that binds or fills a sheet points the syncers at it first (`#loadSheet()`,
     // `#writeSheet()`, `#clearRejectedSheet()`, `#adoptEngineSheet()`, and the `enablePlugin()` and `updatePlugin()`
-    // paths that add a sheet or bind one the engine still holds), so no known path reaches this. The last window
-    // found (a shared-engine re-enable before its resync drained) is pinned in
-    // `__tests__/enableOnLiveGridSyncEndpoint.unit.js`. It warns, once per syncer, rather than throwing: the order is
-    // lost and the formula results stay where they were, which a warning names. A throw would end the user's sort
-    // or move half-done, and develop threw a `TypeError` here.
+    // paths that add a sheet or bind one the engine still holds, for a grid built with `data` and for one built
+    // from an engine sheet), so no known path reaches this. The one shape left in theory, not reproduced, is an
+    // enable whose `#addSheet()` the engine refuses (its `addSheet()` throws), which binds nothing. The last two
+    // windows found (a shared-engine re-enable before its resync drained, and any re-enable of a grid built from an
+    // engine sheet) are pinned in `__tests__/enableOnLiveGridSyncEndpoint.unit.js`. It warns, once per syncer,
+    // rather than throwing: the order is lost and the formula results stay where they were, which a warning names.
+    // A throw would end the user's sort or move half-done, and develop threw a `TypeError` here.
     if (engine === null) {
       warnOnce(this, 'noSyncEndpoint', `The Formulas plugin got a ${this.#axis} order before it was bound to an ` +
         'engine sheet, so the engine keeps its previous order and formulas may read the wrong cells.');

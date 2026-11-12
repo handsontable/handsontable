@@ -582,7 +582,8 @@ Rules that keep it correct:
   and a foreign `afterUpdateSettings` listener that ran `disablePlugin(); enablePlugin()` mid-update
   lost the update's data the same way. `enablePlugin()` sets `#sheetResyncPending` there, which the
   next draw or read drains. Three cases skip it: no view yet (construction), a grid built without data
-  (it reads the engine sheet as its data), and a load core is about to make (`isDataLoadPending()`,
+  (it reads the engine sheet as its data, and takes over the order the engine holds it in instead; see "Every path
+  that binds or fills a sheet on a live grid sets the sync endpoint up"), and a load core is about to make (`isDataLoadPending()`,
   the sheets bar's switch), which feeds the sheet itself. Pinned by `__tests__/reenableSharedEngine.unit.js`
   and "writes the new data when a listener disables and re-enables the plugin mid-update".
 - **An enable while a load is pending never adds back the sheet it was bound to.** `disablePlugin()` keeps
@@ -1037,6 +1038,29 @@ order change reaches the axis syncers while they point at no engine sheet. The p
   load is still to come (`isDataLoadPending()`) the load binds the sheet, as before; when the plugin was already
   enabled, its `afterLoadData` bound one, so the branch's `sheetName === null` keeps it out.
 - `#followEngineChange()` runs only while a load is pending, and that load fills and sets up the sheet.
+- **A re-enable of a grid built from an engine sheet without `data`** (`disablePlugin(); enablePlugin()`, or
+  `updateSettings({ formulas: false })` and back, with or without `sheetName`, to the same instance or to an engine
+  class) goes through `#setupSyncEndpointForSheetBuiltGrid()`. The `!#hotWasInitializedWithEmptyData` check kept
+  such a grid out of the resync branch above (it reads the sheet as its data, nothing is written to it), and no
+  other branch set an endpoint, so a grid sorted before the disable reordered on its next sort while the engine
+  kept its rows: sheet `[b, 2, =B1*2], [a, 1, =B2*2], [c, 3, =B3*2], [d, 4, =B4*2]`, sort B desc, re-enable, sort
+  asc gave C `8, 6, 4, 2` for `2, 4, 6, 8`, and only the `noSyncEndpoint` warning fired. Only the old syncers knew
+  the order the engine holds the sheet in, so `disablePlugin()` stores it with the content
+  (`exportEngineOrder(true)` into `#sheetBuiltOrderAtDisable`, `null` while both axes are physical; cleared by the
+  next enable and by `destroy()`; a copy of the sheet lives only while the plugin is off). The enable sets the
+  endpoint up without an order and the new syncers adopt the stored one (`adoptEngineOrder()`), so the engine
+  follows the grid's current order from it: a grid that kept its order sends nothing, and a sort or a move made
+  while the plugin was off reaches the engine as one order (the rule above). The stored order is adopted only for
+  the same engine sheet, or for the sheet the enable adds back from the stored content when the engine no longer
+  holds it (an engine class builds a new engine). That content is written instead of the source data: the grid's
+  source data holds the formula text of the engine's order (`#sourceHasStaleFormulas`), and filled in physical
+  order and then reordered it read other cells (`#REF!` and zeros). Another engine instance's sheet of the same
+  name, or a grid with fewer rows or columns than the stored order, drops the stored order, and the setup sends the
+  grid's order as one order. Edits made while the plugin was off show in the grid until the next settings update
+  reloads the sheet, which drops them, as before; a sheet added back from the stored content does not hold them
+  either (measured), while a fill from the source data (an engine class with no stored order) keeps them. Pinned by the `again after it was turned off, on a grid built from an engine sheet`
+  cases and `sorts a grid built from an engine sheet that was sorted before Formulas was turned off and on` in
+  `tests/e2e/formulas-enable-on-live-grid.spec.ts`.
 
 The setup sends the grid's current order as one order (`setRowOrder` / `setColumnOrder`), as every other load
 does, so a grid sorted or moved before the enable ends as a grid built with Formulas in that order: values are
@@ -1047,9 +1071,11 @@ load is DEV-3972's subject; do not add a second mechanism here. Pinned by
 
 **The null-engine guard in `AxisSyncer#syncOrderWithEngine` warns once and returns.** No known path reaches it.
 The formulas, sheetsBar, sorting, move, undoRedo, formulaBuilder and nestedRows unit suites were instrumented and
-never hit it. A review then found one window, the shared-engine re-enable above, and it is now closed and pinned by
-the `with a shared engine that still holds the sheet, before anything reads or renders` cases (no warning, the
-engine follows the order). It stays as a guard because a throw there ends the user's sort or move half-done; the
+never hit it. Reviews then found two windows, the shared-engine re-enable and the re-enable of a grid built from an
+engine sheet above, and both are now closed and pinned by the `with a shared engine that still holds the sheet,
+before anything reads or renders` and `again after it was turned off, on a grid built from an engine sheet` cases
+(no warning, the engine follows the order). The one shape left in theory, not reproduced, is an enable whose
+`#addSheet()` the engine refuses (its `addSheet()` throws): nothing is bound, so nothing sets an endpoint. It stays as a guard because a throw there ends the user's sort or move half-done; the
 `warnOnce` names the lost order. The no-throw, warn-once contract is pinned on syncers unbound by hand (`warns once,
 and does not throw, when an order reaches a syncer that is bound to no engine sheet`).
 

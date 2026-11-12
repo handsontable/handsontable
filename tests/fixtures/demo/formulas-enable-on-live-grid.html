@@ -34,6 +34,8 @@
   <!--
     A grid built WITHOUT Formulas, with sorting and row moves on. The spec turns Formulas on with
     `updateSettings({ formulas: { engine: HyperFormula } })` on the live grid, after or before a sort.
+    With `?build=sheet` the grid is built instead WITHOUT `data`, from the `S1` sheet of an engine
+    instance (`window.engine`), and the spec turns Formulas off and on again.
     Every leg runs exactly ONE engine, the same way formulas-grid.html wires it.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -55,14 +57,36 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
+    // Mapped through an allowlist, as the theme and the bundle are; an unknown value throws.
+    const build = ({ data: 'data', sheet: 'sheet' })[htParams.get('build') ?? 'data'];
+
+    if (!build) {
+      throw new Error('Unknown ?build= value: ' + JSON.stringify(htParams.get('build')));
+    }
+
     // Each formula doubles its own row's number, so a sort the engine never got leaves the
     // results on the rows they started on.
-    window.hot = new Handsontable(container, {
+    const sourceSettings = build === 'data' ? {
       data: [
         [3, '=A1*2'],
         [1, '=A2*2'],
         [2, '=A3*2'],
       ],
+    } : (() => {
+      window.engine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+      window.engine.addSheet('S1');
+      window.engine.setSheetContent(window.engine.getSheetId('S1'), [
+        ['b', 2, '=B1*2'],
+        ['a', 1, '=B2*2'],
+        ['c', 3, '=B3*2'],
+        ['d', 4, '=B4*2'],
+      ]);
+
+      return { formulas: { engine: window.engine, sheetName: 'S1' } };
+    })();
+
+    window.hot = new Handsontable(container, {
+      ...sourceSettings,
       columnSorting: true,
       manualRowMove: true,
       width: 400,
