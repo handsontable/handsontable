@@ -625,7 +625,7 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   the condition `queueValidators()` drops a change under (`result === false && allowInvalid === false`,
   `afterValidate` included); a cell that accepts invalid values only gets an invalid mark, so its change
   always reaches the data. Every other in-bounds change, a `numeric`, `date` or `dropdown` column with the
-  default `allowInvalid: true` included, is written at once, as on develop: same timing, same
+  default `allowInvalid: true` included, is written at once, as before DEV-3760: same timing, same
   `afterFormulasValuesUpdate` count, same events in other grids. A change past the last row or column waits
   too: its row or column exists only once the Core applies the set. The record (`#changesAwaitingApply`, a
   `WeakMap` keyed by the change array, which the Core hands to `beforeChangeRender` too) keeps the waiting
@@ -673,7 +673,7 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   `allowInvalid: true` (written at once), both in one `setDataAtCell()`. The early write computed B1 from
   A1's OLD content, so the Core validated B1 by `#VALUE!` (A1 held `'x'`) and marked it invalid for the
   whole wait; the apply then validated it again as a held dependent, outside the edit's undo step, so what
-  its validator or `afterValidate` wrote was undone with nothing. Develop validated it once, by the new A1.
+  its validator or `afterValidate` wrote was undone with nothing. Before DEV-3760 it was validated once, by the new A1.
   Now `#onAfterSetDataAtCell` takes the immediate changes the walk from the deferred cells reaches (one walk,
   shared with `#splitDependentsOfDeferred()`; only a cell with a validator) and hands them to the probe as
   readers: the probe runs for them even without a deferred formula, writes every deferred plain value of the
@@ -686,7 +686,7 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   - **A reader without a probe result is no reader.** Without a probe (`undoLimit` below 2, evaluation
     suspended) or when the probe read no result, it gets no entry (an entry without a result would hand the
     validator the formula text), the Core validates it by the engine's value, from the deferred cells' old
-    content, and it stays a held dependent, validated again at the apply, as at the commit before. Recorded
+    content, and it stays a held dependent, validated again at the apply. Recorded
     as a reader, it was validated only by `#VALUE!` and ended invalid while holding 20. Pinned by
     `validates an immediate formula that reads a deferred cell again at the apply without a probe` (both
     limits).
@@ -705,8 +705,8 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
     hook) records whether the answer had come. A reader that answered so is validated again through
     `validateDependentCells()`, inside the step, so what its validator or `afterValidate` writes is undone
     with the edit; any other one goes through `#validateDependentCellsUnrecorded()`, like a dependent, and
-    such a write joins no step, as at the commit before. On develop the reader was validated once, inside
-    the step, by the rejected value develop had written into the engine. **Known limit:** a validator that
+    such a write joins no step. Before DEV-3760 the reader was validated once, inside
+    the step, by the rejected value then written into the engine. **Known limit:** a validator that
     answers in its call the first time and later asynchronously (a cache) holds the step after a rejection.
     **The watch lives two microtasks.** Each record (`ReaderAnswer`, in `#readerAnswers` per cell) leaves
     the map when its check runs, and the map is cleared on a load, on disable and on destroy: a reader
@@ -728,18 +728,18 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
 - **When the set holds a change the Core can reject, the apply's dependent validation joins no undo
   step.** `validateCell()` holds the step it runs in until the validator answers. Called from the apply,
   an async validator on a dependent (a total row over the column) held the edit's step for its whole run, so
-  `isUndoAvailable()` was `false` and an `undo()` made right after `afterChange` was dropped. On develop the
+  `isUndoAvailable()` was `false` and an `undo()` made right after `afterChange` was dropped. Before DEV-3760 the
   dependents were validated during the edit's own wait, so the step settled with the edit. So
   `#onBeforeChangeRender` validates them through `#validateDependentCellsUnrecorded()`, which runs each
   `validateCell()` under the grid's `operationScope.suppress()`, when the record says `hasRejectableChange`.
   **The cost: for a set with a deferred change, what the validator or `afterValidate` listener of a
   dependent validated at the apply writes (a `setCellMeta()`, a `*Validator` correction) is recorded in no
   step, so an undo of the edit does not undo it.** That covers every dependent of the deferred cells, a
-  dependent the set's immediate cells share with them included (it is validated only at the apply now). On
-  develop those writes joined the edit's step. A dependent of the immediate cells only is validated by the
-  early write inside the step, as on develop. An apply without a rejectable change (a set past the last row
-  only, or the whole-set write-back of a resync window when nothing was deferred) validates inside the step,
-  as on develop; so do the write of a restored state and a source write. There an async dependent validator
+  dependent the set's immediate cells share with them included (it is validated only at the apply). Before
+  DEV-3760 those writes joined the edit's step. A dependent of the immediate cells only is validated by the
+  early write inside the step. An apply without a rejectable change (a set past the last row
+  only, or the whole-set write-back of a resync window when nothing was deferred) validates inside the step;
+  so do the write of a restored state and a source write. There an async dependent validator
   still delays the step. Pinned by `makes an accepted edit undoable as soon as it is applied, while a
   dependent is still validated`, the Playwright step of `tests/e2e/editor-validation-wait-own-cell.spec.ts`,
   `undoes what a dependent's afterValidate writes with an edit written at once, as before`, and `undoes
@@ -774,7 +774,7 @@ address). Physical indexes would fix the dependents only.
 from deferred cells the engine already holds. A deferred change past the last row has no engine cell yet,
 so a dependent it shares with an immediate cell of the set (`=SUM(A1:A5)+B1`, A5 created by the set) is
 validated by the early write from the old value, and an out-of-order async answer can leave its mark
-wrong. Develop behaves the same.
+wrong. Before DEV-3760 it behaved the same.
 
 **The validator of a formula still gets its result: the validation probe.** `#onBeforeValidate` hands a
 validator the engine's result for a formula cell (an error as its text, a date or time column's serial
@@ -1354,7 +1354,7 @@ sorted order put back.
 
 **What a re-render of a sheet-built grid fires and keeps changed with the `updateData()` path**, to the
 behavior a grid built with `data` already has on a re-render. These are user-observable, so the changelog and
-the docs name them:
+the formulas guide (`formula-calculation.md`, "A grid built from an engine sheet") name them:
 
 - **The events.** `updateSettings()` used to fire `beforeLoadData`/`afterLoadData('Formulas.switchSheet')` and
   `afterChange(null, 'loadData')`. It now fires `beforeUpdateData`/`afterUpdateData('Formulas.switchSheet')` and

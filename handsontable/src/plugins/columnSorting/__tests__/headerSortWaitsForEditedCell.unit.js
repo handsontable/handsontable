@@ -393,7 +393,7 @@ describe.each([
     expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
   });
 
-  it('should not wait for an API write whose async validator is in flight, as develop', async() => {
+  it('should not wait for an API write whose async validator is in flight', async() => {
     buildGrid();
     hot.setDataAtCell(1, 0, 'zzz');
     await flush();
@@ -405,7 +405,7 @@ describe.each([
     await flush();
 
     // Not proof the write lands on its record: an API write that waits is written by visual row after the sort
-    // (a known limit, as on develop). Only an editor save holds the sort.
+    // (a known limit). Only an editor save holds the sort.
     expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
   });
 

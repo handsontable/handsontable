@@ -120,7 +120,7 @@ Everything about that machinery is load-bearing:
   from an editor: the press's selection change has already prepared the clicked column's editor (another
   instance when its class differs, e.g. a `numeric` column B), and a later save on the same editor must not make
   the sort forget a set. Only an editor save's sets count, and sets made after the press do not. An API write
-  (`setDataAtCell()` with an async validator) does not hold the sort, as on develop, and lands by visual row
+  (`setDataAtCell()` with an async validator) does not hold the sort, and lands by visual row
   after it (known limit); waiting for it let a validator that never answers block every later header sort until
   `loadData()`. A set leaves core's list right before its last answer's
   `postAfterValidate`, so the listener sees it gone in that same run. A press takes a wait when the editor

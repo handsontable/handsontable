@@ -463,7 +463,7 @@ If you call [`loadData()`](@/api/core.md#loaddata) while a cell's validator hasn
 
 With the [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) plugin, a cell that can reject a change (it has a validator and `allowInvalid: false`) reaches HyperFormula only after validation. Until then, formulas that depend on the cell keep their old values, so a rejected value never shows through them. A validator of another cell that reads such a dependent formula while it waits gets the result from before the change.
 
-The validator of a formula cell gets the formula's result, not its text. When a change writes a formula that reads another changed cell, the validator gets the result for the new value. If a validation rejects that other cell, the formula is validated again with its previous result. A validator that answers in its own call keeps what it writes in the edit's undo step in that case. A validator that answers later does not.
+The validator of a formula cell gets the formula's result, not its text. When a change writes a formula that reads another changed cell, the validator gets the result for that cell's new value. If a validation rejects that other cell, the formula is validated again with the result for the other cell's old value. This needs your engine's `undoLimit` to be 2 or more, and its evaluation not to be suspended. Otherwise, the validator gets the result for the other cell's old value first, and the formula is validated again when the change is applied. A validator that answers in its own call keeps what it writes in the edit's undo step in that case. A validator that answers later does not.
 
 ### FAQ: Does the invalid CSS class still apply when <code>allowInvalid</code> is <code>true</code>?
 

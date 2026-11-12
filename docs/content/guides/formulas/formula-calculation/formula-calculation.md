@@ -669,6 +669,29 @@ entries, so the probe can remove up to two of your own undo entries. The grid's 
 don't use your engine's stack. If `undoLimit` is lower than 2, Handsontable doesn't write a probe,
 and the validator gets each formula's result calculated on its own.
 
+#### A grid built from an engine sheet
+
+When you build a grid from a sheet your engine already holds, and you don't pass `data`, the grid reads
+its data from that sheet. Each [`updateSettings()`](@/api/core.md#updatesettings) call reloads the sheet
+into the grid. The React and Vue wrappers call `updateSettings()` on every re-render, so a re-render
+reloads it too.
+
+A reload of a sheet that only the grid changed updates the data in place:
+
+- It fires [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and
+  [`afterUpdateData`](@/api/hooks.md#afterupdatedata), not `beforeLoadData` and `afterLoadData`.
+- It fires [`afterChange`](@/api/hooks.md#afterchange) with the `'updateData'` source, not `'loadData'`.
+- The grid keeps its cell meta, its sort state, and its moved, hidden, and trimmed rows and columns.
+- An edit that waits for an async validator stays open, and its value is written when the validator
+  accepts it.
+
+If anything else changed the sheet since the grid loaded it - your code through the engine API, or
+another grid bound to the same sheet - the reload replaces the data instead. It fires the load hooks, and
+it drops the cell meta, the sort state, and the waiting edits, because the rows can hold other records.
+
+If you rebuild your own state in `afterLoadData`, or check for the `'loadData'` source in `afterChange`,
+listen to `afterUpdateData` or the `'updateData'` source as well.
+
 ## Available options and methods
 
 For the full list of configuration options and plugin methods, see the
