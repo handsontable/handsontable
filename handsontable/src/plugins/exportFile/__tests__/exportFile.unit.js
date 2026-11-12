@@ -5,11 +5,12 @@ import { Dialog } from '../../dialog/dialog';
 import ExportDataProvider from '../dataProvider';
 import BaseType from '../types/_base';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
+import { ALL_XLSX_TOKENS } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import {
-  LISTED_CAPABILITIES_FLAG,
-  keyWith,
-  keyWithoutFlag,
-} from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+  resetTierKeys,
+  tierKeyWith,
+  tierKeyWithout,
+} from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
@@ -475,7 +476,16 @@ describe('ExportFile license capabilities', () => {
     hot?.destroy();
     hot = null;
     container.remove();
+    resetTierKeys();
   });
+
+  /**
+   * Builds a key that unlocks every plugin and, of the xlsx family, exactly `tokens`.
+   *
+   * @param {string[]} tokens The xlsx tokens the key unlocks.
+   * @returns {string}
+   */
+  const xlsxKeyWith = tokens => tierKeyWithout(ALL_XLSX_TOKENS.filter(id => !tokens.includes(id)));
 
   it('exposes the license tokens it gates, each one features.json assigns to it', () => {
     expect(ExportFile.CAPABILITIES).toContain('xlsx:export');
@@ -489,7 +499,7 @@ describe('ExportFile license capabilities', () => {
   });
 
   it('refuses an xlsx export and reports no xlsx support when the key lacks xlsx:export', async() => {
-    const plugin = createGrid(keyWith(['xlsx:import']));
+    const plugin = createGrid(xlsxKeyWith(['xlsx:import']));
     const message = 'ExportFile: the license does not unlock "xlsx:export".';
 
     expect(plugin.supportsExportFormat('xlsx')).toBe(false);
@@ -503,17 +513,16 @@ describe('ExportFile license capabilities', () => {
   });
 
   it('keeps xlsx support for a key with xlsx:export, a key with no xlsx token and an invalid key', () => {
-    expect(createGrid(keyWith(['xlsx:export'])).supportsExportFormat('xlsx')).toBe(true);
+    expect(createGrid(xlsxKeyWith(['xlsx:export'])).supportsExportFormat('xlsx')).toBe(true);
     hot.destroy();
     expect(createGrid(SUBSCRIPTION_KEY).supportsExportFormat('xlsx')).toBe(true);
     hot.destroy();
     expect(createGrid('non-commercial-and-evaluation').supportsExportFormat('xlsx')).toBe(true);
   });
 
-  describe('on a key that lists its features (no feat:all)', () => {
-    // `keyWith()` always adds `feat:all`, so these keys are built without it: the plugin's own token
-    // (`feat:export_file`) and the xlsx token are then checked one after the other.
-    const listedKey = tokens => keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG]);
+  describe('on a key that unlocks only the features it names', () => {
+    // The plugin's own token (`feat:export_file`) and the xlsx token are checked one after the other.
+    const listedKey = tokens => tierKeyWith(tokens);
     const pluginMessage = 'The license key for Handsontable does not include these features: '
       + 'Export to file (feat:export_file).';
     const xlsxMessage = 'ExportFile: the license does not unlock "xlsx:export".';

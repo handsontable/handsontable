@@ -23,11 +23,13 @@ import {
 } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
+import { registerPlugin } from '../../registry';
+import { ALL_XLSX_TOKENS } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import {
-  LISTED_CAPABILITIES_FLAG,
-  keyWith,
-  keyWithoutFlag,
-} from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+  resetTierKeys,
+  tierKeyWith,
+  tierKeyWithout,
+} from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
 import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
@@ -3285,6 +3287,18 @@ describe('selectSheet by index on an export with dropdowns', () => {
 describe('ImportFile license gate', () => {
   const message = 'ImportFile: the license does not unlock "xlsx:import".';
 
+  /**
+   * Builds a key that unlocks every plugin and, of the xlsx family, exactly `tokens`.
+   *
+   * @param {string[]} tokens The xlsx tokens the key unlocks.
+   * @returns {string}
+   */
+  const xlsxKeyWith = tokens => tierKeyWithout(ALL_XLSX_TOKENS.filter(id => !tokens.includes(id)));
+
+  afterEach(() => {
+    resetTierKeys();
+  });
+
   it('exposes the license tokens it gates, each one features.json assigns to it', () => {
     expect(ImportFile.CAPABILITIES).toContain('xlsx:import');
     expect(ImportFile.CAPABILITIES).not.toContain('xlsx:export');
@@ -3299,7 +3313,7 @@ describe('ImportFile license gate', () => {
   it('refuses an import and reports no xlsx support when the key lacks xlsx:import', async() => {
     const { plugin, calls } = pluginWithFakeHot(
       { engines: { xlsx: ExcelJS } },
-      { licenseKey: keyWith(['xlsx:export']) }
+      { licenseKey: xlsxKeyWith(['xlsx:export']) }
     );
     const bytes = fixture('values');
 
@@ -3310,13 +3324,13 @@ describe('ImportFile license gate', () => {
   });
 
   it('does not throw from supportsImportFormat on a disabled plugin', () => {
-    const { plugin } = pluginWithFakeHot(false, { licenseKey: keyWith(['xlsx:export']) });
+    const { plugin } = pluginWithFakeHot(false, { licenseKey: xlsxKeyWith(['xlsx:export']) });
 
     expect(plugin.supportsImportFormat('xlsx')).toBe(false);
   });
 
   it('imports for a key with xlsx:import, a key with no xlsx token and an invalid key', async() => {
-    for (const licenseKey of [keyWith(['xlsx:import']), SUBSCRIPTION_KEY, 'non-commercial-and-evaluation']) {
+    for (const licenseKey of [xlsxKeyWith(['xlsx:import']), SUBSCRIPTION_KEY, 'non-commercial-and-evaluation']) {
       const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } }, { licenseKey });
 
       expect(plugin.supportsImportFormat('xlsx')).toBe(true);
@@ -3324,11 +3338,15 @@ describe('ImportFile license gate', () => {
     }
   });
 
-  describe('on a key that lists its features (no feat:all)', () => {
-    // `keyWith()` always adds `feat:all`, so these keys are built without it: the plugin's own token
-    // (`feat:import_file`) and the xlsx token are then checked one after the other. The plugin token is
-    // checked on a root instance only, so the fake grid is registered as one.
-    const listedKey = tokens => keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG]);
+  describe('on a key that unlocks only the features it names', () => {
+    // The plugin's own token (`feat:import_file`) and the xlsx token are checked one after the other. The
+    // plugin token is checked on a root instance only, so the fake grid is registered as one.
+    const listedKey = tokens => tierKeyWith(tokens);
+
+    beforeAll(() => {
+      // A tier unlocks a plugin through its registered class.
+      registerPlugin(ImportFile);
+    });
     const pluginMessage = 'The license key for Handsontable does not include these features: '
       + 'Import from file (feat:import_file).';
     const rootPluginFor = (licenseKey) => {

@@ -11,17 +11,32 @@ import {
   SUBSCRIPTION_KEY,
   TRIAL_KEY,
   V1_TRIAL_KEY,
-  FLAGGED_BASE_KEY,
   FLAGGED_FILTERS_KEY,
-  FLAGGED_MINIMAL_KEY,
   FLAGGED_FEAT_ALL_KEY,
-  FLAGGED_EXTERNAL_KEY,
   UNFLAGGED_WITH_TOKENS_KEY,
 } from '../../entitlementLicenseKey/__tests__/fixtures';
 import { buildTestKey } from '../../entitlementLicenseKey/__tests__/buildTestKey';
 import { keyWithTier } from '../../entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWith } from '../../entitlementLicenseKey/__tests__/tierKeys';
 
 registerAllModules();
+
+/**
+ * The base package: the nine plugins that are on by default.
+ *
+ * @type {string[]}
+ */
+const BASE_FEATURES = [
+  'feat:auto_column_size',
+  'feat:autofill',
+  'feat:checkbox_header',
+  'feat:copy_paste',
+  'feat:drag_to_scroll',
+  'feat:export_file',
+  'feat:import_file',
+  'feat:undo_redo',
+  'feat:view_state',
+];
 
 /**
  * Builds a stub plugin class whose static `LICENSE` names one tier.
@@ -96,6 +111,10 @@ function gridWithKey(licenseKey, { root = true } = {}) {
 }
 
 describe('resolveLicenseCapabilities()', () => {
+  afterEach(() => {
+    resetTierKeys();
+  });
+
   it.each([
     ['a missing key', undefined],
     ['an empty key', ''],
@@ -116,8 +135,8 @@ describe('resolveLicenseCapabilities()', () => {
     expect(hasLicenseCapability(hot, 'feat:a_token_no_release_has_yet')).toBe(true);
   });
 
-  it('should unlock core and the listed tokens for a flagged key', () => {
-    const hot = gridWithKey(FLAGGED_BASE_KEY);
+  it('should unlock core and the plugins of the tier a key names', () => {
+    const hot = gridWithKey(tierKeyWith(BASE_FEATURES));
     const capabilities = resolveLicenseCapabilities(hot);
 
     expect(capabilities).toBeInstanceOf(Set);
@@ -150,7 +169,7 @@ describe('resolveLicenseCapabilities()', () => {
   });
 
   it('should grant nothing a key does not list or imply', () => {
-    const hot = gridWithKey(FLAGGED_MINIMAL_KEY);
+    const hot = gridWithKey(tierKeyWith(['feat:dropdown_menu']));
 
     expect(hasLicenseCapability(hot, 'feat:dropdown_menu')).toBe(true);
     expect(hasLicenseCapability(hot, 'feat:copy_paste')).toBe(false);
@@ -158,31 +177,33 @@ describe('resolveLicenseCapabilities()', () => {
   });
 
   it('should restrict a key issued for external use too: the silencing flags never grant', () => {
-    const hot = gridWithKey(FLAGGED_EXTERNAL_KEY);
+    const hot = gridWithKey(tierKeyWith(BASE_FEATURES, ['no-console-warns', 'no-ui-warns']));
 
     expect(hasLicenseCapability(hot, 'feat:filters')).toBe(false);
   });
 
   it('should never restrict a nested grid', () => {
-    const hot = gridWithKey(FLAGGED_BASE_KEY, { root: false });
+    const hot = gridWithKey(tierKeyWith(BASE_FEATURES), { root: false });
 
     expect(hasLicenseCapability(hot, 'feat:filters')).toBe(true);
   });
 
   it('should return the same result for the same key', () => {
-    expect(resolveLicenseCapabilities(gridWithKey(FLAGGED_BASE_KEY)))
-      .toBe(resolveLicenseCapabilities(gridWithKey(FLAGGED_BASE_KEY)));
+    const licenseKey = tierKeyWith(BASE_FEATURES);
+
+    expect(resolveLicenseCapabilities(gridWithKey(licenseKey)))
+      .toBe(resolveLicenseCapabilities(gridWithKey(licenseKey)));
   });
 
   it('should read the key from the settings on every call', () => {
-    let licenseKey = FLAGGED_BASE_KEY;
+    let licenseKey = tierKeyWith(BASE_FEATURES);
     const hot = { getSettings: () => ({ licenseKey }) };
 
     registerAsRootInstance(hot);
 
     expect(hasLicenseCapability(hot, 'feat:filters')).toBe(false);
 
-    licenseKey = FLAGGED_FILTERS_KEY;
+    licenseKey = tierKeyWith([...BASE_FEATURES, 'feat:filters']);
 
     expect(hasLicenseCapability(hot, 'feat:filters')).toBe(true);
   });

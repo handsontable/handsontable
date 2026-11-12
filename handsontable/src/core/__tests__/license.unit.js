@@ -3,6 +3,7 @@ import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../utils/xlsxEngine/xlsxEntitl
 import { buildTestKey } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 import { SUBSCRIPTION_KEY } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { keyWithAll } from '../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWith } from '../../utils/entitlementLicenseKey/__tests__/tierKeys';
 
 const standardPayload = {
   products: {
@@ -21,7 +22,18 @@ const unflaggedPayload = {
   },
 };
 
+/**
+ * The xlsx features the restricted test key unlocks.
+ *
+ * @type {string[]}
+ */
+const STANDARD_FEATURES = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
+
 describe('core/license', () => {
+  afterEach(() => {
+    resetTierKeys();
+  });
+
   it('resolves the descriptor once per instance', () => {
     const hot = { getSettings: () => ({ licenseKey: SUBSCRIPTION_KEY }) };
 
@@ -30,7 +42,7 @@ describe('core/license', () => {
   });
 
   it('keeps instances apart', () => {
-    const standard = { getSettings: () => ({ licenseKey: buildTestKey(standardPayload) }) };
+    const standard = { getSettings: () => ({ licenseKey: tierKeyWith(STANDARD_FEATURES) }) };
     // An invalid key (the non-commercial key is one since 19.0) restricts nothing.
     const invalid = { getSettings: () => ({ licenseKey: 'non-commercial-and-evaluation' }) };
 
@@ -44,8 +56,8 @@ describe('core/license', () => {
     expect(getXlsxEntitlement(unflagged)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
   });
 
-  it('trims the key before reading the flag, as the license state does', () => {
-    const padded = { getSettings: () => ({ licenseKey: `  ${buildTestKey(standardPayload)}\n` }) };
+  it('trims the key before reading it, as the license state does', () => {
+    const padded = { getSettings: () => ({ licenseKey: `  ${tierKeyWith(STANDARD_FEATURES)}\n` }) };
 
     expect(getXlsxEntitlement(padded).styles).toBe(false);
     expect(getXlsxEntitlement(padded).import).toBe(true);
@@ -76,7 +88,7 @@ describe('core/license', () => {
   });
 
   it('reads a key that is not a string as unrestricted', () => {
-    const settings = { licenseKey: buildTestKey(standardPayload) };
+    const settings = { licenseKey: tierKeyWith(STANDARD_FEATURES) };
     const hot = { getSettings: () => settings };
 
     expect(getXlsxEntitlement(hot).styles).toBe(false);
@@ -87,7 +99,7 @@ describe('core/license', () => {
   });
 
   it('shares one entitlement between instances with the same key', () => {
-    const key = buildTestKey(standardPayload);
+    const key = tierKeyWith(STANDARD_FEATURES);
     const first = { getSettings: () => ({ licenseKey: key }) };
     const second = { getSettings: () => ({ licenseKey: key }) };
 
