@@ -53,10 +53,11 @@ For more information about this release, see:
 - Angular: Added support for installing Angular 16 through 22, without the --force flag [#12752](https://github.com/handsontable/handsontable/issues/12752)
 - Reduced memory usage and improved initialization time for large datasets by no longer materializing cell metadata for every cell during source data validation. [#12847](https://github.com/handsontable/handsontable/pull/12847)
 
+#### Deprecated
+- Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()`. The methods do nothing, log a deprecation warning, and will be removed in the next major release. Registering the `persistentStateSave`, `persistentStateLoad`, or `persistentStateReset` hook now logs a warning that 17.0 removed it. [#12727](https://github.com/handsontable/handsontable/pull/12727)
+
 #### Removed
 - **Breaking change**: Removed the numbro, moment.js, DOMPurify, and @handsontable/pikaday dependencies. [#12689](https://github.com/handsontable/handsontable/issues/12689)
-- **Breaking change**: Removed the deprecated `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` — these now no-op and will be removed in the next major release. [#12727](https://github.com/handsontable/handsontable/pull/12727)
-- **Breaking change**: Removed the deprecated Core-level undo/redo methods (`hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, `hot.undoRedo`). Use `hot.getPlugin('undoRedo')` instead. [#12728](https://github.com/handsontable/handsontable/issues/12728)
 
 #### Fixed
 - Fixed the React and Vue 3 wrappers hiding the table when `height: '100%'` was set inside a fixed-height parent. [#12445](https://github.com/handsontable/handsontable/issues/12445)
