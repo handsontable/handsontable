@@ -110,6 +110,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { PluginRequirements } from './core/pluginRequirements';
 import { normalizeFixedColumnsAlias, withCallerFixedColumnsName } from './core/fixedColumnsAlias';
 import { watchFontLoads } from './core/fontLoad';
 import {
@@ -553,6 +554,10 @@ export default function Core(
    */
   const filterSettings = (settings: SettingsUpdate) => settingsFilters
     .reduce((payload, filter) => filter(payload), settings);
+  /**
+   * The plugins other plugins need running (see `_requirePlugin()`).
+   */
+  const pluginRequirements = new PluginRequirements();
   /**
    * The functions told about a change set that waited for its validators while `loadData()` replaced the
    * data, and that is therefore never applied (see `_addDroppedChangesListener()`).
@@ -6313,6 +6318,43 @@ export default function Core(
   };
 
   /**
+   * Marks a plugin as needed by another object, usually another plugin, so the required plugin's
+   * `isEnabled()` answers `true` while its own option is off. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that needs the plugin running.
+   */
+  this._requirePlugin = function(pluginKey: string, requirer: object) {
+    pluginRequirements.require(pluginKey, requirer);
+  };
+
+  /**
+   * Drops the requirement `_requirePlugin()` recorded for a plugin. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that no longer needs the plugin running.
+   */
+  this._releasePlugin = function(pluginKey: string, requirer: object) {
+    pluginRequirements.release(pluginKey, requirer);
+  };
+
+  /**
+   * Checks whether any object requires the plugin through `_requirePlugin()`. The rules are in
+   * `PluginRequirements` (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the plugin, as in its `PLUGIN_KEY`.
+   * @returns {boolean}
+   */
+  this._isPluginRequired = function(pluginKey: string): boolean {
+    return pluginRequirements.isRequired(pluginKey);
+  };
+
+  /**
    * Removes a function `_addSettingsFilter()` added. Removing one that is not there changes nothing.
    *
    * @private
@@ -6562,8 +6604,8 @@ export default function Core(
     // That creates an own property which shadows the global value written above, so a later
     // `updateSettings()` would be ignored. Drop the shadow when the value really changes. A wrapper
     // re-sends every prop on each commit, and an unchanged value must not undo the state kept there.
-    // Only the frozen counts are handled: other own table-meta values (the Loading plugin's `dialog`,
-    // the theme options) are shadows kept on purpose.
+    // Only the frozen counts are handled: other own table-meta values (the theme options) are shadows
+    // kept on purpose.
     if (FROZEN_COUNT_OPTIONS.has(key) && settings[key] !== previousValue) {
       Reflect.deleteProperty(tableMeta, key);
 
@@ -8298,8 +8340,24 @@ export default function Core(
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
+   * This method fires [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell). It doesn't fire
+   * [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange), so a custom
+   * `source` never reaches those two hooks. To pass a custom `source` to `afterChange`, use
+   * [`setDataAtCell()`](@/api/core.md#setdataatcell) or
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
+   *
+   * The hook also lists a change that the [`sourceDataValidator`](@/api/options.md#sourcedatavalidator)
+   * rejects. When [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, the grid doesn't store that
+   * value, but the `changes` array of the hook still lists it.
+   *
    * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
    * editor shows the new value.
+   *
+   * __Note__: this method takes physical row and column indexes. {@link Core#setDataAtCell} takes a visual
+   * row and a visual column, and {@link Core#setDataAtRowProp} takes a visual row. Swapping one call for the
+   * other with the same numbers can write to a different row when the grid is sorted or filtered. To
+   * translate an index, use {@link Core#toVisualRow} or {@link Core#toVisualColumn}. A trimmed row has no
+   * visual index, so neither of those two methods can write it.
    *
    * @memberof Core#
    * @function setSourceDataAtCell
@@ -8307,7 +8365,11 @@ export default function Core(
    * @param {number|string|Function} column Physical column index, prop name, or a `columns[].data`
    *   accessor function (called as `accessor(rowObject, value)`).
    * @param {*} value The value to be set at the provided coordinates.
-   * @param {string} [source] Source of the change as a string.
+   * @param {string} [source] Source of the change as a string. The method passes it to the
+   *   `afterSetSourceDataAtCell` hook. In the array form, pass it as the fourth argument
+   *   (`setSourceDataAtCell(changes, undefined, undefined, source)`): a source in the second
+   *   argument only reaches the undo step, and the hook gets `undefined`.
+   * @fires Hooks#afterSetSourceDataAtCell
    */
 
   this.setSourceDataAtCell = function(

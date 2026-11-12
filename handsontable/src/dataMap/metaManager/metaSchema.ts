@@ -5185,7 +5185,10 @@ export default (): Record<string, unknown> => {
      * @description
      * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
      *
-     * Loading plugin, automatically loads [`Dialog`](@/api/dialog.md) plugin.
+     * The [`Loading`](@/api/loading.md) plugin depends on the [`Dialog`](@/api/dialog.md) plugin and turns it
+     * on while `loading` is enabled, so you don't need to set [`dialog: true`](#dialog). The `dialog`
+     * option itself keeps its value. When you turn `loading` off, the Dialog plugin turns off too, unless
+     * the `dialog` option is set.
      *
      * You can set the `loading` option to one of the following:
      *
