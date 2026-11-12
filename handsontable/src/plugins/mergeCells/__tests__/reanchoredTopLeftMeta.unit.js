@@ -1134,13 +1134,16 @@ describe('MergeCells re-anchored top-left cell meta', () => {
       it('should leave the span keys alone after a sort', () => {
         createGrid({ columnSorting: true });
 
+        // Nothing renders in between, so the keys that are checked are the stored ones, not the hook's rewrite.
+        hot.suspendRender();
         hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
-        hot.render();
 
         // The merge keeps its head row, so physical (1, 4) is still the cell it is drawn from.
         SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
         expect(hasAnySpanKey(2, 4)).toBe(false);
         expectSpanKeysOnlyOnTopLefts();
+
+        hot.resumeRender();
       });
 
       it('should keep the span keys of the merge when a row is inserted above it while a row is trimmed', () => {
