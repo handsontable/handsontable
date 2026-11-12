@@ -669,6 +669,38 @@ export function prepareUpdateFromChanges(
 }
 
 /**
+ * Points every change tuple of an update at the visual row that holds its record now, found by the id of its row
+ * payload (`findRowOfPayload()`), so a revert that runs after a refetch moved the rows writes the previous values
+ * into the records that were edited. A change whose record no row holds any more is left out.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {Array} changes Change tuples `[visualRow, prop, oldVal, newVal][]`.
+ * @param {number[]} sortedRows The visual rows the payloads were read from, in the order of `rowPayloads`.
+ * @param {object[]} rowPayloads The per-row payloads.
+ * @returns {Array} The change tuples, addressed to the rows their records have now.
+ */
+function readdressChangesById(
+  hot: HotInstance, changes: ChangeTuple[], sortedRows: number[], rowPayloads: PreparedRowsUpdate['rowPayloads'],
+): ChangeTuple[] {
+  const currentRows = new Map<number, number | null>();
+
+  sortedRows.forEach((visualRow, i) => {
+    currentRows.set(visualRow, findRowOfPayload(hot, rowPayloads[i].id, visualRow));
+  });
+
+  return changes.flatMap((change): ChangeTuple[] => {
+    const [visualRow, prop, oldValue, newValue] = change;
+    const currentRow = currentRows.get(visualRow);
+
+    if (currentRow === null) {
+      return [];
+    }
+
+    return [[currentRow ?? visualRow, prop, oldValue, newValue]];
+  });
+}
+
+/**
  * The callbacks `runUpdateFromChanges()` resolves row ids with, commits through, and reverts with.
  */
 type UpdateFromChangesCtx = {
@@ -696,9 +728,10 @@ export async function runUpdateFromChanges(
   const { getRowIdOption, commitRowsUpdate: commitFn, revertChanges } = ctx;
   const { sortedRows, rowPayloads, validation } = prepared ?? prepareUpdateFromChanges(hot, getRowIdOption(), changes);
   const payload = { rows: rowPayloads };
-  const revert = isFunction(revertChanges)
-    ? () => revertChanges(changes)
-    : () => revertChangeTuples(hot, changes);
+  const revertTuples = isFunction(revertChanges)
+    ? revertChanges
+    : (tuples: ChangeTuple[]) => revertChangeTuples(hot, tuples);
+  const revert = () => revertTuples(readdressChangesById(hot, changes, sortedRows, rowPayloads));
 
   if (rowPayloads.some(p => isMissingRowId(p.id))) {
     revert();

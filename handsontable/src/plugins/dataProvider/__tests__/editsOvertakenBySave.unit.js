@@ -790,4 +790,35 @@ describe('DataProvider -> an edit the refetch that follows a save drops while it
         { id: 3, name: 'Cid' },
       ]);
     });
+
+  it('should revert a rejected edit queued behind another save on its record when that save\'s refetch moves the rows',
+    async() => {
+      const server = createServer();
+      let finishFirstSave = null;
+
+      server.config.onRowsUpdate
+        .mockImplementationOnce(rows => new Promise((resolve) => {
+          finishFirstSave = () => {
+            rows.forEach(({ id, changes }) => {
+              Object.assign(server.records.find(record => record.id === id), changes);
+            });
+            resolve();
+          };
+        }))
+        .mockImplementationOnce(() => Promise.reject(new Error('Rejected')));
+      await createGrid(server);
+
+      hot.setDataAtCell(0, 1, 'Ann 2', 'edit');
+      await settle();
+      hot.setDataAtCell(1, 1, 'Bob 2', 'edit');
+      await settle();
+
+      server.records.splice(0, 0, { id: 4, name: 'Dee' });
+      finishFirstSave();
+      await settle();
+      await server.releaseFetches();
+
+      expect(server.config.onRowsUpdate).toHaveBeenCalledTimes(2);
+      expect(hot.getDataAtCol(1)).toEqual(['Dee', 'Ann 2', 'Bob', 'Cid']);
+    });
 });
