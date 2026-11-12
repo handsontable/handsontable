@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T09:37:24.260Z",
+  "generatedAt": "2026-11-12T10:32:43.133Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -235,13 +235,13 @@
       "line": 72,
       "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
       "count7": 0,
-      "count30": 7,
+      "count30": 6,
       "countAll": 14,
-      "runs30": 6,
-      "flakyRuns30": 6,
-      "branches30": 6,
+      "runs30": 5,
+      "flakyRuns30": 5,
+      "branches30": 5,
       "nightlyRuns30": 0,
-      "openBranches30": 6,
+      "openBranches30": 5,
       "legs": [
         "e2e-horizon",
         "e2e-horizon-min"
@@ -1951,13 +1951,13 @@
       "line": 60,
       "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-horizon"
       ],
