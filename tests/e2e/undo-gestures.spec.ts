@@ -179,8 +179,10 @@ test.describe('undo of a gesture', { tag: CROSS_BROWSER_TAG }, () => {
 
 /**
  * Adding a comment through the context menu needs the comment editor to keep the keyboard focus after
- * the menu closes, and WebKit moves the focus back to the cell there (Chromium keeps it in the editor).
- * So this block has no `CROSS_BROWSER_TAG` and runs on the Chromium legs only.
+ * the menu closes. On WebKit the editor loses it here: the pointer ends outside this fixture's short
+ * page body, and the CopyPaste plugin's Safari-only `mouseleave` workaround then selects the highlighted
+ * cell's content and takes the focus (Chromium keeps it in the editor). So this block has no
+ * `CROSS_BROWSER_TAG` and runs on the Chromium legs only.
  */
 test.describe('undo of a comment added through the context menu', () => {
   let grid: UndoGridPage;
