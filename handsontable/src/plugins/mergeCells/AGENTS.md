@@ -310,7 +310,10 @@ hooks). Six rules keep it narrow:
   `rowspan` or `colspan` on a former top-left holds the merge's span, because the hook overwrote the user's
   value while the merge was drawn there (the same trade-off as `copyable: true` above), so `getCellMeta()` still
   reports it. And like the pass above, this one runs only while no row is trimmed: after a move or a freeze on a
-  filtered or trimmed grid the former top-left keeps its span keys.
+  filtered or trimmed grid the former top-left keeps its span keys. It does not run on the restore path either:
+  `restoreState()` only re-anchors the merges to the visible rows, so after an undo or a redo of a move the cell
+  that stops being the top-left keeps its span keys. Nothing records which cell a merge was drawn from before the
+  restore, so a fix needs that record first.
 - **It does not live in `afterGetCellMeta`.** That hook runs on every meta read; clearing there would delete a
   user's `copyable` on every read and pay for the check on every cell.
 - **It costs one meta manager lookup per merge per re-anchor**, next to the pass over the merge's anchor rows
