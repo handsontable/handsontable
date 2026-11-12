@@ -24,7 +24,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 ## 1. Replace `handsontable/common` imports
 
-The `handsontable/common` subpath is removed in version 18.0. It was never part of the official public API and was not documented, but some projects imported TypeScript types from it directly.
+The `handsontable/common` subpath is removed in version 18.0. It was never part of the official public API reference, but some docs examples and projects imported TypeScript types from it directly.
 
 Not every type has the same replacement. Nine types are now exported from `handsontable` or `handsontable/settings`, and four no longer exist.
 
@@ -52,7 +52,7 @@ Version 17.1 exported 13 types from `handsontable/common`. The table below lists
 | `RangeType` | `handsontable` |
 | `OverlayType` | `handsontable` |
 | `ColumnDataGetterSetterFunction` | `handsontable/settings`. `handsontable` and `handsontable/base` don't export it. |
-| `SimpleCellCoords` | Removed. Use `{ row: number; col: number }`, or `CellCoords` from `handsontable`. |
+| `SimpleCellCoords` | Removed. Use `{ row: number; col: number }`. The `CellCoords` class doesn't match this shape, because its `row` and `col` can be `null`. |
 | `NumericFormatOptions` | Removed. Use `Intl.NumberFormat` options: `Intl.NumberFormatOptions`. |
 | `NumbroFormatOptions` | Removed, together with Numbro.js. Use `Intl.NumberFormatOptions`. See [step 2](#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat). |
 | `LabelOptions` | Removed, with no replacement. Declare the shape that you need. |
@@ -84,12 +84,18 @@ import type { RowObject, CellChange } from 'handsontable/base';
 In version 17.1, `CellValue` was `any`. In version 18.0, it is `unknown`. Code that used a `CellValue` without checking its type stops compiling with `TS18046`.
 
 ```typescript
+// Before (17.x)
+import type { CellValue } from 'handsontable/common';
+
+function format(value: CellValue) {
+  return value.toFixed(2); // compiled, because CellValue was `any`
+}
+
+// After (18.0)
 import type { CellValue } from 'handsontable';
 
-// Before (17.x): compiled, because CellValue was `any`
-// After (18.0): TS18046, 'value' is of type 'unknown'
-function format(value: CellValue) {
-  return value.toFixed(2);
+function formatBroken(value: CellValue) {
+  return value.toFixed(2); // TS18046: 'value' is of type 'unknown'
 }
 
 // Fix: narrow the value
@@ -567,7 +573,7 @@ For other ways to connect the engine, such as a pre-built instance shared betwee
 
 ## 9. Replace removed plugin type exports
 
-Handsontable 18.0 removes 110 type exports from 39 plugin entry points (`handsontable/plugins/<name>`). The 18.0 type declarations list only the plugin class, the plugin constants, and a few named types. The removed names include `Settings` (38 entry points) and `DetailedSettings` (19 entry points).
+Handsontable 18.0 removes 110 exports from 39 plugin entry points (`handsontable/plugins/<name>`): 109 types and the `ColumnSorting` class that `multiColumnSorting` re-exported. The 18.0 type declarations list only the plugin class, the plugin constants, and a few named types. The removed names include `Settings` (38 entry points) and `DetailedSettings` (19 entry points).
 
 ### Who is affected
 
@@ -643,7 +649,7 @@ The table lists the replacement for every removed `Settings` type. Three options
 | `trimRows` | `Handsontable.GridSettings['trimRows']` |
 | `undoRedo` | `Handsontable.GridSettings['undo']` |
 
-Most of these options are typed as `boolean | object` in 18.0. The detailed shape that `DetailedSettings` described is not checked any more.
+Many of these options are typed `boolean | object` in 18.0. TypeScript no longer checks the detailed shape that `DetailedSettings` described.
 
 #### Replace `DetailedSettings`
 
@@ -735,7 +741,9 @@ To keep a type annotation, use `Handsontable.GridSettings['formulas']`.
 
 **Other plugins**
 
-For `autoColumnSize`, `autofill`, `autoRowSize`, `collapsibleColumns`, `columnSorting`, `comments`, `copyPaste`, `customBorders`, `dropdownMenu`, `hiddenColumns`, `hiddenRows`, `mergeCells`, `multiColumnSorting`, `pagination`, and `search`, remove the import and take the type from `GridSettings`. The option of the `autofill` plugin is `fillHandle`. The pattern below suits options typed `boolean | object`. For `collapsibleColumns` and `customBorders`, which are arrays, use `NonNullable<Handsontable.GridSettings['<option>']>` instead.
+For `autoColumnSize`, `autofill`, `autoRowSize`, `collapsibleColumns`, `columnSorting`, `comments`, `copyPaste`, `customBorders`, `dropdownMenu`, `hiddenColumns`, `hiddenRows`, `mergeCells`, `multiColumnSorting`, `pagination`, and `search`, remove the import and take the type from `GridSettings`. The option of the `autofill` plugin is `fillHandle`.
+
+In 17.x, some of these types were arrays of items (for example `DetailedSettings[]`). For an array-typed option such as `collapsibleColumns` or `customBorders`, use `Exclude<NonNullable<Handsontable.GridSettings['<option>']>, boolean>[number]` to get the type of one item.
 
 ```ts
 // Before (17.x)
@@ -750,6 +758,8 @@ type HiddenRowsSettings = Exclude<NonNullable<Handsontable.GridSettings['hiddenR
 
 const hiddenRows: HiddenRowsSettings = { rows: [1, 2], indicators: true };
 ```
+
+In 18.0, this alias is exactly `object`, so TypeScript accepts any object, including one with a misspelled key. To keep checking the shape, declare your own interface for the options that you use.
 
 For `nestedHeaders`, use `NestedHeaderSettings`. Its `label` property is optional, where `DetailedSettings.label` was required.
 
@@ -770,12 +780,13 @@ These removed types have a successor in 18.0:
 | `Endpoint` from `columnSummary` | `SummaryEndpoint` from `handsontable/plugins/columnSummary` |
 | `Config` from `columnSorting` | `ColumnSortingConfig` from `handsontable/plugins/columnSorting` |
 | `Config` from `multiColumnSorting` | `ColumnSortingConfig` from `handsontable/plugins/columnSorting` |
-| `SortOrderType` from `columnSorting` and `multiColumnSorting` | `ColumnSortingConfig['sortOrder']` |
+| `SortOrderType` from `columnSorting` and `multiColumnSorting` | `Exclude<ColumnSortingConfig['sortOrder'], 'none'>`, because `ColumnSortingConfig['sortOrder']` also allows `'none'` |
+| `ColumnSorting` from `multiColumnSorting` (the plugin class, re-exported in 17.x) | `ColumnSorting` from `handsontable/plugins/columnSorting` |
+| `RangeType` from `copyPaste` | `RangeType` from `handsontable` |
+| `ConditionName` from `filters` | `ConditionId['name']` from `handsontable/plugins/filters`, typed `string`. `ConditionId` itself is a condition object (`{ name: string; args: unknown[] }`). |
 | `BorderOptions` from `customBorders` | `BorderSettings` from `handsontable/plugins/customBorders` |
 | `_OperationType` from `filters` | `OperationType` from `handsontable/plugins/filters` |
 | The 12 action types from `undoRedo` (`Action`, `ChangeAction`, `InsertRowAction`, and the others) | `UndoRedoAction` from `handsontable/plugins/undoRedo`. It is one shape for all actions. |
-
-The `ConditionName` type from `filters` has no drop-in replacement. `ConditionId` names the conditions differently.
 
 The remaining removed types have no replacement. Declare the shape in your project, or take it from `GridSettings`:
 
@@ -785,24 +796,23 @@ The remaining removed types have no replacement. Declare the shape in your proje
 | `columnSummary` | `Endpoints` |
 | `comments` | `CommentConfig`, `CommentsRangeObject` |
 | `contextMenu` | `SeparatorObject`, `Selection`, `MenuConfig`, `SubmenuConfig`, `SubmenuItemConfig` |
-| `copyPaste` | `PasteModeType`, `CopyModeType`, `RangeType` |
+| `copyPaste` | `PasteModeType`, `CopyModeType` |
 | `customBorders` | `BorderRange`, `BorderDescriptor`, `ComputedBorder` |
 | `dialog` | `DialogConfig`, `TemplateOptions` |
 | `dragToScroll` | `DOMBoundaries` |
 | `dropdownMenu` | `SeparatorObject` |
 | `emptyDataState` | `EmptyDataStateMessage`, `EmptyDataStateConfig` |
 | `exportFile` | `Formats` |
-| `filters` | `ConditionName`, `CellLikeData`, `FiltersConfig` |
+| `filters` | `CellLikeData`, `FiltersConfig` |
 | `formulas` | `NamedExpressions`, `HyperFormulaSettings` |
 | `loading` | `LoadingConfig` |
 | `mergeCells` | `MergeCellsSettings` |
-| `multiColumnSorting` | `ColumnSorting` |
 | `pagination` | `PageSizeOption`, `PaginationData` |
 | `search` | `SearchCallback`, `SearchQueryMethod` |
 
 ## 10. Replace removed `Handsontable.*` namespace types
 
-Handsontable 18.0 removes 23 types from the `Handsontable` namespace of `handsontable` and `handsontable/base`. Only the type spelling breaks: `Handsontable.CellCoords` as a type annotation fails with `TS2749`, and `Handsontable.EditorType` fails with `TS2694`. Runtime values keep working, so `new Handsontable.CellCoords(0, 0)`, `Handsontable.getTheme()`, and `Handsontable.hooks` still compile.
+Handsontable 18.0 removes 23 top-level types from the `Handsontable` namespace of `handsontable` and `handsontable/base`. The type spelling breaks: `Handsontable.CellCoords` as a type annotation fails with `TS2749`, `Handsontable.CellRange` with `TS2724`, and `Handsontable.EditorType` with `TS2694`. The runtime values stay, so `new Handsontable.CellCoords(0, 0)`, `Handsontable.themes.getTheme('main')`, and `Handsontable.hooks.add()` still compile. A few values are typed `unknown` in 18.0, such as `Handsontable.version` and `Handsontable.EventManager`, and fail with `TS18046` when you call them or assign them to a typed variable.
 
 ### Who is affected
 
@@ -845,9 +855,9 @@ Two types are removed, and only one has a successor:
 | Removed type | Use instead |
 | --- | --- |
 | `Handsontable.NumericFormatOptions` | `Intl.NumberFormatOptions` |
-| `Handsontable.EventManager` as a type | None. `Handsontable.EventManager` still exists as a value. |
+| `Handsontable.EventManager` | None. There is no public type, and `new Handsontable.EventManager(hot)` fails with `TS18046`. The value exists at runtime only on the `handsontable` entry. |
 
-The `Handsontable.plugins.<PluginName>.<Type>` paths are removed too. If the plugin entry point still exports the type, import it from `handsontable/plugins/<name>`. Examples are `CommentObject` from `comments`, `Settings` from `exportFile`, and the payload types of `dataProvider`. For the types that the entry points no longer export, see [Replace removed plugin type exports](#replace-removed-plugin-type-exports).
+Nested type paths are removed too: `Handsontable.RecordTranslation.IndexMapper` (use `IndexMapper` from `handsontable`), `Handsontable.helper.*`, `Handsontable.languages.*`, and `Handsontable.cellTypes.<name>.*` fail with `TS2694` or `TS2749`. Most `Handsontable.plugins.<PluginName>.<Type>` paths are removed as well. A few still compile, such as `ColumnSorting.Config`, `ContextMenu.MenuItemConfig`, `ContextMenu.PredefinedMenuItemKey`, `Filters.ConditionId`, and `Filters.OperationType`. If the plugin entry point still exports the type, import it from `handsontable/plugins/<name>`. Examples are `CommentObject` from `comments`, `Settings` from `exportFile`, and the payload types of `dataProvider`. For the types that the entry points no longer export, see [Replace removed plugin type exports](#replace-removed-plugin-type-exports).
 
 ## Summary of breaking changes
 
