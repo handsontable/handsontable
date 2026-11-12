@@ -25,9 +25,9 @@
 /** @type {Record<string, ScreenReaderCoverage>} */
 export const SR_PAGE_COVERAGE = {
   grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'virtualization', 'virtualization-reading', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop', 'row-selection-corner'] },
-  'shared-demo': { gap: 'the demo-shaped grid as a whole (merged cells, hidden-column indicators, sorting, filters, comments) is read by no scenario' },
-  'complex-demo': { gap: 'four nested header levels over nested rows, merged cells and frozen panes at once: no scenario reads them together' },
-  'read-only': { gap: 'a read-only cell\'s state is a fact a reader announces, and no scenario reads this page (checkbox-cell reads one read-only checkbox, on the checkbox page)' },
+  'shared-demo': { scenarios: ['shared-demo'] },
+  'complex-demo': { scenarios: ['complex-demo'] },
+  'read-only': { scenarios: ['read-only'] },
   checkbox: { scenarios: ['checkbox-cell', 'checkbox-header'] },
   'nested-headers': { scenarios: ['nested-headers'] },
   'collapsible-headers': { scenarios: ['collapsible-headers'] },
@@ -112,8 +112,8 @@ export const SR_FEATURE_COVERAGE = {
   formulaBuilder: { scenarios: ['formula-bar', 'formula-suggestions', 'formula-function-help'] },
   formulas: { scenarios: ['formula-bar'] },
   freezeBar: { scenarios: ['freeze-bar'] },
-  hiddenColumns: { gap: 'the column positions a reader announces around a hidden column are read by no scenario' },
-  hiddenRows: { gap: 'the row positions a reader announces around a hidden row are read by no scenario' },
+  hiddenColumns: { scenarios: ['shared-demo'] },
+  hiddenRows: { scenarios: ['complex-demo'] },
   importFile: { none: 'reads data from a file and draws nothing a reader meets' },
   loading: { scenarios: ['loading'] },
   manualColumnFreeze: { none: 'adds freeze items to the context menu, which read like every menu item, and moves columns; draws nothing of its own' },
@@ -123,7 +123,7 @@ export const SR_FEATURE_COVERAGE = {
   manualRowResize: { none: 'draws a resize handle on header hover and a guide only while a pointer drags' },
   mergeCells: { scenarios: ['merge-cells'] },
   moveCells: { none: 'drags the selection by its border and draws only during the drag' },
-  multiColumnSorting: { gap: 'a sort on several columns, and each header\'s sort state, are read by no scenario' },
+  multiColumnSorting: { scenarios: ['shared-demo'] },
   multipleSelectionHandles: { gap: 'the phone\'s selection handles are for the mobile readers, whose lanes do not exist yet' },
   nestedHeaders: { scenarios: ['nested-headers'] },
   nestedRows: { scenarios: ['nested-rows'] },
@@ -159,4 +159,4 @@ export const SR_FEATURE_COVERAGE = {
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 11;
+export const SR_GAP_LIMIT = 5;

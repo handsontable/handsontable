@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "id": "shared-demo",
+  "surface": "The demo-shaped grid with a hidden column and a sort on two columns: the column after the hidden one, Enter sorting a header, Shift+Enter adding a second, and each header's sort state and order.",
+  "group": "structure",
+  "page": "shared-demo",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [
+    {"updateSettings": {"hiddenColumns": {"columns": [1], "indicators": true}}},
+    {"selectCell": [0, 0]}
+  ],
+  "steps": [
+    {
+      "id": "arrow-right-past-hidden",
+      "action": {"press": "ArrowRight"},
+      "expect": [["1/1/20", "1 slash 1 slash 20"], ["sell date"], ["column 3"]],
+      "note": "The setup hides the Name column (the hiddenColumns plugin, with indicators) and selects Tagcat 1. ArrowRight skips the hidden column to Sell date, `1/1/20`. The ARIA column index stays contiguous: Sell date is column 3, counting the row headers, as if Name did not exist. Required: the value, the column's name and its position, which a column index that counted the hidden column would make `column 4`; both NVDA lanes say `column 3`. VoiceOver with Chromium says `column 2`, one lower, the overlay clones' finding `grid-core` records on `arrow-right`, and VoiceOver with WebKit says nothing on this first key after it enters the page, as on other pages."
+    },
+    {
+      "id": "up-to-header",
+      "action": {"press": "ArrowUp"},
+      "expect": [["sell date column header", "sell date menu"]],
+      "note": "ArrowUp moves to the Sell date header (navigableHeaders), not sorted yet (`aria-sort` none). Required: the header's name with its role (NVDA `column header`) or its menu button (VoiceOver `menu pop up`): the name alone is also what the cell below reads as its column."
+    },
+    {
+      "id": "sort-ascending",
+      "action": {"press": "Enter"},
+      "expect": [["ascending", "sort up", "upsort up"]],
+      "note": "Enter on a header sorts by its column (multiColumnSorting), ascending; the header's `aria-sort` becomes `ascending` and the focus stays on it. Required: the new sort state (NVDA `sorted ascending`; VoiceOver `sort up`, which its phrase joins to the popup button's `pop up` as `pop upsort up`, a synonym). Finding: VoiceOver with Chromium says nothing when the state changes under the focus."
+    },
+    {
+      "id": "right-to-in-stock",
+      "action": {"press": "ArrowRight"},
+      "expect": [["in stock column header", "in stock menu"]],
+      "note": "ArrowRight moves to the In stock header. Required: its name with its role or menu button, as on Sell date: VoiceOver with Chromium also reads every header's name in the row on Sell date."
+    },
+    {
+      "id": "add-to-sort",
+      "action": {"press": "Shift+Enter"},
+      "expect": [["ascending", "sort up", "upsort up"], ["2"]],
+      "severity": {"2": "moderate"},
+      "note": "Shift+Enter adds the column to the sort, second after Sell date; the header draws the order, `2`, beside its arrow. Required: the sort state, and the order. The order is moderate: the state is right, and the order is what tells two sorted columns apart. The order is read only as part of the header's name (`In stock 2`), so a reader says it when it reads the header: NVDA with Firefox and VoiceOver with WebKit do here (`In stock 2`); NVDA with Chromium reads only `sorted ascending`, and VoiceOver with Chromium nothing."
+    },
+    {
+      "id": "left-to-first-sort",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["sell date column header", "sell date 1 column header", "sell date menu", "sell date 1 menu"], ["ascending", "sort up", "upsort up"], ["1"]],
+      "severity": {"1": "moderate"},
+      "note": "Back on Sell date, still sorted ascending and first in the order, `1`. Required: its name with its role or menu button, its state and its order; every reader reads them (`Sell date 1, column header, sub Menu, sorted ascending`)."
+    }
+  ]
+}

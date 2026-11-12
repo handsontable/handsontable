@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "complex-demo",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T14:39:30.091Z"
+  },
+  "steps": {
+    "down-past-hidden-row": "emily wilson name row 7 a d h active a d h active column 3",
+    "up-past-hidden-row": "jane smith name row 6 a d h active a d h active column 3",
+    "up-to-frozen-row": "john doe selected name 1 row 30 b e i name column 3",
+    "up-to-header": "name column header sub menu row 29 b e i column 3",
+    "up-to-group-i": "i column header selected expanded row 28 b e name column 3 through 4",
+    "up-to-group-e": "e column header selected expanded row 27 b i name column 3 through 6",
+    "up-to-group-b": "b column header selected expanded row 26 e i name column 3 through 10"
+  }
+}
