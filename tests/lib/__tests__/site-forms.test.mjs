@@ -54,6 +54,21 @@ test('3.3.2: a field with no name, a name not drawn, and required fields told ap
   ])), [], 'marking the required ones is the other');
   assert.deepEqual(kinds(fieldFindings([field(), field({ role: 'checkbox', name: 'I agree', label: 'I agree', autocomplete: null })])), [],
     'a form whose fields are all required needs no marker');
+  assert.deepEqual(kinds(fieldFindings([
+    field({ name: 'First Name', label: 'First Name', autocomplete: 'given-name', required: true }),
+    field({ role: 'textbox', name: 'Your message Optional', label: 'Your messageOptional', autocomplete: null, required: false }),
+    field({ role: 'checkbox', name: 'DataGrid', label: 'DataGrid', autocomplete: null, required: false }),
+    field({ role: 'checkbox', name: 'I agree to receive email', label: 'I agree to receive email', autocomplete: null, required: false }),
+  ])), [], 'the contact form\'s shape: a checkbox left unticked is a choice, not an entry, so it carries no "Optional"');
+  assert.deepEqual(kinds(fieldFindings([
+    field({ label: '', visibleLabel: false, placeholder: 'john@company.com' }),
+    field({ role: 'checkbox', name: 'I agree', label: 'I agree', autocomplete: null, required: false }),
+  ])), ['label-not-visible'], 'the newsletter\'s shape: one entry and a choice tell nothing apart');
+  assert.deepEqual(kinds(fieldFindings([
+    field({ name: 'First Name', label: 'First Name', autocomplete: 'given-name', required: true }),
+    field({ role: 'checkbox', name: 'I accept the terms', label: 'I accept the terms', autocomplete: null, required: true }),
+    field({ role: 'textbox', name: 'Notes', label: 'Notes', autocomplete: null, required: false }),
+  ])), ['required-not-indicated'], 'a required checkbox still counts among the required fields');
 });
 
 test('1.3.1: a field marked required in its label and not exposed as required; a spam trap read out', () => {
@@ -87,13 +102,17 @@ test('3.3.1 and 4.1.3: a submit with every field empty', () => {
 test('3.3.1 and 3.3.3: a malformed email address', () => {
   const email = (overrides = {}) => ({ shape: 'input', name: 'Email', invalid: true, description: 'Enter an address like name@company.com.', nearby: '', ...overrides });
 
-  assert.deepEqual(kinds(formatFindings({ field: email(), emptyMessage: 'Enter your email address.', sent: false })), []);
-  assert.deepEqual(kinds(formatFindings({ field: email({ description: 'This field is required.' }), emptyMessage: 'This field is required.', sent: false })),
+  assert.deepEqual(kinds(formatFindings({ field: email(), sent: false })), []);
+  assert.deepEqual(kinds(formatFindings({ field: email({ description: 'This field is required.' }), sent: false })),
     ['error-without-suggestion']);
-  assert.deepEqual(kinds(formatFindings({ field: email({ invalid: false, description: '' }), emptyMessage: 'x', sent: false })), ['format-error-not-identified']);
-  assert.deepEqual(kinds(formatFindings({ field: email(), emptyMessage: 'x', sent: true })), ['format-error-not-identified'],
+  assert.deepEqual(kinds(formatFindings({ field: email({ description: 'Invalid entry.' }), sent: false })),
+    ['error-without-suggestion'], 'an error that differs from the empty one can still say nothing of the format');
+  assert.deepEqual(kinds(formatFindings({ field: email({ description: 'Enter a valid email address' }), sent: false })),
+    [], 'the support call\'s shape: the one message for both asks for a valid address, which is the correction');
+  assert.deepEqual(kinds(formatFindings({ field: email({ invalid: false, description: '' }), sent: false })), ['format-error-not-identified']);
+  assert.deepEqual(kinds(formatFindings({ field: email(), sent: true })), ['format-error-not-identified'],
     'a form that posted took the address as valid, whatever it drew');
-  assert.deepEqual(formatFindings({ field: null, emptyMessage: '', sent: false }), []);
+  assert.deepEqual(formatFindings({ field: null, sent: false }), []);
 });
 
 test('4.1.3: a success; 3.3.7: an entry kept across the form\'s tabs', () => {

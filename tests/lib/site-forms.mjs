@@ -44,6 +44,10 @@ export const FIELD_PURPOSES = Object.freeze([
 // A label's mark of a required field, and of an optional one.
 const REQUIRED_MARK = /\*|\brequired\b/i;
 const OPTIONAL_MARK = /\boptional\b/i;
+// The roles of a choice: left unticked, it is an answer, never a missing entry, so no form marks it optional.
+const CHOICE_ROLES = new Set(['checkbox', 'radio', 'switch']);
+// What an error says when it tells the visitor what a valid entry looks like (3.3.3).
+const FORMAT_HINT = /\bvalid\b|\bformat\b|@|\bexample\b|\blike\b|\be\.g\./i;
 // The roles a form field has in Chromium's tree.
 const FIELD_ROLES = new Set(['textbox', 'searchbox', 'combobox', 'checkbox', 'radio', 'switch', 'listbox', 'spinbutton', 'slider',
   'TextField', 'ComboBoxSelect', 'PopUpButton']);
@@ -137,7 +141,7 @@ export function fieldFindings(fields) {
 
     const purpose = purposeOf(field.name);
 
-    if (purpose && FIELD_ROLES.has(field.role) && !['checkbox', 'radio', 'switch'].includes(field.role)) {
+    if (purpose && FIELD_ROLES.has(field.role) && !CHOICE_ROLES.has(field.role)) {
       const token = autocompleteField(field.autocomplete);
 
       if (!purpose.tokens.includes(token)) {
@@ -149,9 +153,11 @@ export function fieldFindings(fields) {
   }
 
   const required = real.filter(field => field.required);
-  const optional = real.filter(field => !field.required);
-  const marksRequired = required.length > 0 && required.every(field => REQUIRED_MARK.test(field.label ?? ''));
-  const marksOptional = optional.length > 0 && optional.every(field => OPTIONAL_MARK.test(field.label ?? ''));
+  const optional = real.filter(field => !field.required && !CHOICE_ROLES.has(field.role));
+  // The label's text runs its parts together ("Your messageOptional"); the accessible name keeps them apart.
+  const marked = (field, mark) => mark.test(field.label ?? '') || mark.test(field.name ?? '');
+  const marksRequired = required.length > 0 && required.every(field => marked(field, REQUIRED_MARK));
+  const marksOptional = optional.length > 0 && optional.every(field => marked(field, OPTIONAL_MARK));
 
   if (required.length > 0 && optional.length > 0 && !marksRequired && !marksOptional) {
     findings.push({ kind: 'required-not-indicated', criteria: ['3.3.2'], severity: 'moderate', selector: 'form',
@@ -222,11 +228,10 @@ export function errorFindings({ fields, sent, told }) {
  * @param {object} result What the submit did.
  * @param {{shape: string, name: string, invalid: boolean, description: string, nearby: string}|null} result.field The
  *   email field after the submit, or `null` when the form has none.
- * @param {string} result.emptyMessage The field's message when it was empty.
  * @param {boolean} result.sent Whether the form posted.
  * @returns {object[]} The findings.
  */
-export function formatFindings({ field, emptyMessage, sent }) {
+export function formatFindings({ field, sent }) {
   if (!field) {
     return [];
   }
@@ -239,10 +244,10 @@ export function formatFindings({ field, emptyMessage, sent }) {
       measured: { sent, invalid: field.invalid },
       reason: 'An email address with no @ was taken as valid' }];
   }
-  if (message && message === emptyMessage.trim()) {
+  if (message && !FORMAT_HINT.test(message)) {
     return [{ kind: 'error-without-suggestion', criteria: ['3.3.3'], severity: 'moderate', selector, step: 'submit a malformed email address',
       measured: { message: message.slice(0, 120) },
-      reason: 'The error for a malformed address is the one for an empty field, so it does not say how to correct it' }];
+      reason: 'The error for a malformed address does not say what a valid one looks like, so it does not say how to correct it' }];
   }
 
   return [];

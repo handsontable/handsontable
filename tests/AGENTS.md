@@ -2149,10 +2149,12 @@ and of `.github/workflows/website-a11y.yml`.
 - **`website-forms`** (`forms.spec.ts`, judged by `lib/site-forms.mjs`), the website's alone: the three tabs of the
   contact form, the trial form, the support call's details and the footer newsletter. At rest, every field's role,
   name, description and required state from the accessibility tree, its label, whether a label is drawn, and its
-  `autocomplete` (1.3.1, 1.3.5 against the input purposes its name asks for, 3.3.2). Then the submit button pressed
+  `autocomplete` (1.3.1, 1.3.5 against the input purposes its name asks for, 3.3.2: required and optional fields told
+  apart, where a checkbox, a radio button or a switch left unticked is a choice, not a missing entry, so no form marks
+  it optional). Then the submit button pressed
   from the keyboard with the form empty (3.3.1: each required field flagged, with text, tied to it; 4.1.3: a live
-  region speaks or the focus moves), with an email address that has no @ (3.3.3: an error that says more than the
-  empty one), and filled in, the write answered on the page (4.1.3 for the thank-you); the contact form keeps an
+  region speaks or the focus moves), with an email address that has no @ (3.3.3: an error that says what a valid
+  address looks like, such as "a valid email address" or an example; "Invalid" or "Required" does not), and filled in, the write answered on the page (4.1.3 for the thank-you); the contact form keeps an
   email address across its tabs (3.3.7, advisory). The live regions are watched from before the page loads, and a
   region inserted together with its text counts only as an alert. The guard answers only the filled-in submit, and
   the test asserts it was answered once; a form that posts with its errors is a finding (`submitted-with-errors`),

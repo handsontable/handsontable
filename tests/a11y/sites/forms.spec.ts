@@ -170,7 +170,7 @@ test.describe(CHECK, () => {
         const after = (await readFields(page, cdp, atRest)).find(field => field.index === email.index) ?? null;
         const postedMalformed = sent() > sentBeforeFormat;
 
-        findings.push(...formatFindings({ field: after, emptyMessage: email.description || email.nearby || '', sent: postedMalformed }) as EvidenceFinding[]);
+        findings.push(...formatFindings({ field: after, sent: postedMalformed }) as EvidenceFinding[]);
         criteria.add('3.3.3');
         detail.malformed = { field: after && { ...after, wrapperText: undefined }, sent: postedMalformed };
       }
