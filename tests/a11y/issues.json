@@ -1,7 +1,9 @@
 {
   "schema": 1,
-  "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triageLimit is the exact number of sampled finding shapes that need triage: lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one, and every shape left there has its reason in that test's TRIAGE_REASONS.",
-  "triageLimit": 1,
+  "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triage lists every sampled finding shape (findingShape()) left in needs-triage, each with why it is neither a known cause nor the reader's own behavior yet; its length is the triage limit, exact: a shape leaves the list when it is sorted into a cluster, and joins it only visibly, with its reason, in the change that adds it.",
+  "triage": [
+    { "shape": "reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid", "reason": "NVDA with Firefox names the grid by the sheet's old name, where both Chromium readers say the new one: a stale name kept by Firefox or a name the grid sets on another element, not told apart yet." }
+  ],
   "clusters": [
     {
       "id": "overlay-clones-split-tree",
@@ -60,7 +62,9 @@
       "id": "editor-choice-not-announced",
       "title": "An editor's list does not announce the choice the keys reach: with Chromium the autocomplete and dropdown options that aria-activedescendant names have no name, a narrowed list and its highlighted choice are silent on every reader, and the handsontable editor exposes no highlighted row at all",
       "match": [
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor", "handsontable-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third|type-narrow|arrow-down-narrowed)$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(type-narrow|arrow-down-narrowed)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["handsontable-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third)$"] },
         { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] }
       ]
     },
@@ -99,7 +103,7 @@
       "title": "The empty data state's message, for no data and for loading, takes the focus as a div with no role, so NVDA with Firefox reads `section` without its text and VoiceOver with WebKit reads its title alone",
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-without-role"], "where": ["ht-empty-data-state"] },
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["empty-data", "data-provider-sheets-bar"], "where": ["^(tab-empty-message|shift-tab-empty-message|tab-loading-overlay)$"] }
+        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["empty-data", "data-provider-sheets-bar"], "where": ["^(tab-empty-message|shift-tab-empty-message|tab-loading-overlay)$"] }
       ]
     },
     {
@@ -110,10 +114,16 @@
       ]
     },
     {
-      "id": "formula-builder-popups",
-      "title": "The formula builder's editor puts the combobox role on a textarea with aria-controls naming a closed list, and its function help panel takes the focus as a div with no role that Tab does not leave",
+      "id": "formula-editor-combobox-markup",
+      "title": "The formula builder's editor puts the combobox role on a textarea, which ARIA in HTML does not allow, and names a closed list in aria-controls",
       "match": [
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^textarea\\.hfe-editor__input"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^textarea\\.hfe-editor__input"] }
+      ]
+    },
+    {
+      "id": "formula-help-panel-focus-stop",
+      "title": "The formula builder's function help panel takes the focus as a div with no role, and Tab does not leave it",
+      "match": [
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["hfe-fn-help__body"] },
         { "source": "checks", "checks": ["tree-snapshots", "keyboard-walker"], "kinds": ["focusable-without-role", "focus-stop-without-role", "tab-keeps-focus"], "where": ["hfe-fn-help__body"] }
       ]
@@ -141,7 +151,8 @@
       "id": "checkbox-state-not-announced",
       "title": "A checkbox in a cell or a header does not announce its state: the focus stays on the cell, so the mixed state of the check all and select all checkboxes and a row header checkbox's state are never read, the corner reads its own name over the select all checkbox, and Space toggling one is silent with Chromium",
       "match": [
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["checkbox-cell", "checkbox-header", "row-selection", "row-selection-corner", "filters-by-value"], "where": ["^(space-check|space-uncheck|arrow-up-header-mixed|space-check-all|space-uncheck-all|arrow-up-corner|arrow-down-row-header)$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "checkbox-header", "filters-by-value"], "where": ["^(space-check|space-uncheck|space-check-all|space-uncheck-all)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["checkbox-header", "row-selection-corner"], "where": ["^(arrow-up-header-mixed|arrow-up-corner|arrow-down-row-header)$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["checkbox-header"], "where": ["^arrow-up-to-header$"] },
         { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection"], "where": ["^arrow-up-to-header$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^arrow-left-row-checkbox$"] }
@@ -240,7 +251,8 @@
       "id": "loading-changes-not-announced",
       "title": "A load that starts or ends without a focus move is not announced: a sheet switch that starts a server fetch (the loading message is no live region), and a pending cell's value that arrives (with Chromium)",
       "match": [
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["data-provider-sheets-bar", "async-values"], "where": ["^(enter-switch-sheet|value-resolves)$"] }
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["data-provider-sheets-bar"], "where": ["^enter-switch-sheet$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["async-values"], "where": ["^value-resolves$"] }
       ]
     },
     {
@@ -322,32 +334,42 @@
     },
     {
       "id": "reader-silent-step",
-      "title": "A screen reader says nothing on a step whose surface it reads on later steps or in other runs: VoiceOver on the first key after the runner enters the page above all, on cells, headers, menus, editors and page buttons alike, which points at the reader's start-up, not at the surface",
+      "title": "A screen reader says nothing on a step whose surface it reads on later steps or in other runs: VoiceOver on the first key after the runner enters the page above all, on cells, headers, menus, editors and page buttons alike, which points at the reader's start-up, not at the surface; a golden difference belongs here only where this run was the silent one",
       "match": [
-        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "pages": ["async-values", "auto-link", "checkbox-header", "collapsible-headers", "column-summary", "comment-editor", "dialog", "empty-data", "freeze-bar", "grid-core-single-tab-stop", "loading", "merge-cells", "pagination", "sheets-bar", "virtualization"], "where": ["^(arrow-right-pending|arrow-up-plain-url|arrow-up-to-header|arrow-up-to-lower-header|arrow-down-data-row|arrow-right-plain-cell|dialog-opens|tab-last-header|f6-to-first-bar|tab-out-forward|loading-shows|arrow-down-into-merge|tab-page-size|tab-add-sheet|page-down)$"] },
-        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "pages": ["checkbox-cell", "row-selection"], "where": ["^arrow-up-unchecked$"] },
-        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "pages": ["date-editor", "password-editor", "select-editor"], "where": ["^open-editor$"] },
-        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "pages": ["dropdown-menu", "filters-by-value"], "where": ["^open-menu$"] },
-        { "source": "reader", "checks": ["vo-chromium"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
-        { "source": "reader", "checks": ["vo-webkit"], "pages": ["row-selection-corner"], "where": ["^arrow-left-row-checkbox$"] },
-        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["grid-core-horizon", "multiselect-editor", "date-editor"], "where": ["^(menu-arrow-down|arrow-down-third|back-to-committed)$"] }
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values", "auto-link", "checkbox-header", "collapsible-headers", "column-summary", "comment-editor", "dialog", "empty-data", "freeze-bar", "grid-core-single-tab-stop", "loading", "merge-cells", "pagination", "sheets-bar", "virtualization"], "where": ["^(arrow-right-pending|arrow-up-plain-url|arrow-up-to-header|arrow-up-to-lower-header|arrow-down-data-row|arrow-right-plain-cell|dialog-opens|tab-last-header|f6-to-first-bar|tab-out-forward|loading-shows|arrow-down-into-merge|tab-page-size|tab-add-sheet|page-down)$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "row-selection"], "where": ["^arrow-up-unchecked$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["date-editor", "password-editor", "select-editor"], "where": ["^open-editor$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^arrow-left-row-checkbox$"] },
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["grid-core-horizon"], "where": ["^menu-arrow-down$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["multiselect-editor"], "where": ["^arrow-down-third$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["date-editor"], "where": ["^back-to-committed$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["async-values"], "where": ["^arrow-right-pending$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["checkbox-header"], "where": ["^arrow-up-to-header$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["dialog"], "where": ["^dialog-opens$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["empty-data"], "where": ["^tab-last-header$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["freeze-bar"], "where": ["^f6-to-first-bar$"] }
       ]
     },
     {
       "id": "reader-golden-drift",
-      "title": "An announcement or an accessibility tree differs from its golden with no defect behind it: reader wording that varies between runs, a reading golden recorded a phrase late, and goldens older than an intended change (the dropdown editor opens with no choice highlighted); record the golden again",
+      "title": "An announcement or an accessibility tree differs from its golden with no defect behind it: reader wording that varies between runs, a golden that recorded a start-up silence the run did not repeat, a reading golden recorded a phrase late, and dropdown editor goldens older than its empty highlight on open, since re-recorded (drop the two dropdown-editor rules when the sample is next refreshed from an audit); record the golden again",
       "match": [
-        { "source": "reader", "kinds": ["golden-differs"], "pages": ["auto-link", "autocomplete-editor", "comment-editor", "data-provider-sheets-bar", "dialog", "grid-core-horizon", "nested-rows", "pagination", "sheets-bar"], "where": ["^(open-link|commit-choice|type-narrow|type-in-comment|enter-switch-sheet|server-answers|tab-ok|reselect-cell|collapse-parent|enter-first-page|enter-last-page|enter-sheet-menu)$"] },
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["auto-link", "autocomplete-editor", "comment-editor", "data-provider-sheets-bar", "dialog", "grid-core(-horizon)?", "nested-rows", "pagination", "sheets-bar"], "where": ["^(open-link|commit-choice|type-narrow|type-in-comment|enter-switch-sheet|server-answers|tab-ok|reselect-cell|collapse-parent|enter-first-page|enter-last-page|enter-sheet-menu)$"] },
         { "source": "reader", "kinds": ["golden-differs"], "pages": ["dropdown-editor"], "where": ["^(open-editor|arrow-down-second|arrow-down-third|back-to-committed)$"] },
         { "source": "reader", "kinds": ["golden-differs"], "pages": ["virtualization-reading"], "where": ["^read-\\d+$"] },
         { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["golden-differs"], "pages": ["filters-by-value"], "where": ["^open-menu$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
-        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-snapshot-changed"], "pages": ["dropdown-editor"] }
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-snapshot-changed"], "pages": ["dropdown-editor"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["dialog"], "where": ["^dialog-opens$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["pagination"], "where": ["^tab-page-size$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["dropdown-menu"], "where": ["^open-menu$"] }
       ]
     },
     {
       "id": "scenario-expectation-outdated",
-      "title": "A screen reader scenario expected what the grid no longer does on purpose: the dropdown editor opens with no choice highlighted when the cell's value equals none of its choices, so the scenario's later choices were one step off; the scenario is fixed, and these rows resolve on the next audit",
+      "title": "A screen reader scenario expected what the grid no longer does on purpose: the dropdown editor opens with no choice highlighted when the cell's value equals none of its choices, so the scenario's later choices were one step off; the scenario is fixed and these rows resolve on the next audit (remove this cluster when the sample is next refreshed from an audit, or a real dropdown miss would be filed here)",
       "match": [
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^open-editor$"] },
         { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] },

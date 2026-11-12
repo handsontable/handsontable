@@ -12,7 +12,7 @@
       "id": "open-editor",
       "action": {"press": "Enter"},
       "expect": [["al"], ["combo box", "list box pop up"], ["expanded"]],
-      "note": "Enter opens the editor on the cell holding `Al`: a combobox over the list Alpha, Alfa and Alto. The dropdown never filters, and it is strict, so a cell whose value equals no choice opens with no choice highlighted (#14142; before it, Alpha was highlighted on open, and the goldens still say so). Required: the text, the role and the open list. The field's role, a combo box: VoiceOver with Chromium calls it a `text entry area` with a `list box pop up`, its words for a field that opens a list. Finding: VoiceOver with WebKit names no role."
+      "note": "Enter opens the editor on the cell holding `Al`: a combobox over the list Alpha, Alfa and Alto. The dropdown never filters, and it is strict, so a cell whose value equals no choice opens with no choice highlighted (#14142; before it, Alpha was highlighted on open). Required: the text, the role and the open list. The field's role, a combo box: VoiceOver with Chromium calls it a `text entry area` with a `list box pop up`, its words for a field that opens a list. Finding: VoiceOver with WebKit names no role."
     },
     {
       "id": "arrow-down-second",
