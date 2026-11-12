@@ -42,6 +42,44 @@ Two related helpers, with a deliberate split:
   user's own value on the first calculation pass, before any result was written, and that value counts
   toward the summary. Three long-standing specs pin exactly that.
 
+## A summary result is skipped unless the reading endpoint opts in (DEV-495)
+
+`getCellValue()` returns `null` for a cell that holds a summary result, so a range that covers another
+summary's destination does not count it. An endpoint with `includeSummaryResults: true` reads that
+destination through `#readIncludedSummaryResult()` instead. The option is off by default and stays off.
+
+- **The skip is what keeps a whole-subtree range from double counting.** A parent range that spans its
+  children's subtotals would count every leaf twice. Never flip the default: measured, `count` goes from 5
+  to 6.
+- **The included value comes from the endpoint object of the same pass, never from the cell.** Cell writes
+  are batched, and a trimmed destination is never written, so the cell can hold a stale or no value.
+  `Endpoints#resolveDependencyResult()` calculates the dependency on demand and applies its `roundFloat`.
+  A dependency whose `roundFloat` gives a string (`roundFloat: 0`) still sums, because the built-in types
+  pass every value through `holdsNoNumber` and `Number()`.
+- **The memo holds the raw result and lives for one outermost calculation.** `#passResults` keeps the
+  result before `setEndpointValue()` rounds `endpoint.result` in place, and `#runPass()` drops it when the
+  outermost pass exits (passes nest, because a cell read can run a Formulas resync). A dependency is
+  calculated once per pass, whatever the declaration order.
+- **Identity-keyed state must use the pass's own endpoint array.** A function-form `columnSummary` returns
+  new endpoint objects on every call, so `#passResults`, `#resolving` and `#destinationEndpoints` are keyed
+  by the objects `cacheSummaryDestinations()` received, never by a fresh `getAllEndpoints()` result.
+- **The own-destination check compares coordinates as well as identity.** A nested pass under function-form
+  settings swaps the destination cache for new endpoint objects while the outer endpoint is still being
+  calculated, so its own destination answers a copy of it. Identity alone double counted (254 instead of
+  127); `includeSummaryResults.unit.js` pins it.
+- **`#resolving` is deliberately not cleared in `cacheSummaryDestinations()`.** A `try`/`finally` in
+  `#calculateInPass()` keeps it balanced. Clearing it during a nested pass would drop the outer
+  calculation's cycle guard. Two endpoints that include each other warn once per pass, and the result that
+  closes the loop counts as empty.
+- **`#withDependents()` exists because the refresh paths select by `sourceColumn`.** An edit in a leaf
+  column selects only the endpoints reading that column, so a parent that reads a subtotal column would
+  stay stale. The method adds every `includeSummaryResults` endpoint whose range covers the destination row
+  of a selected endpoint, repeated until the set stops growing, so a change reaches a parent through several
+  levels. `refreshChangedEndpoints()` refreshes the selected endpoints in declaration order, not change
+  order. The results are the same, because a dependency is resolved on demand and memoized within the pass.
+- Pinned by `__tests__/includeSummaryResults.unit.js` and
+  `tests/e2e/column-summary-include-summary-results.spec.ts`.
+
 ## Empty ranges report "Not enough data", not `NaN` (DEV-2691)
 
 `min` and `max` have always returned the `NOT_ENOUGH_DATA` string for a range with nothing to calculate
