@@ -768,7 +768,7 @@ describe('Formulas enabled on a live grid', () => {
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
-    it('keeps one copy of the sheet while off: the disable of a sorted grid reads no sheet', () => {
+    it('keeps one copy of the sheet while off: the disable of a sorted grid reads the sheet once', () => {
       const engine = buildEngineWithSheet(SHEET_CONTENT);
 
       hot = new Handsontable(container, {
@@ -785,12 +785,68 @@ describe('Formulas enabled on a live grid', () => {
       // directly: `updateSettings({ formulas: false })` reloads the sheet first, as every update of this grid does.
       hot.getPlugin('formulas').disablePlugin();
 
-      expect(getSheetSerialized).not.toHaveBeenCalled();
+      // One read, compared with the snapshot; equal, so only the snapshot is kept.
+      expect(getSheetSerialized).toHaveBeenCalledTimes(1);
 
       hot.updateSettings({ formulas: { engine: HyperFormula, sheetName: 'S1' } });
 
       expect(hot.getData()).toEqual(SORTED_DESC);
       expect(engineValues(hot)).toEqual(SORTED_DESC);
+    });
+
+    describe.each([
+      ['a value change', (engine) => {
+        engine.setCellContents({ sheet: engine.getSheetId('S1'), row: 3, col: 1 }, 100);
+      }, [['d', 4, 8], ['c', 3, 6], ['b', 2, 4], ['a', 100, 200]]],
+      ['a move that changes no value', (engine) => {
+        engine.moveRows(engine.getSheetId('S1'), 0, 1, 2);
+      }, [['c', 3, 6], ['d', 4, 8], ['b', 2, 4], ['a', 1, 2]]],
+    ])('with a host change, %s, made after the grid\'s last write and before a direct disable', (
+      _, hostChange, hostSheet,
+    ) => {
+      /**
+       * Builds a sorted sheet-built grid, makes the host change, and turns the plugin off directly.
+       *
+       * @returns {HyperFormula}
+       */
+      function buildChangedAndDisabled() {
+        const engine = buildEngineWithSheet(SHEET_CONTENT);
+
+        hot = new Handsontable(container, {
+          formulas: { engine, sheetName: 'S1' },
+          columnSorting: true,
+          licenseKey: LICENSE_KEY,
+        });
+
+        hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+        hostChange(engine);
+        hot.getPlugin('formulas').disablePlugin();
+
+        return engine;
+      }
+
+      it('keeps the host change when an engine class re-enable adds the sheet back', () => {
+        buildChangedAndDisabled();
+        hot.updateSettings({ formulas: { engine: HyperFormula, sheetName: 'S1' } });
+
+        expect(engineValues(hot)).toEqual(hostSheet);
+        expect(hot.getData()).toEqual(hostSheet);
+
+        hot.updateSettings({});
+
+        expect(hot.getData()).toEqual(hostSheet);
+        expect(engineValues(hot)).toEqual(hostSheet);
+      });
+
+      it('keeps the host change when the host removed the sheet before the re-enable', () => {
+        const engine = buildChangedAndDisabled();
+
+        engine.removeSheet(engine.getSheetId('S1'));
+        hot.getPlugin('formulas').enablePlugin();
+
+        expect(engineValues(hot)).toEqual(hostSheet);
+        expect(hot.getData()).toEqual(hostSheet);
+      });
     });
 
     it('sends no order on a re-enable when the grid kept the order the engine holds', () => {

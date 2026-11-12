@@ -676,8 +676,8 @@ export class Formulas extends BasePlugin {
    * the sheet in (`exportEngineOrder()`, `null` while both axes are physical); and the reload snapshot
    * (`#loadedSheetContent`, the same array the grid held, not a copy) with `#foreignSheetChange`. One copy of the
    * sheet is kept while the plugin is off: the snapshot, from which the enable rebuilds the content of a sheet it adds
-   * back (`#sheetBuiltContent()`). Only without a snapshot that holds the sheet (none, or a foreign change found) does
-   * the order carry the content itself (`exportEngineOrder(true)`), read at the disable. Cleared by the next enable and
+   * back (`#sheetBuiltContent()`). The disable reads the live sheet once when an order is stored, and only when it
+   * differs from the snapshot does the order carry it as its content (`#keepSheetBuiltBinding()`). Cleared by the next enable and
    * by `destroy()`.
    */
   #sheetBuiltBindingAtDisable: SheetBuiltBinding | null = null;
@@ -1640,18 +1640,8 @@ export class Formulas extends BasePlugin {
     // snapshot its next reload compares against: the next enable takes both over, and the snapshot is the one copy
     // of the sheet kept while the plugin is off (see `#sheetBuiltBindingAtDisable`). Read after
     // `#notifyEngineDetach()`, whose listeners can still write the sheet.
-    const snapshotHoldsSheet = this.#loadedSheetContent !== null && !this.#foreignSheetChange;
-
     this.#sheetBuiltBindingAtDisable = this.#hotWasInitializedWithEmptyData && this.engine && this.sheetId !== null
-      && this.#hasOwnSheet() ? {
-        engine: this.engine,
-        sheetId: this.sheetId,
-        rowCount: this.hot.rowIndexMapper.getNumberOfIndexes(),
-        columnCount: this.hot.columnIndexMapper.getNumberOfIndexes(),
-        order: this.exportEngineOrder(!snapshotHoldsSheet),
-        snapshot: this.#loadedSheetContent,
-        foreignSheetChange: this.#foreignSheetChange,
-      } : null;
+      && this.#hasOwnSheet() ? this.#keepSheetBuiltBinding(this.engine, this.sheetId) : null;
     // Any other grid's next load of a sheet starts the comparison over; a sheet-built grid's binding above holds the
     // snapshot for its next enable.
     this.#loadedSheetContent = null;
@@ -2250,12 +2240,51 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Builds what `disablePlugin()` keeps of a grid built from an engine sheet (`#sheetBuiltBindingAtDisable`). With an
+   * order stored, the live sheet is read once: a sheet that equals the snapshot is kept as the snapshot alone (one
+   * copy), and the enable rebuilds the content from it; any other sheet (a host change made after the grid's last
+   * write, a value change or a move that changes no value, which no comparison has found yet) is kept as the order's
+   * content, and the change is marked foreign, so the next reload of the same sheet takes `loadData()`. Rebuilt from
+   * the snapshot instead, the host change was lost when the enable added the sheet back. With no order (both axes
+   * physical) nothing is read: the enable fills an added-back sheet from the source data, and a sheet the engine
+   * still holds is compared against the snapshot by the next write or reload.
+   *
+   * @param {object} engine The engine.
+   * @param {number} sheetId The bound sheet.
+   * @returns {object}
+   */
+  #keepSheetBuiltBinding(engine: HyperFormulaEngine, sheetId: number): SheetBuiltBinding {
+    const snapshot = this.#loadedSheetContent;
+    let foreignSheetChange = this.#foreignSheetChange;
+    let order = this.exportEngineOrder();
+
+    if (order !== null) {
+      const live = engine.getSheetSerialized(sheetId);
+      const snapshotHoldsSheet = snapshot !== null && !foreignSheetChange && areSheetContentsEqual(live, snapshot);
+
+      if (!snapshotHoldsSheet) {
+        order = { ...order, content: this.#readableSheet(live) };
+        foreignSheetChange = snapshot !== null;
+      }
+    }
+
+    return {
+      engine,
+      sheetId,
+      rowCount: this.hot.rowIndexMapper.getNumberOfIndexes(),
+      columnCount: this.hot.columnIndexMapper.getNumberOfIndexes(),
+      order,
+      snapshot,
+      foreignSheetChange,
+    };
+  }
+
+  /**
    * Returns the content a re-enable adds back the sheet of a grid built from an engine sheet with, in the stored
    * engine order (`#sheetBuiltBindingAtDisable`), or `undefined` when no order was stored (the source data then
    * fills the sheet in physical order). The order carries the content when the disable found no snapshot holding the
-   * sheet; otherwise it is rebuilt from the snapshot, which holds the sheet as the engine held it after the grid's
-   * last load or write (`getSheetSerialized()` form). A host change made after that write and not yet told by a
-   * comparison is not in it; it only matters when the engine lost the sheet while the plugin was off.
+   * sheet; otherwise it is rebuilt from the snapshot, which the disable found equal to the live sheet
+   * (`#keepSheetBuiltBinding()`, `getSheetSerialized()` form).
    *
    * @param {object|null} binding What the disable kept.
    * @returns {Array<Array<*>>|undefined}
@@ -2311,7 +2340,9 @@ export class Formulas extends BasePlugin {
       && binding.columnCount === this.hot.columnIndexMapper.getNumberOfIndexes();
     const sameSheet = binding !== null && binding.engine === this.engine && binding.sheetId === this.sheetId;
 
-    if (binding === null || !countsKept || (!addedFromContent && !sameSheet)) {
+    // A foreign change found by the disable (or before it) means the stored order may not describe the content the
+    // enable added back (a host move), so that sheet is loaded as it is.
+    if (binding === null || !countsKept || (addedFromContent ? binding.foreignSheetChange : !sameSheet)) {
       return false;
     }
 

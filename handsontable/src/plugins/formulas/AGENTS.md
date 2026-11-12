@@ -1055,12 +1055,16 @@ order change reaches the axis syncers while they point at no engine sheet. The p
   the engine sheet, the grid's row and column counts, the order from `exportEngineOrder()`, `null` while both axes
   are physical, and the reload snapshot `#loadedSheetContent` with `#foreignSheetChange`; cleared by the next enable
   and by `destroy()`). **One copy of the sheet is kept while the plugin is off**: the snapshot (the same array the
-  grid held), from which the enable rebuilds the content of a sheet it adds back (`#sheetBuiltContent()`). Only when
-  no snapshot holds the sheet (none, or a foreign change was found) does the order carry the content itself
-  (`exportEngineOrder(true)`, read at the disable). A grid with `data`, or a sheet-built grid that never loaded a
-  snapshot, keeps none. A first version kept both, two copies for a sorted grid (`keeps one copy of the sheet while
-  off`). The rebuilt content misses a host change made after the grid's last write and not yet found by a
-  comparison; that matters only when the engine lost the sheet while the plugin was off. The enable sets the endpoint up without an order and the new syncers
+  grid held), from which the enable rebuilds the content of a sheet it adds back (`#sheetBuiltContent()`). With an
+  order stored, the disable reads the live sheet once (`#keepSheetBuiltBinding()`): equal to the snapshot, only the
+  snapshot is kept; different (a host change made after the grid's last write that no comparison found yet: a
+  value, or a `moveRows()` that changes no value), the read is kept as the order's content and the change is marked
+  foreign. A sheet added back with a foreign change is loaded as it is (`#loadSheet()`), because the stored order
+  may not describe a host move. A first version kept both copies, two for a sorted grid; a second one read nothing
+  and rebuilt from the snapshot, which lost such a host change when the engine class or a host `removeSheet()` made
+  the enable add the sheet back (`keeps one copy of the sheet while off`, `with a host change, … before a direct
+  disable`). With no order stored (both axes physical) nothing is read, and an added-back sheet is filled from the
+  source data, which does not hold a host change either (pre-existing). The enable sets the endpoint up without an order and the new syncers
   adopt the stored one (`adoptEngineOrder()`), so the engine follows the grid's current order from it: a grid that
   kept its order sends nothing, and a sort or a move made while the plugin was off reaches the engine as one order
   (the rule above). **The snapshot is put back too** (taken anew for a sheet added back from the content), so the
