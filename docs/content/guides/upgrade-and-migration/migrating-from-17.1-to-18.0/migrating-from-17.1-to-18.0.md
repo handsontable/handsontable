@@ -319,33 +319,7 @@ You can use any sanitization library or write your own sanitizer function. The `
 If you render untrusted user HTML without a `sanitizer`, your users are exposed to XSS attacks. Always sanitize untrusted HTML content.
 :::
 
-## 5. Stop calling deprecated resize-state methods
-
-The following methods saved and loaded column or row sizes through the `PersistentState` plugin. Handsontable 17.0 removed `PersistentState` and the methods themselves, although the 17.x typings still declared them. Handsontable 18.0 brings them back as deprecated methods that do nothing and log a deprecation warning. They are removed in the next major release. This is not a breaking change.
-
-| Method | Plugin |
-| --- | --- |
-| `saveManualColumnWidths()` | `ManualColumnResize` |
-| `loadManualColumnWidths()` | `ManualColumnResize` |
-| `saveManualRowHeights()` | `ManualRowResize` |
-| `loadManualRowHeights()` | `ManualRowResize` |
-
-### Who is affected
-
-You are affected if your code calls any of these methods directly on the plugin instance, for example:
-
-```javascript
-hot.getPlugin('manualColumnResize').saveManualColumnWidths();
-hot.getPlugin('manualColumnResize').loadManualColumnWidths();
-hot.getPlugin('manualRowResize').saveManualRowHeights();
-hot.getPlugin('manualRowResize').loadManualRowHeights();
-```
-
-### How to migrate
-
-Remove all calls to these methods. They produce no effect and will throw in a future release. If you need to persist column widths or row heights across page loads, store the `columnWidths` and `rowHeights` values yourself -- for example in `localStorage` -- and pass them back as initial configuration when the grid initializes.
-
-## 6. Update theme wrapper border variables
+## 5. Update theme wrapper border variables
 
 Handsontable 18.0 simplifies the table border theme variables. The `--ht-wrapper-border-radius` variable is renamed to `--ht-border-radius` (JS token `borderRadius`), and the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` variables (JS tokens `wrapperBorderWidth` and `wrapperBorderColor`) are removed. Their defaults were `0px` and the base border color, so by default the table rendered no wrapper border.
 
@@ -409,7 +383,7 @@ registerTheme('my-theme', {
 });
 ```
 
-## 7. Update CSS selectors and DOM queries for the new wrapper structure
+## 6. Update CSS selectors and DOM queries for the new wrapper structure
 
 Handsontable 18.0 adds wrapper layout slots and a `layout` option that controls the order of UI elements rendered around the grid, such as pagination and dialogs. To support this, the built-in UI now mounts into dedicated wrapper containers, which changes the DOM structure that Handsontable renders around the grid.
 
@@ -499,7 +473,7 @@ const grid = wrapper.querySelector('.ht-wrapper.handsontable');
 
 Use class-based selectors instead of positional ones, so future layout slot additions do not break your code.
 
-## 8. Install HyperFormula separately
+## 7. Install HyperFormula separately
 
 Starting with Handsontable 18.0, the `handsontable` npm package no longer lists HyperFormula as a dependency. In 17.1 and earlier, it was an optional dependency, so your package manager usually installed it together with Handsontable, and your code could import it without a separate install. Version 17.0 deprecated this behavior, and version 18.0 completes the removal.
 
@@ -544,7 +518,7 @@ The UMD bundle `handsontable.full.js` (and its minified `handsontable.full.min.j
 
 For other ways to connect the engine, such as a pre-built instance shared between grids, see [Initialization methods](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods).
 
-## 9. Replace the removed `DetailedSettings` type exports
+## 8. Replace the removed `DetailedSettings` type exports
 
 Handsontable 18.0 no longer exports the `DetailedSettings` type from the `handsontable/plugins/contextMenu`, `handsontable/plugins/columnSummary`, and `handsontable/plugins/formulas` entry points. Version 17.x exported it from all three. The 18.0 type declarations list only the plugin class, the plugin constants, and a few named types.
 
@@ -647,6 +621,36 @@ const formulas = {
 ```
 
 To keep a type annotation, use `Handsontable.GridSettings['formulas']`.
+
+## Deprecated APIs
+
+The changes in this section do not break an existing project. Handsontable 18.0 deprecates these APIs, and a later major release removes them.
+
+### Stop calling deprecated resize-state methods
+
+The following methods saved and loaded column or row sizes through the `PersistentState` plugin. Handsontable 17.0 removed `PersistentState` and the methods themselves, although the 17.x typings still declared them. Handsontable 18.0 brings them back as deprecated methods that do nothing and log a deprecation warning. Handsontable 19.0 [removes them](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis).
+
+| Method | Plugin |
+| --- | --- |
+| `saveManualColumnWidths()` | `ManualColumnResize` |
+| `loadManualColumnWidths()` | `ManualColumnResize` |
+| `saveManualRowHeights()` | `ManualRowResize` |
+| `loadManualRowHeights()` | `ManualRowResize` |
+
+#### Who is affected
+
+Projects that call any of these methods on the plugin instance. On 17.x the methods do not exist at runtime, so such a call throws a `TypeError`, and no working 17.x code depends on them. In 18.0 the same call logs a warning instead. For example:
+
+```javascript
+hot.getPlugin('manualColumnResize').saveManualColumnWidths();
+hot.getPlugin('manualColumnResize').loadManualColumnWidths();
+hot.getPlugin('manualRowResize').saveManualRowHeights();
+hot.getPlugin('manualRowResize').loadManualRowHeights();
+```
+
+#### How to migrate
+
+Remove all calls to these methods. If you need to persist column widths or row heights across page loads, store the `columnWidths` and `rowHeights` values yourself -- for example in `localStorage` -- and pass them back as initial configuration when the grid initializes.
 
 ## Summary of breaking changes
 
