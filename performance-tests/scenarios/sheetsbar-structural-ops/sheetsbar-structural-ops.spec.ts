@@ -31,8 +31,8 @@ test(config.name, async({ page }) => {
       await page.evaluate(insertAndRemoveRow);
     },
     // Read back after the window closes -- this is a CDP round trip. An insert and a removal always net
-    // to ROWS, so the row count only proves nothing was left behind; the undo steps prove the two calls
-    // ran, which would otherwise read as a fast operation.
+    // to ROWS, so the row count only proves nothing was left behind; the two undo steps (one per call)
+    // prove both ran, which would otherwise read as a fast operation.
     afterActionFn: async() => {
       const state = await page.evaluate(() => {
         const hot = (window as any).__hot;
@@ -43,7 +43,7 @@ test(config.name, async({ page }) => {
         };
       });
 
-      if (state.rows !== ROWS || state.undoSteps === 0) {
+      if (state.rows !== ROWS || state.undoSteps !== 2) {
         throw new Error(`${config.name}: rows ${state.rows}, undo steps ${state.undoSteps}`);
       }
     },

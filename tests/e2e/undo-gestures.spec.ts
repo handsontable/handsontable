@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { UndoGridPage } from '../fixtures/pages/UndoGridPage';
 
 /**
@@ -11,11 +11,8 @@ import { UndoGridPage } from '../fixtures/pages/UndoGridPage';
  * reverts "nothing" would pass a test that never recorded the step.
  *
  * The fixture's data is `<column letter><row number>` over a 6x7 grid, so cell (0, 0) reads `A1`.
- *
- * The spec carries no `CROSS_BROWSER_TAG` yet: it passes on WebKit, but Firefox could not be run when it
- * was written, and an engine leg that was never verified would hold back every develop push.
  */
-test.describe('undo of a gesture', () => {
+test.describe('undo of a gesture', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: UndoGridPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -82,9 +79,11 @@ test.describe('undo of a gesture', () => {
     await grid.openContextMenuOnCell(2, 2);
     await grid.chooseContextMenuSubmenuItem('Borders', 'Top');
 
-    const borderCount = await grid.borderCount();
+    // The "Top" entry puts a top border on the clicked cell and no other side or cell.
+    const topBorderOfCell = { row: 2, col: 2, top: { width: 1 }, bottom: { hide: true }, left: { hide: true }, right: { hide: true } };
 
-    expect(borderCount).toBeGreaterThan(0);
+    expect(await grid.borderCount()).toBe(1);
+    expect(await grid.bordersOf(2, 2)).toMatchObject([topBorderOfCell]);
     expect(await grid.undoStackSize()).toBe(1);
 
     await grid.undo();
@@ -93,7 +92,8 @@ test.describe('undo of a gesture', () => {
 
     await grid.redo();
 
-    expect(await grid.borderCount()).toBe(borderCount);
+    expect(await grid.borderCount()).toBe(1);
+    expect(await grid.bordersOf(2, 2)).toMatchObject([topBorderOfCell]);
   });
 
   test('adding a comment through the context menu is one step, recorded when the editor is left', async ({ page }) => {

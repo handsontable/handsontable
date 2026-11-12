@@ -47,12 +47,9 @@
     });
     const bar = hot.getPlugin('sheetsBar');
 
-    // A sheet joins the engine when it is first shown, so visit every one, then come back. The scan the
+    // The bar registers every sheet of the workbook in the engine when it builds it, and the scan the
     // scenario measures reads the engine's other sheets, so a workbook that holds only the visible one
     // would measure nothing.
-    names.slice(1).forEach(name => bar.setActiveSheet(name));
-    bar.setActiveSheet(names[0]);
-
     if (hf.getSheetNames().length !== SHEET_COUNT) {
       throw new Error(`The engine holds ${hf.getSheetNames().length} sheets, expected ${SHEET_COUNT}.`);
     }

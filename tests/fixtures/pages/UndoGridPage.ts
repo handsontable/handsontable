@@ -377,6 +377,15 @@ export class UndoGridPage {
   }
 
   /**
+   * The borders the CustomBorders plugin holds for a cell, with the sides each one draws.
+   */
+  async bordersOf(visualRow: number, visualColumn: number): Promise<Record<string, unknown>[]> {
+    return this.page.evaluate(([row, column]) => (
+      window.hot.getPlugin('customBorders').getBorders([[row, column, row, column]])
+    ), [visualRow, visualColumn]);
+  }
+
+  /**
    * Set a cell comment through the Comments plugin API.
    */
   async setComment(visualRow: number, visualColumn: number, value: string): Promise<void> {
