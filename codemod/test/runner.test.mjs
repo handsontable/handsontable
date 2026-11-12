@@ -273,9 +273,10 @@ describe('transformFile and the transform contract', () => {
     }, { filePath: 'dir/a.css', facts, options: { aggressive: true } });
 
     assert.deepEqual(Object.keys(seen).sort(), [
-      'comment', 'css', 'cssScope', 'facts', 'fileKind', 'filePath', 'fromText', 'j', 'json', 'lineOffset',
-      'markChanged', 'options', 'report', 'root', 'source', 'todo',
+      'catalog', 'comment', 'css', 'cssScope', 'facts', 'fileKind', 'filePath', 'fromText', 'j', 'json',
+      'lineOffset', 'markChanged', 'options', 'report', 'root', 'source', 'todo',
     ]);
+    assert.equal(seen.catalog, null);
     assert.equal(typeof seen.css.replaceInDeclaration, 'function');
     assert.equal(seen.filePath, 'dir/a.css');
     assert.equal(seen.fileKind, 'css');
@@ -547,6 +548,75 @@ describe('which versions a run covers', () => {
     await withProject({ 'package.json': manifest }, async(dir) => {
       await assert.rejects(resolvePlan({ cwd: dir }), {
         message: 'package.json names handsontable as "latest", which is not a version. Pass --from.',
+      });
+    }, noRepo);
+  });
+
+  it('says that a path, link, URL, repository, or catalog spec is not a version, and names no digits of it', async() => {
+    for (const spec of [
+      'file:../vendor/handsontable-build-2025.11.tgz',
+      'link:../forks/handsontable-v2',
+      'portal:../handsontable-17',
+      'workspace:^',
+      'catalog:',
+      'catalog:v17',
+      'git+https://github.com/example/handsontable.git#v17.1.0',
+      'github:example/handsontable#17.1.0',
+      'https://example.com/handsontable-17.1.0.tgz',
+    ]) {
+      const manifest = `${JSON.stringify({ name: 'a', dependencies: { handsontable: spec } })}\n`;
+
+      await withProject({ 'package.json': manifest }, async(dir) => {
+        await assert.rejects(resolvePlan({ cwd: dir, to: '18.1' }), {
+          message: `package.json names handsontable as "${spec}", which is not a version. Pass --from.`,
+        }, spec);
+      }, noRepo);
+    }
+  });
+
+  it('reads the version of an npm alias, and of a later field when an earlier one is a path', async() => {
+    const alias = `${JSON.stringify({ dependencies: { handsontable: 'npm:handsontable@^17.1.0' } })}\n`;
+    const later = `${JSON.stringify({
+      dependencies: { handsontable: 'file:../vendor/handsontable-2025.11.tgz' },
+      devDependencies: { handsontable: '^17.1.0' },
+    })}\n`;
+
+    for (const manifest of [alias, later]) {
+      await withProject({ 'package.json': manifest }, async(dir) => {
+        const { fromText } = await resolvePlan({ cwd: dir, to: '18.1' });
+
+        assert.equal(fromText, '17.1.0');
+      }, noRepo);
+    }
+  });
+
+  it('skips a path or catalog spec when it scans a monorepo, and says so when nothing else names a version', async() => {
+    const pkg = spec => `${JSON.stringify({ dependencies: { handsontable: spec } })}\n`;
+
+    await withProject({
+      'package.json': '{ "private": true }\n',
+      'packages/a/package.json': pkg('^17.1.0'),
+      'packages/b/package.json': pkg('file:../vendor/handsontable-2025.11.tgz'),
+      'packages/c/package.json': pkg('catalog:'),
+      'packages/d/package.json': pkg('link:../forks/handsontable-v2'),
+    }, async(dir) => {
+      const { fromText, notes } = await resolvePlan({ cwd: dir, to: '18.1' });
+
+      assert.equal(fromText, '17.1.0');
+      assert.ok(notes.includes('Detected --from 17.1.0 (packages/a/package.json).'), notes.join('\n'));
+    }, noRepo);
+
+    await withProject({
+      'package.json': '{ "private": true }\n',
+      'packages/b/package.json': pkg('file:../vendor/handsontable-2025.11.tgz'),
+      'packages/c/package.json': pkg('catalog:'),
+    }, async(dir) => {
+      await assert.rejects(resolvePlan({ cwd: dir, to: '18.1' }), (error) => {
+        assert.equal(error.message, 'packages/b/package.json names handsontable as '
+          + '"file:../vendor/handsontable-2025.11.tgz", which is not a version. Pass --from.');
+        assert.doesNotMatch(error.message, /2025\.11 so|already names|older than/);
+
+        return true;
       });
     }, noRepo);
   });

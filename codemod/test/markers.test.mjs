@@ -226,6 +226,71 @@ describe('a marker on a one-line array element', () => {
     assert.equal((await chain(result.output, 'a.js')).changed, false);
   });
 
+  describe('with a block comment in front of it on the same line', () => {
+    const WRAP = element => `${HOT}new Handsontable(el, {\n  columns: [\n    ${element}\n  ],\n});\n`;
+    const FX = '{ data: \'fx\', type: \'numeric\', numericFormat: { pattern: \'0.0000\' } },';
+
+    it('puts the marker on a line above the element and leaves the comment and the element on one line', async() => {
+      for (const lead of ['/* fx */ ', '/* a */ /* b */ ', '/** fx */ ', '/* fx */']) {
+        const source = WRAP(`${lead}${FX}`);
+        const result = await chain(source, 'a.ts');
+        const lines = result.output.split('\n');
+
+        assert.equal(lines.length, source.split('\n').length + 1, lead);
+        assert.ok(lines[3].startsWith(`    ${NUMBRO}`), lead);
+        assert.equal(lines[4], `    ${lead}${FX}`, lead);
+        assert.equal(result.output.replace(lines[3], '').replace('\n\n', '\n'), source, lead);
+      }
+    });
+
+    it('is idempotent over three runs and finds the marker again', async() => {
+      const inputs = [
+        WRAP(`/* fx */ ${FX}`),
+        WRAP(`{ data: 'a' },\n    /* fx */ ${FX}\n    /* b */ { data: 'b', numericFormat: { pattern: '0' } }`),
+      ];
+
+      for (const file of ['a.ts', 'a.js']) {
+        for (const input of inputs) {
+          const first = await chain(input, file);
+          const second = await chain(first.output, file);
+          const third = await chain(second.output, file);
+
+          assert.equal(first.changed, true);
+          assert.equal(second.changed, false);
+          assert.equal(third.changed, false);
+          assert.equal(third.output, first.output);
+          assert.equal(first.output.match(/TODO\(/g).length, input.match(/pattern/g).length);
+        }
+      }
+    });
+
+    it('keeps tab indentation and a CRLF line terminator', async() => {
+      const source = WRAP(`/* fx */ ${FX}`).replace(/\n {4}/g, '\n\t\t').replace(/\n {2}/g, '\n\t');
+      const tabbed = await chain(source, 'a.js');
+      const windows = await chain(source.replace(/\n/g, '\r\n'), 'a.js');
+
+      assert.match(tabbed.output, /\n\t\t\/\/ TODO\([^\n]*\n\t\t\/\* fx \*\/ \{ data/);
+      assert.match(windows.output, /\r\n {0}\t\t\/\/ TODO\([^\n]*\r\n\t\t\/\* fx \*\/ \{ data/);
+      assert.equal(/(?<!\r)\n/.test(windows.output), false);
+    });
+
+    it('splices a sentinel that follows only white space and block comments to the start of its line', () => {
+      const carriers = { committed: [{ sentinel: '__codemodMarker0__', bodies: ['TODO(x): y.'] }] };
+
+      assert.equal(spliceCarriers(carriers, 'a;\n  /* c */ __codemodMarker0__{}\n', '\n'),
+        'a;\n  // TODO(x): y.\n  /* c */ {}\n');
+      assert.equal(spliceCarriers(carriers, 'a;\n  /* c */ /* d */ __codemodMarker0__{}\n', '\n'),
+        'a;\n  // TODO(x): y.\n  /* c */ /* d */ {}\n');
+    });
+
+    it('keeps the old placement when anything else precedes the sentinel on its line', () => {
+      const carriers = { committed: [{ sentinel: '__codemodMarker0__', bodies: ['TODO(x): y.'] }] };
+
+      assert.equal(spliceCarriers(carriers, 'a;\n  b, /* c */ __codemodMarker0__{}\n', '\n'),
+        'a;\n  b, /* c */ // TODO(x): y.\n  {}\n');
+    });
+  });
+
   it('leaves no carrier text in the output, even when the file uses the name the carrier starts with', async() => {
     const plain = await chain(FILE, 'm.js');
     const clash = `${FILE}const __codemodMarker0__ = 1;\n`;

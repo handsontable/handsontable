@@ -1,7 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { UsageError } from './errors.mjs';
-import { rangeAdmits } from './lib/dependency-range.mjs';
+import { aliasRange, isSourceSpec, rangeAdmits } from './lib/dependency-range.mjs';
 
 /**
  * A parsed version. A partial input such as `17` or `17.1` keeps `parts` below 3 so callers can tell it
@@ -236,13 +236,27 @@ export function defaultTo(manifests, includeDraft) {
 
 /**
  * Take the lowest version a dependency range allows: `^17.1.0` gives `17.1.0`, `17.x` gives `17`, and
- * `>=17 <19` gives `17`. A range that names no version (`latest`, `*`, `workspace:*`) gives `null`.
+ * `>=17 <19` gives `17`, and an `npm:handsontable@^17.1.0` alias gives the minimum of the range it names. A spec
+ * that names no version (`latest`, `*`) gives `null`, and so does a spec that points at a source (`workspace:`,
+ * `file:`, `link:`, a path, a URL, a repository, `catalog:`), because the digits in it belong to a file name or a tag.
  *
  * @param {string} range A dependency range from package.json.
  * @returns {string|null} The minimum version text, or `null`.
  */
 export function minimumOfRange(range) {
-  const match = /(\d+)(?:\.(\d+|[xX*]))?(?:\.(\d+|[xX*]))?(-[0-9A-Za-z.-]+)?/.exec(String(range));
+  const text = String(range).trim();
+
+  if (text.startsWith('npm:')) {
+    const named = aliasRange(text);
+
+    return named === null ? null : minimumOfRange(named);
+  }
+
+  if (isSourceSpec(text)) {
+    return null;
+  }
+
+  const match = /(\d+)(?:\.(\d+|[xX*]))?(?:\.(\d+|[xX*]))?(-[0-9A-Za-z.-]+)?/.exec(text);
 
   if (!match) {
     return null;

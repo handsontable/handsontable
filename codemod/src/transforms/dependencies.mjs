@@ -1,5 +1,5 @@
 import { attributeName, propertyName } from '../lib/ast.mjs';
-import { planRange, rangeAdmits } from '../lib/dependency-range.mjs';
+import { parseCatalogSpec, planRange, rangeAdmits } from '../lib/dependency-range.mjs';
 import { addFact, dirOf, factSite, hasFactFor } from '../lib/facts.mjs';
 import { memberPosition } from '../lib/json-edit.mjs';
 import { rewrites } from '../lib/safety.mjs';
@@ -324,6 +324,43 @@ function reportPeerRaised(ctx, rule, { name, original, value }) {
 }
 
 /**
+ * Report a dependency that takes its range from a pnpm catalog. The range lives in `pnpm-workspace.yaml`, so the
+ * entry says to set it there: replacing the spec in `package.json` would take the package out of the catalog. The
+ * tool edits neither file. When the workspace file is found and has an entry, the report names its current value. An
+ * entry that already admits the target, sits above it, or is a source (a path, a link) gets no report.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A `dependency` rule with a `bump` map.
+ * @param {object} found What was found.
+ * @param {string} found.name The package name.
+ * @param {string} found.section The `package.json` section that holds the spec.
+ * @param {string} found.spec The spec as written (`catalog:` or `catalog:<name>`).
+ * @param {string} found.target The target version.
+ * @param {{name: string|null}} found.catalog The catalog the spec names, `null` for the default one.
+ * @param {string} found.mergeKey Merge key of the spot.
+ * @returns {void}
+ */
+function reportCatalog(ctx, rule, { name, section, spec, target, catalog, mergeKey }) {
+  const place = catalog.name ? `catalogs.${catalog.name}` : 'catalog';
+  const range = ctx.catalog?.catalogs.get(catalog.name ?? '')?.get(name);
+  const file = ctx.catalog?.file ?? 'pnpm-workspace.yaml';
+  const lead = `${name} "${spec}" in ${section} takes its range from the pnpm catalog.`;
+
+  if (range && (['keep', 'skip'].includes(planRange(range, target).action) || rangeAdmits(range, target) === true)) {
+    return;
+  }
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    mergeKey,
+    message: range
+      ? `${lead} The ${place} section of ${file} has "${range}". Set it to ^${target} there, not in package.json.`
+      : `${lead} Set it to ^${target} in the ${place} section of ${file}, not in package.json.`,
+  });
+}
+
+/**
  * Raise the range of every listed package that the `package.json` declares, keeping the operator style. A compound
  * or open range that already allows the target version (`>=17.1.0 <19`, `*`) is left alone and not reported, and so
  * is a range that starts at or above it. A simple caret, tilde, or exact range below the target is raised even when
@@ -350,6 +387,13 @@ function bump(ctx, rule) {
       const key = `${section}:${name}`;
       const original = written.get(key) ?? current;
       const mergeKey = `range:${key}`;
+      const catalog = parseCatalogSpec(current);
+
+      if (catalog) {
+        reportCatalog(ctx, rule, { name, section, spec: current, target, catalog, mergeKey });
+        continue;
+      }
+
       const plan = planRange(current, target);
       const line = plan.action === 'rewrite' || plan.action === 'manual' ? lineBelowFrom(current, ctx.fromText) : null;
 

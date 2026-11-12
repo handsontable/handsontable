@@ -20,7 +20,7 @@ import {
   typeArguments,
   unwrapPath,
 } from './ast.mjs';
-import { invalidateScope, lookup } from './scope.mjs';
+import { findReferences, invalidateScope, lookup } from './scope.mjs';
 
 /**
  * One option object found in a file.
@@ -184,11 +184,15 @@ export function getNestedProperty(objectPath, dottedPath) {
  */
 function createResolver(j, root) {
   const declarators = new Map();
+  const declarations = new Map();
 
   invalidateScope();
 
   root.find(j.VariableDeclarator).forEach((path) => {
     declarators.set(path.node, path);
+  });
+  root.find(j.FunctionDeclaration).forEach((path) => {
+    declarations.set(path.node, path);
   });
 
   /**
@@ -296,12 +300,93 @@ function createResolver(j, root) {
       return initializer ? resolveObjects(initializer, true, depth + 1) : [];
     }
 
+    if (node.type === 'ConditionalExpression') {
+      return [target.get('consequent'), target.get('alternate')]
+        .flatMap(branch => resolveObjects(branch, hopped, depth + 1));
+    }
+
     if ((node.type === 'CallExpression' || node.type === 'OptionalCallExpression')
       && calleeName(node.callee) === 'useMemo' && node.arguments[0] && isFunctionNode(node.arguments[0])) {
       return returned(target.get('arguments', 0)).flatMap(item => resolveObjects(item, hopped, depth + 1));
     }
 
     return [];
+  };
+
+  /**
+   * The function an expression is: written there, or the callback of a `useCallback(fn, deps)` or
+   * `React.useCallback(fn, deps)` call.
+   *
+   * @param {object} path NodePath of an expression.
+   * @returns {object|null} NodePath of the function, or `null`.
+   */
+  const functionOf = (path) => {
+    const target = unwrapPath(path);
+    const node = target.node;
+
+    if (isFunctionNode(node)) {
+      return target;
+    }
+
+    return (node.type === 'CallExpression' || node.type === 'OptionalCallExpression')
+      && calleeName(node.callee) === 'useCallback' && node.arguments[0] && isFunctionNode(node.arguments[0])
+      ? target.get('arguments', 0) : null;
+  };
+
+  /**
+   * Whether a name is assigned to or updated anywhere in the file, which makes it stand for more than its
+   * declaration.
+   *
+   * @param {object} binding Binding of the name.
+   * @returns {boolean} `true` when the name is written.
+   */
+  const isRewritten = binding => findReferences(j, root, binding).some((reference) => {
+    const parent = reference.parent?.node;
+
+    if (parent?.type === 'AssignmentExpression' || parent?.type === 'ForInStatement'
+      || parent?.type === 'ForOfStatement') {
+      return parent.left === reference.node;
+    }
+
+    return parent?.type === 'UpdateExpression';
+  });
+
+  /**
+   * Resolve an expression to the function it stands for: the function itself, a `useCallback` callback, or one
+   * identifier hop to a same-file initializer or declaration. A `const` initializer and a function declaration that
+   * nothing assigns to are certain (`certain: true`). A `let`, a `var`, and a declaration that is assigned to
+   * somewhere may hold another function at run time, so the function is returned with `certain: false` and the
+   * caller treats its objects as a guess. An import, a parameter, and a destructured name are not resolved.
+   *
+   * @param {object} path NodePath of an expression.
+   * @returns {{functionPath: object, viaIdentifier: boolean, certain: boolean}|null} The function, or `null`.
+   */
+  const resolveFunction = (path) => {
+    const direct = functionOf(path);
+
+    if (direct) {
+      return { functionPath: direct, viaIdentifier: false, certain: true };
+    }
+
+    const target = unwrapPath(path);
+
+    if (target.node.type !== 'Identifier') {
+      return null;
+    }
+
+    const binding = lookup(target, target.node.name, 'value');
+    let functionPath = null;
+    let certain = false;
+
+    if (binding?.kind === 'function' && declarations.has(binding.node)) {
+      functionPath = declarations.get(binding.node);
+      certain = !isRewritten(binding);
+    } else if (['const', 'let', 'var'].includes(binding?.kind) && binding.init && declarators.has(binding.node)) {
+      functionPath = functionOf(declarators.get(binding.node).get('init'));
+      certain = binding.kind === 'const';
+    }
+
+    return functionPath ? { functionPath, viaIdentifier: true, certain } : null;
   };
 
   /**
@@ -351,7 +436,7 @@ function createResolver(j, root) {
     return initializer ? arrayOf(initializer) : null;
   };
 
-  return { returned, resolveObjects, resolveArray };
+  return { returned, resolveObjects, resolveArray, resolveFunction };
 }
 
 /**
@@ -363,7 +448,7 @@ function createResolver(j, root) {
  * @returns {OptionObject[]} The objects in source order of discovery, each once, at its highest confidence.
  */
 export function findOptionObjects(j, root, bindings) {
-  const { returned, resolveObjects, resolveArray } = createResolver(j, root);
+  const { returned, resolveObjects, resolveArray, resolveFunction } = createResolver(j, root);
   const found = new Map();
 
   /**
@@ -427,7 +512,9 @@ export function findOptionObjects(j, root, bindings) {
 
   /**
    * Add what one `columns`, `cell`, or `cells` option holds: the elements of an array, or what a function
-   * returns. Any other option name is left alone. The option is a property of an option object or a JSX
+   * returns. A `cells` function may also be named, one hop, for a same-file arrow or function expression, a
+   * function declaration, or a `useCallback` callback (`resolveFunction()`); its objects are `medium` when the name
+   * may hold another function. Any other option name is left alone. The option is a property of an option object or a JSX
    * attribute of a wrapper component, and both nest the same way.
    *
    * @param {string|null} name Option name.
@@ -443,13 +530,25 @@ export function findOptionObjects(j, root, bindings) {
 
     if (name === 'cell') {
       addElements(isFunction ? null : resolveArray(value), 'cell', 'cell', confidence);
-    } else if (isFunction) {
-      const label = name === 'cells' ? 'cells()' : 'columns()';
 
-      returned(value).forEach((item) => {
+      return;
+    }
+
+    let resolved = null;
+
+    if (isFunction) {
+      resolved = { functionPath: value, viaIdentifier: false, certain: true };
+    } else if (name === 'cells') {
+      resolved = resolveFunction(value);
+    }
+
+    if (resolved) {
+      const label = `${name === 'cells' ? 'cells()' : 'columns()'}${resolved.viaIdentifier ? ':identifier' : ''}`;
+
+      returned(resolved.functionPath).forEach((item) => {
         resolveObjects(item).forEach(({ objectPath: child, viaIdentifier }) => {
-          addObject(child, name === 'cells' ? 'cell' : 'column', viaIdentifier ? `${label}:identifier` : label,
-            confidence);
+          addObject(child, name === 'cells' ? 'cell' : 'column', viaIdentifier && !resolved.viaIdentifier
+            ? `${label}:identifier` : label, resolved.certain ? confidence : 'medium');
         });
       });
     } else if (name === 'columns') {

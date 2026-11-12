@@ -15,6 +15,10 @@
 
 const SENTINEL_PREFIX = '__codemodMarker';
 const LINE_BREAK = /[\n\r\u2028\u2029]/;
+/**
+ * The text before a sentinel on its line when it is only indentation and block comments that start and end there.
+ */
+const BLOCK_COMMENTS_ONLY = /^(?:[ \t]|\/\*(?:(?!\*\/)[^\n\r])*\*\/)*$/;
 
 /**
  * Whether the comments of a node are the ones the parser found.
@@ -173,6 +177,7 @@ export class MarkerCarriers {
  * @param {string} printed The text recast printed.
  * @param {string} eol Line terminator of the part.
  * @returns {string} The text with a `// ...` line, in the indentation of its line, in front of each carried element.
+ * When only white space and block comments precede the element on its line, the lines go above that line.
  * @throws {Error} When a sentinel is missing or stands more than once, so a lost marker never ships as code.
  */
 export function spliceCarriers(carriers, printed, eol) {
@@ -186,10 +191,19 @@ export function spliceCarriers(carriers, printed, eol) {
     }
 
     const lineStart = text.lastIndexOf('\n', at) + 1;
-    const indent = /^[ \t]*/.exec(text.slice(lineStart))[0];
+    const before = text.slice(lineStart, at);
+    const indent = /^[ \t]*/.exec(before)[0];
+    const comments = bodies.map(body => `// ${body}`);
 
-    text = text.slice(0, at) + bodies.map(body => `// ${body}${eol}${indent}`).join('')
-      + text.slice(at + sentinel.length);
+    if (BLOCK_COMMENTS_ONLY.test(before)) {
+      // Nothing but white space and block comments stands in front of the element: the marker goes on lines above
+      // the whole line, so the element keeps the comments it had on its line.
+      text = text.slice(0, lineStart) + comments.map(comment => `${indent}${comment}${eol}`).join('')
+        + before + text.slice(at + sentinel.length);
+    } else {
+      text = text.slice(0, at) + comments.map(comment => `${comment}${eol}${indent}`).join('')
+        + text.slice(at + sentinel.length);
+    }
   }
 
   return text;

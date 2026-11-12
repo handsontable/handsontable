@@ -105,6 +105,15 @@
  */
 
 /**
+ * The pnpm catalogs of the workspace file that applies to a `package.json`.
+ *
+ * @typedef {object} CatalogInfo
+ * @property {string} file Project-relative path of the `pnpm-workspace.yaml`.
+ * @property {Map<string, Map<string, string>>} catalogs Ranges by catalog name, then package name. The default
+ * catalog is `''`.
+ */
+
+/**
  * The context handed to `Transform.apply`. One context exists per part of a file: a `.js` file has one
  * part, a `.vue` file has one per script or style block.
  *
@@ -139,6 +148,9 @@
  * code that records a line elsewhere (a fact) adds it by hand.
  * @property {string} fromText The `--from` of the run as text, or an empty string when the context has no range. A
  * rule that bumps a dependency compares it with the version line of the range it finds.
+ * @property {CatalogInfo|null} catalog The pnpm catalogs that apply to this `package.json`, read in phase 2 for a file
+ * that holds a `catalog:` spec. `null` for any other part and when no `pnpm-workspace.yaml` lies between the file and
+ * the project directory.
  * @property {Set<string>} facts Set shared across the whole run, phase 1 and phase 2. A transform adds a
  * fact (for example `uses-formulas`) for a later phase to read. Names are lowercase kebab-case, optionally
  * `name:value`. Use `addFact()` and `hasFactFor()` from `src/lib/facts.mjs`: they also record the directory

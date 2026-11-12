@@ -6,6 +6,7 @@ import { UsageError } from './errors.mjs';
 import { discover, leavesDirectory, resolvesInside } from './discover.mjs';
 import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { registerPackageDir } from './lib/facts.mjs';
+import { findCatalog } from './lib/pnpm-catalog.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
 import { MarkerCarriers } from './lib/carrier.mjs';
 import { arrayOfTarget, createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
@@ -280,10 +281,11 @@ function wantsMarker(entry, owner) {
  * @param {import('./types.mjs').ReportEntry[]} args.entries Where report entries are collected.
  * @param {Set<string>} args.facts Shared facts.
  * @param {{aggressive: boolean, dryRun: boolean, todo: boolean}} args.options Run options.
+ * @param {import('./types.mjs').CatalogInfo|null} args.catalog The pnpm catalogs of a `package.json`, or `null`.
  * @returns {{ctx: import('./types.mjs').Ctx, marks: Mark[]}} The context, and the markers its `manual` entries ask
  * for. `applyMarkers()` places them once every transform has run.
  */
-function createContext({ filePath, part, plan, entries, facts, options }) {
+function createContext({ filePath, part, plan, entries, facts, options, catalog }) {
   const merged = new Map();
   const marks = [];
   const annotatable = part.fileKind === 'js' || part.fileKind === 'css';
@@ -397,6 +399,7 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     fromText: plan.fromText ?? '',
     facts,
     options,
+    catalog,
     markChanged,
   };
 
@@ -496,6 +499,7 @@ function applyMarkers(part, marks, plan) {
  * @param {import('./transforms/index.mjs').Registry} [args.registry] Transform registry.
  * @param {1|2} [args.phase] Phase number. Defaults to 1.
  * @param {Set<string>} [args.projectFiles] The project files the run reads, for a `src` block that points at one.
+ * @param {import('./types.mjs').CatalogInfo|null} [args.catalog] The pnpm catalogs that apply to a `package.json`.
  * @returns {Promise<{output: string, changed: boolean, entries: import('./types.mjs').ReportEntry[],
  * skipped: string|null}>} The new text, whether it differs, the report entries, and why the file was skipped.
  */
@@ -508,6 +512,7 @@ export async function transformFile({
   registry = defaultRegistry,
   phase = 1,
   projectFiles,
+  catalog = null,
 }) {
   const unchanged = skipped => ({ output: source, changed: false, entries: [], skipped });
   const adapter = adapterFor(filePath);
@@ -565,7 +570,7 @@ export async function transformFile({
 
   try {
     for (const part of handle.parts) {
-      const { ctx, marks } = createContext({ filePath, part, plan, entries, facts, options: fullOptions });
+      const { ctx, marks } = createContext({ filePath, part, plan, entries, facts, options: fullOptions, catalog });
 
       for (const step of steps) {
         if (stepFileKinds(step).includes(part.fileKind)) {
@@ -650,11 +655,14 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
  *
  * @param {string} cwd Project directory.
  * @param {string[]} paths Path arguments relative to `cwd`.
- * @returns {Promise<Array<{file: string, version: string}>>} One item per `package.json` that declares a
- * `handsontable` range with a version, in path order.
+ * @returns {Promise<{found: Array<{file: string, version: string}>, unversioned: {file: string, range: string}|null}>}
+ * `found` has one item per `package.json` that declares a `handsontable` range with a version, in path order. A
+ * `package.json` whose spec names no version (`catalog:`, `file:`, `link:`, a URL) is skipped, and `unversioned` is
+ * the first one.
  */
 async function scanPackageVersions(cwd, paths) {
   const found = [];
+  let unversioned = null;
 
   for (const file of (await discover({ cwd, paths })).filter(candidate => basename(candidate) === 'package.json')) {
     let manifest = null;
@@ -673,10 +681,14 @@ async function scanPackageVersions(cwd, paths) {
         found.push({ file, version });
         break;
       }
+
+      if (typeof range === 'string' && !unversioned) {
+        unversioned = { file, range };
+      }
     }
   }
 
-  return found;
+  return { found, unversioned };
 }
 
 /**
@@ -733,12 +745,17 @@ export async function resolvePlan({
       throw new UsageError(`${detected.source.replace(/ \w+Dependencies$| dependencies$/, '')} names handsontable `
         + `as "${detected.range}", which is not a version. Pass --from.`);
     } else if (!lenientFrom) {
-      const scanned = await scanPackageVersions(cwd, paths);
+      const { found: scanned, unversioned } = await scanPackageVersions(cwd, paths);
 
       if (new Set(scanned.map(item => item.version)).size > 1) {
         throw new UsageError(`The packages use different Handsontable versions (${scanned
           .map(item => `${posix.dirname(item.file)}: ${item.version}`).join(', ')}). Pass --from, or run the tool on `
           + 'each package.');
+      }
+
+      if (scanned.length === 0 && unversioned) {
+        throw new UsageError(`${unversioned.file} names handsontable as "${unversioned.range}", `
+          + 'which is not a version. Pass --from.');
       }
 
       if (scanned.length === 0) {
@@ -1051,6 +1068,7 @@ export async function run({
       registry,
       phase,
       projectFiles,
+      catalog: phase === 2 && source.includes('catalog:') ? await findCatalog(cwd, file) : null,
     });
 
     report.addAll(outcome.entries);

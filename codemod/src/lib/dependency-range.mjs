@@ -3,6 +3,53 @@ const PROTOCOL_SPEC = /^(?:workspace|file|link|portal|patch|git|git\+[a-z]+|gith
 const PATH_SPEC = /^(?:\.{1,2}\/|\/|~\/)/;
 const REPOSITORY_SPEC = /^[\w-]+\/[\w.-]+(?:#.*)?$/;
 const DIST_TAG = /^[a-z][a-z-]*$/i;
+const CATALOG_SPEC = /^catalog:/i;
+const NPM_ALIAS = /^npm:((?:@[\w.-]+\/)?[\w.-]+)@(.+)$/;
+
+/**
+ * Tell whether a dependency spec points at a source instead of naming a version range: a protocol (`workspace:`,
+ * `file:`, `link:`, `portal:`, `patch:`, `git:`, `git+...:`, `github:`, `gitlab:`, `bitbucket:`, `http:`, `https:`), a
+ * pnpm `catalog:`, a path (`./x`, `../x`, `/x`, `~/x`), or a `owner/repo` shorthand. Digits in such a spec belong to a
+ * file name, a tag, or a branch, so nothing may read a version out of it. An `npm:` alias is not a source: it names a
+ * range.
+ *
+ * @param {string} spec The spec as written in `package.json`.
+ * @returns {boolean} `true` for a source spec.
+ */
+export function isSourceSpec(spec) {
+  const text = String(spec).trim();
+
+  return [PROTOCOL_SPEC, PATH_SPEC, REPOSITORY_SPEC, CATALOG_SPEC].some(pattern => pattern.test(text));
+}
+
+/**
+ * Split a pnpm catalog spec.
+ *
+ * @param {string} spec The spec as written in `package.json`.
+ * @returns {{name: string|null}|null} `{ name: null }` for `catalog:` and `catalog:default`, `{ name }` for
+ * `catalog:<name>`, and `null` for any other spec.
+ */
+export function parseCatalogSpec(spec) {
+  const match = /^catalog:(.*)$/i.exec(String(spec).trim());
+
+  if (!match) {
+    return null;
+  }
+
+  const name = match[1].trim();
+
+  return { name: name === '' || name === 'default' ? null : name };
+}
+
+/**
+ * The version range an `npm:` alias names: `^17.1.0` for `npm:handsontable@^17.1.0`.
+ *
+ * @param {string} spec The spec as written in `package.json`.
+ * @returns {string|null} The range, or `null` when the spec is not an alias with a range.
+ */
+export function aliasRange(spec) {
+  return NPM_ALIAS.exec(String(spec).trim())?.[2] ?? null;
+}
 
 /**
  * Parse a full `MAJOR.MINOR.PATCH` version.
@@ -35,7 +82,6 @@ function compareVersions(left, leftPre, right) {
 const PART = '(\\d+|[xX*])';
 const COMPARATOR = new RegExp(`^(>=|<=|>|<|=|\\^|~)?v?${PART}(?:\\.${PART})?(?:\\.${PART})?`
   + '(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$');
-const NPM_ALIAS = /^npm:((?:@[\w.-]+\/)?[\w.-]+)@(.+)$/;
 
 /**
  * Compare two versions of three numbers.
@@ -162,7 +208,7 @@ export function rangeAdmits(range, version) {
 export function planRange(spec, target) {
   const text = spec.trim();
 
-  if ([PROTOCOL_SPEC, PATH_SPEC, REPOSITORY_SPEC].some(pattern => pattern.test(text))) {
+  if (isSourceSpec(text) && !CATALOG_SPEC.test(text)) {
     return { action: 'skip' };
   }
 

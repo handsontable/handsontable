@@ -59,7 +59,8 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
 | `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
 | `src/lib/carrier.mjs` | `MarkerCarriers` and `spliceCarriers()`: a generic marker on an untouched one-line array element is added as text after printing, so recast does not reprint the element (see "TODO comments"). |
-| `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. |
+| `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. `isSourceSpec()` (a path, URL, git, `workspace:`, `catalog:` spec: no version in it), `parseCatalogSpec()`, and `aliasRange()` are shared with `versions.mjs`. |
+| `src/lib/pnpm-catalog.mjs` | `parseCatalogs()` (a line scan of the `catalog:` and `catalogs:` blocks of a `pnpm-workspace.yaml`, no YAML dependency) and `findCatalog()` (the nearest workspace file between a `package.json` and the project directory). |
 | `src/transforms/import-source.mjs`, `export-rename.mjs`, `namespace-type.mjs`, `export-removed.mjs` | `importSource`, `exportRename`, `namespaceType`, and `exportRemoved` (rule shapes in Traps). |
 | `src/lib/type-rules.mjs` | Shared by those four: `*` module and path patterns, option keys and advice placeholders, `chooseSource()` (which candidate module a name is imported from), `reportOpaqueReferences()`. |
 | `src/transforms/methods.mjs`, `call-unwrap.mjs` | `methodRemove` and `methodMove` (receiver rule, see Traps), and `callUnwrap`. |
@@ -91,6 +92,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    names no version (`latest`) is a usage error that asks for `--from`. With no `--from` and no range at the path or above
    it (a monorepo root), `scanPackageVersions()` reads the `package.json` files below the path arguments: different
    versions are a usage error that lists the packages, equal ones become the `--from` and the note names the files.
+   A spec that points at a source is not a version: `minimumOfRange()` returns `null` for `file:`, `link:`, `portal:`,
+   `workspace:`, `catalog:`, git, `github:`, URL, path, and `owner/repo` specs (`isSourceSpec()`), so detection says
+   "... is not a version. Pass --from." and `scanPackageVersions()` skips them, and names the first one when no
+   package names a version. An `npm:` alias reads the range after its last `@`.
    `plan.fromText` carries the resolved `--from` to the transforms as `ctx.fromText`.
    A `dependency` range below `--from` (`lineBelowFrom()`: an earlier line that does not admit the `--from` version)
    is never bumped. `dependencies.mjs` reports one `below-from` warning per `package.json` (`reportBelowFrom()`), the CLI
@@ -160,6 +165,7 @@ of its earliest kind in `KIND_ORDER`.
 | `json` | For a `json` part, the `JsonDocument` that edits the text by offset: `setString(section, name, value)` and `addMember(section, name, value)` return `false` and change nothing when the scan of the text and the parsed file disagree, and the transform then reports `manual`. `null` for every other kind. A transform never prints a `package.json` with `JSON.stringify`. |
 | `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
 | `cssScope`, `lineOffset`, `fromText` | `'scoped'`, `'module'`, or `null` for the Vue `<style>` block of a `css` part; the part's zero-based line offset (add it by hand when a line is stored outside `report()`); the run's `--from` as text. |
+| `catalog` | For a `package.json` in phase 2 that holds a `catalog:` spec: `{ file, catalogs }` of the nearest `pnpm-workspace.yaml` (`catalogs` maps a catalog name, `''` for the default, to package ranges), else `null`. The runner reads it, so a transform stays free of file reads. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
 | `options` | `{ aggressive, dryRun, todo }`. `todo: false` (`--no-todo`) makes `todo()` and `comment()` write nothing and switches the generic markers off. `markers: false` (tests use it) switches off only the generic markers. Never write to disk from a transform. |
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
@@ -349,7 +355,10 @@ closed: an element is carried only when it is an expression on lines of its own,
 has the comments the parser found, and prints (`printWithoutComments()`, recast's own printer on a copy without
 comments) as its original text, so a carrier can never undo a rewrite. Any other element goes through the AST as
 before and is reprinted. A sentinel that is missing or stands twice throws, and `transformFile()` turns that into a
-`transform-error` that leaves the file alone. Only an array element takes this path: a property or statement keeps its
+`transform-error` that leaves the file alone. When only white space and single-line block comments precede the sentinel on its line (`/* fx */ { ... },`), the
+comment lines go above that line, at its indentation, so the element keeps the comments it had; anything else before
+the sentinel keeps the older placement. The second run finds the marker because the parser attaches both comments to
+the element. Only an array element takes this path: a property or statement keeps its
 children's text when it is printed again, so its comment never moves anything. The comment text always comes from
 `formatTodo()`, and `hasJsTodo()` and `MarkerCarriers.has()` are the two dedupes of one run.
 
@@ -442,6 +451,26 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   The `advice` never says the property was deleted, because the rule may not be safe. The comment of a deletion starts
   with `Deleted <name> here.`. A rule that is not safe leaves the property and puts the TODO before it (before the
   enclosing property, statement, or array element when the object is on one line).
+- **A `cells` option can name its function** (`resolveFunction()` in `lib/option-objects.mjs`, used by `expandOption()` for
+  a settings key and a JSX attribute): an inline function, a `useCallback(fn, deps)` or `React.useCallback` callback, or
+  one identifier hop in the same file to a `const` initializer or a function declaration. A `const` and a declaration
+  that nothing assigns to are certain, so the returned objects keep the confidence of the option. A `let`, a `var`, and
+  a declaration that is assigned to (`findReferences()` finds a write) are `medium`: reported, rewritten only under
+  `--aggressive`. An import, a parameter, and a destructured name are never resolved, and there is no object to report
+  for them, so they stay silent. A function that is not passed as `cells` is never an option object, even when it
+  returns `{ correctFormat: true }`. `resolveObjects()` also reads both branches of a conditional, for every option
+  position. `columns` as a function still needs the function written there.
+- **Indentation.** `printJsPart()` passes `useTabs` to recast for a file that `usesTabs()` (more lines start with a tab
+  than with a space, ` * ` comment lines left out), and `restoreTabs()` fixes what recast still prints with spaces: the
+  first statement of a block it reprints. A line the source already had is never changed, so a file that mixes styles
+  keeps its minority lines. The width of a space indent is recast's own guess from the source (`guessTabWidth`), and
+  `test/indentation.test.mjs` pins two spaces, four spaces, and tabs in `.js`, `.ts`, and a Vue `<script>`.
+- **`catalog:` specs.** `bump()` in `dependencies.mjs` never plans a range for them (`reportCatalog()`): the entry says
+  to set the range in the `catalog` or `catalogs.<name>` section of `pnpm-workspace.yaml`, names the current value
+  when `ctx.catalog` has it, and is dropped when `planRange()` keeps it or `rangeAdmits()` is true. It keeps the
+  `range:<section>:<name>` merge key, so a chained run reports one entry per spot. The parser reads block style only. A
+  quoted key, a quoted value, a trailing comment, and CRLF work, and flow style, an anchor, and a nested value give no
+  entry, so the generic text stays. The tool never writes the workspace file.
 - The `css` adapter never prints the postcss root. postcss 8's stringifier escapes `<style` and `</style` in comments
   and strings (`\3c style`), so printing the root changes bytes no transform touched. `printCssPart()` asks the part's
   `CssDocument` for the text: the original with each recorded edit spliced in by offset (a renamed property or value,

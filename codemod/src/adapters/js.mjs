@@ -36,6 +36,68 @@ export function detectQuote(source) {
 }
 
 /**
+ * Tell whether a file indents with tabs, by counting the lines that start with a tab against the lines that start
+ * with a space. A line that continues a block comment (` * text`) is not indentation and is left out, and so is a
+ * blank line. Ties and files without indentation count as spaces.
+ *
+ * recast guesses the width of a space indent from the source by itself, but it prints tabs as spaces unless it is
+ * told to use them, so a reprinted statement of a tab-indented file would come out with spaces.
+ *
+ * @param {string} source File text.
+ * @returns {boolean} `true` when the file is indented with tabs.
+ */
+export function usesTabs(source) {
+  let tabs = 0;
+  let spaces = 0;
+
+  for (const line of source.split(/\r\n|[\n\r\u2028\u2029]/)) {
+    if (line.startsWith('\t')) {
+      tabs += 1;
+    } else if (line.startsWith(' ') && /\S/.test(line) && !/^ +\*/.test(line)) {
+      spaces += 1;
+    }
+  }
+
+  return tabs > spaces;
+}
+
+const TAB_WIDTH = 4;
+
+/**
+ * Give the lines that recast printed with spaces back their tabs, in a tab-indented file. Even with `useTabs`, recast
+ * prints the first statement of a block it reprints with spaces. A line that the source already had is left as it
+ * is, so a file that mixes the two styles keeps its minority lines. Any other line that starts with spaces is
+ * measured in columns (a tab is `TAB_WIDTH` columns) and written with as many tabs as fit, and the rest stay spaces,
+ * as alignment.
+ *
+ * @param {string} printed The text recast printed.
+ * @param {string} source Original text of the part.
+ * @param {string} lineTerminator Line terminator of the part.
+ * @returns {string} The text with tab indentation.
+ */
+function restoreTabs(printed, source, lineTerminator) {
+  const original = new Set(source.split(lineTerminator));
+
+  return printed.split(lineTerminator).map((line) => {
+    const [indent] = /^[ \t]*/.exec(line);
+
+    if (!indent.includes(' ') || original.has(line) || /^ +\*/.test(line)) {
+      return line;
+    }
+
+    let columns = 0;
+
+    for (const character of indent) {
+      columns = character === '\t' ? (Math.floor(columns / TAB_WIDTH) + 1) * TAB_WIDTH : columns + 1;
+    }
+
+    const tabs = Math.floor(columns / TAB_WIDTH);
+
+    return '\t'.repeat(tabs) + ' '.repeat(columns - (tabs * TAB_WIDTH)) + line.slice(indent.length);
+  }).join(lineTerminator);
+}
+
+/**
  * Cheap test on raw JavaScript text: does it mention Handsontable or a theme variable at all.
  */
 export const JS_PRECHECK = /handsontable|--ht-/i;
@@ -57,7 +119,7 @@ export function createJsPart(source, parser, lineOffset = 0) {
 
 /**
  * Print a `js` part back to text. Recast reprints only the nodes a transform touched. A CRLF source keeps its
- * line terminator.
+ * line terminator, and a tab-indented source keeps tabs in the lines recast prints again.
  *
  * @param {import('../types.mjs').Part} part A part made by `createJsPart`.
  * @param {string} source Original text of the part, used to detect the quote style and line terminator.
@@ -65,9 +127,15 @@ export function createJsPart(source, parser, lineOffset = 0) {
  */
 export function printJsPart(part, source) {
   const lineTerminator = source.includes('\r\n') ? '\r\n' : '\n';
-  const printed = part.root.toSource({ quote: detectQuote(source), lineTerminator });
+  const tabs = usesTabs(source);
+  const printed = part.root.toSource({
+    quote: detectQuote(source),
+    lineTerminator,
+    ...(tabs ? { useTabs: true, tabWidth: TAB_WIDTH } : {}),
+  });
+  const spliced = spliceCarriers(part.carriers, printed, lineTerminator);
 
-  return stripStraySemicolons(part, spliceCarriers(part.carriers, printed, lineTerminator), source);
+  return stripStraySemicolons(part, tabs ? restoreTabs(spliced, source, lineTerminator) : spliced, source);
 }
 
 /**

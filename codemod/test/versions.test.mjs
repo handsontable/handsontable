@@ -144,6 +144,35 @@ describe('minimumOfRange', () => {
       assert.equal(minimumOfRange(range), null, range);
     }
   });
+
+  it('reads no version out of a path, a URL, a repository, or a protocol', () => {
+    for (const range of [
+      'file:../vendor/handsontable-build-2025.11.tgz',
+      'link:../forks/handsontable-v2',
+      'portal:../handsontable-17',
+      'workspace:^17.1.0',
+      'workspace:*',
+      'catalog:',
+      'catalog:v17',
+      'git+https://github.com/example/handsontable.git#v17.1.0',
+      'git+ssh://git@github.com/example/handsontable.git',
+      'github:example/handsontable#17.1.0',
+      'example/handsontable#v17',
+      'https://example.com/handsontable-17.1.0.tgz',
+      'http://example.com/handsontable-17.1.0.tgz',
+      '../vendor/handsontable-17.1.0.tgz',
+      '/opt/handsontable-17.1.0',
+      '~/handsontable-17',
+      'patch:handsontable@17.1.0#./fix.patch',
+    ]) {
+      assert.equal(minimumOfRange(range), null, range);
+    }
+  });
+
+  it('still reads the range of an npm alias', () => {
+    assert.equal(minimumOfRange('npm:handsontable@^17.1.0'), '17.1.0');
+    assert.equal(minimumOfRange('npm:@handsontable/vue3@~17.1'), '17.1');
+  });
 });
 
 describe('detectInstalledVersion', () => {

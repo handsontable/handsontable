@@ -55,8 +55,10 @@ handsontable-codemod migrate --from 17.1 --to 18.1 --report migration-report.md
 `node_modules/handsontable`, then the range of `handsontable` in the nearest `package.json`, searching from the
 path up to the current directory. Paths that resolve to different versions need `--from`. At a monorepo root where no
 `package.json` names `handsontable`, the tool reads the ranges of the packages below it: when they agree it uses that
-version and names the files, and when they differ it asks for `--from` and lists the packages. `--to` defaults to the
-latest released migration.
+version and names the files, and when they differ it asks for `--from` and lists the packages. A spec that points at
+a source is not a version: `file:`, `link:`, `workspace:`, `portal:`, a git or `github:` spec, a URL, a path, and
+`catalog:` are skipped, so the digits in a file name never count. When no package names a version, the tool asks for
+`--from`. An `npm:handsontable@^17.1.0` alias still counts. `--to` defaults to the latest released migration.
 
 ### Which versions it covers
 
@@ -239,7 +241,16 @@ annotation, and the `columns`, `cell`, and `cells` below them have high confiden
 a settings object: `columns={[{ ... }]}`, `columns={(index) => ({ ... })}`, and `columns={columnDefs}`, where
 `columnDefs` is an array in the same file, or a `useMemo(() => [...], [])` call with a single `return`. The object
 argument of `setCellMetaObject(row, col, { ... })` on a grid instance the file shows (`const hot = new Handsontable(...)`)
-is a cell object with high confidence, like a return of `cells()`. An object that
+is a cell object with high confidence, like a return of `cells()`.
+
+A `cells` function can also be passed by name, in a settings object or as a prop: `cells={plainCells}`, `cells: fmtCells`,
+or `cells={cells}` where `cells` holds `useCallback(() => ({ ... }), [])`. The tool follows the name one hop inside
+the file, to a `const` arrow function or function expression, a function declaration, or a `useCallback` or
+`React.useCallback` call, the way it follows `columns` to a same-file array. Every object the function returns, on
+each side of a conditional (`col === 1 ? { ... } : {}`) too, is a cell object with high confidence. A function declaration
+that something assigns to, and a `let` or `var`, may hold another function at run time, so their objects have medium
+confidence: the tool reports their keys and rewrites them only under `--aggressive`. An imported function, a
+parameter, and a destructured name cannot be read, so they are neither reported nor rewritten. An object that
 only looks like settings, for example a variable with the keys `colHeaders` and `rowHeaders`, has medium confidence.
 
 A rule rewrites an object at high confidence. At medium confidence it reports the key and leaves the object alone.
@@ -298,8 +309,13 @@ the tool reads the version from `package.json`, which the run raised, and answer
   lines, a blank line can appear around a multi-line key, and a trailing comma can go. A removed option leaves its
   TODO above the next property, or the previous one when it was last. Run your formatter afterwards.
 - A TODO marker on a one-line array element (an object in `columns`, say) is one added comment line, and the element
-  keeps its layout. When the element is also rewritten, is wrapped in parentheses, or spans several lines, the printer
-  reprints it as described above.
+  keeps its layout. When only white space and block comments precede the element on its line (`/* fx */ { ... },`),
+  the marker goes on a line above that line and the comment stays with the element. When the element is also
+  rewritten, is wrapped in parentheses, or spans several lines, the printer reprints it as described above.
+- A tab-indented file keeps its tabs: a statement the printer prints again, next to a removed call or a changed
+  object, is indented with tabs, and so is every added line. The width of a space indent comes from the file.
+- A `cells` function the tool cannot read (see "How confidence works") is not checked. A `cells` function from another
+  file, or one handed in as a parameter, may still set removed options, so search for them by hand.
 - After a rewrite, a default import can become unused. The tool does not remove an import that may be needed for its side
   effects, so your linter reports it.
 - Moving `numericFormat.culture` to `locale` can leave `numericFormat: {}` behind. The tool keeps it on purpose: in
@@ -315,6 +331,11 @@ the tool reads the version from `package.json`, which the run raised, and answer
   `setCellMetaObject()` calls on a receiver the tool cannot confirm as a grid instance are reported and not rewritten.
 - It does not edit `overrides`, `resolutions`, `pnpm.overrides`, `npm:` aliases, or CDN URLs. It reports the ones that
   hold Handsontable or a wrapper below the target version.
+- It does not edit a `catalog:` or `catalog:<name>` spec, or `pnpm-workspace.yaml`. The range lives in the catalog, so
+  the report says to set it in the `catalog` (or `catalogs.<name>`) section of the nearest `pnpm-workspace.yaml`, not
+  in `package.json`, where it would take the package out of the catalog. It reads that file with a line scan for the
+  block form, names the current entry, and stays silent when the entry already admits the target. A catalog it cannot
+  read (flow style, an anchor) gets the generic text.
 - A git tree check needs git. Without it the tool treats the directory as a plain folder.
 
 ## Contributing

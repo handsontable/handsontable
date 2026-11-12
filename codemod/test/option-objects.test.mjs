@@ -269,6 +269,95 @@ describe('findOptionObjects: high confidence seeds', () => {
     ]);
   });
 
+  describe('a cells function passed by reference', () => {
+    it('resolves a same-file arrow, function expression, declaration, and useCallback behind one name', () => {
+      const found = describeObjects([
+        'import { HotTable } from \'@handsontable/react-wrapper\';',
+        'const arrowCells = () => ({ a: 1 });',
+        'const expressionCells = function() { return { b: 1 }; };',
+        'function declaredCells() { return { c: 1 }; }',
+        'const App = () => {',
+        '  const memoCells = useCallback(() => ({ d: 1 }), []);',
+        '  const reactCells = React.useCallback(function() { return { e: 1 }; }, []);',
+        '  return (<>',
+        '    <HotTable cells={arrowCells} />',
+        '    <HotTable cells={expressionCells} />',
+        '    <HotTable cells={declaredCells} />',
+        '    <HotTable cells={memoCells} />',
+        '    <HotTable cells={reactCells} />',
+        '    <HotTable cells={useCallback(() => ({ f: 1 }), [])} />',
+        '  </>);',
+        '};',
+      ].join('\n'), 'tsx');
+
+      assert.deepEqual(found, [
+        'high cell cells():identifier [a]',
+        'high cell cells():identifier [b]',
+        'high cell cells():identifier [c]',
+        'high cell cells():identifier [d]',
+        'high cell cells():identifier [e]',
+        'high cell cells() [f]',
+      ]);
+    });
+
+    it('resolves the cells key of a settings object the same way', () => {
+      const found = describeObjects(`${IMPORT}`
+        + 'const fmtCells = () => ({ numericFormat: { culture: \'de-DE\' } });\n'
+        + 'function dateCells() { return { dateFormat: \'DD/MM/YYYY\' }; }\n'
+        + 'new Handsontable(el, { cells: fmtCells });\n'
+        + 'hot.updateSettings({ cells: dateCells });\n', 'babylon');
+
+      assert.deepEqual(found, [
+        'high grid new [cells]',
+        'high cell cells():identifier [numericFormat]',
+        'high grid updateSettings [cells]',
+        'high cell cells():identifier [dateFormat]',
+      ]);
+    });
+
+    it('sees both branches of a returned conditional', () => {
+      const found = describeObjects(`${IMPORT}`
+        + 'const priceCells = (row, col) => (col === 1 ? { numericFormat: {} } : { readOnly: true });\n'
+        + 'new Handsontable(el, { cells: priceCells });\n', 'babylon');
+
+      assert.deepEqual(found, [
+        'high grid new [cells]',
+        'high cell cells():identifier [numericFormat]',
+        'high cell cells():identifier [readOnly]',
+      ]);
+    });
+
+    it('resolves a name that may hold another function as a guess, and skips what it cannot see', () => {
+      const found = describeObjects([
+        'import { HotTable } from \'@handsontable/react-wrapper\';',
+        'import { importedCells } from \'./cells\';',
+        'let reassigned = () => ({ a: 1 });',
+        'reassigned = other;',
+        'function replaced() { return { b: 1 }; }',
+        'replaced = other;',
+        'const { destructured } = holder;',
+        'const notAFunction = { e: 1 };',
+        'function shadowed(cells) {',
+        '  return <HotTable cells={cells} />;',
+        '}',
+        'const unused = () => ({ correctFormat: true });',
+        'export const App = (props) => (<>',
+        '  <HotTable cells={importedCells} />',
+        '  <HotTable cells={reassigned} />',
+        '  <HotTable cells={replaced} />',
+        '  <HotTable cells={destructured} />',
+        '  <HotTable cells={notAFunction} />',
+        '  <HotTable cells={props.cells} />',
+        '</>);',
+      ].join('\n'), 'tsx');
+
+      assert.deepEqual(found, [
+        'medium cell cells():identifier [a]',
+        'medium cell cells():identifier [b]',
+      ]);
+    });
+  });
+
   for (const parser of TS_PARSERS) {
     it(`finds annotation, as, satisfies, return type, and generic-call forms (${parser})`, () => {
       const found = describeObjects([
