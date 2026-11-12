@@ -1,6 +1,7 @@
 import { registerAllModules } from 'handsontable/registry';
 import { BasePlugin } from 'handsontable/plugins/base';
 import { registerPlugin } from 'handsontable/plugins/registry';
+import * as mixed from 'handsontable/helpers/mixed';
 import { _getLicenseState } from 'handsontable/helpers/mixed';
 import {
   resolveLicenseCapabilities,
@@ -210,7 +211,7 @@ describe('resolveLicenseCapabilities()', () => {
 });
 
 describe('a key that names a tier', () => {
-  it('should restrict without the listed-capabilities flag', () => {
+  it('should restrict on its tier alone, with no flag', () => {
     const hot = gridWithKey(keyWithTier(['alpha']));
 
     expect(resolveLicenseCapabilities(hot)).toBeInstanceOf(Set);
@@ -280,11 +281,31 @@ describe('a key that names a tier', () => {
     // Every plugin asks on every `updateSettings()`, and the header checkbox on every render.
     const getPluginsNames = jest.spyOn(registry, 'getPluginsNames');
 
-    hasLicenseCapability(hot, 'feat:tier_stub');
-    hasLicenseCapability(hot, 'feat:filters');
+    try {
+      hasLicenseCapability(hot, 'feat:tier_stub');
+      hasLicenseCapability(hot, 'feat:filters');
 
-    expect(getPluginsNames).not.toHaveBeenCalled();
-    getPluginsNames.mockRestore();
+      expect(getPluginsNames).not.toHaveBeenCalled();
+    } finally {
+      getPluginsNames.mockRestore();
+    }
+  });
+
+  it('should unlock everything for a license state with no tiers field', () => {
+    const realState = _getLicenseState(SUBSCRIPTION_KEY);
+    const { tiers, ...stateWithoutTiers } = realState;
+    const getLicenseState = jest.spyOn(mixed, '_getLicenseState').mockReturnValue(stateWithoutTiers);
+
+    try {
+      // A key no other test resolves, so the cache cannot answer for it.
+      const hot = gridWithKey('a-key-whose-state-has-no-tiers-field');
+
+      expect(tiers).toBe(null);
+      expect(resolveLicenseCapabilities(hot)).toBe('all');
+      expect(getLicenseState).toHaveBeenCalledWith('a-key-whose-state-has-no-tiers-field');
+    } finally {
+      getLicenseState.mockRestore();
+    }
   });
 
   it('should grant a plugin registered after the key was first resolved', () => {

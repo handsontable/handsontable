@@ -95,7 +95,8 @@ function resolveTiers(tiers: readonly string[]): Set<string> {
 function resolveKey(key: string): LicenseCapabilities {
   const { tiers } = _getLicenseState(key);
 
-  return tiers === null ? ALL : resolveTiers(tiers);
+  // A state without a `tiers` field names no tier, so it unlocks everything, as `null` does.
+  return tiers === null || tiers === undefined ? ALL : resolveTiers(tiers);
 }
 
 /**

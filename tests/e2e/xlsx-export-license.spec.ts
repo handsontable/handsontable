@@ -20,8 +20,11 @@ import {
  * A feature every real tier lists cannot be switched off by a real key, so those cases live in the unit
  * suite, which builds keys with made-up tiers: the export refused and the menu item hidden without
  * xlsx:export (`handsontable/src/plugins/exportFile/__tests__/exportFile.unit.js`), and the parts and
- * warnings without xlsx:formulas or xlsx:layout, the auto-sized widths counted as layout among them
- * (`handsontable/src/plugins/exportFile/__tests__/xlsxLicenseGates.unit.js`).
+ * warnings without xlsx:formulas or xlsx:layout
+ * (`handsontable/src/plugins/exportFile/__tests__/xlsxLicenseGates.unit.js`). That suite counts any column
+ * width other than the default as layout ("counts explicit layout only toward xlsx:layout"), which is why an
+ * auto-sized width counts too, but it sets the widths on a mocked sheet: no test exports widths that
+ * AutoColumnSize measured.
  */
 const PARTIAL_TIER_LACKS = 'xlsx:styles';
 

@@ -79,7 +79,7 @@ To change a dependency, edit `feature.json` and run `generate:feature-manifest`;
 
 ## The license token (`LICENSE`) is generated too
 
-A plugin with `licensing: "token"` (every new one) gets a `LICENSE` export in the same `feature.generated.ts`: its token, display name, `gate` and `implies`. The class returns it, and the unit suite fails until it does:
+A plugin with `licensing: "token"` (every new one) gets a `LICENSE` export in the same `feature.generated.ts`: its token (`capability`), display name, `gate` and `tiers`. The class returns it, and the unit suite fails until it does:
 
 ```ts
 import { LICENSE } from './feature.generated';

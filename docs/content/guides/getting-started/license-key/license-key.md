@@ -389,20 +389,20 @@ The table lists the plans that include each feature. For prices, see the
 | Trim rows | Yes | Yes |
 | Undo and redo | Yes | Yes |
 | View state | Yes | Yes |
-| Autocomplete | Yes | Yes |
-| Checkbox | Yes | Yes |
-| Date | Yes | Yes |
-| Date (Intl) | Yes | Yes |
-| Date and time (Intl) | Yes | Yes |
-| Dropdown | Yes | Yes |
-| Handsontable | Yes | Yes |
-| Multiselect | Yes | Yes |
-| Numeric | Yes | Yes |
-| Password | Yes | Yes |
-| Select | Yes | Yes |
-| Text | Yes | Yes |
-| Time | Yes | Yes |
-| Time (Intl) | Yes | Yes |
+| Cell type: Autocomplete | Yes | Yes |
+| Cell type: Checkbox | Yes | Yes |
+| Cell type: Date | Yes | Yes |
+| Cell type: Date (Intl) | Yes | Yes |
+| Cell type: Date and time (Intl) | Yes | Yes |
+| Cell type: Dropdown | Yes | Yes |
+| Cell type: Handsontable | Yes | Yes |
+| Cell type: Multiselect | Yes | Yes |
+| Cell type: Numeric | Yes | Yes |
+| Cell type: Password | Yes | Yes |
+| Cell type: Select | Yes | Yes |
+| Cell type: Text | Yes | Yes |
+| Cell type: Time | Yes | Yes |
+| Cell type: Time (Intl) | Yes | Yes |
 | XLSX export | Yes | Yes |
 | XLSX import | Yes | Yes |
 | XLSX: Cell styles |  | Yes |

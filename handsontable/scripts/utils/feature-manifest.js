@@ -503,7 +503,7 @@ function checkLicensing(entry) {
     problems.push(`"gate" must be one of ${gates.join(', ')} for a sold ${entry.kind}`);
   }
   if (entry.licensing !== 'token' && entry.gate !== undefined) {
-    problems.push('"gate" is only for an entry a key must list ("licensing": "token")');
+    problems.push('"gate" is only for a sold entry ("licensing": "token")');
   }
 
   return problems;
@@ -1096,8 +1096,8 @@ function renderIdList(name, ids) {
 /**
  * Renders `utils/xlsxEngine/licenseCapabilities.generated.ts`: the XLSX tokens the runtime gates check
  * (`licensing: "token"` in `features.json` with a `call` or `degrade` gate, in that file's order), the ones each
- * file plugin gates, the `XlsxEntitlement` flag each token drives, and the key flag. `licenseCapabilities.ts`
- * re-exports them. A `report` entry (the import report) is never turned off, so it stays out.
+ * file plugin gates, the `XlsxEntitlement` flag each token drives, and the tiers that include
+ * each token. `licenseCapabilities.ts` re-exports them. A `report` entry (the import report) is never turned off, so it stays out.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {string}
@@ -1141,13 +1141,18 @@ function renderXlsxLicenseModule(sources) {
 
 /**
  * The name a sold entry has in the feature-to-tier matrix. An XLSX sub-feature can share its name with a plugin
- * (`Comments`, `Formulas`), so it reads `XLSX: <name>`, unless its name already starts with `XLSX`.
+ * (`Comments`, `Formulas`), so it reads `XLSX: <name>`, unless its name already starts with `XLSX`. A cell type's
+ * name reads like a plugin or the product (`Checkbox`, `Date`, `Handsontable`), so it reads `Cell type: <name>`.
  *
  * @param {string} file The source file of the entry.
  * @param {object} entry A manifest entry.
  * @returns {string}
  */
 function toMatrixName(file, entry) {
+  if (entry.kind === 'cell_type') {
+    return `Cell type: ${entry.name}`;
+  }
+
   return file === XLSX_SOURCE_FILE && !entry.name.startsWith('XLSX') ? `XLSX: ${entry.name}` : entry.name;
 }
 
@@ -1184,8 +1189,14 @@ function renderTierMatrix(sources) {
  */
 function renderLicenseGuide(sources) {
   const page = sources.licenseGuideText;
-  const start = page?.indexOf(TIER_MATRIX_START) ?? -1;
-  const end = page?.indexOf(TIER_MATRIX_END) ?? -1;
+
+  if (typeof page !== 'string') {
+    throw new Error(`${LICENSE_GUIDE_FILE} is missing: the feature-to-tier matrix is written into it, so restore the ` +
+      'license key guide before you generate');
+  }
+
+  const start = page.indexOf(TIER_MATRIX_START);
+  const end = page.indexOf(TIER_MATRIX_END);
 
   if (start === -1 || end < start) {
     throw new Error(`${LICENSE_GUIDE_FILE} must hold ${TIER_MATRIX_START} followed by ${TIER_MATRIX_END}`);

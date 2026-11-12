@@ -275,7 +275,7 @@ describe('BasePlugin license gate', () => {
       expect(missingFeatureErrors().length).toBe(2);
     });
 
-    it('should enable the plugin once a key that lists it is passed', () => {
+    it('should enable the plugin once a key with a tier that includes it is passed', () => {
       const hot = createGrid({ licenseKey: baseKey(), filters: true });
 
       // Filters requires DropdownMenu, HiddenRows and AutoColumnSize, and the key's tier includes them too.

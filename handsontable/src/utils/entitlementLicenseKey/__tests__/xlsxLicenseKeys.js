@@ -22,8 +22,8 @@ export const ALL_XLSX_TOKENS = XLSX_CAPABILITY_IDS;
 /**
  * Builds a current subscription key whose Handsontable entry lists `core` plus `tokens` and no
  * `tier:<name>` token. Only a tier restricts a key, so this key unlocks every feature, whatever tokens it
- * lists: the case that proves a token outside a tier changes nothing. It runs to 2027-08-12 with a
- * 60-day notice and a 90-day grace period.
+ * lists: the case that proves a token outside a tier changes nothing. Like `keyWithTier()`, it is a
+ * perpetual key for every build released up to 2099-12-31, so no test depends on the clock.
  *
  * @param {string[]} tokens The capability tokens besides `core`.
  * @param {string[]} [flags] The product flags.
@@ -34,7 +34,7 @@ export function keyWithoutTier(tokens, flags = []) {
     products: {
       handsontable: {
         capabilities: ['core', ...tokens],
-        usage_until: '2027-08-12',
+        release_until: '2099-12-31',
         notice: 60,
         grace: 90,
         flags,

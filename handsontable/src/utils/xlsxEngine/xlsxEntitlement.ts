@@ -57,15 +57,15 @@ export const UNRESTRICTED_XLSX_ENTITLEMENT: XlsxEntitlement = Object.freeze({
  * only when the feature's tier list contains one of them; any feature id or flag beside the tiers is
  * ignored.
  *
- * @param {string[]|null} tiers The tiers the key names, or `null` when it names none.
+ * @param {string[]|null} [tiers] The tiers the key names, or `null` (or `undefined`) when it names none.
  * @param {object} [tiersById] The tiers that unlock each feature.
  * @returns {XlsxEntitlement}
  */
 export function resolveXlsxEntitlement(
-  tiers: readonly string[] | null,
+  tiers: readonly string[] | null | undefined,
   tiersById: Readonly<Record<string, readonly string[]>> = XLSX_TIERS_BY_ID,
 ): XlsxEntitlement {
-  if (tiers === null) {
+  if (tiers === null || tiers === undefined) {
     return UNRESTRICTED_XLSX_ENTITLEMENT;
   }
 

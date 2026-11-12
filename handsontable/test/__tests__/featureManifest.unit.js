@@ -78,6 +78,25 @@ function withFile(sources, file, change) {
   return copy;
 }
 
+/**
+ * Returns a copy of the sources with one more tier, which the listed entries include. The tier is made up, so a
+ * test built on it never depends on which feature a real tier sells.
+ *
+ * @param {object} sources What `loadSources()` returns.
+ * @param {string} tier The name of the new tier.
+ * @param {string[]} ids The entries that include it.
+ * @returns {object}
+ */
+function withTier(sources, tier, ids) {
+  let copy = { ...sources, tiers: [...sources.tiers, tier] };
+
+  ids.forEach((id) => {
+    copy = withEntry(copy, id, entry => ({ ...entry, tiers: [...entry.tiers, tier] }));
+  });
+
+  return copy;
+}
+
 describe('feature manifest', () => {
   const sources = loadSources(PACKAGE_DIR);
   const byId = indexEntries(sources);
@@ -209,18 +228,15 @@ describe('feature manifest', () => {
         '"tiers" must be a non-empty list of tier names'],
       ['a sold entry with an empty tier list', 'feat:search', entry => ({ ...entry, tiers: [] }),
         '"tiers" must be a non-empty list of tier names'],
-      ['a tier nobody declares', 'feat:search', entry => ({ ...entry, tiers: ['standard', 'gold'] }),
+      ['a tier nobody declares', 'feat:search', entry => ({ ...entry, tiers: [...entry.tiers, 'gold'] }),
         'unknown tier "gold"'],
-      ['a tier listed twice', 'feat:search', entry => ({ ...entry, tiers: ['standard', 'standard'] }),
-        'tier "standard" is listed twice'],
-      ['tiers on a building block that is not sold', 'editor:text', entry => ({ ...entry, tiers: ['standard'] }),
-        '"tiers" is only for sold entries'],
+      ['a tier listed twice', 'feat:search', entry => ({ ...entry, tiers: [...entry.tiers, entry.tiers[0]] }),
+        `tier "${entryOf('feat:search').tiers[0]}" is listed twice`],
+      ['tiers on a building block that is not sold', 'editor:text',
+        entry => ({ ...entry, tiers: [sources.tiers[0]] }), '"tiers" is only for sold entries'],
       ['the retired "core" licensing value', 'cell:text',
         entry => ({ ...entry, licensing: 'core', gate: undefined, tiers: undefined }),
         '"licensing" must be one of token, none'],
-      // `xlsx:comments` requires `feat:comments`; a tier that sells the first must sell the second.
-      ['a tier that leaves out a required feature', 'feat:comments', entry => ({ ...entry, tiers: ['standard'] }),
-        'tier "professional" includes "xlsx:comments" but not "feat:comments", which it requires'],
     ])('should report %s', (_, id, change, message) => {
       const problems = checkSources(withEntry(sources, id, change));
 
@@ -250,8 +266,20 @@ describe('feature manifest', () => {
         'tier "basic" includes "xlsx:styles" but none of "xlsx:import", "xlsx:export", one of which it requires')]);
     });
 
+    // A made-up tier that sells every sold entry except `feat:comments`, which `xlsx:comments` requires.
+    it('should report a tier that includes a feature and not one of its "allOf" requirements', () => {
+      const sold = [...byId.values()].filter(entry => entry.licensing === 'token').map(entry => entry.id);
+      const changed = withTier(sources, 'alpha', sold.filter(id => id !== 'feat:comments'));
+      const requirers = sold.filter(id => entryOf(id).requires?.allOf?.includes('feat:comments'));
+
+      expect(requirers).toContain('xlsx:comments');
+      expect(checkSources(changed)).toEqual(requirers.map(id => expect.stringContaining(
+        `tier "alpha" includes "${id}" but not "feat:comments", which it requires`)));
+      expect(checkSources(withTier(sources, 'alpha', sold))).toEqual([]);
+    });
+
     it('should report a tier name that cannot be written as a key token', () => {
-      const problems = checkSources({ ...sources, tiers: ['standard', 'Pro Plus'] });
+      const problems = checkSources({ ...sources, tiers: [...sources.tiers, 'Pro Plus'] });
 
       expect(problems).toContain('src/featureManifest/tiers.json: tier "Pro Plus" must match /^[a-z][a-z0-9_]*$/');
     });
@@ -396,9 +424,16 @@ describe('feature manifest', () => {
   });
 
   describe('the license tiers matrix', () => {
-    // The XLSX sub-features share names with plugins (Comments, Formulas), so the matrix prefixes them.
-    const rowNameOf = entry => (entry.id.startsWith('xlsx:') && !entry.name.startsWith('XLSX') ?
-      `XLSX: ${entry.name}` : entry.name);
+    // The XLSX sub-features share names with plugins (Comments, Formulas), and the cell types read like plugins or
+    // the product (Checkbox, Handsontable), so the matrix prefixes both.
+    const rowNameOf = (entry) => {
+      if (entry.kind === 'cell_type') {
+        return `Cell type: ${entry.name}`;
+      }
+
+      return entry.id.startsWith('xlsx:') && !entry.name.startsWith('XLSX') ? `XLSX: ${entry.name}` : entry.name;
+    };
+    const rowOf = (name, cells) => `| ${name} | ${cells.join(' | ')} |`;
 
     it('should render one matrix row per sold feature and one column per tier', () => {
       const lines = renderTierMatrix(sources).trim().split('\n');
@@ -424,16 +459,32 @@ describe('feature manifest', () => {
       expect(names.filter(name => byId.has(name) || /^[a-z]+:/.test(name))).toEqual([]);
     });
 
-    it('should follow a tier assignment changed in a source, with no code change', () => {
-      const changed = withEntry(sources, 'feat:filters', entry => ({ ...entry, tiers: ['professional'] }));
+    it('should label every cell type row as a cell type, so it does not read as a plugin or the product', () => {
+      const names = renderTierMatrix(sources).trim().split('\n').slice(2).map(line => line.split('|')[1].trim());
+      const cellTypes = [...byId.values()].filter(entry => entry.kind === 'cell_type' && entry.licensing === 'token');
 
-      expect(renderTierMatrix(changed).split('\n')).toContain('| Filters |  | Yes |');
+      expect(cellTypes.length).toBeGreaterThan(0);
+      cellTypes.forEach(entry => expect(names).toContain(`Cell type: ${entry.name}`));
+      expect(names.filter(name => name.startsWith('Cell type: '))).toHaveLength(cellTypes.length);
+      expect(names).not.toContain('Handsontable');
+    });
+
+    it('should follow a tier assignment changed in a source, with no code change', () => {
+      const changed = withEntry(withTier(sources, 'alpha', []), 'feat:filters',
+        entry => ({ ...entry, tiers: ['alpha'] }));
+      const lines = renderTierMatrix(changed).split('\n');
+
+      expect(lines[0]).toBe(`| Feature | ${[...sources.tiers, 'alpha']
+        .map(tier => tier[0].toUpperCase() + tier.slice(1)).join(' | ')} |`);
+      expect(lines).toContain(rowOf('Filters', [...sources.tiers.map(() => ''), 'Yes']));
       // The plugin's generated LICENSE carries its tiers too.
       expect(findStaleOutputs(changed)).toEqual(['src/plugins/filters/feature.generated.ts', LICENSE_GUIDE_FILE]);
     });
 
     it('should read the guide as stale when the block is edited, and keep the text around it', () => {
-      const edited = sources.licenseGuideText.replace('| Filters | Yes | Yes |', '| Filters |  | Yes |');
+      const row = rowOf('Filters',
+        sources.tiers.map(tier => (entryOf('feat:filters').tiers.includes(tier) ? 'Yes' : '')));
+      const edited = sources.licenseGuideText.replace(row, rowOf('Filters', sources.tiers.map(() => '')));
       const output = buildCommittedOutputs(sources).find(({ file }) => file === LICENSE_GUIDE_FILE);
 
       expect(edited).not.toBe(sources.licenseGuideText);
@@ -448,6 +499,13 @@ describe('feature manifest', () => {
 
       expect(() => buildCommittedOutputs({ ...sources, licenseGuideText: withoutMarkers }))
         .toThrow('license-tiers:end');
+    });
+
+    it('should name the guide file when it is missing, not ask for its markers', () => {
+      const build = () => buildCommittedOutputs({ ...sources, licenseGuideText: null });
+
+      expect(build).toThrow(`${LICENSE_GUIDE_FILE} is missing`);
+      expect(build).not.toThrow('license-tiers:end');
     });
   });
 

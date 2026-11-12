@@ -56,6 +56,11 @@ describe('xlsxEngine/xlsxEntitlement', () => {
     expect(Object.values(UNRESTRICTED_XLSX_ENTITLEMENT).filter(v => v === false)).toEqual([]);
   });
 
+  it('is unrestricted for a license state with no tiers field', () => {
+    expect(resolveXlsxEntitlement(undefined)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
+    expect(resolveXlsxEntitlement({}.tiers)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
+  });
+
   it('is unrestricted for a key that names no tier, whatever it lists or flags', () => {
     expect(resolveXlsxEntitlement(keyOf(PARTIAL_TOKENS, []))).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
     expect(resolveXlsxEntitlement(keyOf([], []))).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
