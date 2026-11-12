@@ -742,9 +742,10 @@ export class ColumnSummary extends BasePlugin {
    */
   #readIncludedSummaryResult(row: number, col: number): { value: number | string | null } | null {
     const endpoints = this.endpoints!;
-    const currentEndpoint = endpoints.currentEndpoint!;
+    const currentEndpoint = endpoints.currentEndpoint;
 
-    if (currentEndpoint.includeSummaryResults !== true) {
+    // No calculation is running (a direct `getCellValue()` call), so the cell is read as before.
+    if (currentEndpoint?.includeSummaryResults !== true) {
       return null;
     }
 

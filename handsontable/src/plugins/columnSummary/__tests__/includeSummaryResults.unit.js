@@ -62,6 +62,36 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
     expect(hot.getPlugin('columnSummary').exportEndpointSettings()[1].includeSummaryResults).toBe(true);
   });
 
+  it('refreshes the endpoints in change order when the option is off', () => {
+    const data = [[null, null], [1, 10], [2, 20]];
+    const resetBatches = [];
+
+    hot = buildGrid([
+      { destinationRow: 0, destinationColumn: 0, ranges: [[1, 2]] },
+      { destinationRow: 0, destinationColumn: 1, ranges: [[1, 2]] },
+    ], {
+      data,
+      afterChange(changes, source) {
+        if (source === 'ColumnSummary.reset') {
+          resetBatches.push(changes.map(([row, column, , newValue]) => [row, column, newValue]));
+        }
+      },
+    });
+    resetBatches.length = 0;
+
+    hot.setDataAtCell([[1, 1, 11], [1, 0, 5]]);
+
+    // The change to column 1 comes first, so its endpoint is refreshed first, as before the option.
+    expect(resetBatches).toEqual([[[0, 1, 31], [0, 0, 7]]]);
+  });
+
+  it('reads a summary result as empty when called outside a calculation', () => {
+    hot = buildGrid([endpoint(3, [[4, 6]])]);
+
+    expect(hot.getPlugin('columnSummary').endpoints.currentEndpoint).toBe(null);
+    expect(hot.getPlugin('columnSummary').getCellValue(3, 1)).toBe(null);
+  });
+
   it('keeps skipping a summary result when the option is off (control)', () => {
     hot = buildGrid([endpoint(3, [[4, 6]]), endpoint(0, [[1, 3]])]);
 
@@ -277,14 +307,28 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
 
     it('terminates when endpoints include each other and a source column changes', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const loopWarnings = () => warnSpy.mock.calls.filter(([message]) => /ColumnSummary/.test(message)).length;
 
-      hot = buildGrid([
-        endpoint(0, [[1, 3]], { includeSummaryResults: true }),
-        endpoint(3, [[0, 0], [4, 6]], { sourceColumn: 2, includeSummaryResults: true }),
-      ], { data: createCrossData() });
+      try {
+        // The first endpoint reads column 1 (rows 1-3, the second one's destination included) and writes
+        // into column 2. The second reads column 2 (row 0, the first one's destination included) and
+        // writes into column 1. Each includes the other's result.
+        hot = buildGrid([
+          endpoint(0, [[1, 3]], { destinationColumn: 2, includeSummaryResults: true }),
+          endpoint(3, [[0, 0], [4, 6]], { sourceColumn: 2, includeSummaryResults: true }),
+        ], { data: createCrossData() });
 
-      expect(() => hot.setDataAtCell(5, 2, 100)).not.toThrow();
-      warnSpy.mockRestore();
+        expect(hot.getDataAtCell(0, 2)).toBe(35);
+        expect(hot.getDataAtCell(3, 1)).toBe(24);
+        expect(loopWarnings()).toBe(1);
+
+        expect(() => hot.setDataAtCell(5, 2, 100)).not.toThrow();
+        expect(hot.getDataAtCell(0, 2)).toBe(127);
+        expect(hot.getDataAtCell(3, 1)).toBe(116);
+        expect(loopWarnings()).toBe(2);
+      } finally {
+        warnSpy.mockRestore();
+      }
     });
 
     it('does not refresh an endpoint without the option when another column changes (control)', () => {

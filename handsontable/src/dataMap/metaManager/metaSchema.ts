@@ -1537,7 +1537,7 @@ export default (): Record<string, unknown> => {
      * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors)                                    |
      * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell [read-only](@/api/options.md#readonly)                                                                                           |
      * | `roundFloat`             | `true`  \| `false`  \| A number                                         | [Round summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result)                                  |
-     * | `includeSummaryResults`  | `true`  \| `false`                                                      | [Include other summary results](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results)                       |
+     * | `includeSummaryResults`  | `true`  \| `false`                                                      | [Include other summary results](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results)                        |
      * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function)                         |
      *
      * Read more:

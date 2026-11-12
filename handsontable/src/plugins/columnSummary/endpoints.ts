@@ -744,6 +744,7 @@ class Endpoints {
    */
   refreshChangedEndpoints(changes: unknown[][]) {
     const endpoints = this.getAllEndpoints();
+    // Change order: for each change, the endpoints reading its column in declaration order, each once.
     const matched = new Set<EndpointConfig>();
 
     this.#rederiveDefaultRanges(endpoints);
@@ -1039,9 +1040,19 @@ class Endpoints {
    * another endpoint of the set writes into its source column, and that destination row lies in one of
    * its ranges. The loop ends because an endpoint joins the set once.
    *
-   * @param {object[]} matched The endpoints selected by their source column.
+   * When no selected endpoint has the option, nothing is added and the matched endpoints come back in
+   * the order the caller collected them (change order for `refreshChangedEndpoints()`, declaration order
+   * for `refreshEndpointsBySourceColumns()`), so a grid without the option refreshes exactly as before:
+   * the order shows in the `ColumnSummary.reset` batch, in which value lands when two endpoints share a
+   * destination, and in the call order of `custom` functions. Once an endpoint with the option takes
+   * part, the set comes back in declaration order, the order `refreshAllEndpoints()` uses. An acyclic
+   * result does not depend on the order (a dependency is calculated on demand and memoized within the
+   * pass), but a loop of endpoints that include each other is broken at the endpoint calculated first,
+   * and declaration order breaks it where the initial pass did.
+   *
+   * @param {object[]} matched The endpoints selected by their source column, in refresh order.
    * @param {object[]} all All the endpoints of the pass.
-   * @returns {object[]} The matched endpoints and their dependents, in the order of `all`.
+   * @returns {object[]} The endpoints to refresh, in the order described above.
    */
   #withDependents(matched: EndpointConfig[], all: EndpointConfig[]): EndpointConfig[] {
     const selected = new Set<EndpointConfig>(matched);
@@ -1068,6 +1079,10 @@ class Endpoints {
           selected.add(endpoint);
         }
       });
+    }
+
+    if (!Array.from(selected).some(endpoint => endpoint.includeSummaryResults)) {
+      return matched;
     }
 
     return all.filter(endpoint => selected.has(endpoint));

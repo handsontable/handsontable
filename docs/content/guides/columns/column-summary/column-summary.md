@@ -822,7 +822,7 @@ These rules apply to an included result:
 - A summary uses the rounded result, if you set the [`roundFloat`](@/api/columnSummary.md#options) option.
 - A `'Not enough data'` result adds nothing.
 - If two summaries include each other, the plugin logs a warning in the console, and skips the result that closes the loop.
-- The [`custom`](#implement-a-custom-summary-function) summary type is not affected.
+- The [`custom`](#implement-a-custom-summary-function) summary type is not affected, unless your custom function calls the plugin's own `getCellValue()` or `calculateSum()` method for a summary that has the option: then it gets the included results too.
 - A summary never includes its own destination cell.
 
 The example below builds a budget tree with the [`NestedRows`](@/api/nestedRows.md) plugin. A function gives every parent row a `sum` summary. Its ranges are the parent's direct children, and the `includeSummaryResults` option lets it count the subtotal of the `Payroll` group. The `Payroll` row shows `31000`, and the `Operations` row shows `35850`:
