@@ -66,6 +66,34 @@ describe('MergeCells re-anchored top-left cell meta', () => {
     filters.filter();
   }
 
+  const SPAN_KEYS = ['spanned', 'rowspan', 'colspan'];
+
+  /**
+   * Asserts that no cell holds a span of its own unless a merge is drawn from it. Reads the stored meta only,
+   * so the `afterGetCellMeta` hook cannot write the keys back first. A merge that was purged while all of its
+   * rows are trimmed is not in the lookup any more and is drawn from no cell: it is told apart from the others
+   * by the lookup, not by its stale coordinates, which can still name a cell in range.
+   */
+  function expectSpanKeysOnlyOnTopLefts() {
+    const { mergedCellsCollection } = hot.getPlugin('mergeCells');
+    const topLefts = new Set(
+      mergedCellsCollection.mergedCells
+        .filter(merge => mergedCellsCollection.get(merge.row, merge.col) === merge)
+        .map(({ row, col }) => `${hot.toPhysicalRow(row)}:${hot.toPhysicalColumn(col)}`)
+    );
+
+    for (let physicalRow = 0; physicalRow < hot.countSourceRows(); physicalRow++) {
+      for (let physicalColumn = 0; physicalColumn < hot.countSourceCols(); physicalColumn++) {
+        if (!topLefts.has(`${physicalRow}:${physicalColumn}`)) {
+          SPAN_KEYS.forEach((key) => {
+            expect([physicalRow, physicalColumn, key, hasStoredFlag(physicalRow, physicalColumn, key)])
+              .toEqual([physicalRow, physicalColumn, key, false]);
+          });
+        }
+      }
+    }
+  }
+
   it('should check the precondition: every covered cell stores `hidden` before the trim', () => {
     createGrid({ trimRows: true });
 
@@ -483,30 +511,6 @@ describe('MergeCells re-anchored top-left cell meta', () => {
   });
 
   describe('span keys after a move or a freeze', () => {
-    const SPAN_KEYS = ['spanned', 'rowspan', 'colspan'];
-
-    /**
-     * Asserts that no cell holds a span of its own unless a merge is drawn from it. Reads the stored meta only,
-     * so the `afterGetCellMeta` hook cannot write the keys back first.
-     */
-    function expectSpanKeysOnlyOnTopLefts() {
-      const { mergedCells } = hot.getPlugin('mergeCells').mergedCellsCollection;
-      const topLefts = new Set(
-        mergedCells.map(({ row, col }) => `${hot.toPhysicalRow(row)}:${hot.toPhysicalColumn(col)}`)
-      );
-
-      for (let physicalRow = 0; physicalRow < hot.countSourceRows(); physicalRow++) {
-        for (let physicalColumn = 0; physicalColumn < hot.countSourceCols(); physicalColumn++) {
-          if (!topLefts.has(`${physicalRow}:${physicalColumn}`)) {
-            SPAN_KEYS.forEach((key) => {
-              expect([physicalRow, physicalColumn, key, hasStoredFlag(physicalRow, physicalColumn, key)])
-                .toEqual([physicalRow, physicalColumn, key, false]);
-            });
-          }
-        }
-      }
-    }
-
     it('should check the precondition: the top-left stores the span keys before the move', () => {
       createGrid({ manualRowMove: true });
 
@@ -652,6 +656,529 @@ describe('MergeCells re-anchored top-left cell meta', () => {
       expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(0);
       expect(hasStoredFlag(2, 4, 'hidden')).toBe(false);
       expect(hot.getCellMeta(hot.toVisualRow(2), 4).rowspan).toBe(9);
+    });
+  });
+
+  /**
+   * A trim or a filter draws the merge from the next visible row, and `afterGetCellMeta` stores the span keys
+   * there. Nothing took them off once the original row came back, a move or a freeze while a row was trimmed
+   * left them on the former top-left, and so did an undo or a redo of a move.
+   */
+  describe('span keys after a trim is lifted, a move while a row is trimmed, and an undo', () => {
+    function hasAnySpanKey(physicalRow, physicalColumn) {
+      return SPAN_KEYS.some(key => hasStoredFlag(physicalRow, physicalColumn, key));
+    }
+
+    function trimRowEight() {
+      hot.getPlugin('trimRows').trimRows([8]);
+    }
+
+    it('should check the precondition: the top-left stores the span keys and a covered cell does not', () => {
+      createGrid({ trimRows: true });
+
+      SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+      expect(hasAnySpanKey(2, 4)).toBe(false);
+    });
+
+    describe('when a trim or a filter is lifted', () => {
+      it('should clear the span keys from the temporary top-left after `untrimRows()`', () => {
+        createGrid({ trimRows: true });
+
+        hot.getPlugin('trimRows').trimRows([1]);
+        hot.render();
+
+        // The merge is drawn from physical row 2 while row 1 is trimmed.
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(2, 4, key)).toBe(true));
+
+        hot.getPlugin('trimRows').untrimRows([1]);
+
+        expect(hasAnySpanKey(2, 4)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expect(hot.getCellMeta(1, 4).colspan).toBe(2);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the temporary top-left after the filter is cleared', () => {
+        createGrid({ filters: true });
+
+        filterOutRowTwo();
+        hot.render();
+
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(2, 4, key)).toBe(true));
+
+        hot.getPlugin('filters').clearConditions();
+        hot.getPlugin('filters').filter();
+
+        expect(hasAnySpanKey(2, 4)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys of a merge that was purged while all of its rows were trimmed', () => {
+        createGrid({ trimRows: true });
+
+        const trimRows = hot.getPlugin('trimRows');
+
+        trimRows.trimRows([1]);
+        hot.render();
+
+        // Physical row 2 is the top-left now. Trimming the rest of the merge purges it.
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(2, 4, key)).toBe(true));
+
+        trimRows.trimRows([2, 3]);
+
+        expect(hasAnySpanKey(2, 4)).toBe(false);
+
+        trimRows.untrimRows([1]);
+        hot.render();
+        trimRows.untrimRows([2, 3]);
+        hot.render();
+
+        expect(hasAnySpanKey(2, 4)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should keep the span keys of the cell the merge is drawn from', () => {
+        createGrid({ trimRows: true });
+
+        hot.getPlugin('trimRows').trimRows([8]);
+        hot.getPlugin('trimRows').untrimRows([8]);
+
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+      });
+
+      it('should keep a `rowspan` and a `colspan` recorded on the temporary top-left', () => {
+        createGrid({ trimRows: true });
+
+        hot.getPlugin('trimRows').trimRows([1]);
+        hot.setCellMeta(1, 4, 'rowspan', 9);
+        hot.setCellMeta(1, 4, 'colspan', 8);
+        hot.getPlugin('trimRows').untrimRows([1]);
+
+        // `spanned` is the merge's own mark and goes, the recorded keys are the user's and stay.
+        expect(hasStoredFlag(2, 4, 'spanned')).toBe(false);
+        expect(hasStoredFlag(2, 4, 'rowspan')).toBe(true);
+        expect(hasStoredFlag(2, 4, 'colspan')).toBe(true);
+      });
+
+      it('should keep a `rowspan` the user set on a cell that no merge is drawn from', () => {
+        createGrid({ trimRows: true });
+
+        hot.setCellMeta(6, 0, 'rowspan', 9);
+        hot.getPlugin('trimRows').trimRows([1]);
+        hot.getPlugin('trimRows').untrimRows([1]);
+
+        expect(hasStoredFlag(6, 0, 'rowspan')).toBe(true);
+      });
+    });
+
+    describe('when a column move or a freeze happens while a row is trimmed', () => {
+      it('should clear the span keys from the former top-left after `moveColumn()`', () => {
+        createGrid({ trimRows: true, manualColumnMove: true });
+
+        trimRowEight();
+        hot.getPlugin('manualColumnMove').moveColumn(4, 5);
+
+        // Physical column 5 is drawn at visual column 4 now, and the merge is drawn from it.
+        expect(hot.toPhysicalColumn(4)).toBe(5);
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left after `moveColumn()` on a filtered grid', () => {
+        createGrid({ filters: true, manualColumnMove: true });
+
+        const filters = hot.getPlugin('filters');
+
+        filters.addCondition(0, 'neq', ['A9']);
+        filters.filter();
+        hot.getPlugin('manualColumnMove').moveColumn(4, 5);
+
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left after a column freeze', () => {
+        createGrid({
+          trimRows: true,
+          manualColumnFreeze: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        trimRowEight();
+        hot.getPlugin('manualColumnFreeze').freezeColumn(4);
+
+        // Physical column 4 is the first visual column and no merge is drawn from it. The merge keeps columns 5 and 6.
+        expect(hot.toPhysicalColumn(0)).toBe(4);
+        expect(hot.getCellMeta(1, 5).colspan).toBe(2);
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left after a column unfreeze', () => {
+        // Columns 0-4 are frozen. Unfreezing column 0 puts it behind the frozen band, after the merge's first column.
+        createGrid({
+          trimRows: true,
+          manualColumnFreeze: true,
+          fixedColumnsStart: 5,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        trimRowEight();
+        hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
+
+        // Physical column 4 sits alone at visual column 3, and the merge keeps columns 5 and 6.
+        expect(hot.toPhysicalColumn(4)).toBe(0);
+        expect(hot.getCellMeta(1, 5).colspan).toBe(2);
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left a row move leaves in no merge', () => {
+        createGrid({
+          trimRows: true,
+          manualRowMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+        });
+
+        trimRowEight();
+
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+
+        hot.getPlugin('manualRowMove').moveRow(1, 6);
+
+        // The 2x1 fragment is drawn from physical (2, 4); physical (1, 4) sits alone at visual row 6.
+        expect(hot.toPhysicalRow(1)).toBe(2);
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(2);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left of a merge a row move keeps whole', () => {
+        createGrid({ trimRows: true, manualRowMove: true });
+
+        trimRowEight();
+        hot.getPlugin('manualRowMove').moveRow(2, 1);
+
+        // Physical row 2 is drawn at visual row 1 now, and the merge is drawn from it.
+        expect(hot.toPhysicalRow(1)).toBe(2);
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+    });
+
+    describe('when a move takes a cell out of every merge while a row is trimmed', () => {
+      const TEXT = 'released';
+
+      function expectNoCoveredFlags(physicalRow, physicalColumn) {
+        expect(hasStoredFlag(physicalRow, physicalColumn, 'hidden')).toBe(false);
+        expect(hasStoredFlag(physicalRow, physicalColumn, 'copyable')).toBe(false);
+      }
+
+      it('should clear the covered flags from a cell a row move takes out of a merge', () => {
+        createGrid({
+          trimRows: true,
+          manualRowMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+        });
+
+        trimRowEight();
+
+        expect(hasStoredFlag(2, 4, 'hidden')).toBe(true);
+
+        hot.getPlugin('manualRowMove').moveRow(2, 7);
+
+        const visualRow = hot.toVisualRow(2);
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.get(visualRow, 4)).toBe(false);
+        expectNoCoveredFlags(2, 4);
+
+        hot.setSourceDataAtCell(2, 4, TEXT);
+
+        expect(hot.getCopyableText(visualRow, 4, visualRow, 4)).toBe(TEXT);
+      });
+
+      it('should clear the covered flags from a cell a column move takes out of a merge', () => {
+        createGrid({
+          trimRows: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        trimRowEight();
+
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+
+        hot.getPlugin('manualColumnMove').moveColumn(5, 8);
+
+        const visualColumn = hot.toVisualColumn(5);
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.get(1, visualColumn)).toBe(false);
+        expectNoCoveredFlags(1, 5);
+      });
+
+      it('should clear the covered flags from a cell a column freeze takes out of a merge', () => {
+        createGrid({
+          trimRows: true,
+          manualColumnFreeze: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        hot.getCellMeta(1, 6);
+        trimRowEight();
+
+        expect(hasStoredFlag(1, 6, 'hidden')).toBe(true);
+
+        hot.getPlugin('manualColumnFreeze').freezeColumn(6);
+
+        expect(hot.toPhysicalColumn(0)).toBe(6);
+        expectNoCoveredFlags(1, 6);
+      });
+
+      it('should clear the covered flags from a cell a column move takes out of a merge whose rows are all trimmed', () => {
+        createGrid({
+          trimRows: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        hot.getPlugin('trimRows').trimRows([1]);
+
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+
+        // The merge keeps columns 4 and 6, and column 5 leaves it.
+        hot.getPlugin('manualColumnMove').moveColumn(5, 8);
+        hot.getPlugin('trimRows').untrimRows([1]);
+        hot.render();
+
+        const visualColumn = hot.toVisualColumn(5);
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.get(1, visualColumn)).toBe(false);
+        expectNoCoveredFlags(1, 5);
+
+        hot.setSourceDataAtCell(1, 5, TEXT);
+
+        expect(hot.getCopyableText(1, visualColumn, 1, visualColumn)).toBe(TEXT);
+      });
+
+      it('should clear the covered flags from a cell a move took out of a merge after the undo and the redo', () => {
+        createGrid({
+          undo: true,
+          trimRows: true,
+          manualRowMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+        });
+
+        trimRowEight();
+        hot.getPlugin('manualRowMove').moveRow(2, 7);
+
+        expectNoCoveredFlags(2, 4);
+
+        hot.getPlugin('undoRedo').undo();
+        hot.render();
+
+        // The undone merge covers the cell again, and reading its meta stores the flags on it.
+        hot.getCellMeta(hot.toVisualRow(2), 4);
+
+        expect(hasStoredFlag(2, 4, 'hidden')).toBe(true);
+
+        hot.getPlugin('undoRedo').redo();
+
+        expectNoCoveredFlags(2, 4);
+
+        hot.setSourceDataAtCell(2, 4, TEXT);
+
+        const visualRow = hot.toVisualRow(2);
+
+        expect(hot.getCopyableText(visualRow, 4, visualRow, 4)).toBe(TEXT);
+      });
+
+      it('should keep the covered flags on the cells the merge still covers', () => {
+        createGrid({
+          trimRows: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        trimRowEight();
+        hot.getPlugin('manualColumnMove').moveColumn(0, 1);
+
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+        expect(hasStoredFlag(1, 5, 'copyable')).toBe(true);
+      });
+    });
+
+    describe('when a move is undone or redone', () => {
+      it('should clear the span keys from the former top-left after the undo and the redo of `moveColumn()`', () => {
+        createGrid({ undo: true, manualColumnMove: true });
+
+        hot.getPlugin('manualColumnMove').moveColumn(4, 5);
+        hot.getCellMeta(1, 4);
+
+        // Physical column 5 is the first column of the merge now.
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 5, key)).toBe(true));
+
+        hot.getPlugin('undoRedo').undo();
+
+        expect(hot.toPhysicalColumn(4)).toBe(4);
+        expect(hasAnySpanKey(1, 5)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expectSpanKeysOnlyOnTopLefts();
+
+        hot.getPlugin('undoRedo').redo();
+
+        expect(hot.toPhysicalColumn(4)).toBe(5);
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left after the undo and the redo of `moveRow()`', () => {
+        createGrid({ undo: true, manualRowMove: true, mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 2 }] });
+
+        hot.getPlugin('manualRowMove').moveRow(1, 6);
+        hot.getCellMeta(1, 4);
+        hot.getCellMeta(hot.toVisualRow(1), 4);
+        hot.getCellMeta(hot.toVisualRow(1), 5);
+
+        hot.getPlugin('undoRedo').undo();
+
+        hot.getCellMeta(1, 4);
+        expect(hot.toVisualRow(1)).toBe(1);
+        expectSpanKeysOnlyOnTopLefts();
+
+        hot.getPlugin('undoRedo').redo();
+
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left after the undo of `moveColumn()` while a row is trimmed', () => {
+        createGrid({ undo: true, trimRows: true, manualColumnMove: true });
+
+        trimRowEight();
+        hot.getPlugin('manualColumnMove').moveColumn(4, 5);
+        hot.getCellMeta(1, 4);
+
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 5, key)).toBe(true));
+
+        hot.getPlugin('undoRedo').undo();
+
+        expect(hasAnySpanKey(1, 5)).toBe(false);
+        expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left after the redo of `moveColumn()` while a row is trimmed', () => {
+        createGrid({ undo: true, trimRows: true, manualColumnMove: true });
+
+        trimRowEight();
+        hot.getPlugin('manualColumnMove').moveColumn(4, 5);
+        hot.render();
+        hot.getPlugin('undoRedo').undo();
+        hot.render();
+
+        // The render stored the keys on the restored top-left, which the redo takes the merge off.
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+
+        hot.getPlugin('undoRedo').redo();
+
+        expect(hot.toPhysicalColumn(4)).toBe(5);
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the span keys from the former top-left after the undo and the redo of `moveRow()` while a row is trimmed', () => {
+        createGrid({
+          undo: true,
+          trimRows: true,
+          manualRowMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+        });
+
+        trimRowEight();
+        hot.getPlugin('manualRowMove').moveRow(1, 6);
+        hot.render();
+
+        // The 2x1 fragment is drawn from physical (2, 4), and physical row 1 sits alone.
+        expectSpanKeysOnlyOnTopLefts();
+
+        hot.getPlugin('undoRedo').undo();
+        hot.render();
+
+        expect(hot.toPhysicalRow(1)).toBe(1);
+        expect(hasAnySpanKey(2, 4)).toBe(false);
+        expectSpanKeysOnlyOnTopLefts();
+
+        hot.getPlugin('undoRedo').redo();
+
+        expect(hot.toPhysicalRow(1)).toBe(2);
+        expect(hasAnySpanKey(1, 4)).toBe(false);
+        expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should keep the span keys of a merge a move did not touch after the undo', () => {
+        createGrid({ undo: true, manualColumnMove: true });
+
+        hot.getPlugin('manualColumnMove').moveColumn(0, 1);
+        hot.getPlugin('undoRedo').undo();
+
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+      });
+    });
+
+    describe('when the change does not move the cell a merge is drawn from', () => {
+      it('should leave the span keys alone after a sort', () => {
+        createGrid({ columnSorting: true });
+
+        // Nothing renders in between, so the keys that are checked are the stored ones, not the hook's rewrite.
+        hot.suspendRender();
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+        // The merge keeps its head row, so physical (1, 4) is still the cell it is drawn from.
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+        expect(hasAnySpanKey(2, 4)).toBe(false);
+        expectSpanKeysOnlyOnTopLefts();
+
+        hot.resumeRender();
+      });
+
+      it('should keep the span keys of the merge when a row is inserted above it while a row is trimmed', () => {
+        createGrid({ trimRows: true });
+
+        hot.getPlugin('trimRows').trimRows([1]);
+        hot.render();
+
+        // Row 1 is trimmed, so the merge is drawn from physical row 2, and the inserted row shifts it to 3.
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(2, 4, key)).toBe(true));
+
+        // Nothing renders in between, so the keys that are checked are the stored ones, not the hook's rewrite.
+        hot.suspendRender();
+        hot.alter('insert_row_above', 0, 1);
+
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(3, 4, key)).toBe(true));
+
+        hot.resumeRender();
+      });
+
+      it('should keep the span keys of the merge when a row is removed above it while a row is trimmed', () => {
+        createGrid({ trimRows: true });
+
+        hot.getPlugin('trimRows').trimRows([1]);
+        hot.render();
+
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(2, 4, key)).toBe(true));
+
+        hot.suspendRender();
+        hot.alter('remove_row', 0, 1);
+
+        SPAN_KEYS.forEach(key => expect(hasStoredFlag(1, 4, key)).toBe(true));
+
+        hot.resumeRender();
+      });
     });
   });
 });
