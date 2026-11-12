@@ -166,9 +166,15 @@ because every selection constraint — this plugin's page window, and `selection
 collapses any range to the highlighted cell — then silently becomes a data constraint.
 
 **A row on another page is shown only on request, through core's row revealer seam.** `enablePlugin()`
-registers `#revealRow` with the `@private` `Core#_addRowRevealer()` (`disablePlugin()` removes it), and
-core calls it from `_revealRow(visualRow)`. Today one caller asks: an editor that reopens on the record a
-rejected value was typed into, after a sort moved that record to another page (`BaseEditor#discardEditor()`).
+registers `#prepareRowReveal` with the `@private` `Core#_addRowRevealer()` (`disablePlugin()` removes it).
+Core calls it from `_prepareRowReveal()`, which an editor runs when it starts to wait for its validator; it
+records the current page and returns the function that reveals a row later. Today one caller uses it: an
+editor that reopens on the record a rejected value was typed into, after a sort moved that record to another
+page (`BaseEditor#discardEditor()`). **The reveal refuses when the current page is no longer the page recorded
+at the start of the wait.** The user changed the page during the wait, and switching back would undo their
+navigation, so the editor closes with nothing written. A check made only when the validator answers cannot
+tell the two apart: the record is off the current page either way. Pinned by
+`src/__tests__/core/validateChangesRecordTracking.unit.js` and `tests/e2e/editor-hidden-cell.spec.ts`.
 `#getPageOfRow()` counts the row's position among the rows no other hiding map hides (one pass over the
 visual rows) and finds the page whose `getState()` window holds it; a row another feature hides, a
 `dataProvider` grid (the rows are one page), or a row already on the current page answers `false`, and

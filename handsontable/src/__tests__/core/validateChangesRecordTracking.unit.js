@@ -651,6 +651,31 @@ describe('Core validation of a change while its record moves', () => {
       expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
     });
 
+    it('should close without saving and keep the page the user moved to while the editor waited', async() => {
+      createGrid({
+        allowInvalid: false,
+        filters: false,
+        trimRows: false,
+        hiddenRows: false,
+        pagination: { pageSize: 3 },
+      });
+      hot.selectCell(1, 0);
+
+      const editor = hot.getActiveEditor();
+      const closed = [];
+
+      editor.beginEditing();
+      editor.setValue('zzz');
+      editor.finishEditing(false, false, saved => closed.push(saved));
+      hot.getPlugin('pagination').setPage(2);
+      await answerAll(false);
+
+      expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(2);
+      expect(editor.isOpened()).toBe(false);
+      expect(closed).toEqual([false]);
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+    });
+
     it('should close without saving when hiddenRows hid the record', async() => {
       createGrid({ allowInvalid: false });
       hot.selectCell(1, 0);

@@ -602,7 +602,7 @@ export default function Core(
    * The functions that can bring a row a hiding feature of their own keeps off screen into view (see
    * `_addRowRevealer()`).
    */
-  const rowRevealers: Array<(visualRow: number) => boolean> = [];
+  const rowRevealers: Array<() => (visualRow: number) => boolean> = [];
   const waitingChangeSets: Map<CellChange[], { source: string | undefined, records: WaitingChangeRecords }> =
     new Map();
   /**
@@ -6635,13 +6635,15 @@ export default function Core(
 
   /**
    * Adds a function that can bring a row a hiding feature of its own keeps off screen back into view, the
-   * Pagination plugin's page change. It receives a visual row and returns `true` when it changed what is shown so
-   * the row can be rendered. Adding a function that is already there changes nothing.
+   * Pagination plugin's page change. Core calls it when a reveal is prepared (`_prepareRowReveal()`), and it
+   * returns the function that does the reveal later: that one receives a visual row and returns `true` when it
+   * changed what is shown so the row can be rendered. The feature decides there whether the reveal still applies
+   * to what it showed when the reveal was prepared. Adding a function that is already there changes nothing.
    *
    * @private
    * @param {Function} revealer The function to add.
    */
-  this._addRowRevealer = function(revealer: (visualRow: number) => boolean) {
+  this._addRowRevealer = function(revealer: () => (visualRow: number) => boolean) {
     if (!rowRevealers.includes(revealer)) {
       rowRevealers.push(revealer);
     }
@@ -6653,7 +6655,7 @@ export default function Core(
    * @private
    * @param {Function} revealer The function to remove.
    */
-  this._removeRowRevealer = function(revealer: (visualRow: number) => boolean) {
+  this._removeRowRevealer = function(revealer: () => (visualRow: number) => boolean) {
     const index = rowRevealers.indexOf(revealer);
 
     if (index !== -1) {
@@ -6662,28 +6664,33 @@ export default function Core(
   };
 
   /**
-   * Asks the functions `_addRowRevealer()` added to bring a visual row into view, in the order they were added,
-   * until the row can be rendered. Only an editor that reopens on the record a rejected value was typed into asks
-   * (`BaseEditor#discardEditor()`): a plain `selectCell()` on a row off screen keeps doing what it did.
+   * Prepares a reveal of a row with the functions `_addRowRevealer()` added, each told what is shown now. The
+   * returned function asks them, in the order they were added, to bring a visual row into view until the row can
+   * be rendered. Only an editor that waits for its validator prepares one (`BaseEditor`), when the wait starts, and
+   * uses it when a rejected value reopens the editor on its record: a plain `selectCell()` on a row off screen keeps
+   * doing what it did.
    *
    * @private
-   * @param {number} visualRow The visual row.
-   * @returns {boolean} Whether the row can be rendered now.
+   * @returns {Function} Takes a visual row and returns whether that row can be rendered now.
    */
-  this._revealRow = function(visualRow: number): boolean {
-    const isRenderable = () => instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) !== null;
+  this._prepareRowReveal = function(): (visualRow: number) => boolean {
+    const reveals = rowRevealers.map(revealer => revealer());
 
-    if (isRenderable()) {
-      return true;
-    }
+    return (visualRow: number): boolean => {
+      const isRenderable = () => instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) !== null;
 
-    for (const revealer of rowRevealers.slice()) {
-      if (revealer(visualRow) && isRenderable()) {
+      if (isRenderable()) {
         return true;
       }
-    }
 
-    return false;
+      for (const reveal of reveals) {
+        if (reveal(visualRow) && isRenderable()) {
+          return true;
+        }
+      }
+
+      return false;
+    };
   };
 
   /**

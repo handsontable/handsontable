@@ -3462,9 +3462,10 @@ In 19.0, the change is written into the record it was made on:
 - When the record was removed in the meantime, the change is dropped. It isn't written, and `afterChange`
   doesn't report it.
 - With [`allowInvalid: false`](@/api/options.md#allowinvalid), a value the validator rejects reopens the editor
-  on the row the record has now, with the typed text. When the record moved to another
-  [`Pagination`](@/api/pagination.md) page, that page is shown first. When the record is gone, filtered out, or
-  hidden with [`hiddenRows`](@/api/options.md#hiddenrows), the editor closes without saving.
+  on the row the record has now, with the typed text. When a sort or a move took the record to another
+  [`Pagination`](@/api/pagination.md) page, that page is shown first. When you changed the page yourself while
+  the validator ran, the page stays and the editor closes without saving. When the record is gone, filtered out,
+  or hidden with [`hiddenRows`](@/api/options.md#hiddenrows), the editor closes without saving too.
 
 The TypeScript types follow: the `changes` of `afterChange` and `beforeChangeRender` are `AppliedCellChange[]`,
 whose row is `number | null`, and the `row` of `modifyData` is `number | null`. `CellChange` is unchanged, so

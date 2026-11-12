@@ -324,7 +324,7 @@ export class Pagination extends BasePlugin {
     this.#serverSideTotalCount = null;
 
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName!, 'hiding', false);
-    this.hot._addRowRevealer(this.#revealRow);
+    this.hot._addRowRevealer(this.#prepareRowReveal);
 
     if (this.#pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
       warn(AUTO_PAGE_SIZE_WARNING);
@@ -615,7 +615,7 @@ export class Pagination extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot._removeRowRevealer(this.#revealRow);
+    this.hot._removeRowRevealer(this.#prepareRowReveal);
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName!);
@@ -1269,23 +1269,33 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Shows the page of a visual row the plugin keeps on another page. Core asks it through `_revealRow()` (an
-   * editor that reopens on the record a rejected value was typed into, after a sort moved the record to another
-   * page). A plain selection of a row on another page does not ask, and keeps working as before.
+   * Prepares a reveal of a row the plugin keeps on another page. Core calls it through `_prepareRowReveal()` when
+   * an editor starts to wait for its validator, and the editor uses the returned function when a rejected value
+   * reopens it on its record after a sort moved the record to another page. The returned function shows the
+   * record's page only while the page shown is still the one shown when the wait started: a page the user moved
+   * to meanwhile is kept, and the editor closes. A plain selection of a row on another page does not ask, and keeps
+   * working as before.
    *
-   * @param {number} visualRow The visual row.
-   * @returns {boolean} Whether the page changed.
+   * @returns {Function} Takes a visual row and returns whether the page changed.
    */
-  #revealRow = (visualRow: number): boolean => {
-    const page = this.#getPageOfRow(visualRow);
+  #prepareRowReveal = (): ((visualRow: number) => boolean) => {
+    const pageAtStart = this.#currentPage;
 
-    if (page === null || page === this.#currentPage) {
-      return false;
-    }
+    return (visualRow: number): boolean => {
+      if (!this.enabled || this.#currentPage !== pageAtStart) {
+        return false;
+      }
 
-    this.setPage(page);
+      const page = this.#getPageOfRow(visualRow);
 
-    return this.#currentPage === page;
+      if (page === null || page === this.#currentPage) {
+        return false;
+      }
+
+      this.setPage(page);
+
+      return this.#currentPage === page;
+    };
   };
 
   /**

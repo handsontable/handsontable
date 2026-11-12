@@ -181,6 +181,14 @@ export class BaseEditor {
    * gone or not rendered, or `undefined` when no answer was recorded. Read once by `discardEditor()`.
    */
   #answeredRow: number | null | undefined = undefined;
+  /**
+   * Brings the waited-on record into view when a rejected value reopens the editor on it, prepared when the wait
+   * started (`Core#_prepareRowReveal()`), so a feature that hides the record can tell a reorder that carried it off
+   * screen from the user moving away. `null` when no record is followed.
+   *
+   * @type {Function|null}
+   */
+  #rowReveal: ((visualRow: number) => boolean) | null = null;
 
   /**
    * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on its
@@ -666,6 +674,7 @@ export class BaseEditor {
     this.#releaseWaitRecord();
     this.#answeredRow = undefined;
     this.#waitRecord = this.row === null ? null : this.hot._trackRecord(this.row);
+    this.#rowReveal = this.#waitRecord === null ? null : this.hot._prepareRowReveal();
     this.#validationWait = wait;
     this.#validationWaitListener = onPostAfterValidate;
     this.hot.addHook('postAfterValidate', onPostAfterValidate);
@@ -765,9 +774,11 @@ export class BaseEditor {
    * A value the validator rejected under `allowInvalid: false` reopens the editor on the record the value was
    * typed into, at the visual row that record has when the validator answers (a sort, a move, a filter, or an
    * insert or removal can move it while the editor waits). A record a feature that can show it again keeps off
-   * screen (a sort moved it to another Pagination page) is brought back first (`Core#_revealRow()`), and the editor
-   * reopens there with the typed text. When the record is gone, trimmed out of the visual space (a filter, a
-   * collapse), or hidden for good (`hiddenRows`), the editor closes instead: no cell of that record can be shown.
+   * screen (a sort moved it to another Pagination page) is brought back first, through the reveal prepared when the
+   * wait started (`Core#_prepareRowReveal()`), and the editor reopens there with the typed text. A page the user
+   * moved to while the editor waited is kept, and the editor closes. When the record is gone, trimmed out of the
+   * visual space (a filter, a collapse), or hidden for good (`hiddenRows`), the editor closes instead: no cell of
+   * that record can be shown.
    * Nothing was written, so the close callbacks receive `false`.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
@@ -779,11 +790,13 @@ export class BaseEditor {
     }
 
     const isRejected = result === false && this.cellProperties.allowInvalid !== true;
+    const rowReveal = this.#rowReveal;
     let answeredRow = this.#answeredRow;
 
     this.#answeredRow = undefined;
+    this.#rowReveal = null;
 
-    if (isRejected && typeof answeredRow === 'number' && !this.hot._revealRow(answeredRow)) {
+    if (isRejected && typeof answeredRow === 'number' && rowReveal?.(answeredRow) !== true) {
       answeredRow = null;
     }
 
