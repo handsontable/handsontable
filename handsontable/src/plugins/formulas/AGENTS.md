@@ -1036,7 +1036,13 @@ order change reaches the axis syncers while they point at no engine sheet. The p
   plugins update, so a plugin the same call enables never saw the load, never bound a sheet, and the grid
   showed its formulas as text (`updateSettings({ data, formulas })` on a grid built without Formulas). While a
   load is still to come (`isDataLoadPending()`) the load binds the sheet, as before; when the plugin was already
-  enabled, its `afterLoadData` bound one, so the branch's `sheetName === null` keeps it out.
+  enabled, its `afterLoadData` bound one, so the branch's `sheetName === null` keeps it out. **A call that passes
+  `data` keeps it when its `sheetName` names a sheet the engine already holds** (`keepsDataOfCall`: no sheet bound
+  yet, `data` in the call, no load pending): the grid's data is written into that sheet (`#loadSourceDataIntoSheet()`
+  in one `#writeOwnSheet()`, whose `#writeSheet()` sets the endpoint up), as construction does. Before, both the
+  `#requestedSheetName()` branch and this one called `#loadSheet()`, which loaded the engine sheet over the data the
+  call had just passed. A call without `data` still loads the named sheet. Pinned by `writes the data passed in the
+  same call into the sheet a shared engine already holds under the sheet name`.
 - `#followEngineChange()` runs only while a load is pending, and that load fills and sets up the sheet.
 - **A re-enable of a grid built from an engine sheet without `data`** (`disablePlugin(); enablePlugin()`, or
   `updateSettings({ formulas: false })` and back, with or without `sheetName`, to the same instance or to an engine

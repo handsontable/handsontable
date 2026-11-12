@@ -158,6 +158,42 @@ describe('Formulas enabled on a live grid', () => {
       expect(engineValues(hot)).toEqual(OWN_ROW_SORTED);
     });
 
+    it('writes the data passed in the same call into the sheet a shared engine already holds under the sheet name', () => {
+      const engine = buildEngine();
+
+      engine.addSheet('Theirs');
+      engine.setSheetContent(engine.getSheetId('Theirs'), [[10, '=A1+1'], [20, '=A2+1']]);
+      hot = new Handsontable(container, { data: [[0, 0]], columnSorting: true, licenseKey: LICENSE_KEY });
+
+      // Core loads the data before the plugins update; the sheet the call names takes it, as at construction.
+      hot.updateSettings({ data: copy(OWN_ROW_CONTENT), formulas: { engine, sheetName: 'Theirs' } });
+
+      expect(hot.getPlugin('formulas').sheetName).toBe('Theirs');
+      expect(hot.getData()).toEqual([[3, 6], [1, 2], [2, 4]]);
+      expect(engineValues(hot)).toEqual([[3, 6], [1, 2], [2, 4]]);
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(hot.getData()).toEqual(OWN_ROW_SORTED);
+      expect(engineValues(hot)).toEqual(OWN_ROW_SORTED);
+    });
+
+    it('adds the sheet the call names from the data passed in the same call when the engine does not hold it', () => {
+      const engine = buildEngine();
+
+      hot = new Handsontable(container, { data: [[0, 0]], columnSorting: true, licenseKey: LICENSE_KEY });
+
+      hot.updateSettings({ data: copy(OWN_ROW_CONTENT), formulas: { engine, sheetName: 'Mine' } });
+
+      expect(hot.getPlugin('formulas').sheetName).toBe('Mine');
+      expect(hot.getData()).toEqual([[3, 6], [1, 2], [2, 4]]);
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(hot.getData()).toEqual(OWN_ROW_SORTED);
+      expect(engineValues(hot)).toEqual(OWN_ROW_SORTED);
+    });
+
     it('fills the engine with the data passed in the same call, and sorts it', () => {
       hot = new Handsontable(container, { data: [[0, 0]], columnSorting: true, licenseKey: LICENSE_KEY });
 

@@ -1684,9 +1684,13 @@ export class Formulas extends BasePlugin {
     }
 
     const requestedSheetName = this.#requestedSheetName();
+    // A call that passes `data` to a grid bound to no sheet yet keeps that data, as construction does: core loaded
+    // it before the plugins updated, so the sheet the call names takes the grid's data (the unbound branch below).
+    // Loaded from the sheet here, it replaced the data of the call.
+    const keepsDataOfCall = this.sheetName === null && hasOwnProperty(newSettings, 'data') && !this.isDataLoadPending();
 
     if (
-      requestedSheetName !== undefined &&
+      requestedSheetName !== undefined && !keepsDataOfCall &&
       // Sheet ids are compared rather than names, because `sheetName` holds the engine's casing
       // while the setting keeps the one it was written with. An unknown name has no id, which
       // still differs from the current one and lets `switchSheet` report it.
@@ -1717,8 +1721,19 @@ export class Formulas extends BasePlugin {
       const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
-      if (sheetName && this.engine?.doesSheetExist(sheetName)) {
+      if (sheetName && this.engine?.doesSheetExist(sheetName) && !keepsDataOfCall) {
         this.#loadSheet(sheetName);
+
+      } else if (sheetName && this.engine?.doesSheetExist(sheetName)) {
+        const engine = this.engine;
+
+        // One write, as `#onAfterLoadData` binds and fills: the grids that read the sheet paint once the data is
+        // in. `#writeSheet()` sets the sync endpoint up and sends the grid's order.
+        this.#writeOwnSheet(engine, () => {
+          this.#updateSheetNameAndSheetId(sheetName);
+          this.#followSheetNameSettingWhenBound();
+          this.#loadSourceDataIntoSheet();
+        });
 
       } else {
         const sourceDataArray = this.#getProcessedSourceDataArray();
