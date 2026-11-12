@@ -52,6 +52,7 @@ on:
       - 'tests/lib/a11y-report.*'
       - 'tests/lib/a11y-suites.*'
       - 'tests/lib/a11y-check-run.*'
+      - 'tests/lib/a11y-docs-drift.*'
       - 'tests/scripts/a11y-check-run.mjs'
       - 'docs/tests/paths.js'
   workflow_call:
@@ -108,10 +109,12 @@ jobs:
     # A tooling failure turns the job red and never a caller's run.
     continue-on-error: true
     timeout-minutes: 30
-    # `checks: write` posts `A11y / docs-axe report`; nothing else writes through the API.
+    # `checks: write` posts `A11y / docs-axe report`; `actions: read` reads when the staging deploy last finished, which
+    # the check run compares with the develop audit it reads baseline drift from. Nothing else goes through the API.
     permissions:
       contents: read
       checks: write
+      actions: read
     env:
       # Through the environment, never interpolated into a script: a dispatch input is free text. The
       # spec refuses anything but an https URL (or a local http preview).
@@ -160,7 +163,8 @@ jobs:
           REPORT_URL: ${{ steps.report.outputs.artifact-url }}
         run: printf '\n📊 [Open the HTML report](%s)\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"
       # `A11y / docs-axe report` on the run's head commit, by the severity rule: on an audit every open finding
-      # counts, on a change a new or grown one. A fork's or Dependabot's token cannot write checks, so the
+      # counts, on a change a new or grown one, a warning at most when develop's latest docs audit saw it too
+      # (baseline drift, tests/lib/a11y-docs-drift.mjs). A fork's or Dependabot's token cannot write checks, so the
       # canonical guard skips it there; the summary and the report still carry everything.
       - name: Post the docs axe check run
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}

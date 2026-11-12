@@ -42,5 +42,6 @@ export function buildCheckRun(input: {
   scope?: 'audit' | 'change';
   tracked?: (source: string, check: string, finding: object) => boolean;
   scan?: ScanReport;
+  drift?: (item: object) => boolean;
 }): CheckRunPayload;
 export function annotationBatches<T>(items: T[], size?: number): T[][];

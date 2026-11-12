@@ -119,9 +119,13 @@ export function baselineLines(source) {
  * has a tracker (`trackedBy()` of `lib/a11y-issues.mjs`); read on a change run only.
  * @param {object} [input.scan] Which scan the comparison is: the product scan by default (`PRODUCT_SCAN`), or the
  * docs site scan (`DOCS_SCAN`), whose check run, page list, baseline and finding source are its own.
+ * @param {(item: object) => boolean} [input.drift] Whether a new or grown finding is baseline drift: on a change run it
+ * counts as a warning at most, like a tracked one (`isDrift()` of `lib/a11y-docs-drift.mjs`; the docs scan only).
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.
  */
-export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false, scan = PRODUCT_SCAN }) {
+export function buildCheckRun({
+  comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false, scan = PRODUCT_SCAN, drift = () => false,
+}) {
   if (!comparison) {
     return {
       name: scan.name,
@@ -135,7 +139,7 @@ export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, 
   const counts = verdictCounts(comparison);
   const problems = comparison.problems ?? [];
   const blocking = comparison.mode === 'block' && problems.length === 0 && counts.action > 0;
-  const findings = countedFindings(comparison, scope, tracked, scan);
+  const findings = countedFindings(comparison, scope, tracked, scan, drift);
   const verdict = verdictOf({ findings: findings.map(({ severity, warningOnly }) => ({ severity, warningOnly })), tooling: problems });
   const conclusion = blocking ? 'failure' : verdict.conclusion;
   const title = blocking ? `✖ ${headline(comparison)}` : verdictTitle(verdict, headline(comparison));
@@ -170,14 +174,15 @@ export function buildCheckRun({ comparison, pages, baseline, reportUrl, runUrl, 
  * @param {'audit'|'change'} scope The scope.
  * @param {Function} tracked The tracker predicate.
  * @param {object} scan The scan.
+ * @param {Function} drift The drift predicate.
  * @returns {Array<{set: string, item: object, severity: string, warningOnly: boolean}>} The findings.
  */
-function countedFindings(comparison, scope, tracked, scan) {
+function countedFindings(comparison, scope, tracked, scan, drift) {
   const counted = set => comparison[set].map(item => ({
     set,
     item,
     severity: severityOfImpact(item.impact),
-    warningOnly: scope === 'change' && Boolean(tracked(scan.source, scan.check, item)),
+    warningOnly: scope === 'change' && (Boolean(tracked(scan.source, scan.check, item)) || Boolean(drift(item))),
   }));
   const advisory = set => comparison[set].map(item => ({ set, item, severity: 'advisory', warningOnly: false }));
 

@@ -1961,6 +1961,17 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   staging deploy: run again once it is done. The findings land in `docs-a11y-axe-results` (`a11y-findings.json` at its root), and the HTML
   report is `docs-a11y-report.html`, uploaded unzipped: an unzipped artifact is named after its file, and a
   run that calls both scans uploads both reports.
+- **A pull request is red only for what it caused.** A pull request's run reads the staging deploy of develop, never
+  the pull request's own docs, so a new or grown finding there exists on develop's docs already unless the pull
+  request's scan code made it. Docs merges add such drift every day. So `A11y / docs-axe report` (posted by the scan
+  job, `scripts/a11y-check-run.mjs --suite docs`) reads develop's latest docs audit from the findings ledger
+  (`lib/a11y-docs-drift.mjs`: the docs rows the latest docs night sighted, keyed by rule, page, scheme and masked
+  element), and on a change run a new or grown finding that audit saw counts as a warning at most, with the remedy
+  in the summary: refresh the baseline from that audit. A finding the audit did not see keeps its severity: this
+  change made it, or the docs gained it after the audit, and when the staging deploy is newer than the audit the
+  summary says so and names the dispatch that measures it (`gh workflow run docs-a11y.yml --ref develop`). A ledger
+  that cannot be read, or holds no docs night, leaves every finding at its severity and says why. An audit run (a
+  dispatch) counts every open finding, drift or not.
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
   stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
