@@ -319,6 +319,31 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
     await expect(page.locator('.hfe-fn-help')).toBeVisible();
     await markFormulaPopups(page);
   },
+  /**
+   * A range extended from the keyboard (Shift+ArrowUp, Shift+ArrowLeft) from a formula error cell, so
+   * the range holds error values while the focus stays on that cell, whose error popup opens for it.
+   */
+  'formula-error-range': async(page, _entry, root, [row, col]) => {
+    await selectCell(page, root, [row, col]);
+    await page.keyboard.press('Shift+ArrowUp');
+    await page.keyboard.press('Shift+ArrowLeft');
+    await expect.poll(() => page.evaluate((selector) => {
+      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
+
+      return hot?.getSelected();
+    }, root), { message: 'Shift+arrows extended the selection' }).toEqual([[row, col, row - 1, col - 1]]);
+    await expect(page.locator('.hfe-error')).toBeVisible();
+    await markFormulaPopups(page);
+  },
+  /**
+   * The fixture's named expression is the only name `=SUMM` matches, so it is the active row.
+   */
+  'formula-named-suggestion': async(page, entry, root, cell) => {
+    await typeIntoFormulaEditor(page, entry, root, cell, '=SUMM');
+    await expect(page.locator('.hfe-suggestions [role="option"].hfe-suggestions__item--active.hfe-suggestions__item--named'))
+      .toBeVisible();
+    await markFormulaPopups(page);
+  },
   // The fixture fills the cell from a promise it never settles, so the cell stays pending: the
   // indicator, the pending message and `aria-busy` are what the scan sees.
   'async-pending': async(page, _entry, root, [row, col]) => {

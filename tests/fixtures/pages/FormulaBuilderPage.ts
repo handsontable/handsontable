@@ -403,7 +403,8 @@ export class FormulaBuilderPage {
 
   /**
    * The color the grid paints the selected cell's border with: the background of a drawn edge of
-   * the master's `current` border. `null` while no edge is drawn.
+   * the master's `current` border. `null` while no edge is drawn. It reads Walkontable's
+   * `.wtBorder.current` elements, so a change to how the selection border is drawn changes this read.
    *
    * @returns {Promise<string | null>}
    */

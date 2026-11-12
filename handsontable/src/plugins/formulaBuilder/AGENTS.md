@@ -434,8 +434,12 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   The design's colors fail WCAG 1.4.3 in places, accepted for now: the error text `#fa4d56` measures
   3.35:1 on white, an unknown function name `#ea580c` 3.56:1, a comment `#8a8f99` 3.25:1, a named
   expression `#64748b` 4.45:1 on the active row `#f7f7f9`, and the accent text 2.45:1 on horizon and
-  3.08:1 on classic. The axe baseline lists those findings. Pinned by "formulaBuilder design colors" in
-  `tests/e2e/formula-builder-popups.spec.ts`. The reference palette is the design's, not the package's: the
+  3.08:1 on classic. The axe scan measures them under `formula-builder-design-contrast`: the
+  `formula-builder-tokens` page (the formula fixture's `design-colors` variant) shows an unknown function
+  and a comment in the formula bar and the error popup's title, and `formula-builder-named-expression` a
+  named expression on the active suggestion row. Axe cannot measure the error text in a cell: the cell's
+  corner marker and a selected range's tint are pseudo-elements, so it reports the cell as incomplete.
+  Pinned by "formulaBuilder design colors" in `tests/e2e/formula-builder-popups.spec.ts`. The reference palette is the design's, not the package's: the
   package's light values are darker, so the plugin restates `--hfe-ref-1` to `--hfe-ref-8` (light and dark
   from the design; an application can still override them on the theme class). The plugin does not
   override the error cell's font or `color-scheme`: the package reads `--hfe-font-family`, which the plugin
@@ -487,8 +491,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 The `hyperformula-ui` side of each is listed for the package maintainers (the review of PR #13172).
 
 - In a grid that is not in a shadow root, the popups and the live region mount in the document body. The
-  axe scan marks that portal on two pages (`formula-builder-suggestions`, `formula-builder-function-help`);
-  the error popup and the live region are not scanned.
+  axe scan marks that portal on four pages (`formula-builder-suggestions`, `formula-builder-function-help`,
+  `formula-builder-named-expression`, and `formula-builder-tokens`, which shows the error popup); the live
+  region is not scanned.
 - The `formula` alias is registered by the first grid built with the plugin registered, so with the full
   bundle every page that builds a grid has it (the constructor trap above explains why).
 - `imeFastEdit: true` has no effect on a formula cell: the selected cell keeps the focus, so an IME
@@ -496,18 +501,18 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
   editor shim does not have, and giving it a hidden one would not help: the composition would start in that
   element and could not move into the package's input when the editor opens. It needs a `hyperformula-ui`
   input that is mounted and focusable before the edit opens.
-- The horizon theme's accent focus ring measures below 3:1 (2.45:1 on white); it is the theme token every
-  grid surface uses. The formula bar's own rings (the address box and the bar-hosted editor) use it too:
-  `--hfe-formula-bar-input-focus-ring` is `--ht-cell-selection-border-color`, so a focused bar reads like
-  the selected cell. A darker text-accent mix was tried and looked like a different control next to the
-  cell. Raising horizon's contrast belongs in the theme token, not in a bar override. The accent text
-  (matched letters, the active parameter name), the active argument chip, and the paren match read the
-  theme accent too, as the design does, so on horizon they measure 2.45:1 and on classic 3.08:1 on
-  white; the design accepts it. The bar editor's ring is inset, so the bar's `.hfe-overlay` and
-  `.hfe-editor__input` carry inline padding of the ring width (the idle overlay too, so the text does not
-  shift on focus); drawing the ring outward instead is clipped by the top slot. Pinned by "the bar
-  editor's focus ring", "the address box's focus ring" and "the matched letters, the active argument chip
-  and the paren match use the theme accent" in `tests/e2e/formula-builder-popups.spec.ts`.
+- **The bar's focus rings and the accent colors map to theme tokens; the theme owns their contrast.** The
+  rings (`--hfe-formula-bar-input-focus-ring`) read `--ht-cell-selection-border-color`, so a focused bar
+  reads like the selected cell. The accent text (matched letters, the active parameter name), the active
+  argument chip and the paren match read `--ht-accent-color`, like every other grid surface that draws the
+  accent. Do not mix a darker plugin-local color to fix their contrast: that was tried, and the bar looked
+  like a different control next to the cell. Where the theme accent misses a contrast threshold (horizon,
+  classic), the fix belongs in the theme token, and it then reaches the formula builder with no change here.
+  The bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
+  of the ring width (the idle overlay too, so the text does not shift on focus); drawing the ring outward
+  instead is clipped by the top slot. Pinned by "the bar editor's focus ring", "the address box's focus
+  ring" and "the matched letters, the active argument chip and the paren match use the theme accent" in
+  `tests/e2e/formula-builder-popups.spec.ts`.
 - `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
   exact version because the 0.x line may break in a minor.
 

@@ -17,8 +17,9 @@
  * - `state` names what the spec does before it scans (`STATES` in `harness.ts`): a menu
  *   or an editor opened from the keyboard on `cell`, the comment editor opened with
  *   Ctrl+Alt+M, a selection laid, a parked data-provider fetch released, a cell left
- *   pending, or the formula editor opened and typed into to show its suggestions or its
- *   function help.
+ *   pending, a range extended with Shift+arrows from a formula error cell, or the formula
+ *   editor opened and typed into to show its suggestions, a named expression among them,
+ *   or its function help.
  * - `device` names a Playwright device to emulate from the first load, for a surface that
  *   exists on a phone only.
  * - `surface` says what the page covers, for the reader of the baseline and of the
@@ -89,6 +90,11 @@ export const A11Y_PAGES = [
     surface: 'the formula editor\'s function suggestions list, which hyperformula-ui mounts in the document body' },
   { id: 'formula-builder-function-help', fixture: 'formula-builder.html', cell: [0, 2], state: 'formula-function-help',
     surface: 'the formula editor\'s function help popup, which hyperformula-ui mounts in the document body' },
+  { id: 'formula-builder-tokens', fixture: 'formula-builder.html', query: 'variant=design-colors', cell: [2, 2],
+    state: 'formula-error-range', surface: 'the formula bar showing an unknown function name and a comment, error values inside and '
+      + 'outside a selected range, and the error popup of the focused error cell' },
+  { id: 'formula-builder-named-expression', fixture: 'formula-builder.html', query: 'variant=design-colors', cell: [3, 1],
+    state: 'formula-named-suggestion', surface: 'the formula editor\'s suggestions list with a named expression on the active row' },
   { id: 'autocomplete-editor', fixture: 'cell-dropdown-arrow.html', query: 'cellType=autocomplete', cell: [0, 0], state: 'editor',
     surface: 'the open autocomplete editor and its choices list' },
   { id: 'dropdown-editor', fixture: 'cell-dropdown-arrow.html', query: 'cellType=dropdown', cell: [0, 0], state: 'editor',
@@ -179,6 +185,8 @@ export function stateSteps(page) {
     'async-pending': `start a request that never settles for cell (${row}, ${col}) (window.startRequest(${row}, ${col}))`,
     'formula-suggestions': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SU"`,
     'formula-function-help': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUM("`,
+    'formula-error-range': `${select}, then press Shift+ArrowUp and Shift+ArrowLeft`,
+    'formula-named-suggestion': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUMM"`,
   }[page.state];
 
   return before && steps ? `${before}, then ${steps}` : steps;
