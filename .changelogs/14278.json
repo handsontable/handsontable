@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a validated edit being saved into another row when the rows are sorted, moved, filtered, inserted, or removed before its validator answers.",
+  "type": "fixed",
+  "issueOrPR": 14278,
+  "breaking": true,
+  "framework": "none"
+}
