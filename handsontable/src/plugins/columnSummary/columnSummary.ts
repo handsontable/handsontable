@@ -729,7 +729,10 @@ export class ColumnSummary extends BasePlugin {
   /**
    * Reads the result another endpoint writes into a cell, for an endpoint calculated with
    * `includeSummaryResults`. The result comes from the endpoint, calculated in the same pass, never
-   * from the cell. The calculated endpoint's own destination is read as before.
+   * from the cell. The calculated endpoint's own destination is read as before. It is recognized by its
+   * coordinates as well as by identity: a nested pass (a Formulas resync run from a cell read) can
+   * cache new objects of function-form endpoints while this one is still being calculated, and its own
+   * destination then answers a copy of itself.
    *
    * @param {number} row Physical row index.
    * @param {number} col Physical column index.
@@ -746,7 +749,16 @@ export class ColumnSummary extends BasePlugin {
 
     const destinationEndpoint = endpoints.getDestinationEndpoint(row, col);
 
-    if (destinationEndpoint === undefined || destinationEndpoint === currentEndpoint) {
+    if (destinationEndpoint === undefined) {
+      return null;
+    }
+
+    const isOwnDestination = destinationEndpoint === currentEndpoint || (
+      destinationEndpoint.destinationRow === currentEndpoint.destinationRow &&
+      destinationEndpoint.destinationColumn === currentEndpoint.destinationColumn
+    );
+
+    if (isOwnDestination) {
       return null;
     }
 

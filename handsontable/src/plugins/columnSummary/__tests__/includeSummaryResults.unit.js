@@ -177,6 +177,53 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
       expect(hot.getDataAtCell(0, 1)).toBe(35);
     });
 
+    it('reads its own destination inside its own range as before, without a loop warning', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const totals = {};
+
+      [false, true].forEach((includeSummaryResults) => {
+        hot = buildGrid([endpoint(3, [[1, 6]], { includeSummaryResults })]);
+        totals[includeSummaryResults] = [hot.getDataAtCell(3, 1)];
+        hot.setDataAtCell(5, 1, 100);
+        totals[includeSummaryResults].push(hot.getDataAtCell(3, 1));
+        hot.destroy();
+        hot = null;
+      });
+
+      expect(totals.false).toEqual([35, 127]);
+      expect(totals.true).toEqual(totals.false);
+      expect(warnSpy.mock.calls.filter(([message]) => /ColumnSummary/.test(message)).length).toBe(0);
+      warnSpy.mockRestore();
+    });
+
+    it('reads its own destination as before when a nested pass replaced the function-form endpoints', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = buildGrid(() => [endpoint(3, [[1, 6]], { includeSummaryResults: true })]);
+
+      const plugin = hot.getPlugin('columnSummary');
+      const originalGetCellValue = plugin.getCellValue;
+      let swapped = false;
+
+      // A nested refresh (a Formulas resync run from a cell read) re-reads the settings function and
+      // caches new endpoint objects while the outer endpoint is still being calculated.
+      plugin.getCellValue = function(...args) {
+        if (!swapped) {
+          swapped = true;
+          this.endpoints.cacheSummaryDestinations(this.endpoints.getAllEndpoints());
+        }
+
+        return originalGetCellValue.apply(this, args);
+      };
+
+      hot.setDataAtCell(5, 1, 100);
+
+      expect(swapped).toBe(true);
+      expect(hot.getDataAtCell(3, 1)).toBe(127);
+      expect(warnSpy.mock.calls.filter(([message]) => /ColumnSummary/.test(message)).length).toBe(0);
+      warnSpy.mockRestore();
+    });
+
     it('keeps the nested total after a row is inserted above the subtotal', () => {
       hot = buildGrid(nested());
       hot.alter('insert_row_above', 2);
