@@ -1267,9 +1267,10 @@ describe('Test page scrollbar', () => {
     }
   });
 
-  it('should be styled by the test page, so the OS scrollbar setting cannot change its size', async() => {
+  it('should match the `::-webkit-scrollbar` rule of the test page', async() => {
     // Passes on any OS, unlike the measured widths below, which a Linux or a classic-scrollbar macOS
     // already gives. It fails when the rule in `css/walkontable.test.css` is removed or stops matching.
+    // It checks the rule only, not the painted size: the two specs below measure that.
     box = document.createElement('div');
     box.style.cssText = 'position: absolute; width: 100px; height: 100px; overflow: scroll;';
     document.body.appendChild(box);
