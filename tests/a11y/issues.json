@@ -44,7 +44,8 @@
       "match": [
         { "source": "axe", "axeIssues": ["grid-roles"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"treegrid\"\\]"] },
-        { "source": "docs", "axeIssues": ["example-grid-roles"] }
+        { "source": "docs", "axeIssues": ["example-grid-roles"] },
+        { "source": "website", "axeIssues": ["grid-treegrid-children"] }
       ]
     },
     {
@@ -92,6 +93,7 @@
         { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["unnamed-control"] },
         { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["focusable-without-role"], "where": ["htFocusCatcher"] },
         { "source": "axe", "axeIssues": ["editor-input-names", "filters-listbox"] },
+        { "source": "website", "axeIssues": ["grid-editor-label"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["label", "aria-input-field-name", "select-name"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"listbox\"\\]"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["htFocusCatcher"] },
@@ -623,6 +625,125 @@
       "title": "The not-found page's title does not hold its heading",
       "match": [
         { "source": "docs-checks", "kinds": ["page-title-differs-from-heading"] }
+      ]
+    },
+    {
+      "id": "website-grid-scroll-viewport",
+      "title": "The demo grids' scroll viewport on handsontable.com scrolls but cannot be reached or scrolled from the keyboard",
+      "match": [
+        { "source": "website", "axeIssues": ["grid-scroll-viewport-keyboard"] }
+      ]
+    },
+    {
+      "id": "website-clients-band-contrast",
+      "title": "The \"Trusted by\" label of the clients band falls below 4.5:1 on the support call page at the phone width",
+      "match": [
+        { "source": "website", "axeIssues": ["clients-band-label-contrast"] }
+      ]
+    },
+    {
+      "id": "website-focus-indicator-missing",
+      "title": "Links, menu triggers, post tags and the slider on handsontable.com show no focus indicator, and none in forced colors",
+      "match": [
+        { "source": "website-checks", "kinds": ["focus-not-visible", "focus-lost-in-forced-colors"] }
+      ]
+    },
+    {
+      "id": "website-focus-indicator-contrast",
+      "title": "The focus rings of buttons and segmented controls on handsontable.com fall below 3:1 against what is next to them",
+      "match": [
+        { "source": "website-checks", "kinds": ["focus-indicator-contrast"] }
+      ]
+    },
+    {
+      "id": "website-field-boundary-contrast",
+      "title": "The text fields in the dark footer of handsontable.com have an edge and a fill below 3:1 against the footer",
+      "match": [
+        { "source": "website-checks", "kinds": ["control-boundary-contrast"] }
+      ]
+    },
+    {
+      "id": "website-current-state-forced-colors",
+      "title": "In forced colors, the current demo in the demo gallery looks like the others",
+      "match": [
+        { "source": "website-checks", "kinds": ["state-lost-in-forced-colors"] }
+      ]
+    },
+    {
+      "id": "website-demo-grid-holds-focus",
+      "title": "A demo grid on handsontable.com keeps the Tab key, even after Ctrl+End then Tab",
+      "match": [
+        { "source": "website-checks", "kinds": ["grid-holds-focus"] }
+      ]
+    },
+    {
+      "id": "website-reflow-overlap",
+      "title": "At 200%, at 320 px and under text spacing, the pricing tabs and buttons and the brand palette chips are drawn over each other",
+      "match": [
+        { "source": "website-checks", "kinds": ["controls-overlap"] }
+      ]
+    },
+    {
+      "id": "website-reflow-sideways",
+      "title": "Demo pages of handsontable.com scroll sideways at 320 px",
+      "match": [
+        { "source": "website-checks", "kinds": ["page-scrolls-sideways"] }
+      ]
+    },
+    {
+      "id": "website-text-clipped",
+      "title": "At 200% and at 320 px, the rolling counter digits, the career photo strip's caption and a data grid label are cut off",
+      "match": [
+        { "source": "website-checks", "kinds": ["text-clipped", "text-truncated"] }
+      ]
+    },
+    {
+      "id": "website-single-way",
+      "title": "Most pages of handsontable.com are reached by its navigation only: the site has no search and no site map page",
+      "match": [
+        { "source": "website-checks", "kinds": ["single-way"] }
+      ]
+    },
+    {
+      "id": "website-help-order",
+      "title": "The HyperFormula pages list their help links in another order than the rest of the site",
+      "match": [
+        { "source": "website-checks", "kinds": ["help-order-differs"] }
+      ]
+    },
+    {
+      "id": "website-title-differs-from-heading",
+      "title": "Page titles of handsontable.com differ from the page's main heading",
+      "match": [
+        { "source": "website-checks", "kinds": ["page-title-differs-from-heading"] }
+      ]
+    },
+    {
+      "id": "website-heading-skips",
+      "title": "A demo page of handsontable.com skips a heading level",
+      "match": [
+        { "source": "website-checks", "kinds": ["heading-level-skipped"] }
+      ]
+    },
+    {
+      "id": "website-contact-tabs-entry",
+      "title": "The contact form drops the email address typed on one tab when the visitor switches to another",
+      "match": [
+        { "source": "website-checks", "kinds": ["entry-not-kept"] }
+      ]
+    },
+    {
+      "id": "website-newsletter-label",
+      "title": "The footer newsletter's email field has no drawn label, only a placeholder",
+      "match": [
+        { "source": "website-checks", "kinds": ["label-not-visible"] }
+      ]
+    },
+    {
+      "id": "website-booking-success-silent",
+      "title": "A screen reader is not told the support call was booked: the confirmation's live region is added in the same render as its text",
+      "match": [
+        { "source": "website-checks", "kinds": ["success-not-announced"] }
       ]
     }
   ]
