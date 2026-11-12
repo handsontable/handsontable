@@ -346,33 +346,7 @@ You can use any sanitization library or write your own sanitizer function. The `
 If you render untrusted user HTML without a `sanitizer`, your users are exposed to XSS attacks. Always sanitize untrusted HTML content.
 :::
 
-## 5. Stop calling deprecated resize-state methods
-
-The following methods previously saved and loaded column or row sizes through the `PersistentState` plugin. Because `PersistentState` was removed in Handsontable 17.0, these methods no longer do anything. They are now formally deprecated and will be removed in the next major release.
-
-| Method | Plugin |
-| --- | --- |
-| `saveManualColumnWidths()` | `ManualColumnResize` |
-| `loadManualColumnWidths()` | `ManualColumnResize` |
-| `saveManualRowHeights()` | `ManualRowResize` |
-| `loadManualRowHeights()` | `ManualRowResize` |
-
-### Who is affected
-
-You are affected if your code calls any of these methods directly on the plugin instance, for example:
-
-```javascript
-hot.getPlugin('manualColumnResize').saveManualColumnWidths();
-hot.getPlugin('manualColumnResize').loadManualColumnWidths();
-hot.getPlugin('manualRowResize').saveManualRowHeights();
-hot.getPlugin('manualRowResize').loadManualRowHeights();
-```
-
-### How to migrate
-
-Remove all calls to these methods. They produce no effect and will throw in a future release. If you need to persist column widths or row heights across page loads, store the `columnWidths` and `rowHeights` values yourself -- for example in `localStorage` -- and pass them back as initial configuration when the grid initializes.
-
-## 6. Update theme wrapper border variables
+## 5. Update theme wrapper border variables
 
 Handsontable 18.0 simplifies the table border theme variables. The `--ht-wrapper-border-radius` variable is renamed to `--ht-border-radius` (JS token `borderRadius`), and the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` variables (JS tokens `wrapperBorderWidth` and `wrapperBorderColor`) are removed. Their defaults were `0px` and the base border color, so by default the table rendered no wrapper border.
 
@@ -436,7 +410,7 @@ registerTheme('my-theme', {
 });
 ```
 
-## 7. Update CSS selectors and DOM queries for the new wrapper structure
+## 6. Update CSS selectors and DOM queries for the new wrapper structure
 
 Handsontable 18.0 adds wrapper layout slots and a `layout` option that controls the order of UI elements rendered around the grid, such as pagination and dialogs. To support this, the built-in UI now mounts into dedicated wrapper containers, which changes the DOM structure that Handsontable renders around the grid.
 
@@ -526,7 +500,7 @@ const grid = wrapper.querySelector('.ht-wrapper.handsontable');
 
 Use class-based selectors instead of positional ones, so future layout slot additions do not break your code.
 
-## 8. Install HyperFormula separately
+## 7. Install HyperFormula separately
 
 Starting with Handsontable 18.0, the `handsontable` npm package no longer lists HyperFormula as a dependency. In 17.1 and earlier, it was an optional dependency, so your package manager usually installed it together with Handsontable, and your code could import it without a separate install. Version 17.0 deprecated this behavior, and version 18.0 completes the removal.
 
@@ -571,7 +545,7 @@ The UMD bundle `handsontable.full.js` (and its minified `handsontable.full.min.j
 
 For other ways to connect the engine, such as a pre-built instance shared between grids, see [Initialization methods](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods).
 
-## 9. Replace removed plugin type exports
+## 8. Replace removed plugin type exports
 
 Handsontable 18.0 removes 110 exports from 39 plugin entry points (`handsontable/plugins/<name>`): 109 types and the `ColumnSorting` class that `multiColumnSorting` re-exported. The 18.0 type declarations list only the plugin class, the plugin constants, and a few named types. The removed names include `Settings` (38 entry points) and `DetailedSettings` (19 entry points).
 
@@ -810,7 +784,7 @@ The remaining removed types have no replacement. Declare the shape in your proje
 | `pagination` | `PageSizeOption`, `PaginationData` |
 | `search` | `SearchCallback`, `SearchQueryMethod` |
 
-## 10. Replace removed `Handsontable.*` namespace types
+## 9. Replace removed `Handsontable.*` namespace types
 
 Handsontable 18.0 removes 23 top-level types from the `Handsontable` namespace of `handsontable` and `handsontable/base`. The type spelling breaks: `Handsontable.CellCoords` as a type annotation fails with `TS2749`, `Handsontable.CellRange` with `TS2724`, and `Handsontable.EditorType` with `TS2694`. The runtime values stay, so `new Handsontable.CellCoords(0, 0)`, `Handsontable.themes.getTheme('main')`, and `Handsontable.hooks.add()` still compile. Some values are typed more loosely in 18.0. `Handsontable.version` is `string | undefined`, so `Handsontable.version.toString()` fails with `TS18048`. `Handsontable.EventManager` is `unknown`, so calling it fails with `TS18046`.
 
@@ -859,6 +833,36 @@ Two types are removed, and only one has a successor:
 
 Nested type paths are removed too: `Handsontable.RecordTranslation.IndexMapper` (use `IndexMapper` from `handsontable`), `Handsontable.helper.*`, `Handsontable.languages.*`, and `Handsontable.cellTypes.<name>.*` fail with `TS2694` or `TS2749`. Most `Handsontable.plugins.<PluginName>.<Type>` paths are removed as well. A few still compile, such as `ColumnSorting.Config`, `ContextMenu.MenuItemConfig`, `ContextMenu.PredefinedMenuItemKey`, `Filters.ConditionId`, and `Filters.OperationType`. If the plugin entry point still exports the type, import it from `handsontable/plugins/<name>`. Examples are `CommentObject` from `comments`, `Settings` from `exportFile`, and the payload types of `dataProvider`. For the types that the entry points no longer export, see [Replace removed plugin type exports](#replace-removed-plugin-type-exports).
 
+## Deprecated APIs
+
+The changes in this section do not break an existing project. Handsontable 18.0 deprecates these APIs, and a later major release removes them.
+
+### Stop calling deprecated resize-state methods
+
+The following methods saved and loaded column or row sizes through the `PersistentState` plugin. Handsontable 17.0 removed `PersistentState` and the methods themselves, although the 17.x typings still declared them. Handsontable 18.0 brings them back as deprecated methods that do nothing and log a deprecation warning. Handsontable 19.0 [removes them](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis).
+
+| Method | Plugin |
+| --- | --- |
+| `saveManualColumnWidths()` | `ManualColumnResize` |
+| `loadManualColumnWidths()` | `ManualColumnResize` |
+| `saveManualRowHeights()` | `ManualRowResize` |
+| `loadManualRowHeights()` | `ManualRowResize` |
+
+#### Who is affected
+
+Projects that call any of these methods on the plugin instance. On 17.x the methods do not exist at runtime, so such a call throws a `TypeError`, and no working 17.x code depends on them. In 18.0 the same call logs a warning instead. For example:
+
+```javascript
+hot.getPlugin('manualColumnResize').saveManualColumnWidths();
+hot.getPlugin('manualColumnResize').loadManualColumnWidths();
+hot.getPlugin('manualRowResize').saveManualRowHeights();
+hot.getPlugin('manualRowResize').loadManualRowHeights();
+```
+
+#### How to migrate
+
+Remove all calls to these methods. If you need to persist column widths or row heights across page loads, store the `columnWidths` and `rowHeights` values yourself -- for example in `localStorage` -- and pass them back as initial configuration when the grid initializes.
+
 ## Summary of breaking changes
 
 | Change | Who is affected | Action required |
@@ -868,7 +872,6 @@ Nested type paths are removed too: `Handsontable.RecordTranslation.IndexMapper` 
 | Moment.js and Pikaday removed; ISO 8601 required for date/time cells | Projects using non-ISO date strings or string `dateFormat`/`timeFormat` | Convert source data to ISO 8601; use `intl-date`/`intl-time` with object `dateFormat`/`timeFormat` |
 | `correctFormat` and `datePickerConfig` options removed | Projects using `correctFormat` or `datePickerConfig` on `date`/`time` cells | Remove both options; use `valueParser`/`valueSetter` for value correction |
 | DOMPurify removed; no built-in HTML sanitization | Projects rendering untrusted user HTML | Add a `sanitizer` function (for example, using DOMPurify) to the Handsontable configuration |
-| `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()` now no-op | Any project calling these methods | Remove calls; implement custom persistence if needed |
 | `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
 | Wrapper DOM structure changed -- new `.ht-grid-content`, `.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay` elements | Projects with CSS selectors or DOM queries targeting Handsontable's wrapper elements by position | Update selectors to be class-based; account for the new `.ht-grid-content` wrapper and sibling slot containers |
 | HyperFormula no longer installed with the `handsontable` npm package | Projects that use the `Formulas` plugin and install Handsontable from npm | Run `npm install hyperformula`; keep `import { HyperFormula } from 'hyperformula'` and `formulas: { engine: HyperFormula }` |
