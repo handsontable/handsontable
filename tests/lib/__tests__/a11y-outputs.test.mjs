@@ -42,7 +42,7 @@ test('agentFindings lists what needs action with where to open it and the elemen
   assert.deepEqual(document.needsAction[1].elements.map(item => item.selector), ['#ht_1', '#ht_2']);
   assert.deepEqual(document.issues.map(issue => [issue.id, issue.tracker, issue.findings, issue.nodes, issue.wcag]), [['grid-roles', 'DEV-2964', 2, 3, ['1.3.1']]]);
   assert.deepEqual(document.issues[0].locations[0], { page: 'grid', theme: 'main', rule: 'aria-required-children',
-    target: 'div.ht-wrapper[role="treegrid"]', nodes: 1, selector: '#ht_1', domPath: 'html > body > div' });
+    target: 'div.ht-wrapper[role="treegrid"]', impact: 'critical', nodes: 1, selector: '#ht_1', domPath: 'html > body > div' });
   assert.deepEqual(document.pages['context-menu'], { fixture: '/tests/fixtures/demo/context-menu-checked-items.html', query: null,
     steps: 'select cell (2, 1) (hot.selectCell(2, 1)), then press Shift+F10', surface: null });
 });

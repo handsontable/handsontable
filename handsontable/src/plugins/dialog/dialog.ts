@@ -319,10 +319,14 @@ export class Dialog extends BasePlugin {
    * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
    * there.
    *
+   * The plugin is also enabled while another plugin requires it (the Loading plugin does, while it is
+   * enabled), even when the `dialog` option is off.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) &&
+      (!!this.hot.getSettings()[PLUGIN_KEY] || this.hot._isPluginRequired(PLUGIN_KEY));
   }
 
   /**

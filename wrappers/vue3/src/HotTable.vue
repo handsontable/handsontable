@@ -11,7 +11,7 @@
 <script lang="ts">
 // eslint-disable-next-line  @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { defineComponent, VNode, markRaw } from 'vue';
+import { defineComponent, VNode, markRaw, toRaw } from 'vue';
 // TODO: The line above is ts-ignored because rollup-plugin-typescript2 throws an error otherwise.
 // It's most probably caused by outdated rollup-plugin-vue which is no longer maintained.
 
@@ -22,6 +22,8 @@ import {
   getPassedHookKeys,
   prepareSettings,
   propFactory,
+  recordSettingBaselines,
+  SettingBaselines,
 } from './helpers';
 import {
   HotTableProps,
@@ -49,10 +51,13 @@ const HotTable = defineComponent({
     },
     $props: {
       handler(props) {
+        const overriddenKeys: string[] = [];
         const settings = prepareSettings(
           props,
           this.hotInstance ? this.hotInstance.getSettings() : undefined,
-          this.miscCache.hookKeys
+          this.miscCache.hookKeys,
+          this.miscCache.baselines,
+          overriddenKeys
         );
 
         if (!this.hotInstance || settings === undefined) {
@@ -61,7 +66,17 @@ const HotTable = defineComponent({
 
         this.miscCache.hookKeys = getPassedHookKeys(props);
 
-        if (settings.data) {
+        const hasData = settings.data !== undefined;
+        const incomingData = hasData ? toRaw(settings.data) : undefined;
+        const isNewData = hasData && incomingData !== this.miscCache.lastData.value;
+
+        // A new array replaces the grid's data: `updateSettings()` runs core's `updateData()`, which fits the
+        // index mappers to the new length and keeps their state, unless the same payload changes the column layout.
+        if (hasData && !isNewData && incomingData === null) {
+          // The prop was already cleared: sending `null` again would reset the grid on every later change.
+          delete settings.data;
+
+        } else if (settings.data && !isNewData) {
           if (
             this.hotInstance.isColumnModificationAllowed() ||
             (
@@ -77,6 +92,12 @@ const HotTable = defineComponent({
           }
         }
 
+        // Recorded before the update: core holds the array as soon as `updateSettings()` starts, so a hook that
+        // throws must not leave the old one here, or every later in-place edit would reload the data.
+        if (hasData) {
+          this.miscCache.lastData.value = incomingData;
+        }
+
         // If there are another options changed, update the HOT settings, render the table otherwise.
         if (Object.keys(settings).length) {
           this.hotInstance.updateSettings(settings);
@@ -86,6 +107,8 @@ const HotTable = defineComponent({
         }
 
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
+
+        recordSettingBaselines(this.miscCache.baselines, props, this.hotInstance.getSettings(), overriddenKeys);
       },
       deep: true,
       immediate: true,
@@ -100,6 +123,11 @@ const HotTable = defineComponent({
         currentSourceColumns: null,
         generatedId: '',
         hookKeys: [] as string[],
+        // Holds the grid's own values, so it must not be wrapped in a proxy: the compare is by identity.
+        baselines: markRaw({}) as SettingBaselines,
+        // The `data` array the grid was last given by the props, compared by identity to tell a new array
+        // from an in-place edit. Wrapped in a raw holder so Vue does not proxy the app's array.
+        lastData: markRaw({ value: undefined as unknown }),
       },
       columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
@@ -145,10 +173,15 @@ const HotTable = defineComponent({
       newSettings.columns = this.columnSettings ? this.columnSettings : newSettings.columns;
 
       this.hotInstance = markRaw<Handsontable>(new Handsontable.Core(this.$el, newSettings));
+
+      // Recorded before `init()`, so a value the app sets in `afterInit` counts as an override of the prop.
+      recordSettingBaselines(this.miscCache.baselines, this.$props, this.hotInstance.getSettings());
+
       this.hotInstance.init();
 
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       this.miscCache.hookKeys = getPassedHookKeys(this.$props);
+      this.miscCache.lastData.value = toRaw(newSettings.data);
     },
 
     matchHotMappersSize(): void {
