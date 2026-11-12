@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T14:16:28.654Z",
+  "generatedAt": "2026-11-12T14:47:51.705Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 448,
+    "tests": 449,
     "needsTicket": 8,
     "quarantined": 0,
-    "entries": 2302
+    "entries": 2305
   },
   "rows": [
     {
@@ -873,6 +873,41 @@
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39896786689",
         "branch": "develop",
         "leg": "e2e-horizon-min",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/editor-hidden-cell.spec.ts|editor whose commit is rejected while its cell is hidden › closes when an async validator is still in flight as the cell is hidden",
+      "tier": "playwright",
+      "file": "e2e/editor-hidden-cell.spec.ts",
+      "line": 199,
+      "title": "editor whose commit is rejected while its cell is hidden › closes when an async validator is still in flight as the cell is hidden",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T14:46:54Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43233371372",
+        "branch": "feature/DEV-3753_Pending-write-follows-record",
+        "leg": "e2e-classic",
         "status": "failed",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
