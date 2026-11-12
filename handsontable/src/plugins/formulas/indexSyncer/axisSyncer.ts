@@ -827,7 +827,7 @@ class AxisSyncer {
     // windows found (a shared-engine re-enable before its resync drained, and any re-enable of a grid built from an
     // engine sheet) are pinned in `__tests__/enableOnLiveGridSyncEndpoint.unit.js`. It warns, once per syncer,
     // rather than throwing: the order is lost and the formula results stay where they were, which a warning names.
-    // A throw would end the user's sort or move half-done, and develop threw a `TypeError` here.
+    // A throw would end the user's sort or move half-done (before DEV-3760 this line threw a `TypeError`).
     if (engine === null) {
       warnOnce(this, 'noSyncEndpoint', `The Formulas plugin got a ${this.#axis} order before it was bound to an ` +
         'engine sheet, so the engine keeps its previous order and formulas may read the wrong cells.');

@@ -342,8 +342,8 @@ engine is fed from `afterCellMetaReset`.
 **The listener also overtakes `manualColumnMove` / `manualRowMove`, and that changed which engine call
 carries a configured order on a later `loadData()`.** Init is untouched: those plugins apply their arrays in
 `enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
-`setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder` on both develop and this
-branch (measured with the engine methods spied; the reference rewrite that
+`setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder`, as it did before
+DEV-3760 (measured with the engine methods spied; the reference rewrite that
 `__tests__/plugins/initialManualColumnMove.spec.js` pins at init is unchanged). On a `loadData()` after
 init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
 and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
@@ -770,7 +770,7 @@ moves the real dependent, so the apply validates the cell now at the old address
 is not validated. The Core has the same limit for the change itself, and it decides where the edit lands:
 the waiting set is applied at its old visual coordinates, so after `alter('insert_row_above', 0)` an edit of
 row 1 writes the record now at row 1 (the old row 0), and the apply's validation of the held dependent at
-the old address validates the cell that write reaches (checked on this branch, insert above and remove
+the old address validates the cell that write reaches (checked, insert above and remove
 above). Translating only the held addresses through the structural change would validate the moved record,
 which the edit no longer touches, and leave the cell it does reach unvalidated. The fix belongs to the Core:
 move a waiting set with its records (row identity) or drop it on a structural change, as on a `loadData()`;
@@ -849,7 +849,11 @@ early write, writes it, reads the results, and takes the write back with `engine
   fires for the probe's write or for a dependent the undo put back. **Known limit:** a volatile formula
   that also reads a probed cell (`=RAND()+A1`) is taken for such a dependent and not announced. Pinned by
   `reports and paints the new value of a volatile formula the probe of a rejected edit recalculated`
-  (a stubbed `Math.random`).
+  (a stubbed `Math.random`). **Cost:** the announce also runs on an ACCEPTED set, where the apply recalculates
+  the volatile formula again anyway, so while the engine holds a volatile formula every probed set (a formula or
+  a reader in a set with a deferred change) costs one extra dependency walk from the written addresses and one
+  extra `afterFormulasValuesUpdate` and paint per grid on the engine. Announcing only after a rejection would need
+  the validation result, which comes later than the probe; the cost is accepted.
 - **The probe builds engine-bound values only for a set it runs for.** A set with no formula (raw value
   starting with `=`), no object (a `valueGetter` can turn one into a formula; the escape never makes one)
   and no reader skips the probe, so its values are not turned into engine values (`valueGetter`, the cell
@@ -866,15 +870,15 @@ early write, writes it, reads the results, and takes the write back with `engine
 - **Cost of a formula paste, measured, and why the probe's write is not kept.** Headless Chromium
   (Playwright, `handsontable.full.js`), a 2000-row grid, a paste (`populateFromArray()`, source
   `CopyPaste.paste`) into a column with a sync validator and `allowInvalid: false`, time from the call to
-  `afterChange`, median of 7, against a fresh develop build (2e15365c43):
-  - N formulas `=B{i}*2`: develop 20.8 ms (N = 500) and 50.8 ms (N = 2000); this branch 28.2 ms and
-    80.3 ms. Each formula is written by the probe, undone, and written again by the apply. The review
+  `afterChange`, median of 7, against a develop build from before DEV-3760 (2e15365c43):
+  - N formulas `=B{i}*2`: before DEV-3760 20.8 ms (N = 500) and 50.8 ms (N = 2000); with the deferred write
+    28.2 ms and 80.3 ms. Each formula is written by the probe, undone, and written again by the apply. The review
     measured 22.5 → 39.4 ms and 196 → 387 ms on its own setup.
-  - 2000 plain values next to 2000 readers `=A{i}*2` (validator, `allowInvalid: true`): develop 93 ms,
-    before the readers rule 108 ms, this branch 146 ms. The readers' probe writes the 2000 values and
+  - 2000 plain values next to 2000 readers `=A{i}*2` (validator, `allowInvalid: true`): before DEV-3760
+    93 ms; with the deferred write and no probe for readers 108 ms; with the probe for readers 146 ms. The readers' probe writes the 2000 values and
     undoes them, the price of validating each reader by the new value.
-  - 2000 plain values next to 2000 plain values with a validator (no reader): develop 78.6 ms, before the
-    readers rule 86.2 ms, this branch 86.8 ms. The dependency walk from the deferred cells costs nothing
+  - 2000 plain values next to 2000 plain values with a validator (no reader): before DEV-3760 78.6 ms;
+    with the deferred write 86.2 ms without the dependency walk, 86.8 ms with it. The dependency walk from the deferred cells costs nothing
     measurable, and no probe runs.
 
   Keeping the probe's write when nothing is rejected cannot meet the rule that a pending value never
@@ -1138,7 +1142,7 @@ Pinned by `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas
 a configured `manualRowMove` / `manualColumnMove` array (or a sort or a drag), and the engine keeps that order
 after the grid leaves. The next `switchSheet()` loaded the sheet in the engine's order as if it were physical, and
 the arrays, re-applied on `afterLoadData`, moved it again: with `[2, 0, 1]`, A, B, A, B rotated each sheet on
-every visit (develop rotated the sheet left, and showed the arriving one with other rows' results, since it sent
+every visit (before DEV-3760 the sheet rotated left, and the grid showed the arriving one with other rows' results, since it sent
 the move to the sheet it left). Now a load that leaves a bound sheet records its engine order when it is not
 physical, and a later load of that sheet reads it back in physical order through the record and takes the order
 over (`#reloadKeepingOrder(data, plan, false)`: the order held, the order the load's listeners apply kept, so the
@@ -1166,7 +1170,7 @@ order change reaches the axis syncers while they point at no engine sheet. The p
   `updatePlugin()` branch that adds one when nothing is bound, call `#setupSyncEndpointForFilledSheet()` (the
   enable once its syncers exist). Before DEV-3760 neither set an endpoint: `updateSettings({ formulas })` on a
   live grid, a re-enable with an engine class, and `disablePlugin(); enablePlugin()` all left the syncers with no
-  engine, so develop threw `Cannot read properties of null (reading 'getSheetDimensions')` on the first sort,
+  engine, so the first sort threw `Cannot read properties of null (reading 'getSheetDimensions')`,
   and a guard that turned the throw into a skipped order left the formula column with its unsorted results.
 - **The `updatePlugin()` branch no longer skips a call that carries `data`.** Core loads that data before the
   plugins update, so a plugin the same call enables never saw the load, never bound a sheet, and the grid
@@ -1369,7 +1373,7 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
   suspended) means the host removed lines or replaced the sheet with a smaller one through the engine API.
   Then the reload falls back to `loadData()` (`#reloadKeepingOrder()`): that axis is taken as physical (the
   order adopted is physical and the grid shows the sheet in the engine's order, so the grid shrinks as it does
-  without a move and as develop did), the load runs inside `runWithEngineOrderHeld()`, the plugin's own
+  without a move and as it did before DEV-3760), the load runs inside `runWithEngineOrderHeld()`, the plugin's own
   `afterLoadData` (the early return for its own source) adopts the recorded order of the other axis
   (`#reloadEngineOrder`) before the move plugins re-apply their arrays, so those moves are held
   (`adoptedWhileHeld`), and the grid's order is put back after the load, so the release sends nothing. Covering
@@ -1428,7 +1432,7 @@ the formulas guide (`formula-calculation.md`, "A grid built from an engine sheet
 A first load, a switch to another sheet, and a reload inside `runWithEngineOrderHeld()` (the sheets bar) take
 the old `loadData()` path, so the initial counts above (0, 1, 1) hold. A grid built with `data` reloads from the
 sheet only through `switchSheet(<the sheet it is bound to>)`, which is a same-sheet reload and takes this path
-too: it now keeps its order and state there, where it rotated before (develop included).
+too: it now keeps its order and state there, where it rotated before DEV-3760.
 
 Six limits:
 
