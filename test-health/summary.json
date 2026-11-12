@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T08:03:20.327Z",
+  "generatedAt": "2026-11-12T09:17:53.206Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,7 +9,7 @@
   "retentionDays": 90,
   "totals": {
     "tests": 436,
-    "needsTicket": 14,
+    "needsTicket": 12,
     "quarantined": 0,
     "entries": 2266
   },
@@ -433,72 +433,6 @@
         "leg": "js/chromium-theme-main",
         "status": "failed",
         "error": "differs from base/develop (pr tier); render sha256 18b3d30ad230",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "tier": "playwright",
-      "file": "e2e/fixed-columns-end-core.spec.ts",
-      "line": 60,
-      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 5,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-13T10:26:27Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38379083113",
-        "branch": "develop",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: inline_end 5,29: top edge",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/date-editor-keyboard-focus.spec.ts|the date editor opened with the keyboard › takes the digits typed after Enter",
-      "tier": "playwright",
-      "file": "e2e/date-editor-keyboard-focus.spec.ts",
-      "line": 25,
-      "title": "the date editor opened with the keyboard › takes the digits typed after Enter",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "e2e-webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-13T09:28:46Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38372709918",
-        "branch": "feature/DEV-3367_Date-editor-tab-with-picker",
-        "leg": "e2e-webkit",
-        "status": "failed",
-        "error": "Error: expect(locator).not.toHaveValue(expected) failed",
         "source": "ci"
       },
       "needsTicket": true
@@ -2011,6 +1945,72 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/fixed-columns-end-core.spec.ts|fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end-core.spec.ts",
+      "line": 60,
+      "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 5,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T10:26:27Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38379083113",
+        "branch": "develop",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: inline_end 5,29: top edge",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/date-editor-keyboard-focus.spec.ts|the date editor opened with the keyboard › takes the digits typed after Enter",
+      "tier": "playwright",
+      "file": "e2e/date-editor-keyboard-focus.spec.ts",
+      "line": 25,
+      "title": "the date editor opened with the keyboard › takes the digits typed after Enter",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-13T09:28:46Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38372709918",
+        "branch": "feature/DEV-3367_Date-editor-tab-with-picker",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(locator).not.toHaveValue(expected) failed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/native-picker-editor-keyboard.spec.ts|the native picker editors opened with the keyboard › intl-datetime: Shift+Tab after Enter commits and moves the selection",
       "tier": "playwright",
       "file": "e2e/native-picker-editor-keyboard.spec.ts",
@@ -2083,13 +2083,13 @@
       "line": 50,
       "title": "the date editor opened with the keyboard › closes the picker with the editor on Escape",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 1,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-firefox"
       ],
