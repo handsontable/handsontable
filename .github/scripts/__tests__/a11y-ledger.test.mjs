@@ -528,6 +528,23 @@ test('the docs site scan is a night of its own: read from its artifact root, rec
   const next = mergeA11yLedger(merged.doc, nightOf(docsFiles({ [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: { ...DOCS_DOC, needsAction: [] } })),
     runContextFromRun({ ...DOCS_RUN, id: 41700000002, updated_at: night(1) }), CATALOG, { now: new Date(night(1)) });
 
+  // Each scan row keeps the node count of its latest sighting, so a change run can tell drift from its own growth
+  // (`tests/lib/a11y-docs-drift.mjs`). Two locations whose selectors mask alike are one row, and their counts add up.
+  const rowNodes = doc => Object.fromEntries(doc.rows.filter(row => row.source === 'docs').map(row => [`${row.page}|${row.theme}`, row.nodes]));
+
+  assert.deepEqual(rowNodes(merged.doc), { 'js-introduction|light': 3, 'vue-accessibility|dark': 28, 'chrome-docs-assistant|dark': 1 });
+  assert.ok(merged.doc.rows.filter(row => row.source !== 'docs').every(row => !Object.hasOwn(row, 'nodes') || row.source === 'axe'),
+    'only a scan row carries a node count');
+
+  const masked = nightOf(docsFiles({ [`${DOCS_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: { ...DOCS_DOC, needsAction: [], issues: [{ ...DOCS_DOC.issues[0], locations: [
+    { ...DOCS_DOC.issues[0].locations[0], target: 'td.ht_4f2a9c1b', nodes: 2 },
+    { ...DOCS_DOC.issues[0].locations[0], target: 'td.ht_77aa0b2c', nodes: 5 },
+    { ...DOCS_DOC.issues[0].locations[1], nodes: undefined },
+  ] }] } }));
+  const counted = mergeA11yLedger(null, masked, runContextFromRun(DOCS_RUN), CATALOG, { now: NOW }).doc;
+
+  assert.deepEqual(rowNodes(counted), { 'js-introduction|light': 7, 'vue-accessibility|dark': null }, 'a location with no count leaves its row\'s unknown');
+
   assert.equal(statusOf(next.doc, `docs|${DOCS_SCAN_CHECK}|axe-violation|aria-dialog-name||chrome-docs-assistant|dark|||div.assistant-panel[role="dialog"]`), 'resolved');
   assert.equal(statusOf(next.doc, `docs|${DOCS_SCAN_CHECK}|axe-violation|link-in-text-block||vue-accessibility|dark|||a`), 'persisting');
   assert.ok(next.doc.rows.filter(row => row.source !== 'docs').every(row => row.status === 'new' && row.lastRun === '41584742628'),

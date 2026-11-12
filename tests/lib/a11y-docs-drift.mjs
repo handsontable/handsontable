@@ -6,9 +6,10 @@
  * request's own scan code made it (a rule, the fingerprint, the page list). Docs merges add such drift every day,
  * and a red `A11y / docs-axe report` for it would be red on every pull request that touches the scan. So on a change
  * run, a new finding that develop's latest docs audit also saw is drift: it counts as a warning at most, and the
- * check run names the remedy (refresh the docs baseline). A grown finding is never drift: the ledger keeps no node
- * count of a docs finding, so it cannot tell a finding develop's docs grew from one this change grew. A finding that
- * audit did not see stays at its severity: this change made it, or the docs gained it after the audit, which the
+ * check run names the remedy (refresh the docs baseline). A grown finding is drift when the audit counted at least as
+ * many nodes for it as the run does: develop's docs grew it that far. Beyond the audit's count, the growth is this
+ * change's, and a row the ledger recorded before it kept node counts says nothing. A finding that audit did not see
+ * stays at its severity: this change made it, or the docs gained it after the audit, which the
  * check run says when the staging deploy is newer than the audit. The latest audit is read from the findings ledger
  * (`test-health/a11y.json` on `gh-pages`, `.github/scripts/lib/a11y-ledger.mjs`): its docs rows sighted on the latest
  * docs night that read the scan. Policy: `tests/AGENTS.md`, "A11y: the docs site scan". No I/O in here.
@@ -25,19 +26,19 @@ export const LEDGER_URL = 'https://handsontable.github.io/handsontable/test-heal
 export const DOCS_AUDIT_COMMAND = 'gh workflow run docs-a11y.yml --ref develop';
 /**
  * The same rule for the website scan, whose change runs read production: what each site's notes call its audit, where
- * its findings are, the baseline, the command that refreshes it from an audit (`null` where a person does it), the
- * policy section a drift note points to, and what the grown note calls a finding and the site.
+ * its findings are, the baseline, the command that refreshes it from an audit (`null` where a person does it), and the
+ * policy section a drift note points to.
  */
 export const SITE_DRIFT = Object.freeze({
   docs: {
     audit: 'the develop docs audit', none: 'no develop docs audit', on: 'on develop\'s docs already', command: DOCS_AUDIT_COMMAND,
     baseline: 'tests/a11y/docs/docs-baseline.json', refresh: 'node tests/scripts/a11y-docs-baseline.mjs --run',
-    section: 'A11y: the docs site scan', deploy: 'the staging deploy', finding: 'a docs finding', site: 'develop\'s docs',
+    section: 'A11y: the docs site scan', deploy: 'the staging deploy',
   },
   website: {
     audit: 'the website audit', none: 'no website audit', on: 'on the live website already', command: 'gh workflow run website-a11y.yml --ref develop',
     baseline: 'tests/a11y/website/website-baseline.json', refresh: null, section: 'A11y: the website scan',
-    deploy: 'the production deploy', finding: 'a website finding', site: 'the live website',
+    deploy: 'the production deploy',
   },
 });
 // The longest element the ledger keeps (`A11Y_LIMITS.where` of `.github/scripts/lib/a11y-ledger.mjs`).
@@ -75,7 +76,8 @@ export function docsAudit(ledger) {
  *
  * @param {unknown} ledger The parsed `a11y.json`.
  * @param {'docs'|'website'} site The site.
- * @returns {{runId: string, seenAt: string|null, headSha: string|null, keys: Set<string>}|null} The audit.
+ * @returns {{runId: string, seenAt: string|null, headSha: string|null, keys: Set<string>, nodes: Map<string, number|null>}|null}
+ *   The audit: the key of every finding it sighted, and the node count it recorded for each (`null` when none).
  */
 export function siteAudit(ledger, site) {
   if (!Array.isArray(ledger?.rows) || !Array.isArray(ledger.nights)) {
@@ -90,26 +92,42 @@ export function siteAudit(ledger, site) {
     return null;
   }
 
+  const sighted = ledger.rows.filter(row => row?.source === site && row.lastRun === night.runId);
+
   return {
     runId: night.runId,
     seenAt: night.seenAt ?? null,
     headSha: night.headSha ?? null,
-    keys: new Set(ledger.rows.filter(row => row?.source === site && row.lastRun === night.runId).map(driftKey)),
+    keys: new Set(sighted.map(driftKey)),
+    nodes: new Map(sighted.map(row => [driftKey(row), Number.isSafeInteger(row.nodes) ? row.nodes : null])),
   };
 }
 
 /**
- * The drift predicate of a change run: a new finding of the comparison that the audit saw (`isDrift()`). A grown
- * finding never is: the ledger keeps no node count of a docs finding, so the audit cannot say develop's docs grew it.
+ * The drift predicate of a change run: a new finding of the comparison the audit saw (`isDrift()`), and a grown one
+ * the audit saw with at least as many nodes as the run counts (develop's docs grew it that far). A grown finding past
+ * the audit's count, or on a row with no count, is not drift.
  *
- * @param {{keys: Set<string>}|null} audit The audit (`docsAudit()`).
- * @param {{newViolations?: object[]}|null} comparison The docs comparison.
+ * @param {{keys: Set<string>, nodes?: Map<string, number|null>}|null} audit The audit (`siteAudit()`).
+ * @param {{newViolations?: object[], grown?: object[]}|null} comparison The site's comparison.
  * @returns {(item: object) => boolean} Whether a counted finding is drift.
  */
 export function driftOf(audit, comparison) {
   const fresh = new Set(comparison?.newViolations ?? []);
+  const grown = new Set(comparison?.grown ?? []);
 
-  return item => fresh.has(item) && isDrift(audit, item);
+  return (item) => {
+    if (fresh.has(item)) {
+      return isDrift(audit, item);
+    }
+    if (!grown.has(item) || !isDrift(audit, item)) {
+      return false;
+    }
+
+    const recorded = audit.nodes?.get(itemKey(item)) ?? null;
+
+    return recorded !== null && Number.isFinite(item.nodes) && recorded >= item.nodes;
+  };
 }
 
 /**
@@ -121,11 +139,21 @@ export function driftOf(audit, comparison) {
  * @returns {boolean} The verdict.
  */
 export function isDrift(audit, item) {
-  // The ledger keeps a row's element masked, with its whitespace collapsed and cut at 300 characters.
+  return audit !== null && audit.keys.has(itemKey(item));
+}
+
+/**
+ * The ledger key of a comparison item: the ledger keeps a row's element masked, with its whitespace collapsed and
+ * cut at 300 characters.
+ *
+ * @param {{rule: string, page: string, theme: string, target: string}} item The comparison item.
+ * @returns {string} The key.
+ */
+function itemKey(item) {
   const text = String(maskSelector(item.target)).replace(/\s+/g, ' ').trim();
   const where = text.length > WHERE_LIMIT ? `${text.slice(0, WHERE_LIMIT - 1)}…` : text;
 
-  return audit !== null && audit.keys.has(driftKey({ rule: item.rule, page: item.page, theme: item.theme, where }));
+  return driftKey({ rule: item.rule, page: item.page, theme: item.theme, where });
 }
 
 /**
@@ -136,9 +164,10 @@ export function isDrift(audit, item) {
  * @param {object} input What the poster read.
  * @param {{runId: string, seenAt: string|null}|null} input.audit The audit, or `null`.
  * @param {string|null} [input.problem] Why the ledger could not be read.
- * @param {number} input.drift How many new findings are drift.
- * @param {number} input.counted How many new findings there are.
- * @param {number} [input.grown] How many grown findings there are, which are never drift.
+ * @param {number} input.drift How many new or grown findings are drift.
+ * @param {number} input.counted How many new or grown findings there are.
+ * @param {number} [input.grown] How many grown findings are not drift: grown past the audit's count, or on a row with
+ *   no count.
  * @param {string|null} [input.deployedAt] When the deploy the run read finished, when known.
  * @param {'docs'|'website'} [input.site] The site.
  * @returns {string[]} The notes, one sentence each.
@@ -160,13 +189,14 @@ export function driftNotes({ audit, problem = null, drift, counted, grown = 0, d
   if (drift > 0) {
     const refresh = words.refresh ? `, \`${words.refresh} ${audit.runId}\`` : '';
 
-    notes.push(`${drift} of the ${counted} new findings are ${words.on}: ${words.audit}${when} (run ${audit.runId}) `
-      + `saw them. That is baseline drift, not this change, so each counts as a warning at most: refresh ${words.baseline} `
-      + `from that audit${refresh} (tests/AGENTS.md, "${words.section}").`);
+    notes.push(`${drift} of the ${counted} new or grown findings are ${words.on}: ${words.audit}${when} (run ${audit.runId}) `
+      + `saw them, each grown one with at least as many nodes. That is baseline drift, not this change, so each counts as a `
+      + `warning at most: refresh ${words.baseline} from that audit${refresh} (tests/AGENTS.md, "${words.section}").`);
   }
   if (grown > 0) {
-    notes.push(`${grown === 1 ? 'The grown finding counts' : `The ${grown} grown findings count`} at ${grown === 1 ? 'its' : 'their'} severity: the ledger `
-      + `keeps no node count of ${words.finding}, so the audit cannot tell ${words.site} growing it from this change growing it.`);
+    notes.push(`${grown === 1 ? 'A grown finding counts' : `${grown} grown findings count`} at ${grown === 1 ? 'its' : 'their'} severity: `
+      + `this run counts more nodes than ${words.audit} recorded, or its row there has no count (recorded before the ledger `
+      + 'kept node counts).');
   }
   if (deployedAt && audit.seenAt && Date.parse(deployedAt) > Date.parse(audit.seenAt)) {
     notes.push(`${Audit}${when} is older than ${words.deploy} this run read (${deployedAt.slice(0, 16).replace('T', ' ')} UTC), so a `

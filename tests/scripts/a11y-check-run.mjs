@@ -20,7 +20,8 @@
  * run's URL goes to the step output `check-url`, which the pull request comment links. `--suite docs` reports the
  * docs site scan instead (`.github/workflows/docs-a11y.yml`): `A11y / docs-axe report`, from
  * `test-results/a11y-docs/comparison.json`, annotated on the docs page list and baseline. On a change run of the docs
- * scan, a new finding develop's latest docs audit also saw is baseline drift and a warning at most
+ * scan, a new finding develop's latest docs audit also saw, or a grown one it counted at least as many nodes for, is
+ * baseline drift and a warning at most
  * (`lib/a11y-docs-drift.mjs`): the poster reads that audit from the findings ledger (`A11Y_LEDGER_URL`, the published
  * `a11y.json` by default) and, with `GITHUB_TOKEN`, when the staging deploy last finished, to say when the audit is
  * older than the deploy the run read. `--suite website` reports the website scan the same way
@@ -62,13 +63,13 @@ const pages = suite === 'docs'
   ? docsPageLines(pagesSource, (await import('../a11y/docs/pages.mjs')).DOCS_PAGES.map(page => page.id))
   : suite === 'website' ? websitePageLines(pagesSource) : pageLines(pagesSource);
 // On a change run of a site's scan, a new finding the site's latest audit also saw is baseline drift, a warning at
-// most; a grown one never is (`lib/a11y-docs-drift.mjs`). `A11Y_LEDGER_FILE` reads a saved ledger instead, for a dry
-// run.
+// most, and so is a grown one the audit counted at least as many nodes for (`lib/a11y-docs-drift.mjs`).
+// `A11Y_LEDGER_FILE` reads a saved ledger instead, for a dry run.
 let drift = () => false;
 const driftLines = [];
 
 if (scan !== PRODUCT_SCAN && scope === 'change' && comparison) {
-  const counted = comparison.newViolations ?? [];
+  const counted = [...(comparison.newViolations ?? []), ...(comparison.grown ?? [])];
   const source = env.A11Y_LEDGER_FILE || env.A11Y_LEDGER_URL || LEDGER_URL;
   let audit = null;
   let problem = null;
@@ -83,7 +84,7 @@ if (scan !== PRODUCT_SCAN && scope === 'change' && comparison) {
   const deployedAt = suite === 'docs' ? await stagingDeployedAt() : null;
 
   driftLines.push(...driftNotes({ audit, problem, drift: counted.filter(drift).length, counted: counted.length,
-    grown: (comparison.grown ?? []).length, deployedAt, site: suite }));
+    grown: (comparison.grown ?? []).filter(item => !drift(item)).length, deployedAt, site: suite }));
 }
 
 const payload = buildCheckRun({

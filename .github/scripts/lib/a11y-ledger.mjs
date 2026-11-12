@@ -235,6 +235,8 @@ const SITE_NIGHTS = Object.freeze({
  * @property {string} reason One sentence, bounded.
  * @property {string|null} url The fixture path, when the finding names one.
  * @property {string|null} issue The baseline issue an axe finding is filed under, or the one the scan suggests for a new one.
+ * @property {number|null} [nodes] A scan finding's node count, as the scan counted it (a site's change run compares a
+ *   grown finding with it: `lib/a11y-docs-drift.mjs`); `null` from a document that gave none. Other sources carry none.
  */
 
 /**
@@ -658,6 +660,7 @@ function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_C
       state: null,
       variant: null,
       where: cut(maskSelector(item.target), LIMITS.where),
+      nodes: Number.isSafeInteger(item.nodes) && item.nodes >= 0 ? item.nodes : null,
       ...fields,
     });
   };
@@ -1345,6 +1348,16 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   const handled = new Set();
   let sightings = 0;
   let resolutions = 0;
+  // A scan finding's node count per row: two locations whose selectors mask alike are one row, so their counts add up.
+  // A location with no count leaves its row's count unknown.
+  const nodesOf = new Map();
+
+  for (const finding of night.findings.filter(item => Object.hasOwn(item, 'nodes'))) {
+    const key = findingKey(finding);
+    const before = nodesOf.has(key) ? nodesOf.get(key) : 0;
+
+    nodesOf.set(key, before === null || finding.nodes === null ? null : before + finding.nodes);
+  }
 
   for (const finding of night.findings) {
     const key = findingKey(finding);
@@ -1359,7 +1372,8 @@ export function mergeA11yLedger(previous, night, run, catalog, {
       continue;
     }
 
-    const latestFields = { criteria: finding.criteria, severity: finding.severity, reason: finding.reason, url: finding.url, issue: finding.issue };
+    const latestFields = { criteria: finding.criteria, severity: finding.severity, reason: finding.reason, url: finding.url, issue: finding.issue,
+      ...(nodesOf.has(key) ? { nodes: nodesOf.get(key) } : {}) };
     const row = rows.get(key);
 
     if (row?.lastRun === run.runId) {

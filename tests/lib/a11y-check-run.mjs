@@ -148,8 +148,7 @@ export function baselineLines(source) {
  * docs site scan (`DOCS_SCAN`) or the website scan (`WEBSITE_SCAN`), whose check run, page list, baseline and finding
  * source are their own.
  * @param {(item: object) => boolean} [input.drift] Whether a counted finding is baseline drift: on a change run it
- * counts as a warning at most, like a tracked one (`driftOf()` of `lib/a11y-docs-drift.mjs`, new findings only; the
- * site scans only).
+ * counts as a warning at most, like a tracked one (`driftOf()` of `lib/a11y-docs-drift.mjs`; the site scans only).
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.
  */
 export function buildCheckRun({

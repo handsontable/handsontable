@@ -1969,8 +1969,10 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   page, scheme and masked element; a night of the checks alone sighted none, so it is never the audit), and on a
   change run a new finding that audit saw counts as a warning at most, with the remedy in the summary: refresh the
   baseline from that audit (the summary gives the command with the audit's run id, "A refresh is one command"
-  below). A grown finding keeps its severity, and the summary says why: the ledger keeps no node count of a docs
-  finding, so the audit cannot tell develop's docs growing it from the change growing it. A finding the audit did
+  below). A grown finding is drift when the audit counted at least as many nodes for it as the run does: each scan
+  row of the ledger keeps its latest node count (`nodes`). Past the audit's count the growth is the change's and
+  keeps its severity, and so does growth on a row recorded before the ledger kept counts; the summary says which.
+  When develop's docs grew a finding after the audit, dispatch the audit and re-run the job. A finding the audit did
   not see keeps its severity: this change made it, or the docs gained it after the audit, and when the staging
   deploy is newer than the audit the summary says so and names the dispatch that measures it (`gh workflow run
   docs-a11y.yml --ref develop`). A ledger that cannot be read, or holds no docs night that read the scan, leaves
@@ -2034,9 +2036,10 @@ comparator, the reports and the baseline holds; this section says what differs. 
   review" on `scrollable-region-focusable` counts as a violation, as the website's own scan counts it.
 - **A pull request is red only for what it caused.** A pull request's run reads production, which changes apart
   from this repository, so the docs scan's drift rule applies with the website's audit (`lib/a11y-docs-drift.mjs`,
-  `siteAudit(ledger, 'website')`): a new finding the latest website audit saw is a warning at most, and the remedy is
-  to refresh the baseline from that audit; a grown one keeps its severity, as on the docs. The check run is `A11y / website-axe report`
-  (`scripts/a11y-check-run.mjs --suite website`), annotated on each page's `page(…)` line.
+  `siteAudit(ledger, 'website')`): a new finding the latest website audit saw, or a grown one it counted at least as
+  many nodes for, is a warning at most, and the remedy is to refresh the baseline from that audit. The check run is
+  `A11y / website-axe report` (`scripts/a11y-check-run.mjs --suite website`), annotated on each page's `page(…)`
+  line.
 - **On demand, like the docs scan.** A dispatch on develop is the audit, a night of the findings ledger's `website`
   source, recorded from production only (`run.baseUrl`, `baseUrl` of the findings); a dispatch from a branch and a
   pull request's run are proof runs. The findings land in `website-a11y-axe-results` and the report is
@@ -2081,8 +2084,9 @@ and of `.github/workflows/website-a11y.yml`.
   the walk goes on from the first element past it, so the rest of the page is still measured. The budget counts
   each grid's stops twice over, so a page whose walk ran out of presses is a tooling problem, never a trap.
 - **A walk short of the end measured part of the page.** A walk that ran out of presses, whose Tab loaded another
-  page, or that found nothing past a grid holding it, is a tooling problem (`walkProblem()`): its target is not
-  measured, so the ledger resolves no row on a stop it never reached. After a Tab that loaded another page, the
+  page, that found nothing past a grid holding it, or that came back to a stop it had passed (a trap or a modal,
+  also a finding), is a tooling problem (`walkProblem()`): its target is not measured, so the ledger resolves no row
+  on a stop it never reached. After a Tab that loaded another page, the
   check opens its page again before it measures anything else.
 - **One finding per kind of element per page.** A stop is reported once per shape (tag, first class that is no
   build hash, role) with a count, and a reflow finding once per kind, element kind and condition: the same
@@ -2291,6 +2295,11 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   would show what it skipped as gone. The rows themselves are scoped per check document and per project
   and scenario transcript, which the ledger test pins, so even such a night would resolve nothing outside
   what it ran.
+
+- **A scan row keeps its node count.** A row of an axe scan (sources `axe`, `docs`, `website`) carries `nodes`, the
+  count of its latest sighting, summed over the locations whose selectors mask into it (`null` when a location gave
+  none). A site's change run reads it to tell develop's growth from its own ("A11y: the docs site scan"). A row
+  recorded before the count existed has none until its next sighting.
 
 - **A finding keeps its identity across nights, or the ledger shows nothing but churn.** A row is keyed by
   its source, check and kind, the axe rule and cause it names, its page, theme, state and variant, and the

@@ -22,7 +22,7 @@ const LEDGER = {
   ],
   rows: [
     row(),
-    row({ rule: 'link-in-text-block', page: 'js-api-core', theme: 'light', where: 'a' }),
+    row({ rule: 'link-in-text-block', page: 'js-api-core', theme: 'light', where: 'a', nodes: 6 }),
     row({ rule: 'label', page: 'js-demo', where: 'input', lastRun: '150' }),
     row({ source: 'axe', check: 'axe', page: 'dialog', theme: 'main', where: 'button' }),
   ],
@@ -31,10 +31,11 @@ const LEDGER = {
 test('the audit is the ledger\'s latest docs night: its run, time, commit and the docs findings it sighted', () => {
   const audit = docsAudit(LEDGER);
 
-  assert.deepEqual({ ...audit, keys: [...audit.keys].sort() }, {
+  assert.deepEqual({ ...audit, keys: [...audit.keys].sort(), nodes: Object.fromEntries(audit.nodes) }, {
     runId: '200', seenAt: '2026-11-10T10:29:01Z', headSha: 'abc',
     keys: ['color-contrast|angular-instance-access|dark|div.ln', 'link-in-text-block|js-api-core|light|a'],
-  }, 'a row the latest night did not sight, and a product row, are not the audit\'s');
+    nodes: { 'color-contrast|angular-instance-access|dark|div.ln': null, 'link-in-text-block|js-api-core|light|a': 6 },
+  }, 'a row the latest night did not sight, and a product row, are not the audit\'s; a row recorded before node counts has none');
   assert.equal(docsAudit({ latest: { a11y: { runId: '1' } }, nights: [], rows: [] }), null, 'no docs night, no audit');
   assert.equal(docsAudit(null), null);
 
@@ -67,12 +68,12 @@ test('the website audit is the ledger\'s latest website night, and its notes nam
 
   const [note] = driftNotes({ audit, drift: 1, counted: 2, site: 'website' });
 
-  assert.match(note, /1 of the 2 new findings are on the live website already: the website audit of 2026-11-12 \(run 300\)/);
+  assert.match(note, /1 of the 2 new or grown findings are on the live website already: the website audit of 2026-11-12 \(run 300\)/);
   assert.match(note, /refresh tests\/a11y\/website\/website-baseline\.json from that audit \(tests\/AGENTS\.md/,
     'the docs refresh command is not the website\'s');
   assert.match(driftNotes({ audit: null, drift: 0, counted: 1, site: 'website' })[0], /gh workflow run website-a11y\.yml --ref develop/);
-  assert.match(driftNotes({ audit, drift: 0, counted: 0, grown: 1, site: 'website' })[0],
-    /^The grown finding counts at its severity: the ledger keeps no node count of a website finding, so the audit cannot tell the live website growing it/);
+  assert.match(driftNotes({ audit, drift: 0, counted: 1, grown: 1, site: 'website' })[0],
+    /^A grown finding counts at its severity: this run counts more nodes than the website audit recorded/);
 });
 
 test('a finding is drift when the audit saw its rule on its page, scheme and masked element', () => {
@@ -93,9 +94,10 @@ test('the notes say how much is drift and the remedy, when nothing could be read
   const audit = docsAudit(LEDGER);
 
   assert.deepEqual(driftNotes({ audit, drift: 0, counted: 2 }), []);
-  assert.match(driftNotes({ audit, drift: 0, counted: 0, grown: 2 })[0], /^The 2 grown findings count at their severity: the ledger keeps no node count/);
+  assert.match(driftNotes({ audit, drift: 0, counted: 2, grown: 2 })[0],
+    /^2 grown findings count at their severity: this run counts more nodes than the develop docs audit recorded, or its row there has no count/);
   assert.match(driftNotes({ audit, drift: 3, counted: 5 })[0],
-    /^3 of the 5 new findings are on develop's docs already: the develop docs audit of 2026-11-10 \(run 200\) saw them\..*refresh tests\/a11y\/docs\/docs-baseline\.json from that audit, `node tests\/scripts\/a11y-docs-baseline\.mjs --run 200`/);
+    /^3 of the 5 new or grown findings are on develop's docs already: the develop docs audit of 2026-11-10 \(run 200\) saw them, each grown one with at least as many nodes\..*refresh tests\/a11y\/docs\/docs-baseline\.json from that audit, `node tests\/scripts\/a11y-docs-baseline\.mjs --run 200`/);
   assert.match(driftNotes({ audit: null, problem: 'HTTP 404', drift: 0, counted: 5 })[0], /could not be read \(HTTP 404\), so every new or grown finding counts/);
   assert.ok(driftNotes({ audit: null, drift: 0, counted: 5 })[0].includes(DOCS_AUDIT_COMMAND), 'no audit: dispatch one');
 
@@ -131,12 +133,16 @@ test('the docs check run counts drift as a warning on a change run, a finding th
   assert.match(warned.title, /· 1 warning only · 1 new/);
   assert.ok(warned.annotations.every(item => item.annotation_level === 'warning'));
 
-  // Grown on a baselined entry the audit saw, from 3 nodes to 40: the ledger keeps no node count, so the growth is
-  // this change's until the baseline says otherwise.
-  const grown = comparison(Array.from({ length: 40 }, () => finding()));
+  // Grown on a baselined entry the audit saw: develop's growth is drift up to the node count the audit recorded (6),
+  // and growth past it is this change's, as is any growth on a row recorded before the ledger kept node counts.
+  const developGrew = comparison(Array.from({ length: 6 }, () => finding()));
+  const changeGrew = comparison(Array.from({ length: 40 }, () => finding()));
+  const uncounted = docsAudit({ ...LEDGER, rows: LEDGER.rows.map(item => ({ ...item, nodes: undefined })) });
 
-  assert.equal(grown.grown.length, 1);
-  assert.equal(build(grown, { drift: driftOf(audit, grown) }).conclusion, 'failure', 'a grown finding is never drift');
+  assert.equal(developGrew.grown.length, 1);
+  assert.equal(build(developGrew, { drift: driftOf(audit, developGrew) }).conclusion, 'neutral', 'growth the audit had is drift');
+  assert.equal(build(changeGrew, { drift: driftOf(audit, changeGrew) }).conclusion, 'failure', 'growth past the audit is this change\'s');
+  assert.equal(build(developGrew, { drift: driftOf(uncounted, developGrew) }).conclusion, 'failure', 'a row with no count says nothing');
 
   const causedComparison = comparison([...Array.from({ length: 3 }, () => finding()), finding({ page: 'angular-instance-access', theme: 'dark',
     rule: 'aria-allowed-attr', target: 'button.version-select', impact: 'critical', wcag: ['4.1.2'] })]);
