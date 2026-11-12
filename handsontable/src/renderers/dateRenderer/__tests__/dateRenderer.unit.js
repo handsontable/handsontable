@@ -45,4 +45,18 @@ describe('dateRenderer valueFormatter', () => {
 
     expect(valueFormatter('2024-12-25', cellProperties)).toBe('December 25, 2024');
   });
+
+  it('renders year 0000 differently from year 0001', () => {
+    const yearZero = valueFormatter('0000-01-01', { locale: 'en-US' });
+    const yearOne = valueFormatter('0001-01-01', { locale: 'en-US' });
+
+    expect(yearZero).toBe('01/01/1 BC');
+    expect(yearOne).toBe('01/01/1');
+  });
+
+  it('renders year 0000 differently from year 0001 for a dateFormat with no date field', () => {
+    const cellProperties = { dateFormat: { timeZone: 'UTC' }, locale: 'en-US' };
+
+    expect(valueFormatter('0000-06-15', cellProperties)).not.toBe(valueFormatter('0001-06-15', cellProperties));
+  });
 });

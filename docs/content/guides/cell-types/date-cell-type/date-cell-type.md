@@ -376,6 +376,10 @@ const hotSettings = ref({
 
 For a complete reference, see the [`dateFormat` API documentation](@/api/options.md#dateformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
 
+**Year 0000**
+
+ISO 8601 uses year `0000` for 1 BC. A date in year `0000` is valid, and it sorts before `0001-01-01`. `Intl.DateTimeFormat` prints that year as `1`, the same as year `0001`. To tell them apart, Handsontable adds the era to the display of year `0000`. It does so when the format prints a year and sets no `era` of its own. For example, `0000-01-01` shows as `01/01/1 BC` and `0001-01-01` shows as `01/01/1`. The era text follows the locale. A format that uses `dateStyle` cannot carry an era, so it still prints year `0000` as `1`.
+
 ### Editor behavior
 
 The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are displayed in the cell. The editor (date picker or text input) may show the value in a normalized form; for `intl-date` and `date`, the underlying value remains in ISO 8601 format.

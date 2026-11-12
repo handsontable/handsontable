@@ -41,6 +41,19 @@ false`. The sequence change hooks (`afterColumnSequenceChange` and its cache upd
 such a drop either. The row mirror documents the same rule in `../manualRowMove/AGENTS.md`; keep both in step.
 Pinned by `__tests__/noopMoveTrimmedColumns.unit.js` and `tests/e2e/manual-move-trimmed.spec.ts`.
 
+## A move that changes the order lands next to a visible column
+
+`moveIndexes()` puts the moved columns right before the physical column of the visible column at `finalIndex`,
+after any trimmed columns in front of it. A move to the last visible position puts them right after the last
+visible column, before the trailing trimmed columns. The columns never split a run of neighboring trimmed
+columns. The rule is pinned by `__tests__/moveTrimmedPlacement.unit.js`, which mirrors the row plugin's test of
+the same name, and the column-moving guide documents it. Landing on the other side of a trimmed block would
+change the physical order users see after untrimming, so it is a breaking change. With HIDDEN columns the drop
+target steps over the zero-width hidden columns ("Hidden columns have zero width, and the drop target steps over them" below), so a pointer drop on either side of a hidden
+block between two visible columns gives one physical order, with the columns after the block. Hidden columns that
+end the grid are stepped past too, and there is no self-drop exemption, which the row plugin has. `tests/e2e/manual-row-move-hidden-gap.spec.ts`
+pins it for both axes, and the row plugin steps over hidden rows the same way (`getLowerHalfDropIndex()`).
+
 ## `isDragging()` is the shared click-versus-drag verdict
 
 ```js

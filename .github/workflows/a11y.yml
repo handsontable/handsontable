@@ -46,7 +46,9 @@ name: A11y
 # nothing from them it could act on; the nightly on develop keeps every check and its evidence. `nightly`
 # picks the suite: every check, or the short suite a check earns by finishing in under two minutes
 # (`pullRequest` in EVIDENCE_CHECKS, tests/lib/a11y-evidence.mjs), which a developer runs locally or
-# through a dispatch of the nightly that asks for it.
+# through a dispatch of the nightly that asks for it. `check-ids` names the checks to run instead of the
+# suite (the nightly's `checks` input, the proof run of one check): it reaches the config and the report
+# script as `A11Y_CHECKS`, so the run builds the named projects only and the summary names them.
 # The policy is tests/AGENTS.md, "A11y: the checks beyond axe".
 on:
   workflow_call:
@@ -59,6 +61,10 @@ on:
         description: Run every check beyond axe, not only the short suite, and keep the evidence longer.
         type: boolean
         default: false
+      check-ids:
+        description: The checks beyond axe to run instead of the suite, comma-separated check ids. Empty runs the suite `nightly` picks.
+        type: string
+        default: ''
 
 jobs:
   axe:
@@ -173,6 +179,9 @@ jobs:
     env:
       A11Y_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       HOT_A11Y_CHECKS_SUITE: ${{ inputs.nightly && 'nightly' || 'pull-request' }}
+      # A subset run (`check-ids`): the config runs the named checks instead of the suite, and the report
+      # script expects their documents and names them in the summary. Empty on every other run.
+      A11Y_CHECKS: ${{ inputs.check-ids }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
@@ -197,7 +206,8 @@ jobs:
         timeout-minutes: ${{ inputs.nightly && 20 || 10 }}
         run: cd tests && npx playwright test --config playwright.a11y-checks.config.ts
       # The evidence: the documents, every target's detail and the Playwright traces of a red test. A
-      # nightly's is what the conformance report cites, so it is kept for 30 days.
+      # nightly's run of every check is what the conformance report cites, so it is kept for 30 days; the
+      # short suite's and a subset's (`check-ids`, a proof run on a branch) cite nothing and keep 7.
       - name: Upload the evidence
         id: evidence
         if: ${{ !cancelled() }}
@@ -206,7 +216,7 @@ jobs:
           name: a11y-checks-evidence
           path: tests/test-results/a11y-checks
           if-no-files-found: warn
-          retention-days: ${{ inputs.nightly && 30 || 7 }}
+          retention-days: ${{ inputs.nightly && inputs.check-ids == '' && 30 || 7 }}
           overwrite: true
       - name: Write the job summary
         if: ${{ !cancelled() }}

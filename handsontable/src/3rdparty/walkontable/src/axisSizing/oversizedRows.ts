@@ -13,6 +13,7 @@
  * `sizeGetters.ts` they own the "how tall is a row really" answer.
  */
 import { isHTMLElement } from '../../../../helpers/dom/element';
+import { isHeightBelow, resolveFractionalHeight } from '../../../../helpers/dom/layoutUnit';
 import { CLONE_BOTTOM } from '../overlay';
 import { applyRowHeight } from '../render/exactRowHeight';
 import { firstRowDrawsTopBorder } from './boxModel';
@@ -604,6 +605,23 @@ export function resetFrozenOversizedRows(table: Table): Map<number, number> | un
 }
 
 /**
+ * Reads the height a row was laid out at, from its computed style, on the layout grid.
+ *
+ * @param {Table} table The table the row belongs to.
+ * @param {HTMLElement} element The row header cell, or the row when it has none.
+ * @param {number} roundedHeight The whole-pixel height read from the same element.
+ * @returns {number}
+ */
+function readUsedRowHeight(table: Table, element: HTMLElement, roundedHeight: number): number {
+  return resolveFractionalHeight(
+    table.deps.geometryReader.getComputedStyle(element).height,
+    roundedHeight,
+    // Reported by the engine, and `1` where an engine does not report it. It is not a layout read.
+    element.currentCSSZoom ?? 1,
+  );
+}
+
+/**
  * Check if any of the rendered rows is higher than expected, and if so, cache them.
  *
  * The row-height position cache is invalidated only when the measured heights genuinely differ
@@ -685,6 +703,7 @@ export function markOversizedRows(
   let sourceRowIndex;
   let currentTr;
   let rowHeader;
+  let usedHeight: number | undefined;
 
   // Compared with a sub-pixel tolerance, not `===`. The default row height is fractional below 100%
   // zoom (`StylesHandler#getDefaultRowHeight`, issue #6280) while `actualTableHeight` comes from an
@@ -747,13 +766,32 @@ export function markOversizedRows(
       rowCurrentHeight = rowHeightFn(currentTr) - borderCompensation;
     }
 
+    // `rowCurrentHeight` is a whole pixel, and the height it is compared with and the height that is
+    // recorded are not: a row that is `118.27px` tall reads `118`, and a record of `118` written on the
+    // row-header clone leaves that row `0.27px` short, with the error stacking per row. A row that
+    // already has a height to compare with (a floor, a surviving frozen-derived record) is therefore
+    // judged on the height the browser laid it out at, read from the computed style. A row is read only
+    // when the whole pixel cannot decide it: a height a pixel or more above the row is no floor for it.
+    usedHeight = undefined;
+
+    if (borderBoxSizing && previousRowHeight !== undefined && previousRowHeight < rowCurrentHeight + 1) {
+      usedHeight = readUsedRowHeight(table, rowHeader ?? currentTr, rowCurrentHeight);
+    }
+
     if (
       !previousRowHeight &&
       stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
-      (previousRowHeight !== undefined && previousRowHeight < rowCurrentHeight)
+      (previousRowHeight !== undefined && (borderBoxSizing ?
+        isHeightBelow(previousRowHeight, usedHeight ?? rowCurrentHeight) :
+        previousRowHeight < rowCurrentHeight))
     ) {
       if (!borderBoxSizing) {
         rowCurrentHeight += 1;
+      } else {
+        // Content-box cells keep the whole pixel: their `clientHeight` read and the `+ 1` above have no
+        // computed-style twin. A border-box row takes the height read above, or reads it now when it
+        // had no height to compare with.
+        rowCurrentHeight = usedHeight ?? readUsedRowHeight(table, rowHeader ?? currentTr, rowCurrentHeight);
       }
 
       wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;

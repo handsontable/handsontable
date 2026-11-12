@@ -19,11 +19,10 @@
  * header cells, every status an icon and a word as well as a color.
  */
 import { entryKey, findingsByRule, headline, isSafeLink, selectorText, verdictCounts } from './a11y-baseline.mjs';
-import { fixtureUrl, stateSteps } from '../a11y/pages.mjs';
+import { FIXTURE_SERVER, PRODUCT_SUITE } from './a11y-suites.mjs';
 
-const THEMES = ['main', 'horizon', 'classic'];
-// The fixture server's default address (`tests/playwright.config.ts`); `HOT_TEST_PORT` moves it.
-export const FIXTURE_SERVER = 'http://localhost:8123';
+// The fixture server's default address, kept here for the callers that read it from the report.
+export { FIXTURE_SERVER };
 // Status: a color from the reserved status palette, always beside an icon and a word.
 const STATUS = {
   new: { label: 'New', icon: '✖', note: 'Not in the baseline: fix it, or baseline it under an issue' },
@@ -60,19 +59,21 @@ function link(text, url) {
 }
 
 /**
- * A link to a page's fixture on the local fixture server, at the theme it was scanned on.
+ * A link to where a page was scanned, at the theme it was scanned on: its fixture on the local fixture
+ * server, or the docs deploy the run read.
  *
+ * @param {object} suite The scan (`lib/a11y-suites.mjs`).
  * @param {object|undefined} page The page entry.
  * @param {string} theme The theme.
  * @param {string} [text] The link text (raw); the page id by default.
  * @returns {string} HTML.
  */
-function fixtureLink(page, theme, text) {
+function fixtureLink(suite, page, theme, text) {
   if (!page) {
     return escapeHtml(text ?? '');
   }
 
-  return `<a href="${escapeHtml(`${FIXTURE_SERVER}${fixtureUrl(page, theme)}`)}">${escapeHtml(text ?? page.id)}</a>`;
+  return `<a href="${escapeHtml(suite.locate(page, theme).href)}">${escapeHtml(text ?? page.id)}</a>`;
 }
 
 /**
@@ -112,12 +113,13 @@ function boxText(box) {
  * A comparator that orders findings the way the page list does, then by theme, rule and target.
  *
  * @param {object[]} pages The page list.
+ * @param {readonly string[]} themes The suite's themes.
  * @returns {Function} The comparator.
  */
-function byPageOrder(pages) {
+function byPageOrder(pages, themes) {
   const order = new Map(pages.map((page, index) => [page.id, index]));
 
-  return (a, b) => (order.get(a.page) ?? 999) - (order.get(b.page) ?? 999) || THEMES.indexOf(a.theme) - THEMES.indexOf(b.theme)
+  return (a, b) => (order.get(a.page) ?? 999) - (order.get(b.page) ?? 999) || themes.indexOf(a.theme) - themes.indexOf(b.theme)
     || a.rule.localeCompare(b.rule) || a.target.localeCompare(b.target);
 }
 
@@ -128,18 +130,22 @@ function byPageOrder(pages) {
  * @param {object} model.verdict What `compareViolations()` returned.
  * @param {object[]} model.scans The completed scans: `page`, `theme`, `fixture`, `surface`, `state`,
  * `counts`, `incomplete`, `durationMs`, and `screenshot` (a data URI or null) with `marks`.
- * @param {object[]} model.pages The page list (`a11y/pages.mjs`).
+ * @param {object[]} [model.pages] The page list; the suite's when absent.
  * @param {object} model.run The run: `generatedAt`, `engines`, `commit`, `prUrl`, `runUrl`,
  * `docsUrl`, `notes`, `problems`.
+ * @param {object} [model.suite] The scan (`lib/a11y-suites.mjs`); the product scan when absent.
  * @returns {string} The HTML document.
  */
-export function renderHtmlReport({ verdict, scans, pages, run }) {
+export function renderHtmlReport({ verdict, scans, pages: pageList, run, suite = PRODUCT_SUITE }) {
   const counts = verdictCounts(verdict);
+  const pages = pageList ?? suite.pages;
   const context = {
     verdict,
     scans,
     pages,
     run,
+    suite,
+    themes: suite.themes,
     scanOf: new Map(scans.map(scan => [`${scan.page}|${scan.theme}`, scan])),
     pageOf: new Map(pages.map(page => [page.id, page])),
     issueTitle: new Map(verdict.issues.map(issue => [issue.id, issue.title])),
@@ -151,7 +157,7 @@ export function renderHtmlReport({ verdict, scans, pages, run }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
-<title>Accessibility report</title>
+<title>${escapeHtml(suite.reportTitle)}</title>
 <style>${STYLES}</style>
 </head>
 <body>
@@ -167,7 +173,7 @@ ${renderAction(context, counts)}
 ${renderOverview(context)}
 ${renderIssues(context)}
 ${renderScans(context)}
-${renderAbout(run, verdict.mode)}
+${renderAbout(run, verdict.mode, suite)}
 </main>
 <script>${SCRIPT}</script>
 </body>
@@ -182,7 +188,7 @@ ${renderAbout(run, verdict.mode)}
  * @param {object} counts The verdict's counts.
  * @returns {string} HTML.
  */
-function renderHeader({ verdict, run }, counts) {
+function renderHeader({ verdict, run, suite }, counts) {
   const tone = counts.action === 0 ? 'ok' : (verdict.mode === 'block' ? 'fail' : 'warn');
   const icon = { ok: '✔', warn: '⚠', fail: '✖' }[tone];
   const details = [
@@ -195,7 +201,7 @@ function renderHeader({ verdict, run }, counts) {
   ].filter(Boolean);
 
   return `<header>
-  <div class="title-row"><h1>Accessibility report</h1><button type="button" class="theme-toggle" hidden aria-pressed="false">Light theme</button></div>
+  <div class="title-row"><h1>${escapeHtml(suite.reportTitle)}</h1><button type="button" class="theme-toggle" hidden aria-pressed="false">Light theme</button></div>
   <p class="meta">${details.join(' <span aria-hidden="true">·</span> ')}</p>
   <p class="headline t-${tone}"><span aria-hidden="true">${icon}</span> ${escapeHtml(headline(verdict))}</p>
 </header>`;
@@ -280,9 +286,10 @@ function renderAction(context, counts) {
  * @param {'new'|'grown'} status The set it is in.
  * @returns {string} HTML.
  */
-function renderCard({ scanOf, pageOf, issueTitle }, item, status) {
+function renderCard({ scanOf, pageOf, issueTitle, suite }, item, status) {
   const scan = scanOf.get(`${item.page}|${item.theme}`);
   const page = pageOf.get(item.page);
+  const located = page ? suite.locate(page, item.theme) : null;
   const mark = scan?.marks?.find(candidate => candidate.rule === item.rule && candidate.target === item.target);
   const issue = item.issue ?? item.suggestedIssue;
   const id = `card-${cardId(item)}`;
@@ -291,8 +298,8 @@ function renderCard({ scanOf, pageOf, issueTitle }, item, status) {
   <h3 id="${escapeHtml(id)}">${chip(status)} <code>${escapeHtml(item.rule)}</code> on <code>${escapeHtml(item.target)}</code>${mark ? ` <span class="mark-ref">mark ${mark.n}</span>` : ''}</h3>
   <p class="help">${link(item.help ?? item.rule, item.helpUrl)} <span class="muted">· ${escapeHtml(item.impact ?? 'unknown')} impact${item.wcag?.length ? ` · WCAG ${item.wcag.map(escapeHtml).join(', ')}` : ''}</span></p>
   <dl class="locate">
-    <div><dt>Open</dt><dd>${fixtureLink(page, item.theme, `${item.page} on ${item.theme}`)} <code class="sel">${escapeHtml(page ? fixtureUrl(page, item.theme) : '')}</code></dd></div>
-    <div><dt>Then</dt><dd>${escapeHtml(page ? stateSteps(page) : '')}</dd></div>
+    <div><dt>Open</dt><dd>${fixtureLink(suite, page, item.theme, `${item.page} on ${item.theme}`)} <code class="sel">${escapeHtml(located?.path ?? '')}</code></dd></div>
+    <div><dt>Then</dt><dd>${escapeHtml(located?.steps ?? '')}</dd></div>
     <div><dt>Elements</dt><dd>${status === 'grown' ? `${item.nodes}, ${item.nodes - item.baselineNodes} more than the ${item.baselineNodes} recorded` : item.nodes}${scan?.surface ? ` <span class="muted">in ${escapeHtml(scan.surface)}</span>` : ''}</dd></div>
     <div><dt>Known issue</dt><dd>${issue ? `${escapeHtml(issueTitle.get(issue) ?? issue)} <code>${escapeHtml(issue)}</code>${status === 'new' ? ' <span class="muted">(same rule and element on other pages)</span>' : ''}` : '<span class="muted">none: a new one, or fix it</span>'}</dd></div>
   </dl>
@@ -369,13 +376,13 @@ function renderFigure(scan, caption, highlight = []) {
  * @param {string} title The table's caption.
  * @returns {string} HTML.
  */
-function renderEntryTable({ issueTitle, pages, pageOf }, items, status, title) {
+function renderEntryTable({ issueTitle, pages, pageOf, suite, themes }, items, status, title) {
   if (items.length === 0) {
     return '';
   }
 
-  const rows = [...items].sort(byPageOrder(pages)).map(item => `<tr data-search>
-    <td>${fixtureLink(pageOf.get(item.page), item.theme, item.page)}</td><td>${escapeHtml(item.theme)}</td><td><code>${escapeHtml(item.rule)}</code></td>
+  const rows = [...items].sort(byPageOrder(pages, themes)).map(item => `<tr data-search>
+    <td>${fixtureLink(suite, pageOf.get(item.page), item.theme, item.page)}</td><td>${escapeHtml(item.theme)}</td><td><code>${escapeHtml(item.rule)}</code></td>
     <td><code>${escapeHtml(item.target)}</code>${item.details?.[0] ? `<br><code class="sel small">${escapeHtml(selectorText(item.details[0].selector))}</code>` : ''}</td>
     <td class="num-cell">${status === 'improved' ? `${item.nodes} <span class="muted">of ${item.baselineNodes}</span>` : item.nodes}</td>
     <td>${escapeHtml(issueTitle.get(item.issue) ?? item.issue)}</td>
@@ -394,7 +401,7 @@ function renderEntryTable({ issueTitle, pages, pageOf }, items, status, title) {
  * @param {object} context The render context.
  * @returns {string} HTML.
  */
-function renderOverview({ verdict, scans, pages, pageOf }) {
+function renderOverview({ verdict, scans, pages, pageOf, suite, themes }) {
   const found = [...verdict.newViolations, ...verdict.grown, ...verdict.matched, ...verdict.improved];
   const rules = findingsByRule(verdict).map(row => [row.rule, row]);
   const maxRule = Math.max(1, ...rules.map(([, row]) => row.findings));
@@ -414,8 +421,8 @@ function renderOverview({ verdict, scans, pages, pageOf }) {
     </div>
     <div>
       <h3>Findings by page and theme</h3>
-      <p class="muted small">Darker is more findings. <span class="flag" aria-hidden="true">!</span> marks a cell with a finding that needs action. A page links to its fixture.</p>
-      ${renderHeatmap(found, verdict, scans, pages, pageOf)}
+      <p class="muted small">Darker is more findings. <span class="flag" aria-hidden="true">!</span> marks a cell with a finding that needs action. ${escapeHtml(suite.linkNote)}</p>
+      ${renderHeatmap(found, verdict, scans, pages, pageOf, suite, themes)}
     </div>
   </div>
 </section>`;
@@ -429,9 +436,11 @@ function renderOverview({ verdict, scans, pages, pageOf }) {
  * @param {object[]} scans The scans.
  * @param {object[]} pages The page list.
  * @param {Map<string, object>} pageOf The pages by id.
+ * @param {object} suite The scan.
+ * @param {readonly string[]} themes The suite's themes.
  * @returns {string} HTML.
  */
-function renderHeatmap(found, verdict, scans, pages, pageOf) {
+function renderHeatmap(found, verdict, scans, pages, pageOf, suite, themes) {
   const count = new Map();
   const action = new Set([...verdict.newViolations, ...verdict.grown, ...verdict.improved, ...verdict.stale]
     .map(item => `${item.page}|${item.theme}`));
@@ -442,7 +451,7 @@ function renderHeatmap(found, verdict, scans, pages, pageOf) {
   }
 
   const max = Math.max(0, ...count.values());
-  const ids = pages.map(page => page.id).filter(id => THEMES.some(theme => scanned.has(`${id}|${theme}`)));
+  const ids = pages.map(page => page.id).filter(id => themes.some(theme => scanned.has(`${id}|${theme}`)));
   const cell = (id, theme) => {
     const key = `${id}|${theme}`;
 
@@ -453,13 +462,13 @@ function renderHeatmap(found, verdict, scans, pages, pageOf) {
     const value = count.get(key) ?? 0;
     const flag = action.has(key) ? ' <span class="flag" title="Needs action">!</span><span class="visually-hidden"> (needs action)</span>' : '';
 
-    return `<td class="heat h${heatBin(value, max)}">${fixtureLink(pageOf.get(id), theme, String(value))}${flag}</td>`;
+    return `<td class="heat h${heatBin(value, max)}">${fixtureLink(suite, pageOf.get(id), theme, String(value))}${flag}</td>`;
   };
-  const totals = THEMES.map(theme => ids.reduce((sum, id) => sum + (count.get(`${id}|${theme}`) ?? 0), 0));
+  const totals = themes.map(theme => ids.reduce((sum, id) => sum + (count.get(`${id}|${theme}`) ?? 0), 0));
 
   return `<div class="table-wrap"><table class="heatmap">
-  <thead><tr><th scope="col">Page</th>${THEMES.map(theme => `<th scope="col">${theme}</th>`).join('')}</tr></thead>
-  <tbody>${ids.map(id => `<tr data-search><th scope="row"><a href="#scan-${escapeHtml(id)}">${escapeHtml(id)}</a></th>${THEMES.map(theme => cell(id, theme)).join('')}</tr>`).join('')}</tbody>
+  <thead><tr><th scope="col">Page</th>${themes.map(theme => `<th scope="col">${escapeHtml(theme)}</th>`).join('')}</tr></thead>
+  <tbody>${ids.map(id => `<tr data-search><th scope="row"><a href="#scan-${escapeHtml(id)}">${escapeHtml(id)}</a></th>${themes.map(theme => cell(id, theme)).join('')}</tr>`).join('')}</tbody>
   <tfoot><tr><th scope="row">Total</th>${totals.map(total => `<td class="num-cell">${total}</td>`).join('')}</tr></tfoot>
 </table></div>`;
 }
@@ -470,12 +479,12 @@ function renderHeatmap(found, verdict, scans, pages, pageOf) {
  * @param {object} context The render context.
  * @returns {string} HTML.
  */
-function renderIssues({ verdict, scans, pages, pageOf }) {
+function renderIssues({ verdict, scans, pages, pageOf, suite, themes }) {
   const all = [...verdict.matched, ...verdict.grown, ...verdict.improved, ...verdict.stale, ...verdict.unverified];
   const statusOf = item => (verdict.grown.includes(item) ? 'grown' : verdict.improved.includes(item) ? 'improved'
     : verdict.stale.includes(item) ? 'stale' : verdict.unverified.includes(item) ? null : 'known');
   const blocks = verdict.issues.map((issue) => {
-    const items = all.filter(item => item.issue === issue.id).sort(byPageOrder(pages));
+    const items = all.filter(item => item.issue === issue.id).sort(byPageOrder(pages, themes));
     const newHere = verdict.newViolations.filter(item => item.suggestedIssue === issue.id);
     const wcag = [...new Set(items.flatMap(item => item.wcag ?? []))].sort();
     const rules = [...new Set(items.map(item => item.rule))].sort();
@@ -486,7 +495,7 @@ function renderIssues({ verdict, scans, pages, pageOf }) {
       const status = statusOf(item);
       const first = item.details?.[0];
 
-      return `<tr data-search><td>${fixtureLink(pageOf.get(item.page), item.theme, item.page)}</td><td>${escapeHtml(item.theme)}</td>`
+      return `<tr data-search><td>${fixtureLink(suite, pageOf.get(item.page), item.theme, item.page)}</td><td>${escapeHtml(item.theme)}</td>`
         + `<td><code>${escapeHtml(item.rule)}</code></td><td><code>${escapeHtml(item.target)}</code>`
         + `${first ? `<br><code class="sel small">${escapeHtml(selectorText(first.selector))}</code>` : ''}</td>`
         + `<td class="num-cell">${item.nodes}</td><td>${status ? chip(status) : 'not scanned'}</td></tr>`;
@@ -519,7 +528,7 @@ function renderIssues({ verdict, scans, pages, pageOf }) {
 
   return `<section id="issues" aria-labelledby="issues-title">
   <h2 id="issues-title">Known issues</h2>
-  <p class="muted small">The catalog in <code>tests/a11y/axe-baseline.json</code>. An issue leaves the catalog with its last finding.</p>
+  <p class="muted small">The catalog in <code>tests/${escapeHtml(suite.baselineFile)}</code>. An issue leaves the catalog with its last finding.</p>
   ${blocks || '<p class="empty">No known issues.</p>'}
 </section>`;
 }
@@ -530,9 +539,9 @@ function renderIssues({ verdict, scans, pages, pageOf }) {
  * @param {object} context The render context.
  * @returns {string} HTML.
  */
-function renderScans({ scans, pages, pageOf }) {
+function renderScans({ scans, pages, pageOf, suite, themes }) {
   const order = new Map(pages.map((page, index) => [page.id, index]));
-  const sorted = [...scans].sort((a, b) => (order.get(a.page) ?? 999) - (order.get(b.page) ?? 999) || THEMES.indexOf(a.theme) - THEMES.indexOf(b.theme));
+  const sorted = [...scans].sort((a, b) => (order.get(a.page) ?? 999) - (order.get(b.page) ?? 999) || themes.indexOf(a.theme) - themes.indexOf(b.theme));
   const anchored = new Set();
   const rows = sorted.map((scan) => {
     const anchor = anchored.has(scan.page) ? '' : ` id="scan-${escapeHtml(scan.page)}"`;
@@ -540,8 +549,8 @@ function renderScans({ scans, pages, pageOf }) {
 
     anchored.add(scan.page);
 
-    return `<tr data-search${anchor}><th scope="row">${fixtureLink(page, scan.theme, scan.page)}</th><td>${escapeHtml(scan.theme)}</td>`
-      + `<td>${escapeHtml(scan.surface)}</td><td class="small">${escapeHtml(page ? stateSteps(page) : '')}</td>`
+    return `<tr data-search${anchor}><th scope="row">${fixtureLink(suite, page, scan.theme, scan.page)}</th><td>${escapeHtml(scan.theme)}</td>`
+      + `<td>${escapeHtml(scan.surface)}</td><td class="small">${escapeHtml(page ? suite.locate(page, scan.theme).steps ?? '' : '')}</td>`
       + `<td class="num-cell">${scan.counts?.violations ?? 0}</td><td class="num-cell">${scan.counts?.incomplete ?? 0}</td>`
       + `<td class="num-cell">${((scan.durationMs ?? 0) / 1000).toFixed(1)} s</td></tr>`;
   }).join('');
@@ -577,17 +586,18 @@ function renderScans({ scans, pages, pageOf }) {
  *
  * @param {object} run The run.
  * @param {string} mode The mode.
+ * @param {object} suite The scan.
  * @returns {string} HTML.
  */
-function renderAbout(run, mode) {
+function renderAbout(run, mode, suite) {
   return `<section id="about" aria-labelledby="about-title">
   <h2 id="about-title">How to use this</h2>
   <ul>
-    <li><strong>To find an element:</strong> start the fixture server (<code>npm --prefix tests run test:a11y</code> starts it, or <code>node tests/support/static-server.mjs</code> from the repository root after building), open the fixture link, follow the steps, then paste the selector into the browser's developer tools: <code>document.querySelector('…')</code>. The DOM path is the full route from <code>html</code> when the short selector matches more than one element. The fixture links assume the default port, 8123.</li>
-    <li>A finding is a rule on one kind of element on one page and theme, with the number of elements that carry it. The baseline, <code>tests/a11y/axe-baseline.json</code>, records the known ones, each under a known issue.</li>
+    <li><strong>To find an element:</strong> ${suite.howToFind}</li>
+    <li>A finding is a rule on one kind of element on one page and theme, with the number of elements that carry it. The baseline, <code>tests/${escapeHtml(suite.baselineFile)}</code>, records the known ones, each under a known issue.</li>
     <li>${mode === 'block' ? 'Block mode: a new, grown, improved or fixed finding fails the job until the code or the baseline changes.' : 'Warn mode: findings are reported here, on the pull request and as annotations, and never fail the job. Blocking comes later.'}</li>
-    <li>For an agent: <code>a11y-findings.json</code> in the <code>a11y-axe-results</code> artifact has the same findings, concise and machine-readable.</li>
-    <li>${run.docsUrl ? link('The full policy: tests/AGENTS.md, "A11y: the axe scan and its baseline"', run.docsUrl) : 'The full policy: <code>tests/AGENTS.md</code>, "A11y: the axe scan and its baseline".'}</li>
+    <li>For an agent: <code>a11y-findings.json</code> in the <code>${escapeHtml(suite.artifact)}</code> artifact has the same findings, concise and machine-readable.</li>
+    <li>${run.docsUrl ? link(`The full policy: ${suite.policy.file}, "${suite.policy.title}"`, run.docsUrl) : `The full policy: <code>${escapeHtml(suite.policy.file)}</code>, "${escapeHtml(suite.policy.title)}".`}</li>
   </ul>
 </section>`;
 }

@@ -17,6 +17,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { A11Y_PAGES } from '../a11y/pages.mjs';
 import { WCAG_CRITERIA } from './a11y-evidence.mjs';
+import { SCENARIO_GROUPS } from './screenreader-matrix.mjs';
 import { TOKEN_SEVERITIES, describeAction, normalizeAnnouncement } from './screenreader-transcript.mjs';
 
 export const SCENARIO_SCHEMA = 1;
@@ -28,9 +29,13 @@ export const SCENARIO_FILE_SUFFIX = '.scenario.json';
  * `[row, col]` through the instance's `selectCell()`, which is how a host moves the focus without a
  * pointer. `read` (`next`, `previous`, `in`, `out`) and `activate` are the screen reader's own commands,
  * which each reader drives its way (`LANE_PRIMITIVES`): the reading mode a user moves through the page
- * with, and the reader's activate gesture.
+ * with, and the reader's activate gesture. `call` is a host event, not a user action: `["name", ...args]`
+ * calls a function the fixture puts on `window` (`window.resolveRequest(0, "New A")`, the server answering
+ * a pending request), so a scenario reaches a status message that no key causes (WCAG 4.1.3). Its name is
+ * an identifier, never a path, so a scenario calls only what the fixture exposes for it, and a function the
+ * page lacks is a red test, never a silent step.
  */
-export const ACTIONS = ['press', 'type', 'selectCell', 'read', 'activate'];
+export const ACTIONS = ['press', 'type', 'selectCell', 'read', 'activate', 'call'];
 /**
  * What a `setup` may do before the reader settles: the step primitives the page drives (`press`, `type`,
  * `selectCell`), and three that set the scene without a user's key: `updateSettings` (an object passed to
@@ -39,10 +44,16 @@ export const ACTIONS = ['press', 'type', 'selectCell', 'read', 'activate'];
  * values, the way `Handsontable.helper.createSpreadsheetData()` builds them, for a grid larger than its
  * viewport), `sentinels` (`true`: a button before and one after the grid's root container, so a
  * Tab out of the grid lands on the page and never leaves the document, as the keyboard walker brackets a
- * grid) and `focus` (a selector of an element to focus, such as a sentinel). The reader's own commands
- * never run in the setup: a reader that cannot drive one would have no way to declare it.
+ * grid), `focus` (a selector of an element to focus, such as a sentinel) and `call` (a host event, as
+ * in a step: a request the scenario starts before the reader settles). The reader's own commands never run
+ * in the setup: a reader that cannot drive one would have no way to declare it.
  */
-export const SETUP_ACTIONS = ['press', 'type', 'selectCell', 'updateSettings', 'spreadsheetData', 'sentinels', 'focus'];
+export const SETUP_ACTIONS = ['press', 'type', 'selectCell', 'updateSettings', 'spreadsheetData', 'sentinels', 'focus', 'call'];
+/**
+ * The name a `call` names: a JavaScript identifier, the property of `window` the fixture sets. A dot or a
+ * bracket would reach into the page's objects, which a scenario has no business doing.
+ */
+export const CALL_NAME_PATTERN = /^[A-Za-z_$][\w$]*$/;
 /**
  * The largest grid a `spreadsheetData` setup loads: enough rows for a virtualized grid, few enough that a
  * scenario never waits on the load.
@@ -78,17 +89,11 @@ export const LANE_PRIMITIVES = Object.freeze({
  */
 export const STARTS = ['grid', 'page'];
 /**
- * The scenario groups a lane job runs one of. Guidepup runs one scenario at a time per machine, so a
- * project's scenarios run in series, and they split into groups that each fit the 40-minute run step
- * (`scenarioBudgetMs()` below, summed per group by the workflow test), each a matrix entry of
- * `.github/workflows/screenreader.yml` with its own job, check run and artifacts (`tests/AGENTS.md`,
- * "Screen readers"). `keyboard`: what a keyboard user does in the grid itself. `reading`: the
- * reading-mode traversals, minutes each on VoiceOver. `menus`: the menus and the filters inside them.
- * `editors`: the cell editors and the checkbox cell. `selection`: row selection and the check all
- * header. `structure`: nested and collapsible headers, merged cells and the freeze bars. A new group
- * joins this list and the workflow's matrix together; the workflow test keeps the two equal.
+ * The scenario groups a lane job runs one of, re-exported from `screenreader-matrix.mjs` (the
+ * dependency-free list the workflows' `check-inputs` and `verdict` jobs read), so a scenario's `group` is
+ * validated here against the same list the matrix is pinned to.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure'];
+export { SCENARIO_GROUPS };
 /**
  * What a scenario may take on a slow runner: a step costs four to five seconds on VoiceOver and about
  * thirteen when it is silent, and a run on a busy macOS runner took every step 1.7 to 2 times as long, so a
@@ -613,6 +618,10 @@ function validateAction(action, where, vocabulary) {
   }
   if (name === 'focus' && (typeof value !== 'string' || value.length === 0 || value.length > SELECTOR_LIMIT)) {
     return [`${where}: focus takes the selector of the element to focus`];
+  }
+  if (name === 'call' && !(Array.isArray(value) && typeof value[0] === 'string' && CALL_NAME_PATTERN.test(value[0]))) {
+    return [`${where}: call takes ["name", ...args], where name is a function the fixture puts on window (an identifier, `
+      + `${CALL_NAME_PATTERN}), and args are JSON values`];
   }
 
   return [];

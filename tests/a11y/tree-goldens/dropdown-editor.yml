@@ -29,7 +29,7 @@
   - rowgroup
   - combobox [expanded]: Al
   - listbox:
-    - option "Alpha" [selected]:
+    - option "Alpha":
       - strong: Al
       - text: pha
     - option "Alfa":

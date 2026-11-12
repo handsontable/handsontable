@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `updateSettings()` re-adding the grid's page-wide event listeners, which made every pointer move and click run Angular change detection when the call was made inside Angular's zone.",
+  "type": "fixed",
+  "issueOrPR": 14207,
+  "breaking": false,
+  "framework": "none"
+}

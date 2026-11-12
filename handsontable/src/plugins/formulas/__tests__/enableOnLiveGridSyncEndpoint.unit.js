@@ -93,8 +93,8 @@ describe('Formulas enabled on a live grid', () => {
 
   /**
    * Builds a grid that had Formulas from the start, in the given order through the initial `manualRowMove` and
-   * `manualColumnMove` arrays: the order reaches its engine as one order at init, the way an enable on a live
-   * grid sends the order the grid already has (cross-row references follow the engine's own rewrite).
+   * `manualColumnMove` arrays: a load sends an order reached by moves as moves, so every cross-row reference
+   * stays on its record. An enable on a live grid whose order no sort set is a load of the same kind.
    *
    * @param {Array[]} data The data.
    * @param {Handsontable} grid The grid whose current order the reference takes.
@@ -106,6 +106,32 @@ describe('Formulas enabled on a live grid', () => {
       manualRowMove: grid.rowIndexMapper.getIndexesSequence(),
       manualColumnMove: grid.columnIndexMapper.getIndexesSequence(),
     }, () => {});
+  }
+
+  /**
+   * Builds a grid that had Formulas from the start and was sorted the same way through `initialConfig`: a load
+   * sends a sorted order as one order, so each moved formula keeps its relative offsets (a known limit, see
+   * the plugin's AGENTS.md). An enable on a live sorted grid is a load of the same kind. It cannot see moves
+   * the grid made under the sort, so it sends the whole order as one, as this grid does.
+   *
+   * @param {Array[]} data The data.
+   * @param {object} sortConfig The `columnSorting.initialConfig`.
+   * @returns {Handsontable}
+   */
+  function buildReferenceSortedAs(data, sortConfig) {
+    return buildReference({ data: copy(data), columnSorting: { initialConfig: sortConfig } }, () => {});
+  }
+
+  /**
+   * Builds a grid that had Formulas from the start and then took the given row sequence through
+   * `setIndexesSequence()`: the engine gets it as one order, as it gets any sequence set on a live grid.
+   *
+   * @param {Array[]} data The data.
+   * @param {number[]} sequence The row sequence.
+   * @returns {Handsontable}
+   */
+  function buildReferenceWithSequence(data, sequence) {
+    return buildReference({ data: copy(data) }, grid => grid.rowIndexMapper.setIndexesSequence(sequence));
   }
 
   describe('through updateSettings()', () => {
@@ -289,9 +315,15 @@ describe('Formulas enabled on a live grid', () => {
 
       hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
       hot.updateSettings({ formulas: { engine: HyperFormula } });
-      buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
+      buildReferenceSortedAs(CROSS_ROW_CONTENT, { column: 1, sortOrder: 'asc' });
 
       expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'c', 'd']);
+      expect(hot.getData()).toEqual(reference.getData());
+      expect(engineValues(hot)).toEqual(hot.getData());
+
+      // A re-render reloads the sheet and sends a sorted order as one order again, so the values stay.
+      hot.updateSettings({});
+
       expect(hot.getData()).toEqual(reference.getData());
       expect(engineValues(hot)).toEqual(hot.getData());
     });
@@ -321,7 +353,7 @@ describe('Formulas enabled on a live grid', () => {
       hot.getPlugin('manualRowMove').moveRows([3], 0);
       hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
       hot.updateSettings({ formulas: { engine: HyperFormula } });
-      buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
+      buildReferenceSortedAs(CROSS_ROW_CONTENT, { column: 1, sortOrder: 'desc' });
 
       expect(hot.getDataAtCol(0)).toEqual(['d', 'c', 'b', 'a']);
       expect(hot.getData()).toEqual(reference.getData());
@@ -421,18 +453,24 @@ describe('Formulas enabled on a live grid', () => {
         return engine;
       }
 
-      it('sends the order of a re-enabled sorted grid once, from the resync', () => {
+      it('sends the order of a re-enabled reordered grid once, from the resync', () => {
         const engine = buildOnSharedEngine();
 
         hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
         hot.updateSettings({ formulas: false });
 
         const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+        const moveRows = jest.spyOn(engine, 'moveRows');
 
         hot.updateSettings({ formulas: { engine, sheetName: 'S' } });
         hot.render();
+        buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
 
-        expect(setRowOrder).toHaveBeenCalledTimes(1);
+        // The re-enable writes the sheet again from the data and sends the order once, as a load of a grid in
+        // that order does: no sort set it, so it goes as moves (one block: one move), not as one order.
+        expect(setRowOrder).not.toHaveBeenCalled();
+        expect(moveRows).toHaveBeenCalledTimes(1);
+        expect(hot.getData()).toEqual(reference.getData());
         expect(engineValues(hot)).toEqual(hot.getData());
       });
 
@@ -445,7 +483,7 @@ describe('Formulas enabled on a live grid', () => {
         hot.updateSettings({ formulas: { engine, sheetName: 'S' } });
         hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
         hot.resumeRender();
-        buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
+        buildReferenceWithSequence(CROSS_ROW_CONTENT, [3, 0, 1, 2]);
 
         expect(warnSpy).not.toHaveBeenCalled();
         expect(hot.getDataAtCol(0)).toEqual(['c', 'b', 'a', 'd']);
@@ -488,7 +526,7 @@ describe('Formulas enabled on a live grid', () => {
         plugin.disablePlugin();
         plugin.enablePlugin();
         hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
-        buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
+        buildReferenceWithSequence(CROSS_ROW_CONTENT, [3, 0, 1, 2]);
 
         expect(warnSpy).not.toHaveBeenCalled();
         expect(hot.getData()).toEqual(reference.getData());
@@ -529,7 +567,7 @@ describe('Formulas enabled on a live grid', () => {
       hot.getPlugin('manualRowMove').moveRows([3], 0);
       hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
       hot.updateSettings({ formulas: { engine: HyperFormula } });
-      buildReferenceInOrderOf(CROSS_ROW_CONTENT, hot);
+      buildReferenceSortedAs(CROSS_ROW_CONTENT, { column: 1, sortOrder: 'desc' });
 
       expect(hot.getData()).toEqual(reference.getData());
       expect(engineValues(hot)).toEqual(hot.getData());

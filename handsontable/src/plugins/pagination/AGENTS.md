@@ -86,6 +86,22 @@ Pinned by `__tests__/readyStep.unit.js`.
   height instead (`layoutReservedHeight`). Do not add a reservation back here: it would stack on
   core's and shrink the grid twice (DEV-2848).
 
+- **An empty grid with a free height keeps its body open itself (DEV-1103).** With no renderable rows and a root
+  height that is unset or `'auto'`, the holder has no content, so the root collapsed to its column headers and the
+  pager touched them. `#onAfterRender` keeps one `ht-pagination-placeholder` block (150 px, the same as the
+  `emptyDataState` placeholder) in `wtTable.holder` through `PaginationUI#syncEmptyBodyReserve()`; the UI keeps
+  the request and re-applies it from `#updateContainerVisibility()`, so `hide*Section()`/`show*Section()` (which do not
+  render) move the block at once; `destroy()` removes it. "Free" means the table HOLDER has no inline pixel height (`''` or `'auto'`), which is what the engine leaves for a free
+  root height and for a root sized by CSS in a window-scrolled layout. Inside a sized scroll parent the engine gives the
+  holder a pixel height, so the block would only add a scrollbar and is skipped. "No rows" is `view.countRenderableRows()`,
+  not `getRenderableIndexesLength()`: `maxRows: 0` draws nothing while the mapper still holds rows. It stays off
+  with a sized holder (a pixel, percentage or viewport `height`, or a sized scroll parent), with a custom `uiContainer`
+  (the pager is not under the grid), while every pager section is hidden, and while `emptyDataState` is enabled,
+  which holds the same space open, so the two never stack to 300 px. The 150 is a copy of `MIN_HEIGHT` in
+  `../emptyDataState/ui.ts`: change both together, or the pager jumps when that plugin is toggled. Pinned by `tests/e2e/pagination-all-filtered-gap.spec.ts`. The
+  `auto-height` variant of the bottom-slot fixture fixes the grid's CSS box at 400 px, so its pager never
+  collapses: use `inline-block-host` to reproduce it.
+
 The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
 the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
 is unreachable**; it stays as a statement of the requirement, **not** as support for a nested grid. (The
@@ -204,15 +220,19 @@ compares the button's paint after a page change with a fresh paint of it.
 
 `ht-page-size-section__label` and `ht-page-navigation-section__label` are `<span>`s. They declare
 `font-size`, `line-height`, `font-weight`, `letter-spacing`, and `font-family` as `inherit` in
-`_pagination.scss` (DEV-75). Without a declaration of their own they only inherit from `.ht-pagination`,
+`_pagination.scss`, through `@include mixins.inherit-text-metrics` (`src/styles/utils/_mixins.scss`).
+Without a declaration of their own they only inherit from `.ht-pagination`,
 and a host page rule as plain as `span { font-size: 20px }` beats inheritance – the labels grew while the
 rest of the bar kept the theme token (the buttons and the select are not spans, and they declare
 `font-size: inherit` for a different reason: resetting native control fonts). `inherit` rather than the
 token keeps a user's own override on the bar working – one that beats the bar's
 `.handsontable.ht-pagination` (0,2,0), for example `div.handsontable.ht-pagination`. The trade: the guard
 sits at (0,3,0), so a user rule on the label class itself (`.ht-page-navigation-section__label` or
-`.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Any new text-bearing span
-added to the bar needs the same five lines; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
+`.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Their box (padding,
+margin, border, height) is guarded separately, at element level (0,0,4), in
+`src/styles/base/_host-guards.scss`, so a host `span { padding: 12px }` cannot make the bar taller while a
+user's `.ht-page-size-section__label { padding: 2px }` still applies. Any new text-bearing span added to the bar needs the
+mixin and an entry in that guard list; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
 
 ## Server-backed paging is read live, not updated
 

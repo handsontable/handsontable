@@ -59,8 +59,8 @@ For more details about our versioning policy please visit [Versioning policy](@/
 
 | Removed | Deprecated in | Replacement | Migration guide |
 | ------- | ------------- | ----------- | --------------- |
-| `saveManualColumnWidths()` and `loadManualColumnWidths()` (`ManualColumnResize`) | 18.0 | None. Both did nothing since 17.0. Persist widths in your application code, and restore them by passing an array to `manualColumnResize`. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
-| `saveManualRowHeights()` and `loadManualRowHeights()` (`ManualRowResize`) | 18.0 | None. Both did nothing since 17.0. Persist heights in your application code, and restore them by passing an array to `manualRowResize`. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
+| `saveManualColumnWidths()` and `loadManualColumnWidths()` (`ManualColumnResize`) | 18.0 | None. Both do nothing and log a deprecation warning. Persist widths in your application code, and restore them by passing an array to `manualColumnResize`. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
+| `saveManualRowHeights()` and `loadManualRowHeights()` (`ManualRowResize`) | 18.0 | None. Both do nothing and log a deprecation warning. Persist heights in your application code, and restore them by passing an array to `manualRowResize`. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
 | `Handsontable.helper.sanitize()` | 18.0 | The `sanitizer` option. The helper returned its input unchanged since 18.0. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
 | `columnHeaders` (export options of the `exportFile` plugin) | 17.1 | `colHeaders` -- rename the key; the value keeps its meaning. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
 
@@ -90,7 +90,7 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 | ------- | ------------- | ----------- | --------------- |
 | `correctFormat` and `datePickerConfig` options | 17.0 | `valueParser` and `valueSetter` | [Migrate from 17.1 to 18.0 -> `correctFormat` option](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#correctformat-option) |
 | `numericFormat.pattern` and `numericFormat.culture` | 17.0 | `Intl.NumberFormat` options and the `locale` option | [Migrate from 17.1 to 18.0 -> Numeric formatting](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat) |
-| `handsontable/common` import subpath | -- (never documented) | `handsontable` or `handsontable/base` | [Migrate from 17.1 to 18.0 -> Imports](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-handsontablecommon-imports) |
+| `handsontable/common` import subpath | -- (not in the API reference) | `handsontable`, `handsontable/base`, or `handsontable/settings`, depending on the type. Four types are removed | [Migrate from 17.1 to 18.0 -> Imports](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-handsontablecommon-imports) |
 
 ## Removed in version 17.0
 

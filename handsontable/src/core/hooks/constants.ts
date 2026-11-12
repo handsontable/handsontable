@@ -536,6 +536,11 @@ export const REGISTERED_HOOKS = [
    * gets modified by the [`loadData()`](@/api/core.md#loaddata) method
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
+   * The hook also fires once while Handsontable initializes (`initialLoad` is `true`), before the grid has a view.
+   * The data getters, such as {@link Core#getDataAtCol}, and the writes, such as {@link Core#setDataAtCell}, work there. The viewport getters, such as
+   * {@link Core#getFirstFullyVisibleColumn}, and {@link Core#getCell} return `null`. Methods that need the rendered grid,
+   * such as {@link Core#selectCell} and {@link Core#scrollViewportTo}, select or scroll nothing and return `false`.
+   *
    * Read more:
    * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
    * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
@@ -1721,7 +1726,11 @@ export const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeCellAlignment
    * @param {object} stateBefore An object where each key is a visual row index and each value is an array
-   *                             of class names indexed by visual column.
+   *                             indexed by visual column. Each entry holds the alignment class names set in the
+   *                             cell's `className` (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`,
+   *                             `htMiddle`, `htBottom`), separated by a space. Other class names are left out,
+   *                             and so are the class names a renderer adds, such as the `htRight` of a numeric
+   *                             cell. The entry is `undefined` when the `className` holds no alignment class name.
    * @param {CellRange[]} range An array of `CellRange` coordinates where the alignment will be applied.
    * @param {string} type Type of the alignment - either `horizontal` or `vertical`.
    * @param {string} alignmentClass String defining the alignment class added to the cell.
@@ -4223,6 +4232,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenRows} plugin after marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
+   * The hook also fires once while Handsontable initializes, before the grid has a view. At that point,
+   * {@link Core#getFirstFullyVisibleRow} and the other viewport getters of `Core` return `null`, and
+   * {@link AutoRowSize#getFirstVisibleRow} and {@link AutoRowSize#getLastVisibleRow} return `-1`.
+   * Methods that need the rendered grid, such as {@link Core#selectCell}, are not available yet.
+   *
    * @event Hooks#afterHideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical row indexes.
@@ -4308,6 +4322,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link HiddenColumns} plugin after marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
+   *
+   * The hook also fires once while Handsontable initializes, before the grid has a view. At that point,
+   * {@link Core#getFirstFullyVisibleColumn} and the other viewport getters of `Core` return `null`, and
+   * {@link AutoColumnSize#getFirstVisibleColumn} and {@link AutoColumnSize#getLastVisibleColumn} return `-1`.
+   * Methods that need the rendered grid, such as {@link Core#selectCell}, are not available yet.
    *
    * @event Hooks#afterHideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.

@@ -11,11 +11,12 @@
  * catalog error, which `lib/__tests__/a11y-issues.test.mjs` refuses before it can reach the ledger.
  *
  * A match rule names the `source` a finding came from (`checks`: the checks beyond axe; `axe`: the
- * gating scan; `reader`: the screen reader lanes) and any of: `checks` (check ids, or reader projects),
+ * gating scan; `reader`: the screen reader lanes; `docs`: the docs site scan) and any of: `checks` (check ids, or reader projects),
  * `kinds`, `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria` (WCAG
  * ids), `pages` (anchored patterns on the page id, or the reader scenario), `themes`, `where` (patterns
- * searched in the finding's `where`) and `axeIssues` (the baseline issue an axe finding is filed under,
- * or the one the scan suggests for a new finding of a known rule and target). The values of a field are
+ * searched in the finding's `where`) and `axeIssues` (the baseline issue an axe or docs finding is filed
+ * under, or the one the scan suggests for a new finding of a known rule and target; a docs rule names the
+ * docs baseline's issues, `a11y/docs/docs-baseline.json`). The values of a field are
  * ORed, the fields of a rule ANDed, the rules of a cluster ORed. A finding's `where` is its masked
  * selector, its step, or both joined as `<masked selector> @ <step>` (a keyboard-walker stop, a probe), so
  * a pattern anchored with `^` reads from the selector's start and one anchored with `$` up to the step's end.
@@ -33,6 +34,7 @@
  */
 import { A11Y_THEMES, VOLATILE_CLASSES } from './a11y-baseline.mjs';
 import { EVIDENCE_CHECKS, WCAG_CRITERIA } from './a11y-evidence.mjs';
+import { DOCS_THEMES } from '../a11y/docs/constants.mjs';
 
 export const ISSUES_SCHEMA = 1;
 export const ISSUES_FILE = 'a11y/issues.json';
@@ -40,7 +42,7 @@ export const ISSUES_FILE = 'a11y/issues.json';
  * The cluster a finding lands in when no rule matches it. Reserved: a catalog cluster cannot take the id.
  */
 export const TRIAGE_ID = 'needs-triage';
-export const FINDING_SOURCES = ['checks', 'axe', 'reader'];
+export const FINDING_SOURCES = ['checks', 'axe', 'reader', 'docs'];
 /**
  * The fields a match rule may carry, `source` first. A rule needs `source` and at least one other.
  */
@@ -51,6 +53,11 @@ export const MATCH_FIELDS = ['source', 'checks', 'kinds', 'rules', 'causes', 'cr
  */
 export const AXE_SCAN_CHECK = 'axe';
 export const AXE_SCAN_KIND = 'axe-violation';
+/**
+ * The docs site scan's findings (`tests/a11y/docs/`): the same kind as the gating scan's, under a check of
+ * their own, so a docs finding never matches a rule written for the product.
+ */
+export const DOCS_SCAN_CHECK = 'docs-axe';
 /**
  * The kinds of a screen reader finding: a required token group missing from a step's announcement, an
  * announcement whose wording differs from the recorded golden, and a reading traversal that read an item
@@ -68,6 +75,7 @@ export const READER_TRAVERSAL_WHERE = 'traversal';
 const NEVER_CARRIED = Object.freeze({
   checks: ['axeIssues'],
   axe: ['causes'],
+  docs: ['causes'],
   reader: ['rules', 'causes', 'criteria', 'themes', 'axeIssues'],
 });
 
@@ -110,6 +118,50 @@ export function findingShape(finding) {
 }
 
 /**
+ * Why the catalog's `triage` list is not acceptable: one entry per finding shape left in needs-triage, as
+ * `findingShape()` writes it, each with the reason it is not sorted into a cluster yet.
+ *
+ * @param {unknown} triage The catalog's `triage` field.
+ * @returns {string[]} The problems.
+ */
+function triageProblems(triage) {
+  if (!Array.isArray(triage)) {
+    return ['"triage" must be an array of { "shape", "reason" } entries'];
+  }
+
+  const problems = [];
+  const shapes = new Set();
+
+  triage.forEach((entry, index) => {
+    const where = `triage entry ${index + 1}`;
+
+    if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
+      problems.push(`${where} must be an object with "shape" and "reason"`);
+
+      return;
+    }
+
+    const extra = Object.keys(entry).filter(key => key !== 'shape' && key !== 'reason');
+    const fields = typeof entry.shape === 'string' ? entry.shape.split('|') : [];
+
+    if (extra.length > 0) {
+      problems.push(`${where} has an unknown field "${extra[0]}"`);
+    }
+    if (fields.length !== 7 || !FINDING_SOURCES.includes(fields[0])) {
+      problems.push(`${where} needs a "shape" as findingShape() writes it (source|check|kind|rule|cause|page|where), got ${JSON.stringify(entry.shape)}`);
+    } else if (shapes.has(entry.shape)) {
+      problems.push(`${where} repeats the shape ${JSON.stringify(entry.shape)}`);
+    }
+    if (typeof entry.reason !== 'string' || entry.reason.trim() === '') {
+      problems.push(`${where} needs a "reason": why the shape is neither a known cause nor the reader's own behavior yet`);
+    }
+    shapes.add(entry.shape);
+  });
+
+  return problems;
+}
+
+/**
  * Why the catalog document is not acceptable: one line per problem, empty when it is. Run by the tooling
  * test on the committed file and by the collector before it reads a night, so a malformed rule is a
  * refused catalog, never a finding silently sorted.
@@ -118,12 +170,13 @@ export function findingShape(finding) {
  * @param {object} [known] The ids a rule may name, when the caller can read them: the tooling test passes both,
  * the collector neither.
  * @param {string[]} [known.axeIssues] The issue ids of the axe baseline (`a11y/axe-baseline.json`).
+ * @param {string[]} [known.docsIssues] The issue ids of the docs baseline (`a11y/docs/docs-baseline.json`).
  * @param {string[]} [known.readerProjects] The screen reader projects (`playwright.screenreader.config.ts`).
  * @returns {string[]} The problems.
  */
 export function validateIssuesCatalog(doc, known = {}) {
   if (doc === null || typeof doc !== 'object' || Array.isArray(doc)) {
-    return ['the catalog must be a JSON object with "schema", "triageLimit" and "clusters"'];
+    return ['the catalog must be a JSON object with "schema", "triage" (or "triageLimit") and "clusters"'];
   }
 
   const problems = [];
@@ -131,7 +184,13 @@ export function validateIssuesCatalog(doc, known = {}) {
   if (doc.schema !== ISSUES_SCHEMA) {
     problems.push(`"schema" must be ${ISSUES_SCHEMA}, got ${JSON.stringify(doc.schema)}`);
   }
-  if (!Number.isInteger(doc.triageLimit) || doc.triageLimit < 0) {
+  if (doc.triage !== undefined) {
+    problems.push(...triageProblems(doc.triage));
+
+    if (doc.triageLimit !== undefined) {
+      problems.push('"triageLimit" is the length of "triage": give one of them, not both');
+    }
+  } else if (!Number.isInteger(doc.triageLimit) || doc.triageLimit < 0) {
     problems.push(`"triageLimit" must be the number of sampled findings that need triage (a non-negative integer), got ${JSON.stringify(doc.triageLimit)}`);
   }
   if (!Array.isArray(doc.clusters)) {
@@ -211,7 +270,7 @@ function outside(values, allowed, message) {
  * @param {unknown} rule The rule.
  * @param {string} label Where it sits.
  * @param {string[]} problems Where a problem goes.
- * @param {{axeIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
+ * @param {{axeIssues?: string[], docsIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
  */
 function validateRule(rule, label, problems, known) {
   if (rule === null || typeof rule !== 'object' || Array.isArray(rule)) {
@@ -267,12 +326,15 @@ function validateRule(rule, label, problems, known) {
  * @param {string} field The field.
  * @param {string[]} values Its values.
  * @param {string} source The rule's source.
- * @param {{axeIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
+ * @param {{axeIssues?: string[], docsIssues?: string[], readerProjects?: string[]}} known The ids a rule may name, when known.
  * @returns {string|null} The problem.
  */
 function valuesProblem(field, values, source, known) {
   if (field === 'criteria') {
     return outside(values, Object.keys(WCAG_CRITERIA), 'not a WCAG 2.2 criterion (WCAG_CRITERIA, tests/lib/a11y-evidence.mjs)');
+  }
+  if (field === 'themes' && source === 'docs') {
+    return outside(values, DOCS_THEMES, `not a docs color scheme (${DOCS_THEMES.join(', ')})`);
   }
   if (field === 'themes') {
     return outside(values, A11Y_THEMES, `not a theme (${A11Y_THEMES.join(', ')})`);
@@ -283,14 +345,22 @@ function valuesProblem(field, values, source, known) {
   if (field === 'checks' && source === 'axe') {
     return outside(values, [AXE_SCAN_CHECK], `not the axe scan's check ("${AXE_SCAN_CHECK}")`);
   }
+  if (field === 'checks' && source === 'docs') {
+    return outside(values, [DOCS_SCAN_CHECK], `not the docs scan's check ("${DOCS_SCAN_CHECK}")`);
+  }
   if (field === 'checks' && source === 'reader' && Array.isArray(known.readerProjects)) {
     return outside(values, known.readerProjects, 'not a screen reader project (playwright.screenreader.config.ts)');
   }
-  if (field === 'kinds' && source === 'axe') {
+  if (field === 'kinds' && (source === 'axe' || source === 'docs')) {
     return outside(values, [AXE_SCAN_KIND], `not the axe scan's kind ("${AXE_SCAN_KIND}")`);
   }
   if (field === 'kinds' && source === 'reader') {
     return outside(values, READER_KINDS, `not a reader kind (${READER_KINDS.join(', ')})`);
+  }
+  if (field === 'axeIssues' && source === 'docs') {
+    return Array.isArray(known.docsIssues)
+      ? outside(values, known.docsIssues, 'not an issue of the docs baseline (a11y/docs/docs-baseline.json)')
+      : null;
   }
   if (field === 'axeIssues' && Array.isArray(known.axeIssues)) {
     return outside(values, known.axeIssues, 'not an issue of the axe baseline (a11y/axe-baseline.json)');
@@ -304,9 +374,10 @@ function valuesProblem(field, values, source, known) {
  * validate, with every problem in the message.
  *
  * @param {unknown} doc The parsed `issues.json`.
- * @returns {{schema: number, triageLimit: number, clusters: object[]}} The compiled catalog: each cluster with its
- * `id`, `title`, `tracker` (a task id, a list of them, or `null`) and `match` rules, whose `pages` and `where` are
- * regular expressions (`pages` anchored to the whole id).
+ * @returns {{schema: number, triageLimit: number, triage: Array<{shape: string, reason: string}>, clusters: object[]}}
+ * The compiled catalog: the triage limit (the length of `triage`, or the `triageLimit` of a catalog that gives the
+ * number alone), the triage entries, and each cluster with its `id`, `title`, `tracker` (a task id, a list of them,
+ * or `null`) and `match` rules, whose `pages` and `where` are regular expressions (`pages` anchored to the whole id).
  */
 export function compileIssuesCatalog(doc) {
   const problems = validateIssuesCatalog(doc);
@@ -317,7 +388,8 @@ export function compileIssuesCatalog(doc) {
 
   return {
     schema: doc.schema,
-    triageLimit: doc.triageLimit,
+    triageLimit: doc.triage === undefined ? doc.triageLimit : doc.triage.length,
+    triage: (doc.triage ?? []).map(entry => ({ shape: entry.shape, reason: entry.reason })),
     clusters: doc.clusters.map(cluster => ({
       id: cluster.id,
       title: cluster.title,

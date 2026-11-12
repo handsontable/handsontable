@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a grey box that appeared outside the grid when a row was moved while all columns were hidden.",
+  "type": "fixed",
+  "issueOrPR": 14209,
+  "breaking": false,
+  "framework": "none"
+}

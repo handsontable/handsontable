@@ -424,6 +424,21 @@ export class SheetModel {
   }
 
   /**
+   * Returns the name a sheet added now without a name would get (`Sheet{n}`), without adding one.
+   *
+   * @returns {string}
+   */
+  peekDefaultName(): string {
+    this.#addedCount += 1;
+
+    try {
+      return this.#uniqueName(null);
+    } finally {
+      this.#addedCount -= 1;
+    }
+  }
+
+  /**
    * Returns the requested name when free, otherwise the next free variant: defaults count up as
    * `Sheet{n}`, explicit collisions count up as `name (n)` after the whole requested name, the way
    * the formula engine's sheet names are numbered (`freeEngineName()`). A counter the requested name

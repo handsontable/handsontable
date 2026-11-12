@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "id": "data-provider-sheets-bar",
+  "group": "status",
+  "surface": "Server data per sheet: the loading overlay while a fetch runs, a sheet switch that starts a fetch, the error notification of a failed fetch and its Refetch action, and the rows that land.",
+  "page": "data-provider-sheets-bar",
+  "state": "data-provider",
+  "start": "page",
+  "criteria": ["2.1.1", "2.4.3", "4.1.2", "4.1.3"],
+  "setup": [{"call": ["htFailNextFetch", "CUS"]}],
+  "steps": [
+    {
+      "id": "tab-loading-overlay",
+      "action": {"press": "Tab"},
+      "expect": [["loading data"], ["please wait"]],
+      "note": "The Orders sheet's first fetch is still out (the fixture's server holds every request until the scenario releases it), so the grid shows its loading overlay, and Tab from the top of the page lands on it. Finding: NVDA with Firefox reads only `section, busy`, without the message, and VoiceOver with WebKit reads the title and not the description (`Loading data and 1 more item`)."
+    },
+    {
+      "id": "tab-add-sheet",
+      "action": {"press": "Tab"},
+      "expect": [["add sheet"]],
+      "note": "Tab leaves the overlay for the sheets bar."
+    },
+    {
+      "id": "tab-all-sheets",
+      "action": {"press": "Tab"},
+      "expect": [["all sheets"]],
+      "note": "The all sheets button."
+    },
+    {
+      "id": "tab-active-sheet",
+      "action": {"press": "Tab"},
+      "expect": [["orders"]],
+      "note": "The active tab, `Orders`."
+    },
+    {
+      "id": "end-last-sheet",
+      "action": {"press": "End"},
+      "expect": [["customers"]],
+      "note": "End moves to the last tab, `Customers`, without switching."
+    },
+    {
+      "id": "enter-switch-sheet",
+      "action": {"press": "Enter"},
+      "expect": [["sheet customers activated"], ["loading data"]],
+      "note": "Enter switches to Customers, whose rows come from the server, and the plugin announces the switch. Its fetch starts, and the loading overlay shows again. Finding: the overlay is not a live region, so no reader says the sheet is loading."
+    },
+    {
+      "id": "server-fails",
+      "action": {"call": ["htReleaseFetch", "CUS"]},
+      "expect": [["could not load data"], ["cus failed"]],
+      "note": "The server answers the Customers fetch with an error (the setup asked it to fail). The grid shows an error notification, a `role=alert` toast, which a reader should announce without a focus move."
+    },
+    {
+      "id": "f6-refetch",
+      "action": {"press": "F6"},
+      "expect": [["refetch"]],
+      "note": "F6 moves the focus into the notification region, on the toast's Refetch action."
+    },
+    {
+      "id": "enter-refetch",
+      "action": {"press": "Enter"},
+      "expect": [["customers"]],
+      "note": "Refetch closes the toast, starts the fetch again, and the focus goes back to the Customers tab."
+    },
+    {
+      "id": "server-answers",
+      "action": {"call": ["htReleaseFetch", "CUS"]},
+      "expect": [],
+      "note": "The server answers with the Customers rows, and the overlay leaves. Nothing is required: the focus should stay on the Customers tab, where a reader may rightly say nothing, and a group can only require speech; this lane has no check on where the focus is, so the step records the finding without measuring it. Finding (the grid's): the focus moves from the Customers tab to the first cell, `CUS-01`, with no key pressed, and every reader reads that cell (the committed goldens)."
+    }
+  ]
+}

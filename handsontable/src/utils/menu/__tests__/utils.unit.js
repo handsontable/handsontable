@@ -1,6 +1,7 @@
 import {
   checkSelectionConsistency,
   getAlignmentClasses,
+  getAlignmentClassNames,
   getAlignmentComparatorByClass,
   getSelectionCheckState,
   MENU_ITEM_MIXED,
@@ -217,6 +218,41 @@ describe('utils/menu/utils', () => {
       expect(Object.keys(classes)).toEqual(['0', '1']);
       expect(classes[0][0]).toBe('0:0');
       expect(classes[1][1]).toBe('1:1');
+    });
+  });
+
+  describe('getAlignmentClassNames', () => {
+    it('should keep the alignment class names of both axes in their original order', () => {
+      expect(getAlignmentClassNames('htCenter')).toBe('htCenter');
+      expect(getAlignmentClassNames('htTop htLeft')).toBe('htTop htLeft');
+      expect(getAlignmentClassNames('htJustify htBottom')).toBe('htJustify htBottom');
+    });
+
+    it('should leave out the class names that are not alignment ones', () => {
+      expect(getAlignmentClassNames('htBlue htCenter htTop')).toBe('htCenter htTop');
+      expect(getAlignmentClassNames('class_name htRight')).toBe('htRight');
+    });
+
+    it('should return `undefined` when the cell holds no alignment class name', () => {
+      expect(getAlignmentClassNames('htBlue')).toBeUndefined();
+      expect(getAlignmentClassNames('htBlue htGreen')).toBeUndefined();
+      expect(getAlignmentClassNames('')).toBeUndefined();
+      expect(getAlignmentClassNames([])).toBeUndefined();
+      expect(getAlignmentClassNames(undefined)).toBeUndefined();
+    });
+
+    it('should compare the class names token by token', () => {
+      expect(getAlignmentClassNames('htTopBar htLeftover')).toBeUndefined();
+      expect(getAlignmentClassNames('htTopBar htTop')).toBe('htTop');
+    });
+
+    it('should accept an array `className` and return a string', () => {
+      expect(getAlignmentClassNames(['htBlue', 'htCenter', 'htMiddle'])).toBe('htCenter htMiddle');
+      expect(getAlignmentClassNames(['htBlue'])).toBeUndefined();
+    });
+
+    it('should ignore the extra whitespace between the class names', () => {
+      expect(getAlignmentClassNames('  htBlue   htLeft  ')).toBe('htLeft');
     });
   });
 

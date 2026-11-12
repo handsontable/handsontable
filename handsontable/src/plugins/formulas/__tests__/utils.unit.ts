@@ -1,6 +1,7 @@
 import {
   trimTrailingEmptyCells,
   coalesceIndexesToSpans,
+  insertEmptyRows,
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
   isDateValid,
@@ -440,5 +441,25 @@ describe('Formulas utils', () => {
 
       expect(rows).toEqual([['a', null], ['b']]);
     });
+  });
+});
+
+describe('insertEmptyRows', () => {
+  it('inserts the rows at the given place', () => {
+    const rows: unknown[][] = [[1], [2]];
+
+    insertEmptyRows(rows, 1, 2);
+
+    expect(rows).toEqual([[1], [], [], [2]]);
+  });
+
+  it('inserts more rows than a call can take as arguments', () => {
+    const rows: unknown[][] = [[1], [2]];
+
+    expect(() => insertEmptyRows(rows, 1, 300000)).not.toThrow();
+    expect(rows.length).toBe(300002);
+    expect(rows[0]).toEqual([1]);
+    expect(rows[300001]).toEqual([2]);
+    expect(rows[1]).not.toBe(rows[2]);
   });
 });

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where custom context menu and column menu items that shared the same string `name` showed as one row.",
+  "type": "fixed",
+  "issueOrPR": 14214,
+  "breaking": false,
+  "framework": "none"
+}

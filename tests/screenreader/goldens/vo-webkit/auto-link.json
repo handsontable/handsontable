@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "auto-link",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T14:07:04.226Z"
+  },
+  "steps": {
+    "arrow-up-plain-url": "",
+    "arrow-left-link": "a https example com one link",
+    "arrow-down-inline-link": "a visit https example com two link for details",
+    "arrow-down-mailto-link": "a someone example com link",
+    "select-formula-link": "f hf label link",
+    "select-local-link": "a http localhost 8123 tests fixtures demo grid html link",
+    "open-link": "window window handsontable e2e fixture web content handsontable e2e fixture web content"
+  }
+}

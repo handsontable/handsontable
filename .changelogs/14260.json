@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `getCellMeta()` reporting a span on a merged cell's former top-left after a trim or filter was lifted, a move or freeze on a filtered grid, or an undo of a move, and a cell that a row move, a column move, or a column freeze took out of a merge on a filtered grid keeping its `hidden` flag.",
+  "type": "fixed",
+  "issueOrPR": 14260,
+  "breaking": false,
+  "framework": "none"
+}

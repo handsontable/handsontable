@@ -68,6 +68,14 @@ test.describe('intl-datetime cell type', () => {
     await expect(datetimeGrid.cell(1, 0)).toHaveText('Retro');
   });
 
+  test('renders year 0000 differently from year 0001', async () => {
+    await datetimeGrid.setSourceValue(0, 1, '0000-01-01T00:00:00');
+    await datetimeGrid.setSourceValue(1, 1, '0001-01-01T00:00:00');
+
+    await expect(datetimeGrid.cell(0, 1)).toContainText('BC');
+    await expect(datetimeGrid.cell(1, 1)).not.toContainText('BC');
+  });
+
   test('filters with the datetime "Today" condition regardless of the time part', async () => {
     await datetimeGrid.openDropdownMenu('Start');
     await datetimeGrid.applyFilterCondition('Today');

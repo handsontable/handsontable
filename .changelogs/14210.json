@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `DropdownMenu#executeCommand()` and `ContextMenu#executeCommand()` throwing a `TypeError` for the `clear_column` command, and corrected the list of commands in their documentation.",
+  "type": "fixed",
+  "issueOrPR": 14210,
+  "breaking": false,
+  "framework": "none"
+}

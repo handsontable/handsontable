@@ -95,12 +95,15 @@ test('a matrix entry tested in its own browsers names them, and only a tested en
   assert.deepEqual(nightly('NVDA')?.browsers, ['Chromium', 'Firefox (Playwright)'],
     'the NVDA nightly runs in Chromium and Playwright\'s Firefox, not in the audit\'s browsers');
   assert.match(matrixList(data),
-    /^- VoiceOver on macOS 26, in WebKit \(Playwright\) and Chromium: automated nightly run\.$/m,
-    'the list says which browsers the nightly ran in, so it never reads as the audit\'s Chrome and Firefox');
+    /^- VoiceOver on macOS 26, in WebKit \(Playwright\) and Chromium: automated run\.$/m,
+    'the list says which browsers the automated run ran in, so it never reads as the audit\'s Chrome and Firefox');
   assert.match(matrixList(data),
-    /^- NVDA 2026\.2 on Windows Server 2025, in Chromium and Firefox \(Playwright\): automated nightly run\.$/m);
+    /^- NVDA 2026\.2 on Windows Server 2025, in Chromium and Firefox \(Playwright\): automated run\.$/m);
   assert.match(matrixTable(data),
-    /^\| VoiceOver \| macOS 26 \| macOS \(WebKit \(Playwright\) and Chromium\) \| Automated nightly run \|$/m);
+    /^\| VoiceOver \| macOS 26 \| macOS \(WebKit \(Playwright\) and Chromium\) \| Automated run \|$/m);
+  assert.doesNotMatch(`${matrixList(data)}\n${matrixTable(data)}\n${data.notes.automation}`, /nightly/i,
+    'the public text claims no nightly: the screen reader workflow runs on a dispatch, not a schedule '
+    + '(tests/AGENTS.md, "A11y: the audit and the proof runs")');
   assert.match(matrixList(data), /^- NVDA 2025\.3 on Windows 11: external audit/m,
     'an entry without browsers renders as before');
   assert.equal(screenReadersSentence(data), 'VoiceOver (macOS and iOS) and NVDA (Windows)',
@@ -108,8 +111,8 @@ test('a matrix entry tested in its own browsers names them, and only a tested en
 
   const auditList = accessibilityTemplateValues(data)['matrix.auditList'];
 
-  assert.doesNotMatch(auditList, /automated nightly/,
-    'the report\'s list keeps the audited entries only, so a nightly never reads as a source of its verdicts');
+  assert.doesNotMatch(auditList, /automated run/,
+    'the report\'s list keeps the audited entries only, so an automated run never reads as a source of its verdicts');
   assert.equal(auditList.split('\n').length,
     data.matrix.filter(entry => entry.howTested.includes('audit')).length, 'every audited entry, one line each');
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Filters condition list ending below a short viewport on a desktop page that cannot scroll, so its lower items could not be reached.",
+  "type": "fixed",
+  "issueOrPR": 14262,
+  "breaking": false,
+  "framework": "none"
+}

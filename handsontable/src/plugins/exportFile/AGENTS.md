@@ -615,7 +615,11 @@ by "removed `columnHeaders` option" in `__tests__/exportFile.unit.js`.
 
 ## Column widths come from `_getColWidthFromSettings()`
 
-`DataProvider#_getNaturalColWidth()` reads a column's configured width through `hot._getColWidthFromSettings(visualColumn)`, which takes a VISUAL index and reads the `colWidths` array and function by the physical one. Do not copy that translation or index `colWidths` yourself. A width that is not a finite number falls back to `defaultColumnWidth`. See `../autoColumnSize/AGENTS.md`, "Known concerns".
+`DataProvider#_getNaturalColWidth()` reads a column's configured width through `hot._getColWidthFromSettings(visualColumn)`, which takes a VISUAL index, calls the `colWidths` function with the physical one, and reads the array at the entry the column was declared at (`core/columnSizeSettings.ts`). Do not copy that translation or index `colWidths` yourself: after a column insert or removal the entry is not the physical index. A width that is not a finite number falls back to `defaultColumnWidth`. See `../autoColumnSize/AGENTS.md`, "Known concerns".
+
+## Row heights come from `_getRowHeightFromSettings()`
+
+The same rule holds for rows (DEV-508): a declared row height is read through `hot._getRowHeightFromSettings(visualRow)` or `hot.getRowHeight(visualRow)`, both VISUAL, which read the `rowHeights` and `minRowHeights` array and function by the physical index. Never index those arrays yourself.
 
 ## A `loadData()` during the overlay wait rejects the download
 
