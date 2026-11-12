@@ -5,6 +5,7 @@ import { TextCellType } from 'handsontable/cellTypes/textType';
 import { registerRenderer, baseRenderer, textRenderer, numericRenderer } from 'handsontable/renderers';
 import { registerPlugin } from 'handsontable/plugins/registry';
 import { ManualColumnMove } from 'handsontable/plugins/manualColumnMove';
+import { ManualRowMove } from 'handsontable/plugins/manualRowMove';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
@@ -14,6 +15,7 @@ registerRenderer(baseRenderer);
 registerRenderer(textRenderer);
 registerRenderer(numericRenderer);
 registerPlugin(ManualColumnMove);
+registerPlugin(ManualRowMove);
 
 /**
  * @param {HTMLElement} container Host element.
@@ -529,9 +531,42 @@ describe('BaseEditor validation wait', () => {
     }
   }
 
+  /**
+   * A `beforeChange` listener that moves an edit of visual row 1 to visual row 2, in whatever column.
+   *
+   * @param {Array} changes The changes.
+   * @param {string} source The change source.
+   */
+  function moveRowOneBelow(changes, source) {
+    if (source === 'edit') {
+      changes.forEach((change) => {
+        if (change && change[0] === 1) {
+          change[0] = 2;
+        }
+      });
+    }
+  }
+
+  const validatedColumn = { type: 'numeric', validator: asyncNonNegative, allowInvalid: false };
+  // Three columns of array data in the order [2, 0, 1]: the `prop` that `beforeValidate` names is the physical
+  // column, not the visual one.
+  const movedColumns = {
+    data: Array.from({ length: 4 }, () => [18, 18, 18]),
+    manualColumnMove: [2, 0, 1],
+  };
+  const movedRows = { manualRowMove: [3, 2, 1, 0] };
+
   it.each([
     ['a saveValue() override', { columns: [writeBelowColumn] }],
     ['a beforeChange listener', { beforeChange: moveEditBelow }],
+    ['a saveValue() override over moved columns', {
+      ...movedColumns, columns: [writeBelowColumn, writeBelowColumn, writeBelowColumn],
+    }],
+    ['a beforeChange listener over moved columns', {
+      ...movedColumns, columns: [validatedColumn, validatedColumn, validatedColumn], beforeChange: moveRowOneBelow,
+    }],
+    ['a saveValue() override over moved rows', { ...movedRows, columns: [writeBelowColumn] }],
+    ['a beforeChange listener over moved rows', { ...movedRows, beforeChange: moveRowOneBelow }],
   ])('waits for the moved write and reopens on its rejection when %s writes to another cell', async(_, settings) => {
     await confirmEdit('-5', settings);
 
@@ -550,6 +585,14 @@ describe('BaseEditor validation wait', () => {
   it.each([
     ['a saveValue() override', { columns: [writeBelowColumn] }],
     ['a beforeChange listener', { beforeChange: moveEditBelow }],
+    ['a saveValue() override over moved columns', {
+      ...movedColumns, columns: [writeBelowColumn, writeBelowColumn, writeBelowColumn],
+    }],
+    ['a beforeChange listener over moved columns', {
+      ...movedColumns, columns: [validatedColumn, validatedColumn, validatedColumn], beforeChange: moveRowOneBelow,
+    }],
+    ['a saveValue() override over moved rows', { ...movedRows, columns: [writeBelowColumn] }],
+    ['a beforeChange listener over moved rows', { ...movedRows, beforeChange: moveRowOneBelow }],
   ])('closes on the moved write\'s acceptance when %s writes to another cell', async(_, settings) => {
     await confirmEdit('7', settings);
 

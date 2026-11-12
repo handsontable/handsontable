@@ -618,7 +618,8 @@ export class BaseEditor {
       const finishWait = this.#waitForValidation((result) => {
         this.discardEditor(result);
       });
-      const { validatesEditedCell, validatedCells } = this.#saveValueValidatingEditedCell(value, ctrlDown);
+      const { validatesEditedCell, validatedCells, writtenCells } =
+        this.#saveValueValidatingEditedCell(value, ctrlDown);
 
       // A listener of the save destroyed the grid, and the editor's DOM went with it.
       if (this.hot.isDestroyed) {
@@ -639,13 +640,25 @@ export class BaseEditor {
       } else if (validatedCells.length > 0) {
         if (this.#validationWait) {
           // A single-cell save validated another cell but never the edited one: a `saveValue()` override or a
-          // `beforeChange` listener moved the write. The first answer among the cells the save validated ends
-          // the wait, and a rejection under `allowInvalid: false` reopens the editor, as before DEV-3760. The
-          // cells are kept as their stored meta, whose `visualRow` follows the record, as `#isEditedCell()` does.
-          this.#validationWait.validatedCells = validatedCells.map(({ row, col, source }) => ({
-            meta: this.hot.getCellMeta(row, typeof col === 'number' ? col : (this.hot.propToCol(col) as number)),
-            source,
-          }));
+          // `beforeChange` listener moved the write. The first answer among the cells the save wrote ends the
+          // wait, and a rejection under `allowInvalid: false` reopens the editor. A cell the save validated
+          // without writing it (a Formulas dependent of the moved write) is not the save's answer. The cells
+          // are kept as their stored meta, whose `visualRow` follows the record, as `#isEditedCell()` does.
+          const ownCells = validatedCells.filter(cell => writtenCells.some(
+            ([row, prop]) => row === cell.row && (prop === cell.col || prop === this.hot.colToProp(cell.col as number))
+          ));
+
+          if (ownCells.length === 0) {
+            // The save validated only cells it did not write (dependents of a write to a cell without a
+            // validator), so nothing the save wrote can be rejected and no answer is the save's own.
+            finishWait(true);
+
+          } else {
+            this.#validationWait.validatedCells = ownCells.map(({ row, col, source }) => ({
+              meta: this.#getMetaOfValidatedCell(row, col),
+              source,
+            }));
+          }
         }
 
       } else if (this.#validationWait) {
@@ -663,15 +676,17 @@ export class BaseEditor {
    * save is recorded on the wait, so the answer of a `saveValue()` override that writes with another
    * source (or none, as a bare `setDataAtCell(row, column, value)` does) still counts as the editor's own.
    *
-   * It also lists every cell the save asked to validate, which a save that writes later leaves empty.
+   * It also lists every cell the save asked to validate, which a save that writes later leaves empty, and
+   * the cells of the change sets the save made that wait for their validators (`[visualRow, prop]`, copied
+   * before any answer takes a rejected change out of its set).
    *
    * @param {*} value The value to save.
    * @param {boolean} [ctrlDown] If `true`, applies the value to each cell in every selected range.
-   * @returns {{ validatesEditedCell: boolean, validatedCells: ValidatedCell[] }}
+   * @returns {{ validatesEditedCell: boolean, validatedCells: ValidatedCell[], writtenCells: Array[] }}
    */
   #saveValueValidatingEditedCell(
     value: unknown, ctrlDown?: boolean
-  ): { validatesEditedCell: boolean, validatedCells: ValidatedCell[] } {
+  ): { validatesEditedCell: boolean, validatedCells: ValidatedCell[], writtenCells: Array<[number, unknown]> } {
     let validatesEditedCell = false;
     const validatedCells: ValidatedCell[] = [];
     const onBeforeValidate = (cellValue: unknown, row: number, col: number | string, source?: string) => {
@@ -685,15 +700,42 @@ export class BaseEditor {
 
     this.hot.addHook('beforeValidate', onBeforeValidate);
 
+    let writtenCells: Array<[number, unknown]> = [];
+
     try {
-      markEditorSaveChangeSets(this.hot, () => this.saveValue([[value]], ctrlDown));
+      writtenCells = markEditorSaveChangeSets(this.hot, () => this.saveValue([[value]], ctrlDown))
+        .flatMap(changes => changes.map(([row, prop]): [number, unknown] => [row, prop]));
     } finally {
       if (!this.hot.isDestroyed) {
         this.hot.removeHook('beforeValidate', onBeforeValidate);
       }
     }
 
-    return { validatesEditedCell, validatedCells };
+    return { validatesEditedCell, validatedCells, writtenCells };
+  }
+
+  /**
+   * Returns the stored cell meta of a cell a validation hook names. The hook names the column by its `prop`:
+   * the physical column for array data, a key for object data, so the visual column comes from
+   * `propToCol()`. Only for a data accessor function is it the visual column itself, so that is the fallback
+   * when the column `propToCol()` finds is not the cell the hook names.
+   *
+   * @param {number} row The visual row the hook names.
+   * @param {number|string} col The column property the hook names, or the visual column for an accessor.
+   * @returns {CellProperties}
+   */
+  #getMetaOfValidatedCell(row: number, col: number | string): CellProperties {
+    const visualColumn = this.hot.propToCol(col);
+
+    if (typeof visualColumn === 'number') {
+      const meta = this.hot.getCellMeta(row, visualColumn);
+
+      if (isCellOfMeta(meta, row, col)) {
+        return meta;
+      }
+    }
+
+    return this.hot.getCellMeta(row, col as number);
   }
 
   /**

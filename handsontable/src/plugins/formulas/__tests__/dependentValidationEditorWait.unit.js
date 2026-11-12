@@ -101,4 +101,77 @@ describe('Formulas dependent validation and the editor wait', () => {
     expect(hot.getDataAtCell(1, 1)).toBe(60);
     expect(hot.getCellMeta(1, 2).valid).toBe(false);
   });
+
+  it('does not reopen on a dependent\'s rejection when the save moved its write to a cell that cannot reject', async() => {
+    // A2 rejects under `allowInvalid: false`. The `beforeChange` listener moves its write to B2, whose validator
+    // cannot reject (`allowInvalid: true`), so Formulas writes B2 at once and validates its dependent C2 during
+    // the save. C2's answer comes first and is `false`, but C2 is not a cell the save wrote.
+    hot = new Handsontable(container, {
+      data: [0, 1, 2, 3].map(i => [i, 18, `=B${i + 1}*2`]),
+      columns: [
+        { type: 'numeric', validator: async600, allowInvalid: false },
+        { type: 'numeric', validator: async600 },
+        { type: 'numeric', validator: atMost100 },
+      ],
+      formulas: { engine: HyperFormula },
+      beforeChange(changes, source) {
+        if (source === 'edit') {
+          changes.forEach((change) => {
+            if (change && change[1] === 0) {
+              change[1] = 1;
+            }
+          });
+        }
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.selectCell(1, 0);
+    hot.getActiveEditor().beginEditing();
+    hot.getActiveEditor().setValue('60');
+    hot.getActiveEditor().finishEditing();
+    await flush();
+
+    expect(hot.getCellMeta(1, 2).valid).toBe(false); // the dependent answered first, with a rejection
+    expect(hot.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(hot.getDataAtCell(1, 1)).toBe(60);
+  });
+
+  it('closes at once when the save moved its write to a cell without a validator, whatever its dependent answers', async() => {
+    hot = new Handsontable(container, {
+      data: [0, 1, 2, 3].map(i => [i, 18, `=B${i + 1}*2`]),
+      columns: [
+        { type: 'numeric', validator: async600, allowInvalid: false },
+        { type: 'numeric' },
+        { type: 'numeric', validator: atMost100 },
+      ],
+      formulas: { engine: HyperFormula },
+      beforeChange(changes, source) {
+        if (source === 'edit') {
+          changes.forEach((change) => {
+            if (change && change[1] === 0) {
+              change[1] = 1;
+            }
+          });
+        }
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.selectCell(1, 0);
+    hot.getActiveEditor().beginEditing();
+    hot.getActiveEditor().setValue('60');
+    hot.getActiveEditor().finishEditing();
+    await flush();
+
+    expect(hot.getActiveEditor().state).not.toBe('STATE_WAITING');
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(hot.getDataAtCell(1, 1)).toBe(60);
+    expect(hot.getCellMeta(1, 2).valid).toBe(false);
+  });
 });

@@ -14,20 +14,22 @@ const editorSaveChangeSets = new WeakMap<HotInstance, WeakSet<CellChange[]>>();
  *
  * @param {HotInstance} hot The grid.
  * @param {Function} save Saves the editor value.
+ * @returns {Array[]} The change sets the save made that wait for their validators.
  */
-export function markEditorSaveChangeSets(hot: HotInstance, save: () => void): void {
+export function markEditorSaveChangeSets(hot: HotInstance, save: () => void): CellChange[][] {
   const waitingBefore = new Set(hot._getWaitingChangeSets().map(({ changes }) => changes));
 
   save();
 
   if (hot.isDestroyed) {
-    return;
+    return [];
   }
 
-  hot._getWaitingChangeSets().forEach(({ changes }) => {
-    if (waitingBefore.has(changes)) {
-      return;
-    }
+  const madeBySave = hot._getWaitingChangeSets()
+    .map(({ changes }) => changes)
+    .filter(changes => !waitingBefore.has(changes));
+
+  madeBySave.forEach((changes) => {
 
     let sets = editorSaveChangeSets.get(hot);
 
@@ -38,6 +40,8 @@ export function markEditorSaveChangeSets(hot: HotInstance, save: () => void): vo
 
     sets.add(changes);
   });
+
+  return madeBySave;
 }
 
 /**
