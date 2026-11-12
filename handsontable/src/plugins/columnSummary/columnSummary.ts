@@ -53,6 +53,7 @@ export interface SummaryEndpoint {
  * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors) |
  * | `readOnly` | No | Boolean | `true` | Makes summary cell [read-only](@/api/options.md#readonly). The plugin keeps the cell read-only: the "Read only" menu item and [`setCellMeta()`](@/api/core.md#setcellmeta) can't make it editable |
  * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result) |
+ * | `includeSummaryResults` | No | Boolean | `false` | [Includes the results of other summaries that sit inside the range](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results) |
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function) |
  *
  * @example
