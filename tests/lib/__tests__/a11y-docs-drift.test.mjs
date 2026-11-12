@@ -57,7 +57,7 @@ test('the notes say how much is drift and the remedy, when nothing could be read
 
   assert.deepEqual(driftNotes({ audit, drift: 0, counted: 2 }), []);
   assert.match(driftNotes({ audit, drift: 3, counted: 5 })[0],
-    /^3 of the 5 new or grown findings are on develop's docs already: the develop docs audit of 2026-11-10 \(run 200\) saw them\..*refresh tests\/a11y\/docs\/docs-baseline\.json/);
+    /^3 of the 5 new or grown findings are on develop's docs already: the develop docs audit of 2026-11-10 \(run 200\) saw them\..*refresh tests\/a11y\/docs\/docs-baseline\.json from that audit, `node tests\/scripts\/a11y-docs-baseline\.mjs --run 200`/);
   assert.match(driftNotes({ audit: null, problem: 'HTTP 404', drift: 0, counted: 5 })[0], /could not be read \(HTTP 404\), so every new or grown finding counts/);
   assert.ok(driftNotes({ audit: null, drift: 0, counted: 5 })[0].includes(DOCS_AUDIT_COMMAND), 'no audit: dispatch one');
 

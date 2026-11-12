@@ -103,7 +103,7 @@ export function driftNotes({ audit, problem = null, drift, counted, deployedAt =
   if (drift > 0) {
     notes.push(`${drift} of the ${counted} new or grown findings are on develop's docs already: the develop docs audit${when} (run ${audit.runId}) `
       + 'saw them. That is baseline drift, not this change, so each counts as a warning at most: refresh tests/a11y/docs/docs-baseline.json '
-      + 'from that audit (tests/AGENTS.md, "A11y: the docs site scan").');
+      + `from that audit, \`node tests/scripts/a11y-docs-baseline.mjs --run ${audit.runId}\` (tests/AGENTS.md, "A11y: the docs site scan").`);
   }
   if (deployedAt && audit.seenAt && Date.parse(deployedAt) > Date.parse(audit.seenAt)) {
     notes.push(`The develop docs audit${when} is older than the staging deploy this run read (${deployedAt.slice(0, 16).replace('T', ' ')} UTC), so a `

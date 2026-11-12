@@ -1967,7 +1967,8 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   job, `scripts/a11y-check-run.mjs --suite docs`) reads develop's latest docs audit from the findings ledger
   (`lib/a11y-docs-drift.mjs`: the docs rows the latest docs night sighted, keyed by rule, page, scheme and masked
   element), and on a change run a new or grown finding that audit saw counts as a warning at most, with the remedy
-  in the summary: refresh the baseline from that audit. A finding the audit did not see keeps its severity: this
+  in the summary: refresh the baseline from that audit (the summary gives the command with the audit's run id,
+  "A refresh is one command" below). A finding the audit did not see keeps its severity: this
   change made it, or the docs gained it after the audit, and when the staging deploy is newer than the audit the
   summary says so and names the dispatch that measures it (`gh workflow run docs-a11y.yml --ref develop`). A ledger
   that cannot be read, or holds no docs night, leaves every finding at its severity and says why. An audit run (a
