@@ -171,8 +171,14 @@ export async function readStructure(page: Page, help: RegExp): Promise<Structure
       }),
       helps: [...document.querySelectorAll('a[href], button, [role="button"]')].filter(element => exposed(element) && inChrome(element))
         .map(nameOf).filter(name => helpPattern.test(name)),
+      // A link to this page from a navigation landmark. A link to a place on this page (the table of contents) is
+      // not a way to reach it.
       inNavigation: landmarkElements.filter(element => roleOf(element) === 'navigation').some(nav => [...nav.querySelectorAll('a[href]')]
-        .some(link => new URL((link as HTMLAnchorElement).href).pathname.replace(/\/+$/, '') === here)),
+        .some((link) => {
+          const target = new URL((link as HTMLAnchorElement).href);
+
+          return target.hash === '' && target.pathname.replace(/\/+$/, '') === here;
+        })),
     };
   }, [help.source, help.flags] as const);
 }

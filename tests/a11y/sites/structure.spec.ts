@@ -102,6 +102,14 @@ async function siteTitles(): Promise<Array<{ id: string; path: string; title: st
 async function readTitle(url: string): Promise<string | null> {
   try {
     const response = await fetch(url, { redirect: 'follow' });
+
+    // An error page or a CDN challenge has a title of its own, which is not the page's.
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => undefined);
+
+      return null;
+    }
+
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let html = '';

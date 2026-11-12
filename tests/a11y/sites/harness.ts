@@ -61,7 +61,10 @@ const SENTINEL = 'data-a11y-site-sentinel';
  */
 export function declareSiteTarget(testInfo: TestInfo, entry: SitePage, theme: string, site: Site, variant: string | null = null): EvidenceTarget {
   const base = (entry.baseUrl ?? site.baseUrl).replace(/\/+$/, '');
-  const target = { page: entry.id, theme, state: entry.state, variant, url: new URL(`${base}${entry.path}`).pathname };
+  const address = new URL(`${base}${entry.path}`);
+  // A page read from another deploy than the run's (the docs' production introduction, for search) names its origin;
+  // the ledger keeps a path only, and tells its rows apart by the page id.
+  const target = { page: entry.id, theme, state: entry.state, variant, url: entry.baseUrl ? address.href : address.pathname };
 
   declareTarget(testInfo, target);
 
@@ -86,6 +89,11 @@ export async function installSentinels(page: Page): Promise<void> {
       button.type = 'button';
       button.setAttribute(attribute, where);
       button.setAttribute('aria-label', `walk ${where}`);
+      // The start is the first stop of tabindex 1, so a walk passes every positive tabindex before the rest, as the
+      // browser orders them; at 0 it would come after them, and both walks would reach the other sentinel first.
+      if (where === 'start') {
+        button.tabIndex = 1;
+      }
       button.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;margin:0;padding:0;border:0';
       if (where === 'start') {
         document.body.prepend(button);

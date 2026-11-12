@@ -119,8 +119,9 @@ export function baselineLines(source) {
  * has a tracker (`trackedBy()` of `lib/a11y-issues.mjs`); read on a change run only.
  * @param {object} [input.scan] Which scan the comparison is: the product scan by default (`PRODUCT_SCAN`), or the
  * docs site scan (`DOCS_SCAN`), whose check run, page list, baseline and finding source are its own.
- * @param {(item: object) => boolean} [input.drift] Whether a new or grown finding is baseline drift: on a change run it
- * counts as a warning at most, like a tracked one (`isDrift()` of `lib/a11y-docs-drift.mjs`; the docs scan only).
+ * @param {(item: object) => boolean} [input.drift] Whether a counted finding is baseline drift: on a change run it
+ * counts as a warning at most, like a tracked one (`driftOf()` of `lib/a11y-docs-drift.mjs`, new findings only; the
+ * docs scan only).
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.
  */
 export function buildCheckRun({

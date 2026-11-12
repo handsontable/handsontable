@@ -38,13 +38,15 @@ on:
         required: false
         default: ''
   # The scan's own code: its spec, pages and baseline, the code it shares with the product scan (the rule
-  # set, the comparator, the reporter, the reports, the findings, the check run's builder and poster), and the
-  # page list it reads. Not the docs: a full run is too long for every docs pull request.
+  # set, the comparator, the reporter, the reports, the findings, the check run's builder, verdict and poster,
+  # and the catalog the verdict reads its trackers from, with every module those import), and the page list it
+  # reads. Not the docs: a full run is too long for every docs pull request.
   pull_request:
     paths:
       - '.github/workflows/docs-a11y.yml'
       - 'tests/a11y/docs/**'
       - 'tests/a11y/axe-scan.ts'
+      - 'tests/a11y/issues.json'
       - 'tests/playwright.a11y-docs.config.ts'
       - 'tests/reporters/a11y.ts'
       - 'tests/lib/a11y-baseline.*'
@@ -53,6 +55,13 @@ on:
       - 'tests/lib/a11y-suites.*'
       - 'tests/lib/a11y-check-run.*'
       - 'tests/lib/a11y-docs-drift.*'
+      - 'tests/lib/a11y-issues.*'
+      - 'tests/lib/a11y-evidence.*'
+      - 'tests/lib/a11y-site-checks.*'
+      - 'tests/lib/a11y-subset.*'
+      - 'tests/lib/a11y-verdict.*'
+      - 'tests/lib/a11y-verdict-inputs.*'
+      - 'tests/lib/github-check-run.*'
       - 'tests/scripts/a11y-check-run.mjs'
       - 'docs/tests/paths.js'
   workflow_call:
@@ -207,7 +216,7 @@ jobs:
       # check into tests/test-results/a11y-docs-checks/. The step times out before the job, so the evidence, the
       # summary and the check runs below still come.
       - name: Run the docs site checks
-        timeout-minutes: 45
+        timeout-minutes: 30
         run: cd tests && npx playwright test --config playwright.a11y-sites.config.ts
       # The documents at the artifact's root, where the findings ledger reads them, with every target's detail.
       # An audit's run of every check is what the conformance report cites, so it is kept for 30 days; a subset's

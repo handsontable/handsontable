@@ -512,6 +512,13 @@
       ]
     },
     {
+      "id": "grid-refocus-on-settings-update",
+      "title": "After the grid had the focus, changing an example's option from the keyboard moves the focus into the grid: the grid takes it back when its settings update",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["context-change-on-input"] }
+      ]
+    },
+    {
       "id": "docs-sticky-header-hides-focus",
       "title": "The sticky header hides a focused link when Shift+Tab scrolls it to the top of the window",
       "match": [

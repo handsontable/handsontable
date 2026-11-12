@@ -29,12 +29,17 @@ const CODE_BLOCKS_TIMEOUT = 5_000;
 const ANIMATIONS_TIMEOUT = 10_000;
 // How long a settle waits for the DOM to hold still: a grid an example builds after its data arrives.
 export const STILL_TIMEOUT = 10_000;
+// The pages already prepared, by the scheme they were prepared in: a page opened again (the keyboard check reopens
+// one after a key that acted) keeps its routing, init script and error listener, which a second call would stack, so
+// each uncaught error would be recorded once per visit.
+const PREPARED = new WeakMap<Page, string>();
 
 /**
  * Opens a docs page in a color scheme and waits until it is ready to measure: the viewport, the blocked hosts and
  * the scheme are set before the first request, the page answers with the status the entry expects and is not the
  * deploy's password wall, every example finished loading (unless `examples` is false), the scheme applied, and the
- * fonts are ready. Every page error from before the navigation lands in `pageErrors`.
+ * fonts are ready. Every page error from before the navigation lands in `pageErrors`; a page opened again keeps
+ * the routing, the init script and the error listener of its first opening, so its errors land in that call's list.
  *
  * @param page The page.
  * @param entry The page entry.
@@ -54,15 +59,19 @@ export async function openDocsPage(page: Page, entry: DocsPage, { theme, baseUrl
   const url = docsUrl(entry, theme, baseUrl);
 
   await page.setViewportSize(entry.viewport === 'phone' ? PHONE_VIEWPORT : DESKTOP_VIEWPORT);
-  await page.context().route(target => BLOCKED_HOSTS.test(target.hostname), route => route.abort());
-  await page.addInitScript((scheme) => {
-    try {
-      localStorage.setItem('starlight-theme', scheme);
-    } catch {
-      // A storage that throws leaves the media query to decide, which `colorScheme` already set.
-    }
-  }, theme);
-  page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
+  if (!PREPARED.has(page)) {
+    PREPARED.set(page, theme);
+    await page.context().route(target => BLOCKED_HOSTS.test(target.hostname), route => route.abort());
+    await page.addInitScript((scheme) => {
+      try {
+        localStorage.setItem('starlight-theme', scheme);
+      } catch {
+        // A storage that throws leaves the media query to decide, which `colorScheme` already set.
+      }
+    }, theme);
+    page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
+  }
+  expect(PREPARED.get(page), 'a page is opened again in the scheme it was first opened in').toBe(theme);
 
   const response = await page.goto(url, { waitUntil: 'load' });
 

@@ -9,8 +9,11 @@ type Finding = {
 };
 
 export const NAMED_ROLES: Set<string>;
-export function walkVerdict(walk: { stops: Array<{ key: string; region: string }>; budgetExhausted?: boolean }): 'complete' | 'cycle' | 'budget';
-export function walkFindings(input: { stops: object[]; verdict: 'complete' | 'cycle' | 'budget'; escaped?: boolean; gridTrap?: boolean }): Finding[];
+export type WalkVerdict = 'complete' | 'navigated' | 'cycle' | 'budget' | 'stopped';
+export function walkVerdict(walk: { stops: Array<{ key: string; region: string; navigated?: boolean }>; budgetExhausted?: boolean;
+  direction?: 'forward' | 'backward' }): WalkVerdict;
+export function walkProblem(verdict: WalkVerdict, budget: number): string | null;
+export function walkFindings(input: { stops: object[]; verdict: WalkVerdict; escaped?: boolean; gridTrap?: boolean }): Finding[];
 export function skipLinkFindings(input: { present: boolean; first: boolean; visible: boolean | null; landsInMain: boolean | null; selector?: string }): Finding[];
 export function popupFindings(input: {
   state: string; selector: string; reachedItem: boolean; closedOnEscape: boolean; focusReturned: boolean; modal?: boolean; leftModal?: boolean;

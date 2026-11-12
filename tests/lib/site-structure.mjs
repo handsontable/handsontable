@@ -18,8 +18,9 @@
  * Policy: `tests/AGENTS.md`, "A11y: the site checks beyond axe". No I/O in here.
  */
 
-// A primary language subtag and its optional subtags (BCP 47, loosely: what a browser accepts as a language).
-const LANGUAGE_TAG = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i;
+// A primary language subtag and its optional subtags (BCP 47, loosely: what a browser accepts as a language), a
+// singleton that opens an extension or a private use (`en-US-x-hot`) among them.
+const LANGUAGE_TAG = /^[a-z]{2,3}(?:-(?:[a-z0-9]{2,8}|[a-z0-9]))*$/i;
 // Link names that say nothing on their own (2.4.4): the purpose comes from the text around them, which a
 // person reads; a screen reader's list of links reads the name alone.
 const GENERIC_LINK_NAMES = new Set(['here', 'click here', 'read more', 'more', 'learn more', 'link', 'this', 'this page',

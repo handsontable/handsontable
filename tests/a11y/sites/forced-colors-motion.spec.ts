@@ -2,6 +2,7 @@ import { test, type Page } from '@playwright/test';
 import { siteCheckId, siteOf } from '../../lib/a11y-site-checks.mjs';
 import { distinctName } from '../../lib/contrast.mjs';
 import { forcedColorsFindings, longRunningFindings, motionFindings } from '../../lib/motion.mjs';
+import { walkProblem, walkVerdict } from '../../lib/site-keyboard.mjs';
 import { STATE_SIGNATURE, stateLostFindings } from '../../lib/site-visual.mjs';
 import { watchAnimations } from '../checks/animations';
 import { openAxSession } from '../checks/walker';
@@ -48,8 +49,10 @@ test.describe(CHECK, () => {
       const pageErrors: string[] = [];
 
       await page.emulateMedia({ reducedMotion: 'no-preference' });
+      // Opened, the page has loaded, its fonts are ready and two frames have passed, as the product check settles.
+      // `SITE.settle()` would wait for every finite animation to end first, so one of five to ten seconds would be
+      // over before the watch starts, and a longer one would fail the test instead of being found.
       await SITE.open(page, entry, { theme: THEME, pageErrors });
-      await SITE.settle(page);
 
       const environment = await readEnvironment(page);
       const { animations, frames } = await watchAnimations(page, WATCH_MS);
@@ -67,13 +70,19 @@ test.describe(CHECK, () => {
       const pageErrors: string[] = [];
 
       await page.emulateMedia({ forcedColors: 'active' });
-      await SITE.open(page, entry, { theme: THEME, pageErrors });
-      await SITE.settle(page);
-      await instantScrolling(page);
-      await installSentinels(page);
+
+      // The page as the walk starts from, again after a walk whose Tab loaded another page.
+      const ready = async() => {
+        await SITE.open(page, entry, { theme: THEME, pageErrors });
+        await SITE.settle(page);
+        await instantScrolling(page);
+        await installSentinels(page);
+      };
+
+      await ready();
 
       const environment = await readEnvironment(page);
-      const measured = await forcedColors(page);
+      const measured = await forcedColors(page, ready);
 
       await attachEvidence(testInfo, { target, startedAt, environment, pageErrors, criteria: ['1.4.1', '2.4.7'], ...measured });
     });
@@ -117,13 +126,25 @@ test.describe(CHECK, () => {
  * state against a sibling without it.
  *
  * @param page The page, with forced colors on.
+ * @param ready Opens the page again as the walk started from it.
  * @returns The findings, the problems and the detail.
  */
-async function forcedColors(page: Page) {
+async function forcedColors(page: Page, ready: () => Promise<void>) {
   const findings: EvidenceFinding[] = [];
   const problems: string[] = [];
   const cdp = await openAxSession(page);
-  const walk = await tabWalk(page, cdp, SITE, { direction: 'forward', budget: await walkBudget(page, SITE.grid), ax: false });
+  const budget = await walkBudget(page, SITE.grid);
+  const walk = await tabWalk(page, cdp, SITE, { direction: 'forward', budget, ax: false });
+  const verdict = walkVerdict(walk);
+  const cutShort = walkProblem(verdict, budget);
+
+  // A walk short of the end leaves its target unmeasured; the indicators and states are then read on this page again.
+  if (cutShort) {
+    problems.push(cutShort);
+  }
+  if (verdict === 'navigated') {
+    await ready();
+  }
   const shapes = new Map<string, SiteStop>();
 
   for (const stop of walk.stops.filter(item => item.region === 'page' && item.hidden === null && !item.ariaHidden)) {
@@ -169,7 +190,22 @@ async function forcedColors(page: Page) {
 async function stateSignatures(page: Page) {
   const read = () => page.evaluate(([states, properties]) => {
     const pairs: Array<{ key: string; selector: string; state: string; element: Record<string, string>; sibling: Record<string, string> }> = [];
-    const signature = (element: Element) => Object.fromEntries(properties.map(property => [property, getComputedStyle(element).getPropertyValue(property)]));
+    // What a transparent background shows: the background of the nearest ancestor that paints one, or the canvas.
+    const behind = (element: Element) => {
+      for (let ancestor = element.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        const color = getComputedStyle(ancestor).backgroundColor;
+
+        if (color !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(color)) {
+          return color;
+        }
+      }
+
+      return 'canvas';
+    };
+    const signature = (element: Element) => ({
+      ...Object.fromEntries(properties.map(property => [property, getComputedStyle(element).getPropertyValue(property)])),
+      behind: behind(element),
+    });
 
     for (const state of states) {
       const [attribute] = state.split('=');

@@ -7,6 +7,7 @@ import {
   skipLinkFindings,
   unreachableFindings,
   walkFindings,
+  walkProblem,
   walkVerdict,
 } from '../../lib/site-keyboard.mjs';
 import { openAxSession } from '../checks/walker';
@@ -108,8 +109,14 @@ async function atRest(page: Page, cdp: CDPSession, entry: SitePage, pageErrors: 
       escaped = !cycle.has(stop.key);
     }
   }
-  if (verdict === 'budget') {
-    problems.push(`the Tab walk ran out of its ${budget} presses before the end of the page`);
+  const cutShort = walkProblem(verdict, budget);
+
+  if (cutShort) {
+    problems.push(cutShort);
+  }
+  // The measurements after the walk read this page, with its sentinels: a Tab that loaded another page left neither.
+  if (verdict === 'navigated') {
+    await reopen(page, entry, pageErrors);
   }
   findings.push(...walkFindings({ stops: walk.stops, verdict, escaped, gridTrap: walk.gridTrap }) as EvidenceFinding[]);
   findings.push(...await skipLink(page, cdp, walk.stops) as EvidenceFinding[]);

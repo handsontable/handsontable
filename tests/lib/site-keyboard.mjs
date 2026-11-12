@@ -31,15 +31,24 @@ export const NAMED_ROLES = new Set(['button', 'link', 'textbox', 'searchbox', 'c
 const ROLELESS = new Set(['', 'generic', 'none', 'presentation', 'GenericContainer', 'Unknown']);
 
 /**
- * How a walk ended: it reached the sentinel after the page (`complete`), came back to a stop it had passed
- * (`cycle`), or ran out of presses (`budget`).
+ * How a walk ended: it reached the sentinel on the far side of the page (`complete`: the one after it for a Tab walk,
+ * the one before it for a Shift+Tab walk), a key press loaded another page (`navigated`), it came back to a stop it
+ * had passed (`cycle`), it ran out of presses (`budget`), or nothing past an embedded grid took the focus
+ * (`stopped`). Only `complete` and `cycle` walked the whole page: after any other the stops past the last one were
+ * never reached, and `walkProblem()` names why.
  *
- * @param {{stops: Array<{key: string, region: string}>, budgetExhausted?: boolean}} walk The walk.
- * @returns {'complete'|'cycle'|'budget'} The verdict.
+ * @param {{stops: Array<{key: string, region: string, navigated?: boolean}>, budgetExhausted?: boolean,
+ *   direction?: 'forward'|'backward'}} walk The walk, and which way it went.
+ * @returns {'complete'|'navigated'|'cycle'|'budget'|'stopped'} The verdict.
  */
-export function walkVerdict({ stops, budgetExhausted = false }) {
-  if (stops.some(stop => stop.region === 'end')) {
+export function walkVerdict({ stops, budgetExhausted = false, direction = 'forward' }) {
+  const farSide = direction === 'forward' ? 'end' : 'start';
+
+  if (stops.some(stop => stop.region === farSide)) {
     return 'complete';
+  }
+  if (stops.length > 0 && stops[stops.length - 1].navigated) {
+    return 'navigated';
   }
 
   const seen = new Set();
@@ -51,7 +60,29 @@ export function walkVerdict({ stops, budgetExhausted = false }) {
     seen.add(stop.key);
   }
 
-  return budgetExhausted ? 'budget' : 'complete';
+  return budgetExhausted ? 'budget' : 'stopped';
+}
+
+/**
+ * The tooling problem of a walk that did not reach the end of the page, so its target is not reported as measured
+ * (a check's finding on a stop it never reached would read as resolved); `null` for a walk that did.
+ *
+ * @param {'complete'|'navigated'|'cycle'|'budget'|'stopped'} verdict What `walkVerdict()` returned.
+ * @param {number} budget How many presses the walk had.
+ * @returns {string|null} The problem.
+ */
+export function walkProblem(verdict, budget) {
+  if (verdict === 'navigated') {
+    return 'a key press loaded another page before the walk reached the end of this one, so the stops after it were not walked';
+  }
+  if (verdict === 'budget') {
+    return `the walk ran out of its ${budget} presses before the end of the page`;
+  }
+  if (verdict === 'stopped') {
+    return 'the walk stopped before the end of the page: nothing past an embedded grid that held it took the focus';
+  }
+
+  return null;
 }
 
 /**
@@ -61,7 +92,7 @@ export function walkVerdict({ stops, budgetExhausted = false }) {
  * @param {object} input The walk.
  * @param {Array<object>} input.stops The stops: `key`, `shape`, `region` (`page`, `end`, `body`), `role`, `name`,
  *   `hidden` (why nobody sees it, or `null`), `ariaHidden`, `tabindex`, `navigated`, `dialogOpened`.
- * @param {'complete'|'cycle'|'budget'} input.verdict What `walkVerdict()` returned.
+ * @param {'complete'|'navigated'|'cycle'|'budget'|'stopped'} input.verdict What `walkVerdict()` returned.
  * @param {boolean} [input.escaped] Whether Escape and Tab got a cycling walk out.
  * @param {boolean} [input.gridTrap] Whether an embedded grid held the walk past the documented way out of it.
  * @returns {object[]} The findings.
