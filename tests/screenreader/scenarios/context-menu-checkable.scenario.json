@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "id": "context-menu-checkable",
+  "surface": "The context menu's checkable items and separators: the items around a separator read with the reader's own cursor, End to the last item, and the arrow keys past a disabled item and a separator to a checked item.",
+  "group": "menus",
+  "page": "context-menu",
+  "state": "context-menu",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"call": ["markCellChecked"]}, {"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "open-menu",
+      "action": {"press": "Shift+F10"},
+      "after": {"visible": ".htContextMenu .ht_master .htCore tbody td"},
+      "expect": [["insert row above"], ["menu"]],
+      "note": "Shift+F10 on A1 opens the context menu with its first item highlighted. The setup gave A1 a top border, a read-only comment and the read-only state (the fixture's `markCellChecked()`), so the menu holds three checked items. Required: the highlighted item and the menu role (NVDA with Firefox says `menu`, VoiceOver `menu item`). Finding: NVDA with Chromium reads the menu as a `table` and never says menu, as it does for the context menu in grid-core; VoiceOver with WebKit said nothing in one run of two."
+    },
+    {
+      "id": "read-next-item",
+      "action": {"read": "next"},
+      "expect": [["insert row below"]],
+      "note": "The reader's own cursor (NVDA's browse mode, VoiceOver's VO+Right) moves from the highlighted item to the next one in the menu; NVDA reads `menu item, Insert row below`. Finding: VoiceOver's next item does not reach it. The menu is a one-column table, and VO+Right moves along a table row, so it leaves the menu: with WebKit it reads the grid's B1 cell, with Chromium nothing."
+    },
+    {
+      "id": "read-next-separator",
+      "action": {"read": "next"},
+      "expect": [["separator"]],
+      "note": "The next row of the menu is a separator: a reader should say a separator, or skip it. Finding: the separator is a menu item named by the dashes the menu draws, so NVDA reads `menu item, ---------` on both browsers. VoiceOver never reaches it (the previous step)."
+    },
+    {
+      "id": "end-to-borders",
+      "action": {"press": "End"},
+      "expect": [["borders"]],
+      "note": "End moves the highlight to the last item, Borders, which opens a submenu; every reader says `Borders, collapsed`."
+    },
+    {
+      "id": "up-to-cut",
+      "action": {"press": "ArrowUp"},
+      "expect": [["cut"]],
+      "note": "ArrowUp skips Merge cells, disabled for a single cell, and the separator above it, and highlights Cut."
+    },
+    {
+      "id": "up-to-copy",
+      "action": {"press": "ArrowUp"},
+      "expect": [["copy"]]
+    },
+    {
+      "id": "up-to-read-only-comment",
+      "action": {"press": "ArrowUp"},
+      "expect": [["read-only comment"], ["read-only comment checked"]],
+      "note": "ArrowUp skips a separator and highlights Read-only comment, a checkable item (`menuitemcheckbox`) that is checked, because the setup made A1's comment read-only. Required: its label, and its state read right after it: every reader says the label and then `checked`. A bare `checked` group would also match `not checked`, which NVDA says for a checkable item that has lost its `aria-checked`, so the state group is the label and the state together."
+    }
+  ]
+}
