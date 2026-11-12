@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T11:05:19.420Z",
+  "generatedAt": "2026-11-12T11:17:08.844Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 436,
-    "needsTicket": 12,
+    "tests": 448,
+    "needsTicket": 11,
     "quarantined": 0,
-    "entries": 2266
+    "entries": 2302
   },
   "rows": [
     {
@@ -363,43 +363,6 @@
         "leg": "UMD.min (theme: main)",
         "status": "failed",
         "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
-      "line": null,
-      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
-      "count7": 0,
-      "count30": 3,
-      "countAll": 10,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-15T11:35:38Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38723491741/attempts/2",
-        "branch": "feature/DEV-3431_Theme-types-exports-subpath",
-        "leg": "UMD (theme: classic)",
-        "status": "failed",
-        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
       },
       "needsTicket": true
@@ -1018,6 +981,426 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › keeps the frozen end column on its column with a modifyRowHeaderWidth handler widening every level of two",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 26,
+      "title": "Row header width resolved per level › keeps the frozen end column on its column with a modifyRowHeaderWidth handler widening every level of two",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › keeps the frozen end column on its column with nested rows with row selection checkboxes",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 26,
+      "title": "Row header width resolved per level › keeps the frozen end column on its column with nested rows with row selection checkboxes",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes beside an extra row header level",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 26,
+      "title": "Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes beside an extra row header level",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes in the row header",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 26,
+      "title": "Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes in the row header",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes with rowHeaderWidth: [60, 40]",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 26,
+      "title": "Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes with rowHeaderWidth: [60, 40]",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes with rowHeaderWidth: 80",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 26,
+      "title": "Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes with rowHeaderWidth: 80",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › scrolls no further than the table with a modifyRowHeaderWidth handler widening every level of two",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 38,
+      "title": "Row header width resolved per level › scrolls no further than the table with a modifyRowHeaderWidth handler widening every level of two",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › scrolls no further than the table with nested rows with row selection checkboxes",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 38,
+      "title": "Row header width resolved per level › scrolls no further than the table with nested rows with row selection checkboxes",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › scrolls no further than the table with row selection checkboxes beside an extra row header level",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 38,
+      "title": "Row header width resolved per level › scrolls no further than the table with row selection checkboxes beside an extra row header level",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › scrolls no further than the table with row selection checkboxes in the row header",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 38,
+      "title": "Row header width resolved per level › scrolls no further than the table with row selection checkboxes in the row header",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › scrolls no further than the table with row selection checkboxes with rowHeaderWidth: [60, 40]",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 38,
+      "title": "Row header width resolved per level › scrolls no further than the table with row selection checkboxes with rowHeaderWidth: [60, 40]",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/row-header-width-per-level.spec.ts|Row header width resolved per level › scrolls no further than the table with row selection checkboxes with rowHeaderWidth: 80",
+      "tier": "playwright",
+      "file": "e2e/row-header-width-per-level.spec.ts",
+      "line": 38,
+      "title": "Row header width resolved per level › scrolls no further than the table with row selection checkboxes with rowHeaderWidth: 80",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-12T11:16:13Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43202822612",
+        "branch": "feature/DEV-3636_Fixed-end-column-width-at-scroll-edge",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/sheets-bar-touch-menus.spec.ts|menus and the sheets bar on a touch screen › a submenu parent in the context menu opens its submenu on a tap",
       "tier": "playwright",
       "file": "e2e/sheets-bar-touch-menus.spec.ts",
@@ -1317,6 +1700,43 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
+      "line": null,
+      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 10,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-15T11:35:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38723491741/attempts/2",
+        "branch": "feature/DEV-3431_Theme-types-exports-subpath",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
         "source": "ci"
       },
       "needsTicket": false
