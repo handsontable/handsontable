@@ -7,6 +7,7 @@ import { appendRows, deleteRows, readSheet, SessionExpiredError, writeCells, typ
 // Changes the sync makes itself. Only a user's change goes back to the sheet.
 const OWN_SOURCES = new Set<string>(['sync', 'loadData', 'updateData']);
 const EDIT_DEBOUNCE_MS = 300;
+const COLUMNS_CHANGED = 'The sheet\'s columns changed. Reload the page to pick them up.';
 
 // A value the grid sent, or is about to send, to the sheet. writtenAt is set once the sheet
 // has it.
@@ -43,6 +44,10 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
   // Rows added or removed in the grid whose change hasn't reached the sheet yet.
   const pendingAppends = new Set<string>();
   const pendingDeletes = new Set<string>();
+
+  // Set once the sheet's first row no longer matches the grid's columns. From then on, nothing
+  // syncs: a write by column index could land in the wrong column.
+  let columnsChanged = false;
 
   let editBatch = new Map<string, Edit>();
   let editTimer = 0;
@@ -89,7 +94,15 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
     return { names, body };
   }
 
-  const idOf = (row: Cell[]) => String(row[idColumn]);
+  // A row the grid just created holds null, which normalize turns into ''.
+  const idOf = (row: Cell[]) => String(normalize(row[idColumn]));
+
+  function checkColumns(names: string[]) {
+    if (columnsChanged || names.join('\u0000') !== header.join('\u0000')) {
+      columnsChanged = true;
+      throw new Error(COLUMNS_CHANGED);
+    }
+  }
 
   // Sorting and filtering don't re-run when data changes, so re-apply them after rows are
   // added or removed. New rows then land in sorted position and filtered-out rows stay hidden.
@@ -132,11 +145,7 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
       return;
     }
 
-    if (names.join('\u0000') !== header.join('\u0000')) {
-      onStatus('The sheet\'s columns changed. Reload the page to pick them up.', true);
-
-      return;
-    }
+    checkColumns(names);
 
     // Setting a cell's source data refreshes an open editor and would wipe what the user is
     // typing. Skip this round; the next poll catches up.
@@ -244,7 +253,10 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
   }
 
   async function writeEdits(batch: Map<string, Edit>) {
-    const { body } = parse(await readSheet());
+    const { names, body } = parse(await readSheet());
+
+    checkColumns(names);
+
     const remoteById = new Map(body.map((entry) => [idOf(entry.row), entry]));
     const toWrite: { sheetRow: number; column: number; value: Cell }[] = [];
     const written: Edit[] = [];
@@ -290,6 +302,50 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
     });
   }
 
+  // Appends rows created in the grid. A row that undo brought back keeps its ID, so it is the same
+  // row again; an empty new row gets a stable ID first.
+  function sendNewRows(created: Cell[][]) {
+    const newRows: Cell[][] = [];
+    const newIds: string[] = [];
+
+    for (const row of created) {
+      const index = rows.indexOf(row);
+
+      if (index === -1) {
+        continue; // Removed again before it could be sent.
+      }
+
+      let id = idOf(row);
+
+      if (id === '') {
+        id = crypto.randomUUID();
+        hot!.setSourceDataAtCell(index, idColumn, id, 'sync');
+      }
+
+      pendingAppends.add(id);
+      pendingDeletes.delete(id);
+      newIds.push(id);
+      newRows.push(row.map(normalize));
+    }
+
+    reindex();
+
+    if (newRows.length === 0) {
+      return;
+    }
+
+    enqueueWrite(async () => {
+      try {
+        checkColumns(header);
+        await appendRows(newRows);
+      } catch (error) {
+        // The rows never reached the sheet, so the next poll removes them from the grid.
+        newIds.forEach((id) => pendingAppends.delete(id));
+        throw error;
+      }
+    });
+  }
+
   function attachHooks(grid: Handsontable) {
     // A user's edit: remember the value the grid had before (the base), batch for 300 ms.
     grid.addHook('afterChange', (changes: CellChange[] | null, source: ChangeSource) => {
@@ -328,37 +384,20 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
       }, EDIT_DEBOUNCE_MS);
     });
 
-    // A new row gets a stable ID right away, then goes to the sheet.
+    // A new row goes to the sheet. Undo and redo create a row first and refill it after this hook,
+    // so for them the row is read once the restore has finished.
     grid.addHook('afterCreateRow', (visualIndex: number, amount: number, source?: string) => {
       if (source && OWN_SOURCES.has(source)) {
         return;
       }
 
-      reindex();
+      const created = Array.from({ length: amount }, (_, offset) => rows[grid.toPhysicalRow(visualIndex + offset)]);
 
-      const newRows: Cell[][] = [];
-      const newIds: string[] = [];
-
-      for (let visual = visualIndex; visual < visualIndex + amount; visual++) {
-        const physical = grid.toPhysicalRow(visual);
-        const id = crypto.randomUUID();
-
-        grid.setSourceDataAtCell(physical, idColumn, id, 'sync');
-        pendingAppends.add(id);
-        newIds.push(id);
-        newRows.push(rows[physical].map(normalize));
+      if (source?.startsWith('UndoRedo')) {
+        queueMicrotask(() => sendNewRows(created));
+      } else {
+        sendNewRows(created);
       }
-
-      reindex();
-      enqueueWrite(async () => {
-        try {
-          await appendRows(newRows);
-        } catch (error) {
-          // The rows never reached the sheet, so the next poll removes them from the grid.
-          newIds.forEach((id) => pendingAppends.delete(id));
-          throw error;
-        }
-      });
     });
 
     // Read the IDs before Handsontable removes the rows from the data.
@@ -372,7 +411,10 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
       ids.forEach((id) => pendingDeletes.add(id));
       enqueueWrite(async () => {
         try {
-          const { body } = parse(await readSheet());
+          const { names, body } = parse(await readSheet());
+
+          checkColumns(names);
+
           const sheetRows = body.filter(({ row }) => ids.includes(idOf(row))).map(({ sheetRow }) => sheetRow);
 
           await deleteRows(sheetRows);
@@ -408,7 +450,8 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
         onStatus(`Synced at ${new Date().toLocaleTimeString()}`);
       }
     } catch (error) {
-      if (error instanceof SessionExpiredError || !hot) {
+      // A first read that failed, an expired session, or changed columns: stop and say why.
+      if (error instanceof SessionExpiredError || !hot || columnsChanged) {
         onStatus((error as Error).message, true);
 
         return;
