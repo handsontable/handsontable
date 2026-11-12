@@ -1495,6 +1495,7 @@ export class Formulas extends BasePlugin {
     // before it (the insert and removal hooks do it in their own callbacks).
     this.addHook('beforeRowMove', this.#onBeforeStructureChange);
     this.addHook('beforeColumnMove', this.#onBeforeStructureChange);
+    this.addHook('beforeColumnSort', this.#onBeforeStructureChange);
     this.addHook('beforeLoadData', this.#onBeforeLoadHeldData);
     this.addHook('beforeUpdateData', this.#onBeforeLoadHeldData);
 
@@ -2708,7 +2709,7 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * The callback of the structure change hooks that carry no source (the row and column moves). See
+   * The callback of the structure change hooks that carry no source (the row and column moves, a sort). See
    * `#validateHeldWritesNow()`.
    */
   #onBeforeStructureChange = () => {

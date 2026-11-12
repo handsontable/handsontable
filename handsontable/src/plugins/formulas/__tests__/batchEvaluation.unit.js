@@ -1187,6 +1187,12 @@ describe('Formulas batchEvaluation', () => {
         hot.setDataAtCell(1, 2, '=A2+B2+1');
         hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
       }],
+      // The sort reports every value cell it moves. It must not join the write's recalculation, or the release
+      // validates those cells (and the written one twice), which nothing does without the option.
+      ['a write and a sort', (hot) => {
+        hot.setDataAtCell(4, 0, 50);
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      }],
       ['a write and a settings update that rebuilds the sheet', (hot) => {
         hot.setDataAtCell(4, 0, 50);
         hot.updateSettings({ columns: [{}, { validator: acceptAll }, { validator: acceptAll }] });

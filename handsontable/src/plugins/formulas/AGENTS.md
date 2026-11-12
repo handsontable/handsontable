@@ -1461,8 +1461,12 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   addresses from before it (a formula write, then an insert above it: the release validated the cell above the
   dependent `SUM`). The grid moves its cells before the engine does (`afterCreateRow` writes the engine), so they
   are validated from `beforeCreateRow`/`Col` and `beforeRemoveRow`/`Col` (not for `auto`, which adds and gives back
-  rows at the end), `beforeRowMove` and `beforeColumnMove`. A sort, a freeze, `moveCells` and a NestedRows detach
-  showed no difference and have no listener. `switchSheet()` validates in `#loadSheet()`, before the load.
+  rows at the end), `beforeRowMove`, `beforeColumnMove` and `beforeColumnSort` (a write, then a sort: the order reports every
+  value cell it moves at its new address, and the release validated them all). A freeze, `moveCells` and a
+  NestedRows detach showed no difference and have no listener. **Open:** a sort followed by a cell write in the same hold validates another dependent than without
+  the option (`hot.batch(() => { sort; setDataAtCell(4, 0, 50) })` on the `runValidatedBatch` fixture: `5:2` where
+  the option off validates `4:2`); reproduced on the first version of the option, cause not found, the HF-versus-
+  visual defect below is the suspect. `switchSheet()` validates in `#loadSheet()`, before the load.
   `beforeLoadData`/`beforeUpdateData` validate only the other sheets' dependents (`leavingSheetId`): the Core
   destroys the data map before those hooks, so the dependents on this grid's own sheet of a write made before a
   host's `loadData()`/`updateData()` in the same hold are not validated (without the option they are, against the
