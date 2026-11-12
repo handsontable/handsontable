@@ -34,8 +34,8 @@ const ROLELESS = new Set(['', 'generic', 'none', 'presentation', 'GenericContain
  * How a walk ended: it reached the sentinel on the far side of the page (`complete`: the one after it for a Tab walk,
  * the one before it for a Shift+Tab walk), a key press loaded another page (`navigated`), it came back to a stop it
  * had passed (`cycle`), it ran out of presses (`budget`), or nothing past an embedded grid took the focus
- * (`stopped`). Only `complete` and `cycle` walked the whole page: after any other the stops past the last one were
- * never reached, and `walkProblem()` names why.
+ * (`stopped`). Only `complete` walked the whole page: after any other the stops past the last one were never
+ * reached, and `walkProblem()` names why. A cycle is also a finding (`walkFindings()`), a trap or a modal.
  *
  * @param {{stops: Array<{key: string, region: string, navigated?: boolean}>, budgetExhausted?: boolean,
  *   direction?: 'forward'|'backward'}} walk The walk, and which way it went.
@@ -80,6 +80,9 @@ export function walkProblem(verdict, budget) {
   }
   if (verdict === 'stopped') {
     return 'the walk stopped before the end of the page: nothing past an embedded grid that held it took the focus';
+  }
+  if (verdict === 'cycle') {
+    return 'the walk came back to a stop it had passed before it reached the end of the page, so the stops past the cycle were not walked';
   }
 
   return null;

@@ -39,7 +39,8 @@ test('a walk ends at the sentinel after the page, cycles when it comes back to a
   assert.match(walkProblem('budget', 100), /ran out of its 100 presses/);
   assert.match(walkProblem('stopped', 100), /nothing past an embedded grid/);
   assert.equal(walkProblem('complete', 100), null);
-  assert.equal(walkProblem('cycle', 100), null, 'a cycle walked the page and is judged as a finding');
+  assert.match(walkProblem('cycle', 100), /stops past the cycle were not walked/,
+    'a cycle is a finding, and the stops past it were never reached, so its target is not measured either');
 });
 
 test('2.1.2: a cycle Escape does not break is a trap; one it breaks is advisory', () => {
