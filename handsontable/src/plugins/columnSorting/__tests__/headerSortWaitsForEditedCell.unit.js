@@ -4,6 +4,8 @@ import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
 import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
 import { TextEditor } from '../../../editors/textEditor';
+import { registerCellType } from '../../../cellTypes/registry';
+import { NumericCellType } from '../../../cellTypes/numericType';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
@@ -25,6 +27,7 @@ describe.each([
 
   beforeAll(() => {
     registerPlugin(PluginClass);
+    registerCellType(NumericCellType);
   });
 
   beforeEach(() => {
@@ -278,6 +281,51 @@ describe.each([
     expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
 
     await answer(call => call.row === 2);
+    await answer(call => call.row === 3);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'zzz', 'zzz', 'p4', 'p5']);
+  });
+
+  it('should wait for a fill that answered its edited cell when the clicked column has another editor', async() => {
+    // Column B is numeric, so the header press prepares the NumericEditor, not the TextEditor that saved.
+    buildGrid({ columns: [{}, { type: 'numeric' }] });
+    await fillColumnA();
+    await answer(call => call.row === 1);
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(call => call.row === 2);
+    await answer(call => call.row === 3);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'zzz', 'zzz', 'p4', 'p5']);
+  });
+
+  it('should keep waiting for a fill when another save runs while the fill waits', async() => {
+    buildGrid();
+    await fillColumnA();
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+    await answer(call => call.row === 1);
+
+    // A later save of a column B cell (no validator) through the same TextEditor.
+    hot.selectCell(5, 1);
+
+    const editor = hot.getActiveEditor();
+
+    editor.beginEditing();
+    editor.setValue('9');
+    editor.finishEditing();
+    await flush();
+    await answer(call => call.row === 2);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
     await answer(call => call.row === 3);
 
     expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
