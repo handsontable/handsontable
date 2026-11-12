@@ -111,7 +111,15 @@ Everything about that machinery is load-bearing:
   too, because by then the new selection has opened an editor on the highlighted cell. The wait happens in
   `#resolvePendingSort`, not in `applyHeaderClickSort`, so subclasses overriding that seam still get it.
 - **The wait ends on the editor's own answer, not on any answer** (`#waitForEditor()`). After each
-  `postAfterValidate` it asks the editor captured at press time `isWaiting()`. The listener sits at
+  `postAfterValidate` it asks the editor captured at press time `isWaiting()`, and also
+  `_hasUnappliedSave()`: core applies a Ctrl+Enter fill only once every cell of it answered, after the edited
+  cell's own answer ended the editor's wait, so a sort on that answer moved the rows and core then wrote the
+  rest of the fill by visual row onto other records. A set leaves core's waiting list right before its last
+  answer's `postAfterValidate`, so the listener sees it gone in that same run. The press waits even when the
+  editor already closed, while its save is unwritten (the edited cell answered before the click), and it
+  reads the validator from `activeEditor.cellProperties`, the meta the save validates: a
+  `modifyGetCellCoords` listener can redirect the save to a validated cell from one without a validator,
+  and reading the press cell's validator took no wait there. The listener sits at
   `orderIndex: Number.MAX_SAFE_INTEGER` as a defensive measure, so an editor listener added after it would
   still decide first. It is not pinned: in the unit flows measured (a changed and an unchanged edit) the editor
   is already done before `postAfterValidate` runs (core's `onQueueEmpty` cancels it, or the validation callback
@@ -124,13 +132,15 @@ Everything about that machinery is load-bearing:
   meta's `visualRow` and `prop`, the sources its save validated with, any answer when its save validated no
   cell yet, `acceptsAnyAnswer`), and a copy would drift from them. So the sort follows the editor on every
   edge: an unchanged edit waits for its stored value's answer; a save a `beforeChange` veto drops cancels the
-  editor before the press reads it, so the sort runs on release; a `saveValue()` that writes later ends both
+  editor before the press reads it, so the sort runs on release; a save moved to another cell ends both
+  waits on the first answer among the cells it validated; a `saveValue()` that writes later ends both
   waits on the first answer of any cell. Each waiting press owns one listener (`#editorWaitListeners`),
   removed when its wait settles, when the press turns into a drag, when a new press replaces a stale one, and
   by every drop below. Known limit: an editor whose wait is canceled without an answer (`beforeDialogShow`)
   leaves the sort waiting for the next answer of any cell. Pinned by
-  `__tests__/headerSortWaitsForEditedCell.unit.js` (both plugins) and the "waits for the edited cell when an
-  unrelated validation answers first" case of `tests/e2e/column-sorting-waiting-header-sort.spec.ts`.
+  `__tests__/headerSortWaitsForEditedCell.unit.js` (both plugins), and the "waits for the edited cell when an
+  unrelated validation answers first" and "waits for the whole Ctrl+Enter fill" cases of
+  `tests/e2e/column-sorting-waiting-header-sort.spec.ts`.
 - **The waiting sorts are plugin state, and every reset drops them.** Release takes the press out of
   `#pendingHeaderSort`, so a sort that waits for the validator sits in the `#awaitingHeaderSorts` set, and its wait
   runs it only while the set still holds it. It is a set, not one field: the editor stays open until the answer, so

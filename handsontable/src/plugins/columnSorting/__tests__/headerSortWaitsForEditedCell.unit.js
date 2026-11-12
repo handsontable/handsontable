@@ -225,6 +225,113 @@ describe.each([
     expect(hot.getDataAtCol(0)).toEqual(['p0', 'p3', 'p2', 'p5', 'zzz', 'p4']);
   });
 
+  /**
+   * Fills rows 1-3 of column A with `zzz` through Ctrl+Enter, the edited cell being (1, 0). Resolves once the
+   * three validator calls are held.
+   */
+  async function fillColumnA() {
+    hot.selectCells([[1, 0, 3, 0]]);
+
+    const editor = hot.getActiveEditor();
+
+    editor.beginEditing();
+    editor.setValue('zzz');
+    editor.finishEditing(false, true);
+    await flush();
+
+    expect(held.map(call => [call.row, call.value])).toEqual([[3, 'zzz'], [2, 'zzz'], [1, 'zzz']]);
+  }
+
+  it('should wait for the whole Ctrl+Enter fill, not only the edited cell\'s answer', async() => {
+    buildGrid();
+    await fillColumnA();
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    await answer(call => call.row === 1); // the edited cell answers first and ends the editor's wait
+
+    expect(hot.getActiveEditor().isWaiting()).toBe(false);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(call => call.row === 2);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(call => call.row === 3);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'zzz', 'zzz', 'p4', 'p5']);
+  });
+
+  it('should wait for a Ctrl+Enter fill whose edited cell answered before the press', async() => {
+    buildGrid();
+    await fillColumnA();
+    await answer(call => call.row === 1);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(call => call.row === 2);
+    await answer(call => call.row === 3);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'zzz', 'zzz', 'p4', 'p5']);
+  });
+
+  it('should wait for the rest of a Ctrl+Enter fill when the edited cell is rejected', async() => {
+    buildGrid({ allowInvalid: false });
+    await fillColumnA();
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    await answer(call => call.row === 1, false); // reopens the editor on the rejected value
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(call => call.row === 2);
+    await answer(call => call.row === 3);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'p1', 'zzz', 'zzz', 'p4', 'p5']);
+  });
+
+  it('should wait for an edit a `modifyGetCellCoords` listener redirects onto a validated cell', async() => {
+    // Column A has no validator here; the edit of a column A cell is redirected to column C, whose
+    // validator holds its answer.
+    buildGrid({
+      data: Array.from({ length: 6 }, (_, row) => [`p${row}`, (row * 5) % 7, `c${row}`]),
+      cells: (row, col) => (col === 2 ? {
+        validator(value, callback) {
+          held.push({ row: this.visualRow, value, callback });
+        },
+      } : {}),
+      modifyGetCellCoords(row, column, topmost, source) {
+        if (source === 'meta' && column === 0 && row >= 0) {
+          return [row, 2];
+        }
+      },
+    });
+    editCell(1, 'zzz');
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(held.map(call => [call.row, call.value])).toEqual([[1, 'zzz']]);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+
+    await answer(() => true);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getSourceDataAtCol(2)).toEqual(['c0', 'zzz', 'c2', 'c3', 'c4', 'c5']);
+  });
+
   it('should wait for the edited cell on an unchanged edit, which validates the stored value', async() => {
     buildGrid();
     editCell(1, 'p1');

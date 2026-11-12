@@ -30,7 +30,7 @@ interface FixtureWindow {
     destroy(): void;
   };
   htSortPlugin: SortPlugin;
-  heldValidations: Array<(valid: boolean) => void>;
+  heldValidations: Array<((valid: boolean) => void) & { htRow?: number }>;
   postAfterValidateCount: number;
   htAsyncErrors: string[];
 }
@@ -87,6 +87,53 @@ export class ColumnSortingWaitingHeaderSortPage {
     await expect(this.page.locator('textarea.handsontableInput')).toHaveValue(value);
     await this.sortLabel(1).click();
     await expect.poll(() => this.heldValidationCount()).toBe(1);
+  }
+
+  /**
+   * Selects rows `fromRow`-`toRow` of column A with the mouse, types `value`, and fills the selection with
+   * Ctrl+Enter (Cmd+Enter on macOS). The editor waits for the edited cell (`fromRow`), and the fill holds one
+   * validator call per cell. Resolves once they are all held.
+   */
+  async fillColumnA(fromRow: number, toRow: number, value: string): Promise<void> {
+    await this.cell(fromRow, 0).click();
+    await this.cell(toRow, 0).click({ modifiers: ['Shift'] });
+    // Typing opens the editor on the focused cell, `fromRow`. Enter would move the focus within the range first.
+    await this.page.keyboard.type(value);
+    await expect(this.page.locator('textarea.handsontableInput')).toHaveValue(value);
+    await this.page.keyboard.press('ControlOrMeta+Enter');
+    await expect.poll(() => this.heldValidationCount()).toBe(toRow - fromRow + 1);
+  }
+
+  /**
+   * Clicks the clickable label of a column header.
+   */
+  async clickSortHeader(col: number): Promise<void> {
+    await this.sortLabel(col).click();
+  }
+
+  /**
+   * Answers the held validator calls of the given visual rows as valid, in the order given, then waits until
+   * the grid ran `postAfterValidate` for them and one more task has passed.
+   */
+  async answerRows(rows: number[]): Promise<void> {
+    const before = await this.page.evaluate(() => (window as unknown as FixtureWindow).postAfterValidateCount);
+
+    await this.page.evaluate((rowsToAnswer) => {
+      const fixture = window as unknown as FixtureWindow;
+
+      rowsToAnswer.forEach((row) => {
+        const index = fixture.heldValidations.findIndex(callback => callback.htRow === row);
+
+        if (index === -1) {
+          throw new Error(`No held validation for row ${row}`);
+        }
+
+        fixture.heldValidations.splice(index, 1)[0](true);
+      });
+    }, rows);
+    await expect.poll(() => this.page.evaluate(
+      () => (window as unknown as FixtureWindow).postAfterValidateCount)).toBe(before + rows.length);
+    await this.nextTask();
   }
 
   /**

@@ -1570,7 +1570,16 @@ export class ColumnSorting extends BasePlugin {
     // validation runs in a microtask, so it is already over before mouse up. Reading
     // the editor's state on release is wrong too - by then the new selection has opened an
     // editor on the highlighted cell.
-    if (activeEditor?.isOpened() && this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)) {
+    //
+    // The validator is read from the editor's cell meta, the cell its save validates: a
+    // `modifyGetCellCoords` listener can redirect the save away from the cell the editor was opened on.
+    // An editor that already closed waits too while its save is not written yet: core applies a
+    // Ctrl+Enter fill only once every cell of it answered.
+    if (
+      activeEditor &&
+      ((activeEditor.isOpened() && this.hot.getCellValidator(activeEditor.cellProperties)) ||
+        activeEditor._hasUnappliedSave())
+    ) {
       press.validation = this.#waitForEditor(press, activeEditor);
     }
 
@@ -1637,10 +1646,14 @@ export class ColumnSorting extends BasePlugin {
   };
 
   /**
-   * Waits until the editor open at press time stops waiting for its validator. The editor decides which
-   * answer is its own: the edited cell's, or the first one of any cell when its save validated no cell yet.
-   * So the sort waits for that same answer, and an unrelated validation that answers first leaves the editor
-   * waiting and the rows where they are. The listener's `orderIndex` is the highest as a defensive measure, so
+   * Waits until the editor open at press time stops waiting for its validator, and core has applied or
+   * dropped every change set its save made (`_hasUnappliedSave()`). The editor decides which answer is its
+   * own: the edited cell's, the first one among the cells its save validated when that never was the edited
+   * cell, or the first one of any cell when its save validated no cell yet. So the sort waits for that same
+   * answer, and an unrelated validation that answers first leaves the editor waiting and the rows where they
+   * are. A Ctrl+Enter fill is applied only once every cell of it answered, after the edited cell's answer
+   * ended the editor's wait, and a set that waits is written by visual row, so the sort waits for the set
+   * too. A set leaves core's list before its last answer's `postAfterValidate`, so this listener sees it gone. The listener's `orderIndex` is the highest as a defensive measure, so
    * an editor listener added after this one would still decide first: in the flows measured the editor is
    * already done before `postAfterValidate` runs (core cancels or finishes it from the validation callback),
    * or its listener was added first, so no test can tell the order apart. Matching the cell here instead would restate the editor's rules and drift from them.
@@ -1649,10 +1662,12 @@ export class ColumnSorting extends BasePlugin {
    * @param {BaseEditor} editor The editor that was open at press time.
    * @returns {Promise}
    */
-  #waitForEditor(press: HeaderSortPress, editor: { isWaiting(): boolean }): Promise<void> {
+  #waitForEditor(
+    press: HeaderSortPress, editor: { isWaiting(): boolean, _hasUnappliedSave(): boolean }
+  ): Promise<void> {
     return new Promise<void>((resolve) => {
       const onPostAfterValidate = () => {
-        if (editor.isWaiting()) {
+        if (editor.isWaiting() || editor._hasUnappliedSave()) {
           return;
         }
 
