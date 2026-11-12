@@ -150,6 +150,9 @@ Everything about that machinery is load-bearing:
   `discardEditor()`), and the release itself (`#checkEditorWait()` in `#resolvePendingSort`). Listening to
   `postAfterValidate` only left such a sort queued until an unrelated validation answered, maybe minutes later.
   The check is the same on every signal: the press-time editor no longer waits and no marked set is pending.
+  The release adds one condition: the press-time editor is not open. An editor the press did not close (a
+  `beforeOnCellMouseDown` that keeps the selection) has not saved yet, and releasing then sorted the rows
+  before the save; its save's answer or its finish ends the wait instead.
   Each waiting press owns one entry (`#editorWaitListeners`: the check, registered on both the hook and the
   editor), removed when its wait settles, when the press turns into a drag, when a new press replaces a stale
   one, and by every drop below. Pinned by

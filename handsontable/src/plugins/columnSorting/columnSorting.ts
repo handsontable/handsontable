@@ -137,6 +137,7 @@ export interface HeaderSortPress {
  */
 interface EditorToWaitFor {
   isWaiting(): boolean;
+  isOpened(): boolean;
   _addFinishListener?(listener: () => void): void;
   _removeFinishListener?(listener: () => void): void;
 }
@@ -1734,12 +1735,20 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Checks at once whether the wait of a press is over (the editor no longer waits and no change set of an
    * editor save is pending), and resolves it then. The release calls it, so an edit that ended with no
-   * validation between the press and the release does not leave the sort queued.
+   * validation between the press and the release does not leave the sort queued. An editor the press found
+   * that is still open has not saved yet (the press did not close it), so the release leaves that wait to the
+   * editor's save or finish.
    *
    * @param {HeaderSortPress} press The press.
    */
   #checkEditorWait(press: HeaderSortPress): void {
-    this.#editorWaitListeners.get(press)?.check();
+    const wait = this.#editorWaitListeners.get(press);
+
+    if (wait === undefined || wait.editor?.isOpened()) {
+      return;
+    }
+
+    wait.check();
   }
 
   /**
