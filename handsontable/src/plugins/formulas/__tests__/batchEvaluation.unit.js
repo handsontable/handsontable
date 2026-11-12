@@ -1029,6 +1029,41 @@ describe('Formulas batchEvaluation', () => {
   });
 
   describe('a draw that recalculates the held writes', () => {
+    it.each([
+      ['batchExecution()', (hot, fn) => hot.batchExecution(fn)],
+      ['a suspendExecution() and resumeExecution() pair', (hot, fn) => {
+        hot.suspendExecution();
+
+        try {
+          fn();
+        } finally {
+          hot.resumeExecution();
+        }
+      }],
+    ])('recalculates before AutoColumnSize consumes its queue of columns to measure, in %s', (_, run) => {
+      const hot = mountGrid(buildEngine(), { formulas: { batchEvaluation: true } });
+      const autoColumnSize = hot.getPlugin('autoColumnSize');
+      const measureVisibleColumns = autoColumnSize.calculateVisibleColumnsWidth.bind(autoColumnSize);
+      const log = [];
+
+      hot.addHook('afterFormulasValuesUpdate', () => log.push('afterFormulasValuesUpdate'));
+      // AutoColumnSize measures from its `beforeRender` listener (the plugin enables before Formulas, so its
+      // listener runs first at the default order), and the refresh queue the recalculation fills is consumed
+      // right after. A recalculation that comes later paints the new value at the old width, and nothing
+      // draws again.
+      autoColumnSize.calculateVisibleColumnsWidth = (...args) => {
+        log.push('autoColumnSize measures');
+
+        return measureVisibleColumns(...args);
+      };
+
+      run(hot, () => hot.setDataAtCell(0, 0, 123456789));
+
+      expect(log.indexOf('afterFormulasValuesUpdate')).toBeGreaterThanOrEqual(0);
+      expect(log.indexOf('autoColumnSize measures')).toBeGreaterThan(log.indexOf('afterFormulasValuesUpdate'));
+      expect(hot.getCell(0, 2).textContent).toBe('123456799');
+    });
+
     it('repaints after a draw that does not repaint every cell, when the recalculation changed this grid', () => {
       const engine = buildEngine();
       const data = createSheetData();

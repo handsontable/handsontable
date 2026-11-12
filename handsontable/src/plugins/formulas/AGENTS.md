@@ -1498,6 +1498,13 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   `planEngineWorkbook()`, the copy's named expressions and serialized sheet, `getFillRangeData`) and ImportFile
   (before the mapping). `#readEngineContent()` after a
   `setDataAtCell()` write is deferred, not flushed: it would recalculate once per write.
+- **A grid that holds the engine recalculates from `#onBeforeRenderStart`, ahead of every default-order
+  `beforeRender` listener.** AutoColumnSize measures from its own `beforeRender` listener (it enables first, so
+  it runs before this plugin's default-order one) and consumes the queue the `afterFormulasValuesUpdate` of the
+  recalculation fills. A recalculation from `#onBeforeRender` came after that, so a `batchExecution()` write
+  painted a formula column's new value at its old width and nothing drew again; without the option the
+  `valuesUpdated` of a write comes before the render. A grid that does not hold the engine flushes from its first
+  formula cell (below). Pinned by "recalculates before AutoColumnSize consumes its queue".
 - **`#onBeforeRender` flushes only for a grid that holds the engine.** Unconditional, a second grid that writes
   inside the first grid's `batch()` ended the hold on each of its own renders. A non-holder therefore flushes from
   the first formula cell of its draw. A paint asked for while this grid prepares a draw that starts with the engine
