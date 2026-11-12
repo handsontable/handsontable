@@ -92,6 +92,7 @@ test.describe('formulaBuilder autocomplete popup', { tag: [THEMES_TAG, BUNDLES_T
   test('the matched letters, the active argument chip and the paren match use the theme accent', async({ page }) => {
     const accent = await grid.accentColor();
 
+    expect(accent).not.toBe('rgba(0, 0, 0, 0)');
     await expect(grid.suggestions.locator('.hfe-suggestions__match').first()).toHaveCSS('color', accent);
 
     await page.keyboard.type('M(');

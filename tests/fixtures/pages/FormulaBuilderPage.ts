@@ -428,7 +428,7 @@ export class FormulaBuilderPage {
     return this.page.evaluate(() => {
       const probe = document.createElement('div');
 
-      probe.style.color = 'var(--ht-accent-color)';
+      probe.style.color = 'var(--ht-accent-color, transparent)';
       (window as unknown as FixtureWindow).hot.rootElement.appendChild(probe);
 
       const color = getComputedStyle(probe).color;
