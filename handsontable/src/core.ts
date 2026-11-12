@@ -62,6 +62,7 @@ import {
   type MinimumSizes,
 } from './core/minimumSizes';
 import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { RowSizeSettings, type RowSizeOption } from './core/rowSizeSettings';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
@@ -109,6 +110,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { PluginRequirements } from './core/pluginRequirements';
 import { normalizeFixedColumnsAlias, withCallerFixedColumnsName } from './core/fixedColumnsAlias';
 import { watchFontLoads } from './core/fontLoad';
 import {
@@ -552,6 +554,10 @@ export default function Core(
    */
   const filterSettings = (settings: SettingsUpdate) => settingsFilters
     .reduce((payload, filter) => filter(payload), settings);
+  /**
+   * The plugins other plugins need running (see `_requirePlugin()`).
+   */
+  const pluginRequirements = new PluginRequirements();
   /**
    * The functions told about a change set that waited for its validators while `loadData()` replaced the
    * data, and that is therefore never applied (see `_addDroppedChangesListener()`).
@@ -6323,6 +6329,43 @@ export default function Core(
   };
 
   /**
+   * Marks a plugin as needed by another object, usually another plugin, so the required plugin's
+   * `isEnabled()` answers `true` while its own option is off. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that needs the plugin running.
+   */
+  this._requirePlugin = function(pluginKey: string, requirer: object) {
+    pluginRequirements.require(pluginKey, requirer);
+  };
+
+  /**
+   * Drops the requirement `_requirePlugin()` recorded for a plugin. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that no longer needs the plugin running.
+   */
+  this._releasePlugin = function(pluginKey: string, requirer: object) {
+    pluginRequirements.release(pluginKey, requirer);
+  };
+
+  /**
+   * Checks whether any object requires the plugin through `_requirePlugin()`. The rules are in
+   * `PluginRequirements` (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the plugin, as in its `PLUGIN_KEY`.
+   * @returns {boolean}
+   */
+  this._isPluginRequired = function(pluginKey: string): boolean {
+    return pluginRequirements.isRequired(pluginKey);
+  };
+
+  /**
    * Removes a function `_addSettingsFilter()` added. Removing one that is not there changes nothing.
    *
    * @private
@@ -6572,8 +6615,8 @@ export default function Core(
     // That creates an own property which shadows the global value written above, so a later
     // `updateSettings()` would be ignored. Drop the shadow when the value really changes. A wrapper
     // re-sends every prop on each commit, and an unchanged value must not undo the state kept there.
-    // Only the frozen counts are handled: other own table-meta values (the Loading plugin's `dialog`,
-    // the theme options) are shadows kept on purpose.
+    // Only the frozen counts are handled: other own table-meta values (the theme options) are shadows
+    // kept on purpose.
     if (FROZEN_COUNT_OPTIONS.has(key) && settings[key] !== previousValue) {
       Reflect.deleteProperty(tableMeta, key);
 
@@ -9614,6 +9657,46 @@ export default function Core(
   };
 
   /**
+   * Resolves one row's value out of the `rowHeights` or `minRowHeights` setting. The function is called
+   * with the physical row index, and the array is read at the entry the row was declared at (the physical
+   * index at the time of the declaration, kept by `RowSizeSettings` across row inserts and removals), so a
+   * height stays with its row when rows are moved, sorted, trimmed, filtered, collapsed, inserted, or
+   * removed. Headers (negative indexes) have no physical index, so they keep the index they were given, and a row
+   * outside the index mapper gets no value. A number and a string apply to every row, so they skip the translation.
+   *
+   * @param {string} option `rowHeights` or `minRowHeights`.
+   * @param {number} row Visual row index.
+   * @returns {number|undefined|null}
+   */
+  const resolveRowHeightByPhysicalIndex = (option: RowSizeOption, row: number) => {
+    const setting: unknown = tableMeta[option];
+
+    if (typeof setting !== 'object' && typeof setting !== 'function') {
+      return resolveRowHeightSetting(setting, row);
+    }
+
+    if (row < 0) {
+      return resolveRowHeightSetting(setting, row);
+    }
+
+    const physicalRow = instance.toPhysicalRow(row);
+
+    // A row outside the index mapper has no physical index, so no entry of the array or the function applies.
+    if (physicalRow === null) {
+      return undefined;
+    }
+
+    if (!Array.isArray(setting)) {
+      return resolveRowHeightSetting(setting, physicalRow);
+    }
+
+    const declaredIndex = rowSizeSettings.getDeclaredIndex(option, physicalRow);
+
+    // A row created after the declaration has no entry of its own.
+    return declaredIndex === null ? undefined : resolveRowHeightSetting(setting, declaredIndex);
+  };
+
+  /**
    * Tells whether the row renders at exactly the height the `rowHeights` option gives it, with
    * taller content clipped, instead of at a minimum the content can grow past. Private use intended.
    *
@@ -9623,7 +9706,8 @@ export default function Core(
    * @private
    * @memberof Core#
    * @function _isRowHeightExact
-   * @param {number} row Visual row index.
+   * @param {number} row Visual row index. The `rowHeights` array and function are read by the matching
+   * physical index.
    * @returns {boolean}
    */
   this._isRowHeightExact = function(row: number) {
@@ -9631,7 +9715,7 @@ export default function Core(
       return false;
     }
 
-    return isExactRowHeight(resolveRowHeightSetting(tableMeta.rowHeights, row));
+    return isExactRowHeight(resolveRowHeightByPhysicalIndex('rowHeights', row));
   };
 
   /**
@@ -9640,11 +9724,12 @@ export default function Core(
    * @private
    * @memberof Core#
    * @function _getRowHeightFromSettings
-   * @param {number} row Visual row index.
+   * @param {number} row Visual row index. The `rowHeights` and `minRowHeights` array and function are
+   * read by the matching physical index.
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row: number) {
-    const rowHeights = resolveRowHeightSetting(tableMeta.rowHeights, row);
+    const rowHeights = resolveRowHeightByPhysicalIndex('rowHeights', row);
     const hasOwnHeight = isExactRowHeight(rowHeights);
 
     // Resolved once: a `rowHeights` function runs for every rendered row on every draw.
@@ -9657,7 +9742,7 @@ export default function Core(
     const hasRowHeightsOption = tableMeta.rowHeights !== undefined && tableMeta.rowHeights !== null;
     const fallbackHeight = hasRowHeightsOption ? rowHeights : undefined;
     const height = hasOwnHeight ?
-      rowHeights : (resolveRowHeightSetting(tableMeta.minRowHeights, row) ?? fallbackHeight);
+      rowHeights : (resolveRowHeightByPhysicalIndex('minRowHeights', row) ?? fallbackHeight);
 
     const numHeight = height;
     const numDefaultRowHeight = defaultRowHeight as number | null;
@@ -9681,6 +9766,9 @@ export default function Core(
    *   4. `undefined`, if neither [`ManualRowResize`](@/api/manualRowResize.md),
    *     nor [`rowHeights`](@/api/options.md#rowheights),
    *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
+   *
+   * The [`rowHeights`](@/api/options.md#rowheights) array and function are read by the physical index
+   * of `row`, so a height stays with its row when rows are moved, sorted, filtered, trimmed, or collapsed.
    *
    * Passing [`rowHeights`](@/api/options.md#rowheights) to
    * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
@@ -11197,6 +11285,43 @@ export default function Core(
   };
 
   /**
+   * Moves the slots of rows a plugin just inserted through `rowIndexMapper.insertIndexes()` to the physical
+   * index the rows really took in the data, in the maps that keep the `rowHeights` and `minRowHeights`
+   * arrays on their rows. For a hand-built insert whose index-mapper index differs from the data's (the
+   * NestedRows plugin's). Private use intended.
+   *
+   * @private
+   * @param {number} physicalRow The physical index of the first inserted row.
+   * @param {number} amount The number of inserted rows.
+   */
+  this._alignInsertedRowSizes = function(physicalRow: number, amount: number) {
+    rowSizeSettings.alignInsertedRows(physicalRow, amount);
+  };
+
+  /**
+   * Returns a copy of the maps that keep the `rowHeights` and `minRowHeights` arrays on their rows, for a
+   * plugin that moves rows by rewriting the data rather than through the index mapper (NestedRows), or
+   * `null` when neither option is an array. Private use intended.
+   *
+   * @private
+   * @returns {Map<string, Array>|null} For each option, the array entry index each physical row was declared at.
+   */
+  this._readRowSizeOrigins = function() {
+    return rowSizeSettings.readOrigins();
+  };
+
+  /**
+   * Writes back the maps `_readRowSizeOrigins()` returned, after the caller rearranged them to the rows'
+   * new physical indexes. Private use intended.
+   *
+   * @private
+   * @param {Map<string, Array>} origins For each option, the array entry index of each physical row.
+   */
+  this._writeRowSizeOrigins = function(origins: Map<RowSizeOption, unknown[]>) {
+    rowSizeSettings.writeOrigins(origins);
+  };
+
+  /**
    * Gets the instance of the MetaManager.
    *
    * @private
@@ -11229,6 +11354,7 @@ export default function Core(
   });
 
   const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
+  const rowSizeSettings = new RowSizeSettings(instance);
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
     // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).

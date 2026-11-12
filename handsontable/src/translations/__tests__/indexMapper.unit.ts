@@ -825,8 +825,40 @@ describe('IndexMapper', () => {
       indexMapper.insertIndexes(1, 2);
 
       expect(indexesInsertedCallback.calls.count()).toEqual(1);
-      expect(indexesInsertedCallback).toHaveBeenCalledWith([2, 3]);
+      expect(indexesInsertedCallback).toHaveBeenCalledWith([2, 3], 'start');
       expect(indexMapper.getIndexesSequence()).toEqual([5, 2, 3, 4, 1, 0]);
+    });
+
+    it('should pass the `end` mode to the `indexesInserted` hook', () => {
+      const indexMapper = new IndexMapper();
+      const indexesInsertedCallback = jasmine.createSpy('indexesInserted');
+
+      indexMapper.initToLength(4);
+      indexMapper.addLocalHook('indexesInserted', indexesInsertedCallback);
+
+      indexMapper.insertIndexes(1, 1, 'end');
+
+      expect(indexesInsertedCallback).toHaveBeenCalledWith([1], 'end');
+    });
+
+    it('should place the slot of a value map after the passed index and a sequence map\'s index after it, ' +
+      'for the `end` mode', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = indexMapper.createAndRegisterIndexMap('values', 'physicalIndexToValue', null);
+      const sequenceMap = indexMapper.createAndRegisterIndexMap('order', 'indexesSequence');
+
+      indexMapper.initToLength(4);
+      valueMap.setValues(['a', 'b', 'c', 'd']);
+      // the order the sequence map holds is the one the mapper shows, as ColumnSorting's pre-sort order starts
+      sequenceMap.setValues([0, 1, 2, 3]);
+
+      // inserted below the row at visual index 2 (physical 2): the new row takes physical index 3
+      indexMapper.insertIndexes(2, 1, 'end');
+
+      expect(valueMap.getValues()).toEqual(['a', 'b', 'c', null, 'd']);
+      // physical 2 keeps its place, and the new row (3) comes after it, as in the mapper's own sequence
+      expect(sequenceMap.getValues()).toEqual([0, 1, 2, 3, 4]);
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
     });
 
     it('should trigger `indexesRemoved` hook with the removed physical indexes', () => {

@@ -18,7 +18,7 @@
     const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
     const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
     const htDirections = Object.assign(Object.create(null), { ltr: 'ltr', rtl: 'rtl' });
-    const htPages = Object.assign(Object.create(null), { fit: 'fit', wide: 'wide' });
+    const htPages = Object.assign(Object.create(null), { fit: 'fit', wide: 'wide', locked: 'locked' });
     const htInsets = Object.assign(Object.create(null), { none: '0px', start: '16px' });
 
     window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
@@ -58,6 +58,10 @@
        width). On the wide page it sits 1000px in from the inline start and the top, where the spec scrolls to. */
     [data-testid="grid"] { width: 320px; }
     body.wide { width: 3000px; height: 3000px; }
+    /* An app shell: the page is a fixed box that clips what overflows it, and the menus, which are appended to
+       the body, are clipped with it. Nothing scrolls, not even through `scrollIntoView()` (`overflow: hidden`
+       still allows that), so a menu taller than the viewport can only scroll in itself. */
+    body.locked { position: fixed; inset: 0; overflow: clip; }
     body.wide [data-testid="grid"] { margin-inline-start: 1000px; margin-block-start: 1000px; }
   </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
