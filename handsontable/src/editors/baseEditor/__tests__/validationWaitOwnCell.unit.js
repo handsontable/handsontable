@@ -439,6 +439,136 @@ describe('BaseEditor validation wait', () => {
     expect(core.getDataAtCell(1, 0)).toBe(18);
   });
 
+  /**
+   * Builds a grid whose column validator answers after 600 ms and rejects negative numbers, confirms
+   * `newValue` in an editor on (1, 0), and lets the save run.
+   *
+   * @param {string} newValue The value the editor confirms.
+   * @param {object} [settings] Settings merged over the defaults.
+   */
+  async function confirmEdit(newValue, settings = {}) {
+    core = createHot(container, {
+      data: createData(4),
+      columns: [{ type: 'numeric', validator: asyncNonNegative, allowInvalid: false }],
+      ...settings,
+    });
+
+    core.selectCell(1, 0);
+    core.getActiveEditor().beginEditing();
+    core.getActiveEditor().setValue(newValue);
+    core.getActiveEditor().finishEditing();
+    await flush();
+  }
+
+  /**
+   * A `saveValue()` override that writes the value into the row below the edited cell.
+   */
+  class WriteBelowEditor extends TextEditor {
+    saveValue(value) {
+      this.hot.setDataAtCell(this.row + 1, this.col, value[0][0], 'edit');
+    }
+  }
+
+  const writeBelowColumn = {
+    type: 'numeric', editor: WriteBelowEditor, validator: asyncNonNegative, allowInvalid: false,
+  };
+
+  /**
+   * A `beforeChange` listener that moves an edit of (1, 0) to the row below.
+   *
+   * @param {Array} changes The changes.
+   * @param {string} source The change source.
+   */
+  function moveEditBelow(changes, source) {
+    if (source === 'edit') {
+      changes.forEach((change) => {
+        if (change && change[0] === 1 && change[1] === 0) {
+          change[0] = 2;
+        }
+      });
+    }
+  }
+
+  it.each([
+    ['a saveValue() override', { columns: [writeBelowColumn] }],
+    ['a beforeChange listener', { beforeChange: moveEditBelow }],
+  ])('waits for the moved write and reopens on its rejection when %s writes to another cell', async(_, settings) => {
+    await confirmEdit('-5', settings);
+
+    // The save validated (2, 0), not the edited cell, so no answer of the edited cell will come.
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(core.getActiveEditor().state).toBe('STATE_EDITING');
+    expect(core.getActiveEditor().isOpened()).toBe(true);
+    expect(core.getActiveEditor().getValue()).toBe('-5');
+    expect(core.getDataAtCol(0)).toEqual([18, 18, 18, 18]);
+  });
+
+  it.each([
+    ['a saveValue() override', { columns: [writeBelowColumn] }],
+    ['a beforeChange listener', { beforeChange: moveEditBelow }],
+  ])('closes on the moved write\'s acceptance when %s writes to another cell', async(_, settings) => {
+    await confirmEdit('7', settings);
+
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(core.getActiveEditor().isOpened()).toBe(false);
+    expect(core.getDataAtCol(0)).toEqual([18, 18, 7, 18]);
+  });
+
+  it('keeps waiting on a foreign answer when the save moved its write to another cell', async() => {
+    await confirmEdit('-5', {
+      beforeChange: moveEditBelow,
+      cell: [{ row: 0, col: 0, validator: syncAccept }],
+    });
+
+    core.validateCell(1, core.getCellMeta(0, 0), () => {}, 'edit'); // a foreign `true`, answering first
+    await flush();
+
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(core.getActiveEditor().state).toBe('STATE_EDITING');
+    expect(core.getActiveEditor().getValue()).toBe('-5');
+  });
+
+  it('stays waiting during a Ctrl+Enter fill whose validator never answers the edited cell', async() => {
+    // Known limit, pinned: the set is applied only once every cell of it answered, so with the edited cell
+    // unanswered nothing is ever written, and no answer can end the editor's wait without losing its own
+    // rejection under `allowInvalid: false`.
+    core = createHot(container, {
+      data: createData(5),
+      columns: [{
+        type: 'numeric',
+        allowInvalid: false,
+        validator(value, callback) {
+          if (this.visualRow !== 1) {
+            asyncNonNegative(value, callback);
+          }
+        },
+      }],
+    });
+
+    core.selectCells([[1, 0, 3, 0]]);
+    core.getActiveEditor().beginEditing();
+    core.getActiveEditor().setValue('7');
+    core.getActiveEditor().finishEditing(false, true);
+    await flush();
+    jest.advanceTimersByTime(600);
+    await flush();
+
+    expect(core.getActiveEditor().state).toBe('STATE_WAITING');
+    expect(core.getDataAtCol(0)).toEqual([18, 18, 18, 18, 18]);
+  });
+
   it('ignores a later validation of the cell once the wait was canceled', async() => {
     let vetoes = 1;
 
