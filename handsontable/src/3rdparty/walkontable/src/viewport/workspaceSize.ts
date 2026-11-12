@@ -18,6 +18,7 @@ import { resolveWidthBoundingRoot } from '../overlay/axisOwner';
 import { scrollbarAxisThickness } from '../overlay/scrollbarClearance';
 import { boundWorkspaceWidth } from './rootWidthBound';
 import { renderedBottomBorderWidth } from '../axisSizing/hiderCompensation';
+import { resolveRowHeaderWidths } from '../axisSizing/rowHeaderWidths';
 import type { StylesHandler } from '../types';
 
 /**
@@ -105,49 +106,6 @@ function measuredHeightFraction(usedHeight: string, roundedHeight: number): numb
   const remainder = used - roundedHeight;
 
   return Math.abs(remainder) < 1 ? remainder : 0;
-}
-
-/**
- * Reduces a row-header width answer to the single number the viewport needs.
- *
- * The `modifyRowHeaderWidth` hook may answer per row header level - `AutoRowHeaderSize` does, so
- * that every level can be measured on its own - while the viewport wants the width of the whole
- * row header block. A non-array answer is passed through unchanged.
- *
- * Returns `null` when the answer carries nothing usable (`0`, `NaN`, `undefined`), so the caller
- * keeps the width it already worked out - the behavior the previous `|| this.rowHeaderWidth`
- * fallback had.
- *
- * The array is read the way `ColumnUtils#calculateWidths` reads it, and for the same reason: that is
- * the other consumer of this hook, and it is what actually sizes the `col` elements. So the levels
- * counted are the levels the draw renders, and a level the array does not cover falls back to the
- * default column width there too. Summing the array as given instead would under-report the header
- * block by a level's width whenever a handler returned a short array, and over-report it for a long
- * one - either way leaving the viewport and the overlays disagreeing about the same header.
- *
- * @param {number|Array} width The value the hook returned.
- * @param {number} levels How many row header columns the draw renders.
- * @param {number} defaultColumnWidth The width a level the answer does not cover falls back to.
- * @returns {number|null}
- */
-export function toTotalRowHeaderWidth(
-  width: number | Array<number | null> | undefined,
-  levels: number,
-  defaultColumnWidth: number
-): number | null {
-  if (!Array.isArray(width)) {
-    return width || null;
-  }
-
-  let total = 0;
-
-  for (let level = 0; level < levels; level++) {
-    const levelWidth = width[level];
-
-    total += (levelWidth === null || levelWidth === undefined) ? defaultColumnWidth : levelWidth;
-  }
-
-  return total || null;
 }
 
 /**
@@ -565,56 +523,15 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
+   * The width of the whole row header block: the sum of the per-level widths the `col` elements of
+   * the row headers get (`resolveRowHeaderWidths()`), so the hider, the column calculators and the
+   * inline-end overlay work from the width the row headers are drawn at.
+   *
    * @this Viewport
    * @returns {number}
    */
   getRowHeaderWidth(this: Viewport): number {
-    const rowHeadersWidthSetting = this.wtSettings.getSetting<number | Array<number | null>>('rowHeaderWidth');
-    const rowHeaders = this.wtSettings.getSetting<Function[]>('rowHeaders');
-
-    if (rowHeadersWidthSetting) {
-      this.rowHeaderWidth = 0;
-
-      for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        const w = Array.isArray(rowHeadersWidthSetting)
-          ? rowHeadersWidthSetting[i]
-          : (rowHeadersWidthSetting as number);
-
-        this.rowHeaderWidth += w ?? NaN;
-      }
-    }
-
-    if (isNaN(this.rowHeaderWidth)) {
-
-      if (rowHeaders.length) {
-        let TH = this.wtTable.TABLE.querySelector('TH');
-
-        this.rowHeaderWidth = 0;
-
-        for (let i = 0, len = rowHeaders.length; i < len; i++) {
-          if (TH) {
-            this.rowHeaderWidth += this.deps.geometryReader.outerWidth(TH as HTMLElement);
-            TH = TH.nextSibling as HTMLTableCellElement;
-
-          } else {
-            // yes this is a cheat but it worked like that before, just taking assumption from CSS instead of measuring.
-            // TODO: proper fix
-            this.rowHeaderWidth += 50;
-          }
-        }
-      } else {
-        this.rowHeaderWidth = 0;
-      }
-    }
-
-    const modifiedWidth = this.wtSettings
-      .getSetting<number | Array<number | null>>('onModifyRowHeaderWidth', this.rowHeaderWidth);
-
-    this.rowHeaderWidth = toTotalRowHeaderWidth(
-      modifiedWidth,
-      this.wtSettings.getSetting<Function[]>('rowHeaders').length,
-      this.wtSettings.getSetting<number>('defaultColumnWidth')
-    ) ?? this.rowHeaderWidth;
+    this.rowHeaderWidth = resolveRowHeaderWidths(this.wtSettings).reduce((total, width) => total + width, 0);
 
     return this.rowHeaderWidth;
   },

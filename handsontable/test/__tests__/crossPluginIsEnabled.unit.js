@@ -19,10 +19,10 @@ const SRC = resolve(__dirname, '..', '..', 'src');
 const ALLOWED = [
   {
     file: 'plugins/loading/loading.ts',
-    line: 'if (!this.#dialogPlugin?.isEnabled()) {',
-    // In `enablePlugin()`: Loading switches the Dialog option on when it is off, and Dialog may not
-    // have started yet at that point of the init turn.
-    reason: 'reads the Dialog option, not whether Dialog runs',
+    line: 'if (this.#dialogPlugin?.enabled && !this.#dialogPlugin.isEnabled()) {',
+    // In `disablePlugin()`: once Loading released its requirement, Loading asks whether the `dialog`
+    // option or another requirer still keeps Dialog on, and turns a running Dialog off when nothing does.
+    reason: 'reads whether Dialog should run, after checking that it runs',
   },
 ];
 
