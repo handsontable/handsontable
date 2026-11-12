@@ -1982,20 +1982,70 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   page the way this scan does (`a11y/docs/docs-site.ts`: the blocked hosts, the color scheme, `settle()`, the
   states), so a check and the scan read one DOM.
 
+## A11y: the website scan
+
+handsontable.com is the other site readers meet first: the pricing, the lead forms, the trial, the support call.
+`a11y/website/website-axe.spec.ts` runs axe-core over every page of `a11y/website/pages.mjs` on production, at the
+phone and the desktop width, with the product scan's rule set, and `reporters/a11y.ts` with `suite: 'website'`
+compares the run with `a11y/website/website-baseline.json`. Everything the docs scan's section says of the
+comparator, the reports and the baseline holds; this section says what differs. Locally:
+`npm --prefix tests run test:a11y-website`; CI: `.github/workflows/website-a11y.yml`.
+
+- **The page list is a copy, kept honest by the sitemap.** The website's repository is private, so the list is a
+  copy of its own (`scripts/axe-pages.mjs` there, `AXE_PAGES`), with the same ids, routes, states and widths, so a
+  finding names one page in both scans and the website's baseline seeded this one. The first test reads
+  production's `sitemap.xml` and fails on an address that is no page here, under no collection (`COLLECTIONS`: one
+  post, one customer story, one demo of each kind stands for the rest) and not excluded on purpose
+  (`NOT_SCANNED`), so a page the site gains is scanned or excluded in the change that notices it.
+- **It reads production, and writes nothing to it.** `WEBSITE_A11Y_BASE_URL` names another deploy (a plain https
+  origin, or `http://localhost` for a local preview; `websiteBaseUrl()` refuses the rest). `guardSite()` in
+  `a11y/website/website-site.ts` routes the whole context: every other origin is aborted (consent, analytics, error
+  reporting, the chat), the site's own reads go through, and every write is aborted except the one a state makes,
+  which the runner answers on the page: the lead form's HubSpot submit (`form-sent`) and the support call's booking
+  (`booker-booked`). No form is sent and no call is booked. The scan asserts that exactly that write was answered
+  (the guard's positive control) and records every aborted write (`refusedWrites`) and blocked host. A state that
+  submits installs the page's clock and moves it past the forms' spam guard (`MIN_FILL_MS`), and fills each form by
+  reading its fields (`fillForm()`: production's fields come from the live HubSpot schema and change).
+- **A page is measured hydrated and still.** The site's islands hydrate when visible, so an observer that reports
+  every island as visible is installed before the first script (`wakeVisibleIslands()`). `settleWebsite()` waits
+  until no island is server markup, no request has been in flight for half a second, the fonts are ready, the
+  running finite animations ended (a paused one never ends, and holds still), and the DOM held still. A page
+  that answers with a bot challenge, the wrong status, or a tab its query or hash should select that is not
+  selected fails its test.
+- **The width is the theme.** A finding's `theme` is `phone` (390 by 844) or `desktop` (1440 by 900); the site has
+  one color scheme. Reduced motion is on for the scan, so a color is never read half faded, and axe's "needs
+  review" on `scrollable-region-focusable` counts as a violation, as the website's own scan counts it.
+- **A pull request is red only for what it caused.** A pull request's run reads production, which changes apart
+  from this repository, so the docs scan's drift rule applies with the website's audit (`lib/a11y-docs-drift.mjs`,
+  `siteAudit(ledger, 'website')`): a new or grown finding the latest website audit saw is a warning at most, and the
+  remedy is to refresh the baseline from that audit. The check run is `A11y / website-axe report`
+  (`scripts/a11y-check-run.mjs --suite website`), annotated on each page's `page(…)` line.
+- **On demand, like the docs scan.** A dispatch on develop is the audit, a night of the findings ledger's `website`
+  source, recorded from production only (`run.baseUrl`, `baseUrl` of the findings); a dispatch from a branch and a
+  pull request's run are proof runs. The findings land in `website-a11y-axe-results` and the report is
+  `website-a11y-report.html`. Take or refresh the baseline with `WEBSITE_A11Y_SCREENSHOTS=0`. Findings on the
+  website are recorded here and fixed in the website's repository.
+
 ## A11y: the site checks beyond axe
 
 The product checks (`a11y/checks/`) bracket a grid's root with sentinels and open fixture targets; a site has
 neither. `a11y/sites/` measures a deployed site the same way, the whole document as the product, and writes the
 same evidence document per check (`mergeEvidence()`, "A11y: the checks beyond axe"), so the conformance report
 cites a site check as it cites a product one. One config, `playwright.a11y-sites.config.ts`, runs one site per run
-(`HOT_A11Y_SITE`, `docs` when unset), one project per check of `SITE_CHECKS` (`lib/a11y-site-checks.mjs`) for that
-site. A site check is named by its site and kind (`docs-keyboard`), so its check run (`A11y / docs-keyboard
+(`HOT_A11Y_SITE`: `docs` when unset, or `website`), one project per check of `SITE_CHECKS` (`lib/a11y-site-checks.mjs`)
+for that site. A site check is named by its site and kind (`docs-keyboard`), so its check run (`A11y / docs-keyboard
 report`), its ledger rows (the `docs-checks` source) and its catalog rules never meet the product's. The sites,
 their sample pages, popups, help controls and link normalization are one definition each (`a11y/sites/sites.ts`);
 a site added later adds its definition, its registry entries and nothing in a spec. Locally:
 `npm --prefix tests run test:a11y-sites` (`-- --project=docs-keyboard` for one check, `DOCS_A11Y_BASE_URL` for
-another deploy); CI: the `checks` job of `.github/workflows/docs-a11y.yml`.
+another deploy; `HOT_A11Y_SITE=website` for the website); CI: the `checks` job of `.github/workflows/docs-a11y.yml`
+and of `.github/workflows/website-a11y.yml`.
 
+- **The website is opened as its scan opens it.** `WEBSITE_SITE.open()` is `openWebsitePage()` (the guard, the
+  islands woken, `settleWebsite()`), at the desktop width unless the page is the phone's (the mobile menu). Its
+  pages are one per address at rest: a tab a query or a hash selects is a state of its page, which the scan reads.
+  It has one color scheme and no search, so 2.4.5 rests on its navigation; a CSS module's class
+  (`_input_4y8oc_15`) is read as the name its author wrote (`input`), because its hash changes with every build.
 - **The same pages, opened the same way, as the docs scan.** `SITE.open()` is `openDocsPage()`: the viewport, the
   blocked hosts, the color scheme before the first paint, the status, the password wall, the examples loaded and
   the scheme taken. Service workers are blocked (`serviceWorkers: 'block'`), so every request goes through the
@@ -2067,6 +2117,31 @@ another deploy); CI: the `checks` job of `.github/workflows/docs-a11y.yml`.
   a state whose computed style matches the sibling's in forced colors and differed without them is
   `state-lost-in-forced-colors` (1.4.1, moderate: the state still reaches a screen reader, and its place often
   says it, like a breadcrumb's last item).
+- **What the walk measures, and what it leaves alone.** A native checkbox or radio drawn by its label (transparent
+  over a box the label paints) shows through its label: its stop is not hidden, and the sampled points on its label
+  are points where it shows. An `<iframe>` is an embedded document whose focus moves inside a page of its own, cut
+  off from its origin in the run, so the focus checks skip it. A key press that changes only the URL's fragment (a
+  scroll spy) loads no other page. A Tab past a modal's last control that leaves `body` focused took the focus to
+  the browser's own controls, which a native modal dialog does by design; only a focus on the page behind is a
+  modal let go. A printable key that acted is pressed again on the page as it loaded, and only an effect it
+  repeats is the key's. Text a clipping container cuts off whole is hidden on purpose (a skip link drawn only
+  while focused), and so is text under the visually hidden pattern (`clip-path: inset(50%)`, the website grid's
+  skip links): never text cut off. A wait for the transitions a resize or a focus started waits for the
+  running ones, five seconds at most: a paused animation never finishes.
+- **2.2.2 credits a pause control.** A page that moves on its own for more than five seconds and offers a button
+  named "Pause …" or "Stop …" has it pressed from the keyboard and is watched again; only what still moves is a
+  finding (`detail.paused` names the control).
+- **`website-forms`** (`forms.spec.ts`, judged by `lib/site-forms.mjs`), the website's alone: the three tabs of the
+  contact form, the trial form, the support call's details and the footer newsletter. At rest, every field's role,
+  name, description and required state from the accessibility tree, its label, whether a label is drawn, and its
+  `autocomplete` (1.3.1, 1.3.5 against the input purposes its name asks for, 3.3.2). Then the submit button pressed
+  from the keyboard with the form empty (3.3.1: each required field flagged, with text, tied to it; 4.1.3: a live
+  region speaks or the focus moves), with an email address that has no @ (3.3.3: an error that says more than the
+  empty one), and filled in, the write answered on the page (4.1.3 for the thank-you); the contact form keeps an
+  email address across its tabs (3.3.7, advisory). The live regions are watched from before the page loads, and a
+  region inserted together with its text counts only as an alert. The guard answers only the filled-in submit, and
+  the test asserts it was answered once; a form that posts with its errors is a finding (`submitted-with-errors`),
+  its write aborted.
 - **Where they run: a dispatch or a call of `Docs a11y`, never a pull request.** The `checks` job runs beside the
   scan, against the same deploy (`DOCS_A11Y_BASE_URL`), and uploads `docs-a11y-checks-evidence` (30 days from a
   run of every check, 7 from a subset); `scripts/a11y-evidence-report.mjs` with `HOT_A11Y_SITE=docs` writes the
@@ -2075,7 +2150,8 @@ another deploy); CI: the `checks` job of `.github/workflows/docs-a11y.yml`.
   nightly does. A full run is about 25 minutes on four workers. The checks' `checks` input runs a subset on a
   branch (`gh workflow run docs-a11y.yml --ref <branch> -f checks=docs-keyboard`); `check-inputs` refuses one on
   develop, where the dispatch is the audit. Every document names the deploy it read (`run.baseUrl`), and the
-  findings ledger records the staging deploy's only.
+  findings ledger records the staging deploy's only. The website's checks run the same way from `Website a11y`
+  (`website-a11y-checks-evidence`, `A11y / website-<check> report`, production only in the ledger).
 - **A check lands with its findings recorded, not fixed.** As for the product checks: what a check finds on the
   docs is listed in its pull request and filed as docs tasks; a finding the check gets wrong is fixed in the
   check. Each check shows a planted defect (a test-side change to the deployed page on a temporary commit,
@@ -2158,9 +2234,9 @@ use of them in its own test, and both `verdict` jobs in the workflow tests.
 
 A raw night leaves thousands of records (the discovery run alone about 3,900), most of them the same few
 defects on many pages, and a check's artifact says nothing about the night before. The findings ledger
-accumulates them: `test-health.yml` chains on `A11y nightly`, `Screen reader nightly` and `Docs a11y`, and
-the collector reads every check document, the axe findings, every transcript and the docs site scan's
-findings of those runs on develop, by dispatch (the audit; "A11y: the audit and the proof runs" below) or
+accumulates them: `test-health.yml` chains on `A11y nightly`, `Screen reader nightly`, `Docs a11y` and
+`Website a11y`, and the collector reads every check document, the axe findings, every transcript and the docs
+site's and the website's findings of those runs on develop, by dispatch (the audit; "A11y: the audit and the proof runs" below) or
 by a schedule, which the two nightlies do not have today, into `test-health/a11y.json` on `gh-pages`, one row per finding across
 nights, which the "Accessibility" section of <https://handsontable.github.io/handsontable/test-health/>
 draws. The pure half is `.github/scripts/lib/a11y-ledger.mjs`; the catalog that sorts the rows is
@@ -2170,10 +2246,13 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
 - **Only the nightlies' evidence is a night.** A pull request's run uploads the same artifacts, made by the
   pull request's own code, and a fork's pull request from the fork's `develop` reports `develop` as its
   branch; recording it would resolve every row its code no longer shows. `isA11yRun()` takes a run of
-  `A11y nightly`, `Screen reader nightly` or `Docs a11y`, on develop, started by its schedule or a dispatch,
-  and nothing else. The docs night holds the docs site scan (source `docs`) and the docs site checks (source
-  `docs-checks`, read from `docs-a11y-checks-evidence` like the product checks, and only when the document's
-  `run.baseUrl` is the staging deploy). A run's sources are its workflow's (`SOURCES_OF_WORKFLOW`): a list, so a workflow that
+  `A11y nightly`, `Screen reader nightly`, `Docs a11y` or `Website a11y`, on develop, started by its schedule or
+  a dispatch, and nothing else. The docs night holds the docs site scan (source `docs`) and the docs site checks
+  (source `docs-checks`, read from `docs-a11y-checks-evidence` like the product checks, and only when the
+  document's `run.baseUrl` is the staging deploy); the website night holds the website scan (source `website`,
+  its `theme` the width) and the website site checks (source `website-checks`), of production only. The page's
+  surface filter shows one of the grid (the two nightlies), the docs site or the website at a time; the totals
+  count every surface. A run's sources are its workflow's (`SOURCES_OF_WORKFLOW`): a list, so a workflow that
   calls several of the scans names every source its run uploads, and a night of another source is refused.
   A subset dispatch (`checks`, `projects`, `groups`) never becomes a night: the nightlies' `check-inputs`
   job refuses one on develop, because the page draws the latest night of each source and a subset night

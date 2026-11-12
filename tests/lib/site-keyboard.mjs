@@ -216,18 +216,22 @@ export function popupFindings({ state, selector, reachedItem, closedOnEscape, fo
 
 /**
  * The 2.1.4 findings of the printable keys pressed with nothing focused: a key that navigated, opened a dialog
- * or moved the focus. 2.1.4 allows such a shortcut when the user can turn it off or remap it, which no key press
- * can tell, so the finding says what to check.
+ * or moved the focus, and did it again when pressed a second time on the page as it loaded (`repeated`; an effect
+ * that did not repeat came from the page, not from the key). 2.1.4 allows such a shortcut when the user can turn it
+ * off or remap it, which no key press can tell, so the finding says what to check.
  *
- * @param {Array<{key: string, navigated: boolean, dialogOpened: boolean, focused: string|null}>} results The keys pressed.
+ * @param {Array<{key: string, navigated: boolean, dialogOpened: boolean, focused: string|null, to?: string|null,
+ *   repeated?: boolean|null}>} results The keys pressed.
  * @returns {object[]} The findings.
  */
 export function shortcutFindings(results) {
-  return results.filter(result => result.navigated || result.dialogOpened || result.focused).map(result => ({
-    kind: 'single-key-shortcut', criteria: ['2.1.4'], severity: 'serious', step: `key "${result.key}"`,
-    measured: { navigated: result.navigated, dialogOpened: result.dialogOpened, focused: result.focused ?? '' },
-    reason: `Pressing "${result.key}" with nothing focused acts on its own; unless a setting turns it off or remaps it, a speech or a slip of the keyboard sets it off`,
-  }));
+  return results.filter(result => (result.navigated || result.dialogOpened || result.focused) && result.repeated !== false)
+    .map(result => ({
+      kind: 'single-key-shortcut', criteria: ['2.1.4'], severity: 'serious', step: `key "${result.key}"`,
+      measured: { navigated: result.navigated, dialogOpened: result.dialogOpened, focused: result.focused ?? '',
+        ...(result.to ? { to: result.to } : {}) },
+      reason: `Pressing "${result.key}" with nothing focused acts on its own; unless a setting turns it off or remaps it, a speech or a slip of the keyboard sets it off`,
+    }));
 }
 
 /**

@@ -56,11 +56,13 @@ import {
   READER_TRAVERSAL_OFF,
   READER_TRAVERSAL_WHERE,
   TRIAGE_ID,
+  WEBSITE_SCAN_CHECK,
   clusterOf,
   findingShape,
   maskSelector,
 } from '../../../tests/lib/a11y-issues.mjs';
 import { DEFAULT_DOCS_BASE_URL } from '../../../tests/a11y/docs/constants.mjs';
+import { DEFAULT_WEBSITE_BASE_URL } from '../../../tests/a11y/website/constants.mjs';
 import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { DEFAULT_TOKEN_SEVERITY, TOKEN_SEVERITIES } from '../../../tests/lib/screenreader-transcript.mjs';
 import { severityOfImpact } from '../../../tests/lib/a11y-verdict.mjs';
@@ -110,6 +112,16 @@ export const DOCS_AXE_ARTIFACT = 'docs-a11y-axe-results';
  */
 export const DOCS_CHECKS_ARTIFACT = siteEvidenceArtifact('docs');
 /**
+ * The website scan's artifact (`.github/workflows/website-a11y.yml`): `a11y-findings.json` at its root, in the axe
+ * scan's shape, with the website's pages and its two widths.
+ */
+export const WEBSITE_AXE_ARTIFACT = 'website-a11y-axe-results';
+/**
+ * The website site checks' artifact (`.github/workflows/website-a11y.yml`, the `checks` job), read into the website
+ * night with the row source `website-checks`.
+ */
+export const WEBSITE_CHECKS_ARTIFACT = siteEvidenceArtifact('website');
+/**
  * The axe scan's concise findings, at the axe artifact's root (`tests/lib/a11y-findings.mjs` writes it).
  */
 export const A11Y_AXE_FILE = 'a11y-findings.json';
@@ -145,6 +157,7 @@ export const READER_TRANSCRIPT_SCHEMA = 1;
 export const A11Y_NIGHTLY_WORKFLOW = 'A11y nightly';
 export const READER_NIGHTLY_WORKFLOW = 'Screen reader nightly';
 export const DOCS_A11Y_WORKFLOW = 'Docs a11y';
+export const WEBSITE_A11Y_WORKFLOW = 'Website a11y';
 /**
  * The events a run is recorded from: a dispatch (on the two nightlies the audit, on develop with no inputs:
  * their `check-inputs` job refuses a subset dispatch there, because the page draws the latest night of each
@@ -174,7 +187,9 @@ const PROJECT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ROOT_JSON = /^([a-z0-9]+(?:-[a-z0-9]+)*)\.json$/;
 const TRANSCRIPT_PATH = new RegExp(`^${READER_TRANSCRIPTS_DIR}/[^/]+\\.json$`);
 const RUN_ID = /^\d{1,20}$/;
-const SOURCE_OF_NIGHT = Object.freeze({ checks: 'a11y', axe: 'a11y', reader: 'reader', docs: 'docs', 'docs-checks': 'docs' });
+const SOURCE_OF_NIGHT = Object.freeze({
+  checks: 'a11y', axe: 'a11y', reader: 'reader', docs: 'docs', 'docs-checks': 'docs', website: 'website', 'website-checks': 'website',
+});
 /**
  * The night sources each recorded workflow's run holds. A list, so a workflow that calls several of the reusable
  * accessibility workflows (a full audit) names every source its run uploads.
@@ -183,12 +198,24 @@ export const SOURCES_OF_WORKFLOW = Object.freeze({
   [A11Y_NIGHTLY_WORKFLOW]: Object.freeze(['a11y']),
   [READER_NIGHTLY_WORKFLOW]: Object.freeze(['reader']),
   [DOCS_A11Y_WORKFLOW]: Object.freeze(['docs']),
+  [WEBSITE_A11Y_WORKFLOW]: Object.freeze(['website']),
 });
-export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
+export const NIGHT_SOURCES = ['a11y', 'reader', 'docs', 'website'];
+/**
+ * What each site's scan and checks are read as: the night source, the scan's check, the artifacts, and the deploy a
+ * recorded night must be of (the docs: develop's staging deploy; the website: production). A dispatch can read
+ * another deploy (`base-url`), and its findings would open or resolve the recorded deploy's rows.
+ */
+const SITE_NIGHTS = Object.freeze({
+  docs: { scanCheck: DOCS_SCAN_CHECK, axeArtifact: DOCS_AXE_ARTIFACT, checksArtifact: DOCS_CHECKS_ARTIFACT, baseUrl: DEFAULT_DOCS_BASE_URL,
+    deploy: 'the develop staging deploy' },
+  website: { scanCheck: WEBSITE_SCAN_CHECK, axeArtifact: WEBSITE_AXE_ARTIFACT, checksArtifact: WEBSITE_CHECKS_ARTIFACT,
+    baseUrl: DEFAULT_WEBSITE_BASE_URL, deploy: 'production' },
+});
 
 /**
  * @typedef {object} Finding
- * @property {'checks'|'axe'|'reader'|'docs'|'docs-checks'} source Where it came from.
+ * @property {'checks'|'axe'|'reader'|'docs'|'docs-checks'|'website'|'website-checks'} source Where it came from.
  * @property {string} check The check id, `axe` for the gating scan, `docs-axe` for the docs site scan, a docs site check
  * (`docs-keyboard`), or the reader project (`nvda-chromium`).
  * @property {string} kind The finding kind; `axe-violation` for every finding of the scan; `token-missing` or
@@ -222,7 +249,7 @@ export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
 
 /**
  * @typedef {object} Night
- * @property {'a11y'|'reader'|'docs'} source Which nightly, or the docs site scan, the artifacts are.
+ * @property {'a11y'|'reader'|'docs'|'website'} source Which nightly, or which site's scan, the artifacts are.
  * @property {Finding[]} findings What the night found.
  * @property {Coverage} coverage What the night measured. A row is resolved only inside it.
  * @property {number} problems The tooling problems the night reported.
@@ -238,20 +265,23 @@ export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
  * the recordings and the goldens are named outside it on purpose.
  *
  * @param {string} name The artifact name.
- * @returns {'checks'|'axe'|'reader'|'docs'|'docs-checks'|null} The family, or `null` for an unrelated artifact.
+ * @returns {'checks'|'axe'|'reader'|'docs'|'docs-checks'|'website'|'website-checks'|null} The family, or `null` for an
+ *   unrelated artifact.
  */
 export function classifyA11yArtifact(name) {
   if (name === A11Y_EVIDENCE_ARTIFACT) {
     return 'checks';
   }
-  if (name === DOCS_CHECKS_ARTIFACT) {
-    return 'docs-checks';
-  }
   if (name === A11Y_AXE_ARTIFACT) {
     return 'axe';
   }
-  if (name === DOCS_AXE_ARTIFACT) {
-    return 'docs';
+  for (const [site, night] of Object.entries(SITE_NIGHTS)) {
+    if (name === night.checksArtifact) {
+      return `${site}-checks`;
+    }
+    if (name === night.axeArtifact) {
+      return site;
+    }
   }
   if (name.startsWith(READER_ARTIFACT_PREFIX)) {
     return 'reader';
@@ -574,7 +604,7 @@ function readEvidence(file, label, night, notes, site = null) {
  * @param {string} label The file, for a note.
  * @param {Night} night The a11y night, or the docs night.
  * @param {string[]} notes Where a note goes.
- * @param {{source: 'axe'|'docs', check: string}} [scan] The finding source and check the scan's rows carry.
+ * @param {{source: 'axe'|'docs'|'website', check: string}} [scan] The finding source and check the scan's rows carry.
  */
 function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_CHECK } = {}) {
   const doc = parse(file, label, notes);
@@ -597,11 +627,11 @@ function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_C
 
     return;
   }
-  // A docs night is the develop staging deploy's. A dispatch can scan another deploy (`base-url`, a pull
-  // request's preview), and its findings would open or resolve the staging rows.
-  if (source === 'docs' && doc.baseUrl !== DEFAULT_DOCS_BASE_URL) {
-    notes.push(`${label}: a scan of ${cut(JSON.stringify(doc.baseUrl ?? null), LIMITS.url)}, not the develop staging deploy `
-      + `(${DEFAULT_DOCS_BASE_URL}), skipped`);
+  // A site's night is its recorded deploy's (`SITE_NIGHTS`). A dispatch can scan another deploy (`base-url`, a pull
+  // request's preview), and its findings would open or resolve the recorded rows.
+  if (Object.hasOwn(SITE_NIGHTS, source) && doc.baseUrl !== SITE_NIGHTS[source].baseUrl) {
+    notes.push(`${label}: a scan of ${cut(JSON.stringify(doc.baseUrl ?? null), LIMITS.url)}, not ${SITE_NIGHTS[source].deploy} `
+      + `(${SITE_NIGHTS[source].baseUrl}), skipped`);
 
     return;
   }
@@ -866,7 +896,7 @@ function parse(file, label, notes) {
 /**
  * An empty night of a source.
  *
- * @param {'a11y'|'reader'|'docs'} source The source.
+ * @param {'a11y'|'reader'|'docs'|'website'} source The source.
  * @returns {Night} The night.
  */
 function emptyNight(source) {
@@ -897,34 +927,33 @@ export function readA11yArtifacts(files) {
   const notes = [];
   const a11y = emptyNight('a11y');
   const reader = emptyNight('reader');
-  const docs = emptyNight('docs');
-  let sawA11y = false;
-  let sawReader = false;
-  let sawDocs = false;
+  const sites = Object.fromEntries(Object.keys(SITE_NIGHTS).map(site => [site, emptyNight(site)]));
+  const saw = new Set();
 
   for (const file of files) {
     const family = classifyA11yArtifact(file.artifact);
     const label = `${file.artifact}/${file.path}`;
+    const site = family === null ? null : SOURCE_OF_NIGHT[family];
 
     if (family === 'checks' && ROOT_JSON.test(file.path)) {
-      sawA11y = true;
+      saw.add('a11y');
       readEvidence(file, label, a11y, notes);
     } else if (family === 'axe' && file.path === A11Y_AXE_FILE) {
-      sawA11y = true;
+      saw.add('a11y');
       readAxe(file, label, a11y, notes);
     } else if (family === 'reader' && TRANSCRIPT_PATH.test(file.path)) {
-      sawReader = true;
+      saw.add('reader');
       readTranscript(file, label, reader, notes);
-    } else if (family === 'docs' && file.path === A11Y_AXE_FILE) {
-      sawDocs = true;
-      readAxe(file, label, docs, notes, { source: 'docs', check: DOCS_SCAN_CHECK });
-    } else if (family === 'docs-checks' && ROOT_JSON.test(file.path)) {
-      sawDocs = true;
-      readEvidence(file, label, docs, notes, { checks: siteChecks('docs'), source: 'docs-checks', baseUrl: DEFAULT_DOCS_BASE_URL });
+    } else if (Object.hasOwn(SITE_NIGHTS, family ?? '') && file.path === A11Y_AXE_FILE) {
+      saw.add(site);
+      readAxe(file, label, sites[site], notes, { source: site, check: SITE_NIGHTS[site].scanCheck });
+    } else if (family === `${site}-checks` && Object.hasOwn(SITE_NIGHTS, site ?? '') && ROOT_JSON.test(file.path)) {
+      saw.add(site);
+      readEvidence(file, label, sites[site], notes, { checks: siteChecks(site), source: family, baseUrl: SITE_NIGHTS[site].baseUrl });
     }
   }
 
-  return { nights: [...(sawA11y ? [a11y] : []), ...(sawReader ? [reader] : []), ...(sawDocs ? [docs] : [])], notes };
+  return { nights: [a11y, reader, ...Object.values(sites)].filter(night => saw.has(night.source)), notes };
 }
 
 /**
@@ -979,7 +1008,7 @@ export function assertA11yVersion(doc) {
  * Which night source a row belongs to.
  *
  * @param {{source: string}} row The row or finding.
- * @returns {'a11y'|'reader'|'docs'} The source.
+ * @returns {'a11y'|'reader'|'docs'|'website'} The source.
  */
 function nightSourceOf(row) {
   return SOURCE_OF_NIGHT[row.source];
@@ -1057,11 +1086,11 @@ function coverageIndex(coverage) {
  * @returns {boolean} The verdict.
  */
 function covered(row, index) {
-  if (row.source === 'checks' || row.source === 'docs-checks') {
+  if (row.source === 'checks' || row.source === 'docs-checks' || row.source === 'website-checks') {
     return index.checks.get(row.check)?.has(targetKey(row)) ?? false;
   }
-  // The docs night keeps its scan's coverage in the same field: a night holds one source's rows.
-  if (row.source === 'axe' || row.source === 'docs') {
+  // A site's night keeps its scan's coverage in the same field: a night holds one source's rows.
+  if (row.source === 'axe' || row.source === 'docs' || row.source === 'website') {
     return index.axe;
   }
 
@@ -1187,7 +1216,7 @@ function nightSummaries(earlier, night) {
   if (night.source === 'a11y') {
     return { checks: { ...(earlier?.checks ?? {}), ...night.checks }, axe: night.axe ?? earlier?.axe ?? null };
   }
-  if (night.source === 'docs') {
+  if (Object.hasOwn(SITE_NIGHTS, night.source)) {
     const checks = { ...(earlier?.checks ?? {}), ...night.checks };
 
     return { axe: night.axe ?? earlier?.axe ?? null, ...(Object.keys(checks).length > 0 ? { checks } : {}) };
@@ -1662,14 +1691,16 @@ export function a11yView(doc, catalog) {
       })),
     ]
     : [];
-  const latestDocs = nightOf('docs');
+  for (const [site, title] of [['docs', 'docs site axe scan'], ['website', 'website axe scan']]) {
+    const latestSite = nightOf(site);
 
-  if (latestDocs?.axe) {
-    checks.push({ check: DOCS_SCAN_CHECK, title: 'docs site axe scan', targets: null, measured: null, findings: latestDocs.axe.findings,
-      problems: latestDocs.axe.problems });
-  }
-  for (const check of Object.keys(latestDocs?.checks ?? {}).sort()) {
-    checks.push({ check, title: SITE_CHECKS[check]?.title ?? check, ...latestDocs.checks[check] });
+    if (latestSite?.axe) {
+      checks.push({ check: SITE_NIGHTS[site].scanCheck, title, targets: null, measured: null, findings: latestSite.axe.findings,
+        problems: latestSite.axe.problems });
+    }
+    for (const check of Object.keys(latestSite?.checks ?? {}).sort()) {
+      checks.push({ check, title: SITE_CHECKS[check]?.title ?? check, ...latestSite.checks[check] });
+    }
   }
 
   const latestReader = nightOf('reader');
@@ -1745,7 +1776,7 @@ export function a11yView(doc, catalog) {
     retentionDays: doc.retentionDays,
     trendNights: doc.trendNights ?? A11Y_TREND_NIGHTS,
     flapNights: doc.flapNights ?? A11Y_FLAP_NIGHTS,
-    latest: { a11y: latestOf('a11y'), reader: latestOf('reader'), docs: latestOf('docs') },
+    latest: { a11y: latestOf('a11y'), reader: latestOf('reader'), docs: latestOf('docs'), website: latestOf('website') },
     totals: {
       open: open.length,
       new: open.filter(row => row.status === 'new').length,

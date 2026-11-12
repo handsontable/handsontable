@@ -20,6 +20,9 @@ import {
   A11Y_TRIAGE_SHOWN,
   A11Y_VERSION,
   DOCS_A11Y_WORKFLOW,
+  WEBSITE_A11Y_WORKFLOW,
+  WEBSITE_AXE_ARTIFACT,
+  WEBSITE_CHECKS_ARTIFACT,
   DOCS_AXE_ARTIFACT,
   DOCS_CHECKS_ARTIFACT,
   NIGHT_SOURCES,
@@ -48,8 +51,9 @@ import {
   renderStepSummary,
   runContextFromRun,
 } from '../lib/test-health.mjs';
-import { DOCS_SCAN_CHECK, ISSUES_SCHEMA, TRIAGE_ID, compileIssuesCatalog } from '../../../tests/lib/a11y-issues.mjs';
+import { DOCS_SCAN_CHECK, ISSUES_SCHEMA, TRIAGE_ID, WEBSITE_SCAN_CHECK, compileIssuesCatalog } from '../../../tests/lib/a11y-issues.mjs';
 import { DEFAULT_DOCS_BASE_URL } from '../../../tests/a11y/docs/constants.mjs';
+import { DEFAULT_WEBSITE_BASE_URL } from '../../../tests/a11y/website/constants.mjs';
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA } from '../../../tests/lib/a11y-evidence.mjs';
 import { compareViolations } from '../../../tests/lib/a11y-baseline.mjs';
 import { buildCheckRun } from '../../../tests/lib/a11y-check-run.mjs';
@@ -402,6 +406,57 @@ test('the docs site checks join the docs night under their own row source, of th
   assert.match(product.notes.join('\n'), /keyboard-walker is not a site check of SITE_CHECKS/);
 });
 
+test('the website is a night of its own: its scan and checks of production only, under their own row sources', () => {
+  const WEBSITE_RUN = { ...DOCS_RUN, id: 41750000001, name: WEBSITE_A11Y_WORKFLOW };
+  const scan = {
+    ...DOCS_DOC,
+    about: 'Accessibility findings of the website scan',
+    baseUrl: DEFAULT_WEBSITE_BASE_URL,
+    counts: { new: 1, grown: 0, matched: 0, improved: 0, stale: 0, unverified: 0, action: 1 },
+    needsAction: [{ ...DOCS_DOC.needsAction[0], page: 'support-call-details', theme: 'phone', url: '/support-call/', rule: 'color-contrast',
+      wcag: ['1.4.3'], target: 'p.clients-band-label' }],
+    issues: [],
+  };
+  const check = (findings, run = {}) => evidenceDoc('website-forms', findings,
+    [{ page: 'newsletter', theme: 'light', state: 'none', variant: null, status: 'measured', criteria: ['3.3.2'] }],
+    { title: 'Website: Forms: labels, input purposes, errors, and status messages', criteria: ['3.3.2'],
+      run: { commit: NIGHTLY.head_sha, ref: 'develop', runUrl: NIGHTLY.html_url, baseUrl: DEFAULT_WEBSITE_BASE_URL, ...run } });
+  const LABEL = { kind: 'label-not-visible', criteria: ['3.3.2'], severity: 'moderate', selector: 'input.input "Email address"',
+    measured: { name: 'Email address' }, reason: 'The field\'s name is not drawn as a label', page: 'newsletter', theme: 'light', url: '/' };
+  const files = (extra = {}) => Object.entries({
+    [`${WEBSITE_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: scan,
+    [`${WEBSITE_CHECKS_ARTIFACT}/website-forms.json`]: check([LABEL]),
+    ...extra,
+  }).map(([file, doc]) => ({ artifact: file.split('/')[0], path: file.split('/').slice(1).join('/'), text: JSON.stringify(doc) }));
+  const read = readA11yArtifacts([...docsFiles(), ...files()]);
+
+  assert.deepEqual(read.notes, []);
+  assert.deepEqual(read.nights.map(entry => entry.source), ['docs', 'website'], 'a run that holds both sites holds two nights');
+
+  const website = read.nights[1];
+
+  assert.deepEqual(website.findings.map(finding => [finding.source, finding.check, finding.kind, finding.page, finding.theme]), [
+    ['website', WEBSITE_SCAN_CHECK, 'axe-violation', 'support-call-details', 'phone'],
+    ['website-checks', 'website-forms', 'label-not-visible', 'newsletter', 'light'],
+  ]);
+
+  const merged = mergeA11yLedger(null, website, runContextFromRun(WEBSITE_RUN), CATALOG, { now: NOW });
+
+  assert.deepEqual(merged.doc.latest.website, { runId: '41750000001', seenAt: WEBSITE_RUN.updated_at });
+  assert.equal(merged.doc.rows.filter(row => row.source === 'docs' || row.source === 'docs-checks').length, 0, 'no docs row');
+  assert.ok(a11yView(merged.doc, CATALOG).checks.some(entry => entry.check === WEBSITE_SCAN_CHECK && entry.title === 'website axe scan'));
+
+  // A scan or a check of a preview is no night's: its findings would open or resolve production's rows.
+  const preview = readA11yArtifacts(files({
+    [`${WEBSITE_AXE_ARTIFACT}/${A11Y_AXE_FILE}`]: { ...scan, baseUrl: 'https://preview.example.dev' },
+    [`${WEBSITE_CHECKS_ARTIFACT}/website-forms.json`]: check([LABEL], { baseUrl: 'https://preview.example.dev' }),
+  }));
+
+  assert.match(preview.notes.join('\n'), /a scan of "https:\/\/preview\.example\.dev", not production/);
+  assert.match(preview.notes.join('\n'), /read https:\/\/preview\.example\.dev, not the deploy the night records/);
+  assert.equal(preview.nights[0].findings.length, 0);
+});
+
 test('isA11yRun takes the two nightlies and the docs site scan on develop by schedule or dispatch, and nothing a pull request can start', () => {
   assert.equal(isA11yRun(runContextFromRun(NIGHTLY)), true);
   assert.equal(isA11yRun(runContextFromRun(READER_RUN)), true);
@@ -409,10 +464,12 @@ test('isA11yRun takes the two nightlies and the docs site scan on develop by sch
   assert.equal(isA11yRun(runContextFromRun({ ...DOCS_RUN, head_branch: 'feature/X-1_Branch' })), false, 'a proof dispatch from a branch');
   assert.equal(isA11yRun(runContextFromRun({ ...DOCS_RUN, event: 'pull_request' })), false);
   // A run names the sources it holds, so a workflow that calls several of the scans can name them all.
-  assert.deepEqual(NIGHT_SOURCES, ['a11y', 'reader', 'docs']);
+  assert.deepEqual(NIGHT_SOURCES, ['a11y', 'reader', 'docs', 'website']);
   assert.deepEqual(sourcesOfWorkflow(A11Y_NIGHTLY_WORKFLOW), ['a11y']);
   assert.deepEqual(sourcesOfWorkflow(READER_NIGHTLY_WORKFLOW), ['reader']);
   assert.deepEqual(sourcesOfWorkflow(DOCS_A11Y_WORKFLOW), ['docs']);
+  assert.deepEqual(sourcesOfWorkflow(WEBSITE_A11Y_WORKFLOW), ['website']);
+  assert.equal(isA11yRun(runContextFromRun({ ...DOCS_RUN, name: WEBSITE_A11Y_WORKFLOW })), true, 'the website scan, dispatched on develop');
   assert.deepEqual(sourcesOfWorkflow('Tests'), []);
   assert.deepEqual(sourcesOfWorkflow('constructor'), [], 'never a prototype key');
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'workflow_dispatch' })), true, 'a proof run, or a missed night run again');
@@ -1560,6 +1617,7 @@ test('a11yView derives the clusters, their trend, the criteria, the reader verdi
     a11y: { runId: '41600000000', runAttempt: 1, seenAt: night(1), headSha: NIGHTLY.head_sha.slice(0, 10), workflow: A11Y_NIGHTLY_WORKFLOW },
     reader: { runId: '41579067604', runAttempt: 1, seenAt: READER_RUN.updated_at, headSha: NIGHTLY.head_sha.slice(0, 10), workflow: READER_NIGHTLY_WORKFLOW },
     docs: null,
+    website: null,
   });
   // Nights oldest first, as the trend reads them: [run id, seen at, source, findings, new, resolved, triage, problems, attempt].
   assert.deepEqual(view.nights, [
@@ -1744,7 +1802,7 @@ test('the rendered accessibility section is accessible markup: tables with heade
     'a trend chart is an image named after its cluster and its nightly');
 });
 
-test('test-health.yml chains on the two nightlies and the docs site scan, downloads their artifacts for a develop run only, and hands the collector the catalog', () => {
+test('test-health.yml chains on the two nightlies and the docs and website scans, downloads their artifacts for a develop run only, and hands the collector the catalog', () => {
   const health = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
   const collect = steps(job(health, 'collect'));
   const describe = collect.find(step => step.startsWith('- name: Describe the run\n'));
@@ -1752,14 +1810,16 @@ test('test-health.yml chains on the two nightlies and the docs site scan, downlo
   const update = collect.find(step => step.startsWith('- name: Update the ledger on GitHub Pages\n'));
 
   assert.ok(describe && download && update, 'lost a step');
-  assert.match(health, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y'\]/);
+  assert.match(health, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y', 'Website a11y'\]/);
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/a11y-nightly.yml'), 'utf8'), new RegExp(`^name: ${A11Y_NIGHTLY_WORKFLOW}$`, 'm'));
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/screenreader-nightly.yml'), 'utf8'), new RegExp(`^name: ${READER_NIGHTLY_WORKFLOW}$`, 'm'));
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/docs-a11y.yml'), 'utf8'), new RegExp(`^name: ${DOCS_A11Y_WORKFLOW}$`, 'm'));
+  assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/website-a11y.yml'), 'utf8'), new RegExp(`^name: ${WEBSITE_A11Y_WORKFLOW}$`, 'm'));
   assert.ok(describe.includes('import { isA11yRun } from \'./.github/scripts/lib/a11y-ledger.mjs\';'), 'the lib owns the develop rule');
   // eslint-disable-next-line no-template-curly-in-string
   assert.ok(describe.includes('echo "A11Y_RUN=${A11Y_RUN}" >> "$GITHUB_ENV"'));
-  const family = `"^(${A11Y_EVIDENCE_ARTIFACT}$|${A11Y_AXE_ARTIFACT}$|${DOCS_AXE_ARTIFACT}$|${DOCS_CHECKS_ARTIFACT}$|${READER_ARTIFACT_PREFIX})"`;
+  const family = `"^(${A11Y_EVIDENCE_ARTIFACT}$|${A11Y_AXE_ARTIFACT}$|${DOCS_AXE_ARTIFACT}$|${DOCS_CHECKS_ARTIFACT}$|${WEBSITE_AXE_ARTIFACT}$|`
+    + `${WEBSITE_CHECKS_ARTIFACT}$|${READER_ARTIFACT_PREFIX})"`;
 
   assert.ok(download.includes(`or (.name | test(${family}))`), 'the family is in the allowlist, by exact names and the transcript prefix');
   assert.ok(download.includes(`select((.name | test(${family}) | not) or env.A11Y_RUN == "true")`), 'and filtered on the flag');
@@ -1773,6 +1833,12 @@ test('test-health.yml chains on the two nightlies and the docs site scan, downlo
   assert.match(a11y, new RegExp(`^ {10}name: ${A11Y_AXE_ARTIFACT}$`, 'm'));
   assert.match(a11y, /^ {10}path: tests\/test-results\/a11y-checks$/m, 'the documents sit at the evidence artifact\'s root');
   assert.match(a11y, /^ {10}path: tests\/test-results\/a11y$/m, 'the findings sit at the axe artifact\'s root');
+  const website = readFileSync(path.join(repoRoot(), '.github/workflows/website-a11y.yml'), 'utf8');
+
+  assert.match(website, new RegExp(`^ {10}name: ${WEBSITE_AXE_ARTIFACT}$`, 'm'));
+  assert.match(website, new RegExp(`^ {10}name: ${WEBSITE_CHECKS_ARTIFACT}$`, 'm'));
+  assert.match(website, /^ {10}path: tests\/test-results\/a11y-website$/m, 'the website findings sit at the artifact\'s root');
+  assert.match(website, /^ {10}path: tests\/test-results\/a11y-website-checks$/m, 'the website documents sit at the artifact\'s root');
   assert.match(screenreader, new RegExp(`^ {10}name: ${READER_ARTIFACT_PREFIX}nvda-\\$\\{\\{ matrix\\.browser \\}\\}-\\$\\{\\{ matrix\\.group \\}\\}$`, 'm'));
   assert.match(screenreader, new RegExp(`^ {10}name: ${READER_ARTIFACT_PREFIX}vo-\\$\\{\\{ matrix\\.browser \\}\\}-\\$\\{\\{ matrix\\.group \\}\\}$`, 'm'));
   assert.match(screenreader, /^ {10}path: tests\/test-results\/screenreader$/m, `the transcripts sit under ${READER_TRANSCRIPTS_DIR}/ in the artifact`);

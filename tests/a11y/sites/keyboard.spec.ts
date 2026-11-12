@@ -185,9 +185,10 @@ async function skipLink(page: Page, cdp: CDPSession, stops: SiteStop[]) {
 }
 
 /**
- * Presses every printable key with nothing focused and records what each did: a navigation, a dialog opened, or the
- * focus moved onto an element. The page is opened again after a key that acted, so the next key starts from the
- * page as it loaded.
+ * Presses every printable key with nothing focused and records what each did: a navigation (and where to), a dialog
+ * opened, or the focus moved onto an element. The page is opened again after a key that acted, so the next key starts
+ * from the page as it loaded, and that key is pressed once more there: an effect the second press does not repeat
+ * came from the page (a late redirect, a timer), not from the key, and is recorded as `repeated: false`.
  *
  * @param page The page.
  * @param entry The page entry.
@@ -195,14 +196,13 @@ async function skipLink(page: Page, cdp: CDPSession, stops: SiteStop[]) {
  * @returns What each key did.
  */
 async function pressShortcuts(page: Page, entry: SitePage, pageErrors: string[]) {
-  const results: Array<{ key: string; navigated: boolean; dialogOpened: boolean; focused: string | null }> = [];
+  type KeyResult = { key: string; navigated: boolean; dialogOpened: boolean; focused: string | null; to: string | null };
+  const results: Array<KeyResult & { repeated: boolean | null }> = [];
   const blur = () => page.evaluate(() => {
     (document.activeElement as HTMLElement | null)?.blur();
     window.scrollTo(0, 0);
   });
-
-  await blur();
-  for (const key of SHORTCUT_KEYS) {
+  const press = async(key: string): Promise<KeyResult> => {
     const url = page.url();
     const dialogs = await openDialogs(page);
 
@@ -216,13 +216,32 @@ async function pressShortcuts(page: Page, entry: SitePage, pageErrors: string[])
           ? `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}` : null });
       }));
     })).catch(() => ({ focused: null }));
-    const result = { key, navigated: page.url() !== url, dialogOpened: (await openDialogs(page).catch(() => dialogs)) > dialogs, focused: after.focused };
+    // A change of the fragment alone (a scroll spy writing the heading in view) loads no other page.
+    const navigated = page.url().split('#')[0] !== url.split('#')[0];
 
-    results.push(result);
-    if (result.navigated || result.dialogOpened || result.focused) {
+    return { key, navigated, dialogOpened: (await openDialogs(page).catch(() => dialogs)) > dialogs, focused: after.focused,
+      to: navigated ? page.url() : null };
+  };
+  const acted = (result: KeyResult) => result.navigated || result.dialogOpened || Boolean(result.focused);
+
+  await blur();
+  for (const key of SHORTCUT_KEYS) {
+    const first = await press(key);
+    let repeated: boolean | null = null;
+
+    if (acted(first)) {
       await reopen(page, entry, pageErrors);
       await blur();
+
+      const second = await press(key);
+
+      repeated = acted(second);
+      if (repeated) {
+        await reopen(page, entry, pageErrors);
+        await blur();
+      }
     }
+    results.push({ ...first, repeated });
   }
 
   return results;
@@ -277,7 +296,7 @@ async function sendInputs(page: Page, stops: SiteStop[]) {
       }));
     }), stop.key).catch(() => true);
 
-    results.push({ selector: stop.shape, key, navigated: page.url() !== url, dialogOpened: (await openDialogs(page).catch(() => dialogs)) > dialogs, focusMoved });
+    results.push({ selector: stop.shape, key, navigated: page.url().split('#')[0] !== url.split('#')[0], dialogOpened: (await openDialogs(page).catch(() => dialogs)) > dialogs, focusMoved });
   }
 
   return results;
@@ -327,9 +346,17 @@ async function popup(page: Page, entry: SitePage) {
     const presses = await page.evaluate(selector => (document.querySelector(selector)?.querySelectorAll('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])').length ?? 0) + 2,
       definition.container);
 
+    // A Tab past a modal's last control may take the focus out of the document, to the browser's own controls (a native
+    // modal dialog does: the page behind it is inert), which leaves `body` focused. Only a focus on the page behind is
+    // a modal let go.
     for (let press = 0; press < Math.min(presses, 60) && !leftModal; press++) {
       await page.keyboard.press('Tab');
-      leftModal = !(await page.evaluate(selector => Boolean(document.querySelector(selector)?.contains(document.activeElement)), definition.container));
+      leftModal = await page.evaluate((selector) => {
+        const active = document.activeElement;
+
+        return Boolean(active && active !== document.body && active !== document.documentElement
+          && !document.querySelector(selector)?.contains(active));
+      }, definition.container);
     }
   }
 

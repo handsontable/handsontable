@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareViolations } from '../a11y-baseline.mjs';
 import { DOCS_SCAN, baselineLines, buildCheckRun, pageLines } from '../a11y-check-run.mjs';
-import { DOCS_AUDIT_COMMAND, LEDGER_URL, docsAudit, driftKey, driftNotes, isDrift } from '../a11y-docs-drift.mjs';
+import { DOCS_AUDIT_COMMAND, LEDGER_URL, docsAudit, driftKey, driftNotes, isDrift, siteAudit } from '../a11y-docs-drift.mjs';
 
 // tests/AGENTS.md ("A11y: the docs site scan", baseline drift): a pull request's docs scan reads develop's staging deploy,
 // so a new or grown finding develop's latest docs audit also saw is drift, a warning at most; one the audit did not see
@@ -36,6 +36,25 @@ test('the audit is the ledger\'s latest docs night: its run, time, commit and th
   assert.equal(docsAudit(null), null);
   assert.equal(driftKey({ rule: 'r', page: 'p', theme: 't', where: 'w' }), 'r|p|t|w');
   assert.equal(LEDGER_URL, 'https://handsontable.github.io/handsontable/test-health/a11y.json');
+});
+
+test('the website audit is the ledger\'s latest website night, and its notes name the website\'s baseline and audit', () => {
+  const ledger = {
+    ...LEDGER,
+    latest: { ...LEDGER.latest, website: { runId: '300', seenAt: '2026-11-12T09:00:00Z' } },
+    nights: [...LEDGER.nights, { source: 'website', runId: '300', headSha: 'def' }],
+    rows: [...LEDGER.rows, row({ source: 'website', check: 'website-axe', page: 'pricing', theme: 'phone', where: 'button.tab', lastRun: '300' })],
+  };
+  const audit = siteAudit(ledger, 'website');
+
+  assert.deepEqual([...audit.keys], ['color-contrast|pricing|phone|button.tab'], 'a docs row is not the website audit\'s');
+  assert.equal(siteAudit(LEDGER, 'website'), null, 'no website night, no audit');
+
+  const [note] = driftNotes({ audit, drift: 1, counted: 2, site: 'website' });
+
+  assert.match(note, /1 of the 2 new or grown findings are on the live website already: the website audit of 2026-11-12 \(run 300\)/);
+  assert.match(note, /refresh tests\/a11y\/website\/website-baseline\.json/);
+  assert.match(driftNotes({ audit: null, drift: 0, counted: 1, site: 'website' })[0], /gh workflow run website-a11y\.yml --ref develop/);
 });
 
 test('a finding is drift when the audit saw its rule on its page, scheme and masked element', () => {

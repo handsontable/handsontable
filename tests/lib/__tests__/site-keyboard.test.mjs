@@ -90,11 +90,16 @@ test('a popup: items no key reaches, a modal the focus leaves, Escape ignored, t
 
 test('2.1.4: a printable key that acts with nothing focused; 3.2.2: an input that changes the context', () => {
   const shortcuts = shortcutFindings([
-    { key: 'a', navigated: false, dialogOpened: false, focused: null },
-    { key: '/', navigated: false, dialogOpened: false, focused: 'input#docsearch-input' },
+    { key: 'a', navigated: false, dialogOpened: false, focused: null, repeated: null },
+    { key: '/', navigated: false, dialogOpened: false, focused: 'input#docsearch-input', repeated: true },
+    { key: 'r', navigated: true, dialogOpened: false, focused: null, to: 'https://example.test/?r', repeated: false },
+    { key: 'g', navigated: true, dialogOpened: false, focused: null, to: 'https://example.test/guides/', repeated: true },
   ]);
 
-  assert.deepEqual(shortcuts.map(item => [item.kind, item.step, item.severity]), [['single-key-shortcut', 'key "/"', 'serious']]);
+  assert.deepEqual(shortcuts.map(item => [item.kind, item.step, item.severity]),
+    [['single-key-shortcut', 'key "/"', 'serious'], ['single-key-shortcut', 'key "g"', 'serious']],
+    'an effect the second press did not repeat came from the page, not the key');
+  assert.equal(shortcuts[1].measured.to, 'https://example.test/guides/', 'a navigation says where it went');
 
   const inputs = inputFindings([
     { selector: 'select.theme', key: 'ArrowDown', navigated: false, dialogOpened: false, focusMoved: false },

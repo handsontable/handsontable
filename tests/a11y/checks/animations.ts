@@ -51,7 +51,9 @@ export async function watchAnimations(page: Page, ms: number): Promise<Watch> {
         ? [css.transitionProperty]
         : [...new Set(keyframes.flatMap(frame => Object.keys(frame).filter(key => !['offset', 'computedOffset', 'easing', 'composite'].includes(key))))].map(kebab);
       const timing = effect?.getComputedTiming?.() ?? {};
-      const classes = target ? [...target.classList].slice(0, 1).map(name => `.${name}`).join('') : '';
+      // A CSS module's class (`_track_dip2s_70`, the website's) is read as the name its author wrote: its hash changes
+      // with every build.
+      const classes = target ? [...target.classList].slice(0, 1).map(name => `.${name.replace(/^_([A-Za-z][\w-]*?)_[a-z0-9]{5}_\d+$/, '$1')}`).join('') : '';
 
       return {
         kind: animation.constructor.name,

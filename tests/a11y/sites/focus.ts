@@ -39,7 +39,10 @@ export async function samplePoints(page: Page): Promise<{ visible: number; point
 
         const hit = document.elementFromPoint(x, y);
 
-        if (hit && (hit === element || element.contains(hit) || hit.contains(element))) {
+        // A checkbox or a radio drawn by its label shows through the label.
+        const labels = [...((element as HTMLInputElement).labels ?? [])];
+
+        if (hit && (hit === element || element.contains(hit) || hit.contains(element) || labels.some(label => label.contains(hit)))) {
           visible += 1;
         }
       }
@@ -65,13 +68,16 @@ export async function indicator(page: Page, stop: SiteStop) {
     return null;
   }
 
+  // The box is read while the element has the focus: a skip link is drawn only then, and the area to compare is where
+  // it shows, which the capture at rest then shows without it.
   const box = await page.evaluate(() => {
     const element = document.activeElement as HTMLElement;
 
     element.scrollIntoView({ block: 'center', inline: 'nearest' });
-    element.blur();
 
     const rect = element.getBoundingClientRect();
+
+    element.blur();
 
     return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
   });
@@ -100,8 +106,17 @@ export async function indicator(page: Page, stop: SiteStop) {
   }
   await page.evaluate(() => (document.activeElement as HTMLElement).scrollIntoView({ block: 'center', inline: 'nearest' }));
   await frames(page);
-  await page.evaluate(() => Promise.all(document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity)
-    .map(animation => animation.finished.catch(() => undefined))));
+  // The transitions the focus started, for five seconds at most: a paused animation never finishes.
+  await page.evaluate(() => Promise.race([
+    Promise.all(document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity
+      && animation.playState === 'running').map(animation => animation.finished.catch(() => undefined))),
+    new Promise<void>((resolve) => {
+      const begin = performance.now();
+      const tick = () => (performance.now() - begin >= 5000 ? resolve() : requestAnimationFrame(tick));
+
+      requestAnimationFrame(tick);
+    }),
+  ]));
 
   const focusVisible = await page.evaluate(() => document.activeElement?.matches(':focus-visible') ?? false);
   const after = await capture(page, area);

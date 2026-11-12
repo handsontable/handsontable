@@ -7,6 +7,9 @@ export interface DocsAudit {
   keys: Set<string>;
 }
 export function driftKey(finding: { rule: string; page: string; theme: string; where: string }): string;
+export const SITE_DRIFT: Readonly<Record<'docs' | 'website', { audit: string; none: string; on: string; command: string; baseline: string;
+  section: string; deploy: string }>>;
 export function docsAudit(ledger: unknown): DocsAudit | null;
+export function siteAudit(ledger: unknown, site: 'docs' | 'website'): DocsAudit | null;
 export function isDrift(audit: DocsAudit | null, item: { rule: string; page: string; theme: string; target: string }): boolean;
-export function driftNotes(input: { audit: { runId: string; seenAt: string | null } | null; problem?: string | null; drift: number; counted: number; deployedAt?: string | null }): string[];
+export function driftNotes(input: { audit: { runId: string; seenAt: string | null } | null; problem?: string | null; drift: number; counted: number; deployedAt?: string | null; site?: 'docs' | 'website' }): string[];

@@ -16,6 +16,7 @@
  * `tests/scripts/a11y-check-run.mjs` reads the reporter's `comparison.json`,
  * builds the payload here, and posts it. No I/O in here.
  */
+import { pageIdOf } from '../a11y/website/pages.mjs';
 import { BASELINE_FILE, entryKey, headline, renderSummary, verdictCounts } from './a11y-baseline.mjs';
 import { annotationLevel, capAnnotations, renderVerdict, severityOfImpact, verdictOf, verdictTitle } from './a11y-verdict.mjs';
 
@@ -36,6 +37,10 @@ export const PRODUCT_SCAN = Object.freeze({
 export const DOCS_SCAN = Object.freeze({
   name: 'A11y / docs-axe report', title: 'A11y / docs axe', job: 'docs axe job', comparison: 'test-results/a11y-docs/comparison.json',
   pagesFile: 'tests/a11y/docs/pages.mjs', baselineFile: 'tests/a11y/docs/docs-baseline.json', source: 'docs', check: 'docs-axe',
+});
+export const WEBSITE_SCAN = Object.freeze({
+  name: 'A11y / website-axe report', title: 'A11y / website axe', job: 'website axe job', comparison: 'test-results/a11y-website/comparison.json',
+  pagesFile: 'tests/a11y/website/pages.mjs', baselineFile: 'tests/a11y/website/website-baseline.json', source: 'website', check: 'website-axe',
 });
 
 /**
@@ -81,6 +86,28 @@ export function docsPageLines(source, ids) {
 }
 
 /**
+ * The line of each website page in `tests/a11y/website/pages.mjs`, by page id. An entry is a `page('<route>', …)` call
+ * on one line, whose id is the one it names or the one its route gives (`pageIdOf()`, as the website's list derives it).
+ *
+ * @param {string} source The file's text.
+ * @returns {Map<string, number>} The 1-based lines.
+ */
+export function websitePageLines(source) {
+  const lines = new Map();
+
+  source.split('\n').forEach((line, index) => {
+    const match = /\bpage\('([^']+)'(?:,\s*\{\s*id:\s*'([a-z0-9-]+)')?/.exec(line);
+    const id = match ? (match[2] ?? pageIdOf(match[1])) : null;
+
+    if (id !== null && !lines.has(id)) {
+      lines.set(id, index + 1);
+    }
+  });
+
+  return lines;
+}
+
+/**
  * The line of each entry in the baseline, by its key. The file holds one entry per line.
  *
  * @param {string} source The file's text.
@@ -118,7 +145,8 @@ export function baselineLines(source) {
  * @param {(source: string, check: string, item: object) => boolean} [input.tracked] Whether a finding's cluster
  * has a tracker (`trackedBy()` of `lib/a11y-issues.mjs`); read on a change run only.
  * @param {object} [input.scan] Which scan the comparison is: the product scan by default (`PRODUCT_SCAN`), or the
- * docs site scan (`DOCS_SCAN`), whose check run, page list, baseline and finding source are its own.
+ * docs site scan (`DOCS_SCAN`) or the website scan (`WEBSITE_SCAN`), whose check run, page list, baseline and finding
+ * source are their own.
  * @param {(item: object) => boolean} [input.drift] Whether a new or grown finding is baseline drift: on a change run it
  * counts as a warning at most, like a tracked one (`isDrift()` of `lib/a11y-docs-drift.mjs`; the docs scan only).
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.

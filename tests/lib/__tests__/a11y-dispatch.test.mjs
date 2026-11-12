@@ -89,6 +89,10 @@ test('a site workflow\'s checks input names its site checks: every one by defaul
   assert.throws(() => dispatchSubset({ ref: 'refs/heads/feature/x', site: 'docs', siteChecks: 'keyboard-walker' }),
     /checks names no docs site check "keyboard-walker"/);
   assert.equal(Object.hasOwn(dispatchSubset({ ref: AUDIT_REF }), 'siteChecks'), false, 'a nightly\'s dispatch has no site checks');
+  // The website's checks are its own, the forms check among them; a docs check id is not one.
+  assert.deepEqual(dispatchSubset({ ref: 'refs/heads/feature/x', site: 'website', siteChecks: 'website-forms' }).siteChecks, ['website-forms']);
+  assert.throws(() => dispatchSubset({ ref: 'refs/heads/feature/x', site: 'website', siteChecks: 'docs-reflow' }),
+    /checks names no website site check "docs-reflow"/);
 });
 
 test('the guard script says what the run covers, and refuses with an error annotation and exit 1', () => {

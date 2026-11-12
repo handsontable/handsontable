@@ -22,6 +22,20 @@ export const LEDGER_URL = 'https://handsontable.github.io/handsontable/test-heal
  * The command that measures develop's docs again, which a stale audit asks for.
  */
 export const DOCS_AUDIT_COMMAND = 'gh workflow run docs-a11y.yml --ref develop';
+/**
+ * The same rule for the website scan, whose change runs read production: what each site's notes call its audit, where
+ * its findings are, and the baseline and the policy section a drift note points to.
+ */
+export const SITE_DRIFT = Object.freeze({
+  docs: {
+    audit: 'the develop docs audit', none: 'no develop docs audit', on: 'on develop\'s docs already', command: DOCS_AUDIT_COMMAND,
+    baseline: 'tests/a11y/docs/docs-baseline.json', section: 'A11y: the docs site scan', deploy: 'the staging deploy',
+  },
+  website: {
+    audit: 'the website audit', none: 'no website audit', on: 'on the live website already', command: 'gh workflow run website-a11y.yml --ref develop',
+    baseline: 'tests/a11y/website/website-baseline.json', section: 'A11y: the website scan', deploy: 'the production deploy',
+  },
+});
 // The longest element the ledger keeps (`A11Y_LIMITS.where` of `.github/scripts/lib/a11y-ledger.mjs`).
 const WHERE_LIMIT = 300;
 
@@ -44,19 +58,31 @@ export function driftKey({ rule, page, theme, where }) {
  * @returns {{runId: string, seenAt: string|null, headSha: string|null, keys: Set<string>}|null} The audit.
  */
 export function docsAudit(ledger) {
-  const runId = ledger?.latest?.docs?.runId;
+  return siteAudit(ledger, 'docs');
+}
+
+/**
+ * A site's latest audit as the findings ledger records it (`docsAudit()` for the docs): the website's is its night
+ * source `website`, and its rows' theme is the width.
+ *
+ * @param {unknown} ledger The parsed `a11y.json`.
+ * @param {'docs'|'website'} site The site.
+ * @returns {{runId: string, seenAt: string|null, headSha: string|null, keys: Set<string>}|null} The audit.
+ */
+export function siteAudit(ledger, site) {
+  const runId = ledger?.latest?.[site]?.runId;
 
   if (typeof runId !== 'string' || !Array.isArray(ledger.rows)) {
     return null;
   }
 
-  const night = (Array.isArray(ledger.nights) ? ledger.nights : []).find(entry => entry?.source === 'docs' && entry.runId === runId);
+  const night = (Array.isArray(ledger.nights) ? ledger.nights : []).find(entry => entry?.source === site && entry.runId === runId);
 
   return {
     runId,
-    seenAt: ledger.latest.docs.seenAt ?? null,
+    seenAt: ledger.latest[site].seenAt ?? null,
     headSha: night?.headSha ?? null,
-    keys: new Set(ledger.rows.filter(row => row?.source === 'docs' && row.lastRun === runId).map(driftKey)),
+    keys: new Set(ledger.rows.filter(row => row?.source === site && row.lastRun === runId).map(driftKey)),
   };
 }
 
@@ -86,28 +112,32 @@ export function isDrift(audit, item) {
  * @param {string|null} [input.problem] Why the ledger could not be read.
  * @param {number} input.drift How many new or grown findings are drift.
  * @param {number} input.counted How many new or grown findings there are.
- * @param {string|null} [input.deployedAt] When the staging deploy the run read finished, when known.
+ * @param {string|null} [input.deployedAt] When the deploy the run read finished, when known.
+ * @param {'docs'|'website'} [input.site] The site.
  * @returns {string[]} The notes, one sentence each.
  */
-export function driftNotes({ audit, problem = null, drift, counted, deployedAt = null }) {
+export function driftNotes({ audit, problem = null, drift, counted, deployedAt = null, site = 'docs' }) {
+  const words = SITE_DRIFT[site];
+  const Audit = `${words.audit[0].toUpperCase()}${words.audit.slice(1)}`;
+
   if (problem !== null) {
-    return [`The develop docs audit could not be read (${problem}), so every new or grown finding counts at its severity.`];
+    return [`${Audit} could not be read (${problem}), so every new or grown finding counts at its severity.`];
   }
   if (audit === null) {
-    return [`The findings ledger holds no develop docs audit, so every new or grown finding counts at its severity: dispatch one, \`${DOCS_AUDIT_COMMAND}\`.`];
+    return [`The findings ledger holds ${words.none}, so every new or grown finding counts at its severity: dispatch one, \`${words.command}\`.`];
   }
 
   const notes = [];
   const when = audit.seenAt ? ` of ${audit.seenAt.slice(0, 10)}` : '';
 
   if (drift > 0) {
-    notes.push(`${drift} of the ${counted} new or grown findings are on develop's docs already: the develop docs audit${when} (run ${audit.runId}) `
-      + 'saw them. That is baseline drift, not this change, so each counts as a warning at most: refresh tests/a11y/docs/docs-baseline.json '
-      + 'from that audit (tests/AGENTS.md, "A11y: the docs site scan").');
+    notes.push(`${drift} of the ${counted} new or grown findings are ${words.on}: ${words.audit}${when} (run ${audit.runId}) `
+      + `saw them. That is baseline drift, not this change, so each counts as a warning at most: refresh ${words.baseline} `
+      + `from that audit (tests/AGENTS.md, "${words.section}").`);
   }
   if (deployedAt && audit.seenAt && Date.parse(deployedAt) > Date.parse(audit.seenAt)) {
-    notes.push(`The develop docs audit${when} is older than the staging deploy this run read (${deployedAt.slice(0, 16).replace('T', ' ')} UTC), so a `
-      + `finding the docs gained since reads as this change's: dispatch the audit, \`${DOCS_AUDIT_COMMAND}\`, and re-run this job.`);
+    notes.push(`${Audit}${when} is older than ${words.deploy} this run read (${deployedAt.slice(0, 16).replace('T', ' ')} UTC), so a `
+      + `finding the site gained since reads as this change's: dispatch the audit, \`${words.command}\`, and re-run this job.`);
   }
 
   return notes;

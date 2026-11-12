@@ -23,13 +23,15 @@
  * scan, a new or grown finding develop's latest docs audit also saw is baseline drift and a warning at most
  * (`lib/a11y-docs-drift.mjs`): the poster reads that audit from the findings ledger (`A11Y_LEDGER_URL`, the published
  * `a11y.json` by default) and, with `GITHUB_TOKEN`, when the staging deploy last finished, to say when the audit is
- * older than the deploy the run read.
+ * older than the deploy the run read. `--suite website` reports the website scan the same way
+ * (`.github/workflows/website-a11y.yml`): `A11y / website-axe report`, from `test-results/a11y-website/comparison.json`,
+ * with the same drift rule against the latest website audit, which reads production as a change run does.
  */
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DOCS_SCAN, PRODUCT_SCAN, baselineLines, buildCheckRun, docsPageLines, pageLines } from '../lib/a11y-check-run.mjs';
-import { LEDGER_URL, docsAudit, driftNotes, isDrift } from '../lib/a11y-docs-drift.mjs';
+import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, docsPageLines, pageLines, websitePageLines } from '../lib/a11y-check-run.mjs';
+import { LEDGER_URL, driftNotes, isDrift, siteAudit } from '../lib/a11y-docs-drift.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
@@ -38,12 +40,14 @@ const env = process.env;
 const dryRun = process.argv.includes('--dry-run');
 const suite = process.argv.includes('--suite') ? process.argv[process.argv.indexOf('--suite') + 1] : 'product';
 
-if (!['product', 'docs'].includes(suite)) {
-  process.stderr.write(`a11y-check-run: --suite must be product or docs, got ${JSON.stringify(suite)}\n`);
+const SCANS = { product: PRODUCT_SCAN, docs: DOCS_SCAN, website: WEBSITE_SCAN };
+
+if (!Object.hasOwn(SCANS, suite)) {
+  process.stderr.write(`a11y-check-run: --suite must be product, docs or website, got ${JSON.stringify(suite)}\n`);
   process.exit(2);
 }
 
-const scan = suite === 'docs' ? DOCS_SCAN : PRODUCT_SCAN;
+const scan = SCANS[suite];
 const fromTests = file => path.join(TESTS_ROOT, file.replace(/^tests\//, ''));
 const COMPARISON = fromTests(scan.comparison);
 const runUrl = env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID
@@ -54,27 +58,30 @@ const comparison = existsSync(COMPARISON) ? JSON.parse(readFileSync(COMPARISON, 
 const pagesSource = readFileSync(fromTests(scan.pagesFile), 'utf8');
 // The docs guide pages have no entry of their own (`guidePages()` builds them), so they are annotated on the function
 // that does. The page list is loaded for the docs only: it reads the docs visual list and every guide's source.
-const pages = scan === DOCS_SCAN
+const pages = suite === 'docs'
   ? docsPageLines(pagesSource, (await import('../a11y/docs/pages.mjs')).DOCS_PAGES.map(page => page.id))
-  : pageLines(pagesSource);
-// On a change run of the docs scan, a new or grown finding develop's latest docs audit also saw is baseline drift, a
+  : suite === 'website' ? websitePageLines(pagesSource) : pageLines(pagesSource);
+// On a change run of a site's scan, a new or grown finding the site's latest audit also saw is baseline drift, a
 // warning at most (`lib/a11y-docs-drift.mjs`). `A11Y_LEDGER_FILE` reads a saved ledger instead, for a dry run.
 let drift = () => false;
 const driftLines = [];
 
-if (scan === DOCS_SCAN && scope === 'change' && comparison) {
+if (scan !== PRODUCT_SCAN && scope === 'change' && comparison) {
   const counted = [...(comparison.newViolations ?? []), ...(comparison.grown ?? [])];
   const source = env.A11Y_LEDGER_FILE || env.A11Y_LEDGER_URL || LEDGER_URL;
   let audit = null;
   let problem = null;
 
   try {
-    audit = docsAudit(await readLedger(source));
+    audit = siteAudit(await readLedger(source), suite);
   } catch (error) {
     problem = `${source}: ${error instanceof Error ? error.message : String(error)}`;
   }
   drift = item => isDrift(audit, item);
-  driftLines.push(...driftNotes({ audit, problem, drift: counted.filter(drift).length, counted: counted.length, deployedAt: await stagingDeployedAt() }));
+  // The docs staging deploy's time is read from this repository's runs; production's website deploys are not.
+  const deployedAt = suite === 'docs' ? await stagingDeployedAt() : null;
+
+  driftLines.push(...driftNotes({ audit, problem, drift: counted.filter(drift).length, counted: counted.length, deployedAt, site: suite }));
 }
 
 const payload = buildCheckRun({

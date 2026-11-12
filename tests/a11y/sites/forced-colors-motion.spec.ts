@@ -7,7 +7,7 @@ import { watchAnimations } from '../checks/animations';
 import { openAxSession } from '../checks/walker';
 import { attachEvidence, readEnvironment, type EvidenceFinding } from '../evidence';
 import { indicator } from './focus';
-import { declareSiteTarget, installSentinels, instantScrolling, tabWalk, walkBudget, type SiteStop } from './harness';
+import { declareSiteTarget, installSentinels, instantScrolling, isEmbed, tabWalk, walkBudget, type SiteStop } from './harness';
 import { siteDefinition } from './sites';
 
 /**
@@ -32,6 +32,8 @@ import { siteDefinition } from './sites';
 const SITE = siteDefinition(siteOf(process.env.HOT_A11Y_SITE));
 const CHECK = siteCheckId(SITE.id, 'forced-colors-motion');
 const THEME = 'light';
+// A control that pauses what moves on its own (the website's "Pause animations").
+const PAUSE = /^(pause|stop)\b/i;
 const WATCH_MS = 5000;
 const INTERACTION_MS = 1500;
 const SHAPES = 15;
@@ -53,11 +55,29 @@ test.describe(CHECK, () => {
 
       const environment = await readEnvironment(page);
       const { animations, frames } = await watchAnimations(page, WATCH_MS);
+      let findings = longRunningFindings({ frames, animations }) as EvidenceFinding[];
+      let paused: { control: string; animations: unknown[]; frames: unknown } | null = null;
+      const control = page.getByRole('button', { name: PAUSE }).first();
+
+      // 2.2.2 is met by a way to pause: a page that moves on its own and offers a pause control has it pressed from
+      // the keyboard and is watched again, and only what still moves after it is a finding.
+      if (findings.length > 0 && await control.count() > 0 && await control.isVisible()) {
+        const name = (await control.getAttribute('aria-label')) ?? (await control.innerText());
+
+        await control.focus();
+        await page.keyboard.press('Enter');
+
+        const after = await watchAnimations(page, WATCH_MS);
+        const still = new Set(longRunningFindings(after).map(item => item.selector));
+
+        paused = { control: name, ...after };
+        findings = findings.filter(item => still.has(item.selector)).map(item => ({ ...item, measured: { ...item.measured, pauseControl: name } }));
+      }
 
       await attachEvidence(testInfo, {
         target, startedAt, environment, pageErrors, criteria: ['2.2.2'],
-        findings: longRunningFindings({ frames, animations }) as EvidenceFinding[],
-        detail: { animations, frames },
+        findings,
+        detail: { animations, frames, paused },
       });
     });
 
@@ -126,7 +146,7 @@ async function forcedColors(page: Page) {
   const walk = await tabWalk(page, cdp, SITE, { direction: 'forward', budget: await walkBudget(page, SITE.grid), ax: false });
   const shapes = new Map<string, SiteStop>();
 
-  for (const stop of walk.stops.filter(item => item.region === 'page' && item.hidden === null && !item.ariaHidden)) {
+  for (const stop of walk.stops.filter(item => item.region === 'page' && item.hidden === null && !item.ariaHidden && !isEmbed(item))) {
     if (!shapes.has(stop.shape) && shapes.size < SHAPES) {
       shapes.set(stop.shape, stop);
     }
@@ -182,7 +202,8 @@ async function stateSignatures(page: Page) {
         const container = element.parentElement?.parentElement ?? element.parentElement;
         const sibling = [...(container?.querySelectorAll(element.tagName) ?? [])].find(other => other !== element
           && !other.hasAttribute(attribute) && other.checkVisibility({ visibilityProperty: true, opacityProperty: true }));
-        const meaningful = [...element.classList].find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
+        const meaningful = [...element.classList].map(name => name.replace(/^_([A-Za-z][\w-]*?)_[a-z0-9]{5}_\d+$/, '$1'))
+          .find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
         const selector = `${element.tagName.toLowerCase()}${meaningful ? `.${meaningful}` : ''}[${state}]`;
 
         if (sibling && !pairs.some(pair => pair.selector === selector)) {

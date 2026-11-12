@@ -47,6 +47,7 @@
   .a11y .where { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; max-width: 420px; overflow-wrap: anywhere; }
   .a11y .reader-table th.step, .a11y .reader-table td.step { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
   .a11y .cluster { max-width: 480px; }
+  .a11y .surface select { font: inherit; margin: 0 6px; max-width: 100%; }
   .legs { font-size: 12px; color: #374151; }
   .error { color: #6b7280; font-size: 12px; max-width: 360px; overflow-wrap: anywhere; }
   tr.ticket td:first-child { border-left: 3px solid #dc2626; }
@@ -163,12 +164,23 @@
 <section class="a11y viz" aria-labelledby="a11y">
   <h2 id="a11y">Accessibility</h2>
   <div class="meta" id="a11y-meta">
-    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan), of the <code>Screen reader nightly</code> and of the docs site scan and checks (<code>Docs a11y</code>) on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
+    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan), of the <code>Screen reader nightly</code> of the docs site scan and checks (<code>Docs a11y</code>) and of the website scan and checks (<code>Website a11y</code>) on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
   </div>
   <div class="empty" id="a11y-empty" hidden>No accessibility night collected yet.</div>
   <div id="a11y-body">
     <div class="totals" id="a11y-totals"></div>
     <div class="meta" id="a11y-runs"></div>
+    <div class="meta surface">
+      <label for="a11y-surface">Show the findings of</label>
+      <select id="a11y-surface">
+        <option value="">every surface</option>
+        <option value="grid">the grid (A11y nightly, Screen reader nightly)</option>
+        <option value="docs">the docs site (Docs a11y)</option>
+        <option value="website">the website (Website a11y)</option>
+      </select>
+      <span id="a11y-surface-status" role="status"></span>
+      <div>A surface hides the clusters with no open finding on it, and the checks, triage shapes and nights of the others. Every count on the page, a shown cluster's included, is the count of every surface.</div>
+    </div>
     <h3>Clusters</h3>
     <div class="meta">
       One row per root cause. <em>Open</em> counts the rows not resolved yet (new, persisting or flapping): a row whose check did not run on its source's latest night stays open, because nothing measured it gone. <em>Nights seen</em> counts the recorded nights that showed the cluster; the trend draws, per nightly the cluster comes from, the findings seen on each of its last <span id="a11y-trend-nights"></span> nights, with the night's new and resolved counts in the chart's name. <em>Tracked</em> says a task owns the fix; the task itself is in the catalog, not on this page.
@@ -693,6 +705,13 @@ var runPage = (function() {
     tbody.appendChild(none);
   }
 
+  // The surface a finding source belongs to: the grid's nightlies, the docs site, or the website.
+  function surfaceOf(source) {
+    if (source === 'docs' || source === 'docs-checks') { return 'docs'; }
+    if (source === 'website' || source === 'website-checks') { return 'website'; }
+    return 'grid';
+  }
+
   function pairs(list, limit) {
     return list.slice(0, limit || list.length).map(function(pair) { return pair[0] + ' ' + pair[1]; }).join(' · ');
   }
@@ -721,7 +740,7 @@ var runPage = (function() {
 
   var runs = document.getElementById('a11y-runs');
   runs.appendChild(document.createTextNode('Updated ' + when(view.updatedAt) + '. Latest nights: '));
-  [['a11y', view.latest.a11y], ['reader', view.latest.reader], ['docs', view.latest.docs]].forEach(function(entry, index) {
+  [['a11y', view.latest.a11y], ['reader', view.latest.reader], ['docs', view.latest.docs], ['website', view.latest.website]].forEach(function(entry, index) {
     if (index) { runs.appendChild(document.createTextNode('; ')); }
     if (!entry[1]) {
       runs.appendChild(document.createTextNode(entry[0] + ': none yet'));
@@ -741,7 +760,7 @@ var runPage = (function() {
     return object && Object.prototype.hasOwnProperty.call(object, key) ? object[key] : undefined;
   }
 
-  var SOURCE_NAMES = { a11y: 'A11y nightly', reader: 'Screen reader nightly', docs: 'Docs a11y' };
+  var SOURCE_NAMES = { a11y: 'A11y nightly', reader: 'Screen reader nightly', docs: 'Docs a11y', website: 'Website a11y' };
 
   // The trend: one series per source the cluster comes from, over that source's nights only (the two nightlies
   // run an hour apart, so one series over both would draw every other night at zero), one bar per night, the
@@ -782,6 +801,7 @@ var runPage = (function() {
   var clustersBody = document.querySelector('#a11y-clusters tbody');
   view.clusters.forEach(function(cluster) {
     var tr = document.createElement('tr');
+    tr.setAttribute('data-surfaces', cluster.sources.map(function(pair) { return surfaceOf(pair[0]); }).join(' '));
     var name = document.createElement('td');
     name.className = 'cluster';
     name.appendChild(text('div', cluster.title));
@@ -827,6 +847,7 @@ var runPage = (function() {
   var checksBody = document.querySelector('#a11y-checks tbody');
   view.checks.forEach(function(check) {
     var tr = document.createElement('tr');
+    tr.setAttribute('data-surfaces', /^docs-/.test(check.check) ? 'docs' : /^website-/.test(check.check) ? 'website' : 'grid');
     var name = cell(tr, check.title);
     name.appendChild(document.createTextNode(' '));
     name.appendChild(text('code', check.check));
@@ -883,10 +904,12 @@ var runPage = (function() {
   var triageBody = document.querySelector('#a11y-triage tbody');
   view.triage.rows.forEach(function(row) {
     var tr = document.createElement('tr');
+    tr.setAttribute('data-surfaces', surfaceOf(row.source));
     var status = document.createElement('td');
     status.appendChild(badge(row.status, row.status));
     tr.appendChild(status);
-    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.source === 'docs' || row.source === 'docs-checks' ? row.check + ' (docs site)' : row.check);
+    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.source === 'docs' || row.source === 'docs-checks' ? row.check + ' (docs site)'
+      : row.source === 'website' || row.source === 'website-checks' ? row.check + ' (website)' : row.check);
     var kind = cell(tr, row.kind + (row.rule ? ' ' + row.rule : '') + (row.cause ? ' (' + row.cause + ')' : ''));
     kind.appendChild(text('div', row.reason, 'error'));
     cell(tr, row.where, 'where');
@@ -903,6 +926,7 @@ var runPage = (function() {
   var nightsBody = document.querySelector('#a11y-nights tbody');
   view.nights.slice().reverse().forEach(function(night) {
     var tr = document.createElement('tr');
+    tr.setAttribute('data-surfaces', night[2] === 'docs' || night[2] === 'website' ? night[2] : 'grid');
     var td = document.createElement('td');
     var link = document.createElement('a');
     var href = runPage(night[0], night[8]);
@@ -919,6 +943,25 @@ var runPage = (function() {
     nightsBody.appendChild(tr);
   });
   if (!view.nights.length) { noneRow(nightsBody, 7, 'No night recorded yet.'); }
+
+  // The surface filter: a row is shown when its surfaces hold the one picked, or none is picked.
+  var surface = document.getElementById('a11y-surface');
+  function applySurface() {
+    var picked = surface.value;
+    var shown = 0;
+    var clusters = 0;
+    body.querySelectorAll('tr[data-surfaces]').forEach(function(tr) {
+      var match = !picked || tr.getAttribute('data-surfaces').split(' ').indexOf(picked) !== -1;
+      tr.hidden = !match;
+      if (tr.closest('#a11y-clusters')) {
+        clusters += 1;
+        if (match) { shown += 1; }
+      }
+    });
+    document.getElementById('a11y-surface-status').textContent = picked ? shown + ' of ' + clusters + ' clusters shown' : '';
+  }
+  surface.addEventListener('change', applySurface);
+  applySurface();
 }());
 </script>
 </body>

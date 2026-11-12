@@ -5,7 +5,7 @@ import { boundaryFindings } from '../../lib/site-visual.mjs';
 import { openAxSession } from '../checks/walker';
 import { attachEvidence, readEnvironment, type EvidenceFinding } from '../evidence';
 import { indicator, samplePoints } from './focus';
-import { declareSiteTarget, installSentinels, instantScrolling, tabWalk, walkBudget, type SiteStop } from './harness';
+import { declareSiteTarget, installSentinels, instantScrolling, isEmbed, tabWalk, walkBudget, type SiteStop } from './harness';
 import { siteDefinition } from './sites';
 
 /**
@@ -58,7 +58,7 @@ for (const theme of SITE.themes) {
         const sample = (direction: string) => async(stop: SiteStop) => {
           const key = `${stop.shape}|${direction}`;
 
-          if (stop.hidden !== null || stop.ariaHidden) {
+          if (stop.hidden !== null || stop.ariaHidden || isEmbed(stop)) {
             return;
           }
 
@@ -82,7 +82,7 @@ for (const theme of SITE.themes) {
 
         const shapes = new Map<string, SiteStop>();
 
-        for (const stop of forward.stops.filter(item => item.region === 'page' && item.hidden === null && !item.ariaHidden)) {
+        for (const stop of forward.stops.filter(item => item.region === 'page' && item.hidden === null && !item.ariaHidden && !isEmbed(item))) {
           if (!shapes.has(stop.shape) && shapes.size < SHAPES) {
             shapes.set(stop.shape, stop);
           }

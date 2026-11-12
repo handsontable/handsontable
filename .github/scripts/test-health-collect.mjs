@@ -16,8 +16,10 @@
  * section draws. A durations.json it cannot read is left as it is, with a
  * warning, and never stops the ledger. The fifth family, the accessibility
  * nightlies' evidence (`a11y-checks-evidence`, `a11y-axe-results`,
- * `screenreader-transcripts-*`) and the docs site scan's findings
- * (`docs-a11y-axe-results`), goes to `a11y.json`, from those workflows'
+ * `screenreader-transcripts-*`) and the docs site's and the website's scan
+ * findings and check documents (`docs-a11y-axe-results`,
+ * `docs-a11y-checks-evidence`, `website-a11y-axe-results`,
+ * `website-a11y-checks-evidence`), goes to `a11y.json`, from those workflows'
  * develop runs only (`isA11yRun`): one row per finding across nights, sorted
  * into root-cause clusters by the catalog `--catalog` names
  * (`tests/a11y/issues.json`), which the page's "Accessibility" section draws.
