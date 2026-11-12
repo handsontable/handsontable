@@ -232,4 +232,71 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
       expect(hot.getDataAtCell(0, 1)).toBe(45);
     });
   });
+
+  describe('dependency in another source column', () => {
+    // Column 2 holds the leaf values of the subtotal; its result is written into column 1.
+    const createCrossData = () => [
+      ['Line 1', null, null], ['Line 2', 5, null], ['Line 3', 6, null], ['Line 4', null, null],
+      ['Line 5', null, 7], ['Line 6', null, 8], ['Line 7', null, 9],
+    ];
+    const crossEndpoints = () => [
+      endpoint(0, [[1, 3]], { includeSummaryResults: true }),
+      endpoint(3, [[4, 6]], { sourceColumn: 2 }),
+    ];
+
+    it('updates the parent when only the dependency\'s source column changes', () => {
+      hot = buildGrid(crossEndpoints(), { data: createCrossData() });
+      expect(hot.getDataAtCell(0, 1)).toBe(35);
+
+      hot.setDataAtCell(5, 2, 100);
+
+      expect(hot.getDataAtCell(3, 1)).toBe(116);
+      expect(hot.getDataAtCell(0, 1)).toBe(127);
+    });
+
+    it('updates a grandparent through two levels', () => {
+      const data = [...createCrossData(), ['Grand total', null, null]];
+
+      hot = buildGrid([
+        endpoint(7, [[0, 0]], { includeSummaryResults: true }),
+        ...crossEndpoints(),
+      ], { data });
+      hot.setDataAtCell(5, 2, 100);
+
+      expect(hot.getDataAtCell(7, 1)).toBe(127);
+    });
+
+    it('updates the parent through refreshEndpointsBySourceColumns too', () => {
+      hot = buildGrid(crossEndpoints(), { data: createCrossData() });
+      hot.setSourceDataAtCell(5, 2, 100);
+      hot.getPlugin('columnSummary').endpoints.refreshEndpointsBySourceColumns([2]);
+
+      expect(hot.getDataAtCell(3, 1)).toBe(116);
+      expect(hot.getDataAtCell(0, 1)).toBe(127);
+    });
+
+    it('terminates when endpoints include each other and a source column changes', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = buildGrid([
+        endpoint(0, [[1, 3]], { includeSummaryResults: true }),
+        endpoint(3, [[0, 0], [4, 6]], { sourceColumn: 2, includeSummaryResults: true }),
+      ], { data: createCrossData() });
+
+      expect(() => hot.setDataAtCell(5, 2, 100)).not.toThrow();
+      warnSpy.mockRestore();
+    });
+
+    it('does not refresh an endpoint without the option when another column changes (control)', () => {
+      hot = buildGrid(
+        [endpoint(0, [[1, 3]]), endpoint(3, [[4, 6]], { sourceColumn: 2 })],
+        { data: createCrossData() }
+      );
+      const calculate = jest.spyOn(hot.getPlugin('columnSummary'), 'calculate');
+
+      hot.setDataAtCell(5, 2, 100);
+
+      expect(calculate.mock.calls.map(([e]) => e.destinationRow)).toEqual([3]);
+    });
+  });
 });

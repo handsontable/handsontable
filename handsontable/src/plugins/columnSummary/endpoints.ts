@@ -744,7 +744,7 @@ class Endpoints {
    */
   refreshChangedEndpoints(changes: unknown[][]) {
     const endpoints = this.getAllEndpoints();
-    const needToRefresh: number[] = [];
+    const matched = new Set<EndpointConfig>();
 
     this.#rederiveDefaultRanges(endpoints);
     this.cellsToSetCache = [];
@@ -765,16 +765,18 @@ class Endpoints {
         return;
       }
 
-      arrayEach(endpoints, (endpoint: EndpointConfig, j: number) => {
-        if (physicalColumn === endpoint.sourceColumn && needToRefresh.indexOf(j) === -1) {
-          needToRefresh.push(j);
+      arrayEach(endpoints, (endpoint: EndpointConfig) => {
+        if (physicalColumn === endpoint.sourceColumn) {
+          matched.add(endpoint);
         }
       });
     });
 
+    const needToRefresh = this.#withDependents(Array.from(matched), endpoints);
+
     this.#runPass(() => {
-      arrayEach(needToRefresh, (value: number) => {
-        this.refreshEndpoint(endpoints[value]);
+      arrayEach(needToRefresh, (endpoint: EndpointConfig) => {
+        this.refreshEndpoint(endpoint);
       });
     });
 
@@ -793,11 +795,13 @@ class Endpoints {
   refreshEndpointsBySourceColumns(physicalColumns: Set<number> | number[]) {
     const columnsSet = physicalColumns instanceof Set ? physicalColumns : new Set(physicalColumns);
     const endpoints = this.getAllEndpoints();
-    const matched = endpoints.filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
+    const directlyMatched = endpoints.filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
 
-    if (matched.length === 0) {
+    if (directlyMatched.length === 0) {
       return;
     }
+
+    const matched = this.#withDependents(directlyMatched, endpoints);
 
     this.cellsToSetCache = [];
     // Every endpoint is cached, not just the matched ones - a summary result must stay excluded from
@@ -1026,6 +1030,47 @@ class Endpoints {
       ${endpoint.destinationColumn}) and (${includingEndpoint.destinationRow},\x20
       ${includingEndpoint.destinationColumn}) include each other's results through\x20
       \`includeSummaryResults\`. The result that closes the loop is skipped.`);
+  }
+
+  /**
+   * Adds to the matched endpoints every endpoint that includes the result of one already in the set,
+   * repeated until nothing is added, so a change reaches a parent through a dependency that reads
+   * another column, and through several levels. An endpoint is added when it has `includeSummaryResults`,
+   * another endpoint of the set writes into its source column, and that destination row lies in one of
+   * its ranges. The loop ends because an endpoint joins the set once.
+   *
+   * @param {object[]} matched The endpoints selected by their source column.
+   * @param {object[]} all All the endpoints of the pass.
+   * @returns {object[]} The matched endpoints and their dependents, in the order of `all`.
+   */
+  #withDependents(matched: EndpointConfig[], all: EndpointConfig[]): EndpointConfig[] {
+    const selected = new Set<EndpointConfig>(matched);
+    const includesResultOf = (endpoint: EndpointConfig, dependency: EndpointConfig) => {
+      return dependency !== endpoint &&
+        dependency.destinationColumn === endpoint.sourceColumn &&
+        (endpoint.ranges ?? []).some((range) => {
+          const start = range[0];
+          const end = range.length > 1 ? range[1] : range[0];
+
+          return dependency.destinationRow! >= start && dependency.destinationRow! <= end;
+        });
+    };
+    let previousSize = -1;
+
+    while (selected.size !== previousSize) {
+      previousSize = selected.size;
+
+      arrayEach(all, (endpoint: EndpointConfig) => {
+        if (
+          endpoint.includeSummaryResults && !selected.has(endpoint) &&
+          Array.from(selected).some(dependency => includesResultOf(endpoint, dependency))
+        ) {
+          selected.add(endpoint);
+        }
+      });
+    }
+
+    return all.filter(endpoint => selected.has(endpoint));
   }
 
   /**
