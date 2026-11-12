@@ -78,7 +78,7 @@
       "id": "shift-tab-grid",
       "action": {"press": "Shift+Tab"},
       "expect": [["b4", "b 4"], ["budget"]],
-      "note": "Shift+Tab goes back into the grid, now showing the Budget sheet, on its cell `B4`. The grid takes its name from the active tab, so a reader that names the grid it enters says `Budget`. Finding: NVDA with Firefox names the grid by the sheet's old name, `Beta`."
+      "note": "Shift+Tab goes back into the grid, now showing the Budget sheet, on its cell `B4`. The grid takes its name from the active tab, so a reader that names the grid it enters says `Budget`. NVDA with Firefox once said `Beta` here: the rename handed the label back without a change to `aria-labelledby`, so Firefox kept the old name, and the bar now writes the attribute again (`handsontable/src/plugins/sheetsBar/AGENTS.md`)."
     }
   ]
 }
