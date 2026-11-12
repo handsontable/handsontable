@@ -3203,8 +3203,8 @@ Importing a removed type alias is a TypeScript error.
 
 | Removed | Deprecated in | Replacement |
 | ------- | ------------- | ----------- |
-| `saveManualColumnWidths()` and `loadManualColumnWidths()` ([`ManualColumnResize`](@/api/manualColumnResize.md)) | 18.0 | None. Both did nothing since 17.0. |
-| `saveManualRowHeights()` and `loadManualRowHeights()` ([`ManualRowResize`](@/api/manualRowResize.md)) | 18.0 | None. Both did nothing since 17.0. |
+| `saveManualColumnWidths()` and `loadManualColumnWidths()` ([`ManualColumnResize`](@/api/manualColumnResize.md)) | 18.0 | None. Both do nothing and log a deprecation warning. |
+| `saveManualRowHeights()` and `loadManualRowHeights()` ([`ManualRowResize`](@/api/manualRowResize.md)) | 18.0 | None. Both do nothing and log a deprecation warning. |
 | `Handsontable.helper.sanitize()` | 18.0 | The [`sanitizer`](@/api/options.md#sanitizer) option. |
 | `columnHeaders` (export options of the [`ExportFile`](@/api/exportFile.md) plugin) | 17.1 | `colHeaders` |
 | `Settings` type (`handsontable/plugins/exportFile`) | 18.0 | `ExportFileSettings` |
@@ -3224,8 +3224,8 @@ You are affected if your code does any of the following:
 
 ### How to migrate
 
-Remove the calls to the resize-state methods. They did nothing since the `PersistentState` plugin
-was removed in 17.0. To persist column widths or row heights, collect them in the
+Remove the calls to the resize-state methods. They do nothing and log a deprecation warning in
+18.x, and 19.0 removes them. To persist column widths or row heights, collect them in the
 [`afterColumnResize`](@/api/hooks.md#aftercolumnresize) or [`afterRowResize`](@/api/hooks.md#afterrowresize)
 hook, and restore them by passing an array to [`manualColumnResize`](@/api/options.md#manualcolumnresize)
 or [`manualRowResize`](@/api/options.md#manualrowresize). The hooks receive the new size of the
