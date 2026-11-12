@@ -39,7 +39,7 @@ export interface Scenario {
   schema: number;
   id: string;
   surface: string;
-  group: 'keyboard' | 'reading' | 'menus';
+  group: 'keyboard' | 'reading' | 'menus' | 'editors' | 'selection' | 'structure' | 'status' | 'formulas';
   page?: string;
   state?: string;
   fixture?: string;
