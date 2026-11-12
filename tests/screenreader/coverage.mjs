@@ -50,9 +50,9 @@ export const SR_PAGE_COVERAGE = {
   'dropdown-menu': { scenarios: ['dropdown-menu', 'filters-by-value'] },
   'filters-conditions': { scenarios: ['filters-by-condition'] },
   'text-editor': { scenarios: ['grid-core', 'grid-core-horizon'] },
-  'formula-builder': { gap: 'the formula bar (address box, formula input) and the formula editor are read by no scenario' },
-  'formula-builder-suggestions': { gap: 'the formula editor\'s function suggestions list is read by no scenario' },
-  'formula-builder-function-help': { gap: 'the formula editor\'s function help popup is read by no scenario' },
+  'formula-builder': { scenarios: ['formula-bar'] },
+  'formula-builder-suggestions': { scenarios: ['formula-suggestions'] },
+  'formula-builder-function-help': { scenarios: ['formula-function-help'] },
   'autocomplete-editor': { scenarios: ['autocomplete-editor'] },
   'dropdown-editor': { scenarios: ['dropdown-editor'] },
   'handsontable-editor': { scenarios: ['handsontable-editor'] },
@@ -109,8 +109,8 @@ export const SR_FEATURE_COVERAGE = {
   emptyDataState: { scenarios: ['empty-data', 'data-provider-sheets-bar'] },
   exportFile: { none: 'writes data to a file and draws nothing a reader meets' },
   filters: { scenarios: ['filters-by-value', 'filters-by-condition'] },
-  formulaBuilder: { gap: 'the formula bar and the formula editor are read by no scenario' },
-  formulas: { gap: 'a cell showing a formula result reads like a typed value (a known limitation), and no scenario reads one' },
+  formulaBuilder: { scenarios: ['formula-bar', 'formula-suggestions', 'formula-function-help'] },
+  formulas: { scenarios: ['formula-bar'] },
   freezeBar: { scenarios: ['freeze-bar'] },
   hiddenColumns: { gap: 'the column positions a reader announces around a hidden column are read by no scenario' },
   hiddenRows: { gap: 'the row positions a reader announces around a hidden row are read by no scenario' },
@@ -159,4 +159,4 @@ export const SR_FEATURE_COVERAGE = {
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 16;
+export const SR_GAP_LIMIT = 11;

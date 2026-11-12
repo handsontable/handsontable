@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "formula-suggestions",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T13:57:14.637Z"
+  },
+  "steps": {
+    "open-editor": "formula editor combo box collapsed has auto complete multi line editable equals a 1 plus b 1",
+    "select-all": "equals a 1 plus b 1 selected",
+    "type-su": "selection removed formula suggestions list substitute 1 of 14",
+    "down-to-subtotal": "subtotal 2 of 14",
+    "down-to-sum": "sum 3 of 14",
+    "accept-sum": "table formula editor combo box collapsed has auto complete multi line editable sum function help equals sum",
+    "close-help": "",
+    "cancel-edit": "3 c row 2 column 4"
+  }
+}

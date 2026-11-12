@@ -48,7 +48,7 @@ on:
         type: boolean
         default: false
       groups:
-        description: The scenario groups to run, comma-separated, no spaces (keyboard,reading,menus,editors,selection,structure,status). Empty runs every group.
+        description: The scenario groups to run, comma-separated, no spaces (keyboard,reading,menus,editors,selection,structure,status,formulas). Empty runs every group.
         type: string
         default: ''
       projects:
@@ -75,7 +75,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [ chromium, firefox ]
-        group: [ keyboard, reading, menus, editors, selection, structure, status ]
+        group: [ keyboard, reading, menus, editors, selection, structure, status, formulas ]
         # A projects input that does not name a browser's project excludes that browser, and a groups input
         # that does not name a group excludes that group; an empty input excludes '', which matches no
         # combination, and GitHub drops an exclude that matches nothing. One entry per axis value, so the
@@ -90,6 +90,7 @@ jobs:
           - group: ${{ inputs.groups != '' && !contains(format(',{0},', inputs.groups), ',selection,') && 'selection' || '' }}
           - group: ${{ inputs.groups != '' && !contains(format(',{0},', inputs.groups), ',structure,') && 'structure' || '' }}
           - group: ${{ inputs.groups != '' && !contains(format(',{0},', inputs.groups), ',status,') && 'status' || '' }}
+          - group: ${{ inputs.groups != '' && !contains(format(',{0},', inputs.groups), ',formulas,') && 'formulas' || '' }}
     # Job-level, like a11y.yml: `checks: write` posts the report check run. Kept off the workflow level
     # so nothing else in the run inherits it.
     permissions:
@@ -216,7 +217,7 @@ jobs:
       max-parallel: 2
       matrix:
         browser: [ webkit, chromium ]
-        group: [ keyboard, reading, menus, editors, selection, structure, status ]
+        group: [ keyboard, reading, menus, editors, selection, structure, status, formulas ]
         # The NVDA job's subset excludes, on the VoiceOver projects and the same groups.
         exclude:
           - browser: ${{ inputs.projects != '' && !contains(format(',{0},', inputs.projects), ',vo-webkit,') && 'webkit' || '' }}
@@ -228,6 +229,7 @@ jobs:
           - group: ${{ inputs.groups != '' && !contains(format(',{0},', inputs.groups), ',selection,') && 'selection' || '' }}
           - group: ${{ inputs.groups != '' && !contains(format(',{0},', inputs.groups), ',structure,') && 'structure' || '' }}
           - group: ${{ inputs.groups != '' && !contains(format(',{0},', inputs.groups), ',status,') && 'status' || '' }}
+          - group: ${{ inputs.groups != '' && !contains(format(',{0},', inputs.groups), ',formulas,') && 'formulas' || '' }}
     # Job-level, like the NVDA job: `checks: write` posts the report check run.
     permissions:
       contents: read

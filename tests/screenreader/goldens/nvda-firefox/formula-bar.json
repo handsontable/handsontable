@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "formula-bar",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T13:56:12.550Z"
+  },
+  "steps": {
+    "arrow-to-formula-cell": "3 c row 2 column 4",
+    "open-editor": "formula editor combo box collapsed has auto complete multi line editable equals a 1 plus b 1",
+    "cancel-edit": "3 c row 2 column 4",
+    "home-to-first-column": "1 a row 2 column 2",
+    "shift-tab-to-bar": "formula editor combo box collapsed has auto complete multi line editable 1",
+    "shift-tab-to-address": "cell address edit has auto complete a 1",
+    "tab-to-bar": "formula editor combo box collapsed has auto complete multi line editable 1",
+    "tab-to-grid": "table 1 a row 2 column 2"
+  }
+}
