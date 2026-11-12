@@ -409,6 +409,12 @@ class Overlays {
   #bandSizes = { bottom: 0, inlineEnd: 0 };
 
   /**
+   * The master's column band the `bottom` clone rendered last (`null` before its first render, or while it
+   * renders nothing), so a fast draw is taken only over the cells the clone holds.
+   */
+  #bottomColumnsBand: { start: number, count: number } | null = null;
+
+  /**
    * Whether the press being handled started as a touch, so the compatibility `mousedown`/`click`/
    * `contextmenu` that follow the same tap can be recognized and let through - only `pointerdown`
    * carries a `pointerType`.
@@ -1039,13 +1045,16 @@ class Overlays {
     // fully re-render and size the overlays rather than treat this as a scroll.
     const isScrollTriggered = this.isScrollDrivenDraw &&
       (this.verticalScrolling || this.horizontalScrolling);
-    // On a pure vertical scroll the bottom overlay (and its inline-start corner) render the same fixed
-    // rows over the same visible columns, so their DOM is unchanged - a full re-render is wasted work and
-    // forces an expensive style/layout/paint of the clone subtree on every scroll frame. Reposition them
-    // (fast draw) instead. Any horizontal scroll changes the visible columns, and a non-scroll redraw
-    // (data, settings, resize) is not scroll-driven, so those paths still trigger a full re-render.
-    const bottomFastDraw = fastDraw ||
+    // On a pure vertical scroll the bottom overlay (and its corners) render the same fixed rows, so a full
+    // re-render is wasted work and forces an expensive style/layout/paint of the clone subtree on every
+    // scroll frame. Reposition them (fast draw) instead. Any horizontal scroll changes the visible columns,
+    // and a non-scroll redraw (data, settings, resize) is not scroll-driven, so those paths still trigger a
+    // full re-render. The corners render the frozen columns only, which no scroll moves.
+    const bottomCornersFastDraw = fastDraw ||
       (this.isScrollDrivenDraw && this.verticalScrolling && !this.horizontalScrolling);
+    const columnsBand = this.#readMasterColumnsBand();
+    const bottomFastDraw = bottomCornersFastDraw && this.#bottomColumnsBand !== null &&
+      this.#bottomColumnsBand.start === columnsBand.start && this.#bottomColumnsBand.count === columnsBand.count;
 
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
@@ -1055,6 +1064,7 @@ class Overlays {
 
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.refresh(bottomFastDraw);
+      this.#bottomColumnsBand = this.bottomOverlay.needFullRender ? columnsBand : null;
     }
 
     this.inlineStartOverlay.refresh(fastDraw);
@@ -1066,12 +1076,25 @@ class Overlays {
     }
 
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
-      this.bottomInlineStartCornerOverlay.refresh(bottomFastDraw);
+      this.bottomInlineStartCornerOverlay.refresh(bottomCornersFastDraw);
     }
 
     // The end corners render the same fixed rows over the same fixed end columns, like their start twins.
     this.topInlineEndCornerOverlay.refresh(fastDraw);
-    this.bottomInlineEndCornerOverlay.refresh(bottomFastDraw);
+    this.bottomInlineEndCornerOverlay.refresh(bottomCornersFastDraw);
+  }
+
+  /**
+   * Reads the column band the master renders in the current draw: its first rendered column and how many
+   * columns it renders.
+   *
+   * @returns {{ start: number, count: number }}
+   */
+  #readMasterColumnsBand(): { start: number, count: number } {
+    return {
+      start: this.wtTable.getFirstRenderedColumn(),
+      count: this.wtTable.getRenderedColumnsCount(),
+    };
   }
 
   /**
