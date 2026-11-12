@@ -56,6 +56,7 @@ export interface PluginHotStubShape {
   rootDocument: Document;
   rootWindow: Window & typeof globalThis;
   isDestroyed: boolean;
+  isExecutionSuspended: () => boolean;
   getSettings: () => Record<string, unknown>;
   getPlugin: (pluginName: string) => unknown;
   updateSettings: jest.Mock;
@@ -191,6 +192,7 @@ export function makePluginHotStub(
     rootDocument: document,
     rootWindow: window,
     isDestroyed: false,
+    isExecutionSuspended: () => false,
     getSettings: () => settings,
     getPlugin: pluginName => (pluginName === 'formulas' ? formulas : undefined),
     updateSettings: jest.fn((next: Record<string, unknown>) => Object.assign(settings, next)),

@@ -1384,6 +1384,16 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
+   * `afterResumeExecution` hook listener - re-reads the bar's cell that `#resyncBarCell()` left for the
+   * resume. It runs after the Formulas plugin released its hold (order -1), so the read needs no recalculation.
+   */
+  #onAfterResumeExecution = (): void => {
+    if (this.#barCellStale && !this.hot.isExecutionSuspended()) {
+      this.#onBeforeViewRender();
+    }
+  };
+
+  /**
    * Re-reads the active cell into the bar. The source-data and load hooks register it directly and
    * ignore their arguments, and an index change runs it through `#onBeforeViewRender`: none of them
    * has to move the selection, and a change that keeps the coordinates (a sort, a data replace, a trim
@@ -1393,6 +1403,15 @@ export class FormulaBuilder extends BasePlugin {
    */
   #resyncBarCell = (): void => {
     if (this.#builder === null || this.#isEditing()) {
+      return;
+    }
+
+    // A read of the cell recalculates a held engine (`formulas.batchEvaluation`), so each write inside a
+    // `batch()` would recalculate once more. The bar re-reads when the execution resumes
+    // (`#onAfterResumeExecution`), or on the next draw if that comes first.
+    if (this.hot.isExecutionSuspended()) {
+      this.#barCellStale = true;
+
       return;
     }
 
@@ -2218,6 +2237,7 @@ export class FormulaBuilder extends BasePlugin {
     // `afterSetSourceDataAtCell` listener, which moves to the end of the list when it re-enables.
     this.addHook('afterSetSourceDataAtCell', this.#resyncBarCell, 2);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
+    this.addHook('afterResumeExecution', this.#onAfterResumeExecution);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.rowIndexMapper.addLocalHook('indexesInserted', this.#onRowIndexesInserted);
