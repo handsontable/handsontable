@@ -1465,11 +1465,18 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   reports every value cell it moves at its new address, and the release validated them all). The sort listener
   also runs for a sort that is cancelled or impossible, which costs one early recalculation and validation, the
   per-write result without the option. A freeze, `moveCells` and a NestedRows detach showed no difference and
-  have no listener. **Open:** a sort followed by a cell write in the same hold validates another dependent
-  than without the option (`hot.batch(() => { sort; setDataAtCell(4, 0, 50) })` on the `runValidatedBatch`
-  fixture: `5:2` where the option off validates `4:2`). It reproduced on the first version of the option, before
-  any fix of this file, so the order write sharing the write's recalculation is not the cause (the engine is not
-  held at the sort); the HF-versus-visual defect below is the suspect. `switchSheet()` validates in
+  have no listener. **Open:** a sort followed by a cell write in the same hold
+  reports another validated cell than without the option (`hot.batch(() => { sort; setDataAtCell(4, 0, 50) })`
+  on the `runValidatedBatch` fixture: `5:2=100` where the option off reports `4:2=66`). It reproduced on the first
+  version of the option. The sort is not the cause (the engine is not held at the sort, and sorting by a column the
+  write does not touch gives the same pair), and the dependents handed to `validateDependentCells()` are identical
+  in both runs (HF `5x2`, `10x2`). What differs is the cell they reach: that method takes an HF address as a
+  VISUAL coordinate (the open defect at the top of this file), and the grid reads visual (5, 2) in both runs, but
+  the cached cell meta of that cell is stale with the option off (`meta.row` 5 where visual 5 is physical 4), so
+  `afterValidate` reports another row and another value than with the option on, where the meta was refreshed by
+  the draw before the release. Both runs validate a cell that is not the dependent. The fix belongs with that
+  defect: translate the HF address with the axis syncer (`getVisualIndexFromHfIndex()`), which changes which cell
+  every sorted or trimmed grid validates, with or without the option, so it is its own change. `switchSheet()` validates in
   `#loadSheet()`, before the load.
   `beforeLoadData`/`beforeUpdateData` validate only the other sheets' dependents (`leavingSheetId`): the Core
   destroys the data map before those hooks, so the dependents on this grid's own sheet of a write made before a

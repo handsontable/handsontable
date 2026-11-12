@@ -123,4 +123,67 @@ describe('SheetsBar with formulas.batchEvaluation', () => {
       expect(hot.getDataAtRow(0)).toEqual([7, 14]);
     });
   });
+
+  describe('a sheet added or duplicated in the same batch() as a cell write', () => {
+    const acceptAll = (value, callback) => callback(true);
+
+    /**
+     * Writes a cell and adds a sheet inside one `batch()`, and records the cells the validators answered for. A
+     * formula of the opening sheet names the sheet the operation creates, so the operation changes its value.
+     *
+     * @param {boolean} batchEvaluation The setting of the sheet.
+     * @param {Function} operation What to do after the write, with the sheets bar plugin.
+     * @returns {Promise<string[]>} The validated cells, `row:prop=value`.
+     */
+    async function validatedCells(batchEvaluation, operation) {
+      const host = document.createElement('div');
+
+      document.body.appendChild(host);
+
+      const engine = buildEngine();
+      const grid = new Handsontable(host, {
+        sheetsBar: {
+          sheets: [{
+            name: 'Main',
+            data: [[1, '=A1*2'], [0, '=\'Main (2)\'!A1'], [0, '=Extra!A1']],
+            settings: {
+              columns: [{}, { validator: acceptAll }],
+              formulas: { engine, sheetName: 'Main', batchEvaluation },
+            },
+          }],
+        },
+        licenseKey: TEST_LICENSE_KEY,
+        renderAllRows: true,
+        renderAllColumns: true,
+      });
+      const validated = [];
+
+      grid.addHook('afterValidate', (isValid, value, row, prop) => {
+        validated.push(`${row}:${prop}=${value}`);
+      });
+
+      grid.batch(() => {
+        grid.setDataAtCell(0, 0, 5);
+        operation(grid.getPlugin('sheetsBar'));
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+      grid.destroy();
+      host.remove();
+
+      return validated.sort();
+    }
+
+    it.each([
+      ['added', sheetsBar => sheetsBar.addSheet('Extra', [[42]])],
+      ['duplicated', sheetsBar => sheetsBar.duplicateSheet(sheetsBar.getSheets()[0].id)],
+    ])('validates the cells it validates without the setting when a sheet is %s', async(_, operation) => {
+      const withoutOption = await validatedCells(false, operation);
+      const withOption = await validatedCells(true, operation);
+
+      // Only the written cell's dependent: the cell the new sheet turns from #REF! into a value is not validated.
+      expect(withoutOption).toEqual(['0:1=10']);
+      expect(withOption).toEqual(withoutOption);
+    });
+  });
 });

@@ -412,7 +412,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   ahead of time, so such a sheet is fed as before and never copied into. A sheet too large for the
   engine is emptied there with a warning, as the Formulas plugin does, instead of throwing out of
   the build. Sheet names are compared with plain `toLowerCase()`, as the engine compares them: a
-  locale-aware lower case turned `ITEMS` into `ıtems` on a Turkish host. Every engine call the bar makes itself (add, feed, remove, the copied
+  locale-aware lower case turned `ITEMS` into `ıtems` on a Turkish host. A sheet added or fed while a grid holds writes (`formulas.batchEvaluation`) flushes them first
+  (`#feedFormulaSheet()`): the add and the feed recalculate other cells (a `#REF!` that names the new sheet turns
+  into its value), and joining the held recalculation made the release validate cells nothing validates without
+  the setting (pinned by "validates the cells it validates without the setting when a sheet is added" in
+  `__tests__/batchEvaluationFlush.unit.js`). Every engine call the bar makes itself (add, feed, remove, the copied
   named expressions) runs through `#withEngineWrite()`, which is `Formulas#runEngineWrite` on the engine
   being written. The grids on that engine whose sheet the call recalculated paint once when it ends, including a
   standalone grid while this grid's Formulas plugin is off or bound to another engine. A workbook build

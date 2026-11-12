@@ -5757,6 +5757,11 @@ export class SheetsBar extends BasePlugin {
   ): string {
     let engineName = requestedName;
 
+    // The held cell writes of a grid (`formulas.batchEvaluation`) are recalculated first: this add and the feed
+    // below recalculate other cells (a `#REF!` that names the new sheet turns into its value), and joining the
+    // held recalculation would have the release validate cells nothing validates without the setting.
+    this.#flushEngine(engine);
+
     if (!engine.doesSheetExist!(engineName)) {
       // The engine may normalize the name it is asked for — two tabs the model tells apart can
       // be one sheet to the engine — so the binding follows the name `addSheet()` reports back,
