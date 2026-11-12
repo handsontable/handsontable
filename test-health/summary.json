@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T09:29:13.540Z",
+  "generatedAt": "2026-11-12T09:37:24.260Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -20,7 +20,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-2",
-      "count7": 2,
+      "count7": 0,
       "count30": 10,
       "countAll": 22,
       "runs30": 4,
