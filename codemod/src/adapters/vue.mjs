@@ -60,6 +60,7 @@ function blockToPart(block, type, filePath, fileMentions) {
     lang: lang ?? null,
     line: loc.start.line,
     src: Boolean(src),
+    srcPath: typeof src === 'string' ? src : null,
     relevant: src ? fileMentions : MENTIONS.test(block.content),
   };
   const found = part => ({ part: { ...part, start: loc.start.offset, end: loc.end.offset }, skipped: null });
@@ -90,7 +91,11 @@ function blockToPart(block, type, filePath, fileMentions) {
     }
 
     return CSS_PRECHECK.test(block.content)
-      ? found(createCssPart(block.content, filePath, lang === 'scss', lineOffset))
+      ? found({
+        ...createCssPart(block.content, filePath, lang === 'scss', lineOffset),
+        scoped: Boolean(block.scoped),
+        module: Boolean(block.module),
+      })
       : { part: null, skipped: null };
   }
 

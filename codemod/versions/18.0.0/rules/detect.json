@@ -16,7 +16,7 @@
           { "annotatedObject": "NumericFormatOptions" }
         ]
       },
-      "message": "Handsontable 18.0 removed Numbro.js, so numericFormat.pattern does nothing. Replace it with Intl.NumberFormat options, for example style: 'currency' with currency: 'USD', style: 'percent', or minimumFractionDigits and maximumFractionDigits for a fixed number of decimals. Set the locale with the locale option. To keep Numbro, follow the Numbro recipe: https://handsontable.com/docs/javascript-data-grid/recipes/cell-types/numbro"
+      "message": "Replace numericFormat.pattern with Intl.NumberFormat options. Handsontable 18.0 removed Numbro.js, so the pattern does nothing. Use, for example, style: 'currency' with currency: 'USD', style: 'percent', or minimumFractionDigits and maximumFractionDigits for a fixed number of decimals. Set the locale with the locale option. To keep Numbro, follow the Numbro recipe: https://handsontable.com/docs/javascript-data-grid/recipes/cell-types/numbro"
     },
     {
       "id": "18.0.0/moment-date-format",
@@ -27,7 +27,7 @@
       "requires": "option-object",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
       "match": { "property": "dateFormat", "valueMatches": "." },
-      "message": "Handsontable 18.0 removed Moment.js. A string dateFormat no longer works with the built-in date cell types: the option takes an Intl.DateTimeFormat object, for example { year: 'numeric', month: '2-digit', day: '2-digit' }, and the locale option picks the order. The source data must be ISO 8601 (YYYY-MM-DD)."
+      "message": "Replace the string dateFormat with an Intl.DateTimeFormat object. Handsontable 18.0 removed Moment.js, so a string no longer works with the built-in date cell types. Use, for example, { year: 'numeric', month: '2-digit', day: '2-digit' }, and the locale option picks the order. The source data must be ISO 8601 (YYYY-MM-DD)."
     },
     {
       "id": "18.0.0/moment-time-format",
@@ -38,7 +38,7 @@
       "requires": "option-object",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
       "match": { "property": "timeFormat", "valueMatches": "." },
-      "message": "Handsontable 18.0 removed Moment.js. A string timeFormat no longer works with the built-in time cell types: the option takes an Intl.DateTimeFormat object, for example { hour: 'numeric', minute: '2-digit', hour12: true }, and the locale option picks the style. The source data must be in 24-hour format, such as '14:30:00'."
+      "message": "Replace the string timeFormat with an Intl.DateTimeFormat object. Handsontable 18.0 removed Moment.js, so a string no longer works with the built-in time cell types. Use, for example, { hour: 'numeric', minute: '2-digit', hour12: true }, and the locale option picks the style. The source data must be in 24-hour format, such as '14:30:00'."
     },
     {
       "id": "18.0.0/html-without-sanitizer",
@@ -64,7 +64,7 @@
         ],
         "whenValueMatches": "<[A-Za-z/!]"
       },
-      "message": "Handsontable 18.0 removed DOMPurify and no longer sanitizes HTML. This grid passes markup to a surface that used to be sanitized (headers, menu labels, dialog or notification content, select options) and sets no sanitizer. If any of that markup is untrusted, add a sanitizer option, for example sanitizer: (html) => DOMPurify.sanitize(html). The codemod never adds one. Ignore this entry if you set the sanitizer elsewhere."
+      "message": "Add a sanitizer option if any of the markup in this grid is untrusted. Handsontable 18.0 removed DOMPurify and no longer sanitizes HTML. This grid passes markup to a surface that used to be sanitized (headers, menu labels, dialog or notification content, select options) and sets no sanitizer. For example, set sanitizer: (html) => DOMPurify.sanitize(html). The codemod never adds one. Ignore this entry if you set the sanitizer elsewhere."
     },
     {
       "id": "18.0.0/wrapper-dom-selectors",
@@ -77,7 +77,7 @@
       "match": {
         "selector": "\\.ht-grid(?![\\w-])\\s*>(?!\\s*\\.ht-grid-content)|\\.ht-root-wrapper(?![\\w-])\\s*>\\s*\\*?:(?:first|last|only|nth|nth-last)-(?:child|of-type)|\\.ht-grid(?![\\w-]):(?:first|last|only|nth|nth-last)-(?:child|of-type)"
       },
-      "message": "Handsontable 18.0 wraps the grid root in a new .ht-grid-content element and adds the .ht-slot-top, .ht-slot-bottom, and .ht-overlay siblings of .ht-grid. This selector depends on the old structure. Select by class instead, for example .ht-grid-content > .handsontable or .ht-wrapper.handsontable."
+      "message": "Select by class instead, for example .ht-grid-content > .handsontable or .ht-wrapper.handsontable. This selector depends on the old structure: Handsontable 18.0 wraps the grid root in a new .ht-grid-content element and adds the .ht-slot-top, .ht-slot-bottom, and .ht-overlay siblings of .ht-grid."
     },
     {
       "id": "18.0.0/pikaday-leftovers",
@@ -89,7 +89,7 @@
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
       "mergeKey": "pikaday",
       "match": { "selector": "(?<![\\w-])(?:htDatepickerHolder|pika-[a-z])" },
-      "message": "Handsontable 18.0 removed Pikaday. The date picker is now the browser's native date input, so the .htDatepickerHolder and .pika-* elements no longer exist. Remove this code, or style the native input instead."
+      "message": "Remove this code, or style the native input instead. Handsontable 18.0 removed Pikaday. The date picker is now the browser's native date input, so the .htDatepickerHolder and .pika-* elements no longer exist."
     },
     {
       "id": "18.0.0/helper-typings-only",
@@ -112,7 +112,7 @@
           "helper.warn"
         ]
       },
-      "message": "The 17.x typings declared this function on Handsontable.helper, and the 18.0 typings do not. The runtime never set it there, in 17.1 or in 18.0, so this code already fails with \"is not a function\" when it runs. Remove the call, or use your own function."
+      "message": "Remove the call, or use your own function. The 17.x typings declared this function on Handsontable.helper, and the 18.0 typings do not. The runtime never set it there, in 17.1 or in 18.0, so this code already fails with \"is not a function\" when it runs."
     }
   ]
 }

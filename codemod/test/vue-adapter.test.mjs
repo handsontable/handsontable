@@ -138,10 +138,10 @@ describe('vue adapter parse', () => {
 
     assert.deepEqual(handle.parts.map(part => part.fileKind), ['css']);
     assert.deepEqual(handle.skippedBlocks, [
-      { type: 'style', lang: 'less', line: 1, src: false, relevant: true },
-      { type: 'style', lang: 'stylus', line: 4, src: false, relevant: true },
-      { type: 'style', lang: 'sass', line: 8, src: false, relevant: true },
-      { type: 'style', lang: null, line: 12, src: true, relevant: true },
+      { type: 'style', lang: 'less', line: 1, src: false, srcPath: null, relevant: true },
+      { type: 'style', lang: 'stylus', line: 4, src: false, srcPath: null, relevant: true },
+      { type: 'style', lang: 'sass', line: 8, src: false, srcPath: null, relevant: true },
+      { type: 'style', lang: null, line: 12, src: true, srcPath: './theme.css', relevant: true },
     ]);
   });
 

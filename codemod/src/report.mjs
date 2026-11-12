@@ -4,6 +4,12 @@
  */
 export const SKIPPED_RULE_ID = 'skipped-file';
 
+/**
+ * Rule id of the warning for a `package.json` whose Handsontable range is below `--from`. The CLI also prints these
+ * warnings on standard error after the report.
+ */
+export const BELOW_FROM_RULE_ID = 'below-from';
+
 const VERSIONED_ID = /^(\d+)\.(\d+)\.(\d+)\//;
 
 /**
@@ -103,14 +109,16 @@ export class Report {
 
   /**
    * Count entries per severity. An entry that applies to a whole run counts once, and so does a skipped file.
+   * `marked` is how many of the `manual` entries have a TODO marker in the code.
    *
-   * @returns {{changed: number, manual: number, warning: number}} The counts.
+   * @returns {{changed: number, manual: number, warning: number, marked: number}} The counts.
    */
   counts() {
-    const counts = { changed: 0, manual: 0, warning: 0 };
+    const counts = { changed: 0, manual: 0, warning: 0, marked: 0 };
 
     this.entries.forEach((entry) => {
       counts[entry.severity] += 1;
+      counts.marked += entry.severity === 'manual' && entry.marked === true ? 1 : 0;
     });
 
     return counts;
@@ -323,9 +331,17 @@ function fileList(files, limit) {
  * @param {number} [options.filesChanged] Files the run changed, or would change.
  * @param {boolean} [options.dryRun] Whether nothing was written.
  * @param {number} [options.limit] Locations listed per rule.
+ * @param {string} [options.reportFile] The file the full report goes to, when the run writes one. `+N more` then
+ * names it. Without it, the line tells the user to pass `--report <file>`.
  * @returns {string} Text that ends with a newline.
  */
-export function renderConsole(report, { filesChanged = 0, dryRun = false, limit = CONSOLE_LIMIT } = {}) {
+export function renderConsole(report, {
+  filesChanged = 0,
+  dryRun = false,
+  limit = CONSOLE_LIMIT,
+  reportFile,
+} = {}) {
+  const rest = reportFile ? `in ${reportFile}` : '(use --report <file> for the full list)';
   const lines = [];
 
   report.notes.forEach(note => lines.push(note, ''));
@@ -354,7 +370,7 @@ export function renderConsole(report, { filesChanged = 0, dryRun = false, limit 
     });
 
     if (group.entries.length > limit) {
-      lines.push(`  +${group.entries.length - limit} more (use --report <file> for the full list)`);
+      lines.push(`  +${group.entries.length - limit} more ${rest}`);
     }
 
     if (group.guideUrl) {
@@ -381,7 +397,7 @@ export function renderConsole(report, { filesChanged = 0, dryRun = false, limit 
     skipped.slice(0, limit).forEach(entry => lines.push(`  ${entry.file}  ${entry.message}`));
 
     if (skipped.length > limit) {
-      lines.push(`  +${skipped.length - limit} more (use --report <file> for the full list)`);
+      lines.push(`  +${skipped.length - limit} more ${rest}`);
     }
 
     lines.push('');
@@ -437,6 +453,11 @@ export function renderMarkdown(report, {
 
     clusterByMessage(group.entries).forEach((cluster) => {
       if (cluster.message !== null) {
+        // A paragraph straight after a list item would read as a continuation of that item.
+        if (lines[lines.length - 1] !== '') {
+          lines.push('');
+        }
+
         lines.push(cluster.message, '');
       }
 

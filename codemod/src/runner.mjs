@@ -1,13 +1,14 @@
-import { lstat, readFile, stat, writeFile } from 'node:fs/promises';
-import { basename, join, relative, resolve, sep } from 'node:path';
+import { lstat, readFile, realpath, stat, writeFile } from 'node:fs/promises';
+import { basename, join, posix, relative, resolve, sep } from 'node:path';
 import { adapterFor } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
-import { discover, resolvesInside } from './discover.mjs';
+import { discover, leavesDirectory, resolvesInside } from './discover.mjs';
 import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { registerPackageDir } from './lib/facts.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
-import { addCssTodo, addJsTodo, collectComments, lineOf } from './lib/todo.mjs';
+import { createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
+import { addCssTodo, addJsTodo, collectComments, hasJsTodo, lineOf } from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
 import { Report, SKIPPED_RULE_ID, plural } from './report.mjs';
 import { registry as defaultRegistry } from './transforms/index.mjs';
@@ -15,6 +16,7 @@ import {
   compareVersions,
   defaultTo,
   detectProjectVersion,
+  minimumOfRange,
   oldestCovered,
   parseVersion,
   resolveFrom,
@@ -66,20 +68,30 @@ function skippedEntry(file, line, message) {
  * @param {import('./types.mjs').ParseHandle|null} handle The parse result, `null` before parsing.
  * @param {string} source File text.
  * @param {string} filePath Project-relative path.
+ * @param {Set<string>} [files] The project files the run reads. A `src` block that points at one of them is not skipped.
+ * @param {string[]} [checks] What to check by hand in an inline script, from the selected manifests.
  * @returns {import('./types.mjs').ReportEntry[]} The entries, possibly none.
  */
-function skippedEntries(adapter, handle, source, filePath) {
+function skippedEntries(adapter, handle, source, filePath, files, checks) {
   const entries = [];
 
   for (const block of handle?.skippedBlocks ?? []) {
-    if (block.relevant) {
-      const tag = `<${block.type}${block.lang ? ` lang="${block.lang}"` : ''}${block.src ? ' src' : ''}>`;
+    // A relative `src` path names a file; an alias (`@/x.css`, `~x`) cannot be resolved here.
+    const target = /^\.{1,2}\//.test(block.srcPath ?? '')
+      ? posix.normalize(posix.join(posix.dirname(filePath), block.srcPath)) : null;
 
-      entries.push(skippedEntry(filePath, block.line, `A ${tag} block was not analyzed. Check it by hand.`));
+    // A `src` block whose file the run reads as a project file of its own is not skipped: the run analyzes it there.
+    if (block.relevant && !(target !== null && files?.has(target))) {
+      const tag = `<${block.type}${block.lang ? ` lang="${block.lang}"` : ''}${block.src ? ' src' : ''}>`;
+      const reads = target === null ? '' : ` It reads ${target}, which is not part of this run.`;
+
+      entries.push(skippedEntry(filePath, block.line, `A ${tag} block was not analyzed.${reads} Check it by hand.`));
     }
   }
 
-  entries.push(...(adapter.skipNotes?.(source) ?? []).map(note => skippedEntry(filePath, note.line, note.message)));
+  const notes = adapter.skipNotes?.(source, checks) ?? [];
+
+  entries.push(...notes.map(note => skippedEntry(filePath, note.line, note.message)));
 
   return entries;
 }
@@ -92,6 +104,63 @@ function skippedEntries(adapter, handle, source, filePath) {
  */
 function firstLine(message) {
   return String(message).split('\n')[0];
+}
+
+/**
+ * What the report says about a symbolic link the run did not follow. A link whose target is inside the project says
+ * where it points, and whether the run migrates the target as its own file. A link to a place outside the project, or
+ * to nothing, keeps the general advice: a link can point outside, and that project is migrated on its own.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string} file Project-relative path of the link.
+ * @param {string[]} files The files the run migrates.
+ * @returns {Promise<string>} The text of the entry.
+ */
+async function linkMessage(cwd, file, files) {
+  const general = 'This is a symbolic link, so it was not followed. A link can point outside the project. Migrate '
+    + 'the file it points to in its own project.';
+
+  try {
+    const [root, real] = await Promise.all([realpath(cwd), realpath(join(cwd, file))]);
+    const target = relative(root, real).split(sep).join('/');
+
+    if (target === '' || leavesDirectory(target)) {
+      return general;
+    }
+
+    const inRun = files.includes(target) || files.some(candidate => candidate.startsWith(`${target}/`));
+
+    return `This is a symbolic link to ${target}, not followed. ${inRun
+      ? 'The target is migrated as its own file.' : 'The target is not part of this run.'}`;
+  } catch {
+    return general;
+  }
+}
+
+/**
+ * Say where and why a parser gave up. An error at the end of the text (a missing bracket or quote) is reported on the
+ * last line of the file, as `unexpected end of file`: the parser's own position is the line after it. Any other error
+ * keeps the parser's message and shows the text of the line, cut to 80 characters.
+ *
+ * @param {object} error The error the parser threw: `loc`, `pos`, `reason`, and `message` are read when present.
+ * @param {string} source The file text.
+ * @returns {{line: number|null, text: string}} The one-based line, and the sentence that follows `skipped:`.
+ */
+function describeParseError(error, source) {
+  const lines = source.replace(/\r?\n$/, '').split(/\r?\n/);
+  const at = Number.isInteger(error.loc?.line) ? error.loc.line : (error.line ?? null);
+  const position = error.pos ?? error.loc?.index;
+  const pastEnd = Number.isInteger(position) && position >= source.trimEnd().length;
+  const atEnd = at !== null && (at > lines.length || pastEnd);
+
+  if (atEnd) {
+    return { line: lines.length, text: 'unexpected end of file.' };
+  }
+
+  const reason = firstLine(error.reason ?? error.message).replace(/ \(\d+:\d+\)$/, '').replace(/[.]$/, '');
+  const shown = at === null ? '' : lines[at - 1]?.trim().slice(0, 80);
+
+  return { line: at, text: shown ? `${reason}, at: ${shown}` : `${reason}.` };
 }
 
 /**
@@ -173,6 +242,34 @@ function commentScan(part) {
 }
 
 /**
+ * Which kind of Vue style block a css part comes from.
+ *
+ * @param {import('./types.mjs').Part} part The part.
+ * @returns {'scoped'|'module'|null} `scoped` for `<style scoped>`, `module` for `<style module>`, else `null`.
+ */
+function cssScopeOf(part) {
+  if (part.scoped) {
+    return 'scoped';
+  }
+
+  return part.module ? 'module' : null;
+}
+
+/**
+ * Whether a `manual` entry gets a TODO marker in the code. The default is yes, in a part that holds comments (js and
+ * css). A run-wide note, an entry that says `todo: false`, and a rule that says `todo: false` have none, and neither
+ * has an entry the tool cannot place on a line.
+ *
+ * @param {import('./types.mjs').ReportInput} entry The entry as the transform reported it.
+ * @param {import('./types.mjs').Rule|undefined} owner The rule that reported it.
+ * @returns {boolean} `true` when a marker belongs with the entry.
+ */
+function wantsMarker(entry, owner) {
+  return entry.severity === 'manual' && entry.scope !== 'run' && entry.todo !== false && Boolean(owner)
+    && owner.todo !== false && (Number.isInteger(entry.line) || (entry.lines ?? []).some(Number.isInteger));
+}
+
+/**
  * Build the context for one part of a file. See the `Ctx` typedef in `types.mjs` for the contract.
  *
  * @param {object} args Arguments.
@@ -181,12 +278,15 @@ function commentScan(part) {
  * @param {import('./types.mjs').Plan} args.plan The selected rules, for guide links.
  * @param {import('./types.mjs').ReportEntry[]} args.entries Where report entries are collected.
  * @param {Set<string>} args.facts Shared facts.
- * @param {{aggressive: boolean, dryRun: boolean}} args.options Run options.
- * @returns {import('./types.mjs').Ctx} The context.
+ * @param {{aggressive: boolean, dryRun: boolean, todo: boolean}} args.options Run options.
+ * @returns {{ctx: import('./types.mjs').Ctx, marks: Mark[]}} The context, and the markers its `manual` entries ask
+ * for. `applyMarkers()` places them once every transform has run.
  */
 function createContext({ filePath, part, plan, entries, facts, options }) {
   const merged = new Map();
-  const report = (entry) => {
+  const marks = [];
+  const annotatable = part.fileKind === 'js' || part.fileKind === 'css';
+  const store = (entry, { mark }) => {
     if (typeof entry?.ruleId !== 'string' || !SEVERITIES.has(entry.severity) || typeof entry.message !== 'string') {
       throw new Error(`Invalid report entry: ${JSON.stringify(entry)}`);
     }
@@ -209,10 +309,15 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     };
 
     if (typeof entry.mergeKey === 'string' && merged.has(entry.mergeKey)) {
-      // A later step of the run says the same thing about the same spot: the net result replaces the first entry.
-      Object.assign(merged.get(entry.mergeKey), stored);
+      // A later step of the run says the same thing about the same spot. By default the net result replaces the
+      // first entry (a range bump from the range the user wrote to the latest target). An entry that says
+      // `merge: 'earliest'` keeps the first one, so the rule of the earliest migration owns the id, the message, and
+      // the guide link, and its marker.
+      if (entry.merge !== 'earliest') {
+        Object.assign(merged.get(entry.mergeKey), stored);
+      }
 
-      return;
+      return merged.get(entry.mergeKey);
     }
 
     entries.push(stored);
@@ -220,6 +325,20 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     if (typeof entry.mergeKey === 'string') {
       merged.set(entry.mergeKey, stored);
     }
+
+    const markersOn = options.todo !== false && options.markers !== false;
+
+    if (mark && annotatable && markersOn && wantsMarker(entry, owner)) {
+      const lines = [...new Set([entry.line, ...(entry.lines ?? [])].filter(Number.isInteger))];
+
+      marks.push({ stored, ruleId: entry.ruleId, text: entry.message, lines });
+    }
+
+    return stored;
+  };
+
+  const report = (entry) => {
+    store(entry, { mark: true });
   };
 
   const markChanged = () => {
@@ -227,6 +346,10 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
   };
 
   const comment = (target, ruleId, text) => {
+    if (options.todo === false) {
+      return false;
+    }
+
     const owner = plan.rulesById.get(ruleId);
     const guideUrl = owner?.guide ? owner.guideUrl : null;
     let inserted = false;
@@ -246,13 +369,18 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
 
   const todo = (target, ruleId, text, shortText) => {
     const inserted = comment(target, ruleId, shortText ?? text);
+    const stored = store({ ruleId, severity: 'manual', line: lineOf(target) ?? undefined, message: text },
+      { mark: false });
 
-    report({ ruleId, severity: 'manual', line: lineOf(target) ?? undefined, message: text });
+    // The comment is in the code, put there now or by an earlier run, unless markers are off or the part holds none.
+    if (annotatable && options.todo !== false) {
+      stored.marked = true;
+    }
 
     return inserted;
   };
 
-  return {
+  const ctx = {
     filePath,
     fileKind: part.fileKind,
     source: part.source,
@@ -263,10 +391,76 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
     report,
     todo,
     comment,
+    cssScope: cssScopeOf(part),
+    lineOffset: part.lineOffset,
+    fromText: plan.fromText ?? '',
     facts,
     options,
     markChanged,
   };
+
+  return { ctx, marks };
+}
+
+/**
+ * A marker that a `manual` entry asks for.
+ *
+ * @typedef {object} Mark
+ * @property {import('./types.mjs').ReportEntry} stored The entry in the report. It gets `marked: true` when its
+ * marker is in the code.
+ * @property {string} ruleId Id of the rule.
+ * @property {string} text The message of the entry. The comment keeps its first sentence.
+ * @property {number[]} lines Lines of the entry inside the part, `line` first, then every line of a collapsed group.
+ */
+
+/**
+ * Leave the markers the `manual` entries of a part asked for, once all transforms have run, so every line number
+ * still names the node it was taken from. A marker goes before the statement, property, or JSX element on its line
+ * (see `markerTarget()`), and a collapsed entry gets one at each of its lines. A comment that is already there, from an
+ * earlier run, is found and not added again. A line that has no node to hang a comment on leaves its entry
+ * report-only.
+ *
+ * @param {import('./types.mjs').Part} part The part.
+ * @param {Mark[]} marks The markers its context collected.
+ * @param {import('./types.mjs').Plan} plan The selected rules, for guide links.
+ * @returns {void}
+ */
+function applyMarkers(part, marks, plan) {
+  if (marks.length === 0) {
+    return;
+  }
+
+  const find = part.fileKind === 'js' ? createMarkerIndex(part.j, part.root) : line => cssTargetAt(part.root, line);
+
+  for (const mark of marks) {
+    const owner = plan.rulesById.get(mark.ruleId);
+    const guideUrl = owner?.guide ? owner.guideUrl : null;
+    let placed = false;
+
+    for (const line of mark.lines) {
+      const targets = [find(line)].flat();
+
+      if (targets.length === 0) {
+        continue;
+      }
+
+      // The same comment further up the chain counts: an earlier run may have put it on the element of a one-line
+      // object that the printer then spread over several lines.
+      const scan = part.fileKind === 'js' ? commentScan(part) : null;
+      const there = part.fileKind === 'js'
+        && targets.some(target => hasJsTodo(target, mark.ruleId, mark.text, guideUrl, scan));
+      const inserted = !there && (part.fileKind === 'js'
+        ? addJsTodo(part.j, targets[0], mark.ruleId, mark.text, guideUrl, scan)
+        : addCssTodo(targets[0], mark.ruleId, mark.text, guideUrl, part.document));
+
+      part.changed = part.changed || inserted;
+      placed = true;
+    }
+
+    if (placed) {
+      mark.stored.marked = true;
+    }
+  }
 }
 
 /**
@@ -281,10 +475,11 @@ function createContext({ filePath, part, plan, entries, facts, options }) {
  * @param {string} args.filePath Project-relative path with forward slashes. Only its name and extension are used.
  * @param {string} args.source File text.
  * @param {import('./types.mjs').Plan} args.plan The selected rules.
- * @param {Partial<{aggressive: boolean, dryRun: boolean}>} [args.options] Run options.
+ * @param {Partial<{aggressive: boolean, dryRun: boolean, todo: boolean}>} [args.options] Run options.
  * @param {Set<string>} [args.facts] Facts shared across the run.
  * @param {import('./transforms/index.mjs').Registry} [args.registry] Transform registry.
  * @param {1|2} [args.phase] Phase number. Defaults to 1.
+ * @param {Set<string>} [args.projectFiles] The project files the run reads, for a `src` block that points at one.
  * @returns {Promise<{output: string, changed: boolean, entries: import('./types.mjs').ReportEntry[],
  * skipped: string|null}>} The new text, whether it differs, the report entries, and why the file was skipped.
  */
@@ -296,6 +491,7 @@ export async function transformFile({
   facts = new Set(),
   registry = defaultRegistry,
   phase = 1,
+  projectFiles,
 }) {
   const unchanged = skipped => ({ output: source, changed: false, entries: [], skipped });
   const adapter = adapterFor(filePath);
@@ -330,34 +526,38 @@ export async function transformFile({
   try {
     handle = adapter.parse(source, filePath);
   } catch (error) {
+    const where = describeParseError(error, source);
+
     return {
       ...unchanged(null),
       entries: [{
         ruleId: 'parse-error',
         severity: 'warning',
         file: filePath,
-        line: Number.isInteger(error.loc?.line) ? error.loc.line : (error.line ?? null),
-        message: `The file could not be parsed and was skipped: ${firstLine(error.reason ?? error.message)}`,
+        line: where.line,
+        message: `The file could not be parsed and was skipped: ${where.text}`,
         guideUrl: null,
       }],
     };
   }
 
   if (phase === 1) {
-    entries.push(...skippedEntries(adapter, handle, source, filePath));
+    entries.push(...skippedEntries(adapter, handle, source, filePath, projectFiles, plan.inlineScriptChecks));
   }
 
-  const fullOptions = { aggressive: false, dryRun: false, ...options };
+  const fullOptions = { aggressive: false, dryRun: false, todo: true, ...options };
 
   try {
     for (const part of handle.parts) {
-      const ctx = createContext({ filePath, part, plan, entries, facts, options: fullOptions });
+      const { ctx, marks } = createContext({ filePath, part, plan, entries, facts, options: fullOptions });
 
       for (const step of steps) {
         if (stepFileKinds(step).includes(part.fileKind)) {
           await step.transform.apply(ctx, step.rules);
         }
       }
+
+      applyMarkers(part, marks, plan);
     }
   } catch (error) {
     return {
@@ -429,6 +629,41 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
 }
 
 /**
+ * Read the Handsontable range of every `package.json` under the path arguments, for a run that gave no `--from` where
+ * the nearest `package.json` (a monorepo root) names none.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string[]} paths Path arguments relative to `cwd`.
+ * @returns {Promise<Array<{file: string, version: string}>>} One item per `package.json` that declares a
+ * `handsontable` range with a version, in path order.
+ */
+async function scanPackageVersions(cwd, paths) {
+  const found = [];
+
+  for (const file of (await discover({ cwd, paths })).filter(candidate => basename(candidate) === 'package.json')) {
+    let manifest = null;
+
+    try {
+      manifest = JSON.parse(await readFile(join(cwd, file), 'utf8'));
+    } catch {
+      // A package.json that does not parse names no version.
+    }
+
+    for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
+      const range = manifest?.[field]?.handsontable;
+      const version = typeof range === 'string' ? minimumOfRange(range) : null;
+
+      if (version) {
+        found.push({ file, version });
+        break;
+      }
+    }
+  }
+
+  return found;
+}
+
+/**
  * Resolve the version range and the selected rules for a run. Shared by `run()` and the CLI's `--list`.
  *
  * @param {object} args Arguments.
@@ -482,8 +717,21 @@ export async function resolvePlan({
       throw new UsageError(`${detected.source.replace(/ \w+Dependencies$| dependencies$/, '')} names handsontable `
         + `as "${detected.range}", which is not a version. Pass --from.`);
     } else if (!lenientFrom) {
-      throw new UsageError('Cannot tell which Handsontable version this project uses: there is no installed '
+      const scanned = await scanPackageVersions(cwd, paths);
+
+      if (new Set(scanned.map(item => item.version)).size > 1) {
+        throw new UsageError(`The packages use different Handsontable versions (${scanned
+          .map(item => `${posix.dirname(item.file)}: ${item.version}`).join(', ')}). Pass --from, or run the tool on `
+          + 'each package.');
+      }
+
+      if (scanned.length === 0) {
+        throw new UsageError('Cannot tell which Handsontable version this project uses: there is no installed '
         + 'handsontable package and no handsontable range in package.json. Pass --from, for example --from 17.1.');
+      }
+
+      fromText = scanned[0].version;
+      notes.push(`Detected --from ${fromText} (${[...new Set(scanned.map(item => item.file))].join(', ')}).`);
     }
   }
 
@@ -539,7 +787,7 @@ export async function resolvePlan({
   }
 
   return {
-    plan: buildPlan(selected, only),
+    plan: { ...buildPlan(selected, only), fromText: fromText ?? '' },
     selected,
     notes,
     reportNotes,
@@ -581,9 +829,11 @@ function nothingToMigrate({ manifests, fromText, toText, detected, skippedDrafts
   const parts = [];
 
   if (detected?.version) {
-    const where = detected.source.replace(/ \w*[dD]ependencies$/, '');
+    const wheres = [...new Set((detected.sources ?? [detected.source])
+      .map(source => source.replace(/ \w*[dD]ependencies$/, '')))];
+    const where = wheres.length > 1 ? `${wheres.slice(0, -1).join(', ')} and ${wheres.at(-1)}` : wheres[0];
     const subject = where === 'node_modules/handsontable' ? 'The installed handsontable package is'
-      : `${where} already names`;
+      : `${where} already name${wheres.length > 1 ? '' : 's'}`;
     const guide = /migration-from-(\d+\.\d+)-to-/.exec(manifests[0]?.guide.url ?? '');
 
     parts.push(`${subject} ${fromText}, so there is nothing to migrate to ${toText}. To run the migration again, `
@@ -648,6 +898,8 @@ export function describeRules(plan, registry = defaultRegistry) {
  * @param {boolean} [options.dryRun] Collect diffs and write nothing.
  * @param {string[]} [options.only] Rule ids to run.
  * @param {boolean} [options.aggressive] Lower the option-object confidence bar.
+ * @param {boolean} [options.todo] Leave TODO comments in the code. Defaults to `true`. `false` (the CLI's `--no-todo`)
+ * switches every marker off, so the report is the only record of the manual steps.
  * @param {boolean} [options.includeDraft] Run draft manifests.
  * @param {boolean} [options.allowUncovered] Run although the project is older than the oldest covered version.
  * @param {boolean} [options.allowDirty] Do not refuse a dirty git tree.
@@ -675,6 +927,7 @@ export async function run({
   dryRun = false,
   only = [],
   aggressive = false,
+  todo = true,
   includeDraft = false,
   allowUncovered = false,
   allowDirty = false,
@@ -724,8 +977,9 @@ export async function run({
       await assertReportTarget(cwd, reportPath, files, repo);
     }
 
-    links.forEach(link => report.add(skippedEntry(link.file, null, 'This is a symbolic link, so it was not '
-      + 'followed. A link can point outside the project. Migrate the file it points to in its own project.')));
+    for (const link of links) {
+      report.add(skippedEntry(link.file, null, await linkMessage(cwd, link.file, files)));
+    }
   } catch (error) {
     if (error instanceof UsageError) {
       return { ...result, exitCode: 2, error: error.message };
@@ -735,7 +989,8 @@ export async function run({
   }
 
   const facts = new Set();
-  const options = { aggressive, dryRun };
+  const projectFiles = new Set(files);
+  const options = { aggressive, dryRun, todo };
 
   /**
    * Transform one file on disk and record the outcome.
@@ -779,6 +1034,7 @@ export async function run({
       facts,
       registry,
       phase,
+      projectFiles,
     });
 
     report.addAll(outcome.entries);

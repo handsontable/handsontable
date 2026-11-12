@@ -1,6 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { UsageError } from './errors.mjs';
+import { rangeAdmits } from './lib/dependency-range.mjs';
 
 /**
  * A parsed version. A partial input such as `17` or `17.1` keeps `parts` below 3 so callers can tell it
@@ -261,6 +262,37 @@ export function minimumOfRange(range) {
 }
 
 /**
+ * Tell whether a dependency range sits below the version a run starts from: its lowest version is on an earlier
+ * major or minor line, and it does not admit the `--from` version. `~17.1.0` is below `--from 18.0`, while `^17.0.0`
+ * is not below `--from 17.1` (it admits 17.1.0) and `^18.0.0` is not below `--from 18.0`. A range of a form the
+ * tool does not understand is never below.
+ *
+ * @param {string} range A dependency range from package.json.
+ * @param {string|undefined} fromText The `--from` text of the run.
+ * @returns {string|null} The line of the range (`17.1`) when it is below `fromText`, else `null`.
+ */
+export function lineBelowFrom(range, fromText) {
+  const minimum = minimumOfRange(range);
+
+  if (!minimum || !fromText) {
+    return null;
+  }
+
+  const found = parseVersion(minimum);
+  const from = parseVersion(fromText);
+  const earlier = found.major < from.major
+    || (found.major === from.major && found.parts >= 2 && from.parts >= 2 && found.minor < from.minor);
+
+  const fromVersion = `${from.major}.${from.parts >= 2 ? from.minor : 0}.${from.parts >= 3 ? from.patch : 0}`;
+
+  if (!earlier || rangeAdmits(range, fromVersion) !== false) {
+    return null;
+  }
+
+  return found.parts >= 2 ? `${found.major}.${found.minor}` : String(found.major);
+}
+
+/**
  * Detect the Handsontable version a project uses. The installed package wins, found by walking up from
  * `start`. The range in the nearest package.json, from `start` up to `stopAt`, is the fallback.
  *
@@ -321,8 +353,9 @@ export async function detectInstalledVersion(start, { stopAt = start } = {}) {
  *
  * @param {string} cwd Project directory.
  * @param {string[]} [paths] Path arguments relative to `cwd`.
- * @returns {Promise<{version: string|null, source: string, range?: string}|null>} The version and where it came
- * from, or `null`. See `detectInstalledVersion` for `version: null`.
+ * @returns {Promise<{version: string|null, source: string, sources?: string[], range?: string}|null>} The version and
+ * where it came from, or `null`. `sources` lists where each path argument found it. See `detectInstalledVersion` for
+ * `version: null`.
  * @throws {UsageError} When the paths resolve to different versions.
  */
 export async function detectProjectVersion(cwd, paths = []) {
@@ -347,7 +380,7 @@ export async function detectProjectVersion(cwd, paths = []) {
       + 'Pass --from to say which one to migrate from, or run each path on its own.');
   }
 
-  return versioned[0] ?? found[0] ?? null;
+  return versioned[0] ? { ...versioned[0], sources: versioned.map(item => item.source) } : (found[0] ?? null);
 }
 
 /**

@@ -84,7 +84,11 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
 
     assert.deepEqual(await skippedOf('App.vue', source), [
       { line: 2, message: 'A <style lang="less"> block was not analyzed. Check it by hand.' },
-      { line: 8, message: 'A <style src> block was not analyzed. Check it by hand.' },
+      {
+        line: 8,
+        message: 'A <style src> block was not analyzed. It reads theme.css, which is not part of this run. '
+          + 'Check it by hand.',
+      },
     ]);
   });
 
@@ -96,7 +100,9 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
     assert.deepEqual(await skippedOf('index.html', source), [{
       line: 3,
       message: '2 inline <script> elements that use Handsontable were not analyzed. The tool reads no JavaScript '
-        + 'inside an HTML page. Check them by hand.',
+        + 'inside an HTML page. Check them by hand.'
+        + ' Check by hand: numeric and date formats, removed options, HTML that needs a sanitizer, the license key, '
+        + 'loading title and description markup, sanitizer source values.',
     }]);
     assert.deepEqual(await skippedOf('a.html', '<script>var x = 1;</script>\n<div class="ht-theme-main"></div>\n'), []);
     assert.deepEqual(
@@ -105,7 +111,9 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
       [{
         line: 1,
         message: '2 inline <script> elements that use Handsontable were not analyzed. The tool reads no JavaScript '
-          + 'inside an HTML page. Check them by hand.',
+          + 'inside an HTML page. Check them by hand.'
+          + ' Check by hand: numeric and date formats, removed options, HTML that needs a sanitizer, the license key, '
+          + 'loading title and description markup, sanitizer source values.',
       }]
     );
   });

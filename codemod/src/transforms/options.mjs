@@ -152,6 +152,24 @@ function clearsBar(env, confidence) {
 }
 
 /**
+ * What the user does about an occurrence the tool leaves alone, as the first sentence of its entry.
+ *
+ * @param {import('../types.mjs').Rule} rule An option rule.
+ * @returns {string} For example `Rename oldName to newName by hand.`.
+ */
+function actionFor(rule) {
+  if (rule.kind === 'optionRename') {
+    return `Rename ${rule.from} to ${rule.to} by hand.`;
+  }
+
+  if (rule.kind === 'optionMove') {
+    return `Move ${rule.from} to ${rule.to} by hand.`;
+  }
+
+  return `Remove ${rule.name} by hand.`;
+}
+
+/**
  * Report an occurrence the rule did not rewrite because the object is below the bar.
  *
  * @param {Env} env The state.
@@ -166,7 +184,7 @@ function reportBelowBar(env, node, what) {
     ruleId: rule.id,
     severity: 'manual',
     line: lineOfNode(node),
-    message: [what, corroborated(env) ? REPORT_BELOW_BAR : REPORT_UNCORROBORATED, rule.advice]
+    message: [rule.advice ?? actionFor(rule), what, corroborated(env) ? REPORT_BELOW_BAR : REPORT_UNCORROBORATED]
       .filter(Boolean).join(' '),
   });
 }
@@ -430,7 +448,7 @@ function renameInObject(env, objectPath, confidence) {
       ruleId: rule.id,
       severity: 'manual',
       line,
-      message: `Both ${rule.from} and ${rule.to} are set in this object. Remove ${rule.from} by hand.`,
+      message: `Remove ${rule.from} by hand: both ${rule.from} and ${rule.to} are set in this object.`,
     });
 
     return;
@@ -473,7 +491,7 @@ function renameOnElement(env, openingPath) {
       ruleId: rule.id,
       severity: 'manual',
       line: lineOfNode(attribute),
-      message: `Both ${rule.from} and ${rule.to} are set on this element. Remove ${rule.from} by hand.`,
+      message: `Remove ${rule.from} by hand: both ${rule.from} and ${rule.to} are set on this element.`,
     });
 
     return;
@@ -530,8 +548,8 @@ function renameInCallArguments(env) {
             ruleId: rule.id,
             severity: 'manual',
             line: lineOfNode(property.node),
-            message: `Could not confirm that this is the ${pluginKeys.join(' or ')} plugin, so ${rule.from} was `
-              + `left alone. If it is: rename ${rule.from} to ${rule.to}.`,
+            message: `Rename ${rule.from} to ${rule.to} if this is the ${pluginKeys.join(' or ')} plugin: it could `
+              + `not be confirmed, so ${rule.from} was left alone.`,
           });
         }
 
@@ -726,11 +744,18 @@ function planMove(env, child, existing, hasSpread) {
     return 'dedupe';
   }
 
+  const key = rule.from.split('.').pop();
+  const kept = stringValue(existing);
+
   ctx.report({
     ruleId: rule.id,
     severity: 'manual',
     line,
-    message: `${rule.to} is already set to a different value than ${rule.from}. Keep one by hand.`,
+    message: text !== null && kept !== null
+      ? `Set ${rule.to} to '${text}' if that was intended, then remove ${key}. 18.0 formats this column with `
+        + `${rule.to} '${kept}' and ignores ${rule.from} '${text}', so the output changed from ${text} to ${kept}.`
+      : `Keep one of ${rule.to} and ${rule.from} by hand: 18.0 uses ${rule.to} and ignores ${key}, so the output may `
+        + 'differ from 17.x.',
   });
 
   return null;
@@ -755,7 +780,7 @@ function reportMove(env, child, done) {
       ruleId: rule.id,
       severity: 'manual',
       line,
-      message: `The value of ${rule.from} is not a string literal. Check that it is a BCP 47 tag such as de-DE.`,
+      message: `Check that ${rule.from} is a BCP 47 tag such as de-DE: its value is not a string literal.`,
     });
   }
 
@@ -815,7 +840,7 @@ function moveInObject(env, objectPath, confidence) {
         ruleId: rule.id,
         severity: 'manual',
         line: lineOfNode(parent.node),
-        message: `${parentKey} comes from a variable that sets ${childKey}. Move ${rule.from} to ${rule.to} by hand.`,
+        message: `Move ${rule.from} to ${rule.to} by hand: ${parentKey} comes from a variable that sets ${childKey}.`,
       });
     }
 
@@ -922,7 +947,7 @@ function moveOnElement(env, openingPath) {
           ruleId: rule.id,
           severity: 'manual',
           line: lineOfNode(attributes[index]),
-          message: `${parentKey} comes from a variable that sets ${childKey}. Move ${rule.from} to ${rule.to} by hand.`,
+          message: `Move ${rule.from} to ${rule.to} by hand: ${parentKey} comes from a variable that sets ${childKey}.`,
         });
       }
     }
@@ -1036,12 +1061,13 @@ function reportDynamicOptions(ctx, rules) {
     }
 
     for (const { rule, site: target } of targets.filter(item => item.site.name === site.name)) {
+      const how = site.form === 'assignment' ? 'an assignment' : `${site.form}()`;
+
       ctx.report({
         ruleId: rule.id,
         severity: 'manual',
         line: site.line,
-        message: `${site.name} is set by ${site.form === 'assignment' ? 'an assignment' : `${site.form}()`} here, `
-          + `so the tool cannot rewrite it. ${target.instruction}`,
+        message: `${target.instruction} ${site.name} is set by ${how} here, so the tool cannot rewrite it.`,
       });
     }
   }

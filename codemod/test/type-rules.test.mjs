@@ -152,7 +152,9 @@ function slug(heading) {
  * @returns {Promise<{output: string, changed: boolean, entries: object[]}>} The `transformFile` result.
  */
 function run(filePath, source, only = []) {
-  return transformFile({ filePath, source, plan: only.length ? buildPlan([manifest], only) : plan });
+  const selected = only.length ? buildPlan([manifest], only) : plan;
+
+  return transformFile({ filePath, source, plan: selected, options: { markers: false } });
 }
 
 describe('type rule helpers', () => {
@@ -414,7 +416,7 @@ describe('exportRemoved lead sentence', () => {
    */
   async function messagesOf(rule) {
     const single = { versions: [{ version: 'x', rules: [rule] }], rulesById: new Map([[rule.id, rule]]) };
-    const result = await transformFile({ filePath: 'a.ts', source: sample, plan: single });
+    const result = await transformFile({ filePath: 'a.ts', source: sample, plan: single, options: { markers: false } });
 
     return result.entries.map(entry => entry.message);
   }

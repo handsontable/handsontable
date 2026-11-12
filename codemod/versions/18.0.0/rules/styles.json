@@ -15,7 +15,9 @@
       "guide": "update-theme-wrapper-border-variables",
       "from": "--ht-wrapper-border-width",
       "removed": true,
-      "advice": "Removed in 18.0, so draw the outer border with a box-shadow on the root wrapper. Use `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`."
+      "advice": "Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. Use `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`.",
+      "zeroAdvice": "Delete this line. If you draw the border with a box-shadow, turn it off here with box-shadow: none.",
+      "scopedAdvice": "Handsontable creates .ht-root-wrapper at runtime, so put that rule in a global stylesheet or behind :deep() / ::ng-deep."
     },
     {
       "id": "18.0.0/css-wrapper-border-color",
@@ -24,7 +26,8 @@
       "guide": "update-theme-wrapper-border-variables",
       "from": "--ht-wrapper-border-color",
       "removed": true,
-      "advice": "Removed in 18.0, so draw the outer border with a box-shadow on the root wrapper. Use `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`."
+      "advice": "Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. Use `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`.",
+      "scopedAdvice": "Handsontable creates .ht-root-wrapper at runtime, so put that rule in a global stylesheet or behind :deep() / ::ng-deep."
     },
     {
       "id": "18.0.0/theme-token-wrapper-border-radius",
@@ -41,7 +44,7 @@
       "guide": "update-theme-wrapper-border-variables",
       "from": "wrapperBorderWidth",
       "removed": true,
-      "advice": "Removed in 18.0. Delete this token. To keep a visible border, draw it with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
+      "advice": "Delete this token, because 18.0 removed it. To keep a visible border, draw it with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
     },
     {
       "id": "18.0.0/theme-token-wrapper-border-color",
@@ -50,7 +53,7 @@
       "guide": "update-theme-wrapper-border-variables",
       "from": "wrapperBorderColor",
       "removed": true,
-      "advice": "Removed in 18.0. Delete this token. To keep a visible border, draw it with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
+      "advice": "Delete this token, because 18.0 removed it. To keep a visible border, draw it with `.ht-theme-<name>.ht-root-wrapper { box-shadow: 0 0 0 <width> <color>; }`"
     }
   ]
 }

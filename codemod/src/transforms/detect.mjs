@@ -118,7 +118,7 @@ function validateMatch(spec, files, where) {
     .filter(field => field !== key && !MODIFIERS[key].includes(field))
     .map(field => `${where} has unknown field "${field}" for the ${key} matcher`);
 
-  const readable = ['property', 'annotatedObject'].includes(key) ? ['js', 'template'] : ['js'];
+  const readable = ['property', 'annotatedObject', 'missingOption'].includes(key) ? ['js', 'template'] : ['js'];
 
   if (JS_ONLY_MATCHERS.includes(key) && files.some(file => !readable.includes(file))) {
     problems.push(`${where}: the ${key} matcher reads js only${readable.length > 1 ? ', and templates' : ''}, `
@@ -1097,6 +1097,80 @@ function describeElement(elementPath) {
 }
 
 /**
+ * An inline `<script>` element with no `src` attribute. The groups are its attributes and its text.
+ */
+const INLINE_SCRIPT = /<script\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\b[^>]*>/gid;
+
+/**
+ * Find where the arguments of a call end, by counting parentheses and skipping strings, template literals, and
+ * comments. This is a raw-text scan, not a parse.
+ *
+ * @param {string} text The script text.
+ * @param {number} start Offset just after the opening parenthesis.
+ * @returns {number} The offset of the closing parenthesis, or the end of the text when it never closes.
+ */
+function closeOfCall(text, start) {
+  let depth = 1;
+
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (char === '\'' || char === '"' || char === '`') {
+      for (index += 1; index < text.length && text[index] !== char; index += 1) {
+        index += text[index] === '\\' ? 1 : 0;
+      }
+    } else if (char === '/' && text[index + 1] === '/') {
+      index = text.indexOf('\n', index) === -1 ? text.length : text.indexOf('\n', index);
+    } else if (char === '/' && text[index + 1] === '*') {
+      index = text.indexOf('*/', index) === -1 ? text.length : text.indexOf('*/', index) + 1;
+    } else if (char === '(') {
+      depth += 1;
+    } else if (char === ')') {
+      depth -= 1;
+
+      if (depth === 0) {
+        return index;
+      }
+    }
+  }
+
+  return text.length;
+}
+
+/**
+ * The `missingOption` check for the inline scripts of an HTML page, which the tool does not parse: a
+ * `new Handsontable(` call whose arguments hold an object literal and never name the key. A call that passes its
+ * settings by a variable is skipped, because the page says nothing about what that holds.
+ *
+ * @param {Env} env Part state of a `template` part.
+ * @param {Compiled} node The compiled matcher.
+ * @returns {Match[]} The matches, with the line of each call in the file.
+ */
+function matchInlineMissingOption(env, node) {
+  const key = new RegExp(`\\b${node.spec.missingOption}\\b`);
+  const matches = [];
+
+  for (const script of env.source.matchAll(INLINE_SCRIPT)) {
+    const [from] = script.indices[2];
+
+    if (/\bsrc\s*=/i.test(script[1])) {
+      continue;
+    }
+
+    for (const call of script[2].matchAll(/\bnew\s+Handsontable\s*\(/g)) {
+      const open = call.index + call[0].length;
+      const args = script[2].slice(open, closeOfCall(script[2], open));
+
+      if (args.includes('{') && !key.test(args)) {
+        matches.push({ line: env.source.slice(0, from + call.index).split('\n').length });
+      }
+    }
+  }
+
+  return matches;
+}
+
+/**
  * Find the matches of a `missingOption` matcher. It looks at the grid configurations the file builds itself: an
  * object passed to `new Handsontable(element, {...})` (directly or through one variable), and every `<HotTable>`
  * element with its `settings` object merged in. It does not look at `updateSettings()` objects, spreads,
@@ -1112,6 +1186,10 @@ function matchMissingOption(env, node) {
 
   if (re.unlessFile?.test(env.source)) {
     return [];
+  }
+
+  if (env.ctx.fileKind === 'template') {
+    return matchInlineMissingOption(env, node);
   }
 
   const candidates = env.optionList()
@@ -1254,7 +1332,8 @@ function applyRule(env, rule) {
       severity: compiled.severity,
       line: match.line,
       message: rule.message,
-      ...(rule.mergeKey && match.line !== undefined ? { mergeKey: `${rule.mergeKey}:${match.line}` } : {}),
+      ...(rule.mergeKey && match.line !== undefined
+        ? { mergeKey: `${rule.mergeKey}:${match.line}`, merge: 'earliest' } : {}),
     }));
 
     return;

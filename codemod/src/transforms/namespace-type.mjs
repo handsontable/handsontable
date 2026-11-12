@@ -178,8 +178,8 @@ function rewrite(ctx, match, isModular, noted) {
       ruleId: rule.id,
       severity: 'manual',
       line,
-      message: `${NAMESPACE_PREFIX}${member} comes from the global Handsontable. Import ${name} from `
-        + `"${toList(rule.to.source)[0]}" and use it instead.`,
+      message: `Import ${name} from "${toList(rule.to.source)[0]}" and use it instead. ${NAMESPACE_PREFIX}${member} `
+        + 'comes from the global Handsontable.',
     });
 
     return;
@@ -193,8 +193,8 @@ function rewrite(ctx, match, isModular, noted) {
       ruleId: rule.id,
       severity: 'manual',
       line,
-      message: `Could not replace ${NAMESPACE_PREFIX}${member}: this file already declares ${name}. Import `
-        + `${name} from "${source}" under another name and use it instead.`,
+      message: `Import ${name} from "${source}" under another name and use it instead of ${NAMESPACE_PREFIX}${member}. `
+        + `The codemod did not replace it, because this file already declares ${name}.`,
     });
 
     return;
@@ -206,7 +206,9 @@ function rewrite(ctx, match, isModular, noted) {
     ruleId: rule.id,
     severity: 'changed',
     line,
-    message: `Replaced ${NAMESPACE_PREFIX}${member} with ${result.local} imported from "${source}".`,
+    message: `Replaced ${NAMESPACE_PREFIX}${member} with ${name} imported from "${source}"`
+      + `${result.local === name ? '' : ` (available here as ${result.local})`}.`
+      + `${rule.reason ? ` ${rule.reason}` : ''}`,
   });
 
   if (rule.note && !noted.has(rule.id)) {

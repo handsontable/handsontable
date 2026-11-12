@@ -49,11 +49,6 @@
     {
       "ruleId": "18.1.0/sanitizer-new-sources",
       "severity": "manual",
-      "line": 21
-    },
-    {
-      "ruleId": "18.1.0/sanitizer-new-sources",
-      "severity": "manual",
       "line": 36
     },
     {

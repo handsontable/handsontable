@@ -38,9 +38,10 @@ const templateAdapter = {
    * one note, at the first such script.
    *
    * @param {string} source File text.
+   * @param {string[]} [checks] What to check by hand in such a script, from the selected manifests. The note lists them.
    * @returns {Array<{line: number, message: string}>} No note, or one.
    */
-  skipNotes(source) {
+  skipNotes(source, checks = []) {
     const lines = [...source.matchAll(INLINE_SCRIPT)]
       .filter(match => !/\bsrc\s*=/i.test(match[1]) && /handsontable/i.test(match[2]))
       .map(match => source.slice(0, match.index).split('\n').length);
@@ -49,12 +50,14 @@ const templateAdapter = {
       return [];
     }
 
+    const listed = checks.length > 0 ? ` Check by hand: ${checks.join(', ')}.` : '';
+
     return [{
       line: lines[0],
       message: `${lines.length === 1 ? 'An inline <script> that uses'
         : `${lines.length} inline <script> elements that use`} `
         + `Handsontable ${lines.length === 1 ? 'was' : 'were'} not analyzed. The tool reads no JavaScript inside an `
-        + `HTML page. Check ${lines.length === 1 ? 'it' : 'them'} by hand.`,
+        + `HTML page. Check ${lines.length === 1 ? 'it' : 'them'} by hand.${listed}`,
     }];
   },
 

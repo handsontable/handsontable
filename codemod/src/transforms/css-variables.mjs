@@ -1,7 +1,6 @@
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { removalAdvice } from '../lib/rename-key.mjs';
 import { replaceStringLiteral } from '../lib/string-literal.mjs';
-import { TODO_PREFIX } from '../lib/todo.mjs';
 import { assertRenameOrRemoval, problemsOf } from '../lib/validate.mjs';
 
 /**
@@ -63,27 +62,6 @@ function buildEntries(rules, source) {
 }
 
 /**
- * Tell whether a CSS node already has this rule's TODO comment in the run of comments right before it. Two
- * removed variables in one declaration leave two comments, so checking only the nearest one is not enough to
- * stay idempotent.
- *
- * @param {object} node A postcss node.
- * @param {string} ruleId Rule id.
- * @returns {boolean} `true` when the comment exists.
- */
-function hasTodo(node, ruleId) {
-  const marker = `${TODO_PREFIX} ${ruleId})`;
-
-  for (let previous = node.prev(); previous?.type === 'comment'; previous = previous.prev()) {
-    if (previous.text.trim().startsWith(marker)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
  * Leave a TODO before a CSS node that uses a removed variable, once, and report it.
  *
  * @param {import('../types.mjs').Ctx} ctx Context of a `css` part.
@@ -92,18 +70,40 @@ function hasTodo(node, ruleId) {
  * @returns {void}
  */
 function leaveTodo(ctx, node, rule) {
-  if (hasTodo(node, rule.id)) {
-    ctx.report({
-      ruleId: rule.id,
-      severity: 'manual',
-      line: node.source?.start?.line,
-      message: removalAdvice(rule, rule.from),
-    });
+  // A comment that an earlier run left is found by `addCssTodo()`, which looks through the run of comments before the node.
+  ctx.todo(node, rule.id, cssRemovalAdvice(ctx, node, rule));
+}
 
-    return;
-  }
+/**
+ * A value that switches a declaration off: `0`, `0px`, or `none`.
+ */
+const ZERO_VALUE = /^(?:0(?:px)?|none)$/i;
 
-  ctx.todo(node, rule.id, removalAdvice(rule, rule.from));
+/**
+ * The stylesheet of an Angular component: its rules are scoped to the component by default.
+ */
+const ANGULAR_COMPONENT_STYLE = /\.component\.(?:css|scss|sass|less)$/i;
+
+/**
+ * The advice for a removed variable found in a stylesheet. A declaration that sets the variable to zero or `none`
+ * gets the rule's `zeroAdvice` when it has one, because the user wanted no border and has nothing to draw. A rule
+ * with a `scopedAdvice` adds it when the declaration sits in a stylesheet scoped to a component (a Vue `<style
+ * scoped>` or `<style module>` block, or an Angular `*.component.css`), where the rule cannot reach an element that
+ * Handsontable creates at runtime.
+ *
+ * @param {import('../types.mjs').Ctx} ctx Context of a `css` part.
+ * @param {object} node The declaration or at-rule.
+ * @param {import('../types.mjs').Rule} rule A removal rule.
+ * @returns {string} The advice.
+ */
+function cssRemovalAdvice(ctx, node, rule) {
+  const zero = typeof rule.zeroAdvice === 'string' && node.type === 'decl' && node.prop === rule.from
+    && ZERO_VALUE.test(node.value.trim());
+  const scoped = typeof rule.scopedAdvice === 'string'
+    && (ctx.cssScope !== null || ANGULAR_COMPONENT_STYLE.test(ctx.filePath));
+
+  return [zero ? rule.zeroAdvice : removalAdvice(rule, rule.from), scoped ? rule.scopedAdvice : null]
+    .filter(Boolean).join(' ');
 }
 
 /**
@@ -164,8 +164,8 @@ function applyToDeclaration(ctx, declaration, entry) {
       ruleId: rule.id,
       severity: 'manual',
       line,
-      message: `Both ${rule.from} and ${rule.to} are defined in this rule, so the codemod left it alone. `
-        + 'Merge them by hand.',
+      message: `Merge ${rule.from} and ${rule.to} by hand: both are defined in this rule, so the codemod left it `
+        + 'alone.',
     });
 
     return;

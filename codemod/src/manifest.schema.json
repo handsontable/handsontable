@@ -28,6 +28,12 @@
         "source": { "type": "string", "description": "Repository path of the guide source." }
       }
     },
+    "inlineScriptChecks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Short phrases that say what to check in an inline script of an HTML page, which the tool does not read. The report of a run that selects the manifest lists them after \"Check by hand:\"."
+    },
     "include": {
       "type": "array",
       "items": { "type": "string" },
@@ -89,10 +95,13 @@
                     "to": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }] },
                     "note": { "type": "string" },
                     "removed": { "type": "boolean" },
-                    "advice": { "type": "string" }
+                    "advice": { "type": "string" },
+                    "neverExported": { "type": "boolean", "description": "The module never exported this name. The entry stays so that a broken named import of it is still redirected, and messages leave it out." }
                   }
                 }
               },
+              "runtimeAdvice": { "type": "string", "description": "What to say about a dynamic import() or require() of a module that had no runtime code." },
+              "reason": { "type": "string", "description": "Why the names move, appended to the entry of each move. {name} is the name and {from} the old module." },
               "fallback": { "type": "object", "description": "Entry for names that `exports` does not list. Same shape as an `exports` entry." },
               "moduleRemoved": { "type": "boolean", "description": "The module no longer exists. Every namespace import, `export *`, dynamic import, and `require` of it is reported, not only the ones that name an entry of `exports`." },
               "todo": { "type": "boolean", "description": "For a rule that is not safe: leave a TODO comment on the old import besides the manual entry." }
@@ -107,6 +116,7 @@
               "source": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "A module or the list of modules the name was exported from." },
               "toSource": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "The module, or candidates, the new name is imported from when it moves." },
               "note": { "type": "string", "description": "Text of a manual entry added once per file after a rewrite." },
+              "reason": { "type": "string", "description": "Why the rename happens, appended to the entry of the rewrite. Say so when the old name still works in the target version." },
               "todo": { "type": "boolean", "description": "For a rule that is not safe: leave a TODO comment on the old import besides the manual entry." }
             }
           }
@@ -120,6 +130,7 @@
               "from": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "Handsontable.<path> or a list of paths. A * stands for one segment, as in Handsontable.plugins.*.Settings." },
               "to": { "type": "object", "required": ["source"], "description": "The named export that replaces the member. `name` defaults to the last segment of the path, `source` is a module or a list of candidate modules." },
               "note": { "type": "string", "description": "Text of a manual entry added once per file after a rewrite." },
+              "reason": { "type": "string", "description": "Why the rename happens, appended to the entry of the rewrite. Say so when the old name still works in the target version." },
               "positions": { "enum": ["type", "any"], "description": "`type` (default) rewrites type positions only." },
               "optionKeys": { "type": "object", "description": "Plugin name to option key, or null for a plugin with no option, for the {optionKey} placeholder of the advice." },
               "noKeyAdvice": { "type": "string", "description": "Advice used instead of `advice` for a plugin whose option key is null." },
@@ -239,7 +250,17 @@
             }
           }
         },
-        { "if": { "properties": { "kind": { "const": "cssVariable" } } }, "then": { "required": ["from"], "anyOf": [{ "required": ["to"] }, { "required": ["removed"] }] } },
+        {
+          "if": { "properties": { "kind": { "const": "cssVariable" } } },
+          "then": {
+            "required": ["from"],
+            "anyOf": [{ "required": ["to"] }, { "required": ["removed"] }],
+            "properties": {
+              "zeroAdvice": { "type": "string", "description": "Advice for a declaration that sets the removed variable to 0, 0px, or none." },
+              "scopedAdvice": { "type": "string", "description": "Added to the advice of a declaration in a stylesheet scoped to a component (a Vue style scoped or module block, an Angular component stylesheet)." }
+            }
+          }
+        },
         { "if": { "properties": { "kind": { "const": "themeToken" } } }, "then": { "required": ["from"], "anyOf": [{ "required": ["to"] }, { "required": ["removed"] }] } },
         {
           "if": { "properties": { "kind": { "const": "dependency" } } },
@@ -282,7 +303,8 @@
               "requires": { "enum": ["hot-file", "option-object", "none"], "description": "Defaults to hot-file." },
               "emitsFact": { "type": "string", "description": "Fact name added when the rule matches in a part." },
               "unlessFileMatches": { "type": "string", "description": "Regular expression on the text of the part. The rule skips a part that matches it." },
-              "mergeKey": { "type": "string", "description": "Rules of different versions that share a mergeKey report a spot once: the later rule replaces the earlier one on the same line of the same part." }
+              "mergeKey": { "type": "string", "description": "Rules of different versions that share a mergeKey report a spot once, on the same line of the same part. The rule of the earliest version owns the entry: its id, message, and guide link." },
+              "todo": { "type": "boolean", "description": "false keeps the rule's manual entries out of the code: no TODO comment is left at their lines. Without it, every manual entry in a js or css part gets one." }
             }
           }
         },

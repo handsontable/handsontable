@@ -56,14 +56,15 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/validate.mjs` | `problemsOf()` and `assertRenameOrRemoval()`, the helpers behind the `validate(rule)` hook of a transform. |
 | `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
 | `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, ...) and `isUnresolvedReceiver()`. |
-| `src/lib/facts.mjs` | `addFact(ctx, name)` and `hasFactFor(ctx, name)`: facts keyed by name and directory. |
+| `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
+| `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
 | `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. |
 | `src/transforms/import-source.mjs`, `export-rename.mjs`, `namespace-type.mjs`, `export-removed.mjs` | `importSource`, `exportRename`, `namespaceType`, and `exportRemoved` (rule shapes in Traps). |
 | `src/lib/type-rules.mjs` | Shared by those four: `*` module and path patterns, option keys and advice placeholders, `chooseSource()` (which candidate module a name is imported from), `reportOpaqueReferences()`. |
 | `src/transforms/methods.mjs`, `call-unwrap.mjs` | `methodRemove` and `methodMove` (receiver rule, see Traps), and `callUnwrap`. |
 | `src/transforms/options.mjs` | `optionRename`, `optionMove`, `optionRemove` on option objects, wrapper attributes, and `context.callArg` arguments (see Traps). |
 | `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportMissing`, `reportPresent`, `replaced`, and `facts` (item fields in "Rule fields by kind"). `matchesWhen(j, root, when)` is the fact matcher. |
-| `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id, `notes` for the top of the report), `renderConsole()`, `renderMarkdown()` (title with the versions and the date), `summaryLine()` (both renderers print it), `clusterByMessage()` (a message that several locations share is printed once, then the locations), `SKIPPED_RULE_ID`. |
+| `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id, `notes` for the top of the report), `renderConsole()`, `renderMarkdown()` (title with the versions and the date), `summaryLine()` (both renderers print it), `clusterByMessage()` (a message that several locations share is printed once, then the locations), `SKIPPED_RULE_ID`, `BELOW_FROM_RULE_ID`, and `counts().marked`. |
 | `src/discover.mjs`, `git.mjs`, `diff.mjs` | Support modules. |
 | `versions/<semver>/` | `manifest.json`, optional `custom/*.mjs`, optional extra rule files, `__fixtures__/`. |
 | `test/*.test.mjs`, `test/helpers/` | Tests (`node:test`). Helpers are not listed in the test script. |
@@ -86,7 +87,14 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    migration and says so, in the notes and at the top of the report. An empty range explains itself through
    `nothingToMigrate()`: a version that came from `package.json` or `node_modules` gets "already names", and a
    partial `--from` gets the `--from <minor>` hint taken from the `from` of a manifest. A `handsontable` range that
-   names no version (`latest`) is a usage error that asks for `--from`.
+   names no version (`latest`) is a usage error that asks for `--from`. With no `--from` and no range at the path or above
+   it (a monorepo root), `scanPackageVersions()` reads the `package.json` files below the path arguments: different
+   versions are a usage error that lists the packages, equal ones become the `--from` and the note names the files.
+   `plan.fromText` carries the resolved `--from` to the transforms as `ctx.fromText`.
+   A `dependency` range below `--from` (`lineBelowFrom()`: an earlier line that does not admit the `--from` version)
+   is never bumped. `dependencies.mjs` reports one `below-from` warning per `package.json` (`reportBelowFrom()`), the CLI
+   repeats it on stderr after the report, and the exit code stays 0. A CDN URL below `--from` gets a sentence in its own
+   entry. A raised `peerDependencies` range also gets a `manual` entry (`reportPeerRaised()`).
 2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. It does not apply to `--dry-run`,
    `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
    the first write. An untracked file at the `--report` path (`reportPath`) is not a change.
@@ -100,7 +108,8 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    check uses `leavesDirectory()`, so a directory named `..odd` is inside the project. Before a write, `run()` asks
    `resolvesInside()`: the real path of the file must be inside the real project directory. `--report` is refused
    (exit 2) when its target is a symbolic link, a file git tracks, or a file the run migrates
-   (`assertReportTarget()`).
+   (`assertReportTarget()`). The skipped entry of a link says where it points when the target is inside the project
+   (`linkMessage()`), and whether the run migrates it.
 4. Phase 1 visits every file through `transformFile()`: adapter by extension, skip when no selected rule has a
    registered transform for the adapter's kinds, skip when the adapter's cheap `precheck` regex does not match,
    parse once, run versions ascending and kinds in `KIND_ORDER`, print only parts that called `markChanged()`.
@@ -144,13 +153,14 @@ of its earliest kind in `KIND_ORDER`.
 | `source` | Original text of this part. |
 | `j` | jscodeshift API bound to the right parser. `null` unless `fileKind` is `js`. |
 | `root` | Parsed form, edited in place. `js`: a jscodeshift Collection. `css`: a postcss Root. `json`: the parsed value. |
-| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. |
+| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. |
 | `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
 | `comment(target, ruleId, text)` | The comment half of `todo()`: the same TODO comment, no report entry. A removal uses it, so its one `changed` entry carries the advice. |
 | `json` | For a `json` part, the `JsonDocument` that edits the text by offset: `setString(section, name, value)` and `addMember(section, name, value)` return `false` and change nothing when the scan of the text and the parsed file disagree, and the transform then reports `manual`. `null` for every other kind. A transform never prints a `package.json` with `JSON.stringify`. |
 | `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
+| `cssScope`, `lineOffset`, `fromText` | `'scoped'`, `'module'`, or `null` for the Vue `<style>` block of a `css` part; the part's zero-based line offset (add it by hand when a line is stored outside `report()`); the run's `--from` as text. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
-| `options` | `{ aggressive, dryRun }`. Never write to disk from a transform. |
+| `options` | `{ aggressive, dryRun, todo }`. `todo: false` (`--no-todo`) makes `todo()` and `comment()` write nothing and switches the generic markers off. `markers: false` (tests use it) switches off only the generic markers. Never write to disk from a transform. |
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
 
 Report line numbers are one-based and relative to the part's own source. The `todo` entry is reported on every
@@ -204,7 +214,7 @@ across kinds. Every kind also takes the common fields, and `safe` is required ex
 | `callUnwrap` | `callee*` (dotted path), `arg` |
 | `cssVariable`, `themeToken` | `from*`, then `to` or `removed` + `advice`; `themeToken` also `callees` |
 | `dependency` | `bump`, `replaced`, `add`, `reportMissing`, `reportPresent`, `facts` (item fields below) |
-| `detect` | `match*`, `files`, `message`, `severity`, `requires`, `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the later one wins) |
+| `detect` | `match*`, `files`, `message`, `severity`, `requires`, `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the earliest one wins), `todo` (`false` leaves no marker for the rule) |
 | `custom` | `module*`, plus whatever the module reads (`mode`) |
 
 `dependency` item fields: `bump` maps a package name to a target version. `replaced` maps a package name to the
@@ -311,6 +321,22 @@ the rule, for example a longer name that shares a prefix. Fixture directories ar
 
 ## TODO comments
 
+Two writers leave a marker. A transform that knows the exact node calls `ctx.todo()` or `ctx.comment()`. Every other
+`manual` entry of a js or css part gets a generic marker at its `line` (and at each of `lines` for a collapsed
+entry): `createContext()` collects them and `applyMarkers()` places them after all transforms ran, so a line still
+names the node it was taken from. The anchor is the outermost node that starts on the line (a function body on the line
+of its signature never takes it), then `markerTargets()` climbs to a property, array element, or statement on lines of
+its own, a JSX element, or a declaration; a `BlockStatement` is never an anchor. A run is idempotent because
+`hasJsTodo()` looks for the same comment on every place of that chain, and `addCssTodo()` looks through the run of
+comments before the node (a marker that spread a one-line object over lines turns a property into one with its own
+line). The default is on for a `manual` entry in a js or css part. It is off for a `scope: 'run'` note, an entry with
+`todo: false`, a rule with `todo: false` (`18.1.0/license-key-missing`, whose advice holds for every environment, and
+`18.1.0/synthetic-header-mousedown`, which flags test code), and any part that cannot hold comments (templates, HTML,
+`package.json`). `stored.marked` says a marker is in the code, `counts().marked` totals them, and the CLI prints
+"N of M are marked in the code" from it. The first sentence of every advice or message starts with an action verb:
+`test/advice.test.mjs` checks the rule files, and the TODO text of every fixture output.
+A SCSS file that already has `//` comments gets a `//` marker on a line of its own (`CssDocument` `lineComments`).
+
 A TODO comment is `TODO(handsontable-codemod <ruleId>): <first sentence of the advice> See <guide link>`. The advice
 is cut to about 100 characters by `shortenAdvice()`: the first sentence, plus the next one while the first is under
 40 characters. The full advice stays in the report entry. Write the advice of a rule so that its first sentence says
@@ -338,7 +364,7 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   the quotes of that one string. Use `replaceStringLiteral()` from `src/lib/string-literal.mjs`: it swaps the node
   for a `Literal` that carries the raw text, which recast prints as is.
 - The `vue` adapter returns parts in source order: a `js` part per `<script>` and `<script setup>` (parser by
-  `lang`), a `css` part per `<style>` (`css`, `postcss`, `scss`), and a `template` part with `root = { content }`.
+  `lang`), a `css` part per `<style>` (`css`, `postcss`, `scss`) that carries `scoped` and `module` (read as `ctx.cssScope`), and a `template` part with `root = { content }`.
   `lineOffset` is the zero-based line of the block content start, which is the tag's line, so part line 1 is the tag
   line. Parts carry `start` and `end`, and `print` splices changed parts back last to first. A script or style block
   without a match for the `js` or `css` precheck gets no part, and `less`, `stylus`, `sass`, and `src=` blocks are
@@ -542,5 +568,25 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `unlessFileMatches: "pikaday"` skips a stylesheet or a page that mentions `pikaday`, such as a `<link>` or `<script
   src>` that loads Pikaday itself. It shares `mergeKey: "pikaday"` with `18.0.0/pikaday-leftovers`, so a chained run
   reports one entry per spot.
+- **Facts carry a location.** `addFact(ctx, name, line)` also adds `site:<name>@<dir>=<file>:<line>` for the first sighting
+  in a directory, and `factSite()` reads it by the nearest-package rule of `hasFactFor()`. The set stays a set of strings.
+  `reportMissing` items take `range` (what 17.1.0 shipped: `numbro` 2.5.0, `moment` 2.30.1, `@handsontable/pikaday` ^1.0.0,
+  `dompurify` ^3.1.7); the message names the importing file and line and suggests the range, and the tool never adds it.
+- `importSource` rule fields beyond the table: `runtimeAdvice` (what to say about a dynamic `import()` or `require()` of a
+  module that had no runtime code), `reason` (appended to each move; `{name}` and `{from}` expand), and per export
+  `neverExported: true` (kept so a broken named import is still redirected, left out of messages). `exportRename` and
+  `namespaceType` take `reason` too. `cssVariable` takes `zeroAdvice` (value `0`, `0px`, or `none`) and `scopedAdvice` (a
+  Vue `<style scoped>` or `<style module>` block, or `*.component.css|scss`). A manifest takes `inlineScriptChecks`, short
+  phrases that the note about an inline `<script>` lists after "Check by hand:". The `missingOption` matcher also reads the
+  inline scripts of an HTML page by raw text (`matchInlineMissingOption()`): a `new Handsontable(` call that holds an object
+  literal and never names the key.
+- **The sanitizer facts, from the 18.0.0 and 18.1.2 tarballs.** 18.0 sent the rendered header to the sanitizer as `'header'`
+  (`tableView.js`) and the offscreen pass that measured nested header widths as `'innerHTML'` (`ghostTable.js`), and dialog
+  content with no source (`(html, ctx) => sanitizer(html)`). 18.1 sends `'header'` from both header paths, `'dialog'` for
+  dialogs, and adds `'password'`, `'CopyPaste.paste.sourceData'`, and `'CopyPaste.paste'`. `fastInnerHTML()` still defaults
+  its context to `'innerHTML'`. So an `'innerHTML'` branch is dead for the grid in 18.1, and moving its body to a `'header'`
+  branch would change what rendered headers show against 18.0. The `sanitizer-source` entry has three shapes (`same-place`,
+  `elsewhere`, `none`). `sanitizer-new-sources` stays quiet for a function that returns one sanitizing call on its content
+  argument and for one whose default path returns the content unchanged (`passesOtherSourcesThrough()`).
 - Detect negative fixtures must pass the adapter precheck, or they prove nothing: put the word Handsontable in a
   comment. `report.json` is matched as a subset, so `test/detect.test.mjs` asserts the empty reports.

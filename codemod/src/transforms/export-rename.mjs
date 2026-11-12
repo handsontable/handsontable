@@ -118,7 +118,8 @@ function renameInModule(ctx, rule, source, isModular, noted) {
       message: (moves
         ? `Replaced ${rule.from} from "${source}" with ${rule.to} from "${target}".`
         : `Renamed the ${rule.from} import from "${source}" to ${rule.to}.`)
-        + (keptLocal ? ` The local name ${binding.local} stays: ${rule.to} is already declared in this file.` : ''),
+        + (keptLocal ? ` The local name ${binding.local} stays: ${rule.to} is already declared in this file.` : '')
+        + (rule.reason ? ` ${rule.reason}` : ''),
     });
 
     if (rule.note && !noted.has(rule.id)) {

@@ -278,6 +278,42 @@ function insertLineComment(j, node, body, scan) {
 }
 
 /**
+ * Whether the TODO that `addJsTodo()` would leave is already in front of a node, or, for a JSX element, where it would
+ * put it (a JSX comment before the element, or a line comment on its statement or first attribute).
+ *
+ * @param {object} target An AST node or a NodePath.
+ * @param {string} ruleId Id of the rule that asks for the follow-up.
+ * @param {string} text What the user has to do.
+ * @param {string|null} [guideUrl] Link to the guide section, or `null` for none.
+ * @param {CommentScan|null} [scan] The part's comments.
+ * @returns {boolean} `true` when the comment is already there.
+ */
+export function hasJsTodo(target, ruleId, text, guideUrl = null, scan = null) {
+  const node = target.node ?? target;
+  const body = formatTodo(ruleId, text, guideUrl);
+
+  if (!(target.node && JSX_TARGETS.has(node.type))) {
+    return hasTodo(node, body, scan);
+  }
+
+  const elementPath = node.type === 'JSXOpeningElement' ? target.parent : target;
+  const site = jsxChildSite(elementPath);
+
+  if (site) {
+    const index = site.parent.children.indexOf(site.child);
+    const isBlank = child => child?.type === 'JSXText' && child.value.trim() === '';
+    const before = site.parent.children.slice(0, index).reverse().find(child => !isBlank(child));
+
+    return hasTodo(site.child, body, scan) || isTodoContainer(before, body);
+  }
+
+  const statement = enclosingAnchor(elementPath);
+  const attribute = elementPath.node.openingElement.attributes[0];
+
+  return hasTodo(statement, body, scan) || (Boolean(attribute) && hasTodo(attribute, body, scan));
+}
+
+/**
  * Leave a TODO comment before a JavaScript or TypeScript AST node, unless the same comment is already in front
  * of it. This module and `addCssTodo` are the only writers of TODO comments in the codemod.
  *
@@ -318,10 +354,12 @@ export function addJsTodo(j, target, ruleId, text, guideUrl = null, scan = null)
  */
 export function addCssTodo(target, ruleId, text, guideUrl = null, document = null) {
   const body = formatTodo(ruleId, text, guideUrl);
-  const previous = target.prev();
 
-  if (previous && previous.type === 'comment' && previous.text.trim() === body) {
-    return false;
+  // Two rules can leave a comment before one node, so look through the whole run of comments right before it.
+  for (let previous = target.prev(); previous?.type === 'comment'; previous = previous.prev()) {
+    if (previous.text.trim() === body) {
+      return false;
+    }
   }
 
   if (document) {

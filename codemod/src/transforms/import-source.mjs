@@ -3,7 +3,7 @@ import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { collectComments } from '../lib/todo.mjs';
 import {
   chooseSource,
-  describeMoves,
+  describeNames,
   lazyModular,
   reportOpaqueReferences,
   toList,
@@ -36,11 +36,12 @@ function assertRule(rule) {
  */
 function todoResidual(ctx, rule, residual) {
   for (const [declaration, items] of residual) {
-    const text = items.map(item => `${item.name}: ${item.advice}`).join(' ');
+    const text = items.map(item => (item.advice.includes(item.name) ? item.advice : `${item.name}: ${item.advice}`))
+      .join(' ');
     const names = items.map(item => item.name).join(', ');
 
     ctx.todo(declaration, rule.id, items.length === 1 ? text : `${rule.from} no longer exports these names. ${text}`,
-      items.length === 1 ? text : `${names} are no longer exported from "${rule.from}".`);
+      items.length === 1 ? text : `Update ${names} by hand: "${rule.from}" no longer exports them.`);
   }
 }
 
@@ -93,18 +94,19 @@ function applyRule(ctx, rule) {
 
   assertRule(rule);
 
-  const moves = describeMoves(rule.exports);
+  const hint = describeNames(rule);
 
   reportOpaqueReferences(ctx, {
     ruleId: rule.id,
     sources: [rule.from],
     names: Object.keys(rule.exports),
     all: rule.moduleRemoved === true,
-    hint: moves ? `The names moved: ${moves}.` : (rule.advice ?? ''),
+    hint,
+    runtimeAdvice: rule.runtimeAdvice,
   });
 
   if (rule.moduleRemoved === true) {
-    reportCommentImports(ctx, rule, moves ? `The names moved: ${moves}.` : (rule.advice ?? ''));
+    reportCommentImports(ctx, rule, hint);
   }
 
   const bindings = getImportedBindings(j, root, rule.from).filter(binding => binding.form === 'named');
@@ -131,9 +133,11 @@ function applyRule(ctx, rule) {
 
     const target = chooseSource(j, root, toList(entry.to), { name: binding.imported, isModular });
 
+    const reason = rule.reason?.replaceAll('{name}', binding.imported).replaceAll('{from}', rule.from);
+
     if (!rewrites(rule)) {
       reportInstead(ctx, rule, line, [`Import ${binding.imported} from "${target}" instead of "${rule.from}".`,
-        entry.note].filter(Boolean).join(' '), binding.declaration.node);
+        reason, entry.note].filter(Boolean).join(' '), binding.declaration.node);
 
       continue;
     }
@@ -146,7 +150,8 @@ function applyRule(ctx, rule) {
         ruleId: rule.id,
         severity: 'changed',
         line,
-        message: `Moved the ${binding.imported} import from "${rule.from}" to "${target}".`,
+        message: `Moved the ${binding.imported} import from "${rule.from}" to "${target}".`
+          + `${reason ? ` ${reason}` : ''}`,
       });
 
       if (entry.note && !noted.has(binding.imported)) {

@@ -51,7 +51,7 @@ export function isSkipped(filePath) {
  * @returns {boolean} `true` for `..`, a path that starts with `..` and a separator, and an absolute path (another
  * drive on Windows). A name that merely starts with two dots, such as `..odd`, stays inside.
  */
-function leavesDirectory(rel) {
+export function leavesDirectory(rel) {
   return rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel);
 }
 

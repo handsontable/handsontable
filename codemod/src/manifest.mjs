@@ -64,11 +64,17 @@ export const COMMON_FIELDS = {
 export const RULE_KINDS = {
   importSource: {
     required: { from: 'string', exports: 'object' },
-    optional: { fallback: 'object', moduleRemoved: 'boolean', todo: 'boolean' },
+    optional: {
+      fallback: 'object',
+      moduleRemoved: 'boolean',
+      todo: 'boolean',
+      runtimeAdvice: 'string',
+      reason: 'string',
+    },
   },
   exportRename: {
     required: { source: 'stringOrStrings', from: 'string', to: 'string' },
-    optional: { toSource: 'stringOrStrings', note: 'string', todo: 'boolean' },
+    optional: { toSource: 'stringOrStrings', note: 'string', reason: 'string', todo: 'boolean' },
   },
   namespaceType: {
     required: { from: 'stringOrStrings' },
@@ -79,6 +85,7 @@ export const RULE_KINDS = {
       optionKeys: 'object',
       noKeyAdvice: 'string',
       note: 'string',
+      reason: 'string',
       todo: 'boolean',
     },
   },
@@ -95,7 +102,10 @@ export const RULE_KINDS = {
     optional: { properties: 'object' },
   },
   callUnwrap: { required: { callee: 'string' }, optional: {} },
-  cssVariable: { required: { from: 'string' }, optional: { to: 'string', removed: 'boolean' } },
+  cssVariable: {
+    required: { from: 'string' },
+    optional: { to: 'string', removed: 'boolean', zeroAdvice: 'string', scopedAdvice: 'string' },
+  },
   themeToken: { required: { from: 'string' }, optional: { to: 'string', removed: 'boolean', callees: 'strings' } },
   dependency: {
     required: {},
@@ -117,6 +127,7 @@ export const RULE_KINDS = {
       requires: 'string',
       unlessFileMatches: 'string',
       mergeKey: 'string',
+      todo: 'boolean',
     },
   },
   custom: { required: { module: 'string' }, optional: {} },
@@ -244,6 +255,10 @@ function validateHeader(raw, dirName) {
 
   if ('include' in raw && !FIELD_TYPES.strings(raw.include)) {
     problems.push('"include" must be a non-empty array of relative file paths');
+  }
+
+  if ('inlineScriptChecks' in raw && !FIELD_TYPES.strings(raw.inlineScriptChecks)) {
+    problems.push('"inlineScriptChecks" must be a non-empty array of short phrases');
   }
 
   if ('rules' in raw && !Array.isArray(raw.rules)) {
@@ -387,6 +402,7 @@ export async function loadManifest(dir) {
     from: raw.from,
     status: raw.status,
     guide: raw.guide,
+    inlineScriptChecks: raw.inlineScriptChecks ?? [],
     rules: loadedRules,
     dir,
   };
@@ -450,5 +466,7 @@ export function buildPlan(manifests, only = []) {
     }
   }
 
-  return { versions, rulesById };
+  const inlineScriptChecks = [...new Set(manifests.flatMap(manifest => manifest.inlineScriptChecks ?? []))];
+
+  return { versions, rulesById, inlineScriptChecks };
 }

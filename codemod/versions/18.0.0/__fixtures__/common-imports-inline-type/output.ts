@@ -1,4 +1,4 @@
-// TODO(handsontable-codemod 18.0.0/common-imports): SimpleCellCoords: Removed in 18.0 with no replacement. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-handsontablecommon-imports
+// TODO(handsontable-codemod 18.0.0/common-imports): Use `{ row: number; col: number }` instead of SimpleCellCoords, which 18.0 removed. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-handsontablecommon-imports
 import { type SimpleCellCoords } from 'handsontable/common';
 import { ColumnDataGetterSetterFunction } from 'handsontable/settings';
 import type { CellValue, RowObject } from 'handsontable';

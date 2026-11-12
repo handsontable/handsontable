@@ -40,7 +40,7 @@ function rule(fields) {
  */
 async function run(detectRule, source, filePath = 'a.ts', facts = new Set()) {
   const plan = { versions: [{ version: 'x', rules: [detectRule] }], rulesById: new Map([[detectRule.id, detectRule]]) };
-  const result = await transformFile({ filePath, source, plan, facts });
+  const result = await transformFile({ filePath, source, plan, facts, options: { markers: false } });
 
   return { ...result, lines: result.entries.map(entry => entry.line) };
 }
@@ -583,7 +583,7 @@ describe('rule gates and merging', () => {
     assert.match(validateDetectRule(rule({ match: { string: 'a' }, mergeKey: 1 }))[0], /"mergeKey" must be a string/);
   });
 
-  it('lets two rules with one mergeKey report a spot once, with the later rule', async() => {
+  it('lets two rules with one mergeKey report a spot once, with the earliest rule', async() => {
     const shared = { files: ['css'], mergeKey: 'p' };
     const first = rule({ ...shared, id: 'x/one', match: { selector: '\\.pika-' }, message: 'old' });
     const second = rule({ ...shared, id: 'x/two', match: { selector: '\\.pika-single' }, message: 'new' });
@@ -594,7 +594,7 @@ describe('rule gates and merging', () => {
     const { entries } = await transformFile({ filePath: 'a.css', source: '.pika-single {}\n.pika-next {}\n', plan });
 
     assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line, entry.message]), [
-      ['x/two', 1, 'new'],
+      ['x/one', 1, 'old'],
       ['x/one', 2, 'old'],
     ]);
   });
@@ -657,7 +657,7 @@ describe('shipped rules on realistic input', () => {
   async function runVersion(version, filePath, source) {
     const manifest = await loadManifest(join(VERSIONS_DIR, version));
 
-    return transformFile({ filePath, source, plan: buildPlan([manifest]) });
+    return transformFile({ filePath, source, plan: buildPlan([manifest]), options: { markers: false } });
   }
 
   it('reports nothing for the same names in a file that does not use Handsontable', async() => {
@@ -714,7 +714,7 @@ describe('sanitizer custom rules', () => {
     const manifest = await loadManifest(join(VERSIONS_DIR, '18.1.0'));
     const plan = buildPlan([manifest], [SOURCE, NEW_SOURCES]);
 
-    return transformFile({ filePath, source, plan });
+    return transformFile({ filePath, source, plan, options: { markers: false } });
   }
 
   /**
@@ -731,6 +731,7 @@ describe('sanitizer custom rules', () => {
       '(c, s) => (s === "password" || s === "innerHTML" || s === "header" ? a(c) : b(c))',
       '(c, s) => { switch (s) { case "header": case "innerHTML": return a(c); default: return c; } }',
       '(c, s) => { switch (s) { case "innerHTML": case "header": return a(c); default: return c; } }',
+      '(c, s) => (["header", "innerHTML"].includes(s) ? a(c) : b(c))',
     ];
 
     for (const sanitizer of sources) {
@@ -739,7 +740,7 @@ describe('sanitizer custom rules', () => {
 
       assert.equal(result.changed, false, sanitizer);
       assert.equal(result.output, grid(sanitizer), sanitizer);
-      assert.match(entry.message, /already handles it/, sanitizer);
+      assert.match(entry.message, /already handles 'header'/, sanitizer);
       assert.equal(result.entries.filter(item => item.severity === 'changed').length, 0, sanitizer);
     }
   });
@@ -749,7 +750,7 @@ describe('sanitizer custom rules', () => {
       '(c, s) => (s === "innerHTML" ? a(c) : b(c))',
       '(c, s) => (s !== "innerHTML" ? a(c) : b(c))',
       '(c, s) => (s === "innerHTML" && x ? a(c) : b(c))',
-      '(c, s) => (["header", "innerHTML"].includes(s) ? a(c) : b(c))',
+      '(c, s) => (["x", "innerHTML"].includes(s) ? a(c) : b(c))',
       '(c, s) => { switch (s) { case "innerHTML": return a(c); case "header": return b(c); default: return c; } }',
       '(c, s) => (s === "innerHTML" || s === "password" ? a(c) : b(c))',
     ];
@@ -762,6 +763,55 @@ describe('sanitizer custom rules', () => {
       assert.ok(tests.some(entry => entry.severity === 'manual'), sanitizer);
       assert.equal(tests.some(entry => /already handles/.test(entry.message)), false, sanitizer);
     }
+  });
+
+  it('tells what header content arrives with, by where the function handles header', async() => {
+    const innerHtml = async(sanitizer) => {
+      const result = await runSanitizer(grid(sanitizer));
+
+      return result.entries.find(item => item.ruleId === SOURCE && /innerHTML/.test(item.message)).message;
+    };
+    const samePlace = await innerHtml('(c, s) => (s === "innerHTML" || s === "header" ? a(c) : b(c))');
+    const elsewhere = await innerHtml('(c, s) => { if (s === "header") { return a(c); } '
+      + 'return s === "innerHTML" ? b(c) : c; }');
+    const none = await innerHtml('(c, s) => (s === "innerHTML" ? a(c) : c)');
+
+    assert.match(samePlace, /^Delete this 'innerHTML' test: the same condition already handles 'header'\. /);
+    assert.match(samePlace, /18\.1 passes 'header' for nested header measurement/);
+    assert.match(elsewhere, /^Delete this 'innerHTML' branch: 18\.1 no longer passes 'innerHTML'/);
+    assert.match(elsewhere, /rendered headers already arrived as 'header', which this function handles elsewhere/);
+    assert.match(none, /^Delete this 'innerHTML' branch: 18\.1 no longer passes 'innerHTML'/);
+    assert.match(none, /Rendered headers arrived as 'header' and took your default branch/);
+    assert.match(none, /Do not move this branch to a 'header' branch unless you want rendered headers treated/);
+    assert.match(none, /changes what they show compared with 18\.0/);
+    assert.doesNotMatch(none, /Move what this branch does/);
+    assert.match(none, /fastInnerHTML\(\) without a context, which still sends 'innerHTML'/);
+  });
+
+  it('does not report the new sources for a sanitizer that those sources already pass through', async() => {
+    const newSources = async(sanitizer) => {
+      const result = await runSanitizer(grid(sanitizer));
+
+      return result.entries.filter(entry => entry.ruleId === NEW_SOURCES).length;
+    };
+
+    // One sanitizing call on the content, whatever the source.
+    assert.equal(await newSources('(html) => DOMPurify.sanitize(html)'), 0);
+    assert.equal(await newSources('(html) => { return sanitizeHtml(html); }'), 0);
+    assert.equal(await newSources('(html, source) => DOMPurify.sanitize(html, { USE_PROFILES: { html: true } })'), 0);
+    // The content comes back unchanged for every source the function does not list.
+    assert.equal(await newSources('(c, s) => (s === "innerHTML" ? DOMPurify.sanitize(c) : c)'), 0);
+    assert.equal(
+      await newSources('(c, s) => { if (s === "innerHTML") { return c.replace(/</g, "&lt;"); } return c; }'), 0
+    );
+    assert.equal(await newSources('(c, s) => { switch (s) { case "header": return a(c); default: return c; } }'), 0);
+    assert.equal(await newSources('(c, s) => (s !== "header" ? c : a(c))'), 0);
+    // Escaping or stripping by default, or branching in another shape, is still reported.
+    assert.equal(await newSources('(c) => c.replace(/</g, "&lt;")'), 1);
+    assert.equal(await newSources('(c, s) => (s === "header" ? c : a(c))'), 1);
+    assert.equal(await newSources('(c, s) => { if (s === "x") { return c; } return a(c); }'), 1);
+    assert.equal(await newSources('(c, s) => (s === "header" ? a(c) : escape(c))'), 1);
+    assert.equal(await newSources('(c, s) => (s === "header" ? a(c) : b(c, s))'), 1);
   });
 
   it('does not call an innerHTML test redundant when its || chain tests another value than header', async() => {

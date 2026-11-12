@@ -53,6 +53,12 @@
  * it once with the list of files.
  * @property {string} [mergeKey] A later entry of the same part with the same key replaces this one instead of adding
  * another, so a change that two migration steps make to one spot is reported once, as the net result.
+ * @property {boolean} [todo] `false` keeps a `manual` entry out of the code: no marker is left for it. Without it a
+ * `manual` entry in a js or css part gets a `TODO(handsontable-codemod <ruleId>)` comment at its line, unless the
+ * rule says `todo: false`.
+ * @property {'earliest'|'latest'} [merge] Which entry owns a merged spot. `latest` (the default) lets the later entry
+ * replace the earlier one: the net change, as a dependency range bump reports it. `earliest` keeps the first entry,
+ * so the rule of the earliest migration keeps its id, message, and guide link: a `detect` rule with a `mergeKey` uses it.
  * @property {string} message What happened or what to do.
  */
 
@@ -94,6 +100,8 @@
  * @typedef {object} Plan
  * @property {Array<{version: string, rules: Rule[]}>} versions Selected versions with their rules.
  * @property {Map<string, Rule>} rulesById Every selected rule by id.
+ * @property {string} [fromText] The `--from` of the run as text (given or detected). Absent in a plan built without
+ * a range, as the fixture tests do.
  */
 
 /**
@@ -125,12 +133,20 @@
  * by offset and keeps `root` in step: `replaceInDeclaration()`, `replaceInAtRule()`, and `insertCommentBefore()`.
  * The printed file is the original text with those edits spliced in, so a transform never prints the postcss
  * root. `null` for every other kind.
+ * @property {'scoped'|'module'|null} cssScope For a `css` part of a Vue `<style scoped>` or `<style module>` block,
+ * which one it is. `null` for every other part. A rule about a selector that the framework creates at runtime reads it.
+ * @property {number} lineOffset Zero-based line of the part inside the file. `report()` adds it to its lines itself;
+ * code that records a line elsewhere (a fact) adds it by hand.
+ * @property {string} fromText The `--from` of the run as text, or an empty string when the context has no range. A
+ * rule that bumps a dependency compares it with the version line of the range it finds.
  * @property {Set<string>} facts Set shared across the whole run, phase 1 and phase 2. A transform adds a
  * fact (for example `uses-formulas`) for a later phase to read. Names are lowercase kebab-case, optionally
  * `name:value`. Use `addFact()` and `hasFactFor()` from `src/lib/facts.mjs`: they also record the directory
  * the fact came from, as `name@<dir>`, so a monorepo's package.json files do not share facts.
- * @property {{aggressive: boolean, dryRun: boolean}} options Run options. A transform must not write to
- * disk, so `dryRun` is for reporting only.
+ * @property {{aggressive: boolean, dryRun: boolean, todo: boolean}} options Run options. A transform must not write
+ * to disk, so `dryRun` is for reporting only. `todo` is `false` under `--no-todo`: `todo()` and `comment()` then
+ * leave no comment. `markers: false` (the unit tests of a transform use it to pin "reports, edits nothing") keeps
+ * only the generic marker of a `manual` entry away: `todo()` and `comment()` still write.
  * @property {() => void} markChanged Call after every edit of `root`. A part that never calls it is not
  * printed, so the file keeps its exact original bytes.
  */
@@ -170,6 +186,8 @@
  * @property {import('./lib/css-edit.mjs').CssDocument} [document] The editor of a `css` part.
  * @property {object|null} j The jscodeshift API for `js` parts, otherwise `null`.
  * @property {number} lineOffset Zero-based line of the part inside the file, added to reported lines.
+ * @property {boolean} [scoped] `true` for a Vue `<style scoped>` block. Set by the Vue adapter on `css` parts.
+ * @property {boolean} [module] `true` for a Vue `<style module>` block. Set by the Vue adapter on `css` parts.
  * @property {number} [start] Offset of the part's text inside the file. Set by the Vue adapter.
  * @property {number} [end] Offset where the part's text ends inside the file. Set by the Vue adapter.
  * @property {boolean} changed Set by `ctx.markChanged()`.

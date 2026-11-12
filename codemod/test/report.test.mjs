@@ -45,7 +45,7 @@ describe('Report', () => {
 
     assert.equal(report.entries.at(-1).line, null);
     assert.equal(report.entries.at(-1).guideUrl, null);
-    assert.deepEqual(report.counts(), { changed: 2, manual: 1, warning: 1 });
+    assert.deepEqual(report.counts(), { changed: 2, manual: 1, warning: 1, marked: 0 });
     assert.ok(report.has('parse-error'));
     assert.ok(!report.has('nope'));
   });
@@ -78,7 +78,7 @@ describe('Report', () => {
 
     assert.equal(report.entries.length, 1);
     assert.deepEqual(report.entries[0].files, ['src/b.ts', 'src/a.ts']);
-    assert.deepEqual(report.counts(), { changed: 0, manual: 1, warning: 0 });
+    assert.deepEqual(report.counts(), { changed: 0, manual: 1, warning: 0, marked: 0 });
     assert.deepEqual(report.byRule(), []);
     assert.equal(report.once().length, 1);
   });

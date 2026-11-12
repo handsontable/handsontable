@@ -22,7 +22,7 @@ const TOKEN_WIDTH = '18.0.0/theme-token-wrapper-border-width';
  * @returns {Promise<{output: string, changed: boolean, entries: object[]}>} The `transformFile` result.
  */
 function run(filePath, source) {
-  return transformFile({ filePath, source, plan });
+  return transformFile({ filePath, source, plan, options: { markers: false } });
 }
 
 /**

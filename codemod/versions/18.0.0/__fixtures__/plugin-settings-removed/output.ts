@@ -29,7 +29,7 @@ export const stretch: StretchSettings = true;
 
 export const order: SortOrderType = 'asc';
 
-// TODO(handsontable-codemod 18.0.0/type-notification-settings): Settings: Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification').`GridSett... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
+// TODO(handsontable-codemod 18.0.0/type-notification-settings): Settings: Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification'). See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
 import type { Settings as NotificationSettings } from 'handsontable/plugins/notification';
 
 export const notice: NotificationSettings = true;

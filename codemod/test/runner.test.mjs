@@ -273,8 +273,8 @@ describe('transformFile and the transform contract', () => {
     }, { filePath: 'dir/a.css', facts, options: { aggressive: true } });
 
     assert.deepEqual(Object.keys(seen).sort(), [
-      'comment', 'css', 'facts', 'fileKind', 'filePath', 'j', 'json', 'markChanged', 'options', 'report', 'root',
-      'source', 'todo',
+      'comment', 'css', 'cssScope', 'facts', 'fileKind', 'filePath', 'fromText', 'j', 'json', 'lineOffset',
+      'markChanged', 'options', 'report', 'root', 'source', 'todo',
     ]);
     assert.equal(typeof seen.css.replaceInDeclaration, 'function');
     assert.equal(seen.filePath, 'dir/a.css');
@@ -283,7 +283,7 @@ describe('transformFile and the transform contract', () => {
     assert.equal(seen.j, null);
     assert.equal(seen.root.type, 'root');
     assert.equal(seen.facts, facts);
-    assert.deepEqual(seen.options, { aggressive: true, dryRun: false });
+    assert.deepEqual(seen.options, { aggressive: true, dryRun: false, todo: true });
   });
 
   it('prints only after markChanged and keeps the original bytes otherwise', async() => {
@@ -551,13 +551,13 @@ describe('which versions a run covers', () => {
     }, noRepo);
   });
 
-  it('reports a Pikaday style rule once in a chained run, with the advice of the later migration', async() => {
+  it('reports a Pikaday style rule once in a chained run, owned by the earliest migration', async() => {
     await withProject({ 'theme.css': '.pika-single { color: red; }\n' }, async(dir) => {
       const result = await run({ cwd: dir, from: '17', to: '18.1', dryRun: true });
       const entries = result.report.entries.filter(entry => entry.file === 'theme.css');
 
-      assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]), [['18.1.0/pikaday-theme-leftovers', 1]]);
-      assert.match(entries[0].message, /Remove this rule unless you load Pikaday yourself\./);
+      assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]), [['18.0.0/pikaday-leftovers', 1]]);
+      assert.match(entries[0].message, /^Remove this code, or style the native input instead\./);
     });
   });
 
@@ -565,12 +565,11 @@ describe('which versions a run covers', () => {
     const page = '<style>\n  .pika-single { color: red; }\n</style>\n<hot-table></hot-table>\n';
 
     await withProject({ 'index.html': page }, async(dir) => {
-      for (const from of ['17', '18.0']) {
+      for (const [from, ruleId] of [['17', '18.0.0/pikaday-leftovers'], ['18.0', '18.1.0/pikaday-theme-leftovers']]) {
         const result = await run({ cwd: dir, from, to: '18.1', dryRun: true });
         const entries = result.report.entries.filter(entry => entry.file === 'index.html');
 
-        assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]),
-          [['18.1.0/pikaday-theme-leftovers', 2]], `from ${from}`);
+        assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]), [[ruleId, 2]], `from ${from}`);
       }
     });
   });

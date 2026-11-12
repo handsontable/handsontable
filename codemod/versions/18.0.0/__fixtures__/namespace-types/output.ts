@@ -11,6 +11,7 @@ export let coords: CellCoords;
 
 export const range = new Handsontable.CellRange(new Handsontable.CellCoords(0, 0), new Handsontable.CellCoords(1, 1));
 
+// TODO(handsontable-codemod 18.0.0/ns-core-types): Import CellRange from "handsontable" under another name and use it instead of... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
 export let area: Handsontable.CellRange;
 
 export type Constructor = typeof Handsontable.CellCoords;
@@ -37,7 +38,7 @@ export let undo: Handsontable.plugins.UndoRedo.Settings;
 // TODO(handsontable-codemod 18.0.0/ns-boolean-settings): Use `boolean`. `GridSettings` has no typed key for this option in 18.0. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
 export let touch: Handsontable.plugins.TouchScroll.Settings;
 
-// TODO(handsontable-codemod 18.0.0/ns-numericformatoptions): Removed in 18.0, so use `Intl.NumberFormatOptions` instead. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
+// TODO(handsontable-codemod 18.0.0/ns-numericformatoptions): Use `Intl.NumberFormatOptions` instead, because 18.0 removed this type. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
 export let numeric: Handsontable.NumericFormatOptions;
 
 export let provider: DataProviderFetchOptions;
@@ -48,8 +49,8 @@ export const mapper = new IndexMapper();
 
 export let mapperType: IndexMapper;
 
-// TODO(handsontable-codemod 18.0.0/ns-eventmanager): There is no public type for EventManager in 18.0, and using it fails with TS18046. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
+// TODO(handsontable-codemod 18.0.0/ns-eventmanager): Remove the EventManager type annotation, because 18.0 has no public type for it. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
 export const manager = new Handsontable.EventManager(hot);
 
-// TODO(handsontable-codemod 18.0.0/ns-notification-settings): Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification').`GridSettings` has... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
+// TODO(handsontable-codemod 18.0.0/ns-notification-settings): Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification'). See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-settings
 export let notice: Handsontable.plugins.Notification.Settings;

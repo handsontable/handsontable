@@ -217,7 +217,7 @@ export function describeMoves(exports, names) {
   for (const [name, entry] of Object.entries(exports)) {
     const [target] = toList(entry.to);
 
-    if (!target || (names && !names.includes(name))) {
+    if (!target || entry.neverExported === true || (names && !names.includes(name))) {
       continue;
     }
 
@@ -225,6 +225,46 @@ export function describeMoves(exports, names) {
   }
 
   return [...groups].map(([target, list]) => `${list.join(', ')}: ${target}`).join('; ');
+}
+
+/**
+ * Describe what to do about the names a module exported and that have no new home, for messages about code the
+ * codemod does not rewrite. An entry marked `neverExported` is left out: the module never exported that name.
+ *
+ * @param {Record<string, {removed?: boolean, advice?: string, neverExported?: boolean}>} exports The rule's
+ * `exports` map.
+ * @returns {string} The advice of each removed name after its name, for example `Thing: Use X instead of Thing.`.
+ */
+export function describeRemovals(exports) {
+  return Object.entries(exports)
+    .filter(([, entry]) => entry.removed === true && entry.neverExported !== true)
+    .map(([name, entry]) => `${name}: ${firstSentence(entry.advice ?? 'It was removed.')}`)
+    .join(' ');
+}
+
+/**
+ * The first sentence of a text, with its full stop.
+ *
+ * @param {string} text The text.
+ * @returns {string} Up to and including the first full stop that ends a sentence, or the whole text.
+ */
+function firstSentence(text) {
+  return /^.*?[.!?](?=\s|$)/s.exec(text)?.[0] ?? text;
+}
+
+/**
+ * The hint that follows a message about a reference to a module that is gone and was not rewritten: where each
+ * exported name went, then what to do about the names that have no new home.
+ *
+ * @param {object} rule An `importSource` rule.
+ * @returns {string} The hint, or the rule's `advice` when it lists no names.
+ */
+export function describeNames(rule) {
+  const moves = describeMoves(rule.exports);
+  const removals = describeRemovals(rule.exports);
+
+  return [moves ? `The names moved: ${moves}.` : '', removals ? `Removed names: ${removals}` : '']
+    .filter(Boolean).join(' ') || (rule.advice ?? '');
 }
 
 /**
@@ -243,8 +283,10 @@ export function describeMoves(exports, names) {
  * @param {string} options.hint What the user should do, appended to every message.
  * @param {string[]} options.names Exported names the rule is about.
  * @param {boolean} [options.all] `true` when the module no longer exists, so every reference counts.
+ * @param {string} [options.runtimeAdvice] What to say about a dynamic `import()` or `require()` of the module,
+ * which loads it at runtime. Set it for a module that had no runtime code, where moving a name is not the advice.
  */
-export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all = false }) {
+export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all = false, runtimeAdvice }) {
   const { j, root } = ctx;
   const wanted = new Set(names);
   const matches = module => sources.includes(module);
@@ -252,7 +294,7 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
     ruleId,
     severity: 'manual',
     line: node.loc?.start?.line,
-    message: `${what} "${source}". The codemod does not rewrite this. ${hint}`,
+    message: `Replace "${source}" here by hand. ${what} "${source}", and the codemod does not rewrite it. ${hint}`,
   });
 
   getImportedBindings(j, root, matches).filter(binding => binding.form !== 'named').forEach((binding) => {
@@ -296,7 +338,9 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
     const value = node.arguments?.[0]?.value ?? node.source?.value ?? node.argument?.literal?.value
       ?? node.argument?.value;
 
-    if (all || (node.type === 'TSImportType' && wanted.has(node.qualifier?.name))) {
+    if (runtimeAdvice && all && node.type !== 'TSImportType') {
+      ctx.report({ ruleId, severity: 'manual', line: node.loc?.start?.line, message: runtimeAdvice });
+    } else if (all || (node.type === 'TSImportType' && wanted.has(node.qualifier?.name))) {
       report(node, 'This code loads', String(value));
     }
   });
@@ -306,7 +350,9 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
     const destructured = pattern?.type === 'ObjectPattern'
       && pattern.properties.some(property => wanted.has(property.key?.name));
 
-    if (all || destructured) {
+    if (runtimeAdvice && all) {
+      ctx.report({ ruleId, severity: 'manual', line: path.node.loc?.start?.line, message: runtimeAdvice });
+    } else if (all || destructured) {
       report(path.node, 'This code loads', String(path.node.arguments[0].value));
     }
   });

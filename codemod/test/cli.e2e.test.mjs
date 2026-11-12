@@ -122,7 +122,9 @@ describe('the CLI on a 17.1 project', () => {
     assert.match(result.stdout, /^Summary: 7 files changed, /m);
     assert.match(result.stdout, /^Next: run your formatter and linter on the changed files\.$/m);
     assert.match(result.stdout, /^Next: run tsc and your tests\.$/m);
-    assert.match(result.stdout, /^Next: work through the \d+ manual steps in the report\. Find the markers with: /m);
+    assert.match(result.stdout, new RegExp('^Next: work through the \\d+ manual steps in the report\\. '
+      + '\\d+ of \\d+ are marked in the code; the rest are listed in the report only\\.$', 'm'));
+    assert.match(result.stdout, /^Next: find the markers with: git grep "TODO\(handsontable-codemod"$/m);
     assert.ok(result.stdout.includes('git grep "TODO(handsontable-codemod"'));
     assert.deepEqual(changedFiles(dir), MIGRATED);
     await assertUntouched(dir, UNTOUCHED);
@@ -136,7 +138,7 @@ describe('the CLI on a 17.1 project', () => {
     const grid = await read(dir, 'src/grid.js');
 
     assert.match(grid, /^ {6}locale: 'de-DE',$/m);
-    assert.doesNotMatch(grid, /culture|correctFormat: true/);
+    assert.doesNotMatch(grid.replace(/^\s*\/\/.*$/gm, ''), /culture|correctFormat: true/);
     assert.match(grid, /pattern: '0,0\.00 \$'/);
     assert.match(grid, /^ {6}\/\/ TODO\(handsontable-codemod 18\.0\.0\/correct-format-removed\): Deleted correctF/m);
     assert.match(grid, /dateFormat: 'DD\/MM\/YYYY'/);
@@ -150,7 +152,7 @@ describe('the CLI on a 17.1 project', () => {
     const app = await read(dir, 'src/App.tsx');
 
     assert.match(app, /^ {8}locale="ja-JP"$/m);
-    assert.doesNotMatch(app, /culture/);
+    assert.doesNotMatch(app.replace(/TODO\(handsontable-codemod.*$/gm, ''), /culture/);
     assert.match(app, /licenseKey="non-commercial-and-evaluation"/);
 
     assert.match(await read(dir, 'src/angular.component.ts'), /^ {6}locale: 'fr-FR',$/m);
@@ -189,7 +191,8 @@ describe('the CLI on a 17.1 project', () => {
 
     assert.equal(again.status, 0, again.stderr);
     assert.match(again.stdout, /^Summary: 0 files changed, 0 rewrites applied, /m);
-    assert.doesNotMatch(again.stdout, /^Next:/m);
+    assert.doesNotMatch(again.stdout, /^Next: run /m);
+    assert.match(again.stdout, /^Next: work through the \d+ manual steps in the report\. /m);
     assert.deepEqual(changedFiles(dir), []);
     assert.equal(git(dir, ['status', '--porcelain']), '');
   }));

@@ -433,8 +433,8 @@ function act(ctx, { path, spec, name, decision, usage }, quote) {
       ? `the ${spec.pluginKeys.join(' or ')} plugin`
       : 'a Handsontable instance';
 
-    manual(`Could not confirm that this is ${subject}, so ${name}${isProperty ? '' : '()'} was left `
-      + `alone. If it is: ${guidance(spec, name)}`);
+    manual(`${guidance(spec, name)} Do this only if it is ${subject}: it could not be confirmed, so `
+      + `${name}${isProperty ? '' : '()'} was left alone.`);
 
     return;
   }
@@ -458,7 +458,7 @@ function act(ctx, { path, spec, name, decision, usage }, quote) {
   }
 
   if (usage.role === 'reference' && !isProperty) {
-    manual(`${name} is used without a call. ${guidance(spec, name)}`);
+    manual(`${guidance(spec, name)} ${name} is used without a call.`);
 
     return;
   }
@@ -594,7 +594,7 @@ function removeCall(ctx, path, usage, spec, name) {
       ruleId: rule.id,
       severity: 'manual',
       line: lineOfNode(path.node),
-      message: `${name} is used without a call. ${guidance(spec, name)}`,
+      message: `${guidance(spec, name)} ${name} is used without a call.`,
     });
 
     return;
@@ -619,20 +619,21 @@ function removeCall(ctx, path, usage, spec, name) {
   }
 
   let reason = 'Its result is used here, so the call was kept.';
-  let short = reason;
+  let short = 'its result is used here, so the call was kept';
 
   if (effects) {
     reason = 'Its receiver or its arguments may do more than the removed call, so the call was kept.';
-    short = 'Its receiver or arguments may have effects, so the call was kept.';
+    short = 'its receiver or arguments may have effects, so the call was kept';
   } else if (braceless) {
     reason = 'It is the whole body of a statement without braces, so the call was kept.';
-    short = 'It has no braces, so the call was kept.';
+    short = 'it has no braces, so the call was kept';
   }
 
+  const action = `Remove ${name}() by hand.`;
   const lead = named ? message : `${name}() is removed.`;
 
-  ctx.todo(enclosingStatement(usage.call), rule.id, `${lead} ${reason} ${guidance(spec, name)}`,
-    `${lead} ${short}`);
+  ctx.todo(enclosingStatement(usage.call), rule.id, `${action} ${lead} ${reason} ${guidance(spec, name)}`,
+    `Remove ${name}() by hand: ${short}.`);
 }
 
 /**

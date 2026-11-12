@@ -29,7 +29,9 @@ export function createCssPart(source, from, isScss, lineOffset = 0) {
     source,
     root,
     j: null,
-    document: new CssDocument(source, root, text => syntax.parse(text, { from })),
+    document: new CssDocument(source, root, text => syntax.parse(text, { from }), {
+      lineComments: isScss && /^[ \t]*\/\//m.test(source),
+    }),
     lineOffset,
     changed: false,
   };

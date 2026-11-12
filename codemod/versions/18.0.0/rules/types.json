@@ -87,7 +87,8 @@
       "safe": true,
       "source": "handsontable/plugins/exportFile",
       "from": "Settings",
-      "to": "ExportFileSettings"
+      "to": "ExportFileSettings",
+      "reason": "Settings is deprecated in 18.0 and removed in 19.0."
     },
     {
       "id": "18.0.0/type-dataprovider-options",
@@ -163,7 +164,7 @@
       "guide": "replace-settings",
       "source": "handsontable/plugins/notification",
       "name": "Settings",
-      "advice": "Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification').`GridSettings` has no typed key for the notification option in 18.0."
+      "advice": "Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification'). `GridSettings` has no typed key for the notification option in 18.0."
     },
     {
       "id": "18.0.0/type-nestedheaders-settings",
@@ -252,7 +253,7 @@
       "safe": false,
       "source": "handsontable/plugins/columnSummary",
       "name": "Endpoints",
-      "advice": "Removed with no replacement. Read the endpoints from the plugin instance (`hot.getPlugin('columnSummary').endpoints`) and let TypeScript infer the type."
+      "advice": "Read the endpoints from the plugin instance (`hot.getPlugin('columnSummary').endpoints`) and let TypeScript infer the type. 18.0 removed this type with no replacement."
     },
     {
       "id": "18.0.0/type-comments-config",
@@ -261,7 +262,7 @@
       "safe": false,
       "source": "handsontable/plugins/comments",
       "name": ["CommentConfig", "CommentsRangeObject"],
-      "advice": "Removed with no replacement. Use `GridSettings['comments']`, or describe the object inline. `CommentObject` is still exported."
+      "advice": "Use `GridSettings['comments']`, or describe the object inline. 18.0 removed this type with no replacement. `CommentObject` is still exported."
     },
     {
       "id": "18.0.0/type-contextmenu-menuconfig",
@@ -306,7 +307,7 @@
       "safe": false,
       "source": "handsontable/plugins/customBorders",
       "name": ["BorderRange", "BorderDescriptor", "ComputedBorder"],
-      "advice": "Removed with no replacement. Describe the object inline, using `BorderSettings` from 'handsontable/plugins/customBorders' for the sides, or use `GridSettings['customBorders']`."
+      "advice": "Describe the object inline, using `BorderSettings` from 'handsontable/plugins/customBorders' for the sides, or use `GridSettings['customBorders']`. 18.0 removed this type with no replacement."
     },
     {
       "id": "18.0.0/type-plugin-config-types",
@@ -319,7 +320,7 @@
         "handsontable/plugins/emptyDataState"
       ],
       "name": ["DialogConfig", "TemplateOptions", "LoadingConfig", "EmptyDataStateConfig", "EmptyDataStateMessage"],
-      "advice": "Removed with no replacement. Use `GridSettings['{optionKey}']` (import type { GridSettings } from 'handsontable'), or describe the object inline. The option is typed `boolean | object` in 18.0."
+      "advice": "Use `GridSettings['{optionKey}']` (import type { GridSettings } from 'handsontable'), or describe the object inline. The option is typed `boolean | object` in 18.0. 18.0 removed this type with no replacement."
     },
     {
       "id": "18.0.0/type-filters-conditionname",
@@ -337,7 +338,7 @@
       "safe": false,
       "source": "handsontable/plugins/filters",
       "name": ["FiltersConfig", "CellLikeData"],
-      "advice": "Removed with no replacement. Use `GridSettings['filters']`, or describe the object inline."
+      "advice": "Use `GridSettings['filters']`, or describe the object inline. 18.0 removed this type with no replacement."
     },
     {
       "id": "18.0.0/type-formulas-hyperformula",
@@ -346,7 +347,7 @@
       "safe": false,
       "source": "handsontable/plugins/formulas",
       "name": ["HyperFormulaSettings", "NamedExpressions"],
-      "advice": "Removed with no replacement. `HyperFormulaSettings` was `Partial<ConfigParams> & { hyperformula: typeof HyperFormula | HyperFormula }`, with `ConfigParams` from 'hyperformula'. A named expression is `{ name: string; expression: RawCellContent; scope?: number }`. Or use `GridSettings['formulas']`."
+      "advice": "Use `GridSettings['formulas']`, or describe the settings inline. `HyperFormulaSettings` was `Partial<ConfigParams> & { hyperformula: typeof HyperFormula | HyperFormula }`, with `ConfigParams` from 'hyperformula'. A named expression is `{ name: string; expression: RawCellContent; scope?: number }`. 18.0 removed this type with no replacement."
     },
     {
       "id": "18.0.0/type-mergecells-settings",
@@ -355,7 +356,7 @@
       "safe": false,
       "source": "handsontable/plugins/mergeCells",
       "name": "MergeCellsSettings",
-      "advice": "Removed with no replacement. Use `GridSettings['mergeCells']`, or describe the object inline."
+      "advice": "Use `GridSettings['mergeCells']`, or describe the object inline. 18.0 removed this type with no replacement."
     },
     {
       "id": "18.0.0/type-dragtoscroll-domboundaries",
@@ -373,7 +374,7 @@
       "safe": false,
       "source": "handsontable/plugins/pagination",
       "name": ["PageSizeOption", "PaginationData"],
-      "advice": "`PageSizeOption` was `number | 'auto'`. For `PaginationData`, use `ReturnType<Pagination['getPaginationData']>` (import type { Pagination } from 'handsontable/plugins/pagination')."
+      "advice": "Use `number | 'auto'` for `PageSizeOption`. For `PaginationData`, use `ReturnType<Pagination['getPaginationData']>` (import type { Pagination } from 'handsontable/plugins/pagination')."
     },
     {
       "id": "18.0.0/type-search-types",
@@ -429,7 +430,7 @@
       "safe": false,
       "source": "handsontable/plugins",
       "name": "Plugins",
-      "advice": "Removed with no equivalent. Get a typed plugin from the instance with `hot.getPlugin('<key>')`."
+      "advice": "Get a typed plugin from the instance with `hot.getPlugin('<key>')`. 18.0 removed this type with no equivalent."
     },
     {
       "id": "18.0.0/type-registry-maps",
@@ -442,7 +443,7 @@
         "handsontable/validators"
       ],
       "name": ["CellTypes", "Editors", "Renderers", "Validators"],
-      "advice": "Removed with no replacement. The registry entry points export a string union instead: `CellType`, `EditorType`, `RendererType`, and `ValidatorType`. To type one cell type, editor, renderer, or validator, import it and use `typeof`."
+      "advice": "Use the string union that the registry entry points export instead: `CellType`, `EditorType`, `RendererType`, or `ValidatorType`. To type one cell type, editor, renderer, or validator, import it and use `typeof`. 18.0 removed this type with no replacement."
     },
     {
       "id": "18.0.0/type-validators-basevalidator",
@@ -450,7 +451,7 @@
       "safe": false,
       "source": "handsontable/validators",
       "name": "BaseValidator",
-      "advice": "Removed with no replacement. Describe the validator inline: `(this: CellProperties, value: unknown, callback: (valid: boolean) => void) => void`."
+      "advice": "Describe the validator inline: `(this: CellProperties, value: unknown, callback: (valid: boolean) => void) => void`. 18.0 removed this type with no replacement."
     },
     {
       "id": "18.0.0/type-editorfactory-shortcut",
@@ -458,7 +459,7 @@
       "safe": false,
       "source": "handsontable/editors/factory",
       "name": "Shortcut",
-      "advice": "It was never a public export. Describe one shortcut inline, or use `NonNullable<EditorFactoryOptions['shortcuts']>[number]` (EditorFactoryOptions is exported from 'handsontable/editors/factory')."
+      "advice": "Describe one shortcut inline, or use `NonNullable<EditorFactoryOptions['shortcuts']>[number]` (EditorFactoryOptions is exported from 'handsontable/editors/factory'). It was never a public export."
     },
     {
       "id": "18.0.0/type-i18n-languagedictionary",
@@ -474,7 +475,7 @@
       "safe": false,
       "source": "handsontable/settings",
       "name": "CellSettings",
-      "advice": "It was `CellMeta & { row: number; col: number }`. Use that type, or `CellProperties` when you also need `instance`, `visualRow`, `visualCol`, and `prop`."
+      "advice": "Use `CellMeta & { row: number; col: number }`, which is what it was, or `CellProperties` when you also need `instance`, `visualRow`, `visualCol`, and `prop`."
     },
     {
       "id": "18.0.0/type-settings-omit",
@@ -583,7 +584,8 @@
       "guide": "replace-removed-handsontable-namespace-types",
       "safe": true,
       "from": "Handsontable.plugins.ExportFile.Settings",
-      "to": { "name": "ExportFileSettings", "source": "handsontable/plugins/exportFile" }
+      "to": { "name": "ExportFileSettings", "source": "handsontable/plugins/exportFile" },
+      "reason": "Settings is deprecated in 18.0 and removed in 19.0."
     },
     {
       "id": "18.0.0/ns-dataprovider-types",
@@ -666,7 +668,7 @@
       "safe": false,
       "from": "Handsontable.plugins.Notification.Settings",
       "removed": true,
-      "advice": "Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification').`GridSettings` has no typed key for the notification option in 18.0."
+      "advice": "Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification'). `GridSettings` has no typed key for the notification option in 18.0."
     },
     {
       "id": "18.0.0/ns-plugin-settings",
@@ -712,7 +714,7 @@
         "Handsontable.plugins.CustomBorders.BorderRange"
       ],
       "removed": true,
-      "advice": "Removed from the Handsontable namespace in 18.0 with no replacement. Describe the shape inline, or read it from the option type with `GridSettings['<optionKey>']`."
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable namespace with no replacement. Describe the shape inline, or read it from the option type with `GridSettings['<optionKey>']`."
     },
     {
       "id": "18.0.0/ns-numericformatoptions",
@@ -721,7 +723,7 @@
       "guide": "replace-removed-handsontable-namespace-types",
       "from": "Handsontable.NumericFormatOptions",
       "removed": true,
-      "advice": "Removed in 18.0, so use `Intl.NumberFormatOptions` instead. The `numericFormat` option is typed `object`, and the Numbro.js `pattern` and `culture` keys no longer apply."
+      "advice": "Use `Intl.NumberFormatOptions` instead, because 18.0 removed this type. The `numericFormat` option is typed `object`, and the Numbro.js `pattern` and `culture` keys no longer apply."
     },
     {
       "id": "18.0.0/ns-recordtranslation-types",
@@ -734,7 +736,7 @@
         "Handsontable.RecordTranslation.MapTypes"
       ],
       "removed": true,
-      "advice": "Removed from the Handsontable namespace in 18.0 with no replacement."
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable namespace with no replacement."
     },
     {
       "id": "18.0.0/ns-helper-types",
@@ -743,7 +745,7 @@
       "safe": false,
       "from": ["Handsontable.helper.Comparator", "Handsontable.helper.DebouncedFunction"],
       "removed": true,
-      "advice": "Removed from the Handsontable namespace in 18.0 with no replacement. `Comparator` was `(a: any, b: any) => -1 | 0 | 1`. `DebouncedFunction` was `{ (...args: any[]): any; cancel(): void }`."
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable namespace with no replacement. `Comparator` was `(a: any, b: any) => -1 | 0 | 1`. `DebouncedFunction` was `{ (...args: any[]): any; cancel(): void }`."
     },
     {
       "id": "18.0.0/ns-eventmanager",
@@ -753,7 +755,7 @@
       "from": "Handsontable.EventManager",
       "removed": true,
       "positions": "any",
-      "advice": "There is no public type for EventManager in 18.0, and using it fails with TS18046. The value exists at runtime only on the `handsontable` entry, not on `handsontable/base`."
+      "advice": "Remove the EventManager type annotation, because 18.0 has no public type for it. Using it fails with TS18046. The value exists at runtime only on the `handsontable` entry, not on `handsontable/base`."
     },
     {
       "id": "18.0.0/ns-intl-celltype",
@@ -762,7 +764,7 @@
       "safe": false,
       "from": ["Handsontable.cellTypes.intlDate.cellType", "Handsontable.cellTypes.intlTime.cellType"],
       "removed": true,
-      "advice": "Removed from the Handsontable typings in 18.0 with no replacement."
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable typings with no replacement."
     }
   ]
 }

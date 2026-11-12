@@ -188,11 +188,11 @@ const callUnwrap = {
       const label = `${spec.rule.callee}()`;
 
       if (call.node.type === 'OptionalCallExpression' || calleePath.node.type === 'OptionalMemberExpression') {
-        manual(spec, call.node, `${label} is called through an optional chain, so it was left alone.`);
+        manual(spec, call.node, `Replace ${label} by hand: it is called through an optional chain.`);
       } else if (args.length !== spec.arg + 1 || args.some(arg => arg.type === 'SpreadElement')) {
-        manual(spec, call.node, `${label} has other arguments than the one that replaces it, so it was left alone.`);
+        manual(spec, call.node, `Replace ${label} by hand: it has other arguments than the one that replaces it.`);
       } else if (!rewrites(spec.rule)) {
-        manual(spec, call.node, `${label} needs a review.`);
+        manual(spec, call.node, `Review ${label} by hand.`);
       } else {
         const argument = args[spec.arg];
 
@@ -219,7 +219,7 @@ const callUnwrap = {
       const spec = handled.has(path.node) || declaresAlias ? null : specOf(path, specs, new Map(), bindings);
 
       if (spec) {
-        manual(spec, path.node, `${spec.rule.callee} is used without a call.`);
+        manual(spec, path.node, `Replace ${spec.rule.callee} by hand: it is used without a call.`);
       }
     });
 
@@ -231,7 +231,7 @@ const callUnwrap = {
       const spec = aliases.has(path.node) || handled.has(path.node) ? null : specOf(path, specs, aliases, bindings);
 
       if (spec) {
-        manual(spec, path.node, `${spec.rule.callee} is used without a call.`);
+        manual(spec, path.node, `Replace ${spec.rule.callee} by hand: it is used without a call.`);
       }
     });
   },

@@ -1,9 +1,11 @@
 import { attributeName, propertyName } from '../lib/ast.mjs';
 import { planRange, rangeAdmits } from '../lib/dependency-range.mjs';
-import { addFact, dirOf, hasFactFor } from '../lib/facts.mjs';
+import { addFact, dirOf, factSite, hasFactFor } from '../lib/facts.mjs';
 import { memberPosition } from '../lib/json-edit.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { problemsOf } from '../lib/validate.mjs';
+import { BELOW_FROM_RULE_ID } from '../report.mjs';
+import { lineBelowFrom, minimumOfRange } from '../versions.mjs';
 
 /**
  * The `package.json` sections that declare dependencies.
@@ -54,19 +56,34 @@ function isModulePath(path, name) {
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed file, a jscodeshift Collection.
  * @param {string} name Module name.
- * @returns {boolean} `true` when any such statement names the module.
+ * @returns {object|null} The first such statement in source order, or `null` when none names the module.
  */
-function importsModule(j, root, name) {
-  const fromSource = type => Boolean(type)
-    && root.find(type).some(path => isModulePath(path.node.source?.value, name));
+function firstImport(j, root, name) {
   const isRequire = callee => (callee.type === 'Identifier' && callee.name === 'require') || callee.type === 'Import';
-  const fromCall = root.find(j.CallExpression)
-    .some(path => isRequire(path.node.callee) && isModulePath(path.node.arguments[0]?.value, name));
-  const fromEquals = Boolean(j.TSImportEqualsDeclaration) && root.find(j.TSImportEqualsDeclaration)
-    .some(path => isModulePath(path.node.moduleReference?.expression?.value, name));
+  const found = [];
+  const collect = (type, test) => Boolean(type) && root.find(type).forEach((path) => {
+    if (test(path.node)) {
+      found.push(path.node);
+    }
+  });
 
-  return [j.ImportDeclaration, j.ExportNamedDeclaration, j.ExportAllDeclaration, j.ImportExpression]
-    .some(fromSource) || fromCall || fromEquals;
+  [j.ImportDeclaration, j.ExportNamedDeclaration, j.ExportAllDeclaration, j.ImportExpression]
+    .forEach(type => collect(type, node => isModulePath(node.source?.value, name)));
+  collect(j.CallExpression, node => isRequire(node.callee) && isModulePath(node.arguments[0]?.value, name));
+  collect(j.TSImportEqualsDeclaration, node => isModulePath(node.moduleReference?.expression?.value, name));
+
+  return earliest(found);
+}
+
+/**
+ * The node that comes first in the source.
+ *
+ * @param {object[]} nodes AST nodes.
+ * @returns {object|null} The node with the lowest start offset, or `null` for an empty list.
+ */
+function earliest(nodes) {
+  return nodes.reduce((first, node) => (first === null || (node.start ?? Infinity) < (first.start ?? Infinity)
+    ? node : first), null);
 }
 
 /**
@@ -98,14 +115,19 @@ function objectHasKey(node, key) {
  * @param {object} root The parsed file, a jscodeshift Collection.
  * @param {string} name Property name.
  * @param {string} [withKey] When set, the value must be an object that has this key.
- * @returns {boolean} `true` when the property exists (and has the key).
+ * @returns {object|null} The first such property or attribute in source order, or `null` when there is none.
  */
-function hasProperty(j, root, name, withKey) {
+function firstProperty(j, root, name, withKey) {
   const valueOf = node => (node.type === 'JSXAttribute' ? node.value?.expression : node.value);
-  const found = path => keyName(path.node) === name
-    && (withKey === undefined || objectHasKey(valueOf(path.node), withKey));
+  const found = [];
 
-  return [j.ObjectProperty, j.Property, j.JSXAttribute].some(type => type && root.find(type).some(found));
+  [j.ObjectProperty, j.Property, j.JSXAttribute].filter(Boolean).forEach(type => root.find(type).forEach((path) => {
+    if (keyName(path.node) === name && (withKey === undefined || objectHasKey(valueOf(path.node), withKey))) {
+      found.push(path.node);
+    }
+  }));
+
+  return earliest(found);
 }
 
 /**
@@ -124,15 +146,28 @@ function hasProperty(j, root, name, withKey) {
  * @returns {boolean} `true` when the file matches.
  */
 export function matchesWhen(j, root, when) {
+  return findWhen(j, root, when) !== null;
+}
+
+/**
+ * Find the first match of one `when` condition, as `matchesWhen` reads it.
+ *
+ * @param {object} j The jscodeshift API bound to the file's parser.
+ * @param {object} root The parsed file, a jscodeshift Collection.
+ * @param {object} when The condition: `{ import }` or `{ property, withKey }`.
+ * @returns {{line: number|undefined}|null} The line of the first match (`undefined` for a node with no position),
+ * or `null` when the file does not match.
+ */
+export function findWhen(j, root, when) {
+  let node = null;
+
   if (typeof when?.import === 'string') {
-    return importsModule(j, root, when.import);
+    node = firstImport(j, root, when.import);
+  } else if (typeof when?.property === 'string') {
+    node = firstProperty(j, root, when.property, when.withKey);
   }
 
-  if (typeof when?.property === 'string') {
-    return hasProperty(j, root, when.property, when.withKey);
-  }
-
-  return false;
+  return node === null ? null : { line: node.loc?.start?.line };
 }
 
 /**
@@ -155,8 +190,10 @@ function collectFacts(ctx, rules) {
         continue;
       }
 
-      if (matchesWhen(ctx.j, ctx.root, fact.when)) {
-        addFact(ctx, fact.name);
+      const found = findWhen(ctx.j, ctx.root, fact.when);
+
+      if (found) {
+        addFact(ctx, fact.name, found.line);
       }
     }
   }
@@ -226,6 +263,67 @@ function setRange(ctx, section, name, value) {
 }
 
 /**
+ * The packages of one `package.json` that were left alone because their range is below `--from`, in the order the
+ * run found them. Two migration steps that find the same package list it once.
+ *
+ * @type {WeakMap<object, Array<{name: string, range: string, line: string}>>}
+ */
+const belowFrom = new WeakMap();
+
+/**
+ * Report that a package declares a range below `--from`. The tool does not raise it: the steps that lead from that
+ * version were not selected, so a raised range would claim a migration that did not happen. One entry per
+ * `package.json` lists every such package, and a later step replaces it with the same, longer list.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {{name: string, range: string, line: string}} found The package, its range, and the line of the range.
+ * @returns {void}
+ */
+function reportBelowFrom(ctx, found) {
+  const list = belowFrom.get(ctx.root) ?? [];
+
+  belowFrom.set(ctx.root, list);
+
+  if (!list.some(item => item.name === found.name && item.range === found.range)) {
+    list.push(found);
+  }
+
+  const lowest = list.map(item => item.line).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))[0];
+  const declared = list.map(item => `${item.name} ${item.range}`).join(' and ');
+
+  ctx.report({
+    ruleId: BELOW_FROM_RULE_ID,
+    severity: 'warning',
+    mergeKey: 'below-from',
+    message: `${ctx.filePath} declares ${declared}, which ${list.length === 1 ? 'is' : 'are'} below --from `
+      + `${ctx.fromText}. It was not changed. Run the tool on that package with --from ${lowest}.`,
+  });
+}
+
+/**
+ * Tell the user that a raised peer range drops the older line for the consumers of this package. The raise stays
+ * (the code was migrated to the new API), but a library that still supports older versions has to widen it.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule The `dependency` rule that raised the range.
+ * @param {{name: string, original: string, value: string}} change The package, the range the user wrote, and the
+ * new range.
+ * @returns {void}
+ */
+function reportPeerRaised(ctx, rule, { name, original, value }) {
+  const minimum = minimumOfRange(original);
+  const dropped = minimum ? `${minimum.split('.')[0]}.x` : 'the older versions';
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    mergeKey: `peer:${name}`,
+    message: `Raised the peer range of ${name} to ${value}. This drops ${dropped} for consumers of this package. `
+      + 'Widen it by hand if you still support older versions.',
+  });
+}
+
+/**
  * Raise the range of every listed package that the `package.json` declares, keeping the operator style. A compound
  * or open range that already allows the target version (`>=17.1.0 <19`, `*`) is left alone and not reported, and so
  * is a range that starts at or above it. A simple caret, tilde, or exact range below the target is raised even when
@@ -253,6 +351,12 @@ function bump(ctx, rule) {
       const original = written.get(key) ?? current;
       const mergeKey = `range:${key}`;
       const plan = planRange(current, target);
+      const line = plan.action === 'rewrite' || plan.action === 'manual' ? lineBelowFrom(current, ctx.fromText) : null;
+
+      if (line) {
+        reportBelowFrom(ctx, { name, range: current, line });
+        continue;
+      }
 
       if (plan.action === 'rewrite' && !rewrites(rule)) {
         ctx.report({
@@ -278,6 +382,10 @@ function bump(ctx, rule) {
           mergeKey,
           message: `Updated ${name} in ${section} from "${original}" to "${plan.value}".`,
         });
+
+        if (section === 'peerDependencies') {
+          reportPeerRaised(ctx, rule, { name, original, value: plan.value });
+        }
       } else if (plan.action === 'manual') {
         ctx.report({
           ruleId: rule.id,
@@ -402,13 +510,18 @@ function reportCdnPins(ctx, rule) {
         ?? new RegExp(`/${escaped}/([0-9]+\\.[0-9]+\\.[0-9]+[^/?#]*)/`).exec(url);
 
       if (pinned && rangeAdmits(pinned[1], target) !== true) {
+        const below = lineBelowFrom(pinned[1], ctx.fromText)
+          ? ` This URL is below --from ${ctx.fromText}, so the earlier steps were not checked for this page. `
+            + 'Follow the earlier migration guides for it.'
+          : '';
+
         ctx.report({
           ruleId: rule.id,
           severity: 'manual',
           line,
           mergeKey: `cdn:${line}:${name}`,
           message: `${name} ${pinned[1]} is loaded from a URL here, which does not allow ${target}. `
-            + 'The tool does not edit HTML pages. Update the URL by hand.',
+            + `The tool does not edit HTML pages. Update the URL by hand.${below}`,
         });
       }
     }
@@ -584,11 +697,17 @@ function reportMissing(ctx, rule) {
       continue;
     }
 
+    const site = item.whenFact ? factSite(ctx, item.whenFact) : null;
+    const where = site ? `${site} imports it` : 'Your code imports it';
+    const version = item.range
+      ? ` Handsontable 17.1.0 shipped ${item.name} ${item.range}, so that range is a safe start.` : '';
+
     ctx.report({
       ruleId: rule.id,
       severity: 'manual',
       message: item.message
-        ?? `${item.name} is no longer installed with Handsontable. Add it to your dependencies if you still import it.`,
+        ?? `Add ${item.name} to your dependencies. ${where}, and Handsontable no longer installs it.${version}`
+        + ' The tool never adds it.',
     });
   }
 }

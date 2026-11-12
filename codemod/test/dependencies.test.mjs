@@ -135,11 +135,11 @@ describe('ranges, overrides, and aliases in a chained run', () => {
   });
 
   it('reports a package that was moved twice as one change from the range the user wrote', async() => {
-    const input = pkg({ dependencies: { handsontable: '^17.1.0', '@handsontable/vue3': '~17.0.0' } });
+    const input = pkg({ dependencies: { handsontable: '^17.1.0', '@handsontable/vue3': '~17.1.0' } });
 
     await migrate({ 'package.json': input }, {}, async({ result }) => {
       assert.deepEqual(result.report.entries.map(entry => entry.message).sort(), [
-        'Updated @handsontable/vue3 in dependencies from "~17.0.0" to "~18.1.0".',
+        'Updated @handsontable/vue3 in dependencies from "~17.1.0" to "~18.1.0".',
         'Updated handsontable in dependencies from "^17.1.0" to "^18.1.0".',
       ]);
     });
@@ -742,11 +742,30 @@ describe('reporting packages Handsontable no longer installs', () => {
 
       const messages = result.report.entries.filter(entry => entry.severity === 'manual').map(entry => entry.message);
 
-      const expected = ['@handsontable/pikaday', 'dompurify', 'moment', 'numbro']
-        .map(name => `${name} is no longer installed with Handsontable. `
-          + 'Add it to your dependencies if you still import it.');
+      // The file and line of the first import, and the range Handsontable 17.1.0 shipped. No hedge.
+      const expected = [
+        ['@handsontable/pikaday', 'src/app.js:5', '^1.0.0'],
+        ['dompurify', 'src/app.js:6', '^3.1.7'],
+        ['moment', 'src/app.js:4', '2.30.1'],
+        ['numbro', 'src/app.js:2', '2.5.0'],
+      ].map(([name, site, range]) => `Add ${name} to your dependencies. ${site} imports it, and Handsontable no `
+        + `longer installs it. Handsontable 17.1.0 shipped ${name} ${range}, so that range is a safe start. `
+        + 'The tool never adds it.');
 
       assert.deepEqual(messages.sort(), expected.sort());
+      assert.equal(messages.some(message => /if you still import/.test(message)), false);
+    });
+  });
+
+  it('names the first importing file, not a later one', async() => {
+    await migrate({
+      'package.json': pkg({ dependencies: { handsontable: '^17.1.0' } }),
+      'src/a.js': 'import Handsontable from \'handsontable\';\n\nimport numbro from \'numbro\';\n',
+      'src/b.js': 'import numbro from \'numbro\';\n',
+    }, { to: '18.0' }, async({ result }) => {
+      const [entry] = result.report.entries.filter(item => item.severity === 'manual');
+
+      assert.match(entry.message, /^Add numbro to your dependencies\. src\/a\.js:3 imports it, /);
     });
   });
 
@@ -756,7 +775,7 @@ describe('reporting packages Handsontable no longer installs', () => {
       'src/app.js': importAll,
     }, { to: '18.0' }, async({ result }) => {
       const anchor = (name) => {
-        const entry = result.report.entries.find(item => item.message.startsWith(`${name} `));
+        const entry = result.report.entries.find(item => item.message.startsWith(`Add ${name} `));
 
         return entry.guideUrl.split('#')[1];
       };
@@ -796,7 +815,7 @@ describe('reporting packages Handsontable no longer installs', () => {
       'package.json': pkg({ dependencies: { handsontable: '^18.0.0' } }),
       'src/dates.js': 'import moment from \'moment\';\nexport const day = () => moment().format();\n',
     }, { to: '18.0' }, async({ result }) => {
-      assert.equal(result.report.entries.filter(entry => entry.message.startsWith('moment ')).length, 1);
+      assert.equal(result.report.entries.filter(entry => entry.message.startsWith('Add moment ')).length, 1);
     });
   });
 

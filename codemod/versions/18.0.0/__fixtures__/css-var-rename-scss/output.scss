@@ -13,8 +13,10 @@ $radius: 8px;
 
 // Both names are already set here, so this rule is left alone
 .both-defined {
+  // TODO(handsontable-codemod 18.0.0/css-wrapper-border-radius): Merge --ht-wrapper-border-radius and --ht-border-radius by hand: both are defined in this rule... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables
   --ht-wrapper-border-radius: 3px;
   --ht-border-radius: 5px;
+  // TODO(handsontable-codemod 18.0.0/css-wrapper-border-radius): Merge --ht-wrapper-border-radius and --ht-border-radius by hand: both are defined in this rule... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables
   padding: var(--ht-wrapper-border-radius);
 }
 

@@ -2,8 +2,13 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
-import { plural, renderConsole, renderMarkdown } from './report.mjs';
+import { BELOW_FROM_RULE_ID, plural, renderConsole, renderMarkdown } from './report.mjs';
 import { describeRules, resolvePlan, run } from './runner.mjs';
+
+/**
+ * Rule ids of the warnings that make a run exit with code 1: a file the tool could not read, parse, or transform.
+ */
+const READ_FAILURES = ['parse-error', 'transform-error', 'read-error'];
 
 const USAGE_LINE = 'Usage: handsontable-codemod migrate [paths...] [options]';
 
@@ -33,6 +38,8 @@ Options:
   --list                List the rules in the version range and exit. "rewrite" rules edit code, "report"
                         rules only report.
   --aggressive          Also rewrite settings objects found with medium confidence.
+  --no-todo             Leave no TODO comments in the code. By default a manual step gets a TODO(handsontable-codemod
+                        <rule>) comment at its line. With this flag the report is the only record of them.
   --include-draft       Run migrations that are still drafts.
   --allow-uncovered     Run although the project is older than the oldest version the tool migrates from. The
                         report starts with the guides of the steps the tool does not cover.
@@ -56,6 +63,7 @@ const OPTIONS = {
   only: { type: 'string', multiple: true },
   list: { type: 'boolean' },
   aggressive: { type: 'boolean' },
+  'no-todo': { type: 'boolean' },
   'include-draft': { type: 'boolean' },
   'allow-uncovered': { type: 'boolean' },
   'max-file-size': { type: 'string' },
@@ -112,6 +120,42 @@ function renderList(rows) {
     + `${missing > 0 ? `, ${missing} not implemented` : ''}.`);
 
   return `${lines.join('\n')}\n`;
+}
+
+/**
+ * Print the lines that say what to do after a run: format and test when files changed, then the manual steps. The
+ * manual line says how many steps have a TODO marker in the code and how many are in the report only, and names the
+ * search for the markers only when there is at least one.
+ *
+ * @param {{changedFiles: string[], report: import('./report.mjs').Report}} result The outcome of the run.
+ * @param {(text: string) => void} stdout Standard output writer.
+ * @returns {void}
+ */
+function nextSteps(result, stdout) {
+  const { manual, marked } = result.report.counts();
+
+  if (result.changedFiles.length > 0) {
+    stdout('Next: run your formatter and linter on the changed files.\n'
+      + 'Next: run tsc and your tests.\n');
+  }
+
+  if (manual === 0) {
+    return;
+  }
+
+  let where = `${marked} of ${manual} are marked in the code; the rest are listed in the report only.`;
+
+  if (marked === 0) {
+    where = 'They are listed in the report only.';
+  } else if (marked === manual) {
+    where = 'All of them are marked in the code.';
+  }
+
+  stdout(`Next: work through the ${plural(manual, 'manual step')} in the report. ${where}\n`);
+
+  if (marked > 0) {
+    stdout('Next: find the markers with: git grep "TODO(handsontable-codemod"\n');
+  }
 }
 
 /**
@@ -200,6 +244,7 @@ export async function main(argv, {
       paths,
       dryRun,
       aggressive: Boolean(values.aggressive),
+      todo: !values['no-todo'],
       allowDirty: Boolean(values['allow-dirty']),
       reportPath: values.report,
       maxFileSize,
@@ -223,7 +268,7 @@ export async function main(argv, {
 
     const summary = { filesChanged: result.changedFiles.length, dryRun };
 
-    stdout(renderConsole(result.report, summary));
+    stdout(renderConsole(result.report, { ...summary, reportFile: values.report }));
 
     if (values.report) {
       const date = new Date().toISOString().slice(0, 10);
@@ -237,16 +282,18 @@ export async function main(argv, {
       stdout(`Report written to ${values.report}.\n`);
     }
 
-    if (!dryRun && result.changedFiles.length > 0) {
-      const manual = result.report.counts().manual;
+    if (!dryRun) {
+      nextSteps(result, stdout);
+    }
 
-      stdout('Next: run your formatter and linter on the changed files.\n'
-        + 'Next: run tsc and your tests.\n');
+    result.report.entries.filter(entry => entry.ruleId === BELOW_FROM_RULE_ID)
+      .forEach(entry => stderr(`Warning: ${entry.message}\n`));
 
-      if (manual > 0) {
-        stdout(`Next: work through the ${plural(manual, 'manual step')} in the report. `
-          + 'Find the markers with: git grep "TODO(handsontable-codemod"\n');
-      }
+    const unread = new Set(result.report.entries.filter(entry => READ_FAILURES.includes(entry.ruleId))
+      .map(entry => entry.file));
+
+    if (result.exitCode === 1 && unread.size > 0) {
+      stderr(`${plural(unread.size, 'file')} could not be read. See the warnings above.\n`);
     }
 
     return result.exitCode;

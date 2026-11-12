@@ -2,13 +2,14 @@
  * Cell helpers for the orders grid.
  */
 import Handsontable, { GridSettings, CellChange, ChangeSource } from 'handsontable';
-// TODO(handsontable-codemod 18.0.0/common-imports): SimpleCellCoords: Removed in 18.0 with no replacement. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-handsontablecommon-imports
+// TODO(handsontable-codemod 18.0.0/common-imports): Use `{ row: number; col: number }` instead of SimpleCellCoords, which 18.0 removed. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-handsontablecommon-imports
 import type { SimpleCellCoords } from 'handsontable/common';
 import type { CellValue as Value, RowObject } from 'handsontable';
-// TODO(handsontable-codemod 18.0.0/common-imports): NumericFormatOptions: Removed in 18.0, so use `Intl.NumberFormatOptions` instead. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-handsontablecommon-imports
+// TODO(handsontable-codemod 18.0.0/common-imports): Use `Intl.NumberFormatOptions` instead of NumericFormatOptions, which 18.0 removed. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-handsontablecommon-imports
 import { NumericFormatOptions } from 'handsontable/common';
 import { HotTable } from '@handsontable/react-wrapper';
 
+// TODO(handsontable-codemod 18.0.0/numbro-pattern): Replace numericFormat.pattern with Intl.NumberFormat options. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
 export const format: NumericFormatOptions = { style: 'currency', currency: 'USD' };
 
 export function origin(coords: SimpleCellCoords): string {

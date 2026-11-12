@@ -40,16 +40,64 @@ function directoriesOf(facts, name) {
 }
 
 /**
+ * Prefix of the keys that record where a fact was first seen, so a report can name the file and line. The set stays
+ * a set of strings: the key is `site:<name>@<dir>=<file>:<line>`, one per fact and directory. `directoriesOf` never
+ * reads it, because it only looks at keys that start with `<name>@`.
+ */
+const SITE_PREFIX = 'site:';
+
+/**
  * Record a fact for the directory of the file being transformed. It adds two keys: `name`, for code that only
- * asks whether the fact exists anywhere, and `name@<dir>`, for `hasFactFor`.
+ * asks whether the fact exists anywhere, and `name@<dir>`, for `hasFactFor`. With a `line`, the first sighting in
+ * that directory also gets a `site:` key (`factSite` reads it), which holds the file and the line in the file.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context.
  * @param {string} name Fact name, lowercase kebab-case.
+ * @param {number} [line] One-based line of the first match, relative to the part. The part's `lineOffset` is added.
  * @returns {void}
  */
-export function addFact(ctx, name) {
+export function addFact(ctx, name, line) {
+  const dir = dirOf(ctx.filePath);
+
   ctx.facts.add(name);
-  ctx.facts.add(`${name}@${dirOf(ctx.filePath)}`);
+  ctx.facts.add(`${name}@${dir}`);
+
+  const prefix = `${SITE_PREFIX}${name}@${dir}=`;
+
+  if (Number.isInteger(line) && ![...ctx.facts].some(fact => fact.startsWith(prefix))) {
+    ctx.facts.add(`${prefix}${ctx.filePath}:${line + (ctx.lineOffset ?? 0)}`);
+  }
+}
+
+/**
+ * Where a fact was first seen for the project that owns the `package.json` being transformed, by the same
+ * nearest-package rule as `hasFactFor`.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of a `package.json`.
+ * @param {string} name Fact name.
+ * @returns {string|null} `file:line` of the first sighting, or `null` when none was recorded with a line.
+ */
+export function factSite(ctx, name) {
+  const own = dirOf(ctx.filePath);
+  const packageDirs = directoriesOf(ctx.facts, PACKAGE_FACT);
+  const prefix = `${SITE_PREFIX}${name}@`;
+
+  for (const fact of ctx.facts) {
+    if (!fact.startsWith(prefix)) {
+      continue;
+    }
+
+    const separator = fact.indexOf('=', prefix.length);
+    const dir = fact.slice(prefix.length, separator);
+
+    const nested = packageDirs.some(other => other !== own && isInside(other, own) && isInside(dir, other));
+
+    if (isInside(dir, own) && !nested) {
+      return fact.slice(separator + 1);
+    }
+  }
+
+  return null;
 }
 
 /**

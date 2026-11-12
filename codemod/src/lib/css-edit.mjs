@@ -95,8 +95,12 @@ export class CssDocument {
    * @param {string} source Original text of the part.
    * @param {object} root The postcss Root parsed from it. The document edits its nodes along with the text.
    * @param {(text: string) => object} parse Parses edited text with the syntax of the part, for the final check.
+   * @param {object} [options] Options.
+   * @param {boolean} [options.lineComments] Write an inserted comment as `// text` when it sits on a line of its own.
+   * The SCSS adapter sets it for a file that already uses `//` comments.
    */
-  constructor(source, root, parse) {
+  constructor(source, root, parse, { lineComments = false } = {}) {
+    this.lineComments = lineComments;
     this.source = source;
     this.root = root;
     this.parse = parse;
@@ -263,9 +267,12 @@ export class CssDocument {
     const at = start + this.base;
     const lineStart = Math.max(this.source.lastIndexOf('\n', at - 1) + 1, this.base);
     const indent = this.source.slice(lineStart, at);
-    let text = `/* ${body} */`;
+    // A SCSS file that already writes `//` comments gets one, but only on a line of its own: after code on the line a
+    // `//` comment would swallow the rest of it.
+    const onOwnLine = /^[ \t]*$/.test(indent);
+    let text = this.lineComments && onOwnLine ? `// ${body}` : `/* ${body} */`;
 
-    if (/^[ \t]*$/.test(indent)) {
+    if (onOwnLine) {
       text += lineEnding(this.source) + indent;
     } else if (/\s$/.test(indent)) {
       text += ' ';

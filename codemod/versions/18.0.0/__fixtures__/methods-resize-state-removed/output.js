@@ -9,15 +9,16 @@ hot.addHook('afterColumnResize', () => {});
 // restore the sizes on load
 // persist
 
-// TODO(handsontable-codemod 18.0.0/resize-state-methods): loadManualColumnWidths() is a no-op. Its result is used here, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
+// TODO(handsontable-codemod 18.0.0/resize-state-methods): Remove loadManualColumnWidths() by hand: its result is used here, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
 const widths = columns.loadManualColumnWidths();
 
-// TODO(handsontable-codemod 18.0.0/resize-state-methods): saveManualRowHeights() is a no-op. It has no braces, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
+// TODO(handsontable-codemod 18.0.0/resize-state-methods): Remove saveManualRowHeights() by hand: it has no braces, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
 if (widths.length)
   rows.saveManualRowHeights();
 
-// TODO(handsontable-codemod 18.0.0/resize-state-methods): saveManualColumnWidths() is a no-op. Its result is used here, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
+// TODO(handsontable-codemod 18.0.0/resize-state-methods): Remove saveManualColumnWidths() by hand: its result is used here, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
 const persist = () => columns.saveManualColumnWidths();
+// TODO(handsontable-codemod 18.0.0/resize-state-methods): Store the columnWidths and rowHeights values yourself to keep column widths or row heights... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
 const keep = columns.saveManualColumnWidths.bind(columns);
 
 columns.saveManualColumnWidthsToServer();

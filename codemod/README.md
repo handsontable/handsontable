@@ -53,7 +53,9 @@ handsontable-codemod migrate --from 17.1 --to 18.1 --report migration-report.md
 
 `--from` is optional. For each path you name, the tool reads the installed version from the nearest
 `node_modules/handsontable`, then the range of `handsontable` in the nearest `package.json`, searching from the
-path up to the current directory. Paths that resolve to different versions need `--from`. `--to` defaults to the
+path up to the current directory. Paths that resolve to different versions need `--from`. At a monorepo root where no
+`package.json` names `handsontable`, the tool reads the ranges of the packages below it: when they agree it uses that
+version and names the files, and when they differ it asks for `--from` and lists the packages. `--to` defaults to the
 latest released migration.
 
 ### Which versions it covers
@@ -117,6 +119,7 @@ command line skips the generated-output filter.
 | `--only <ruleId>` | Run only this rule. Repeat the flag for several rules. A trailing `*` matches a prefix, for example `--only "18.0.0/type-*"`. |
 | `--list` | List the rules in the version range and exit. `rewrite` rules edit code, `report` rules only report. |
 | `--aggressive` | Also rewrite settings objects found with medium confidence. |
+| `--no-todo` | Leave no `TODO(handsontable-codemod ...)` comments in the code, not for a manual step and not where an option was deleted. The report is then the only record of the manual steps. |
 | `--include-draft` | Run migrations that are still drafts. |
 | `--allow-uncovered` | Run although the project is older than the oldest version the tool migrates from (see "Which versions it covers"). The report starts with the guides of the steps the tool does not cover. |
 | `--max-file-size <bytes>` | Skip files larger than this and list them under "Skipped files". The default is 1048576 (1 MB). |
@@ -147,10 +150,15 @@ about the run itself, such as a `--to` above every known migration, come first. 
   those languages or with `src=`, HTML pages with inline scripts that use Handsontable, and files above
   `--max-file-size`. Check them by hand.
 
+A package whose `handsontable` range is below `--from` is not raised, because the steps from its own version were not
+selected. The tool warns once for that `package.json` (also on standard error, with exit code 0) and names the `--from`
+to use on the package. Source files under it still get the selected rules.
+
 The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The file from `--report`
 has a title with the versions and the date, then the same line, every location, one checkbox per entry, and a link to
 the migration guide section of each rule. The tool refuses a `--report` path that is a symbolic link, a file git
-tracks, or a file it migrates. A rewrite is checked. A manual step is not. On a terminal, a long run prints a progress line to the
+tracks, or a file it migrates. A rewrite is checked. A manual step is not. After the run the tool says how many manual steps have a marker in the code
+and how many are in the report only. On a terminal, a long run prints a progress line to the
 standard error stream every two seconds.
 
 ## Supported migrations
@@ -187,8 +195,9 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 
 The tool rewrites:
 
-- Imports from `handsontable/common` and the theme registry names, to `handsontable`, `handsontable/base`, or
-  `handsontable/settings`.
+- Imports from `handsontable/common`, to `handsontable`, `handsontable/base`, or `handsontable/settings`, and the
+  theme registry names (`registerTheme`, `mainTheme`, and the others), to `handsontable/themes`. The 17.x typings
+  declared the registry on `handsontable` and `handsontable/base` only, so each moved import says why.
 - Renamed plugin types, and `Handsontable.X` namespace types that became named imports. When the successor type has
   another shape, such as `SummaryEndpoint`, the tool still renames and reports one note per run that says what
   changed in the shape.
@@ -246,14 +255,17 @@ rules only, as a `.css` file does. In a JavaScript file with no other sign of Ha
 
 1. Run your formatter and your linter on the changed files.
 2. Run `tsc` and your tests.
-3. Work through the report. Search the code for the comments the tool left:
+3. Work through the report. Search the code for the markers the tool left:
 
    ```bash
    git grep -n "TODO(handsontable-codemod"
    ```
 
-   Each comment names its rule and, for a rule that has a guide section, links to it. The full text of the advice is
-   in the report.
+   Every manual step in a script, a TypeScript file, a Vue `<script>`, or a stylesheet gets a marker at its line, except
+   the notes that hold for the whole run, a grid with no `licenseKey`, and test code that dispatches a synthetic header
+   event. Each marker names its rule and, for a rule that has a guide section, links to it. A step in an HTML page, a
+   template, or `package.json` has no marker: the report lists it. The full text of the advice is in the report. Pass
+   `--no-todo` to run without markers.
 4. Delete a comment when you have done what it says. The tool does not add it again, and a second run changes
    nothing.
 
@@ -285,6 +297,8 @@ the tool reads the version from `package.json`, which the run raised, and answer
 - When a rewrite adds or removes a key, the printer reprints that object: a one-line object can spread over several
   lines, a blank line can appear around a multi-line key, and a trailing comma can go. A removed option leaves its
   TODO above the next property, or the previous one when it was last. Run your formatter afterwards.
+- After a rewrite, a default import can become unused. The tool does not remove an import that may be needed for its side
+  effects, so your linter reports it.
 - Moving `numericFormat.culture` to `locale` can leave `numericFormat: {}` behind. The tool keeps it on purpose: in
   18.x an empty object formats with the `Intl.NumberFormat` defaults (digit grouping on), while no `numericFormat`
   at all uses a plain format without grouping. Delete the empty object yourself when you want the plain format.

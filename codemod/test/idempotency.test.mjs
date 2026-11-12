@@ -108,6 +108,28 @@ const ONE_LINE_CASES = [
       + 'const columns = hot.getPlugin(\'manualColumnResize\');\nconst w = columns.loadManualColumnWidths();\n',
   },
   {
+    name: 'a marker for a manual entry on a property of a one-line object',
+    file: 'a.js',
+    todos: 1,
+    source: 'import Handsontable from \'handsontable\';\n'
+      + 'new Handsontable(el, { licenseKey: \'k\', columns: [{ type: \'date\', dateFormat: \'DD/MM/YYYY\' }] });\n',
+  },
+  {
+    name: 'a marker for a manual entry on a property of a one-line object in a JSX attribute',
+    file: 'a.tsx',
+    todos: 1,
+    source: 'import { HotTable, HotColumn } from \'@handsontable/react-wrapper\';\n'
+      + 'export const A = () => <HotTable data={[]}>\n  <HotColumn numericFormat={{ pattern: \'0.0\' }} />\n'
+      + '</HotTable>;\n',
+  },
+  {
+    name: 'a marker for a function body that starts on the line of its signature',
+    file: 'a.js',
+    todos: 2,
+    source: 'import Handsontable from \'handsontable\';\n'
+      + 'new Handsontable(el, { licenseKey: \'k\', sanitizer(c, s) { return s === \'innerHTML\' ? c : c; } });\n',
+  },
+  {
     name: 'cssVariable removal in one-line css',
     file: 'a.css',
     todos: 1,

@@ -38,7 +38,7 @@ function run(source, rules, { filePath = 'file.js', aggressive = false } = {}) {
   const full = rules.map(rule => ({ safe: true, version: '18.0.0', guideUrl: null, ...rule }));
   const plan = buildPlan([{ version: '18.0.0', rules: full }]);
 
-  return transformFile({ filePath, source, plan, options: { aggressive } });
+  return transformFile({ filePath, source, plan, options: { aggressive, markers: false } });
 }
 
 /**
@@ -97,7 +97,7 @@ describe('optionRename in option objects', () => {
 
     assert.equal(result.changed, false);
     assert.deepEqual(summary(result.entries), ['2:manual']);
-    assert.match(result.entries[0].message, /Both oldName and newName/);
+    assert.match(result.entries[0].message, /both oldName and newName are set in this object/);
   });
 
   it('handles explicit keys of an object that has a spread', async() => {
@@ -348,8 +348,18 @@ describe('optionMove', () => {
     }
 
     assert.match(invalid.entries[0].message, /not a valid BCP 47/);
-    assert.match(different.entries[0].message, /already set to a different value/);
+    assert.equal(different.entries[0].message, 'Set locale to \'de-DE\' if that was intended, then remove culture. '
+      + '18.0 formats this column with locale \'fr-FR\' and ignores numericFormat.culture \'de-DE\', so the output '
+      + 'changed from de-DE to fr-FR.');
     assert.match(variable.entries[0].message, /comes from a variable/);
+  });
+
+  it('words the locale and culture conflict generically when a value is not a string literal', async() => {
+    const result = await run(grid('{ locale: userLocale, numericFormat: { culture: \'de-DE\' } }'), [MOVE]);
+
+    assert.equal(result.changed, false);
+    assert.equal(result.entries[0].message, 'Keep one of locale and numericFormat.culture by hand: 18.0 uses locale '
+      + 'and ignores culture, so the output may differ from 17.x.');
   });
 
   it('drops the nested key when the destination holds the same value', async() => {

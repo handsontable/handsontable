@@ -23,7 +23,7 @@ const UNWRAP = { ...byId('helper-sanitize'), safe: true };
 async function run(source, rules, filePath = 'file.ts') {
   const plan = { versions: [{ version: '18.0.0', rules }], rulesById: new Map(rules.map(rule => [rule.id, rule])) };
 
-  return transformFile({ filePath, source, plan });
+  return transformFile({ filePath, source, plan, options: { markers: false } });
 }
 
 const HEAD = 'import Handsontable from \'handsontable\';\nconst hot = new Handsontable(el, {});\n';
@@ -166,7 +166,8 @@ describe('methodRemove', () => {
   it('puts the TODO of an arrow expression body on its own statement', async() => {
     const { output } = await removal('const persist = () => plugin.saveManualColumnWidths();');
 
-    assert.match(output, /\/\/ TODO\(handsontable-codemod [^)]+\): saveManualColumnWidths\(\) is a no-op\. Its result/);
+    assert.match(output,
+      /\/\/ TODO\(handsontable-codemod [^)]+\): Remove saveManualColumnWidths\(\) by hand: its result/);
     assert.match(output, /\nconst persist = \(\) => plugin\.saveManualColumnWidths\(\);/);
   });
 
@@ -179,7 +180,7 @@ describe('methodRemove', () => {
 
     assert.doesNotMatch(output, /if \(ok\)\s*;/);
     assert.match(output, /plugin\.saveManualColumnWidths\(\);/);
-    assert.match(output, /It has no braces, so the call was kept\./);
+    assert.match(output, /it has no braces, so the call was kept\./);
     assert.ok(entries.some(entry => /without braces/.test(entry.message)));
     assert.equal(entries.filter(entry => entry.severity === 'changed').length, 0);
   });
