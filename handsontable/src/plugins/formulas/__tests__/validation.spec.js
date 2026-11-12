@@ -594,8 +594,39 @@ describe('Formulas general', () => {
         formulas: {
           engine: HyperFormula
         },
-        // The validator answers, so the change is applied and its dependents are validated before the
-        // count is read.
+        validator: () => {},
+        beforeValidate: () => {
+          validatorCallsCount += 1;
+        }
+      });
+      const errorList = [];
+
+      try {
+        await setDataAtCell(0, 0, 1);
+
+      } catch (e) {
+        errorList.push(e);
+      }
+
+      expect(errorList.length).toEqual(0);
+      // 3 from the visible cells + 1 from setDataAtCell
+      expect(validatorCallsCount).toEqual(4);
+    });
+
+    it('should not try to validate cells outside of the table boundaries when the validator answers', async() => {
+      let validatorCallsCount = 0;
+
+      handsontable({
+        data: [
+          [100, '=A1'],
+          ['=A1', '=A1', '=A1'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        // The default `allowInvalid: true` leaves the cell unable to reject the change, so the dependents are
+        // validated at the write, as in the case above. Here the validator also answers, so core applies the
+        // change too, and the apply must not validate a cell outside the table either.
         validator: (value, callback) => callback(true),
         beforeValidate: () => {
           validatorCallsCount += 1;
@@ -605,7 +636,7 @@ describe('Formulas general', () => {
 
       try {
         await setDataAtCell(0, 0, 1);
-        // The dependents are validated when the change is applied.
+        // Read the count once core has applied the change.
         await waitUntil(() => getSourceDataAtCell(0, 0) === 1);
 
       } catch (e) {
