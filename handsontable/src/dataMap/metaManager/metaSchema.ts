@@ -1599,8 +1599,13 @@ export default (): Record<string, unknown> => {
      *
      * The array and the function address a column by its physical index, so a width stays with its column
      * when the user moves the column. The physical index doesn't change when columns are moved
-     * or hidden. When you insert or remove a column with [`alter()`](@/api/core.md#alter), an array
-     * `colWidths` is updated to match, so the other widths stay with their columns.
+     * or hidden. When you insert or remove a column with [`alter()`](@/api/core.md#alter), each width of an array
+     * `colWidths` stays with its column. A column added after the last one takes the next width in the array.
+     * A column inserted between others has no width of its own, and neither has a column inserted after a column
+     * the user moved to the end. The array itself is never changed:
+     * [`getSettings()`](@/api/core.md#getsettings) returns the array you passed. A function is called with the
+     * physical index the column has now. Switching `colWidths` to or from an array, or passing a new array to
+     * [`updateSettings()`](@/api/core.md#updatesettings), clears the undo history, the way enabling a plugin does.
      * The [`rowHeights`](#rowHeights) option addresses rows by their physical index in the same way.
      *
      * Setting `colWidths` even for a single column disables the {@link AutoColumnSize} plugin

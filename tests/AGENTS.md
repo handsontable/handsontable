@@ -1977,6 +1977,20 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
   a `tracker` waits until someone files the task. Findings on the docs site are recorded here and fixed in
   `docs/`, never in the change that adds or refreshes the scan.
+- **A refresh is one command, never a hand edit.** Every docs merge can add or remove findings, so the
+  baseline drifts with the docs. `node tests/scripts/a11y-docs-baseline.mjs --run <run-id>` rewrites it from
+  that run's `docs-a11y-axe-results` (`--scans <folder>` for a local run, `--dry-run` to read the changes
+  first). It compares the run's scans with the file through the scan's own comparator, so whichever
+  baseline the run compared against makes no difference. It takes every count and impact from the run,
+  deletes a finding the run no longer found, adds a new one under the issue its rule and target already
+  belong to, and keeps the entries of a page the run did not scan. It drops the entries of a page that left
+  the page list (`docs/tests/paths.js` or `EXTRA_PAGES`), since nothing scans it again. It writes nothing
+  when a scan read another deploy than staging, or when a new finding's rule and target belong to no issue
+  yet: name that issue, add the listed entries under it, and run it again. The file stays in the order and
+  form the script writes (`lib/__tests__/a11y-docs-baseline.test.mjs`), so a refresh diff holds the changed
+  lines only. Refresh from a develop dispatch with no staging deploy in flight
+  (`gh run list --workflow docs-staging.yml`): a deploy between that run and the pull request's own scan
+  reads as new findings again.
 - **The checks beyond axe of the docs are their own tier.** The keyboard, the structure, focus and contrast,
   reflow, forced colors and motion of the docs site are "A11y: the site checks beyond axe" below; they open a
   page the way this scan does (`a11y/docs/docs-site.ts`: the blocked hosts, the color scheme, `settle()`, the
@@ -2244,7 +2258,9 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   ```json
   {
     "schema": 1,
-    "triageLimit": 26,
+    "triage": [
+      { "shape": "reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid", "reason": "Why it is not sorted yet." }
+    ],
     "clusters": [
       {
         "id": "dialogs-leak-tab",
@@ -2261,14 +2277,22 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   `lib/__tests__/fixtures/a11y-findings-sample.json` (one row per distinct finding shape of a real night, with
   the check that had not run yet written by hand and said so) and fails on an ambiguous one, on a cluster
   or a rule that matches nothing in the sample (a cluster leaves the catalog with its last finding, like a
-  baseline issue), and on a triage count other than `triageLimit`, exactly: lowered when a shape is sorted
-  into a cluster, raised only visibly, in the change that adds one. The sample is frozen, so the test also
+  baseline issue), and on a queue other than the catalog's `triage` list, exactly. Each entry names a queued
+  shape as `findingShape()` writes it, with its reason (why it is neither a known cause nor the reader's own
+  behavior yet), so the reason sits beside the shape and the limit is the list's length, never a second
+  number: an entry leaves when its shape is sorted into a cluster, and joins only visibly, in the change that
+  adds it. The validator refuses an entry with no reason, a repeated shape, and a catalog that gives both
+  `triage` and the bare `triageLimit` (still read from a catalog that gives the number alone, like the ledger's
+  test fixtures). The sample is frozen, so the test also
   checks every id a rule names against its live source: `criteria` against `WCAG_CRITERIA`, `themes` against
   the scan's themes, `axeIssues` against `a11y/axe-baseline.json`, a reader rule's `checks` against the
   projects of `playwright.screenreader.config.ts`, and a check rule's `kinds` against the kinds the checks'
   code can emit. Renaming one of those fails the catalog's test until the catalog follows. On a live night
   the collector raises a `::warning` on its run for a row two clusters match and for a night with more
-  triage shapes than `triageLimit`, which is the sign to refresh the sample and sort the new shapes. A
+  triage shapes than the `triage` list holds, which is the sign to refresh the sample and sort the new shapes.
+  A rule that exists only for rows an intended change retires (an outdated expectation, a golden recorded
+  before the change) says so in its cluster's title and leaves in the change that next refreshes the sample:
+  until then it would file a real miss on those steps under the old cause. A
   cluster is a root cause, not a bucket: add one when its findings would be fixed by one change (the
   overlay clones split the tree, the focus is not returned after Escape), name it by what is wrong, and
   put a screen reader's own behavior in a cluster that says so rather than in the queue. The axe baseline's

@@ -129,6 +129,50 @@ export function findingShape(finding) {
 }
 
 /**
+ * Why the catalog's `triage` list is not acceptable: one entry per finding shape left in needs-triage, as
+ * `findingShape()` writes it, each with the reason it is not sorted into a cluster yet.
+ *
+ * @param {unknown} triage The catalog's `triage` field.
+ * @returns {string[]} The problems.
+ */
+function triageProblems(triage) {
+  if (!Array.isArray(triage)) {
+    return ['"triage" must be an array of { "shape", "reason" } entries'];
+  }
+
+  const problems = [];
+  const shapes = new Set();
+
+  triage.forEach((entry, index) => {
+    const where = `triage entry ${index + 1}`;
+
+    if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
+      problems.push(`${where} must be an object with "shape" and "reason"`);
+
+      return;
+    }
+
+    const extra = Object.keys(entry).filter(key => key !== 'shape' && key !== 'reason');
+    const fields = typeof entry.shape === 'string' ? entry.shape.split('|') : [];
+
+    if (extra.length > 0) {
+      problems.push(`${where} has an unknown field "${extra[0]}"`);
+    }
+    if (fields.length !== 7 || !FINDING_SOURCES.includes(fields[0])) {
+      problems.push(`${where} needs a "shape" as findingShape() writes it (source|check|kind|rule|cause|page|where), got ${JSON.stringify(entry.shape)}`);
+    } else if (shapes.has(entry.shape)) {
+      problems.push(`${where} repeats the shape ${JSON.stringify(entry.shape)}`);
+    }
+    if (typeof entry.reason !== 'string' || entry.reason.trim() === '') {
+      problems.push(`${where} needs a "reason": why the shape is neither a known cause nor the reader's own behavior yet`);
+    }
+    shapes.add(entry.shape);
+  });
+
+  return problems;
+}
+
+/**
  * Why the catalog document is not acceptable: one line per problem, empty when it is. Run by the tooling
  * test on the committed file and by the collector before it reads a night, so a malformed rule is a
  * refused catalog, never a finding silently sorted.
@@ -143,7 +187,7 @@ export function findingShape(finding) {
  */
 export function validateIssuesCatalog(doc, known = {}) {
   if (doc === null || typeof doc !== 'object' || Array.isArray(doc)) {
-    return ['the catalog must be a JSON object with "schema", "triageLimit" and "clusters"'];
+    return ['the catalog must be a JSON object with "schema", "triage" (or "triageLimit") and "clusters"'];
   }
 
   const problems = [];
@@ -151,7 +195,13 @@ export function validateIssuesCatalog(doc, known = {}) {
   if (doc.schema !== ISSUES_SCHEMA) {
     problems.push(`"schema" must be ${ISSUES_SCHEMA}, got ${JSON.stringify(doc.schema)}`);
   }
-  if (!Number.isInteger(doc.triageLimit) || doc.triageLimit < 0) {
+  if (doc.triage !== undefined) {
+    problems.push(...triageProblems(doc.triage));
+
+    if (doc.triageLimit !== undefined) {
+      problems.push('"triageLimit" is the length of "triage": give one of them, not both');
+    }
+  } else if (!Number.isInteger(doc.triageLimit) || doc.triageLimit < 0) {
     problems.push(`"triageLimit" must be the number of sampled findings that need triage (a non-negative integer), got ${JSON.stringify(doc.triageLimit)}`);
   }
   if (!Array.isArray(doc.clusters)) {
@@ -343,9 +393,10 @@ function valuesProblem(field, values, source, known) {
  * validate, with every problem in the message.
  *
  * @param {unknown} doc The parsed `issues.json`.
- * @returns {{schema: number, triageLimit: number, clusters: object[]}} The compiled catalog: each cluster with its
- * `id`, `title`, `tracker` (a task id, a list of them, or `null`) and `match` rules, whose `pages` and `where` are
- * regular expressions (`pages` anchored to the whole id).
+ * @returns {{schema: number, triageLimit: number, triage: Array<{shape: string, reason: string}>, clusters: object[]}}
+ * The compiled catalog: the triage limit (the length of `triage`, or the `triageLimit` of a catalog that gives the
+ * number alone), the triage entries, and each cluster with its `id`, `title`, `tracker` (a task id, a list of them,
+ * or `null`) and `match` rules, whose `pages` and `where` are regular expressions (`pages` anchored to the whole id).
  */
 export function compileIssuesCatalog(doc) {
   const problems = validateIssuesCatalog(doc);
@@ -356,7 +407,8 @@ export function compileIssuesCatalog(doc) {
 
   return {
     schema: doc.schema,
-    triageLimit: doc.triageLimit,
+    triageLimit: doc.triage === undefined ? doc.triageLimit : doc.triage.length,
+    triage: (doc.triage ?? []).map(entry => ({ shape: entry.shape, reason: entry.reason })),
     clusters: doc.clusters.map(cluster => ({
       id: cluster.id,
       title: cluster.title,

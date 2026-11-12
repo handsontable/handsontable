@@ -86,6 +86,7 @@ interface MenuOptions {
   name: string | null;
   className: string;
   keepInViewport: boolean;
+  scrollInViewport: boolean;
   standalone: boolean;
   minWidth: number;
   container: HTMLElement;
@@ -97,6 +98,10 @@ interface MenuOptions {
  * @property {string} [name=null] Name of the menu.
  * @property {string} [className=''] Custom class name.
  * @property {boolean} [keepInViewport=true] Determine if should be kept in viewport.
+ * @property {boolean} [scrollInViewport=false] For a menu that opens under its own anchor and is not kept in the
+ * viewport by `keepInViewport` (the Filters condition list): moves it up when its bottom would lie below the
+ * viewport, and caps a menu taller than the viewport to it so it scrolls inside itself, on a desktop browser as
+ * well. The menus that rely on the window scroll leave it off.
  * @property {boolean} [standalone] Enabling closing menu when clicked element is not belongs to menu itself.
  * @property {number} [minWidth=MIN_WIDTH] The minimum width.
  * @property {HTMLElement} [container] The container.
@@ -317,13 +322,14 @@ export class Menu {
       name: null,
       className: '',
       keepInViewport: true,
+      scrollInViewport: false,
       standalone: false,
       minWidth: MIN_WIDTH,
       container: this.hot.rootPortalElement,
       ...options,
     };
     this.container = this.createContainer(this.options.name);
-    this.positioner = new Positioner(this.options.keepInViewport);
+    this.positioner = new Positioner(this.options.keepInViewport, this.options.scrollInViewport);
     this.parentMenu = this.options.parent || null;
 
     this.eventManager = new EventManager(this);
@@ -1368,17 +1374,20 @@ export class Menu {
    * menu that fits is left as it was: no height change and no overflow style.
    *
    * On the first call it runs before `setPosition()`, which places the menu from the height this leaves. Only a
-   * touch device gets the cap.
+   * touch device and a menu with `scrollInViewport` get the cap.
    *
    * @param {number} contentHeight The summed height of the menu items.
    * @returns {number|null} The height given to the holder, or `null` when the menu fits and is not capped.
    */
   #capHeightToViewport(contentHeight: number): number | null {
     // A desktop browser reveals the rest of a tall menu by scrolling the window, and the keyboard shortcuts of
-    // the menu rely on it. A touch device is where that scroll fails, so only it gets the cap. A menu the
-    // positioner does not keep in the viewport (the Filters condition list, which opens under its select) is
-    // placed where its anchor puts it, so a viewport-sized cap would still leave its end outside.
-    if (!isMobileOrIpadOS() || !this.options.keepInViewport) {
+    // the menu rely on it. A touch device is where that scroll fails, so it gets the cap. A menu the positioner
+    // does not keep in the viewport is placed where its anchor puts it, so a viewport-sized cap would still leave
+    // its end outside: such a menu is capped only when it also asks to be moved into the viewport
+    // (`scrollInViewport`, the Filters condition list), on a desktop browser as well.
+    const capped = this.options.scrollInViewport || (isMobileOrIpadOS() && this.options.keepInViewport);
+
+    if (!capped) {
       return null;
     }
 

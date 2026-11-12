@@ -26,6 +26,7 @@ import {
   READER_ARTIFACT_PREFIX,
   READER_NIGHTLY_WORKFLOW,
   READER_TRANSCRIPTS_DIR,
+  SOURCES_OF_WORKFLOW,
   a11yView,
   assertA11yVersion,
   classifyA11yArtifact,
@@ -1742,6 +1743,20 @@ test('the rendered accessibility section is accessible markup: tables with heade
 
   assert.ok(code.includes("chart.setAttribute('role', 'img')") && code.includes("chart.setAttribute('aria-label', cluster.title + ', ' + name"),
     'a trend chart is an image named after its cluster and its nightly');
+});
+
+test('the page names every workflow the ledger records, in the section\'s intro and in the footer\'s rule', () => {
+  const template = readFileSync(path.join(repoRoot(), '.github/test-health/index.template.html'), 'utf8');
+  const intro = template.match(/<div class="meta" id="a11y-meta">([\s\S]*?)<\/div>/)?.[1] ?? '';
+  const footer = template.slice(template.indexOf('<br>Accessibility:'));
+  const rule = footer.match(/Only the ([\s\S]*?) are recorded/)?.[1] ?? '';
+
+  assert.ok(intro.length > 0 && rule.length > 0, 'the intro and the footer\'s rule are there');
+  // The first develop dispatch of the docs site scan was recorded while the footer still said the two nightlies alone.
+  for (const workflow of Object.keys(SOURCES_OF_WORKFLOW)) {
+    assert.ok(intro.includes(`<code>${workflow}</code>`), `the intro names ${workflow}`);
+    assert.ok(rule.includes(`<code>${workflow}</code>`), `the footer's rule names ${workflow}`);
+  }
 });
 
 test('test-health.yml chains on the two nightlies and the docs site scan, downloads their artifacts for a develop run only, and hands the collector the catalog', () => {

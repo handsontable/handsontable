@@ -277,3 +277,23 @@ export function padRowsToWidestRow(rows: unknown[][]): unknown[][] {
     return padded;
   });
 }
+
+/**
+ * Inserts `amount` empty rows into `rows` at `index`, in place. A loop rather than a spread into `splice()`:
+ * a spread passes every row as an argument, and an insert of some hundred thousand rows overflows the stack.
+ *
+ * @param {Array<Array<*>>} rows The rows.
+ * @param {number} index Where the first new row goes.
+ * @param {number} amount How many rows to insert.
+ */
+export function insertEmptyRows(rows: unknown[][], index: number, amount: number): void {
+  const tail = rows.splice(index);
+
+  for (let row = 0; row < amount; row += 1) {
+    rows.push([]);
+  }
+
+  tail.forEach((row) => {
+    rows.push(row);
+  });
+}
