@@ -25,7 +25,7 @@ jobs:
     # (performance-tests/lib/gate.mjs) failing ones at the same timeout.
     # perf-artifact-download.test.mjs derives that sum from the config and fails
     # when a scenario or a longer timeout outgrows this.
-    timeout-minutes: 146
+    timeout-minutes: 151
     permissions:
       contents: write
       pull-requests: write
