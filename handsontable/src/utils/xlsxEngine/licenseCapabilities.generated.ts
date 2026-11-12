@@ -1,6 +1,7 @@
 // Generated from `features.json` by `npm run generate:feature-manifest`. Do not edit it by hand.
 
-// The XLSX tokens a key must list (`licensing: "token"`), in the order `features.json` declares them.
+// The XLSX tokens a gate checks (`licensing: "token"`, `gate` "call" or "degrade"), in the order
+// `features.json` declares them.
 export const XLSX_CAPABILITY_IDS: readonly string[] = Object.freeze([
   'xlsx:import',
   'xlsx:export',

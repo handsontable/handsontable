@@ -39,7 +39,9 @@ describe('xlsxEngine/licenseCapabilities', () => {
   ];
 
   it('declares, releases, and gates exactly the stable xlsx token ids', () => {
-    const declared = XLSX_FEATURES.capabilities.filter(entry => entry.licensing === 'token');
+    // `xlsx:import_report` is sold with `gate: "report"`: always produced, so no gate reads its token.
+    const declared = XLSX_FEATURES.capabilities
+      .filter(entry => entry.licensing === 'token' && ['call', 'degrade'].includes(entry.gate));
 
     expect(declared.map(entry => entry.id).sort()).toEqual([...STABLE_TOKEN_IDS].sort());
     expect([...XLSX_CAPABILITY_IDS].sort()).toEqual([...STABLE_TOKEN_IDS].sort());

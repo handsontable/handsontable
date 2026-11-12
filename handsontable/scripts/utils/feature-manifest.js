@@ -6,7 +6,8 @@
  * registry folder (`cellTypes`, `editors`, `renderers`, `validators`), one for the XLSX sub-features in
  * `utils/xlsxEngine`, and `featureManifest/core.json`. This module reads them, checks them against the
  * source, and builds what is made from them:
- *   - `dist/manifest.json`, published with every release (the license portal reads it to build keys);
+ *   - `dist/manifest.json`, published with every release (the license portal reads it for the tiers of each
+ *     feature);
  *   - the committed `feature.generated.ts` modules the plugins read their `PLUGIN_DEPS` and `LICENSE` from;
  *   - the committed `utils/xlsxEngine/licenseCapabilities.generated.ts`, the XLSX token lists the license check reads;
  *   - the committed `featureManifest/released-tokens.json`, which keeps ids from being removed or sold later.
@@ -50,7 +51,13 @@ const PRODUCT = 'handsontable';
 const FIRST_RELEASE = '19.0.0';
 
 const KINDS = ['core_area', 'plugin', 'cell_type', 'sub_feature', 'editor', 'renderer', 'validator'];
-const LICENSING = ['core', 'token', 'none'];
+const LICENSING = ['token', 'none'];
+
+/**
+ * The `licensing` values `released-tokens.json` may hold: the current ones, and `core`, which every entry carried
+ * that was always granted before tiers replaced it. A record never loses a value, so the old one stays readable.
+ */
+const RECORDED_LICENSING = ['core', 'token', 'none'];
 const STATUSES = ['stable', 'planned'];
 
 /**
@@ -61,8 +68,24 @@ const STATUSES = ['stable', 'planned'];
 const GATES_BY_KIND = {
   plugin: ['enable', 'call'],
   cell_type: ['report'],
-  sub_feature: ['call', 'degrade'],
+  sub_feature: ['call', 'degrade', 'report'],
+  core_area: ['report'],
 };
+
+/**
+ * The gates the runtime XLSX license check reads. A `report` entry is listed and never turned off, so it stays out
+ * of the generated XLSX lists.
+ */
+const XLSX_CHECKED_GATES = ['call', 'degrade'];
+
+/**
+ * The tier names a sold entry may list, and the rule each name must pass: a key carries a tier as the token
+ * `tier:<name>`, so the name must keep that token inside the license-key rule. The `tier` namespace is therefore
+ * reserved for tier tokens, never a feature id.
+ */
+const TIERS_FILE = 'src/featureManifest/tiers.json';
+const TIER_RULE = /^[a-z][a-z0-9_]*$/;
+const TIER_NAMESPACE = 'tier';
 
 /**
  * The registries a manifest entry can describe, with the folder they live in and the constant that names a
@@ -149,13 +172,8 @@ const OUTPUT_FILE = 'dist/manifest.json';
  */
 const UNSOLD_PLUGINS = ['TouchScroll', 'MultipleSelectionHandles'];
 
-/**
- * Cell types that belong to `core`: every key carries them.
- */
-const CORE_CELL_TYPES = ['text'];
-
 const ENTRY_FIELDS = [
-  'id', 'kind', 'module', 'plugins', 'name', 'description', 'since', 'status', 'licensing', 'gate',
+  'id', 'kind', 'module', 'plugins', 'name', 'description', 'since', 'status', 'licensing', 'gate', 'tiers',
   'requires', 'enforceAtInit', 'packages',
 ];
 const REGISTRY_KINDS = REGISTRIES.map(registry => registry.kind);
@@ -270,11 +288,15 @@ function loadSources(packageDir) {
 
     return existsSync(path) ? readFileSync(path, 'utf8') : null;
   };
+  const tiersFile = readSourceFile(packageDir, TIERS_FILE);
 
   return {
     files,
     modules,
     generatedModules,
+    // The checks read the names from `tiers`, and the file's own shape from `tiersFile`.
+    tiersFile,
+    tiers: tiersFile?.tiers,
     released: readSourceFile(packageDir, RELEASED_FILE) ?? {},
     releasedText: readText(RELEASED_FILE),
     xlsxLicenseModuleText: readText(XLSX_LICENSE_MODULE_FILE),
@@ -311,22 +333,20 @@ function indexEntries(sources) {
 }
 
 /**
- * The licensing an entry must declare, by the rule decided for the manifest (D7). `null` for a sub-feature,
- * which is decided per entry.
+ * The licensing an entry must declare, by the rule decided for the manifest (D7): every feature is sold in a tier,
+ * and only the building blocks (editors, renderers, validators) and the two unsold plugins stay out of keys.
  *
  * @param {object} entry A manifest entry.
- * @returns {string|null}
+ * @returns {string}
  */
 function expectedLicensing(entry) {
   switch (entry.kind) {
     case 'plugin':
       return UNSOLD_PLUGINS.includes(entry.module) ? 'none' : 'token';
     case 'cell_type':
-      return CORE_CELL_TYPES.includes(entry.module) ? 'core' : 'token';
     case 'core_area':
-      return 'core';
     case 'sub_feature':
-      return null;
+      return 'token';
     default:
       return 'none';
   }
@@ -351,29 +371,6 @@ function isStringList(value) {
  */
 function requiredIds(entry) {
   return [...(entry.requires?.allOf ?? []), ...(entry.requires?.anyOf ?? [])];
-}
-
-/**
- * Lists every declared id an entry requires, directly or through other entries, `allOf` and `anyOf` alike.
- *
- * @param {object} entry A manifest entry.
- * @param {Map<string, object>} byId Every entry, by id.
- * @returns {string[]} The ids, in the order they are reached.
- */
-function reachableIds(entry, byId) {
-  const reached = new Set();
-  const pending = requiredIds(entry);
-
-  while (pending.length > 0) {
-    const id = pending.shift();
-
-    if (!reached.has(id) && id !== entry.id && byId.has(id)) {
-      reached.add(id);
-      pending.push(...requiredIds(byId.get(id)));
-    }
-  }
-
-  return [...reached];
 }
 
 /**
@@ -456,6 +453,9 @@ function checkId(entry, recorded) {
   if (name === 'all') {
     problems.push(`id "${entry.id}" is reserved: "<namespace>:all" grants a whole namespace`);
   }
+  if (namespace === TIER_NAMESPACE) {
+    problems.push(`id "${entry.id}" is reserved: the "${TIER_NAMESPACE}" namespace is reserved for tier tokens`);
+  }
   if (registry && namespace !== registry.namespace) {
     problems.push(`id "${entry.id}" must start with "${registry.namespace}:"`);
 
@@ -489,11 +489,8 @@ function checkLicensing(entry) {
   if (!LICENSING.includes(entry.licensing)) {
     problems.push(`"licensing" must be one of ${LICENSING.join(', ')}`);
 
-  } else if (expected !== null && entry.licensing !== expected) {
+  } else if (entry.licensing !== expected) {
     problems.push(`"licensing" must be "${expected}" for this ${entry.kind} (see src/featureManifest/AGENTS.md)`);
-
-  } else if (expected === null && entry.licensing === 'none') {
-    problems.push('"licensing" of a sub-feature must be "token" or "core"');
   }
 
   if (entry.licensing === 'token' && !gates.includes(entry.gate)) {
@@ -585,8 +582,8 @@ function checkReferences(entry, byId) {
 }
 
 /**
- * Checks what an entry requires against the entries it names: a core entry reaches no token, a stable entry
- * names no planned one, and an `enforceAtInit` entry names only what `PLUGIN_DEPS` can hold.
+ * Checks what an entry requires against the entries it names: a stable entry names no planned one, and an
+ * `enforceAtInit` entry names only what `PLUGIN_DEPS` can hold.
  *
  * @param {object} entry A manifest entry.
  * @param {Map<string, object>} byId Every entry, by id.
@@ -596,12 +593,6 @@ function checkRequiredLicensing(entry, byId) {
   const problems = [];
   const direct = requiredIds(entry);
 
-  if (entry.licensing === 'core') {
-    reachableIds(entry, byId).filter(id => byId.get(id).licensing === 'token').forEach((id) => {
-      problems.push(`a core entry cannot require "${id}", which a key must list` +
-        `${direct.includes(id) ? '' : ' (it requires it through another entry)'}`);
-    });
-  }
   if (entry.status === 'stable') {
     direct.filter(id => byId.get(id)?.status === 'planned').forEach((id) => {
       problems.push(`a stable entry cannot require "${id}", which is planned and may still be renamed`);
@@ -613,6 +604,123 @@ function checkRequiredLicensing(entry, byId) {
         problems.push(`"enforceAtInit" turns "requires.allOf" into PLUGIN_DEPS, which cannot name "${id}"`);
       });
   }
+
+  return problems;
+}
+
+/**
+ * Lists the problems of a list of tier names that need no other entry to judge: each name listed once.
+ *
+ * @param {string[]} names The names.
+ * @returns {string[]} The problems.
+ */
+function findRepeatedTiers(names) {
+  const repeated = new Set(names.filter((name, index) => names.indexOf(name) !== index));
+
+  return [...repeated].map(name => `tier "${name}" is listed twice`);
+}
+
+/**
+ * Checks `tiers.json`: the format version, no other key, and a non-empty list of distinct names that each fit
+ * the `tier:<name>` key token. The list is read from `sources.tiers`.
+ *
+ * @param {object} sources What `loadSources()` returns.
+ * @returns {string[]} The problems, each naming the file.
+ */
+function checkTiersFile(sources) {
+  const { tiersFile, tiers } = sources;
+
+  if (tiersFile === null || tiersFile === undefined) {
+    return [`${TIERS_FILE}: the file is missing`];
+  }
+
+  const problems = Object.keys(tiersFile)
+    .filter(key => key !== 'schemaVersion' && key !== 'tiers')
+    .map(key => `unknown top-level key "${key}"`);
+
+  if (tiersFile.schemaVersion !== SOURCE_SCHEMA_VERSION) {
+    problems.push(`"schemaVersion" must be ${SOURCE_SCHEMA_VERSION}, found ${JSON.stringify(tiersFile.schemaVersion)}`);
+  }
+
+  if (!Array.isArray(tiers) || tiers.length === 0) {
+    problems.push('"tiers" must be a non-empty list of tier names');
+
+  } else {
+    tiers.filter(name => typeof name !== 'string' || !TIER_RULE.test(name))
+      .forEach(name => problems.push(`tier ${JSON.stringify(name)} must match ${TIER_RULE}`));
+    problems.push(...findRepeatedTiers(tiers));
+  }
+
+  return problems.map(problem => `${TIERS_FILE}: ${problem}`);
+}
+
+/**
+ * Tells whether an entry is sold in a tier: a required entry that is not sold (`none`) is needed by no key, and
+ * one whose `tiers` is broken is reported on its own, so neither is reported again on the entry that needs it.
+ *
+ * @param {object} required The required entry.
+ * @param {string} tier The tier.
+ * @returns {boolean}
+ */
+function isAvailableInTier(required, tier) {
+  return required.licensing !== 'token' || !Array.isArray(required.tiers) || required.tiers.includes(tier);
+}
+
+/**
+ * Checks that every tier an entry is sold in also sells what the entry needs: every sold entry `requires.allOf`
+ * reaches, and at least one member of a non-empty `requires.anyOf`.
+ *
+ * @param {object} entry A sold manifest entry with a valid `tiers` list.
+ * @param {Map<string, object>} byId Every entry, by id.
+ * @param {string[]} tiers The entry's tiers that `tiers.json` declares.
+ * @returns {string[]} The problems, without the file name.
+ */
+function checkTierClosure(entry, byId, tiers) {
+  const problems = [];
+  const implied = computeImplies(entry, byId);
+  const anyOf = isStringList(entry.requires?.anyOf) ? entry.requires.anyOf : [];
+  const anyOfEntries = anyOf.map(id => byId.get(id)).filter(required => required !== undefined);
+
+  tiers.forEach((tier) => {
+    implied.filter(id => !isAvailableInTier(byId.get(id), tier)).forEach((id) => {
+      problems.push(`tier "${tier}" includes "${entry.id}" but not "${id}", which it requires`);
+    });
+
+    if (anyOfEntries.length > 0 && !anyOfEntries.some(required => isAvailableInTier(required, tier))) {
+      problems.push(`tier "${tier}" includes "${entry.id}" but none of ${anyOf.map(id => `"${id}"`).join(', ')}, ` +
+        'one of which it requires');
+    }
+  });
+
+  return problems;
+}
+
+/**
+ * Checks the `tiers` of one entry: a sold entry lists one or more distinct tiers that `tiers.json` declares, an
+ * entry that is not sold lists none, and every tier sells what the entry requires.
+ *
+ * @param {object} entry A manifest entry.
+ * @param {Map<string, object>} byId Every entry, by id.
+ * @param {string[]} tierNames The names `tiers.json` declares.
+ * @returns {string[]} The problems, without the file name.
+ */
+function checkTiers(entry, byId, tierNames) {
+  const { tiers } = entry;
+
+  if (entry.licensing !== 'token') {
+    return tiers === undefined ? [] : ['"tiers" is only for sold entries ("licensing": "token")'];
+  }
+  if (!Array.isArray(tiers) || tiers.length === 0 || tiers.some(name => typeof name !== 'string')) {
+    return ['"tiers" must be a non-empty list of tier names'];
+  }
+
+  const known = tiers.filter(name => tierNames.includes(name));
+  const problems = [
+    ...tiers.filter(name => !tierNames.includes(name)).map(name => `unknown tier "${name}"`),
+    ...findRepeatedTiers(tiers),
+  ];
+
+  problems.push(...checkTierClosure(entry, byId, [...new Set(known)]));
 
   return problems;
 }
@@ -711,8 +819,9 @@ function findCycle(byId) {
  * @returns {string[]} The problems, each naming the file it is in.
  */
 function checkSources(sources) {
-  const problems = sources.files.flatMap(checkFileShape);
+  const problems = [...checkTiersFile(sources), ...sources.files.flatMap(checkFileShape)];
   const byId = indexEntries(sources);
+  const tierNames = Array.isArray(sources.tiers) ? sources.tiers : [];
   const pluginModules = new Set(sources.modules.filter(({ kind }) => kind === 'plugin').map(({ module }) => module));
   const recorded = new Set(Object.keys(sources.released ?? {}));
   const seen = new Set();
@@ -738,6 +847,7 @@ function checkSources(sources) {
       ...checkKindFields(entry, pluginModules),
       ...checkReferences(entry, byId),
       ...checkRequiredLicensing(entry, byId),
+      ...checkTiers(entry, byId, tierNames),
     ].map(problem => `${file}: ${entry.id ?? '(no id)'}: ${problem}`));
   });
 
@@ -769,13 +879,14 @@ function computeImplies(entry, byId) {
   while (pending.length > 0) {
     const id = pending.shift();
 
+    // An id no entry declares is reported by `checkReferences()`; the tier check runs beside it, so skip it here.
     if (!reached.has(id) && id !== entry.id) {
       reached.add(id);
-      pending.push(...(byId.get(id).requires?.allOf ?? []));
+      pending.push(...(byId.get(id)?.requires?.allOf ?? []));
     }
   }
 
-  return [...reached].filter(id => byId.get(id).licensing === 'token').sort();
+  return [...reached].filter(id => byId.get(id)?.licensing === 'token').sort();
 }
 
 /**
@@ -978,23 +1089,26 @@ function renderIdList(name, ids) {
 }
 
 /**
- * Renders `utils/xlsxEngine/licenseCapabilities.generated.ts`: the XLSX tokens a key must list (`licensing:
- * "token"` in `features.json`, in that file's order), the ones each file plugin gates, the `XlsxEntitlement`
- * flag each token drives, and the key flag. `licenseCapabilities.ts` re-exports them.
+ * Renders `utils/xlsxEngine/licenseCapabilities.generated.ts`: the XLSX tokens the runtime gates check
+ * (`licensing: "token"` in `features.json` with a `call` or `degrade` gate, in that file's order), the ones each
+ * file plugin gates, the `XlsxEntitlement` flag each token drives, and the key flag. `licenseCapabilities.ts`
+ * re-exports them. A `report` entry (the import report) is never turned off, so it stays out.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {string}
  */
 function renderXlsxLicenseModule(sources) {
   const tokens = listEntries(sources)
-    .filter(({ file, entry }) => file === XLSX_SOURCE_FILE && entry.licensing === 'token')
+    .filter(({ file, entry }) => file === XLSX_SOURCE_FILE && entry.licensing === 'token' &&
+      XLSX_CHECKED_GATES.includes(entry.gate))
     .map(({ entry }) => entry);
   const idsOf = plugin => tokens.filter(entry => entry.plugins.includes(plugin)).map(entry => entry.id);
 
   return [
     '// Generated from `features.json` by `npm run generate:feature-manifest`. Do not edit it by hand.',
     '',
-    '// The XLSX tokens a key must list (`licensing: "token"`), in the order `features.json` declares them.',
+    '// The XLSX tokens a gate checks (`licensing: "token"`, `gate` "call" or "degrade"), in the order',
+    '// `features.json` declares them.',
     ...renderIdList('XLSX_CAPABILITY_IDS', tokens.map(entry => entry.id)),
     '',
     `// The tokens the ${XLSX_PLUGINS.importFile} plugin gates (\`plugins\` names it), in the same order.`,
@@ -1027,14 +1141,14 @@ function checkRecordShape(record) {
 
   return Object.entries(record)
     .filter(([, values]) => !isStringList(values) || values.length === 0 ||
-      values.some(value => !LICENSING.includes(value)))
-    .map(([id]) => `${RELEASED_FILE}: "${id}" must list the licensing values it has had (${LICENSING.join(', ')})`);
+      values.some(value => !RECORDED_LICENSING.includes(value)))
+    .map(([id]) => `${RELEASED_FILE}: "${id}" must list the licensing values it has had ` +
+      `(${RECORDED_LICENSING.join(', ')})`);
 }
 
 /**
  * Builds the record of released ids: every stable id, with every licensing value it has had. A value is never
- * dropped, so an id once sold can never be removed, and an id once free can never be sold, even after it moved
- * from `token` to `core`.
+ * dropped, so an id once sold can never be removed.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {object} The record, keys and values sorted.
@@ -1055,9 +1169,9 @@ function buildReleased(sources) {
 }
 
 /**
- * Checks the manifest against the released ids. A sold id may never be removed, an id released as `core` or
- * `none` may never become sold (a restricted key issued before would not list it, and the feature would turn
- * off for that customer on upgrade), and a released id never goes back to `planned`.
+ * Checks the manifest against the released ids. A sold id may never be removed, and a released id never goes
+ * back to `planned`. An id released as `core` or `none` may be sold: a key names tiers, not features, so no key
+ * issued before lists the features it unlocks one by one.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {string[]} The problems.
@@ -1073,24 +1187,13 @@ function checkReleased(sources) {
 
   return Object.entries(sources.released).flatMap(([id, values]) => {
     const entry = byId.get(id);
-    const freeAs = values.filter(value => value !== 'token');
 
     if (entry === undefined) {
       return values.includes('token') ? [`"${id}" was released as a token, so it can never be removed (keys ` +
         `already carry it). If it never reached the base branch, delete its line from ${RELEASED_FILE} instead.`] : [];
     }
 
-    const problems = [];
-
-    if (entry.licensing === 'token' && freeAs.length > 0) {
-      problems.push(`"${id}" was released as "${freeAs.join('" and "')}", so it can never become a token ` +
-        '(restricted keys issued before would lose it)');
-    }
-    if (entry.status === 'planned') {
-      problems.push(`"${id}" was released, so it cannot go back to "planned"`);
-    }
-
-    return problems;
+    return entry.status === 'planned' ? [`"${id}" was released, so it cannot go back to "planned"`] : [];
   });
 }
 
@@ -1172,6 +1275,7 @@ exports.FIRST_RELEASE = FIRST_RELEASE;
 exports.REGISTRIES = REGISTRIES;
 exports.GENERATED_MODULE_NAME = GENERATED_MODULE_NAME;
 exports.RELEASED_FILE = RELEASED_FILE;
+exports.TIERS_FILE = TIERS_FILE;
 exports.XLSX_LICENSE_MODULE_FILE = XLSX_LICENSE_MODULE_FILE;
 exports.OUTPUT_FILE = OUTPUT_FILE;
 exports.loadSources = loadSources;

@@ -186,13 +186,8 @@ describe('feature manifest', () => {
         'unknown field "worksWith"'],
       ['a reference to an id nobody declares', 'feat:search',
         entry => ({ ...entry, requires: { allOf: ['feat:does_not_exist'] } }), 'which no manifest file declares'],
-      ['a plugin that is not sold', 'feat:search', entry => ({ ...entry, licensing: 'core', gate: undefined }),
-        '"licensing" must be "token"'],
-      ['a gate on an entry no key lists', 'cell:text', entry => ({ ...entry, gate: 'report' }),
-        '"gate" is only for'],
-      ['a core entry that requires a token', 'cell:text',
-        entry => ({ ...entry, requires: { allOf: ['editor:text', 'renderer:text', 'feat:search'] } }),
-        'a core entry cannot require "feat:search"'],
+      ['a plugin that is not sold', 'feat:search',
+        entry => ({ ...entry, licensing: 'none', gate: undefined, tiers: undefined }), '"licensing" must be "token"'],
       ['enforceAtInit on a dependency PLUGIN_DEPS cannot name', 'feat:search',
         entry => ({ ...entry, requires: { allOf: ['xlsx:import'] }, enforceAtInit: true }),
         'cannot name "xlsx:import"'],
@@ -205,13 +200,25 @@ describe('feature manifest', () => {
         'needs a namespace of its own'],
       ['enforceAtInit with nothing for PLUGIN_DEPS to check', 'feat:search',
         entry => ({ ...entry, enforceAtInit: true }), 'needs a non-empty "requires.allOf"'],
-      // `cell:text` (core) requires `editor:text`, which would then require a token.
-      ['a core entry that reaches a token through another entry', 'editor:text',
-        entry => ({ ...entry, requires: { allOf: ['feat:search'] } }),
-        'a core entry cannot require "feat:search", which a key must list (it requires it through another entry)'],
       // `feat:loading` requires `feat:dialog`, and a planned id may still be renamed.
       ['a stable entry that requires a planned one', 'feat:dialog', entry => ({ ...entry, status: 'planned' }),
         'a stable entry cannot require "feat:dialog", which is planned'],
+      ['a sold entry with no tiers', 'feat:search', ({ tiers, ...entry }) => entry,
+        '"tiers" must be a non-empty list of tier names'],
+      ['a sold entry with an empty tier list', 'feat:search', entry => ({ ...entry, tiers: [] }),
+        '"tiers" must be a non-empty list of tier names'],
+      ['a tier nobody declares', 'feat:search', entry => ({ ...entry, tiers: ['standard', 'gold'] }),
+        'unknown tier "gold"'],
+      ['a tier listed twice', 'feat:search', entry => ({ ...entry, tiers: ['standard', 'standard'] }),
+        'tier "standard" is listed twice'],
+      ['tiers on a building block that is not sold', 'editor:text', entry => ({ ...entry, tiers: ['standard'] }),
+        '"tiers" is only for sold entries'],
+      ['the retired "core" licensing value', 'cell:text',
+        entry => ({ ...entry, licensing: 'core', gate: undefined, tiers: undefined }),
+        '"licensing" must be one of token, none'],
+      // `xlsx:comments` requires `feat:comments`; a tier that sells the first must sell the second.
+      ['a tier that leaves out a required feature', 'feat:comments', entry => ({ ...entry, tiers: ['standard'] }),
+        'tier "professional" includes "xlsx:comments" but not "feat:comments", which it requires'],
     ])('should report %s', (_, id, change, message) => {
       const problems = checkSources(withEntry(sources, id, change));
 
@@ -230,6 +237,28 @@ describe('feature manifest', () => {
       const problems = checkSources(withFile(sources, 'src/plugins/search/feature.json', change));
 
       expect(problems).toEqual([`src/plugins/search/feature.json: ${message}`]);
+    });
+
+    // `xlsx:styles` requires any of `xlsx:import`, `xlsx:export`; a tier with neither sells a feature nothing can use.
+    it('should report a tier that includes a feature and none of its "anyOf" requirements', () => {
+      const changed = withEntry(sources, 'xlsx:styles', entry => ({ ...entry, tiers: [...entry.tiers, 'basic'] }));
+      const problems = checkSources({ ...changed, tiers: [...sources.tiers, 'basic'] });
+
+      expect(problems).toEqual([expect.stringContaining(
+        'tier "basic" includes "xlsx:styles" but none of "xlsx:import", "xlsx:export", one of which it requires')]);
+    });
+
+    it('should report a tier name that cannot be written as a key token', () => {
+      const problems = checkSources({ ...sources, tiers: ['standard', 'Pro Plus'] });
+
+      expect(problems).toContain('src/featureManifest/tiers.json: tier "Pro Plus" must match /^[a-z][a-z0-9_]*$/');
+    });
+
+    it('should refuse a feature id in the "tier" namespace', () => {
+      const changed = withEntry(sources, 'xlsx:protection', entry => ({ ...entry, id: 'tier:protection' }));
+      const problems = checkSources(changed);
+
+      expect(problems).toEqual([expect.stringContaining('the "tier" namespace is reserved for tier tokens')]);
     });
 
     it('should let a recorded id keep its name after its module is renamed', () => {
@@ -269,16 +298,9 @@ describe('feature manifest', () => {
       expect(checkReleased(changed)).toEqual([expect.stringContaining('"feat:search" was released as a token')]);
     });
 
-    it('should refuse to sell an id released as core', () => {
-      const changed = withEntry(sources, 'cell:text', entry => ({ ...entry, licensing: 'token', gate: 'report' }));
-
-      expect(checkReleased(changed)).toEqual([expect.stringContaining('"cell:text" was released as "core"')]);
-    });
-
-    it('should let a token become core', () => {
-      const changed = withEntry(sources, 'feat:search', entry => ({ ...entry, licensing: 'core', gate: undefined }));
-
-      expect(checkReleased(changed)).toEqual([]);
+    it('should let an id recorded as core be sold in a tier', () => {
+      expect(sources.released['cell:text']).toEqual(['core', 'token']);
+      expect(checkReleased(sources)).toEqual([]);
     });
 
     it('should record every stable id and never drop a record', () => {
@@ -287,19 +309,6 @@ describe('feature manifest', () => {
 
       expect(released['renderer:html']).toEqual(['none']);
       expect(Object.keys(released)).toEqual(expect.arrayContaining([...byId.keys()]));
-    });
-
-    it('should remember that an id was sold after it became core', () => {
-      const asCore = withEntry(sources, 'xlsx:protection', entry => ({ ...entry, licensing: 'core', gate: undefined }));
-      const record = JSON.parse(buildCommittedOutputs(asCore).find(({ file }) => file === RELEASED_FILE).content);
-
-      expect(record['xlsx:protection']).toEqual(['core', 'token']);
-      // Removed later: keys issued while it was sold still carry it.
-      expect(checkReleased({ ...withEntry(asCore, 'xlsx:protection', () => null), released: record }))
-        .toEqual([expect.stringContaining('"xlsx:protection" was released as a token, so it can never be removed')]);
-      // Sold again: restricted keys issued while it was core do not list it.
-      expect(checkReleased({ ...sources, released: record }))
-        .toEqual([expect.stringContaining('"xlsx:protection" was released as "core", so it can never become a token')]);
     });
 
     it('should refuse to put a released id back to planned', () => {
@@ -328,17 +337,19 @@ describe('feature manifest', () => {
   });
 
   describe('the xlsx license module', () => {
+    // A `report` gate lists the feature and never turns it off, so the runtime gates read only the other two.
     const xlsxTokens = listEntries(sources)
-      .filter(({ file, entry }) => file === 'src/utils/xlsxEngine/features.json' && entry.licensing === 'token')
+      .filter(({ file, entry }) => file === 'src/utils/xlsxEngine/features.json' && entry.licensing === 'token' &&
+        ['call', 'degrade'].includes(entry.gate))
       .map(({ entry }) => entry);
 
-    it('should list exactly the "token" xlsx ids, in features.json order', () => {
+    it('should list exactly the gated "token" xlsx ids, in features.json order', () => {
       expect(XLSX_CAPABILITY_IDS).toEqual(xlsxTokens.map(entry => entry.id));
       expect(XLSX_CAPABILITY_IDS).toEqual([
         'xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout', 'xlsx:number_formats', 'xlsx:comments',
         'xlsx:styles', 'xlsx:conditional_formatting', 'xlsx:data_validation', 'xlsx:protection',
       ]);
-      // `core` entries are granted to every key, so a key never lists them.
+      // The import report is sold with `gate: "report"`: it is always produced, so no gate reads it.
       expect(XLSX_CAPABILITY_IDS).not.toContain('xlsx:import_report');
       expect(Object.isFrozen(XLSX_CAPABILITY_IDS)).toBe(true);
     });
@@ -371,7 +382,7 @@ describe('feature manifest', () => {
     });
 
     it('should render from the sources, not from a fixed list', () => {
-      const changed = withEntry(sources, 'xlsx:protection', entry => ({ ...entry, licensing: 'core' }));
+      const changed = withEntry(sources, 'xlsx:protection', entry => ({ ...entry, gate: 'report' }));
       const content = renderXlsxLicenseModule(changed);
 
       expect(content).not.toContain('\'xlsx:protection\'');

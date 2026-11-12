@@ -9,7 +9,11 @@
       "description": "Selects rows with checkboxes in a column of their own.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

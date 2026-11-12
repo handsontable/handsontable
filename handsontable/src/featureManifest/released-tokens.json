@@ -36,7 +36,8 @@
     "token"
   ],
   "cell:text": [
-    "core"
+    "core",
+    "token"
   ],
   "cell:time": [
     "token"
@@ -242,6 +243,9 @@
   "feat:view_state": [
     "token"
   ],
+  "grid": [
+    "token"
+  ],
   "renderer:autocomplete": [
     "none"
   ],
@@ -339,7 +343,8 @@
     "token"
   ],
   "xlsx:import_report": [
-    "core"
+    "core",
+    "token"
   ],
   "xlsx:layout": [
     "token"

@@ -9,7 +9,11 @@
       "description": "Adds tabs that switch between several sheets in one grid.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }
