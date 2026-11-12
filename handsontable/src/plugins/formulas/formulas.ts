@@ -2611,11 +2611,42 @@ export class Formulas extends BasePlugin {
   #releaseEvaluationHold(leaving = false) {
     const engine = this.engine;
 
-    if (!engine || !leaveEvaluationHold(engine, this.hot)) {
+    if (!engine) {
+      return;
+    }
+
+    const wasHolder = isEvaluationHolder(engine, this.hot);
+
+    if (!leaveEvaluationHold(engine, this.hot)) {
+      // Another grid on the engine is still suspended, so the hold goes on. This grid's execution is over,
+      // though: its writes take effect and its dependents are validated now, as without the setting. Left to
+      // the last grid's release, they would wait for a resume that may never come.
+      if (wasHolder && !leaving) {
+        this.#recalculateAndValidateHeldWrites(engine);
+      }
+
       return;
     }
 
     this.#endEvaluationHold(engine, leaving ? this.sheetId : null);
+  }
+
+  /**
+   * Recalculates the writes held on the engine and validates their dependents, while the hold stays open for
+   * the grids still suspended. Both run in one plugin write scope, so the grids paint after the validation.
+   *
+   * @param {object} engine The engine.
+   */
+  #recalculateAndValidateHeldWrites(engine: HyperFormulaEngine) {
+    withPluginEngineWrite(engine, () => {
+      flushEvaluationHold(engine);
+
+      const recalculations = takeHeldRecalculations(engine);
+
+      if (recalculations.length > 0) {
+        this.#validateHeldDependents(engine, recalculations, null);
+      }
+    });
   }
 
   /**

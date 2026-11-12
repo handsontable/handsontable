@@ -1423,7 +1423,8 @@ export class FormulaBuilder extends BasePlugin {
     // A read of the cell recalculates a held engine (`formulas.batchEvaluation`), so each write inside a
     // `batch()` would recalculate once more. The bar re-reads when the execution resumes
     // (`#onAfterResumeExecution`). A draw recalculates the held engine first, so a re-read from it is not held.
-    if (this.#formulasPlugin?.isEngineHeld() === true) {
+    // Only this grid's own suspension waits: another grid can hold the engine while this one never resumes.
+    if (this.hot.isExecutionSuspended() && this.#formulasPlugin?.isEngineHeld() === true) {
       this.#barResyncDeferred = true;
 
       return;
@@ -2735,6 +2736,7 @@ export class FormulaBuilder extends BasePlugin {
     this.hot.rowIndexMapper.removeLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
     this.hot.columnIndexMapper.removeLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     this.#barCellStale = false;
+    this.#barResyncDeferred = false;
     this.#clearCellErrorMarks();
     this.#removeEngineDetachListener?.();
     this.#removeEngineDetachListener = null;

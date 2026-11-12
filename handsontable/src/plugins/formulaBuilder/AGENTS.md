@@ -167,8 +167,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   to or from the formula editor with the same text, and the bar kept offering a formula edit there.
 - **The bar's re-read waits while the Formulas plugin holds writes (`formulas.batchEvaluation`).** Reading the
   active cell recalculates a held engine, so `#resyncBarCell()` asks `Formulas#isEngineHeld()` and, while it is
-  true, only sets `#barResyncDeferred`: ten `setSourceDataAtCell()` calls in a `batch()` would otherwise
-  recalculate ten times. The deferred read runs from `beforeViewRender` once a draw recalculated the engine (a
+  true and this grid's own execution is suspended, only sets `#barResyncDeferred`: ten `setSourceDataAtCell()` calls
+  in a `batch()` would otherwise recalculate ten times. The grid's own suspension is part of the test because
+  another grid can hold the engine while this one never resumes (`isEngineHeld()` alone left its bar stale). The deferred read runs from `beforeViewRender` once a draw recalculated the engine (a
   draw reads it anyway), or from `afterResumeExecution`, a listener of the default order that runs after the
   Formulas release (order -1). The flag is separate from `#barCellStale` (an index change): sharing it made
   every resume re-read the bar mid-operation. Without the option nothing is held, so nothing waits; do not key

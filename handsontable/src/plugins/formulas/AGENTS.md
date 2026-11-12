@@ -1530,6 +1530,11 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   `validateDependentCells()` checks an address against the size of the grid it runs on, so a one-row grid that
   inserted a row inside a taller grid's `batch()` skipped every dependent below its first row, and a grid built
   inside the hold (no data map yet) read its row count from nothing.
+- **A grid that leaves while another grid on the engine is still suspended recalculates and validates its writes
+  anyway** (`#recalculateAndValidateHeldWrites()`, from `#releaseEvaluationHold()`): the hold stays open for the other
+  grid, but this grid's execution is over, and left to the last grid's release its dependents would wait for a
+  resume that may never come (a grid that suspends across an `await`). Without the setting they are validated at
+  once. Pinned by "validates the dependents of its writes when it leaves".
 - **Release.** The grid leaves first, then the flush and the settle run in one write scope, so the grids paint
   after the validation. A paint can suspend a grid's execution again (its render's autosizing), so a release
   re-entered during the plugin's own resume (`resuming`) leaves the end to the outer one. When the host holds the

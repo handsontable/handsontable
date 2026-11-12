@@ -1697,6 +1697,55 @@ describe('Formulas batchEvaluation', () => {
     });
   });
 
+  describe('a grid that leaves the hold while another grid on the engine is still suspended', () => {
+    /**
+     * Writes a cell of grid A in its own `batch()` while grid B, bound to another sheet of the engine, keeps its
+     * execution suspended, and records what grid A's validators answered before B resumes.
+     *
+     * @param {boolean} batchEvaluation The setting of both grids.
+     * @returns {Promise<{ beforeBResumes: string[], afterBResumes: string[] }>}
+     */
+    async function runWithSuspendedPeer(batchEvaluation) {
+      const engine = buildEngine();
+      const hotA = mountGrid(engine, {
+        formulas: { batchEvaluation },
+        settings: { columns: [{}, {}, { validator: acceptAll }] },
+      });
+      const hotB = mountGrid(engine, { sheetName: 'Sheet2', data: [[1]], formulas: { batchEvaluation } });
+      const validated = [];
+
+      hotA.addHook('afterValidate', (isValid, value, row, prop) => {
+        validated.push(`${row}:${prop}=${value}`);
+      });
+
+      hotB.suspendExecution();
+
+      let beforeBResumes;
+
+      try {
+        hotA.batch(() => hotA.setDataAtCell(0, 0, 500));
+        await waitForValidation();
+        beforeBResumes = validated.slice().sort();
+      } finally {
+        hotB.resumeExecution();
+      }
+
+      await waitForValidation();
+
+      return { beforeBResumes, afterBResumes: validated.slice().sort() };
+    }
+
+    it('validates the dependents of its writes when it leaves, as without the setting', async() => {
+      const withoutOption = await runWithSuspendedPeer(false);
+      const withOption = await runWithSuspendedPeer(true);
+
+      // Without the setting the write validates its dependents at once.
+      expect(withoutOption.beforeBResumes.length).toBeGreaterThan(0);
+      expect(withOption.beforeBResumes).toEqual(withoutOption.beforeBResumes);
+      expect(withOption.afterBResumes).toEqual(withoutOption.afterBResumes);
+    });
+  });
+
   describe('a plugin turned off and on again inside a draw that started with the engine held', () => {
     it.each([
       // Between the plugin's two `beforeRender` listeners: the draw is being prepared.

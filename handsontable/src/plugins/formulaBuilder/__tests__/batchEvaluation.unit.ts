@@ -195,6 +195,26 @@ describe('FormulaBuilder with formulas.batchEvaluation', () => {
       grid.resumeExecution();
     });
 
+    it('does not hold the bar of a grid without the setting while another grid holds the engine', () => {
+      const engine = buildEngine();
+      const holder = mountGrid(engine, { data: [[1, 2], [3, 4]] });
+      const bar = mountGrid(engine, {
+        data: [['old']],
+        formulas: { sheetName: 'Sheet2', batchEvaluation: false },
+        formulaBuilder: { builder: core, showFormulaBar: true },
+      });
+
+      bar.selectCell(0, 0);
+
+      holder.batch(() => {
+        holder.setDataAtCell(0, 0, 10);
+        bar.setSourceDataAtCell(0, 0, 'written');
+      });
+
+      // The bar's grid never suspended its own execution, so no resume would come for a read left waiting.
+      expect(barText(bar)).toBe('written');
+    });
+
     it('shows the written text of the active cell right after a write in batchExecution()', () => {
       const engine = buildEngine();
       const grid = mountGrid(engine, {
