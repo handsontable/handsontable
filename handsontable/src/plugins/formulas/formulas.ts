@@ -218,9 +218,12 @@ interface ValidationValue {
  * How the validator of a reader of a deferred cell (`Formulas#findReadersOfDeferred`) answered the Core's
  * validation of its change: `answered` once `afterValidate` fired for it, and `isSyncChecked` /
  * `wasAnsweredAtCheck` once a check queued behind the validator's own microtask ran. The Core runs every
- * validator in a microtask, so a validator that answers in its call has answered by then.
+ * validator in a microtask, so a validator that answers in its call has answered by then. `value` and
+ * `source` are what `beforeValidate` handed the validator, which `afterValidate` receives too.
  */
 interface ReaderAnswer {
+  value: unknown;
+  source: string | undefined;
   answered: boolean;
   isSyncChecked: boolean;
   wasAnsweredAtCheck: boolean;
@@ -1674,6 +1677,7 @@ export class Formulas extends BasePlugin {
     // `HYPERLINK` anchors again after the cleanup below. The engine is still set here too.
     this.#notifyEngineDetach();
     this.hot._removeDroppedChangesListener(this.#onChangesDropped);
+    this.#readerAnswers.clear();
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -2003,6 +2007,7 @@ export class Formulas extends BasePlugin {
     this.#notifyEngineDetach();
     this.#engineDetachListeners.clear();
     this.hot._removeDroppedChangesListener(this.#onChangesDropped);
+    this.#readerAnswers.clear();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
 
@@ -4657,6 +4662,8 @@ export class Formulas extends BasePlugin {
    * Starts watching how the validator of a reader of a deferred cell answers the Core's validation of its
    * change (see `ReaderAnswer`). `beforeValidate` fires in the `validateCell()` call, before the call queues
    * the validator's microtask, so a check queued from a microtask queued now runs after the validator's.
+   * The check ends the watch: the record leaves `#readerAnswers` then, so a validator that throws or never
+   * answers leaves nothing that a later validation of the cell would mark.
    *
    * @param {number} visualRow The visual row index.
    * @param {number} visualColumn The visual column index.
@@ -4669,19 +4676,45 @@ export class Formulas extends BasePlugin {
     this.hot._registerMicrotask(() => this.hot._registerMicrotask(() => {
       answer.isSyncChecked = true;
       answer.wasAnsweredAtCheck = answer.answered;
+      this.#forgetReaderAnswer(key, answer);
     }));
   }
 
   /**
+   * Takes a record out of `#readerAnswers`.
+   *
+   * @param {string} key The cell key (`#validationValueKey()`).
+   * @param {object} answer The record.
+   */
+  #forgetReaderAnswer(key: string, answer: ReaderAnswer) {
+    const answers = this.#readerAnswers.get(key) ?? [];
+    const index = answers.indexOf(answer);
+
+    if (index !== -1) {
+      answers.splice(index, 1);
+    }
+
+    if (answers.length === 0) {
+      this.#readerAnswers.delete(key);
+    }
+  }
+
+  /**
    * `afterValidate` hook callback. Marks the answer of a reader of a deferred cell the Core is validating
-   * (see `#trackReaderAnswer()`).
+   * (see `#trackReaderAnswer()`): the oldest record of the cell with the same value and source. **Known
+   * limit:** another validation of the cell with the same value and source that answers inside the watch
+   * (a `validateCells()` in the same task, while the engine already holds that value) marks the record, so
+   * an async reader is taken for a sync one and its re-validation after a rejection holds the edit's step.
    *
    * @param {boolean} isValid The validation result.
    * @param {*} value The validated value.
    * @param {number} visualRow The visual row index.
    * @param {number|string} prop The visual column index or property name of the column.
+   * @param {string} [source] The source of the validation.
    */
-  #onAfterValidate = (isValid: boolean, value: unknown, visualRow: number, prop: number | string) => {
+  #onAfterValidate = (
+    isValid: boolean, value: unknown, visualRow: number, prop: number | string, source?: string,
+  ) => {
     if (this.#readerAnswers.size === 0) {
       return;
     }
@@ -4690,14 +4723,11 @@ export class Formulas extends BasePlugin {
     const key = visualColumn === null ? null : this.#validationValueKey(visualRow, visualColumn);
     const answers = key === null ? undefined : this.#readerAnswers.get(key);
 
-    if (!answers) {
-      return;
-    }
+    const answer = answers?.find(record => !record.answered && record.source === source &&
+      Object.is(record.value, value));
 
-    answers.shift()!.answered = true;
-
-    if (answers.length === 0) {
-      this.#readerAnswers.delete(key!);
+    if (answer) {
+      answer.answered = true;
     }
   };
 
@@ -5191,6 +5221,8 @@ export class Formulas extends BasePlugin {
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
     this.#hyperlinkCells.clear();
+    // A load drops every waiting set, so no watch of a reader's answer is needed any more.
+    this.#readerAnswers.clear();
 
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       // The engine already holds the reloaded sheet in this order (see `#reloadKeepingOrder()`). Taken over
@@ -5997,7 +6029,9 @@ export class Formulas extends BasePlugin {
         return [];
       }
 
-      entry.readerAnswer = { answered: false, isSyncChecked: false, wasAnsweredAtCheck: false };
+      entry.readerAnswer = {
+        value: entry.result, source, answered: false, isSyncChecked: false, wasAnsweredAtCheck: false,
+      };
 
       return [{ address, answer: entry.readerAnswer }];
     });

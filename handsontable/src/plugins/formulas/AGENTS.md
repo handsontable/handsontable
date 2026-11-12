@@ -708,9 +708,18 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
     such a write joins no step, as at the commit before. On develop the reader was validated once, inside
     the step, by the rejected value develop had written into the engine. **Known limit:** a validator that
     answers in its call the first time and later asynchronously (a cache) holds the step after a rejection.
-    Pinned by `keeps what the afterValidate of a reader of a rejected cell writes at the apply in the edit's
-    undo step` (sync) and `keeps an edit undoable right after it is applied when an async validator of a
-    reader of a rejected cell still works`.
+    **The watch lives two microtasks.** Each record (`ReaderAnswer`, in `#readerAnswers` per cell) leaves
+    the map when its check runs, and the map is cleared on a load, on disable and on destroy: a reader
+    validator that threw or never answered used to leave its record, and the next validation of the cell
+    marked it instead of its own, so that reader was taken for an async one. `#onAfterValidate` marks the
+    oldest unanswered record of the cell with the same value and source (what `beforeValidate` handed the
+    validator). **Known limit:** another validation of the cell with that value and source that answers
+    inside the watch (a `validateCells()` in the same task, with the engine already holding the value) marks
+    it, and an async reader is then taken for a sync one; the Core passes no token of the validation to
+    `afterValidate`. Pinned by `keeps what the afterValidate of a reader of a rejected cell writes at the
+    apply in the edit's undo step` (sync), `keeps an edit undoable right after it is applied when an async
+    validator of a reader of a rejected cell still works`, and `classes a reader by its own validation
+    after a reader validation of the cell that never answered`.
 
   Pinned by `validates an immediate formula that reads a deferred cell of its set once, by the new value`,
   `validates an immediate formula again by the old value when the deferred cell it reads is rejected`, and

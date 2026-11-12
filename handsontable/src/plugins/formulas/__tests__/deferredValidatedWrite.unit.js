@@ -659,6 +659,49 @@ describe('Formulas writes a validated change when the Core applies it', () => {
     expect(hot.getDataAtCell(0, 2)).toBe('c');
   });
 
+  it('classes a reader by its own validation after a reader validation of the cell that never answered', async() => {
+    let bCalls = 0;
+
+    buildReaderOfDeferredGrid({
+      data: [[1, '=A1*3', 'c', '=B1*2']],
+      undo: true,
+      columns: [
+        { validator: (value, callback) => callback(value < 10), allowInvalid: false },
+        {
+          // The first call never answers; every later one answers in its call.
+          validator: (value, callback) => {
+            bCalls += 1;
+
+            if (bCalls > 1) {
+              callback(true);
+            }
+          },
+        },
+        {},
+        {},
+      ],
+      afterValidate(isValid, value, row, prop) {
+        if (prop === 1 && value === 5) {
+          this.setDataAtCell(row, 2, `seen ${value}`, 'afterValidateTest');
+        }
+      },
+    });
+
+    hot.setDataAtCell([[0, 0, 4], [0, 1, '=A1*5']], 'first');
+    await waitForValidation();
+    hot.setDataAtCell([[0, 0, 50], [0, 1, '=A1*5']]);
+    await waitForValidation();
+
+    // The second set's A1 was rejected, and B1, validated again by 5, answered in its call: the write of
+    // its afterValidate is in the second edit's step.
+    expect(hot.getDataAtCell(0, 2)).toBe('seen 5');
+
+    hot.getPlugin('undoRedo').undo();
+    await waitForValidation();
+
+    expect(hot.getDataAtCell(0, 2)).toBe('c');
+  });
+
   it('writes a plain value of the set a formula reads through a named expression into the probe', async() => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const values = [];
