@@ -1,0 +1,30 @@
+{
+  "name": "@handsontable/codemod",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Migration CLI that applies the mechanical part of a Handsontable upgrade and reports the rest.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git",
+    "directory": "codemod"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "handsontable-codemod": "./bin/handsontable-codemod.mjs"
+  },
+  "scripts": {
+    "lint": "eslint --ext .mjs,.cjs --no-error-on-unmatched-pattern bin src test tools versions",
+    "test": "node --test test/adapters.test.mjs test/cli.test.mjs test/fixtures.test.mjs test/manifest.test.mjs test/report.test.mjs test/runner.test.mjs test/test-list.test.mjs test/todo.test.mjs test/versions.test.mjs"
+  },
+  "dependencies": {
+    "@vue/compiler-sfc": "3.5.43",
+    "diff": "9.0.0",
+    "jscodeshift": "17.4.0",
+    "postcss": "8.5.31",
+    "postcss-scss": "4.0.9"
+  }
+}

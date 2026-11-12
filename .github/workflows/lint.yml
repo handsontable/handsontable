@@ -41,6 +41,11 @@ jobs:
         run: npm run in handsontable stylelint
       - name: Custom ESLint rule tests (RuleTester)
         run: npm run in handsontable test:eslint-rules
+      # The codemod's own suite (`node --test`, literal file list). It imports jscodeshift and postcss, so it
+      # cannot join the root `test:tooling` glob, whose job installs nothing; this job has the workspace
+      # installed. The package's `lint` already ran in `npm run lint` above.
+      - name: Codemod tests
+        run: npm run test --prefix codemod
 
       # The frozen Jasmine suite's determinism rules (no-fixed-sleep-in-spec,
       # no-new-it-flaky, no-skipped-test) are `warn`, and `npm run lint` above

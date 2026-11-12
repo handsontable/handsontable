@@ -30,6 +30,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Visual regression tests | `visual-tests/AGENTS.md` |
 | Anything a user can see or operate: DOM, ARIA, keyboard, focus, announcements, theme colors and sizes | the `handsontable-a11y` skill; `tests/AGENTS.md` → "A11y: the axe scan and its baseline" |
 | Playwright functional E2E tier (`tests/`) | `tests/AGENTS.md` |
+| Migration codemod (`codemod/`: per-version manifests, transforms, the `handsontable-codemod` CLI) | `codemod/AGENTS.md` |
 | CI workflows and actions, release cuts, lockfiles, Dependabot remediation | `.ai/CI.md` |
 | Performance suite (`performance-tests/`, the PR perf comment, gh-pages goldens) | the `performance-testing` skill; `performance-tests/README.md` |
 | Test-generation evals (meaningfulness scorer + fixtures) | `evals/README.md` |
@@ -61,6 +62,7 @@ A pre-built Tree-sitter knowledge graph over the whole monorepo answers cross-fi
 | `@handsontable/vue3` | `wrappers/vue3/` | Vue 3 wrapper |
 | `handsontable-visual-tests` | `visual-tests/` | Playwright visual regression tests |
 | `handsontable-tests` | `tests/` | Playwright functional E2E suite (theme × bundle matrix) |
+| `@handsontable/codemod` | `codemod/` | Migration CLI that applies the mechanical part of an upgrade (private, never published) |
 | `handsontable-examples-internal` | `examples/` | Code examples |
 | `handsontable-documentation` | `docs/` | Documentation site (requires Node 22) |
 

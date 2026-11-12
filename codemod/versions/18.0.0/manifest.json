@@ -1,0 +1,17 @@
+{
+  "version": "18.0.0",
+  "status": "released",
+  "guide": {
+    "url": "https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0",
+    "source": "docs/content/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md"
+  },
+  "rules": [
+    {
+      "id": "18.0.0/css-wrapper-border-radius",
+      "kind": "cssVariable",
+      "safe": true,
+      "from": "--ht-wrapper-border-radius",
+      "to": "--ht-border-radius"
+    }
+  ]
+}

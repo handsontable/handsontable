@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handsontable.com/schemas/codemod-manifest.json",
+  "title": "Handsontable codemod version manifest",
+  "description": "Documentation of versions/<semver>/manifest.json. The validator in src/manifest.mjs is the enforcing copy; test/manifest.test.mjs pins the kind list and the required fields of each kind against this file.",
+  "type": "object",
+  "required": ["version", "status", "guide"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Must equal the directory name."
+    },
+    "status": {
+      "enum": ["released", "draft"],
+      "description": "A draft manifest runs only with --include-draft."
+    },
+    "guide": {
+      "type": "object",
+      "required": ["url", "source"],
+      "properties": {
+        "url": { "type": "string", "description": "Public URL of the migration guide." },
+        "source": { "type": "string", "description": "Repository path of the guide source." }
+      }
+    },
+    "include": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Files, relative to the version directory, that hold a { \"rules\": [...] } object. Their rules follow the inline ones."
+    },
+    "rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "type": "string", "description": "<version>/<slug>, unique in the manifest." },
+        "kind": {
+          "enum": [
+            "importSource",
+            "exportRename",
+            "namespaceType",
+            "exportRemoved",
+            "optionRename",
+            "optionMove",
+            "optionRemove",
+            "methodRemove",
+            "methodMove",
+            "callUnwrap",
+            "cssVariable",
+            "themeToken",
+            "dependency",
+            "detect",
+            "custom"
+          ]
+        },
+        "guide": { "type": "string", "description": "Anchor in the migration guide, without the #." },
+        "safe": { "type": "boolean", "description": "The rewrite is mechanical and needs no review." },
+        "minConfidence": { "enum": ["high", "medium"] },
+        "message": { "type": "string" },
+        "advice": { "type": "string" }
+      },
+      "additionalProperties": true,
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "importSource" } } }, "then": { "required": ["from", "to"] } },
+        { "if": { "properties": { "kind": { "const": "exportRename" } } }, "then": { "required": ["module", "from", "to"] } },
+        { "if": { "properties": { "kind": { "const": "namespaceType" } } }, "then": { "required": ["from", "module"] } },
+        { "if": { "properties": { "kind": { "const": "exportRemoved" } } }, "then": { "required": ["module", "name"] } },
+        { "if": { "properties": { "kind": { "const": "optionRename" } } }, "then": { "required": ["from", "to"] } },
+        { "if": { "properties": { "kind": { "const": "optionMove" } } }, "then": { "required": ["from", "to"] } },
+        { "if": { "properties": { "kind": { "const": "optionRemove" } } }, "then": { "required": ["name"] } },
+        { "if": { "properties": { "kind": { "const": "methodRemove" } } }, "then": { "required": ["name"] } },
+        { "if": { "properties": { "kind": { "const": "methodMove" } } }, "then": { "required": ["name", "plugin"] } },
+        { "if": { "properties": { "kind": { "const": "callUnwrap" } } }, "then": { "required": ["callee"] } },
+        { "if": { "properties": { "kind": { "const": "cssVariable" } } }, "then": { "required": ["from", "to"] } },
+        { "if": { "properties": { "kind": { "const": "themeToken" } } }, "then": { "required": ["from", "to"] } },
+        { "if": { "properties": { "kind": { "const": "dependency" } } }, "then": { "required": ["package", "action"] } },
+        { "if": { "properties": { "kind": { "const": "detect" } } }, "then": { "required": ["match"] } },
+        { "if": { "properties": { "kind": { "const": "custom" } } }, "then": { "required": ["module"] } }
+      ]
+    }
+  }
+}

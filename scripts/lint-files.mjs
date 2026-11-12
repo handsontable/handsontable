@@ -15,6 +15,8 @@
  *                 the screen reader lane's runner and libraries)
  *   visual-tests  package.json lint       → whole package; the hook takes src/ tests/ only
  *                 (lib/ and scripts/ drive no page and carry no determinism ban)
+ *   codemod       package.json lint       → bin src test tools versions (.mjs and .cjs); the hook takes
+ *                 bin/ src/ test/ tools/
  *   root          package.json eslint     → .github/scripts/ bin/changelog scripts/
  *   angular / docs — no plain-eslint script → not linted by the hook.
  *
@@ -39,6 +41,9 @@ const SCOPES = [
   // The visual tier's specs and fixtures share the functional tier's determinism bans
   // (visual-tests/.eslintrc.js), so a fixed sleep before a capture is caught at commit time too.
   /^visual-tests\/(src|tests)\//,
+  // The codemod's own lint script covers bin src test tools and versions; the hook takes the first four
+  // (`versions/` holds manifests and fixtures, which the package's .eslintignore keeps out of the lint).
+  /^codemod\/(bin|src|test|tools)\//,
   /^scripts\//,
 ];
 const LINTABLE = /\.(js|ts|mjs|tsx|vue)$/;

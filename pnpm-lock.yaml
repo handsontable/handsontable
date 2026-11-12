@@ -193,6 +193,24 @@ importers:
         specifier: ^16.2.0
         version: 16.2.0
 
+  codemod:
+    dependencies:
+      '@vue/compiler-sfc':
+        specifier: 3.5.43
+        version: 3.5.43
+      diff:
+        specifier: 9.0.0
+        version: 9.0.0
+      jscodeshift:
+        specifier: 17.4.0
+        version: 17.4.0(@babel/preset-env@7.29.7(@babel/core@7.29.7))
+      postcss:
+        specifier: ^8.5.23
+        version: 8.5.31
+      postcss-scss:
+        specifier: 4.0.9
+        version: 4.0.9(postcss@8.5.31)
+
   docs:
     dependencies:
       '@astrojs/markdown-remark':
@@ -1830,6 +1848,12 @@ packages:
     peerDependencies:
       '@babel/core': ^7.11.4
 
+  '@babel/plugin-syntax-flow@7.29.7':
+    resolution: {integrity: sha512-ajMX6QPcyomotqwpzhkYGxcK2i/us0rs1Qo9QvUpa+Fca0FTmqrzKrctoIYLMxcOhGZldGT/BAVkRGTWBiR8gQ==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.11.4
+
   '@babel/plugin-syntax-import-assertions@7.29.7':
     resolution: {integrity: sha512-/An1OCBN93thpBAGyfsK2pcf0jvju1SAtKkL2Ny++B5Sy6sqgzXDQH1cZxWbF96Wuk+bn41MDA9bLd4VVAw6rw==}
     engines: {node: '>=6.9.0'}
@@ -2010,6 +2034,12 @@ packages:
 
   '@babel/plugin-transform-export-namespace-from@7.29.7':
     resolution: {integrity: sha512-24B2nOy2TeJSMheqwPD4DDQOV/elLSIlKxjZt4i05H5AgdPdWR3n18HnNrcJ+j76WJd9gbwb9jPjNYUy6RautA==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.11.4
+
+  '@babel/plugin-transform-flow-strip-types@7.29.7':
+    resolution: {integrity: sha512-wRHeUjUjCZnMHmiO5bRgjFLcoEh7JyTdByOW11ahhwNa4V0bmeGEaIvt51yq0zQp2yWIpqfxXXPyUP6GFJZHOQ==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.11.4
@@ -2260,6 +2290,12 @@ packages:
 
   '@babel/preset-env@7.29.7':
     resolution: {integrity: sha512-GYzX36n1nsciIb0uyH0GHwxwtNwPQIcpxSeiVLDtG/B7jB5xXgchnmL1f/jCX5o+pwnaDBtO60ONSJhEBJfxYA==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.11.4
+
+  '@babel/preset-flow@7.29.7':
+    resolution: {integrity: sha512-KYIRV0BuaN68CDdsqFkAD7MU7yipUqQNuNElwATdxaIdpTjhvtY82QvkBJs7zV3Evxj2jFAAZ1iO8nyy0nhjqA==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.11.4
@@ -7158,6 +7194,10 @@ packages:
   ast-metadata-inferer@0.8.1:
     resolution: {integrity: sha512-ht3Dm6Zr7SXv6t1Ra6gFo0+kLDglHGrEbYihTkcycrbHw7WCcuhBzPlJYHEsIpycaUwzsJHje+vUcxXUX4ztTA==}
 
+  ast-types@0.16.3:
+    resolution: {integrity: sha512-FvWoWYfSCM6kRxCSH+MGLHIKKGRL6A6AW7Zek2O32REPQRdg131428uRTKMBYAeRd3XXAaHDS60Wpri7CdKDrA==}
+    engines: {node: '>=4'}
+
   astral-regex@2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
     engines: {node: '>=8'}
@@ -8865,6 +8905,14 @@ packages:
     resolution: {integrity: sha512-9UbaD6XdAL97+k/n+N7JwX46K/M6Zc6KcFYskrYL8wbBV/Uyk0CTAMY0VT+qiK5PM7AIc9aTWYtq65U7T+aCNQ==}
     engines: {node: '>=8'}
 
+  flow-estree@0.340.0:
+    resolution: {integrity: sha512-LpYdzPWHsfDAc5nNmVrUPLo8UedFkJqogIxNyVO19tG7qBhvNwjs+Oo4TfWB+2Qa4arFevu3vdbxR5tfWps53g==}
+    engines: {node: '>=18'}
+
+  flow-parser@0.340.0:
+    resolution: {integrity: sha512-zB1DgZcBVes/hHj/upWKLhukHAIkj+6g2o0yVnxCxS1Wyi/YLX513w8XpFLJ7/LUrbSE7CIHJAEZ94smHujt9Q==}
+    engines: {node: '>=0.4.0'}
+
   follow-redirects@1.16.2:
     resolution: {integrity: sha512-/kVP2U8z596Ia0gwFrwyIeo74ta5aVmSeU1FfAUMAmcEP5EP7zydmag3SLiN64NaRKef3lxsq7i/g7ltJQDGow==}
     engines: {node: '>=4.0'}
@@ -10263,6 +10311,16 @@ packages:
   js2xmlparser@4.0.2:
     resolution: {integrity: sha512-6n4D8gLlLf1n5mNLQPRfViYzu9RATblzPEtm1SthMX1Pjao0r9YI9nw7ZIfRxQMERS87mcswrg+r/OYrPRX6jA==}
 
+  jscodeshift@17.4.0:
+    resolution: {integrity: sha512-i3ESKiiTsGynxzTg5BhsZViD0ai72/6SsI1efDZxG6/5KCoElsmquxtyhXK5lpEgoO7MTNpYkjFEdEL97SkBNg==}
+    engines: {node: '>=16'}
+    hasBin: true
+    peerDependencies:
+      '@babel/preset-env': ^7.1.6
+    peerDependenciesMeta:
+      '@babel/preset-env':
+        optional: true
+
   jsdoc-api@7.2.0:
     resolution: {integrity: sha512-93YDnlm/OYTlLOFeNs4qAv0RBCJ0kGj67xQaWy8wrbk97Rw1EySitoOTHsTHXPEs3uyx2IStPKGrbE7LTnZXbA==}
     engines: {node: '>=12.17'}
@@ -11142,11 +11200,6 @@ packages:
     resolution: {integrity: sha512-dkEJPVvun4FryqBmZ5KhDo0K9iDXAwn08tMLDinNdRBNPcYEDiWYysLcc6k3mjTMlbP9KyylvRpd4wFtwrT9rw==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  nanoid@3.3.18:
-    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
   nanoid@3.3.20:
     resolution: {integrity: sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -11737,10 +11790,6 @@ packages:
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
-  postcss@8.5.23:
-    resolution: {integrity: sha512-g50586zr4bZmwFiTlflMu8E0bDTb5I5gertgwAKmsdUlTQIhZtunzUlD1WSzwcVWPoAVpsrA6vlfCD7oXvRwgg==}
-    engines: {node: ^10 || ^12 || >=14}
-
   postcss@8.5.31:
     resolution: {integrity: sha512-YUbWYCgErwnMAVkjUnYa+KlMBzGpHwiIt/DE7f0G33AuX2LH9UcTk6KgWxd3zRU+pN3u/C+Xl3EnMLM4Hea7Sg==}
     engines: {node: ^10 || ^12 || >=14}
@@ -12021,6 +12070,10 @@ packages:
   readdirp@5.0.0:
     resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
     engines: {node: '>= 20.19.0'}
+
+  recast@0.23.21:
+    resolution: {integrity: sha512-mFAyJq9vUbSTARLZUvAEf1z3YxlvAwswbmxMx2mPA/MSm4KmpwvwvhsH/NIrZhyOuwD60Lzyw2qh83uCbgTPYw==}
+    engines: {node: '>= 4'}
 
   recma-build-jsx@1.0.0:
     resolution: {integrity: sha512-8GtdyqaBcDfva+GUKDr3nev3VpKAhup1+RvkMvUxURHpW7QyIvk9F5wz7Vzo06CEMSilw6uArgRqhpiUcWp8ew==}
@@ -13352,6 +13405,9 @@ packages:
 
   tiny-invariant@1.3.1:
     resolution: {integrity: sha512-AD5ih2NlSssTCwsMznbvwMZpJ1cbhkGd2uueNxzv2jDlEeZdU04JQfRnggJQ8DrcVBGjAsCKwFBbDlVNtEMlzw==}
+
+  tiny-invariant@1.3.3:
+    resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
 
   tiny-warning@1.0.3:
     resolution: {integrity: sha512-lBN9zLN/oAf68o3zNXYrdCt1kP8WsiGW8Oo2ka41b2IM5JL/S1CTyX1rW0mb/zSuJun0ZUrDxx4sqvYS2FWzPA==}
@@ -15472,6 +15528,11 @@ snapshots:
       '@babel/core': 7.29.7
       '@babel/helper-plugin-utils': 7.29.7
 
+  '@babel/plugin-syntax-flow@7.29.7(@babel/core@7.29.7)':
+    dependencies:
+      '@babel/core': 7.29.7
+      '@babel/helper-plugin-utils': 7.29.7
+
   '@babel/plugin-syntax-import-assertions@7.29.7(@babel/core@7.29.7)':
     dependencies:
       '@babel/core': 7.29.7
@@ -15662,6 +15723,12 @@ snapshots:
     dependencies:
       '@babel/core': 7.29.7
       '@babel/helper-plugin-utils': 7.29.7
+
+  '@babel/plugin-transform-flow-strip-types@7.29.7(@babel/core@7.29.7)':
+    dependencies:
+      '@babel/core': 7.29.7
+      '@babel/helper-plugin-utils': 7.29.7
+      '@babel/plugin-syntax-flow': 7.29.7(@babel/core@7.29.7)
 
   '@babel/plugin-transform-for-of@7.29.7(@babel/core@7.29.7)':
     dependencies:
@@ -16014,6 +16081,13 @@ snapshots:
       semver: 6.3.1
     transitivePeerDependencies:
       - supports-color
+
+  '@babel/preset-flow@7.29.7(@babel/core@7.29.7)':
+    dependencies:
+      '@babel/core': 7.29.7
+      '@babel/helper-plugin-utils': 7.29.7
+      '@babel/helper-validator-option': 7.29.7
+      '@babel/plugin-transform-flow-strip-types': 7.29.7(@babel/core@7.29.7)
 
   '@babel/preset-modules@0.1.6-no-external-plugins(@babel/core@7.29.7)':
     dependencies:
@@ -20773,7 +20847,7 @@ snapshots:
       '@vue/shared': 3.5.35
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.23
+      postcss: 8.5.31
       source-map-js: 1.2.2
 
   '@vue/compiler-sfc@3.5.43':
@@ -20820,8 +20894,8 @@ snapshots:
   '@vue/language-core@3.3.11':
     dependencies:
       '@volar/language-core': 2.4.28
-      '@vue/compiler-dom': 3.5.35
-      '@vue/shared': 3.5.35
+      '@vue/compiler-dom': 3.5.43
+      '@vue/shared': 3.5.43
       alien-signals: 3.2.1
       muggle-string: 0.4.1
       path-browserify: 1.0.1
@@ -21286,6 +21360,10 @@ snapshots:
   ast-metadata-inferer@0.8.1:
     dependencies:
       '@mdn/browser-compat-data': 5.7.6
+
+  ast-types@0.16.3:
+    dependencies:
+      tslib: 2.8.1
 
   astral-regex@2.0.0: {}
 
@@ -22156,12 +22234,12 @@ snapshots:
 
   css-loader@6.10.0(@rspack/core@1.7.11(@swc/helpers@0.5.23))(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.31)):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.5.23)
-      postcss: 8.5.23
-      postcss-modules-extract-imports: 3.1.0(postcss@8.5.23)
-      postcss-modules-local-by-default: 4.2.0(postcss@8.5.23)
-      postcss-modules-scope: 3.2.1(postcss@8.5.23)
-      postcss-modules-values: 4.0.0(postcss@8.5.23)
+      icss-utils: 5.1.0(postcss@8.5.31)
+      postcss: 8.5.31
+      postcss-modules-extract-imports: 3.1.0(postcss@8.5.31)
+      postcss-modules-local-by-default: 4.2.0(postcss@8.5.31)
+      postcss-modules-scope: 3.2.1(postcss@8.5.31)
+      postcss-modules-values: 4.0.0(postcss@8.5.31)
       postcss-value-parser: 4.2.0
       semver: 7.8.4
     optionalDependencies:
@@ -23448,6 +23526,12 @@ snapshots:
 
   flattie@1.1.1: {}
 
+  flow-estree@0.340.0: {}
+
+  flow-parser@0.340.0:
+    dependencies:
+      flow-estree: 0.340.0
+
   follow-redirects@1.16.2: {}
 
   fontace@0.4.1:
@@ -24188,9 +24272,9 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
-  icss-utils@5.1.0(postcss@8.5.23):
+  icss-utils@5.1.0(postcss@8.5.31):
     dependencies:
-      postcss: 8.5.23
+      postcss: 8.5.31
 
   ieee754@1.2.1: {}
 
@@ -25787,6 +25871,31 @@ snapshots:
     dependencies:
       xmlcreate: 2.0.4
 
+  jscodeshift@17.4.0(@babel/preset-env@7.29.7(@babel/core@7.29.7)):
+    dependencies:
+      '@babel/core': 7.29.7
+      '@babel/parser': 7.29.9
+      '@babel/plugin-transform-class-properties': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-modules-commonjs': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-nullish-coalescing-operator': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-optional-chaining': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-private-methods': 7.29.7(@babel/core@7.29.7)
+      '@babel/preset-flow': 7.29.7(@babel/core@7.29.7)
+      '@babel/preset-typescript': 7.29.7(@babel/core@7.29.7)
+      '@babel/register': 7.29.7(@babel/core@7.29.7)
+      flow-parser: 0.340.0
+      graceful-fs: 4.2.11
+      neo-async: 2.6.2
+      picocolors: 1.1.1
+      picomatch: 4.0.7
+      recast: 0.23.21
+      tmp: 0.2.7
+      write-file-atomic: 5.0.1
+    optionalDependencies:
+      '@babel/preset-env': 7.29.7(@babel/core@7.29.7)
+    transitivePeerDependencies:
+      - supports-color
+
   jsdoc-api@7.2.0:
     dependencies:
       array-back: 6.2.3
@@ -27053,8 +27162,6 @@ snapshots:
 
   mute-stream@3.0.0: {}
 
-  nanoid@3.3.18: {}
-
   nanoid@3.3.20: {}
 
   nanopop@2.4.2: {}
@@ -27096,7 +27203,7 @@ snapshots:
       jsonc-parser: 3.3.1
       less: 4.6.4
       ora: 9.4.1
-      postcss: 8.5.23
+      postcss: 8.5.31
       rolldown: 1.2.13
       rolldown-plugin-dts: 0.28.8(@volar/typescript@2.4.28)(@vue/language-core@3.3.11)(rolldown@1.2.13)(typescript@6.0.3)(vue-tsc@3.3.11(typescript@6.0.3))
       rxjs: 7.8.2
@@ -27641,26 +27748,26 @@ snapshots:
 
   postcss-media-query-parser@0.2.3: {}
 
-  postcss-modules-extract-imports@3.1.0(postcss@8.5.23):
+  postcss-modules-extract-imports@3.1.0(postcss@8.5.31):
     dependencies:
-      postcss: 8.5.23
+      postcss: 8.5.31
 
-  postcss-modules-local-by-default@4.2.0(postcss@8.5.23):
+  postcss-modules-local-by-default@4.2.0(postcss@8.5.31):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.5.23)
-      postcss: 8.5.23
+      icss-utils: 5.1.0(postcss@8.5.31)
+      postcss: 8.5.31
       postcss-selector-parser: 7.1.6
       postcss-value-parser: 4.2.0
 
-  postcss-modules-scope@3.2.1(postcss@8.5.23):
+  postcss-modules-scope@3.2.1(postcss@8.5.31):
     dependencies:
-      postcss: 8.5.23
+      postcss: 8.5.31
       postcss-selector-parser: 7.1.6
 
-  postcss-modules-values@4.0.0(postcss@8.5.23):
+  postcss-modules-values@4.0.0(postcss@8.5.31):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.5.23)
-      postcss: 8.5.23
+      icss-utils: 5.1.0(postcss@8.5.31)
+      postcss: 8.5.31
 
   postcss-nested@6.2.0(postcss@8.5.31):
     dependencies:
@@ -27668,10 +27775,6 @@ snapshots:
       postcss-selector-parser: 7.1.6
 
   postcss-resolve-nested-selector@0.1.6: {}
-
-  postcss-safe-parser@7.0.1(postcss@8.5.23):
-    dependencies:
-      postcss: 8.5.23
 
   postcss-safe-parser@7.0.1(postcss@8.5.31):
     dependencies:
@@ -27687,12 +27790,6 @@ snapshots:
       util-deprecate: 1.0.2
 
   postcss-value-parser@4.2.0: {}
-
-  postcss@8.5.23:
-    dependencies:
-      nanoid: 3.3.18
-      picocolors: 1.1.1
-      source-map-js: 1.2.2
 
   postcss@8.5.31:
     dependencies:
@@ -28042,6 +28139,14 @@ snapshots:
       picomatch: 2.3.2
 
   readdirp@5.0.0: {}
+
+  recast@0.23.21:
+    dependencies:
+      ast-types: 0.16.3
+      esprima: 4.0.1
+      source-map: 0.6.1
+      tiny-invariant: 1.3.3
+      tslib: 2.8.1
 
   recma-build-jsx@1.0.0:
     dependencies:
@@ -29483,9 +29588,9 @@ snapshots:
       micromatch: 4.0.8
       normalize-path: 3.0.0
       picocolors: 1.1.1
-      postcss: 8.5.23
+      postcss: 8.5.31
       postcss-resolve-nested-selector: 0.1.6
-      postcss-safe-parser: 7.0.1(postcss@8.5.23)
+      postcss-safe-parser: 7.0.1(postcss@8.5.31)
       postcss-selector-parser: 7.1.6
       postcss-value-parser: 4.2.0
       resolve-from: 5.0.0
@@ -29651,6 +29756,8 @@ snapshots:
   tiny-inflate@1.0.3: {}
 
   tiny-invariant@1.3.1: {}
+
+  tiny-invariant@1.3.3: {}
 
   tiny-warning@1.0.3: {}
 
