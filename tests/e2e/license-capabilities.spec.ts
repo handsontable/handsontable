@@ -1,5 +1,7 @@
 import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { LicenseCapabilitiesPage } from '../fixtures/pages/LicenseCapabilitiesPage';
+import { presetQuery } from '../fixtures/licenseTiers';
+import { A11Y_PAGES } from '../a11y/pages.mjs';
 
 const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
   '(feat:filters). They are turned off. To add them, contact sales@handsontable.com.';
@@ -8,19 +10,21 @@ const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include t
   'They are turned off. To add them, contact sales@handsontable.com.';
 
 /**
- * A license key whose Handsontable entry carries the `listed-capabilities` flag unlocks `core`, the
- * features it lists and what they require. A plugin it leaves out stays off, and one console error
- * and the license bar say so. A key without the flag unlocks every feature, as before.
+ * A license key whose Handsontable entry names a tier (`tier:<name>`) unlocks the plugins whose
+ * `LICENSE.tiers` list that tier, and nothing else: a plugin's requirements come only from the tier
+ * listing them too. A plugin it leaves out stays off, and one console error and the license bar say
+ * so. A key that names no tier unlocks every feature, as before. The tiers are made up and the fixture
+ * gives them their features, so no real tier decides what a test unlocks.
  */
-test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('license keys that name tiers', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let license: LicenseCapabilitiesPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
     license = new LicenseCapabilitiesPage(page, theme, bundle);
   });
 
-  test('keeps Filters off when the key does not list it, and says so once', async() => {
-    await license.goto({ key: 'flagged-base', plugins: 'filters' });
+  test('keeps Filters off when the key\'s tier does not list it, and says so once', async() => {
+    await license.goto({ key: 'tier-base', plugins: 'filters' });
 
     expect(await license.isPluginEnabled('filters')).toBe(false);
     // Filters would have turned the column menu on; nothing turned it on.
@@ -35,7 +39,7 @@ test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDL
   test('names every missing feature in one console error and one bar line, the header checkbox included',
     async() => {
       // CheckboxHeader checks its columns in its ready step, after the plugins the key keeps off are known.
-      await license.goto({ key: 'flagged-minimal', plugins: 'header-checkbox' });
+      await license.goto({ key: 'tier-minimal', plugins: 'header-checkbox' });
 
       await expect(license.grid.locator('.htCheckboxHeaderInput')).toHaveCount(0);
       await expect(license.missingFeatures).toHaveCount(1);
@@ -50,7 +54,7 @@ test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDL
 
   test('keeps the declared height with the missing-features bar, as soon as the constructor returns',
     async() => {
-      await license.goto({ key: 'flagged-minimal', plugins: 'header-checkbox' });
+      await license.goto({ key: 'tier-minimal', plugins: 'header-checkbox' });
 
       const size = await license.sizeAtConstruction();
 
@@ -58,8 +62,8 @@ test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDL
       expect(size.outerHeight).toBe(200);
     });
 
-  test('shows no Filters items in a column menu the key does list', async() => {
-    await license.goto({ key: 'flagged-column-menu', plugins: 'column-menu' });
+  test('shows no Filters items in a column menu the key\'s tier does list', async() => {
+    await license.goto({ key: 'tier-column-menu', plugins: 'column-menu' });
 
     expect(await license.isPluginEnabled('dropdownMenu')).toBe(true);
     expect(await license.isPluginEnabled('filters')).toBe(false);
@@ -72,7 +76,7 @@ test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDL
   });
 
   test('takes the keyboard to the bar\'s link when the focus leaves the grid', async() => {
-    await license.goto({ key: 'flagged-base', plugins: 'filters' });
+    await license.goto({ key: 'tier-base', plugins: 'filters' });
 
     await license.tabOutOfLastCell();
 
@@ -81,14 +85,14 @@ test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDL
   });
 
   test('takes the message away for a key passed later, and brings it back reachable for another', async() => {
-    await license.goto({ key: 'flagged-base', plugins: 'filters' });
+    await license.goto({ key: 'tier-base', plugins: 'filters' });
 
-    await license.updateLicenseKey('unflagged');
+    await license.updateLicenseKey('no-tier');
 
     await expect(license.bar).toHaveCount(0);
     expect(await license.isPluginEnabled('filters')).toBe(true);
 
-    await license.updateLicenseKey('flagged-base');
+    await license.updateLicenseKey('tier-base');
 
     expect(await license.isPluginEnabled('filters')).toBe(false);
     await expect(license.missingFeatures).toHaveText(FILTERS_BAR_MESSAGE);
@@ -99,15 +103,15 @@ test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDL
   });
 
   test('keeps Filters off with no bar when the key silences UI warnings', async() => {
-    await license.goto({ key: 'flagged-no-ui', plugins: 'filters' });
+    await license.goto({ key: 'tier-no-ui', plugins: 'filters' });
 
     expect(await license.isPluginEnabled('filters')).toBe(false);
     await expect(license.bar).toHaveCount(0);
     expect(license.licenseErrors()).toEqual([FILTERS_MESSAGE]);
   });
 
-  test('unlocks every feature for the unflagged key', async() => {
-    await license.goto({ key: 'unflagged', plugins: 'column-menu' });
+  test('unlocks every feature for a key that names no tier', async() => {
+    await license.goto({ key: 'no-tier', plugins: 'column-menu' });
 
     expect(await license.isPluginEnabled('filters')).toBe(true);
     await expect(license.columnMenuButtons.first()).toBeVisible();
@@ -116,9 +120,9 @@ test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDL
   });
 
   test('leaves the Filters value list, a nested grid, alone', async() => {
-    await license.goto({ key: 'flagged-filters', plugins: 'column-menu' });
+    await license.goto({ key: 'tier-filters', plugins: 'column-menu' });
 
-    // The key lists Filters; the column menu comes with it.
+    // The key's tier lists Filters and the column menu.
     expect(await license.isPluginEnabled('filters')).toBe(true);
 
     await license.openFirstColumnMenu();
@@ -126,5 +130,34 @@ test.describe('license keys that list their features', { tag: [THEMES_TAG, BUNDL
     await expect(license.valueList).toContainText('Alpha');
     await expect(license.valueList).toContainText('Gamma');
     expect(license.licenseErrors()).toEqual([]);
+  });
+
+  test('keeps every sold plugin off for a tier no feature lists, in one message', async() => {
+    await license.goto({ key: 'tier-unknown', plugins: 'filters' });
+
+    expect(await license.isPluginEnabled('filters')).toBe(false);
+    expect(license.licenseErrors()).toHaveLength(1);
+    await expect(license.missingFeatures).toContainText('Filters');
+    await expect(license.bar).toHaveCount(1);
+  });
+
+  test('keeps every feature on for a key that names no tier', async() => {
+    await license.goto({ key: 'no-tier', plugins: 'filters' });
+
+    expect(await license.isPluginEnabled('filters')).toBe(true);
+    expect(license.licenseErrors()).toEqual([]);
+  });
+});
+
+/**
+ * The accessibility catalog cannot build a key (it is plain JS that node scripts read too), so its
+ * missing-features page carries the query of the `tier-base` preset verbatim. A change to a preset or
+ * to the key builder has to update that query, and this test says so.
+ */
+test.describe('the accessibility catalog\'s license page', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+  test('opens the fixture with the tier-base preset', () => {
+    const entry = A11Y_PAGES.find(page => page.id === 'license-missing-features');
+
+    expect(entry?.query).toBe(presetQuery('tier-base', 'filters'));
   });
 });
