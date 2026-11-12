@@ -702,6 +702,75 @@ describe('Formulas writes a validated change when the Core applies it', () => {
     expect(hot.getDataAtCell(0, 2)).toBe('c');
   });
 
+  it('builds no engine-bound value for the probe of a set without a formula', async() => {
+    const metaReads = async(allowInvalid) => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      hot = new Handsontable(container, {
+        data: Array.from({ length: 20 }, (_, row) => [row, row]),
+        columns: [{ validator: (value, callback) => callback(true), allowInvalid }, {}],
+        formulas: { engine },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+      const metaSpy = jest.spyOn(hot, 'getCellMetaTransient');
+
+      hot.setDataAtCell(Array.from({ length: 20 }, (_, row) => [row, 0, `v${row}`]));
+      await waitForValidation();
+
+      const reads = metaSpy.mock.calls.length;
+
+      hot.destroy();
+      hot = null;
+
+      return reads;
+    };
+
+    // Deferred or written at once, the set's values are turned into engine values once, by the write (the
+    // escape reads the cell meta).
+    expect(await metaReads(false)).toBe(await metaReads(true));
+  });
+
+  it('reports and paints the new value of a volatile formula the probe of a rejected edit recalculated', async() => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const reported = [];
+    let draw = 0;
+
+    jest.spyOn(Math, 'random').mockImplementation(() => {
+      draw += 1;
+
+      return draw / 100;
+    });
+
+    try {
+      hot = new Handsontable(container, {
+        data: [[1, '=RAND()', '=A1*2']],
+        columns: [{ validator: (value, callback) => callback(false), allowInvalid: false }, {}, {}],
+        formulas: { engine },
+        afterFormulasValuesUpdate(changes) {
+          reported.push(...changes.map(({ address, newValue }) => `${address.row}x${address.col}=${newValue}`));
+        },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      const sheet = hot.getPlugin('formulas').sheetId;
+
+      reported.length = 0;
+      hot.setDataAtCell(0, 0, '=5*2');
+      await waitForValidation();
+
+      const randValue = engine.getCellValue({ sheet, row: 0, col: 1 });
+
+      // The probe's write and its undo each drew a new RAND() value; the grid hears the one the engine kept,
+      // and nothing for the probe's own write or for C1, which the undo put back.
+      expect(hot.getSourceDataAtCell(0, 0)).toBe(1);
+      expect(reported).toEqual([`0x1=${randValue}`]);
+      expect(hot.getDataAtCell(0, 1)).toBe(randValue);
+      expect(hot.getCell(0, 1).textContent).toBe(String(randValue));
+    } finally {
+      Math.random.mockRestore();
+    }
+  });
+
   it('writes a plain value of the set a formula reads through a named expression into the probe', async() => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const values = [];

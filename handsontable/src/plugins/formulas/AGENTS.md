@@ -767,8 +767,14 @@ the restore gone, the engine keeps the rejected value until the next full write.
 **Known limit (held dependents are engine addresses).** `heldDependents` keeps the engine addresses the
 early write found. A row or column inserted or removed while a deferred change waits for its validator
 moves the real dependent, so the apply validates the cell now at the old address and the moved dependent
-is not validated. The Core has the same limit for the change itself (it is applied at its old visual
-address). Physical indexes would fix the dependents only.
+is not validated. The Core has the same limit for the change itself, and it decides where the edit lands:
+the waiting set is applied at its old visual coordinates, so after `alter('insert_row_above', 0)` an edit of
+row 1 writes the record now at row 1 (the old row 0), and the apply's validation of the held dependent at
+the old address validates the cell that write reaches (checked on this branch, insert above and remove
+above). Translating only the held addresses through the structural change would validate the moved record,
+which the edit no longer touches, and leave the cell it does reach unvalidated. The fix belongs to the Core:
+move a waiting set with its records (row identity) or drop it on a structural change, as on a `loadData()`;
+the dependents then follow by being read again at the apply.
 
 **Known limit (a deferred cell past the last row starts no walk).** `#splitDependentsOfDeferred()` walks
 from deferred cells the engine already holds. A deferred change past the last row has no engine cell yet,
@@ -829,9 +835,28 @@ early write, writes it, reads the results, and takes the write back with `engine
   (`indexSyncer/pluginEngineWrite.ts`, a per-engine depth next to the write scope), and every grid's
   `#onEngineValuesUpdated` returns at once while `isPluginEngineProbe(engine)` answers `true`. So no grid
   fires `afterFormulasValuesUpdate` with probe values (a reader grid used to log the probe value and the
-  undo for an edit later rejected) and none paints for it; a volatile function (`RAND()`) recalculates in
-  the engine without an event. Pinned by `fires no afterFormulasValuesUpdate in another grid on the engine
-  for the probe of a rejected edit`. A host's own `valuesUpdated` listener on the engine still sees both
+  undo for an edit later rejected) and none paints for it. Pinned by `fires no afterFormulasValuesUpdate in
+  another grid on the engine for the probe of a rejected edit`.
+- **Except what the round trip did not put back: a volatile formula.** `RAND()`, `NOW()` and `TODAY()`
+  recalculate on the probe's batch and on each undo, so the engine ends with a value no grid heard, and a
+  cell showed the old one until the next render (for a rejected edit, which the Core does not render, and
+  under `renderMode: 'onChange'`). `#runProbe()` keeps the undo's changes (a later undo's value of a cell
+  wins), and `#findChangesKeptByProbe()` takes the ones that are neither a cell the probe wrote nor one
+  that reads it (`#collectDependentKeys()`, walked only when the undo changed a cell the probe did not
+  write): those are the cells the round trip changed for good. `#announceProbeChangesKept()` hands them to
+  every grid on the engine as an engine event, in a `'cells'` write of its own after the probe, so each
+  fires `afterFormulasValuesUpdate` once with the kept value and paints once, this grid included. Nothing
+  fires for the probe's write or for a dependent the undo put back. **Known limit:** a volatile formula
+  that also reads a probed cell (`=RAND()+A1`) is taken for such a dependent and not announced. Pinned by
+  `reports and paints the new value of a volatile formula the probe of a rejected edit recalculated`
+  (a stubbed `Math.random`).
+- **The probe builds engine-bound values only for a set it runs for.** A set with no formula (raw value
+  starting with `=`), no object (a `valueGetter` can turn one into a formula; the escape never makes one)
+  and no reader skips the probe, so its values are not turned into engine values (`valueGetter`, the cell
+  meta read of the escape): the apply does that once. A 10k plain paste read the cell meta twice per
+  change. Pinned by `builds no engine-bound value for the probe of a set without a formula` (the
+  `getCellMetaTransient()` count matches a column written at once). The cell's last write and its entry are
+  looked up in `Set`s, so a set of thousands of formulas stays linear. A host's own `valuesUpdated` listener on the engine still sees both
   events. The probe depth lives in this bundle's module, so a grid from a second Handsontable bundle sharing
   the engine does not see it and still fires for the probe.
 - **Cost, measured** (jsdom, Jest, 1000-row grid, a paste of 1000 values with one formula that reads A1

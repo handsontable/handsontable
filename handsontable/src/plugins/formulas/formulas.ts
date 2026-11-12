@@ -5940,9 +5940,14 @@ export class Formulas extends BasePlugin {
       this.hot._registerMicrotask(() => this.#validationValues.clear());
     }
 
+    // A set the probe skips (no formula, no reader) needs no engine-bound value: building one runs the
+    // column's `valueGetter` and reads the cell meta for the escape, which the apply does again. Only an
+    // object can turn into a formula through the `valueGetter`, and the escape never makes one.
+    const needsEngineValues = readersOfDeferred.length > 0 ||
+      rejectableChanges.some(({ change: [, , , value] }) => isFormula(value) || (isObject(value) && value !== null));
     const writes: ProbeWrite[] = rejectableChanges.map(rejectable => ({
       rejectable,
-      value: this.#toEngineBoundChangeValue(rejectable),
+      value: needsEngineValues ? this.#toEngineBoundChangeValue(rejectable) : rejectable.change[3],
       address: this.#toEngineCellAddress(rejectable.visualRow, rejectable.visualColumn),
       entry: { source, changeValue: rejectable.change[3], hasResult: false, result: undefined } as ValidationValue,
     }));
@@ -6007,16 +6012,28 @@ export class Formulas extends BasePlugin {
     // A cell the set writes twice holds its last value in the engine, as after the apply; an earlier formula
     // for it is calculated on its own.
     const lastWrites = [...lastWriteByCell.values()];
+    // Sets, so a paste of thousands of formulas stays linear.
+    const lastWriteSet = new Set(lastWrites);
+    const lastEntries = new Set(lastWrites.map(lastWrite => lastWrite.entry));
 
     writes.forEach(({ rejectable: { visualRow, visualColumn }, value, entry }, index) => {
-      if (isFormula(value) && !lastWrites.includes(writes[index]) &&
-        !lastWrites.some(lastWrite => lastWrite.entry === entry)) {
+      if (isFormula(value) && !lastWriteSet.has(writes[index]) && !lastEntries.has(entry)) {
         entry.hasResult = true;
         entry.result = this.#calculateDetached(visualRow, visualColumn, value as string);
       }
     });
 
-    withPluginEngineProbe(engine!, () => this.#writeOwnSheet(engine, () => this.#runProbe(lastWrites, readers)));
+    const changesKept = withPluginEngineProbe(engine!, () => this.#writeOwnSheet(
+      engine, () => this.#runProbe(lastWrites, readers),
+    ));
+
+    if (changesKept.length > 0) {
+      // A write of its own, so every grid that reads the cells paints once when it ends, this one included:
+      // the Core renders nothing for a set its validators reject.
+      withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(
+        () => this.#announceProbeChangesKept(changesKept), 'cells',
+      ));
+    }
 
     // A reader the probe read no result for is validated by the engine's value, as a cell of the set written at
     // once: its entry would hand the validator the formula text.
@@ -6050,18 +6067,26 @@ export class Formulas extends BasePlugin {
    * engine already, so it is not written; with one, every plain value of the set goes into the second batch,
    * and its result is read too. Without a deferred formula, the first batch is not written.
    *
+   * The undo puts every cell back except a volatile formula (`RAND()`, `NOW()`), which the probe's write and
+   * each undo recalculated. Every grid ignored those events, so the cells whose last change the undo made
+   * and that the probe's cells do not reach are returned, for `#announceProbeChangesKept()`.
+   *
    * @param {object[]} writes The probe writes: the change, its engine-bound value, address and entry.
    * @param {object[]} [readers] The cells written at once whose result the probe reads.
+   * @returns {object[]} The engine changes the undo made that the probe did not take back.
    */
-  #runProbe(writes: ProbeWrite[], readers: ProbeReader[] = []) {
+  #runProbe(writes: ProbeWrite[], readers: ProbeReader[] = []): unknown[] {
     const engine = this.engine!;
     const formulaWrites = writes.filter(({ value }) => isFormula(value));
+    const writtenAddresses: FormulasCellAddress[] = [];
+    const undoneChanges = new Map<string, unknown>();
     let batches = 0;
 
     try {
       if (formulaWrites.length > 0) {
         batches += 1;
         this.#writeProbeBatch(formulaWrites);
+        writtenAddresses.push(...formulaWrites.map(({ address }) => address));
       }
 
       const precedents = formulaWrites.flatMap(({ address }) => engine.getCellPrecedents(address));
@@ -6078,6 +6103,7 @@ export class Formulas extends BasePlugin {
       if (readValueWrites.length > 0) {
         batches += 1;
         this.#writeProbeBatch(readValueWrites);
+        writtenAddresses.push(...readValueWrites.map(({ address }) => address));
       }
 
       [...formulaWrites.map(({ rejectable, entry }) => ({ ...rejectable, entry })), ...readers]
@@ -6090,11 +6116,74 @@ export class Formulas extends BasePlugin {
     } finally {
       // An empty batch still pushes an undo entry, so this never takes back an earlier operation.
       for (let batch = 0; batch < batches; batch++) {
-        engine.undo();
+        const undone = engine.undo();
+
+        (Array.isArray(undone) ? undone : []).forEach((change) => {
+          const address = isHFCellChange(change) ? change.address : undefined;
+
+          // A later undo's value of a cell replaces an earlier one's.
+          if (address) {
+            undoneChanges.delete(toCellKey(address));
+            undoneChanges.set(toCellKey(address), change);
+          }
+        });
       }
 
       engine.clearRedoStack?.();
     }
+
+    return this.#findChangesKeptByProbe(writtenAddresses, [...undoneChanges.values()]);
+  }
+
+  /**
+   * Picks, from the changes the probe's undo made, the cells whose value the round trip did not put back:
+   * neither a cell the probe wrote nor one that reads it, directly or through other formulas
+   * (`#collectDependentKeys()`), so a volatile formula recalculated by the write and the undo. The walk runs
+   * only when the undo changed a cell the probe did not write. **Known limit:** a volatile formula that
+   * also reads a probed cell (`=RAND()+A1`) is taken for a dependent the undo put back, and is not
+   * announced.
+   *
+   * @param {object[]} writtenAddresses The engine addresses the probe wrote.
+   * @param {object[]} undoneChanges The undo's changes, one per cell.
+   * @returns {object[]}
+   */
+  #findChangesKeptByProbe(writtenAddresses: FormulasCellAddress[], undoneChanges: unknown[]) {
+    const written = new Set(writtenAddresses.map(address => toCellKey(address)));
+    const others = undoneChanges.filter((change) => {
+      const address = isHFCellChange(change) ? change.address : undefined;
+
+      return address !== undefined && !written.has(toCellKey(address));
+    });
+
+    if (others.length === 0) {
+      return [];
+    }
+
+    const reached = this.#collectDependentKeys(writtenAddresses);
+
+    return others.filter(change => isHFCellChange(change) && !reached.has(toCellKey(change.address!)));
+  }
+
+  /**
+   * Hands the changes the validation probe did not take back (`#runProbe()`) to every grid on the engine,
+   * as an engine event would have: each one fires `afterFormulasValuesUpdate` and paints, once, when the
+   * plugin write the caller runs it in ends. A host's own `valuesUpdated` listener heard the probe's events
+   * already.
+   *
+   * @param {object[]} changes The changes.
+   */
+  #announceProbeChangesKept(changes: unknown[]) {
+    if (!this.engine) {
+      return;
+    }
+
+    getRegisteredHotInstances(this.engine).forEach((boundHot) => {
+      const plugin = boundHot.getPlugin(PLUGIN_KEY as 'formulas') as unknown as Formulas | undefined;
+
+      if (plugin instanceof Formulas && plugin.engine === this.engine) {
+        plugin.#onEngineValuesUpdated(changes);
+      }
+    });
   }
 
   /**
