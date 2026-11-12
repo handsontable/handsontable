@@ -1362,7 +1362,8 @@ the last order the engine took as one order (`#orderPoint`, the grid sequence th
 the shifts, exported and adopted with the engine order) and the grid's order at the release is that point again.
 The second case is a grid built with `data` on an engine with another sheet: its move array reaches the engine at
 init as one order (the load fallback below), so the left order carries shifts, and a drag on top of it is undone by
-moves on the return. `sheetKept`: the sheet was not rewritten, so other sheets and named expressions followed every
+moves on the return. The return keeps the values the grid showed before it left, not those of init: a range whose end
+row the drag moved stays where the drag left it, because an engine move does not put a range end back. `sheetKept`: the sheet was not rewritten, so other sheets and named expressions followed every
 move too, and `#planSafeMoves()` skips its readers-outside-the-sheet fallback; its array, `maxRows` and cost
 fallbacks stay. One order there kept each moved formula's relative offsets: drag, switch away and back showed
 `#REF!` (also in another sheet's `='A'!B2`) and an empty-cell `1000` (659bb5878a until this fix). A sort or a
