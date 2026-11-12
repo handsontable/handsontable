@@ -18,14 +18,35 @@ export function insertColWidths(colWidths: unknown[], physicalIndex: number, amo
 
 /**
  * Returns a copy of a `colWidths` array without the widths of the removed columns, so every
- * remaining width stays with its column.
+ * remaining width stays with its column. A sparse array keeps its holes, and the given array comes
+ * back as it is when no removed index names one of its widths.
  *
  * @param {Array<unknown>} colWidths The `colWidths` array, addressed by physical column index.
  * @param {number[]} physicalIndexes The physical indexes of the removed columns.
  * @returns {Array<unknown>}
  */
 export function removeColWidths(colWidths: unknown[], physicalIndexes: number[]): unknown[] {
-  const removed = new Set(physicalIndexes);
+  const removed = new Set(physicalIndexes.filter(index => index >= 0 && index < colWidths.length));
 
-  return colWidths.filter((_, index) => !removed.has(index));
+  // Nothing to take out, so the array stays the same object.
+  if (removed.size === 0) {
+    return colWidths;
+  }
+
+  // Not `Array#filter`, which skips the holes of a sparse array and so moves every width after a hole
+  // onto another column. Holes stay holes here.
+  const result = new Array(colWidths.length - removed.size);
+  let target = 0;
+
+  for (let index = 0; index < colWidths.length; index++) {
+    if (!removed.has(index)) {
+      if (index in colWidths) {
+        result[target] = colWidths[index];
+      }
+
+      target += 1;
+    }
+  }
+
+  return result;
 }

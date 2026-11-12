@@ -11,6 +11,9 @@ export interface GridSettings {
   colWidths?: number | number[];
   trimRows?: boolean;
   filters?: boolean;
+  manualRowMove?: boolean;
+  manualColumnMove?: boolean;
+  manualColumnFreeze?: boolean;
   height?: number;
   dataRows?: number;
 }
@@ -22,7 +25,10 @@ export interface GridSettings {
 export type PluginCall =
   | ['hiddenRows', 'showRows' | 'hideRows', number[]]
   | ['hiddenColumns', 'showColumns' | 'hideColumns', number[]]
-  | ['trimRows', 'trimRows' | 'untrimRows', number[]];
+  | ['trimRows', 'trimRows' | 'untrimRows', number[]]
+  | ['manualRowMove', 'moveRow', number, number]
+  | ['manualColumnMove', 'moveColumn', number, number]
+  | ['manualColumnFreeze', 'freezeColumn', number];
 
 /**
  * A row whose row header is not as tall as the row beside it.
@@ -38,6 +44,7 @@ interface FixtureHot {
   setDataAtCell(row: number, column: number, value: unknown): void;
   getPlugin(name: string): Record<string, (...args: unknown[]) => unknown>;
   alter(action: string, index: number, amount?: number): void;
+  getCopyableText(startRow: number, startCol: number, endRow: number, endCol: number): string;
   render(): void;
 }
 
@@ -128,6 +135,15 @@ export class AutoRowSizeMergedHiddenOriginPage {
     await this.page.evaluate(([r, c, v]) => {
       (window as unknown as FixtureWindow).hot.setDataAtCell(r as number, c as number, v as string);
     }, [row, column, value] as const);
+  }
+
+  /**
+   * The text a copy of the cell returns, read through `getCopyableText()`. It is `''` for a cell that stores
+   * `copyable: false`.
+   */
+  async copyableText(row: number, column: number): Promise<string> {
+    return this.page.evaluate(([r, c]) => (window as unknown as FixtureWindow).hot
+      .getCopyableText(r as number, c as number, r as number, c as number), [row, column] as const);
   }
 
   /**

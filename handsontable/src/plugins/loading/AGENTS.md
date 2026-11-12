@@ -5,7 +5,7 @@ The `loading` plugin shows a spinner over the grid. Read this before touching `l
 It is the smallest plugin here (~340 lines) because **it owns no DOM of its own**: it drives the Dialog
 plugin.
 
-## It force-enables the Dialog plugin
+## It requires the Dialog plugin
 
 **Dialog must be registered, and `new Handsontable()` throws without it (since 19.0).** `PLUGIN_DEPS` names
 `plugin:Dialog` (`feature.json`, `enforceAtInit`; generated into `feature.generated.ts`). Before 19.0 a modular
@@ -13,21 +13,28 @@ build that registered Loading alone got a working grid where `show()` showed not
 because every method below returns early without a dialog. This was a breaking change, with a step in the
 18.1 → 19.0 migration guide. Pinned by `__tests__/pluginDependencies.unit.ts`.
 
-`enablePlugin()` resolves `getPlugin('dialog')` and, if that plugin is not enabled, sets
-`getSettings().dialog = true` directly. Four things follow:
+Loading needs Dialog running, so it **requires** it through core's registry (`core/pluginRequirements.ts`,
+`hot._requirePlugin()` and siblings; the contract is in `../base/AGENTS.md`). Dialog is enabled iff its option
+is truthy or a plugin requires it, so `getSettings().dialog` stays what the user wrote. **Never write the
+`dialog` setting instead**: the old `getSettings().dialog = true` landed on the table meta and shadowed every
+later `updateSettings({ dialog: false })`. Cases pinned by `__tests__/dialogRequirement.unit.js` and
+`../sheetsBar/__tests__/loadingDialogRequirement.unit.js`. Four non-obvious rules:
 
-- **This is the exception to "no direct cross-plugin coupling"**, and it is deliberate. Everything visible —
-  `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog, while the dialog is this plugin's
-  (see "Loading owns the dialog" below). `show()`, `hide()` and `update()` re-check
-  `this.#dialogPlugin?.enabled` (Dialog runs) before acting; keep those checks as guards, but do not read them as
-  "the user can turn Dialog off". Only `enablePlugin()` reads `isEnabled()`, the option, to switch it on: Dialog
-  may not have started yet there. It is the one allowlisted read in `test/__tests__/crossPluginIsEnabled.unit.js`.
-- **Dialog stays on, by design.** The direct settings write is never undone: after `loading: false` the
-  Dialog plugin is still enabled and `getSettings().dialog` is still `true`. And while `loading` is on,
-  `updateSettings({ dialog: false })` does not turn Dialog off either (measured: the plugin stays enabled
-  and `show()` still shows the overlay). Loading is built on Dialog, so this is the intended state; the
-  class JSDoc says so for users. Do not "fix" it by restoring the previous `dialog` value on disable: an
-  application may have opened its own dialog in the meantime.
+- **The settings pass order does the work.** Loading (350) runs before Dialog (360), so Loading's release on
+  `{ loading: false }` is visible to Dialog's branch 1 in the same pass. Outside a pass (a direct
+  `enablePlugin()`/`disablePlugin()` on Loading) Loading calls Dialog's `enablePlugin()`/`disablePlugin()`
+  itself; the `isEnabled()` read there is the allowlisted line in `test/__tests__/crossPluginIsEnabled.unit.js`.
+- **The direct enable resets Dialog's settings first, but only while the `dialog` option is off.** Without the
+  reset Dialog kept the options of a `dialog` object that was turned off earlier, and the loading screen came
+  up `closable`. A set option is Dialog's own to read (its `init()`, or its settings pass later in the same
+  call); reading it here too logged every validation warning twice.
+- **`destroy()` releases only, never disables Dialog.** Core drops the data source before it destroys plugins,
+  and Dialog's `hide()` then threw from the selection import. The next settings update turns Dialog off.
+- `show()`, `hide()` and `update()` keep their `#dialogPlugin?.enabled` guards: the license gate can keep Dialog
+  off while it is required.
+
+More rules about the enable and the update:
+
 - **The dialog reference is resolved once**, guarded on `#dialogPlugin === null`, and it outlives a
   disable. **The `afterDialogFocus` hook is not**: it is registered with the tracked `this.addHook(...)` on
   every `enablePlugin()`, outside that guard, so `disablePlugin()` drops it and the next enable puts it

@@ -1601,8 +1601,7 @@ export default (): Record<string, unknown> => {
      * when the user moves the column. The physical index doesn't change when columns are moved
      * or hidden. When you insert or remove a column with [`alter()`](@/api/core.md#alter), an array
      * `colWidths` is updated to match, so the other widths stay with their columns.
-     * The [`rowHeights`](#rowHeights) option still uses the visual index, so with {@link ManualRowMove}
-     * a row height stays at its screen position.
+     * The [`rowHeights`](#rowHeights) option addresses rows by their physical index in the same way.
      *
      * Setting `colWidths` even for a single column disables the {@link AutoColumnSize} plugin
      * for all columns. For this reason, if you use `colWidths`, we recommend you set a width for each one
@@ -5181,7 +5180,10 @@ export default (): Record<string, unknown> => {
      * @description
      * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
      *
-     * Loading plugin, automatically loads [`Dialog`](@/api/dialog.md) plugin.
+     * The [`Loading`](@/api/loading.md) plugin depends on the [`Dialog`](@/api/dialog.md) plugin and turns it
+     * on while `loading` is enabled, so you don't need to set [`dialog: true`](#dialog). The `dialog`
+     * option itself keeps its value. When you turn `loading` off, the Dialog plugin turns off too, unless
+     * the `dialog` option is set.
      *
      * You can set the `loading` option to one of the following:
      *
@@ -5811,7 +5813,8 @@ export default (): Record<string, unknown> => {
      * You can set both options: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others.
      *
      * Take the accepted forms (a number, a string, an array, or a function) from the
-     * [`rowHeights`](#rowHeights) option description.
+     * [`rowHeights`](#rowHeights) option description. Like `rowHeights`, the array and the function
+     * address a row by its physical index, so a minimum height stays with its row.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -5831,14 +5834,14 @@ export default (): Record<string, unknown> => {
      * // set every row's minimum height to 100px
      * minRowHeights: '100px',
      *
-     * // set the first (by visual index) row's minimum height to 100
-     * // set the second (by visual index) row's minimum height to 120
+     * // set the first (by physical index) row's minimum height to 100
+     * // set the second (by physical index) row's minimum height to 120
      * // set any other row's minimum height to the default height value
      * minRowHeights: [100, 120],
      *
      * // set each row's minimum height individually, using a function
-     * minRowHeights(visualRowIndex) {
-     *   return visualRowIndex * 10;
+     * minRowHeights(physicalRowIndex) {
+     *   return physicalRowIndex * 10;
      * },
      * ```
      */
@@ -7390,12 +7393,21 @@ export default (): Record<string, unknown> => {
      * | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
      * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                            |
      * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                        |
-     * | An array    | Set heights separately for each row,<br>by visual row index                                         | `rowHeights: [100, 120, undefined]`                          |
-     * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights(visualRowIndex) { return visualRowIndex * 10; }` |
+     * | An array    | Set heights separately for each row,<br>by physical row index                                       | `rowHeights: [100, 120, undefined]`                              |
+     * | A function  | Set row heights dynamically,<br>on each render, by physical row index                               | `rowHeights(physicalRowIndex) { return physicalRowIndex * 10; }` |
      * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                      |
      *
-     * Unlike [`colWidths`](#colWidths), which uses the physical column index, `rowHeights` uses the
-     * visual row index, so with {@link ManualRowMove} a height stays at its screen position.
+     * The array and the function address a row by its physical index, so a height stays with its row
+     * when rows are moved with the {@link ManualRowMove} plugin, sorted, filtered, trimmed, or collapsed
+     * (for example, by the {@link NestedRows} plugin). The physical index doesn't change in any of those
+     * cases. A row that the {@link NestedRows} plugin moves by dragging or detaching takes a new physical
+     * index: an array entry follows the row, but a function is called with the new index. An array entry
+     * also stays with the row it was declared for when you insert or remove rows: a row inserted between
+     * others has no height of its own, a row added after the last one takes the next entry, and the array
+     * you passed is never changed. A function is called with the physical index the row has now. To declare
+     * the heights again, pass a new array to [`updateSettings()`](@/api/core.md#updatesettings). Switching the
+     * option to or from an array, or passing a new array, clears the undo history, the way enabling a plugin does. [`colWidths`](#colWidths) addresses columns by
+     * the physical index too.
      *
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
      * row still grows to fit its content, and the clipping described above does not apply. The
@@ -7444,15 +7456,15 @@ export default (): Record<string, unknown> => {
      * // set every row's height to 100px
      * rowHeights: '100px',
      *
-     * // set the first (by visual index) row's height to 100
-     * // set the second (by visual index) row's height to 120
-     * // set the third (by visual index) row's height to `undefined`
+     * // set the first (by physical index) row's height to 100
+     * // set the second (by physical index) row's height to 120
+     * // set the third (by physical index) row's height to `undefined`
      * // set any other row's height to the default height value
      * rowHeights: [100, 120, undefined],
      *
      * // set each row's height individually, using a function
-     * rowHeights(visualRowIndex) {
-     *   return visualRowIndex * 10;
+     * rowHeights(physicalRowIndex) {
+     *   return physicalRowIndex * 10;
      * },
      * ```
      */
