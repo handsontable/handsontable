@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { siteCheckId, siteOf } from '../../lib/a11y-site-checks.mjs';
 import { distinctName, focusFindings, obscuredFindings } from '../../lib/contrast.mjs';
+import { walkProblem, walkVerdict } from '../../lib/site-keyboard.mjs';
 import { boundaryFindings } from '../../lib/site-visual.mjs';
 import { openAxSession } from '../checks/walker';
 import { attachEvidence, readEnvironment, type EvidenceFinding } from '../evidence';
@@ -43,10 +44,15 @@ for (const theme of SITE.themes) {
         const startedAt = Date.now();
         const pageErrors: string[] = [];
 
-        await SITE.open(page, entry, { theme, pageErrors });
-        await SITE.settle(page);
-        await instantScrolling(page);
-        await installSentinels(page);
+        // The page as a walk starts from, again after a walk whose Tab loaded another page.
+        const ready = async() => {
+          await SITE.open(page, entry, { theme, pageErrors });
+          await SITE.settle(page);
+          await instantScrolling(page);
+          await installSentinels(page);
+        };
+
+        await ready();
 
         const environment = await readEnvironment(page);
         const cdp = await openAxSession(page);
@@ -70,9 +76,26 @@ for (const theme of SITE.themes) {
             }
           }
         };
-        const forward = await tabWalk(page, cdp, SITE, { direction: 'forward', budget, ax: false, onStop: sample('Tab') });
-        const backward = await tabWalk(page, cdp, SITE, { direction: 'backward', budget, ax: false, onStop: sample('Shift+Tab') });
-        const problems = [forward, backward].filter(walk => walk.budgetExhausted).map(() => `a Tab walk ran out of its ${budget} presses`);
+        const problems: string[] = [];
+        // A walk that ended short of the end is a problem, so the target does not read as measured; after one that
+        // left the page, the page is opened again for what follows.
+        const walk = async(direction: 'forward' | 'backward', step: string) => {
+          const result = await tabWalk(page, cdp, SITE, { direction, budget, ax: false, onStop: sample(step) });
+          const verdict = walkVerdict({ ...result, direction });
+          const cutShort = walkProblem(verdict, budget);
+
+          if (cutShort) {
+            problems.push(`${step} walk: ${cutShort}`);
+          }
+          if (verdict === 'navigated') {
+            await ready();
+          }
+
+          return result;
+        };
+        const forward = await walk('forward', 'Tab');
+
+        await walk('backward', 'Shift+Tab');
 
         for (const [key, points] of obscured) {
           const [shape, step] = key.split('|');

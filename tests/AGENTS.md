@@ -1965,14 +1965,16 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   the pull request's own docs, so a new or grown finding there exists on develop's docs already unless the pull
   request's scan code made it. Docs merges add such drift every day. So `A11y / docs-axe report` (posted by the scan
   job, `scripts/a11y-check-run.mjs --suite docs`) reads develop's latest docs audit from the findings ledger
-  (`lib/a11y-docs-drift.mjs`: the docs rows the latest docs night sighted, keyed by rule, page, scheme and masked
-  element), and on a change run a new or grown finding that audit saw counts as a warning at most, with the remedy
-  in the summary: refresh the baseline from that audit (the summary gives the command with the audit's run id,
-  "A refresh is one command" below). A finding the audit did not see keeps its severity: this
-  change made it, or the docs gained it after the audit, and when the staging deploy is newer than the audit the
-  summary says so and names the dispatch that measures it (`gh workflow run docs-a11y.yml --ref develop`). A ledger
-  that cannot be read, or holds no docs night, leaves every finding at its severity and says why. An audit run (a
-  dispatch) counts every open finding, drift or not.
+  (`lib/a11y-docs-drift.mjs`: the docs rows sighted on the latest docs night that read the scan, keyed by rule,
+  page, scheme and masked element; a night of the checks alone sighted none, so it is never the audit), and on a
+  change run a new finding that audit saw counts as a warning at most, with the remedy in the summary: refresh the
+  baseline from that audit (the summary gives the command with the audit's run id, "A refresh is one command"
+  below). A grown finding keeps its severity, and the summary says why: the ledger keeps no node count of a docs
+  finding, so the audit cannot tell develop's docs growing it from the change growing it. A finding the audit did
+  not see keeps its severity: this change made it, or the docs gained it after the audit, and when the staging
+  deploy is newer than the audit the summary says so and names the dispatch that measures it (`gh workflow run
+  docs-a11y.yml --ref develop`). A ledger that cannot be read, or holds no docs night that read the scan, leaves
+  every finding at its severity and says why. An audit run (a dispatch) counts every open finding, drift or not.
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
   stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
@@ -2078,6 +2080,10 @@ and of `.github/workflows/website-a11y.yml`.
   (Ctrl+End, then Tab). A grid that still holds the walk after as many again is `grid-holds-focus` (2.1.2), and
   the walk goes on from the first element past it, so the rest of the page is still measured. The budget counts
   each grid's stops twice over, so a page whose walk ran out of presses is a tooling problem, never a trap.
+- **A walk short of the end measured part of the page.** A walk that ran out of presses, whose Tab loaded another
+  page, or that found nothing past a grid holding it, is a tooling problem (`walkProblem()`): its target is not
+  measured, so the ledger resolves no row on a stop it never reached. After a Tab that loaded another page, the
+  check opens its page again before it measures anything else.
 - **One finding per kind of element per page.** A stop is reported once per shape (tag, first class that is no
   build hash, role) with a count, and a reflow finding once per kind, element kind and condition: the same
   defect on a hundred sidebar links, or on a hundred checkboxes of the hooks list, is one finding. Names never
@@ -2095,7 +2101,8 @@ and of `.github/workflows/website-a11y.yml`.
   in the same order. 2.4.4 is advisory: a link named "here" or "read more" says nothing in a screen reader's list
   of links, and a person reads the text around it.
 - **`<site>-keyboard`** (`keyboard.spec.ts`, judged by `lib/site-keyboard.mjs`): Tab from a sentinel before the
-  page to one after it, each stop's role and name read over CDP. A stop nobody can see (no size, opacity 0,
+  page to one after it, each stop's role and name read over CDP. The start sentinel has `tabindex="1"`, so the walk
+  passes every positive tabindex first, as the browser orders them. A stop nobody can see (no size, opacity 0,
   clipped by an ancestor, outside the page, or a fixed layer moved out of the viewport, which is how a closed
   panel that slides away keeps its controls rendered) is `focus-stop-hidden` (2.4.3, 2.4.7); one under
   `aria-hidden`, one whose role needs a name and has none, and one with no role are 4.1.2. Then the skip link
@@ -2125,13 +2132,17 @@ and of `.github/workflows/website-a11y.yml`.
   text, not its box, since a column can be wider than what it holds, and text inside a scroll area is reachable
   while the area shows.
 - **`<site>-forced-colors-motion`** (`forced-colors-motion.spec.ts`): each sample page at rest watched for five
-  seconds without the reduced-motion preference (2.2.2, the product check's watch, `a11y/checks/animations.ts`);
+  seconds without the reduced-motion preference (2.2.2, the product check's watch, `a11y/checks/animations.ts`),
+  from two frames after load, never after `SITE.settle()`: a settle waits for finite animations to end, so it
+  would wait out the ones the watch is for;
   each popup opened with the preference and without it (2.3.3; the run without it evaluates nothing); and, with
   forced colors on, the indicator of each stop shape (`focus-lost-in-forced-colors`) and each element in a state
   a style shows (`aria-current`, `aria-selected`, `aria-pressed`, `aria-checked`) against a sibling without it:
   a state whose computed style matches the sibling's in forced colors and differed without them is
   `state-lost-in-forced-colors` (1.4.1, moderate: the state still reaches a screen reader, and its place often
-  says it, like a breadcrumb's last item).
+  says it, like a breadcrumb's last item). Styles are compared as they paint: a transparent background shows the
+  background behind it (forced colors keeps an author's alpha, so a filled item and a transparent sibling are two
+  strings and one look), and a border or outline color with no border or outline shows nothing.
 - **What the walk measures, and what it leaves alone.** A native checkbox or radio drawn by its label (transparent
   over a box the label paints) shows through its label: its stop is not hidden, and the sampled points on its label
   are points where it shows. An `<iframe>` is an embedded document whose focus moves inside a page of its own, cut
@@ -2151,20 +2162,22 @@ and of `.github/workflows/website-a11y.yml`.
   name, description and required state from the accessibility tree, its label, whether a label is drawn, and its
   `autocomplete` (1.3.1, 1.3.5 against the input purposes its name asks for, 3.3.2: required and optional fields told
   apart, where a checkbox, a radio button or a switch left unticked is a choice, not a missing entry, so no form marks
-  it optional). Then the submit button pressed
-  from the keyboard with the form empty (3.3.1: each required field flagged, with text, tied to it; 4.1.3: a live
-  region speaks or the focus moves), with an email address that has no @ (3.3.3: an error that says what a valid
-  address looks like, such as "a valid email address" or an example; "Invalid" or "Required" does not), and filled in, the write answered on the page (4.1.3 for the thank-you); the contact form keeps an
-  email address across its tabs (3.3.7, advisory). The live regions are watched from before the page loads, and a
-  region inserted together with its text counts only as an alert. The guard answers only the filled-in submit, and
-  the test asserts it was answered once; a form that posts with its errors is a finding (`submitted-with-errors`),
+  it optional). Then the submit button pressed from the keyboard with the form empty (3.3.1: each required field
+  flagged, with text, tied to it; 4.1.3: a live region speaks or the focus moves), with an email address that has no @
+  (3.3.3: an error that says what a valid address looks like, such as "a valid email address" or an example; "Invalid"
+  or "Required" does not), and filled in, the write answered on the page (4.1.3 for the thank-you); the contact form
+  keeps an email address across its tabs (3.3.7, advisory). The live regions are watched from before the page loads,
+  and a region inserted together with its text counts only as an alert. The guard answers only the filled-in submit,
+  and the test asserts it was answered once; a form that posts with its errors is a finding (`submitted-with-errors`),
   its write aborted.
 - **Where they run: a dispatch or a call of `Docs a11y`, never a pull request.** The `checks` job runs beside the
   scan, against the same deploy (`DOCS_A11Y_BASE_URL`), and uploads `docs-a11y-checks-evidence` (30 days from a
   run of every check, 7 from a subset); `scripts/a11y-evidence-report.mjs` with `HOT_A11Y_SITE=docs` writes the
   summary and posts one `A11y / docs-<check> report` per check, and the scan posts `A11y / docs-axe report`
   (`scripts/a11y-check-run.mjs --suite docs`). The `verdict` job then follows the worst of them, as the A11y
-  nightly does. A full run is about 25 minutes on four workers. The checks' `checks` input runs a subset on a
+  nightly does. The checks take about 8 minutes on four workers and the scan about 15 (develop dispatches of
+  2026-11-10 to 2026-11-12); their steps time out at 30 and 20 minutes, and the jobs' own timeouts are the
+  backstop. The checks' `checks` input runs a subset on a
   branch (`gh workflow run docs-a11y.yml --ref <branch> -f checks=docs-keyboard`); `check-inputs` refuses one on
   develop, where the dispatch is the audit. Every document names the deploy it read (`run.baseUrl`), and the
   findings ledger records the staging deploy's only. The website's checks run the same way from `Website a11y`

@@ -54,6 +54,8 @@ test('3.1.1: no lang, a lang that is no language tag, and main content in anothe
   assert.deepEqual(kinds(pageFindings(page({ lang: 'english' }), SITE)), ['page-lang-invalid']);
   assert.deepEqual(kinds(pageFindings(page({ mainLang: 'pl' }), SITE)), ['page-lang-differs-from-content']);
   assert.deepEqual(pageFindings(page({ lang: 'en-US', mainLang: 'en' }), SITE), [], 'a region subtag is the same language');
+  assert.deepEqual(pageFindings(page({ lang: 'en-US-x-hot', mainLang: 'en' }), SITE), [], 'a private-use singleton is a valid tag');
+  assert.deepEqual(kinds(pageFindings(page({ lang: 'en--US' }), SITE)), ['page-lang-invalid'], 'an empty subtag is not');
 });
 
 test('1.3.1 and 2.4.6: no main heading, an empty heading, and, advisory, several main headings or a skipped level', () => {

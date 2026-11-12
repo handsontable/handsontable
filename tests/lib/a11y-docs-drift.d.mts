@@ -8,8 +8,10 @@ export interface DocsAudit {
 }
 export function driftKey(finding: { rule: string; page: string; theme: string; where: string }): string;
 export const SITE_DRIFT: Readonly<Record<'docs' | 'website', { audit: string; none: string; on: string; command: string; baseline: string;
-  refresh: string | null; section: string; deploy: string }>>;
+  refresh: string | null; section: string; deploy: string; finding: string; site: string }>>;
 export function docsAudit(ledger: unknown): DocsAudit | null;
 export function siteAudit(ledger: unknown, site: 'docs' | 'website'): DocsAudit | null;
+export function driftOf(audit: DocsAudit | null, comparison: { newViolations?: object[] } | null): (item: object) => boolean;
 export function isDrift(audit: DocsAudit | null, item: { rule: string; page: string; theme: string; target: string }): boolean;
-export function driftNotes(input: { audit: { runId: string; seenAt: string | null } | null; problem?: string | null; drift: number; counted: number; deployedAt?: string | null; site?: 'docs' | 'website' }): string[];
+export function driftNotes(input: { audit: { runId: string; seenAt: string | null } | null; problem?: string | null; drift: number; counted: number; grown?: number;
+  deployedAt?: string | null; site?: 'docs' | 'website' }): string[];

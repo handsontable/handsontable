@@ -20,7 +20,7 @@
  * run's URL goes to the step output `check-url`, which the pull request comment links. `--suite docs` reports the
  * docs site scan instead (`.github/workflows/docs-a11y.yml`): `A11y / docs-axe report`, from
  * `test-results/a11y-docs/comparison.json`, annotated on the docs page list and baseline. On a change run of the docs
- * scan, a new or grown finding develop's latest docs audit also saw is baseline drift and a warning at most
+ * scan, a new finding develop's latest docs audit also saw is baseline drift and a warning at most
  * (`lib/a11y-docs-drift.mjs`): the poster reads that audit from the findings ledger (`A11Y_LEDGER_URL`, the published
  * `a11y.json` by default) and, with `GITHUB_TOKEN`, when the staging deploy last finished, to say when the audit is
  * older than the deploy the run read. `--suite website` reports the website scan the same way
@@ -31,7 +31,7 @@ import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, docsPageLines, pageLines, websitePageLines } from '../lib/a11y-check-run.mjs';
-import { LEDGER_URL, driftNotes, isDrift, siteAudit } from '../lib/a11y-docs-drift.mjs';
+import { LEDGER_URL, driftNotes, driftOf, siteAudit } from '../lib/a11y-docs-drift.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
@@ -61,13 +61,14 @@ const pagesSource = readFileSync(fromTests(scan.pagesFile), 'utf8');
 const pages = suite === 'docs'
   ? docsPageLines(pagesSource, (await import('../a11y/docs/pages.mjs')).DOCS_PAGES.map(page => page.id))
   : suite === 'website' ? websitePageLines(pagesSource) : pageLines(pagesSource);
-// On a change run of a site's scan, a new or grown finding the site's latest audit also saw is baseline drift, a
-// warning at most (`lib/a11y-docs-drift.mjs`). `A11Y_LEDGER_FILE` reads a saved ledger instead, for a dry run.
+// On a change run of a site's scan, a new finding the site's latest audit also saw is baseline drift, a warning at
+// most; a grown one never is (`lib/a11y-docs-drift.mjs`). `A11Y_LEDGER_FILE` reads a saved ledger instead, for a dry
+// run.
 let drift = () => false;
 const driftLines = [];
 
 if (scan !== PRODUCT_SCAN && scope === 'change' && comparison) {
-  const counted = [...(comparison.newViolations ?? []), ...(comparison.grown ?? [])];
+  const counted = comparison.newViolations ?? [];
   const source = env.A11Y_LEDGER_FILE || env.A11Y_LEDGER_URL || LEDGER_URL;
   let audit = null;
   let problem = null;
@@ -77,11 +78,12 @@ if (scan !== PRODUCT_SCAN && scope === 'change' && comparison) {
   } catch (error) {
     problem = `${source}: ${error instanceof Error ? error.message : String(error)}`;
   }
-  drift = item => isDrift(audit, item);
+  drift = driftOf(audit, comparison);
   // The docs staging deploy's time is read from this repository's runs; production's website deploys are not.
   const deployedAt = suite === 'docs' ? await stagingDeployedAt() : null;
 
-  driftLines.push(...driftNotes({ audit, problem, drift: counted.filter(drift).length, counted: counted.length, deployedAt, site: suite }));
+  driftLines.push(...driftNotes({ audit, problem, drift: counted.filter(drift).length, counted: counted.length,
+    grown: (comparison.grown ?? []).length, deployedAt, site: suite }));
 }
 
 const payload = buildCheckRun({

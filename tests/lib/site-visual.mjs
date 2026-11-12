@@ -100,19 +100,68 @@ export function boundaryFindings({ selector, boundary, fill, around }) {
 }
 
 /**
+ * A style signature as it paints: a transparent background shows what is behind it (`behind`, read in the page),
+ * a border color with no border width and an outline color with no outline show nothing. In forced colors Chromium
+ * paints a background with Canvas but keeps its alpha, so a filled item reads `rgb(255, 255, 255)` and a transparent
+ * sibling `rgba(255, 255, 255, 0)`: two strings, one look.
+ *
+ * @param {Record<string, string>} signature The computed values, with `behind` when the page read it.
+ * @returns {Record<string, string>} The values as they paint.
+ */
+function painted(signature) {
+  const result = { ...signature };
+
+  if (alphaOf(result['background-color']) === 0) {
+    result['background-color'] = signature.behind ?? 'transparent';
+  }
+  for (const side of ['top', 'left', 'bottom']) {
+    if (Number.parseFloat(result[`border-${side}-width`] ?? '0') === 0) {
+      result[`border-${side}-color`] = '';
+      result[`border-${side}-width`] = '0px';
+    }
+  }
+  if ((result['outline-style'] ?? 'none') === 'none') {
+    result['outline-color'] = '';
+  }
+
+  return result;
+}
+
+/**
+ * The alpha of a computed color (`rgb()`, `rgba()`, `transparent`); 1 when it gives none.
+ *
+ * @param {string|undefined} color The color.
+ * @returns {number} The alpha.
+ */
+function alphaOf(color) {
+  if (color === 'transparent') {
+    return 0;
+  }
+
+  const parts = /^rgba?\(([^)]*)\)$/.exec(String(color ?? '').trim())?.[1].split(/[\s,/]+/).filter(Boolean) ?? [];
+
+  return parts.length === 4 ? Number.parseFloat(parts[3]) : 1;
+}
+
+/**
  * The 1.4.1 finding of a state forced colors leaves invisible: the element in its state (the current page, a
  * selected tab) and a sibling of the same kind without it differ in some property without forced colors and in
- * none of `STATE_SIGNATURE` with them.
+ * none of `STATE_SIGNATURE` with them, each compared as it paints.
  *
  * @param {object} input The measurement.
  * @param {string} input.selector The element.
  * @param {string} input.state The state (`aria-current="page"`).
- * @param {{normal: Record<string, string>, forced: Record<string, string>}} input.element Its signature without and with forced colors.
+ * @param {{normal: Record<string, string>, forced: Record<string, string>}} input.element Its signature without and with forced colors,
+ *   with `behind`: the background the nearest ancestor that paints one shows.
  * @param {{normal: Record<string, string>, forced: Record<string, string>}} input.sibling The sibling's.
  * @returns {object[]} The findings.
  */
 export function stateLostFindings({ selector, state, element, sibling }) {
-  const differs = (a, b) => STATE_SIGNATURE.filter(property => (a[property] ?? '') !== (b[property] ?? ''));
+  const differs = (a, b) => {
+    const [left, right] = [painted(a), painted(b)];
+
+    return STATE_SIGNATURE.filter(property => (left[property] ?? '') !== (right[property] ?? ''));
+  };
 
   if (differs(element.normal, sibling.normal).length === 0 || differs(element.forced, sibling.forced).length > 0) {
     return [];

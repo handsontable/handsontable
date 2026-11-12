@@ -7,6 +7,7 @@ import {
   skipLinkFindings,
   unreachableFindings,
   walkFindings,
+  walkProblem,
   walkVerdict,
 } from '../site-keyboard.mjs';
 import { boundaryFindings, orientationFindings, pageReflowFindings, stateLostFindings } from '../site-visual.mjs';
@@ -26,6 +27,19 @@ test('a walk ends at the sentinel after the page, cycles when it comes back to a
   assert.equal(walkVerdict({ stops: [stop(), stop({ key: 'b' })], budgetExhausted: true }), 'budget');
   assert.equal(walkVerdict({ stops: [stop({ region: 'grid', key: 'cell' }), stop({ region: 'grid', key: 'cell' }), stop({ region: 'end', key: 'end' })] }),
     'complete', 'a grid region repeats its keys and is not a cycle of the page');
+  assert.equal(walkVerdict({ stops: [stop(), stop({ region: 'body', key: 'navigated', navigated: true })] }), 'navigated',
+    'a Tab that loaded another page ends the walk short of the end, never as complete');
+  assert.equal(walkVerdict({ stops: [stop(), stop({ region: 'grid', key: 'cell' })] }), 'stopped',
+    'a walk that found nothing past a grid ends short of the end, never as complete');
+  assert.equal(walkVerdict({ stops: [stop(), stop({ key: 'b' }), stop({ region: 'start', key: 'start' })], direction: 'backward' }), 'complete',
+    'a Shift+Tab walk ends at the sentinel before the page');
+  assert.equal(walkVerdict({ stops: [stop(), stop({ region: 'start', key: 'start' })] }), 'stopped',
+    'a Tab walk that comes out at the start never reached the end');
+  assert.match(walkProblem('navigated', 100), /stops after it were not walked/);
+  assert.match(walkProblem('budget', 100), /ran out of its 100 presses/);
+  assert.match(walkProblem('stopped', 100), /nothing past an embedded grid/);
+  assert.equal(walkProblem('complete', 100), null);
+  assert.equal(walkProblem('cycle', 100), null, 'a cycle walked the page and is judged as a finding');
 });
 
 test('2.1.2: a cycle Escape does not break is a trap; one it breaks is advisory', () => {
@@ -165,4 +179,26 @@ test('1.4.1 in forced colors: a state that differed only in colors forced colors
     element: { normal: style({ 'font-weight': '700' }), forced: style({ 'font-weight': '700' }) },
     sibling: { normal: style(), forced: style() },
   }), [], 'a weight forced colors keeps still shows the state');
+
+  // The common case: the current item is shown by a background fill. Forced colors paints it with Canvas and keeps
+  // its alpha, so the strings differ while both items look the same.
+  assert.deepEqual(kinds(stateLostFindings({
+    selector: 'a[aria-current="page"]', state: '[aria-current="page"]',
+    element: { normal: style({ 'background-color': 'rgb(26, 86, 219)', color: 'rgb(255, 255, 255)' }),
+      forced: style({ 'background-color': 'rgb(255, 255, 255)', color: 'rgb(0, 0, 0)', behind: 'rgb(255, 255, 255)' }) },
+    sibling: { normal: style({ 'background-color': 'rgba(0, 0, 0, 0)' }),
+      forced: style({ 'background-color': 'rgba(255, 255, 255, 0)', color: 'rgb(0, 0, 0)', behind: 'rgb(255, 255, 255)' }) },
+  })), ['state-lost-in-forced-colors'], 'a transparent background paints what is behind it');
+  assert.deepEqual(kinds(stateLostFindings({
+    selector: 'a[aria-current="page"]', state: '[aria-current="page"]',
+    element: { normal: style({ 'border-left-color': 'rgb(26, 86, 219)', 'border-left-width': '3px' }),
+      forced: style({ 'border-left-color': 'rgb(0, 0, 0)', 'border-left-width': '3px' }) },
+    sibling: { normal: style({ 'border-left-color': 'rgb(200, 200, 200)', 'border-left-width': '0px' }),
+      forced: style({ 'border-left-color': 'rgb(0, 0, 0)', 'border-left-width': '0px' }) },
+  })), [], 'a border forced colors keeps still shows the state');
+  assert.deepEqual(kinds(stateLostFindings({
+    selector: 'a[aria-current="page"]', state: '[aria-current="page"]',
+    element: { normal: style({ 'border-left-color': 'rgb(26, 86, 219)' }), forced: style({ 'border-left-color': 'rgb(0, 0, 0)' }) },
+    sibling: { normal: style({ 'border-left-color': 'rgb(200, 200, 200)' }), forced: style({ 'border-left-color': 'rgb(255, 255, 255)' }) },
+  })), [], 'with no border width the colors differ in the strings only, so the item never looked different');
 });
