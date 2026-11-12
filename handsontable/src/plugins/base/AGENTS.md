@@ -429,8 +429,8 @@ A hard conflict is a blunt instrument: it disables the plugin outright. Use it o
 cannot be made to work. Anything softer belongs in the plugin's own logic.
 
 **A setting whose plugin the license key keeps off conflicts with nothing** (`#isKeptOffByLicense()`, passed to
-`getHardConflict()` as `isIgnored`): that plugin does not run, so the combination cannot fail. A key that lists
-Pagination and leaves NestedRows out runs Pagination with `nestedRows: true` set, and does not rewrite
+`getHardConflict()` as `isIgnored`): that plugin does not run, so the combination cannot fail. A key whose tiers
+include Pagination but not NestedRows runs Pagination with `nestedRows: true` set, and does not rewrite
 `pagination` to `false`. A setting no plugin owns (`fixedRowsTop`) still conflicts.
 
 ## The license gate: `isLicenseBlocked()`
