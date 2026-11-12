@@ -4719,21 +4719,6 @@ export class Formulas extends BasePlugin {
     // Only a held engine recalculates while the draw is prepared. With nothing held, a paint asked for here
     // renders at once, as it always did.
     this.#isPreparingDraw = isEvaluationHeld(this.engine);
-
-    // A grid that holds the engine recalculates before any default-order listener runs, so
-    // `afterFormulasValuesUpdate` reaches AutoColumnSize before its `beforeRender` consumes the queue of
-    // columns to measure again. From `#onBeforeRender` it came after, and the draw painted a changed value
-    // at the old width.
-    if (this.engine && isEvaluationHolder(this.engine, this.hot)) {
-      try {
-        this.#flushEvaluation();
-      } catch (error) {
-        // The draw stops here, so `#onBeforeRender` never ends its preparation.
-        this.#isPreparingDraw = false;
-
-        throw error;
-      }
-    }
   };
 
   /**
