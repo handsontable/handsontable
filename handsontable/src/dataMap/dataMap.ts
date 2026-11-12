@@ -474,7 +474,9 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.hot!.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
+    // The mode puts the new slots of every row index map at the physical index the rows take below (the ManualRowResize
+    // heights, the hidden and trimmed flags, the `rowHeights` origins), the way `createCol()` does for columns.
+    this.hot!.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows, mode === 'below' ? 'end' : 'start');
 
     if (mode === 'below') {
       physicalRowIndex = Math.min(physicalRowIndex + 1, sourceRowsCount);

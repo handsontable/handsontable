@@ -108,6 +108,20 @@ export const SOURCE_UI = 'SheetsBar.ui';
 const GRID_LEVEL_DATA_PROVIDER_WARN_KEY = 'sheetsBar.gridLevelDataProvider';
 
 /**
+ * `warnOnce` key prefix for an init-only option that a sheet declares after the grid was initialized.
+ */
+const INIT_ONLY_SHEET_SETTING_WARN_KEY = 'sheetsBar.initOnlySheetSetting';
+
+/**
+ * Builds the console message for an init-only option that a sheet declares after the grid was initialized.
+ *
+ * @param {string} option The name of the init-only option.
+ * @returns {string}
+ */
+const initOnlySheetSettingWarning = (option: string) => `The \`${option}\` option can only be set when the ` +
+  'grid is initialized, so a sheet that declares it after that does not apply it. Set it at the grid level.';
+
+/**
  * Console message for the grid-level `dataProvider` that the sheets bar disables.
  */
 const GRID_LEVEL_DATA_PROVIDER_WARNING = 'The grid-level `dataProvider` is disabled while `sheetsBar` is ' +
@@ -1933,9 +1947,14 @@ export class SheetsBar extends BasePlugin {
     }
 
     const restored: Record<string, unknown> = {};
+    const initOnlyOptions = this.#initOnlyOptionNames();
 
     this.#settingsBaseline.forEach((value, key) => {
-      if ((key !== 'dataProvider' || this.#rebuildGridDataProvider === null) && !keptImportedKeys?.has(key)) {
+      if (
+        (key !== 'dataProvider' || this.#rebuildGridDataProvider === null) &&
+        !keptImportedKeys?.has(key) &&
+        !initOnlyOptions.includes(key)
+      ) {
         restored[key] = restoredBaselineValue(key, value);
       }
     });
@@ -2925,13 +2944,15 @@ export class SheetsBar extends BasePlugin {
    * Returns the rows a sheet added without data starts with: empty object rows (`createEmptyObjectRows()`)
    * while the sheet would show with NestedRows on, which takes an array of objects only and turns itself off
    * for the rest of the session on an array of arrays, else the blank grid of `createEmptySheetData()`. When
-   * neither `columns` nor `dataSchema` names the columns, the rows get the keys of the first row the grid
-   * shows: the grid reads the columns of object rows from them, and empty objects gave a sheet no columns.
+   * neither `columns` nor `dataSchema` names the columns, the rows get the keys of `templateRow`, or of the
+   * first row the grid shows when that is not an object: the grid reads the columns of object rows from them,
+   * and empty objects gave a sheet no columns.
    *
    * @param {object} [settings] The new sheet's own settings.
+   * @param {*} [templateRow] The row to take the keys from before the grid shows any sheet's rows.
    * @returns {Array|undefined} The object rows, or `undefined` for the model's blank grid.
    */
-  #blankSheetData(settings?: Record<string, unknown>): unknown[] | undefined {
+  #blankSheetData(settings?: Record<string, unknown>, templateRow?: unknown): unknown[] | undefined {
     const own = settings ?? {};
     const valueOf = (key: string) => (Object.prototype.hasOwnProperty.call(own, key)
       ? own[key]
@@ -2943,9 +2964,11 @@ export class SheetsBar extends BasePlugin {
 
     const namesColumns = valueOf('columns') !== undefined && valueOf('columns') !== null
       || valueOf('dataSchema') !== undefined && valueOf('dataSchema') !== null;
-    const firstRow = namesColumns ? undefined : this.#getLiveSourceData()?.[0];
+    const firstRow = namesColumns
+      ? undefined
+      : [templateRow, this.#getLiveSourceData()?.[0]].find(row => isPlainObject(row));
 
-    return createEmptyObjectRows(undefined, isPlainObject(firstRow) ? firstRow as Record<string, unknown> : undefined);
+    return createEmptyObjectRows(undefined, firstRow as Record<string, unknown> | undefined);
   }
 
   /**
@@ -3540,10 +3563,7 @@ export class SheetsBar extends BasePlugin {
       : plan.entries.findIndex(entry => isSameSheetName(entry.name, detachedTab));
 
     return {
-      entries: plan.entries.map(entry => ({
-        ...entry,
-        data: entry.data ?? this.#blankSheetData(entry.settings),
-      })),
+      entries: plan.entries,
       openingIndex: plan.openingIndex,
       dataIndex: dataIndex === -1 ? null : dataIndex,
       ignoresData,
@@ -3608,7 +3628,10 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Builds a workbook from sheet entries: the host's `sheets` array (`declared`, so the bar writes into it),
-   * or the tabs read from a formula engine. `activeIndex` is the opening sheet's position in the entries.
+   * or the tabs read from a formula engine. `activeIndex` is the opening sheet's position in the entries. An
+   * entry without `data` starts with the rows `addSheet()` gives a new sheet (`#blankSheetData()`), keyed
+   * like the opening sheet's rows, the ones the grid shows first (the first entry's when `activeIndex` names
+   * no entry, as the opening sheet falls back to it).
    *
    * @param {Array} entries The sheet entries.
    * @param {boolean} declared Whether the entries are the host's `sheets` array.
@@ -3620,8 +3643,11 @@ export class SheetsBar extends BasePlugin {
     this.#declaredEntries = new Map();
     this.#physicalOrder = [];
 
+    const openingRow = (entries[activeIndex] ?? entries[0])?.data?.[0];
+
     entries.forEach((entry) => {
-      const sheet = model.addSheet(entry.name ?? null, entry.data ?? undefined, entry.settings);
+      const data = entry.data ?? this.#blankSheetData(entry.settings, openingRow);
+      const sheet = model.addSheet(entry.name ?? null, data, entry.settings);
 
       if (declared) {
         this.#declaredEntries.set(sheet.id, entry);
@@ -4380,7 +4406,8 @@ export class SheetsBar extends BasePlugin {
     const ownSettings = sheetSettings && PLUGIN_KEY in sheetSettings
       ? Object.fromEntries(Object.entries(sheetSettings).filter(([key]) => key !== PLUGIN_KEY))
       : sheetSettings;
-    const settings = ownSettings && normalizeFixedColumnsAlias(ownSettings, this.hot.isRtl());
+    const settings = ownSettings &&
+      this.#withoutInitOnlyKeys(normalizeFixedColumnsAlias(ownSettings, this.hot.isRtl()));
 
     Object.keys(settings ?? {}).forEach((key) => {
       if (!this.#settingsBaseline.has(key)) {
@@ -4392,9 +4419,12 @@ export class SheetsBar extends BasePlugin {
     });
 
     const restored: Record<string, unknown> = {};
+    const initOnlyOptions = this.#initOnlyOptionNames();
 
     this.#settingsBaseline.forEach((value, key) => {
-      if (!(settings && key in settings)) {
+      // An init-only option the opening sheet set is in the baseline, and the grid holds it for good.
+      // Writing it back would be an update, which the grid refuses.
+      if (!(settings && key in settings) && !initOnlyOptions.includes(key)) {
         // `undefined` reads as "not provided" to `updateSettings()`, which skips the key rather
         // than resetting it — `columns: undefined` leaves the previous sheet's column meta in
         // place, so its cell types keep describing data that is no longer there. `null` is the
@@ -4411,6 +4441,51 @@ export class SheetsBar extends BasePlugin {
     const merged = this.#withOwnOptionObjects({ ...restored, ...(settings ?? {}) }, settings);
 
     return Object.keys(merged).length > 0 ? merged : null;
+  }
+
+  /**
+   * Lists the init-only options (`layoutDirection`, `renderAllRows`, `renderAllColumns`, `ariaTags`) the grid
+   * refuses to update. The list is empty while the grid is still being built, because the opening sheet
+   * may set them then.
+   *
+   * @returns {string[]}
+   */
+  #initOnlyOptions(): string[] {
+    return this.hot._getMetaManager().isInitialized() ? this.#initOnlyOptionNames() : [];
+  }
+
+  /**
+   * Lists the names of the init-only options, whether or not the grid has finished initializing. The
+   * settings baseline skips them at any time: the grid never changes them after the opening sheet applied
+   * its own, so there is nothing to restore, even for a switch made from an `afterInit` listener.
+   *
+   * @returns {string[]}
+   */
+  #initOnlyOptionNames(): string[] {
+    return ((this.hot.getSettings() as Record<string, unknown>)._initOnlySettings ?? []) as string[];
+  }
+
+  /**
+   * Takes the init-only options (`layoutDirection`, `renderAllRows`, `renderAllColumns`, `ariaTags`) out of
+   * the settings of a sheet once the grid is initialized, and warns once per option. The grid refuses an
+   * update of those options, so a sheet that declared one would make its first tab switch throw. The opening
+   * sheet is applied while the grid is still being built, and keeps them.
+   *
+   * @param {object} settings The settings of a sheet.
+   * @returns {object} `settings`, or a copy without the init-only options.
+   */
+  #withoutInitOnlyKeys(settings: Record<string, unknown>): Record<string, unknown> {
+    const declared = this.#initOnlyOptions().filter(option => option in settings);
+
+    if (declared.length === 0) {
+      return settings;
+    }
+
+    declared.forEach((option) => {
+      warnOnce(this, `${INIT_ONLY_SHEET_SETTING_WARN_KEY}.${option}`, initOnlySheetSettingWarning(option));
+    });
+
+    return Object.fromEntries(Object.entries(settings).filter(([key]) => !declared.includes(key)));
   }
 
   /**

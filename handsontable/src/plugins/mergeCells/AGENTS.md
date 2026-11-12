@@ -257,6 +257,73 @@ value again. A value set through the `cells` or `columns` option survives, becau
 the cell's own key. Restoring the user's value would mean remembering it before that overwrite, which runs
 on every meta read — not done.
 
+**The cell a merge is drawn from is cleaned of covered flags at every re-anchor.** `afterGetCellMeta` writes
+`hidden`/`copyable: false` on a covered cell and `rowspan`/`colspan`/`spanned` on the top-left, and it only ever
+sets. When a trim or a filter removes the first rows of a merge, the first row that stays visible was covered a
+moment ago, so its stored meta still holds `hidden` once it is the top-left. AutoRowSize skips every cell with
+`hidden`, so the text written into that cell was never measured and the row headers came out shorter than their
+rows (DEV-3971). `#reanchorMergesToVisibleRows` calls `#clearCoveredFlagsOfTopLeftCell` for every merge that has
+a visible top-left, and it removes `hidden` and `copyable` there through the meta manager (by physical index, no
+hooks). Six rules keep it narrow:
+
+- **It acts only where `hidden` is an own stored key.** `hidden` marks a cell a merge covered, and the hook wrote
+  `copyable` beside it. A top-left that was never covered keeps a `copyable: false` the user set, which matters
+  because a relocation also happens when only the span changes (the last row of the merge trimmed). On a cell that
+  was covered, `hidden` goes always (the merge stored it through `setCellMeta()`), and `copyable` goes only when the
+  meta manager has no record of it (`getCellMetaKeyState(…).hadOwn` is `false`): the hook writes `copyable` straight
+  onto the stored object, so a recorded one was set by the user through `setCellMeta()` or the `cell` option. Only a
+  recorded `false` survives as the user's value: while the merge covered the cell the hook overwrote a recorded `true`
+  with `false` (as on `develop`), and that stays too.
+- **It is not gated on a relocation.** A new top-left can leave the merge's derived geometry as it was: swap the
+  trimmed row in one cache update (the visual row and the span stay), or remove the merge's first row with
+  `alter('remove_row')` (the physical rows renumber). Neither queues a relocation, and both left `hidden` on the
+  new top-left while the gate was there. `alter('remove_col')` on the merge's first column reaches the re-anchor
+  too (through `#onAfterRemoveCol`) and makes the next column's cell the top-left, so it is cleaned the same way.
+- **A row move, a column move and a column freeze clean it too.** A move that splits a merge draws a fragment
+  from a cell the merge covered before, and no re-anchor sees the split anchors while no row is trimmed
+  (DEV-3987). `#settleMergesAfterAxisMove` ends `#onAfterRowMove`, `#onAfterColumnMove` and
+  `#onAfterColumnFreeze`: with a row trimmed it runs the re-anchor as before, and without one it calls
+  `#clearCoveredFlagsOfTopLeftCell` for the cell each merge is drawn from, resolved from the merge's visual
+  `row`/`col` (authoritative while nothing is trimmed). It does not call the re-anchor on the untrimmed path:
+  that pass is kept off it on purpose (see "`translateAfterAxisMove` re-adds purged merges"), and it can relocate
+  merges on a sorted grid.
+- **A move also releases cells from a merge, and those are cleaned too.** A merge a move breaks into single cells
+  (`translateAfterAxisMove` drops every 1x1 fragment) or a row or column that leaves a merge covers cells no merge
+  covers afterwards, and nothing else would ever clean their stored `hidden` and `copyable: false`.
+  `#cleanReleasedCells` walks the pre-move footprint of every merge the move split or dropped, built
+  from the move snapshot (the moved axis) and the merge's own span on the other axis, which a move does not
+  change, and cleans the cells the lookup matrix no longer holds a merge for. A merge replaced by one block of
+  the same size is skipped: it covers the same cells and its top-left is handled by the pass above. It runs only
+  while no row is trimmed.
+- **The cell a merge is no longer drawn from loses its span keys.** `afterGetCellMeta` stores `spanned`,
+  `rowspan` and `colspan` on whichever cell is the top-left, and nothing took them off when a move or a freeze
+  made another cell the top-left, so `getCellMeta()` reported a span nothing backs (DEV-3990). The same pass
+  (`#clearReleasedCell`) removes them from every cell of a split or dropped merge's footprint that no merge is
+  drawn from: uncovered, or covered as a non-top-left cell. A merge replaced by one block of the same size is
+  not walked, but a reorder inside the block can still change its top-left (column B moved before A in a
+  two-column merge), so the cell it was drawn from before the move is checked too: the first entry of the move
+  snapshot on the moved axis, and the merge's unchanged index on the other. `#clearSpanKeysOfCell` acts only
+  where `spanned` is an own stored key (the merge stored it through `setCellMeta()`, the way it stored
+  `hidden`), so a `rowspan` the user stored on a cell without it stays. Of `rowspan` and `colspan`, a recorded
+  one stays too, because the hook writes them without recording them. A span from the `columns` option is not
+  on the cell, and a `cells` function applies its own again on the next read. **Known limits:** a recorded
+  `rowspan` or `colspan` on a former top-left holds the merge's span, because the hook overwrote the user's
+  value while the merge was drawn there (the same trade-off as `copyable: true` above), so `getCellMeta()` still
+  reports it. And like the pass above, this one runs only while no row is trimmed: after a move or a freeze on a
+  filtered or trimmed grid the former top-left keeps its span keys. It does not run on the restore path either:
+  `restoreState()` only re-anchors the merges to the visible rows, so after an undo or a redo of a move the cell
+  that stops being the top-left keeps its span keys. Nothing records which cell a merge was drawn from before the
+  restore, so a fix needs that record first.
+- **It does not live in `afterGetCellMeta`.** That hook runs on every meta read; clearing there would delete a
+  user's `copyable` on every read and pay for the check on every cell.
+- **It costs one meta manager lookup per merge per re-anchor**, next to the pass over the merge's anchor rows
+  that the re-anchor makes already, and no lookup in the merge collection, so the counts pinned by
+  `__tests__/mergeCountScaling.unit.js` stay flat. An axis move adds one meta manager lookup and one collection
+  lookup per merge (the cell it was drawn from), plus the footprint of each merge it splits or drops. That file
+  pins the merge and restore paths, not the moves.
+
+Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` (the move, freeze and released-cell cases are in its `after a move or a freeze that splits the merge` block, the span keys in `span keys after a move or a freeze`) and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
+
 **While rows are trimmed, `updatePlugin()` keeps the merge of an area it cannot place.** Settings describe
 visual positions. An area that fits the rows on screen is applied to them, exactly as before and as the
 guide documents (values a filter brought under it are cleared) — an application that computes its merges
@@ -402,8 +469,8 @@ trimmed comes back into the matrix at its stale visual coordinates, over whateve
 there, and the replacement is a new object that `#purgedMerges` (a `WeakSet` keyed on identity) knows
 nothing about. On the row axis the mapper's `cacheUpdated` re-anchor ran *before* `afterRowMove`, so it
 could not see the replacements; on the column axis it never runs at all. Every axis-move handler therefore
-calls `#reanchorMergesToVisibleRows()` once more after `#captureMergeAnchors()`, gated on
-`#isRowTrimmingActive()`: fully trimmed merges are purged and flagged again, and the visible ones are left
+calls `#reanchorMergesToVisibleRows()` once more after `#captureMergeAnchors()`, through
+`#settleMergesAfterAxisMove()`, gated on `#isRowTrimmingActive()`: fully trimmed merges are purged and flagged again, and the visible ones are left
 alone because their replacements already sit where the re-anchor would put them. The gate keeps the pass
 off the untrimmed column-move path, where nothing can be purged. Two shapes reach this: a merge trimmed in
 one go keeps `rowspan >= 2` and drew a phantom multi-row merge over foreign rows (pre-existing on both
