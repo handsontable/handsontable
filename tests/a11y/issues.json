@@ -1,7 +1,9 @@
 {
   "schema": 1,
-  "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triageLimit is the exact number of sampled finding shapes that need triage: lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one.",
-  "triageLimit": 26,
+  "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triage lists every sampled finding shape (findingShape()) left in needs-triage, each with why it is neither a known cause nor the reader's own behavior yet; its length is the triage limit, exact: a shape leaves the list when it is sorted into a cluster, and joins it only visibly, with its reason, in the change that adds it.",
+  "triage": [
+    { "shape": "reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid", "reason": "NVDA with Firefox names the grid by the sheet's old name, where both Chromium readers say the new one: a stale name kept by Firefox or a name the grid sets on another element, not told apart yet." }
+  ],
   "clusters": [
     {
       "id": "overlay-clones-split-tree",
@@ -11,7 +13,28 @@
         { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["headers-after-data", "row-exposed-twice", "row-headers-apart"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-needs-review"], "rules": ["aria-required-children"], "where": ["^(tbody|thead)\\[role=\"rowgroup\"\\]$"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(into-column-header|into-row-header|up-to-header-for-sort)$"] },
-        { "source": "reader", "kinds": ["traversal-off"] }
+        { "source": "reader", "kinds": ["traversal-off"], "pages": ["reading-mode-traversal"] }
+      ]
+    },
+    {
+      "id": "reading-skips-band-edge",
+      "title": "Reading mode skips a row at the edge of the rendered band of a long grid (A5 of 200 rows), on every reader but NVDA with Chromium",
+      "match": [
+        { "source": "reader", "kinds": ["traversal-off"], "pages": ["virtualization-reading"] }
+      ]
+    },
+    {
+      "id": "blank-item-before-grid",
+      "title": "In reading mode NVDA with Chromium stops on an empty item (`blank`) right before the grid, so the reading cursor reaches nothing where the table should start",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium"], "kinds": ["token-missing"], "pages": ["reading-mode-traversal(-plain|-rtl)?"], "where": ["^to-grid$"] }
+      ]
+    },
+    {
+      "id": "jump-to-unrendered-row-silent",
+      "title": "With Chromium a jump to a row the grid renders only once it scrolls there (Ctrl+ArrowDown to the last of 200 rows) is not announced",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] }
       ]
     },
     {
@@ -26,16 +49,43 @@
     },
     {
       "id": "focus-not-returned-after-escape",
-      "title": "The focus is not returned to the cell after Escape, Enter or a shortcut closes an editor, a menu or the comment editor, and a screen reader does not re-announce the cell",
+      "title": "The focus is not returned to the cell after Escape, Enter, Tab or a shortcut closes an editor, a menu or the comment editor: it stays on the closed editor's field or falls to the document, and a screen reader does not announce the cell",
       "tracker": ["DEV-3603", "DEV-3604"],
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-not-returned", "focus-lost", "shortcut-moves-focus-out"] },
-        { "source": "reader", "kinds": ["token-missing"], "where": ["^(close-editor|close-context-menu)$"] }
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^(close-editor|close-context-menu)$"] },
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-keeps-focus"], "where": ["handsontableInput"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor", "dropdown-editor", "date-editor", "comment-editor", "multiselect-editor", "dropdown-menu"], "where": ["^(commit-choice|commit-date|cancel-edit|save-with-control-enter|close-with-escape|commit-selection|close-menu)$"] }
+      ]
+    },
+    {
+      "id": "editor-choice-not-announced",
+      "title": "An editor's list does not announce the choice the keys reach: with Chromium the autocomplete and dropdown options that aria-activedescendant names have no name, a narrowed list and its highlighted choice are silent on every reader, and the handsontable editor exposes no highlighted row at all",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(type-narrow|arrow-down-narrowed)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["handsontable-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third)$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] }
+      ]
+    },
+    {
+      "id": "editor-combobox-markup",
+      "title": "The autocomplete and dropdown editors put the combobox role on a textarea, which ARIA in HTML does not allow, and name a closed list in aria-controls that axe cannot find",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^textarea\\.handsontableInput\\[role=\"combobox\"\\]"] }
+      ]
+    },
+    {
+      "id": "voiceover-webkit-field-role",
+      "title": "VoiceOver with WebKit reads a text field the focus moves to inside the grid, a menu or the sheets bar by its value or label alone, without its role (the cell editors, the filter inputs, the sheet rename field), where it names the role of a field outside them",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["autocomplete-editor", "dropdown-editor", "grid-core", "grid-core-horizon", "column-summary", "handsontable-editor"], "where": ["^open-editor$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["filters-by-condition", "filters-by-value", "sheets-bar"], "where": ["^(choose-condition|tab-to-search|enter-rename)$"] }
       ]
     },
     {
       "id": "unnamed-controls",
-      "title": "Controls without an accessible name or role: the editor inputs, the native date and time inputs, the select editor, the comment textarea, the filter listbox, the autocomplete list, and the focus catchers",
+      "title": "Controls without an accessible name or role: the editor inputs, the native date and time inputs, the select editor, the comment textarea, the filter condition select and the filter listbox, the autocomplete list, and the focus catchers",
       "tracker": ["DEV-3492", "DEV-2970"],
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-unnamed"] },
@@ -44,18 +94,96 @@
         { "source": "axe", "axeIssues": ["editor-input-names", "filters-listbox"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["label", "aria-input-field-name", "select-name"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"listbox\"\\]"] },
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["htFocusCatcher"] }
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["htFocusCatcher"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["comment-editor", "filters-by-condition", "filters-by-value"], "where": ["^(open-comment-editor|tab-to-condition|shift-tab-to-select)$"] }
+      ]
+    },
+    {
+      "id": "empty-data-state-without-role",
+      "title": "The empty data state's message, for no data and for loading, takes the focus as a div with no role, so NVDA with Firefox reads `section` without its text and VoiceOver with WebKit reads its title alone",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-without-role"], "where": ["ht-empty-data-state"] },
+        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["empty-data", "data-provider-sheets-bar"], "where": ["^(tab-empty-message|shift-tab-empty-message|tab-loading-overlay)$"] }
+      ]
+    },
+    {
+      "id": "sheet-tab-rename-tab-stop",
+      "title": "A sheet tab being renamed keeps its tab stop after it drops its button role, so the focus order holds a div with no role beside the name field",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["ht-sheets-bar__tab--renaming"] }
+      ]
+    },
+    {
+      "id": "formula-editor-combobox-markup",
+      "title": "The formula builder's editor puts the combobox role on a textarea, which ARIA in HTML does not allow, and names a closed list in aria-controls",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^textarea\\.hfe-editor__input"] }
+      ]
+    },
+    {
+      "id": "formula-help-panel-focus-stop",
+      "title": "The formula builder's function help panel takes the focus as a div with no role, and Tab does not leave it",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["hfe-fn-help__body"] },
+        { "source": "checks", "checks": ["tree-snapshots", "keyboard-walker"], "kinds": ["focusable-without-role", "focus-stop-without-role", "tab-keeps-focus"], "where": ["hfe-fn-help__body"] }
+      ]
+    },
+    {
+      "id": "formula-suggestion-tab",
+      "title": "Tab in the formula editor accepts the highlighted suggestion and keeps the focus in the editor, as the formula builder intends: the keyboard walker reads it as a Tab that stays",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-keeps-focus"], "where": ["^textarea\\.hfe-editor__input"] }
       ]
     },
     {
       "id": "menu-semantics",
-      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, separators are exposed as menu items, and a screen reader hears the context menu as a table",
+      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, separators are exposed as menu items, and a screen reader hears the context and column menus as a table, NVDA without the word menu",
       "tracker": ["DEV-3491", "DEV-2944"],
       "match": [
         { "source": "axe", "axeIssues": ["menu-roles", "menu-separators"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-required-parent", "aria-allowed-attr"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["^div\\.htMenu\\[role=\"menu\"\\]$"] },
-        { "source": "reader", "kinds": ["token-missing"], "where": ["^open-context-menu$"] }
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^open-context-menu$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value", "filters-by-condition"], "where": ["^open-menu$"] }
+      ]
+    },
+    {
+      "id": "checkbox-state-not-announced",
+      "title": "A checkbox in a cell or a header does not announce its state: the focus stays on the cell, so the mixed state of the check all and select all checkboxes and a row header checkbox's state are never read, the corner reads its own name over the select all checkbox, and Space toggling one is silent with Chromium",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "checkbox-header", "filters-by-value"], "where": ["^(space-check|space-uncheck|space-check-all|space-uncheck-all)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["checkbox-header", "row-selection-corner"], "where": ["^(arrow-up-header-mixed|arrow-up-corner|arrow-down-row-header)$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["checkbox-header"], "where": ["^arrow-up-to-header$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection"], "where": ["^arrow-up-to-header$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^arrow-left-row-checkbox$"] }
+      ]
+    },
+    {
+      "id": "read-only-not-announced",
+      "title": "A read-only cell is not announced as read only: the cell carries aria-readonly, which no reader says when the focus reaches it",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["checkbox-cell"], "where": ["^arrow-down-read-only$"] }
+      ]
+    },
+    {
+      "id": "link-in-cell-not-announced",
+      "title": "A link in a cell is not announced as a link: the focus stays on the cell, whose name is its text, and the link inside never takes the focus, so NVDA reads the address and never says link",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["auto-link"], "where": ["^(arrow-left-link|arrow-down-inline-link|arrow-down-mailto-link|select-formula-link|select-local-link)$"] }
+      ]
+    },
+    {
+      "id": "cell-annotation-not-exposed",
+      "title": "What a plugin marks on a cell with a class alone is not announced: a commented cell and a column summary cell read as plain cells, the read-only summary without its read-only state",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["comment-editor", "column-summary"], "where": ["^(arrow-down-commented-cell|arrow-left-second-comment|arrow-down-summary-cell|arrow-right-editable-summary)$"] }
+      ]
+    },
+    {
+      "id": "merged-span-not-read",
+      "title": "A merged cell's span is not read by NVDA with Firefox or by VoiceOver, though the cell carries rowspan and colspan: only NVDA with Chromium says `through row 3 column 3`",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["merge-cells"], "where": ["^arrow-up-back-in$"] }
       ]
     },
     {
@@ -112,17 +240,62 @@
     },
     {
       "id": "status-messages",
-      "title": "A range extension, a sort and a nested row's level are not announced: no status message reaches the screen reader",
+      "title": "A range extension, Ctrl+A selecting every cell, a sort and a nested row's level are not announced: no status message reaches the screen reader",
       "tracker": "DEV-2957",
       "match": [
-        { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again|sort-ascending|sort-descending|into-parent-cell|down-to-child)$"] }
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again|sort-ascending|sort-descending|into-parent-cell|down-to-child)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^select-all-cells$"] }
+      ]
+    },
+    {
+      "id": "loading-changes-not-announced",
+      "title": "A load that starts or ends without a focus move is not announced: a sheet switch that starts a server fetch (the loading message is no live region), and a pending cell's value that arrives (with Chromium)",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["data-provider-sheets-bar"], "where": ["^enter-switch-sheet$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["async-values"], "where": ["^value-resolves$"] }
+      ]
+    },
+    {
+      "id": "status-text-runs-into-value",
+      "title": "A pending or failed cell's visually hidden status text follows its value with no space between them, so VoiceOver with WebKit reads the two as one word (`Old BLoading...`) and neither on its own",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values"], "where": ["^(arrow-down-pending|arrow-down-failed)$"] }
+      ]
+    },
+    {
+      "id": "freeze-bar-count-not-read",
+      "title": "VoiceOver does not read a freeze bar's frozen count: the bars carry aria-valuenow over a range and no aria-valuetext (left out for want of a plural form per language), so a move reads as a percentage and a focus as a splitter without its count",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["freeze-bar"], "where": ["^(arrow-grow|arrow-shrink|arrow-down-grow|f6-to-next-bar)$"] }
+      ]
+    },
+    {
+      "id": "collapse-expand-silent-webkit",
+      "title": "VoiceOver with WebKit says nothing when Enter expands a collapsed column group, though it reads the collapse; a plain header put through the same redraw is read both ways, so the silence comes from the grid",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["collapsible-headers"], "where": ["^enter-expand$"] }
+      ]
+    },
+    {
+      "id": "password-commit-silent-webkit",
+      "title": "VoiceOver with WebKit says nothing when Enter commits the password editor and moves the focus to the next cell; it reads the focus leaving a plain password field and the select editor's commit to a cell, so the silence comes from the grid",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["password-editor"], "where": ["^commit-secret$"] }
+      ]
+    },
+    {
+      "id": "focusable-separator-review",
+      "title": "axe's experimental focus-order-semantics rule lists the freeze bars for review: a focusable separator is the window splitter pattern, which the rule does not take as a widget",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["^div\\[role=\"separator\"\\]$"] }
       ]
     },
     {
       "id": "dialogs-leak-tab",
       "title": "Tab walks out of an open modal dialog to the content behind it, which the dialog hides from assistive technology",
       "match": [
-        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-leaves-modal"] }
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-leaves-modal"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["dialog"], "where": ["^tab-past-ok$"] }
       ]
     },
     {
@@ -137,9 +310,70 @@
     },
     {
       "id": "voiceover-cell-position",
-      "title": "VoiceOver names no row number on a cell move, and no column number in WebKit, on a well-formed grid too: the screen reader's behavior, not the grid's (the scenario notes record it)",
+      "title": "VoiceOver names no row number on a cell move, no column number in WebKit and no header role on a header, on a well-formed grid too: the screen reader's behavior, not the grid's (the scenario notes record it)",
       "match": [
-        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "where": ["^(arrow-right|arrow-down|arrow-left|arrow-up|reselect-cell)$"] }
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "where": ["^(arrow-right|arrow-down|arrow-left|arrow-up|reselect-cell)$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["default-mode", "handsontable-editor", "select-editor", "virtualization", "nested-headers"], "where": ["^(tab-into-grid|to-row-end|to-row-start|commit-row|commit-option|page-down-again|to-first-row|arrow-up-to-header)$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["password-editor"], "where": ["^commit-secret$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] }
+      ]
+    },
+    {
+      "id": "voiceover-unchecked-state-silent",
+      "title": "VoiceOver says checked for a checked menu item and nothing for an unchecked one, on a well-formed menu too: the screen reader's behavior, not the grid's (the Read only item reads checked once its column is read only)",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-menu"], "where": ["^arrow-down-read-only$"] }
+      ]
+    },
+    {
+      "id": "voiceover-webkit-select-change-silent",
+      "title": "VoiceOver with WebKit says nothing when the keys change the option of a closed select, on a plain select too, whether a script changes it as the select editor does or its own type-ahead does: the screen reader's behavior, not the grid's",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["select-editor"], "where": ["^arrow-down-(first|second)$"] }
+      ]
+    },
+    {
+      "id": "reader-silent-step",
+      "title": "A screen reader says nothing on a step whose surface it reads on later steps or in other runs: VoiceOver on the first key after the runner enters the page above all, on cells, headers, menus, editors and page buttons alike, which points at the reader's start-up, not at the surface; a golden difference belongs here only where this run was the silent one",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values", "auto-link", "checkbox-header", "collapsible-headers", "column-summary", "comment-editor", "dialog", "empty-data", "freeze-bar", "grid-core-single-tab-stop", "loading", "merge-cells", "pagination", "sheets-bar", "virtualization"], "where": ["^(arrow-right-pending|arrow-up-plain-url|arrow-up-to-header|arrow-up-to-lower-header|arrow-down-data-row|arrow-right-plain-cell|dialog-opens|tab-last-header|f6-to-first-bar|tab-out-forward|loading-shows|arrow-down-into-merge|tab-page-size|tab-add-sheet|page-down)$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "row-selection"], "where": ["^arrow-up-unchecked$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["date-editor", "password-editor", "select-editor"], "where": ["^open-editor$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^arrow-left-row-checkbox$"] },
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["grid-core-horizon"], "where": ["^menu-arrow-down$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["multiselect-editor"], "where": ["^arrow-down-third$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["date-editor"], "where": ["^back-to-committed$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["async-values"], "where": ["^arrow-right-pending$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["checkbox-header"], "where": ["^arrow-up-to-header$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["dialog"], "where": ["^dialog-opens$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["empty-data"], "where": ["^tab-last-header$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["freeze-bar"], "where": ["^f6-to-first-bar$"] }
+      ]
+    },
+    {
+      "id": "reader-golden-drift",
+      "title": "An announcement or an accessibility tree differs from its golden with no defect behind it: reader wording that varies between runs, a golden that recorded a start-up silence the run did not repeat, a reading golden recorded a phrase late, and dropdown editor goldens older than its empty highlight on open, since re-recorded (drop the two dropdown-editor rules when the sample is next refreshed from an audit); record the golden again",
+      "match": [
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["auto-link", "autocomplete-editor", "comment-editor", "data-provider-sheets-bar", "dialog", "grid-core(-horizon)?", "nested-rows", "pagination", "sheets-bar"], "where": ["^(open-link|commit-choice|type-narrow|type-in-comment|enter-switch-sheet|server-answers|tab-ok|reselect-cell|collapse-parent|enter-first-page|enter-last-page|enter-sheet-menu)$"] },
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["dropdown-editor"], "where": ["^(open-editor|arrow-down-second|arrow-down-third|back-to-committed)$"] },
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["virtualization-reading"], "where": ["^read-\\d+$"] },
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["golden-differs"], "pages": ["filters-by-value"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-snapshot-changed"], "pages": ["dropdown-editor"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["dialog"], "where": ["^dialog-opens$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["pagination"], "where": ["^tab-page-size$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["dropdown-menu"], "where": ["^open-menu$"] }
+      ]
+    },
+    {
+      "id": "scenario-expectation-outdated",
+      "title": "A screen reader scenario expected what the grid no longer does on purpose: the dropdown editor opens with no choice highlighted when the cell's value equals none of its choices, so the scenario's later choices were one step off; the scenario is fixed and these rows resolve on the next audit (remove this cluster when the sample is next refreshed from an audit, or a real dropdown miss would be filed here)",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^open-editor$"] },
+        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^back-to-committed$"] }
       ]
     },
     {

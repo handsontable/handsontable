@@ -3,7 +3,7 @@ import { ref, onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
-import type { CellChange } from 'handsontable/common';
+import type { CellChange } from 'handsontable';
 
 registerAllModules();
 
@@ -69,7 +69,7 @@ const hotSettings = ref<GridSettings>({
   height: 'auto',
   minSpareRows: 1,
   beforeChange(changes) {
-    lastChange = changes;
+    lastChange = changes.filter((change): change is CellChange => change !== null);
   },
   autoWrapRow: true,
   autoWrapCol: true,

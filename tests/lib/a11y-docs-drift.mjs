@@ -24,16 +24,19 @@ export const LEDGER_URL = 'https://handsontable.github.io/handsontable/test-heal
 export const DOCS_AUDIT_COMMAND = 'gh workflow run docs-a11y.yml --ref develop';
 /**
  * The same rule for the website scan, whose change runs read production: what each site's notes call its audit, where
- * its findings are, and the baseline and the policy section a drift note points to.
+ * its findings are, and the baseline, the command that refreshes it from an audit (`null` where a person does it) and
+ * the policy section a drift note points to.
  */
 export const SITE_DRIFT = Object.freeze({
   docs: {
     audit: 'the develop docs audit', none: 'no develop docs audit', on: 'on develop\'s docs already', command: DOCS_AUDIT_COMMAND,
-    baseline: 'tests/a11y/docs/docs-baseline.json', section: 'A11y: the docs site scan', deploy: 'the staging deploy',
+    baseline: 'tests/a11y/docs/docs-baseline.json', refresh: 'node tests/scripts/a11y-docs-baseline.mjs --run',
+    section: 'A11y: the docs site scan', deploy: 'the staging deploy',
   },
   website: {
     audit: 'the website audit', none: 'no website audit', on: 'on the live website already', command: 'gh workflow run website-a11y.yml --ref develop',
-    baseline: 'tests/a11y/website/website-baseline.json', section: 'A11y: the website scan', deploy: 'the production deploy',
+    baseline: 'tests/a11y/website/website-baseline.json', refresh: null, section: 'A11y: the website scan',
+    deploy: 'the production deploy',
   },
 });
 // The longest element the ledger keeps (`A11Y_LIMITS.where` of `.github/scripts/lib/a11y-ledger.mjs`).
@@ -131,9 +134,11 @@ export function driftNotes({ audit, problem = null, drift, counted, deployedAt =
   const when = audit.seenAt ? ` of ${audit.seenAt.slice(0, 10)}` : '';
 
   if (drift > 0) {
+    const refresh = words.refresh ? `, \`${words.refresh} ${audit.runId}\`` : '';
+
     notes.push(`${drift} of the ${counted} new or grown findings are ${words.on}: ${words.audit}${when} (run ${audit.runId}) `
       + `saw them. That is baseline drift, not this change, so each counts as a warning at most: refresh ${words.baseline} `
-      + `from that audit (tests/AGENTS.md, "${words.section}").`);
+      + `from that audit${refresh} (tests/AGENTS.md, "${words.section}").`);
   }
   if (deployedAt && audit.seenAt && Date.parse(deployedAt) > Date.parse(audit.seenAt)) {
     notes.push(`${Audit}${when} is older than ${words.deploy} this run read (${deployedAt.slice(0, 16).replace('T', ' ')} UTC), so a `
