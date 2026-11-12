@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-12T11:17:08.844Z",
+  "generatedAt": "2026-11-12T12:06:17.713Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -235,13 +235,13 @@
       "line": 72,
       "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
       "count7": 0,
-      "count30": 6,
+      "count30": 5,
       "countAll": 14,
-      "runs30": 5,
-      "flakyRuns30": 5,
-      "branches30": 5,
+      "runs30": 4,
+      "flakyRuns30": 4,
+      "branches30": 4,
       "nightlyRuns30": 0,
-      "openBranches30": 5,
+      "openBranches30": 4,
       "legs": [
         "e2e-horizon",
         "e2e-horizon-min"
