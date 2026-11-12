@@ -51,10 +51,10 @@ test.describe(CHECK, () => {
       const pageErrors: string[] = [];
 
       await page.emulateMedia({ reducedMotion: 'no-preference' });
-      // Opened, the page has loaded, its fonts are ready and two frames have passed, as the product check settles.
-      // `SITE.settle()` would wait for every finite animation to end first, so one of five to ten seconds would be
-      // over before the watch starts, and a longer one would fail the test instead of being found.
-      await SITE.open(page, entry, { theme: THEME, pageErrors });
+      // Opened without waiting for the animations, the page has loaded, its fonts are ready and two frames have passed,
+      // as the product check settles. `SITE.settle()`, or an open that waits for every finite animation to end, would
+      // wait out one of five to ten seconds before the watch starts, and fail on a longer one instead of finding it.
+      await SITE.open(page, entry, { theme: THEME, pageErrors, animations: false });
 
       const environment = await readEnvironment(page);
       const { animations, frames } = await watchAnimations(page, WATCH_MS);

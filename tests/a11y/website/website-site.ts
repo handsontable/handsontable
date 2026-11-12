@@ -227,21 +227,25 @@ export function watchRequests(page: Page) {
  * Waits until the page is the page a visitor gets: every island hydrated (but `client:media`, and a `client:visible`
  * one with no box), the network quiet, the fonts ready, every running finite animation ended (an endless one, the logo
  * marquee, is left running, and a paused one holds still already), and the DOM holding still for three polls 100 ms
- * apart. Each wait is bounded by
- * `deadline`, and one that runs out names what it waited for.
+ * apart. Each wait is bounded by `deadline`, and one that runs out names what it waited for. `animations: false`
+ * skips the animation wait, for a watch that measures what moves from load (2.2.2): waited out, a finite animation
+ * would be over before the watch starts.
  *
  * @param page The page.
  * @param requests The request watch.
  * @param deadline The longest each wait may take.
+ * @param options The settle.
+ * @param options.animations Whether to wait for the running finite animations to end.
  */
-export async function settleWebsite(page: Page, requests: ReturnType<typeof watchRequests>, deadline = 60_000): Promise<void> {
+export async function settleWebsite(page: Page, requests: ReturnType<typeof watchRequests>, deadline = 60_000,
+  { animations = true }: { animations?: boolean } = {}): Promise<void> {
   await expect.poll(() => page.evaluate(() => [...document.querySelectorAll('astro-island[ssr]:not([client="media"])')]
     .filter(island => island.getAttribute('client') !== 'visible' || [...island.children].some(child => child.getClientRects().length))
     .map(island => `${island.getAttribute('component-export') ?? '?'} (client:${island.getAttribute('client')})`)),
   { message: 'islands that never hydrated', timeout: deadline }).toEqual([]);
   await requests.quiet(deadline);
 
-  const unfinished = await page.evaluate(async(timeout) => {
+  const unfinished = !animations ? [] : await page.evaluate(async(timeout) => {
     await document.fonts.ready;
 
     // A paused animation holds still (the story's progress bar pauses until the stories are in view), which is all a
@@ -275,6 +279,9 @@ export async function settleWebsite(page: Page, requests: ReturnType<typeof watc
   }, undefined, { polling: 100, timeout: deadline });
 }
 
+// The pages already prepared, with how: `openWebsitePage()` prepares a page once, however often a check opens it.
+const PREPARED = new WeakMap<Page, { setup: string; guard: Guard }>();
+
 /**
  * Opens a page of the site at a width and waits until it can be measured: the viewport, the guard and the islands'
  * wake-up are set before the first request; the page answers with the status the entry expects and is the site, not a
@@ -290,34 +297,44 @@ export async function settleWebsite(page: Page, requests: ReturnType<typeof watc
  * @param options.answers Which writes the guard answers on the page; by default the ones the entry's state makes.
  * @param options.clock Whether the page's clock is installed, so a test can move it past the spam guard's minimum; by
  *   default when the entry's state submits a form.
+ * @param options.animations Whether the settle waits for the running finite animations to end (`settleWebsite()`).
  * @returns The URL, the response, the guard and the request watch.
  */
 export async function openWebsitePage(page: Page, entry: { route: string; state: string; status?: number; selected?: readonly string[] }, {
   viewport, baseUrl, pageErrors, deadline = 60_000,
   answers = { submissions: entry.state === 'form-sent', booking: entry.state === 'booker-booked' },
-  clock = entry.state === 'form-sent',
+  clock = entry.state === 'form-sent', animations = true,
 }: { viewport: string; baseUrl: string; pageErrors: string[]; deadline?: number; answers?: { submissions?: boolean; booking?: boolean };
-  clock?: boolean }) {
+  clock?: boolean; animations?: boolean }) {
   const url = websiteUrl(entry, viewport, baseUrl);
+  const setup = JSON.stringify({ origin: new URL(baseUrl).origin, answers, clock });
 
   await page.setViewportSize(WEBSITE_VIEWPORTS[viewport as keyof typeof WEBSITE_VIEWPORTS]);
-  await wakeVisibleIslands(page);
 
   const requests = watchRequests(page);
+  let prepared = PREPARED.get(page);
 
-  if (clock) {
-    await page.clock.install();
+  // A page opened again (a check reopens it after a key press that acted, or after a walk that loaded another page)
+  // keeps its init script, clock, guard and error listener: added again, they would stack, the islands' observer
+  // would be wrapped twice, and each uncaught error would be recorded once per visit.
+  if (!prepared) {
+    await wakeVisibleIslands(page);
+    if (clock) {
+      await page.clock.install();
+    }
+    prepared = { setup, guard: await guardSite(page.context(), new URL(baseUrl).origin, answers) };
+    PREPARED.set(page, prepared);
+    page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
   }
+  expect(prepared.setup, 'a page is opened again with the guard and clock it was first opened with').toBe(setup);
 
-  const guard = await guardSite(page.context(), new URL(baseUrl).origin, answers);
-
-  page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
+  const { guard } = prepared;
 
   const response: Response | null = await page.goto(url, { waitUntil: 'load' });
 
   await expect(page, `${url} is the site, not a bot challenge`).not.toHaveTitle(/just a moment|attention required|access denied/i);
   expect(response?.status(), `${url} answers with ${entry.status ?? 200}`).toBe(entry.status ?? 200);
-  await settleWebsite(page, requests, deadline);
+  await settleWebsite(page, requests, deadline, { animations });
   if (entry.selected) {
     const [role, name] = entry.selected as ['tab' | 'radio', string];
 

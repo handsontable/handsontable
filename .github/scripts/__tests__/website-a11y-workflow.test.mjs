@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, jobIds, steps } from '../lib/workflow-text.mjs';
@@ -38,18 +38,29 @@ test('website-a11y.yml is the Website a11y workflow the ledger records, started 
   const [, paths = ''] = /^ {2}pull_request:\n {4}paths:\n((?: {6}- .*\n)+)/m.exec(triggers) ?? [];
 
   assert.deepEqual([...paths.matchAll(/- '([^']+)'/g)].map(([, file]) => file),
-    ['.github/workflows/website-a11y.yml', 'tests/a11y/website/**', 'tests/a11y/axe-scan.ts', 'tests/playwright.a11y-website.config.ts',
-      'tests/reporters/a11y.ts', 'tests/lib/a11y-baseline.*', 'tests/lib/a11y-findings.*', 'tests/lib/a11y-report.*',
-      'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-docs-drift.*', 'tests/scripts/a11y-check-run.mjs'],
+    ['.github/workflows/website-a11y.yml', 'tests/a11y/website/**', 'tests/a11y/axe-scan.ts', 'tests/a11y/issues.json',
+      'tests/playwright.a11y-website.config.ts', 'tests/reporters/a11y.ts', 'tests/lib/a11y-baseline.*', 'tests/lib/a11y-findings.*',
+      'tests/lib/a11y-report.*', 'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-docs-drift.*',
+      'tests/lib/a11y-issues.*', 'tests/lib/a11y-evidence.*', 'tests/lib/a11y-site-checks.*', 'tests/lib/a11y-subset.*',
+      'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/scripts/a11y-check-run.mjs'],
     `${WEBSITE}: a pull request runs the scan only when it changes the scan's own code. ${DOC}`);
-  // Every module the spec and its reporter import is in the list, so a change to the scan's code runs the scan.
-  const spec = read('tests/a11y/website/website-axe.spec.ts') + read('tests/reporters/a11y.ts') + read('tests/lib/a11y-suites.mjs');
-  const imported = [...spec.matchAll(/from '(?:\.\.\/)+lib\/(a11y-[a-z]+)\.mjs'|from '\.\/(a11y-[a-z]+)\.mjs'/g)]
-    .map(([, viaLib, local]) => viaLib ?? local);
+  // Every module of tests/lib the spec, its reporter and the check run's poster reach, import by import, is in the
+  // list, so a change to the scan's code, its verdict or its poster runs the scan.
+  const modules = new Set();
+  const pending = ['tests/a11y/website/website-axe.spec.ts', 'tests/reporters/a11y.ts', 'tests/scripts/a11y-check-run.mjs'];
 
-  assert.ok(imported.length > 0, 'read the imports');
-  for (const module of new Set(imported)) {
-    assert.ok(paths.includes(`'tests/lib/${module}.*'`), `${WEBSITE}: the scan imports tests/lib/${module}.mjs, so a change there runs it`);
+  while (pending.length > 0) {
+    for (const [, name] of read(pending.shift()).matchAll(/from '(?:(?:\.\.\/)+lib\/|\.\/)([a-z0-9-]+)\.mjs'/g)) {
+      if (!modules.has(name) && existsSync(path.join(repoRoot(), `tests/lib/${name}.mjs`))) {
+        modules.add(name);
+        pending.push(`tests/lib/${name}.mjs`);
+      }
+    }
+  }
+
+  assert.ok(modules.has('github-check-run') && modules.has('a11y-issues'), 'read the imports, the poster\'s among them');
+  for (const module of modules) {
+    assert.ok(paths.includes(`'tests/lib/${module}.*'`), `${WEBSITE}: the scan reaches tests/lib/${module}.mjs, so a change there runs it`);
   }
   assert.match(triggers, /^ {6}base-url:\n(?: {8}.*\n)*? {8}type: string$/m, `${WEBSITE}: the dispatch names the deploy to scan`);
   assert.doesNotMatch(workflow, /^permissions:/m,

@@ -46,10 +46,19 @@ export async function capture(page: Page, box: Box): Promise<Image> {
 
     context.drawImage(image, 0, 0);
 
-    return { width: image.width, height: image.height, data: Array.from(context.getImageData(0, 0, image.width, image.height).data) };
+    // The bytes go back as base64: as a JSON array of numbers, a capture of a wide element is millions of numbers,
+    // seconds per capture.
+    const bytes = context.getImageData(0, 0, image.width, image.height).data;
+    let binary = '';
+
+    for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+    }
+
+    return { width: image.width, height: image.height, rgba: btoa(binary) };
   }, png.toString('base64'));
 
-  return { ...decoded, png };
+  return { width: decoded.width, height: decoded.height, data: Array.from(Buffer.from(decoded.rgba, 'base64')), png };
 }
 
 /**

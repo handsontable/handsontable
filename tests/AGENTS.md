@@ -2034,8 +2034,8 @@ comparator, the reports and the baseline holds; this section says what differs. 
   review" on `scrollable-region-focusable` counts as a violation, as the website's own scan counts it.
 - **A pull request is red only for what it caused.** A pull request's run reads production, which changes apart
   from this repository, so the docs scan's drift rule applies with the website's audit (`lib/a11y-docs-drift.mjs`,
-  `siteAudit(ledger, 'website')`): a new or grown finding the latest website audit saw is a warning at most, and the
-  remedy is to refresh the baseline from that audit. The check run is `A11y / website-axe report`
+  `siteAudit(ledger, 'website')`): a new finding the latest website audit saw is a warning at most, and the remedy is
+  to refresh the baseline from that audit; a grown one keeps its severity, as on the docs. The check run is `A11y / website-axe report`
   (`scripts/a11y-check-run.mjs --suite website`), annotated on each page's `page(…)` line.
 - **On demand, like the docs scan.** A dispatch on develop is the audit, a night of the findings ledger's `website`
   source, recorded from production only (`run.baseUrl`, `baseUrl` of the findings); a dispatch from a branch and a
@@ -2153,7 +2153,9 @@ and of `.github/workflows/website-a11y.yml`.
   repeats is the key's. Text a clipping container cuts off whole is hidden on purpose (a skip link drawn only
   while focused), and so is text under the visually hidden pattern (`clip-path: inset(50%)`, the website grid's
   skip links): never text cut off. A wait for the transitions a resize or a focus started waits for the
-  running ones, five seconds at most: a paused animation never finishes.
+  running ones, five seconds at most: a paused animation never finishes. After a focus, only the transitions on the
+  focused element, its contents and its ancestors count: a reveal or a counter the scroll started elsewhere on the
+  page is no part of the indicator.
 - **2.2.2 credits a pause control.** A page that moves on its own for more than five seconds and offers a button
   named "Pause …" or "Stop …" has it pressed from the keyboard and is watched again; only what still moves is a
   finding (`detail.paused` names the control).

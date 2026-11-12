@@ -106,10 +106,17 @@ export async function indicator(page: Page, stop: SiteStop) {
   }
   await page.evaluate(() => (document.activeElement as HTMLElement).scrollIntoView({ block: 'center', inline: 'nearest' }));
   await frames(page);
-  // The transitions the focus started, for five seconds at most: a paused animation never finishes.
+  // The transitions the focus started, for five seconds at most: on the element, its pseudo-elements, what it holds
+  // and what holds it (`:focus-within`). A paused animation never finishes, and the rest of the page (a reveal or a
+  // counter the scroll started) is no part of the indicator: waiting for it costs seconds per stop.
   await page.evaluate(() => Promise.race([
-    Promise.all(document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity
-      && animation.playState === 'running').map(animation => animation.finished.catch(() => undefined))),
+    Promise.all(document.getAnimations().filter((animation) => {
+      const target = (animation.effect as KeyframeEffect | null)?.target ?? null;
+      const active = document.activeElement;
+
+      return animation.effect?.getTiming().iterations !== Infinity && animation.playState === 'running' && target !== null
+        && active !== null && (target === active || active.contains(target) || target.contains(active));
+    }).map(animation => animation.finished.catch(() => undefined))),
     new Promise<void>((resolve) => {
       const begin = performance.now();
       const tick = () => (performance.now() - begin >= 5000 ? resolve() : requestAnimationFrame(tick));

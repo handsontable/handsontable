@@ -86,9 +86,10 @@ export interface Site {
    */
   normalizeHref(href: string, here: string): string;
   /**
-   * Opens a page in a color scheme and waits until it can be measured; returns the URL.
+   * Opens a page in a color scheme and waits until it can be measured; returns the URL. `animations: false` returns
+   * before the finite animations end, for a watch that measures them (the docs never wait for them on open).
    */
-  open(page: Page, entry: SitePage, options: { theme: string; pageErrors: string[]; examples?: boolean }): Promise<string>;
+  open(page: Page, entry: SitePage, options: { theme: string; pageErrors: string[]; examples?: boolean; animations?: boolean }): Promise<string>;
   /**
    * Reaches the page's state from the keyboard.
    */
@@ -228,9 +229,9 @@ export const WEBSITE_SITE: Site = {
   },
   // A page is opened at rest; its state is reached by `reach()`, from the keyboard. No site check submits anything:
   // the guard aborts every write (`guardSite()`), and the forms check answers its own.
-  async open(page, entry, { pageErrors }) {
+  async open(page, entry, { pageErrors, animations = true }) {
     const { url } = await openWebsitePage(page, { route: entry.path, state: 'none', status: entry.status },
-      { viewport: entry.viewport ?? 'desktop', baseUrl: entry.baseUrl ?? WEBSITE_BASE_URL, pageErrors });
+      { viewport: entry.viewport ?? 'desktop', baseUrl: entry.baseUrl ?? WEBSITE_BASE_URL, pageErrors, animations });
 
     return url;
   },

@@ -41,12 +41,14 @@ on:
         required: false
         default: ''
   # The scan's own code: its spec, pages, guard and baseline, and the code it shares with the product scan (the
-  # rule set, the comparator, the reporter, the reports, the findings, the check run's builder and poster).
+  # rule set, the comparator, the reporter, the reports, the findings, the check run's builder, verdict and
+  # poster, and the catalog the verdict reads its trackers from, with every module those import).
   pull_request:
     paths:
       - '.github/workflows/website-a11y.yml'
       - 'tests/a11y/website/**'
       - 'tests/a11y/axe-scan.ts'
+      - 'tests/a11y/issues.json'
       - 'tests/playwright.a11y-website.config.ts'
       - 'tests/reporters/a11y.ts'
       - 'tests/lib/a11y-baseline.*'
@@ -55,6 +57,13 @@ on:
       - 'tests/lib/a11y-suites.*'
       - 'tests/lib/a11y-check-run.*'
       - 'tests/lib/a11y-docs-drift.*'
+      - 'tests/lib/a11y-issues.*'
+      - 'tests/lib/a11y-evidence.*'
+      - 'tests/lib/a11y-site-checks.*'
+      - 'tests/lib/a11y-subset.*'
+      - 'tests/lib/a11y-verdict.*'
+      - 'tests/lib/a11y-verdict-inputs.*'
+      - 'tests/lib/github-check-run.*'
       - 'tests/scripts/a11y-check-run.mjs'
   workflow_call:
     inputs:
