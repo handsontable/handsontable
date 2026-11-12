@@ -70,9 +70,11 @@ function countLower(sorted: number[], value: number): number {
 
 /**
  * Creates a tracker that keeps the physical row of each followed record current on the index mapper's
- * `indexesInserted` and `indexesRemoved` local hooks, and updates its row index for the moved records only. A row a removal takes leaves its record with a `null`
+ * `indexesInserted` and `indexesRemoved` local hooks. A row a removal takes leaves its record with a `null`
  * physical row. The tracker listens only while it follows a record, so an idle grid pays nothing, and an
- * event costs O(followed records), never O(rows).
+ * event costs one pass over the followed records, never O(rows). The index that finds a record by its row is
+ * rebuilt lazily, on the first `track()` or `find()` after an event, so a burst of inserts or removals (an
+ * `alter()` loop while a large paste waits) pays one rebuild, not one per event.
  *
  * A sort, a move, a filter, and hiding or trimming rows do not change physical rows, so they need nothing.
  * Code that rewrites the data without these hooks (NestedRows' tree operations) leaves a record on a stale
@@ -85,22 +87,20 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
   const holds = new Map<TrackedRecord, number>();
   const byPhysicalRow = new Map<number, TrackedRecord>();
   let listenedMapper: TrackedIndexMapper | null = null;
+  let isIndexStale = false;
   let lastId = 0;
 
   /**
-   * Moves the index entries of the records an event moved. Every old key is deleted before any new one is set,
-   * so a record that moves onto the row another moved record left is not taken out again. Only the moved records
-   * are touched: a record that kept its row keeps its entry.
-   *
-   * @param {Array} moved The moved records with the physical row each had before the event.
+   * Indexes the followed records by their physical rows again when an event moved them since the last read.
    */
-  const reindexMoved = (moved: Array<[TrackedRecord, number]>) => {
-    moved.forEach(([record, previousRow]) => {
-      if (byPhysicalRow.get(previousRow) === record) {
-        byPhysicalRow.delete(previousRow);
-      }
-    });
-    moved.forEach(([record]) => {
+  const ensureIndex = () => {
+    if (!isIndexStale) {
+      return;
+    }
+
+    isIndexStale = false;
+    byPhysicalRow.clear();
+    holds.forEach((_, record) => {
       if (record.physicalRow !== null) {
         byPhysicalRow.set(record.physicalRow, record);
       }
@@ -120,16 +120,14 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
 
     const rowsBefore = listenedMapper!.getNumberOfIndexes() - insertedIndexes.length;
     const firstRow = mode === 'end' ? Math.min(insertedIndexes[0] + 1, rowsBefore) : insertedIndexes[0];
-
-    const moved: Array<[TrackedRecord, number]> = [];
+    const amount = insertedIndexes.length;
 
     holds.forEach((_, record) => {
       if (record.physicalRow !== null && record.physicalRow >= firstRow) {
-        moved.push([record, record.physicalRow]);
-        record.physicalRow += insertedIndexes.length;
+        record.physicalRow += amount;
+        isIndexStale = true;
       }
     });
-    reindexMoved(moved);
   };
 
   /**
@@ -144,8 +142,6 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
 
     const sorted = removedIndexes.slice().sort((a, b) => a - b);
 
-    const moved: Array<[TrackedRecord, number]> = [];
-
     holds.forEach((_, record) => {
       if (record.physicalRow === null) {
         return;
@@ -155,11 +151,10 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
       const isRemoved = sorted[lower] === record.physicalRow;
 
       if (isRemoved || lower > 0) {
-        moved.push([record, record.physicalRow]);
         record.physicalRow = isRemoved ? null : record.physicalRow - lower;
+        isIndexStale = true;
       }
     });
-    reindexMoved(moved);
   };
 
   /**
@@ -175,11 +170,15 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
       listenedMapper.removeLocalHook('indexesInserted', onIndexesInserted);
       listenedMapper.removeLocalHook('indexesRemoved', onIndexesRemoved);
       listenedMapper = null;
+      byPhysicalRow.clear();
+      isIndexStale = false;
     }
   };
 
   return {
     track(physicalRow) {
+      ensureIndex();
+
       let record = byPhysicalRow.get(physicalRow);
 
       if (record === undefined) {
@@ -194,6 +193,8 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
       return record;
     },
     find(physicalRow) {
+      ensureIndex();
+
       return byPhysicalRow.get(physicalRow);
     },
     release(record) {
@@ -211,7 +212,7 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
 
       holds.delete(record);
 
-      if (record.physicalRow !== null && byPhysicalRow.get(record.physicalRow) === record) {
+      if (!isIndexStale && record.physicalRow !== null && byPhysicalRow.get(record.physicalRow) === record) {
         byPhysicalRow.delete(record.physicalRow);
       }
 

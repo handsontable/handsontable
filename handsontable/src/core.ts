@@ -3777,14 +3777,6 @@ export default function Core(
   function writeChange(
     visualRow: number, prop: string | number, value: unknown, run: ReversedCellRun, recordRow?: number,
   ) {
-    const write = () => {
-      if (recordRow === undefined) {
-        datamap.set(visualRow, prop, value);
-
-      } else {
-        datamap.setAtPhysicalRow(recordRow, prop, value, visualRow);
-      }
-    };
     let physicalRow: number | null = null;
 
     if (operationScope.getRecordingTransaction() !== null) {
@@ -3792,7 +3784,7 @@ export default function Core(
     }
 
     if (physicalRow === null || !Number.isInteger(physicalRow)) {
-      write();
+      writeValue(visualRow, prop, value, recordRow);
 
       return;
     }
@@ -3801,7 +3793,7 @@ export default function Core(
     // `CellDelta` for why neither the change tuple nor a hooked read would do.
     const oldValue = detachValue(dataSource.getRawAtCellByProp(physicalRow, prop));
 
-    write();
+    writeValue(visualRow, prop, value, recordRow);
 
     // `writeChangesToData()` writes its changes from the last one to the first. A write of the value
     // the cell already held is journaled too: an edit is a step even when it changed nothing, as it
@@ -3812,6 +3804,24 @@ export default function Core(
       oldValue,
       newValue: detachValue(dataSource.getRawAtCellByProp(physicalRow, prop)),
     }, run);
+  }
+
+  /**
+   * Writes one value into the data set: by the visual row, or by the physical row of the record a change that
+   * waited for its validator was resolved to.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The value to write.
+   * @param {number} [recordRow] The physical row of the record, for a change that waited for its validator.
+   */
+  function writeValue(visualRow: number, prop: string | number, value: unknown, recordRow?: number) {
+    if (recordRow === undefined) {
+      datamap.set(visualRow, prop, value);
+
+    } else {
+      datamap.setAtPhysicalRow(recordRow, prop, value, visualRow);
+    }
   }
 
   /**
