@@ -67,21 +67,27 @@ the report. The `handsontable` ranges in `package.json` go to that newest known 
 
 ### Install from the repository
 
-The package is not on npm yet. Three ways to run it from the repository are candidates. Treat all three as
-**UNVERIFIED** until the first push of the branch confirms them. Replace `<branch>` with the branch name.
+The package is not on npm yet. Run it from the repository with pnpm, which installs the `codemod` directory of a
+branch on its own. Replace `<branch>` with the branch name. Both forms were checked with pnpm 10.33.
 
 ```bash
-# UNVERIFIED: pnpm
+# Run once without installing
 pnpm dlx "github:handsontable/handsontable#<branch>&path:/codemod" migrate --from 17.1 --dry-run
 
-# UNVERIFIED: npm 11.10 or later
-npx "github:handsontable/handsontable#<branch>::path:codemod" migrate --from 17.1 --dry-run
+# Or add it to a project
+pnpm add -D "github:handsontable/handsontable#<branch>&path:/codemod"
+pnpm exec handsontable-codemod migrate --from 17.1 --dry-run
+```
 
-# UNVERIFIED: a tarball. Run `npm pack` in the codemod directory, then install the file it prints.
+npm cannot install the package from the repository. `npm install "github:handsontable/handsontable#<branch>::path:codemod"`
+prepares the repository root first and stops at the pnpm `catalog:` protocol (checked with npm 12.2). With npm, use a
+tarball: run `npm pack` in the `codemod` directory of a clone, then install the file it prints.
+
+```bash
 npx --package ./handsontable-codemod-0.1.0.tgz handsontable-codemod migrate --from 17.1 --dry-run
 ```
 
-The form that always works is a local clone:
+A local clone also works:
 
 ```bash
 git clone https://github.com/handsontable/handsontable.git
