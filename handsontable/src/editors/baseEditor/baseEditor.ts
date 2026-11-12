@@ -18,6 +18,7 @@ import {
 } from '../../helpers/dom/element';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { collectSelectionFillChanges, selectionFillsOtherCells } from '../../selection/fillSelection';
+import { markEditorSaveChangeSets } from './editorSaveChangeSets';
 
 export const EDITOR_TYPE = 'base';
 
@@ -600,7 +601,7 @@ export class BaseEditor {
       this.state = EDITOR_STATE.WAITING;
 
       if (!this.hot.getCellValidator(this.cellProperties)) {
-        this.saveValue([[value]], ctrlDown);
+        markEditorSaveChangeSets(this.hot, () => this.saveValue([[value]], ctrlDown));
 
         // A listener of the save (`beforeChange`, `afterChange`, ...) destroyed the grid, and the
         // editor's DOM went with it.
@@ -685,7 +686,7 @@ export class BaseEditor {
     this.hot.addHook('beforeValidate', onBeforeValidate);
 
     try {
-      this.saveValue([[value]], ctrlDown);
+      markEditorSaveChangeSets(this.hot, () => this.saveValue([[value]], ctrlDown));
     } finally {
       if (!this.hot.isDestroyed) {
         this.hot.removeHook('beforeValidate', onBeforeValidate);

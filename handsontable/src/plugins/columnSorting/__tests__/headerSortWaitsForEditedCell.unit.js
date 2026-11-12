@@ -380,6 +380,35 @@ describe.each([
     expect(hot.getSourceDataAtCol(2)).toEqual(['c0', 'zzz', 'c2', 'c3', 'c4', 'c5']);
   });
 
+  it('should not wait for an API write whose validator never answers', async() => {
+    buildGrid({
+      cells: (row, col) => (col === 0 ? { validator() {} } : {}),
+    });
+    hot.setDataAtCell(0, 0, 'x');
+    await flush();
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+
+  it('should not wait for an API write whose async validator is in flight, as develop', async() => {
+    buildGrid();
+    hot.setDataAtCell(1, 0, 'zzz');
+    await flush();
+
+    expect(held).toHaveLength(1);
+
+    pressHeader(1);
+    releaseHeader(1);
+    await flush();
+
+    // Not proof the write lands on its record: an API write that waits is written by visual row after the sort
+    // (a known limit, as on develop). Only an editor save holds the sort.
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+
   it('should wait for the edited cell on an unchanged edit, which validates the stored value', async() => {
     buildGrid();
     editCell(1, 'p1');

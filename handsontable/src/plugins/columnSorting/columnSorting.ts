@@ -51,6 +51,7 @@ import {
 import type { PositionComparatorFactory } from './sortService';
 import type { HotInstance } from '../../core/types';
 import type { CellChange } from '../../settings';
+import { getWaitingEditorSaveChangeSets } from '../../editors/baseEditor/editorSaveChangeSets';
 import { A11Y_SORT } from '../../helpers/a11y';
 import { LICENSE } from './feature.generated';
 
@@ -1576,13 +1577,15 @@ export class ColumnSorting extends BasePlugin {
     // The validator is read from the editor's cell meta, the cell its save validates: a
     // `modifyGetCellCoords` listener can redirect the save away from the cell the editor was opened on.
     //
-    // The change sets core still holds unwritten are read from the grid, not from an editor: the press has
+    // The editor saves core still holds unwritten are read from the grid, not from an editor: the press has
     // already prepared the clicked column's editor, which can be another instance than the one that saved,
     // and core applies a Ctrl+Enter fill only once every cell of it answered, after the edited cell's own
-    // answer closed the editor. A set that waits is written by visual row, so the sort waits for it.
+    // answer closed the editor. A set that waits is written by visual row, so the sort waits for it. Only sets
+    // an editor save made count (marked at the save): an API write waits for nobody, as before, so its
+    // never-answering validator cannot block every later sort.
     const editorToWaitFor = activeEditor?.isOpened() && this.hot.getCellValidator(activeEditor.cellProperties) ?
       activeEditor : null;
-    const waitingSets = this.hot._getWaitingChangeSets().map(({ changes }) => changes);
+    const waitingSets = getWaitingEditorSaveChangeSets(this.hot);
 
     if (editorToWaitFor !== null || waitingSets.length > 0) {
       press.validation = this.#waitForEditor(press, editorToWaitFor, waitingSets);
@@ -1652,7 +1655,8 @@ export class ColumnSorting extends BasePlugin {
 
   /**
    * Waits until the editor open at press time stops waiting for its validator, and core has written or
-   * dropped every change set that waited for its validators at press time (`_getWaitingChangeSets()`).
+   * dropped every change set an editor save made that waited for its validators at press time
+   * (`getWaitingEditorSaveChangeSets()`).
    *
    * The editor decides which answer is its own: the edited cell's, the first one among the cells a
    * single-cell save validated when that never was the edited cell, or the first one of any cell when its
@@ -1662,9 +1666,11 @@ export class ColumnSorting extends BasePlugin {
    * The sets are read from the grid at press time, not from the editor: a Ctrl+Enter fill is written only
    * once every cell of it answered, after the edited cell's answer ended the editor's wait, the press has
    * already prepared the clicked column's editor (another instance when the editor class differs), and a
-   * later save must not make the sort forget a set. A set that waits is written by visual row, any set, so
-   * the sort waits for all of them. A set leaves core's list before its last answer's `postAfterValidate`,
-   * so this listener sees it gone in that run. Sets made after the press do not hold the sort.
+   * later save must not make the sort forget a set. The sets are marked at the save, so the editor that is
+   * active at press time does not matter. An API write's set does not hold the sort, as before: a validator
+   * of one that never answers would block every later sort. A set leaves core's list before its last
+   * answer's `postAfterValidate`, so this listener sees it gone in that run. Sets made after the press do
+   * not hold the sort.
    *
    * The listener's `orderIndex` is the highest as a defensive measure, so an editor listener added after
    * this one would still decide first. In the flows measured the editor is already done before
@@ -1674,7 +1680,7 @@ export class ColumnSorting extends BasePlugin {
    *
    * @param {HeaderSortPress} press The press that waits.
    * @param {BaseEditor|null} editor The editor that was open at press time and validates, or `null`.
-   * @param {Array[]} waitingSets The change sets core held unwritten at press time.
+   * @param {Array[]} waitingSets The editor saves' change sets core held unwritten at press time.
    * @returns {Promise}
    */
   #waitForEditor(
