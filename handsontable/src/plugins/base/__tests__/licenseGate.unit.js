@@ -1,8 +1,4 @@
-import {
-  SUBSCRIPTION_KEY,
-  FLAGGED_FILTERS_KEY,
-  FLAGGED_FEAT_ALL_KEY,
-} from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
+import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 
 /**
  * The base package: the nine plugins that are on by default.
@@ -34,6 +30,7 @@ const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include t
 describe('BasePlugin license gate', () => {
   let Handsontable;
   let tierKeyWith;
+  let tierKeyWithout;
   let resetTierKeys;
   let consoleError;
   let containers;
@@ -84,8 +81,12 @@ describe('BasePlugin license gate', () => {
     // eslint-disable-next-line global-require
     Handsontable = require('handsontable').default;
     // The tier keys must spy on the plugin classes of the same fresh copy.
-    // eslint-disable-next-line global-require
-    ({ tierKeyWith, resetTierKeys } = require('../../../utils/entitlementLicenseKey/__tests__/tierKeys'));
+    ({
+      tierKeyWith,
+      tierKeyWithout,
+      resetTierKeys,
+      // eslint-disable-next-line global-require
+    } = require('../../../utils/entitlementLicenseKey/__tests__/tierKeys'));
     consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     containers = [];
     grids = [];
@@ -152,15 +153,7 @@ describe('BasePlugin license gate', () => {
       ]);
     });
 
-    it('should enable a plugin whose token the key implies through a listed plugin', () => {
-      const hot = createGrid({ licenseKey: FLAGGED_FILTERS_KEY, filters: true, dropdownMenu: true });
-
-      expect(hot.getPlugin('filters').enabled).toBe(true);
-      expect(hot.getPlugin('dropdownMenu').enabled).toBe(true);
-      expect(missingFeatureErrors()).toEqual([]);
-    });
-
-    it('should not restrict a key without the flag', () => {
+    it('should not restrict a key that names no tier', () => {
       const hot = createGrid({ licenseKey: SUBSCRIPTION_KEY, filters: true, nestedRows: false, mergeCells: true });
 
       expect(hot.getPlugin('filters').enabled).toBe(true);
@@ -465,8 +458,9 @@ describe('BasePlugin license gate', () => {
       expect(hot.getSettings().pagination).toBe(true);
 
       // With both plugins allowed, the conflict holds as before.
+      // A tier that unlocks every registered plugin.
       const covered = createGrid({
-        licenseKey: FLAGGED_FEAT_ALL_KEY,
+        licenseKey: tierKeyWithout([]),
         data: [{ a: 1 }, { a: 2 }],
         pagination: true,
         nestedRows: true,
@@ -491,7 +485,7 @@ describe('BasePlugin license gate', () => {
       ).default;
       const nestedHeaders = [[{ label: 'Group', colspan: 2 }], ['A', 'B']];
       const restricted = createGrid({ licenseKey: baseKey(), nestedHeaders });
-      const covered = createGrid({ licenseKey: FLAGGED_FEAT_ALL_KEY, nestedHeaders });
+      const covered = createGrid({ licenseKey: tierKeyWithout([]), nestedHeaders });
       const copyPastePlugin = { copyWithAllColumnHeaders() {} };
 
       restricted.selectCell(0, 0, 0, 1);

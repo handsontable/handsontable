@@ -26,12 +26,6 @@ const { join } = require('path');
 const TOKEN_RULE = /^[a-z][a-z0-9_]*(?::[a-z0-9_]+(?:\.[a-z0-9_]+)*)?$/;
 
 /**
- * The per-product key flag that marks a key whose capability list is complete. Without it, a key unlocks every
- * feature, which is how every key issued before the manifest keeps working.
- */
-const KEY_FLAG = 'listed-capabilities';
-
-/**
  * The format version of `dist/manifest.json`. A new field or capability keeps it. Removing or renaming a field,
  * changing what a value means, or adding a `kind` or `licensing` value raises it.
  */
@@ -955,7 +949,6 @@ function buildManifest(sources, version) {
     product: PRODUCT,
     version,
     tokenRule: TOKEN_RULE.source,
-    keyFlag: KEY_FLAG,
     tiers: sources.tiers,
     capabilities,
   };
@@ -987,15 +980,13 @@ function toStringLiteral(value) {
  * `src/utils/licenseCapabilities/types.ts`).
  *
  * @param {object} entry The plugin's entry.
- * @param {Map<string, object>} byId Every entry, by id.
- * @returns {{capability: string, name: string, gate: string, implies: string[], tiers: string[]}}
+ * @returns {{capability: string, name: string, gate: string, tiers: string[]}}
  */
-function toPluginLicense(entry, byId) {
+function toPluginLicense(entry) {
   return {
     capability: entry.id,
     name: entry.name,
     gate: entry.gate,
-    implies: computeImplies(entry, byId),
     tiers: entry.tiers,
   };
 }
@@ -1004,16 +995,10 @@ function toPluginLicense(entry, byId) {
  * Renders the `LICENSE` export of a plugin a license key can name.
  *
  * @param {object} entry The plugin's entry.
- * @param {Map<string, object>} byId Every entry, by id.
  * @returns {string[]} The lines.
  */
-function renderLicense(entry, byId) {
-  const { capability, name, gate, implies, tiers } = toPluginLicense(entry, byId);
-  const impliesLines = implies.length === 0 ? ['  implies: Object.freeze([]),'] : [
-    '  implies: Object.freeze([',
-    ...implies.map(id => `    ${toStringLiteral(id)},`),
-    '  ]),',
-  ];
+function renderLicense(entry) {
+  const { capability, name, gate, tiers } = toPluginLicense(entry);
   const tiersLines = tiers.length === 0 ? ['  tiers: Object.freeze([]),'] : [
     '  tiers: Object.freeze([',
     ...tiers.map(tier => `    ${toStringLiteral(tier)},`),
@@ -1022,13 +1007,11 @@ function renderLicense(entry, byId) {
 
   return [
     `// The license token of the ${entry.module} plugin, its display name, where it is checked (\`gate\`), and the`,
-    '// tokens it requires (`implies`), which a license key that lists it grants with it, and the license tiers',
-    '// that include it (`tiers`).',
+    '// license tiers that include it (`tiers`).',
     'export const LICENSE: PluginLicense = Object.freeze({',
     `  capability: ${toStringLiteral(capability)},`,
     `  name: ${toStringLiteral(name)},`,
     `  gate: ${toStringLiteral(gate)},`,
-    ...impliesLines,
     ...tiersLines,
     '});',
     '',
@@ -1066,7 +1049,7 @@ function renderPluginModule(entry, byId) {
   }
 
   if (sold) {
-    lines.push(...renderLicense(entry, byId));
+    lines.push(...renderLicense(entry));
   }
 
   return lines.join('\n');
@@ -1140,9 +1123,6 @@ function renderXlsxLicenseModule(sources) {
       '  ],',
     ]),
     '});',
-    '',
-    '// The per-product key flag that makes a key unlock exactly the tokens it lists (the manifest\'s `keyFlag`).',
-    `export const LISTED_CAPABILITIES_FLAG = '${KEY_FLAG}';`,
     '',
   ].join('\n');
 }
@@ -1289,7 +1269,6 @@ function findStaleOutputs(sources) {
 }
 
 exports.TOKEN_RULE = TOKEN_RULE;
-exports.KEY_FLAG = KEY_FLAG;
 exports.FIRST_RELEASE = FIRST_RELEASE;
 exports.REGISTRIES = REGISTRIES;
 exports.GENERATED_MODULE_NAME = GENERATED_MODULE_NAME;

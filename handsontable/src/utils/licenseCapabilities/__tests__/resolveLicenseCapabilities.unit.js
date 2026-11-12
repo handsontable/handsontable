@@ -7,12 +7,12 @@ import {
   hasLicenseCapability,
 } from 'handsontable/utils/licenseCapabilities';
 import { registerAsRootInstance } from 'handsontable/utils/rootInstance';
+import { resolveXlsxEntitlement } from 'handsontable/utils/xlsxEngine/xlsxEntitlement';
 import {
   SUBSCRIPTION_KEY,
   TRIAL_KEY,
   V1_TRIAL_KEY,
-  FLAGGED_FILTERS_KEY,
-  FLAGGED_FEAT_ALL_KEY,
+  FLAGGED_BASE_KEY,
   UNFLAGGED_WITH_TOKENS_KEY,
 } from '../../entitlementLicenseKey/__tests__/fixtures';
 import { buildTestKey } from '../../entitlementLicenseKey/__tests__/buildTestKey';
@@ -53,7 +53,7 @@ function createTierStub(pluginKey, capability, tiers) {
     }
 
     static get LICENSE() {
-      return { capability, name: 'Tier stub', gate: 'enable', implies: [], tiers };
+      return { capability, name: 'Tier stub', gate: 'enable', tiers };
     }
   };
 }
@@ -93,6 +93,24 @@ const FOREIGN_TIER_KEY = buildTestKey({
 });
 
 /**
+ * A key that names a tier no feature lists, and beside it feature ids, the `<namespace>:all` tokens and
+ * the retired `listed-capabilities` flag. Only the tier counts, so it unlocks nothing.
+ *
+ * @type {string}
+ */
+const TIER_AND_IDS_KEY = buildTestKey({
+  products: {
+    handsontable: {
+      capabilities: ['core', 'tier:zz_unknown', 'feat:filters', 'feat:all', 'xlsx:all'],
+      release_until: '2099-12-31',
+      notice: 60,
+      grace: 90,
+      flags: ['listed-capabilities'],
+    },
+  },
+});
+
+/**
  * A stand-in for a grid: the helper reads only the settings and whether the object is a root grid.
  *
  * @param {*} licenseKey The `licenseKey` setting.
@@ -126,7 +144,8 @@ describe('resolveLicenseCapabilities()', () => {
     ['an unflagged subscription key (lists only core)', SUBSCRIPTION_KEY],
     ['an unflagged trial key', TRIAL_KEY],
     ['an unflagged trial key in the first format', V1_TRIAL_KEY],
-    ['an unflagged key that lists tokens', UNFLAGGED_WITH_TOKENS_KEY],
+    ['a key with the retired listed-capabilities flag and no tier', FLAGGED_BASE_KEY],
+    ['a key that lists feature ids and no tier', UNFLAGGED_WITH_TOKENS_KEY],
   ])('should unlock everything for %s', (_, licenseKey) => {
     const hot = gridWithKey(licenseKey);
 
@@ -135,36 +154,15 @@ describe('resolveLicenseCapabilities()', () => {
     expect(hasLicenseCapability(hot, 'feat:a_token_no_release_has_yet')).toBe(true);
   });
 
-  it('should unlock core and the plugins of the tier a key names', () => {
+  it('should unlock the plugins of the tier a key names', () => {
     const hot = gridWithKey(tierKeyWith(BASE_FEATURES));
     const capabilities = resolveLicenseCapabilities(hot);
 
     expect(capabilities).toBeInstanceOf(Set);
-    expect(hasLicenseCapability(hot, 'core')).toBe(true);
     expect(hasLicenseCapability(hot, 'feat:copy_paste')).toBe(true);
     expect(hasLicenseCapability(hot, 'feat:undo_redo')).toBe(true);
     expect(hasLicenseCapability(hot, 'feat:export_file')).toBe(true);
     expect(hasLicenseCapability(hot, 'feat:filters')).toBe(false);
-    expect(hasLicenseCapability(hot, 'feat:nested_rows')).toBe(false);
-  });
-
-  it('should unlock a whole namespace through its "all" token', () => {
-    const hot = gridWithKey(FLAGGED_FEAT_ALL_KEY);
-
-    expect(hasLicenseCapability(hot, 'feat:filters')).toBe(true);
-    expect(hasLicenseCapability(hot, 'feat:nested_rows')).toBe(true);
-    expect(hasLicenseCapability(hot, 'feat:a_token_no_release_has_yet')).toBe(true);
-    expect(hasLicenseCapability(hot, 'cell:dropdown')).toBe(true);
-    expect(hasLicenseCapability(hot, 'xlsx:import')).toBe(false);
-  });
-
-  it('should grant what a listed plugin requires, through the registered plugin classes', () => {
-    const hot = gridWithKey(FLAGGED_FILTERS_KEY);
-
-    // FLAGGED_FILTERS_KEY lists `feat:filters` and none of the plugins Filters requires.
-    expect(hasLicenseCapability(hot, 'feat:filters')).toBe(true);
-    expect(hasLicenseCapability(hot, 'feat:dropdown_menu')).toBe(true);
-    expect(hasLicenseCapability(hot, 'feat:hidden_rows')).toBe(true);
     expect(hasLicenseCapability(hot, 'feat:nested_rows')).toBe(false);
   });
 
@@ -249,6 +247,19 @@ describe('a key that names a tier', () => {
 
   it('should ignore a tier token in another product\'s entry', () => {
     expect(resolveLicenseCapabilities(gridWithKey(FOREIGN_TIER_KEY))).toBe('all');
+  });
+
+  it('should not unlock a feature a key lists by id beside its tier', () => {
+    // buildTestKey: capabilities ['core', 'tier:zz_unknown', 'feat:filters', 'feat:all', 'xlsx:all'],
+    // flags ['listed-capabilities'].
+    const hot = gridWithKey(TIER_AND_IDS_KEY);
+
+    expect(hasLicenseCapability(hot, 'feat:filters')).toBe(false);
+    expect(resolveXlsxEntitlement(_getLicenseState(TIER_AND_IDS_KEY).tiers).export).toBe(false);
+  });
+
+  it('should expose no grants on the license state', () => {
+    expect(_getLicenseState(SUBSCRIPTION_KEY)).not.toHaveProperty('grants');
   });
 
   it('should expose the tiers of a key on its license state', () => {

@@ -5,16 +5,12 @@ import {
   getProductEntitlement,
   classifyEntitlement,
   resolveChannels,
-  getLicenseGrants,
-  UNRESTRICTED_GRANTS,
   HANDSONTABLE_PRODUCT,
-  LISTED_CAPABILITIES_FLAG,
   BADGE_FLAG,
 } from '../utils/entitlementLicenseKey';
 import { getKeyTiers } from '../utils/licenseCapabilities/tiers';
 import type {
   LicenseLifecycle,
-  LicenseGrants,
   LicenseChannels,
   ProductEntitlement,
 } from '../utils/entitlementLicenseKey';
@@ -247,7 +243,7 @@ type EntitlementConsoleNotification = {
 };
 
 /**
- * Builds the message for the features a license key that lists its features leaves out: the console
+ * Builds the message for the features the tiers of a license key leave out: the console
  * text and the bar parts. One message names every missing feature. The console text, which is also
  * what a refused call throws, names each as `<display name> (<token>)` for the developer; the bar,
  * which the end user can see, names each by its display name only. Transcribed from the license
@@ -604,23 +600,22 @@ export interface LicenseLifecycleFacet {
 export type LicenseStateKey = LicenseLifecycleFacet['state'];
 
 /**
- * The resolved license state handed to the UI and (later) the feature gates: the lifecycle facet
- * (what the license IS right now), the channels it leaves open (where it may say so), and the
- * grants facet (what it UNLOCKS). `grants` is never null - the same query API serves legacy keys
- * (unlock everything) and entitlement keys (unlock what the payload lists). `badge` says the
- * Handsontable entry carries the `badge` flag - the "Powered by" bar the licensee agreed to show. It is
- * branding, not a channel, so no silencing flag closes it; every key outside the entitlement format,
- * and an unreadable one, has none.
+ * The resolved license state handed to the UI and the feature gates: the lifecycle facet (what the
+ * license IS right now), the channels it leaves open (where it may say so), and the tiers it names
+ * (what it UNLOCKS). `badge` says the Handsontable entry carries the `badge` flag - the "Powered by"
+ * bar the licensee agreed to show. It is branding, not a channel, so no silencing flag closes it;
+ * every key outside the entitlement format, and an unreadable one, has none.
  */
 export interface LicenseStateDescriptor {
   lifecycle: LicenseLifecycleFacet;
   channels: LicenseChannels;
-  grants: LicenseGrants;
   badge: boolean;
   /**
-   * The license tiers the Handsontable entry names (`tier:<name>` tokens), in order. `null` for every
-   * key outside the entitlement format, an unreadable or foreign one, the `*.handsontable.com` bypass,
-   * and an entry that names no tier.
+   * The license tiers the Handsontable entry names (`tier:<name>` tokens), in order. Only a tier
+   * restricts: `null` (no tier) unlocks every feature, and a list unlocks the features whose tiers
+   * contain one of its tiers. It is `null` for every key outside the entitlement format, an unreadable
+   * or foreign one, the `*.handsontable.com` bypass, and an entry that names no tier. Any other token
+   * the entry lists (`core`, a feature id, a `<namespace>:all`) and every flag are ignored for gating.
    */
   tiers: readonly string[] | null;
 }
@@ -693,11 +688,13 @@ function _classifyLegacyKey(key?: string, releaseDate?: string): LicenseLifecycl
 }
 
 /**
- * Resolves the full license state (lifecycle + channels + grants) of a license key. This is the
- * single entry point shared by the console/DOM notification and the branding UI, so the key is
- * classified once. A key outside the entitlement format, and an unreadable one, resolve to
- * UNRESTRICTED grants on purpose: introducing capability gating must never take a feature away from
- * an existing customer, and an invalid key nags - it does not strip features.
+ * Resolves the full license state (lifecycle + channels + tiers) of a license key. This is the
+ * single entry point shared by the console/DOM notification, the branding UI and the feature gates,
+ * so the key is classified once. Only the `tier:<name>` tokens of the Handsontable entry restrict
+ * (`tiers`). A key outside the entitlement format, an unreadable one, and every key that names no
+ * tier resolve to `tiers: null`, which unlocks everything on purpose: introducing feature gating must
+ * never take a feature away from an existing customer, and an invalid key nags - it does not strip
+ * features.
  *
  * @param {string} [rawKey] The license key from the grid settings, trimmed here before any classification.
  * @param {string} [releaseDate] The build release date ("dd/mm/yyyy").
@@ -716,7 +713,6 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
     return {
       lifecycle: _nonEntitlementLifecycle('legacy_valid'),
       channels: OPEN_CHANNELS,
-      grants: UNRESTRICTED_GRANTS,
       badge: false,
       tiers: null,
     };
@@ -726,7 +722,6 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
     return {
       lifecycle: _classifyLegacyKey(key, releaseDate),
       channels: OPEN_CHANNELS,
-      grants: UNRESTRICTED_GRANTS,
       badge: false,
       tiers: null,
     };
@@ -738,14 +733,13 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
   // key on its own: one install can be licensed for one product and not for another.
   const entitlement = keyData === null ? null : getProductEntitlement(keyData, HANDSONTABLE_PRODUCT);
 
-  // The grants of an unreadable or foreign key stay UNRESTRICTED - this case must NOT fall through
-  // to `getLicenseGrants`, or an invalid key would report Handsontable as not-granted, the opposite
-  // of the guarantee that an invalid key unlocks everything.
+  // An unreadable or foreign key names no tier, so it unlocks everything - this case must NOT fall
+  // through to the tier read, or an invalid key could restrict, the opposite of the guarantee that an
+  // invalid key unlocks everything.
   if (keyData === null || entitlement === null) {
     return {
       lifecycle: _nonEntitlementLifecycle('invalid'),
       channels: OPEN_CHANNELS,
-      grants: UNRESTRICTED_GRANTS,
       badge: false,
       tiers: null,
     };
@@ -762,25 +756,9 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
   return {
     lifecycle,
     channels: resolveChannels(entitlement),
-    // The flag rule: only a key whose Handsontable entry carries `listed-capabilities` restricts.
-    // Every key issued before the flag lists only `core`, and the reader answers "not granted" for
-    // every token such a key leaves out - read without this check, it would turn off every paid
-    // feature of every customer.
-    grants: _listsCapabilities(entitlement) ? getLicenseGrants(keyData) : UNRESTRICTED_GRANTS,
     badge: _carriesBadge(entitlement),
     tiers: getKeyTiers(entitlement.capabilities),
   };
-}
-
-/**
- * Tells whether a product entry says its capability list is complete (the `listed-capabilities`
- * flag). Without the flag, a Handsontable key unlocks every feature.
- *
- * @param {ProductEntitlement} entitlement The Handsontable entry of a verified key.
- * @returns {boolean}
- */
-function _listsCapabilities(entitlement: ProductEntitlement): boolean {
-  return entitlement.flags.indexOf(LISTED_CAPABILITIES_FLAG) !== -1;
 }
 
 /**

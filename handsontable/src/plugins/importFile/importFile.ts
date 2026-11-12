@@ -1292,10 +1292,9 @@ export class ImportFile extends BasePlugin {
   /**
    * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
    * configured in `engines`. An engine of unknown shape reads nothing and answers `false`. `'xlsx'` also
-   * answers `false` whenever an xlsx import would throw for the license: when the license key lists
-   * its features without `feat:import_file`, the plugin's own token, and when it carries the
-   * `listed-capabilities` flag without listing `xlsx:import`. A key without that flag is not
-   * restricted.
+   * answers `false` whenever an xlsx import would throw for the license: when the license key names
+   * tiers and none of them includes `feat:import_file`, the plugin's own feature, or `xlsx:import`.
+   * A key that names no tier is not restricted.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean}
@@ -1342,7 +1341,7 @@ export class ImportFile extends BasePlugin {
    *   data: importFile.convertToInferredTypes(rows, result),
    * });
    * ```
-   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
+   * @throws {Error} When the license key names tiers that leave out Import from file.
    */
   inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferColumnTypesResult {
     assertLicensedCall(this.hot, LICENSE);
@@ -1357,7 +1356,7 @@ export class ImportFile extends BasePlugin {
    * local date and time. A value the column cannot read, such as a `Total` row, is kept as it is, so the
    * cell type's validator marks it. When the result found a header row, that row is left out.
    * `data` itself is not changed.
-   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
+   * @throws {Error} When the license key names tiers that leave out Import from file.
    */
   convertToInferredTypes<T extends InferenceData>(data: T, result: InferColumnTypesResult): ConvertedData<T> {
     assertLicensedCall(this.hot, LICENSE);
@@ -1382,7 +1381,7 @@ export class ImportFile extends BasePlugin {
    * @param {ArrayBuffer|ArrayBufferView} buffer The file's bytes.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
-   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
+   * @throws {Error} The returned promise rejects when the license key names tiers that leave out Import from file.
    */
   async importFromArrayBuffer(
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
@@ -1417,7 +1416,7 @@ export class ImportFile extends BasePlugin {
    * @param {Blob} blob The file.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
-   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
+   * @throws {Error} The returned promise rejects when the license key names tiers that leave out Import from file.
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
     assertLicensedCall(this.hot, LICENSE);
@@ -1592,8 +1591,7 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Rejects an xlsx import when the license key carries the `listed-capabilities` flag without
-   * listing `xlsx:import`.
+   * Rejects an xlsx import when the license key names tiers and none of them includes `xlsx:import`.
    * Runs right after `#assertEnabled()`, before any engine detection or file read.
    */
   #assertLicensed(format: string): void {

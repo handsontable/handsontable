@@ -235,6 +235,10 @@ export const V1_TRIAL_KEY = `This is a Handsontable license key for Test Fixture
  * were issued with that list emptied - the only change to the default schema. Every key is a
  * perpetual license with maintenance until 2099-12-31 (except the last), so no test depends on
  * the clock, and the base package is the nine plugins that are on by default.
+ *
+ * The flag and the feature ids are retired: only a `tier:<name>` token restricts a key now. None of
+ * these keys names a tier, so each one unlocks every feature; the descriptions below say what the
+ * generator was asked to issue, not what the key unlocks today.
  */
 
 /**

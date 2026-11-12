@@ -91,6 +91,3 @@ export const XLSX_TIERS_BY_ID: Readonly<Record<string, string[]>> = Object.freez
     'professional',
   ],
 });
-
-// The per-product key flag that makes a key unlock exactly the tokens it lists (the manifest's `keyFlag`).
-export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';

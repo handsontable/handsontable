@@ -8,15 +8,11 @@ export const PLUGIN_DEPS: readonly string[] = [
 ];
 
 // The license token of the Loading plugin, its display name, where it is checked (`gate`), and the
-// tokens it requires (`implies`), which a license key that lists it grants with it, and the license tiers
-// that include it (`tiers`).
+// license tiers that include it (`tiers`).
 export const LICENSE: PluginLicense = Object.freeze({
   capability: 'feat:loading',
   name: 'Loading',
   gate: 'enable',
-  implies: Object.freeze([
-    'feat:dialog',
-  ]),
   tiers: Object.freeze([
     'standard',
     'professional',

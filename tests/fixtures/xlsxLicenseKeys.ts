@@ -7,11 +7,8 @@ import { SUBSCRIPTION_KEY } from '../../handsontable/src/utils/entitlementLicens
 
 export {
   ALL_XLSX_TOKENS,
-  LISTED_CAPABILITIES_FLAG,
-  keyWith,
-  keyWithAll,
-  keyWithout,
   keyWithoutFlag,
+  keyWithTier,
 } from '../../handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 /**

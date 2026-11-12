@@ -11,8 +11,6 @@ import { loadFixture as fixture } from '../../../utils/xlsxEngine/__tests__/help
 import * as consoleHelpers from '../../../helpers/console';
 import {
   ALL_XLSX_TOKENS,
-  keyWith,
-  keyWithAll,
   keyWithoutFlag,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
@@ -654,13 +652,6 @@ describe('ImportFile license report', () => {
     ]);
   });
 
-  it('treats an xlsx:import_report token as granting nothing more', async() => {
-    const listed = await pluginFor(keyWith([...PARTIAL_TOKENS, 'xlsx:import_report']))
-      .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
-
-    expect(listed.dropped).toEqual(PARTIAL_LOSSY_DROPPED);
-  });
-
   it('never names an export-only token on import', async() => {
     const exportOnlyMissing = await pluginFor(tierKeyWithout(['xlsx:number_formats', 'xlsx:export']))
       .plugin.importFromArrayBuffer('xlsx', fixture('values'));
@@ -669,23 +660,7 @@ describe('ImportFile license report', () => {
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
   });
 
-  it('imports like a full key, and says nothing, for a flagged key that lists xlsx:all', async() => {
-    const full = await pluginFor(keyWith(ALL_XLSX_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
-
-    warnSpy.mockClear();
-
-    const all = await pluginFor(keyWithAll()).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
-
-    expect(all).toEqual(full);
-    expect(licenseEntriesOf(all.dropped)).toEqual([]);
-    expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
-
-    await pluginFor(keyWithAll(['no-console-warns'])).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
-
-    expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
-  });
-
-  it('leaves a key without the listed-capabilities flag unrestricted, whatever it lists', async() => {
+  it('leaves a key that names no tier unrestricted, whatever it lists', async() => {
     const legacy = await pluginFor('non-commercial-and-evaluation')
       .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 

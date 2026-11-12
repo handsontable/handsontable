@@ -4,14 +4,12 @@ import { resolve } from 'path';
 import {
   EXPORT_FILE_CAPABILITY_IDS,
   IMPORT_FILE_CAPABILITY_IDS,
-  LISTED_CAPABILITIES_FLAG,
   XLSX_CAPABILITY_IDS,
   XLSX_FLAG_BY_ID,
   XLSX_TIERS_BY_ID,
 } from '../../src/utils/xlsxEngine/licenseCapabilities.generated';
 
 import {
-  KEY_FLAG,
   RELEASED_FILE,
   XLSX_LICENSE_MODULE_FILE,
   buildCommittedOutputs,
@@ -378,10 +376,6 @@ describe('feature manifest', () => {
       expect(Object.isFrozen(XLSX_FLAG_BY_ID)).toBe(true);
     });
 
-    it('should carry the manifest\'s key flag', () => {
-      expect(LISTED_CAPABILITIES_FLAG).toBe(KEY_FLAG);
-    });
-
     it('should render from the sources, not from a fixed list', () => {
       const changed = withEntry(sources, 'xlsx:protection', entry => ({ ...entry, gate: 'report' }));
       const content = renderXlsxLicenseModule(changed);
@@ -462,10 +456,9 @@ describe('feature manifest', () => {
         schemaVersion: 1,
         product: 'handsontable',
         version: '19.0.0',
-        keyFlag: 'listed-capabilities',
       });
       expect(Object.keys(manifest)).toEqual([
-        'schemaVersion', 'product', 'version', 'tokenRule', 'keyFlag', 'tiers', 'capabilities',
+        'schemaVersion', 'product', 'version', 'tokenRule', 'tiers', 'capabilities',
       ]);
       expect(new RegExp(manifest.tokenRule).test('xlsx:conditional_formatting')).toBe(true);
       expect(manifest.capabilities).toHaveLength(byId.size);
@@ -498,6 +491,14 @@ describe('feature manifest', () => {
 
           expect({ id: entry.id, tiers: [...LICENSE.tiers] }).toEqual({ id: entry.id, tiers: entry.tiers });
         });
+    });
+
+    it('should publish no key flag and render no implies into a plugin LICENSE', () => {
+      expect(buildManifest(sources, '19.0.0')).not.toHaveProperty('keyFlag');
+      buildCommittedOutputs(sources)
+        .filter(({ file }) => file.endsWith('feature.generated.ts'))
+        .forEach(({ file, content }) => expect({ file, hasImplies: content.includes('implies') })
+          .toEqual({ file, hasImplies: false }));
     });
 
     it('should give every xlsx id its tiers', () => {

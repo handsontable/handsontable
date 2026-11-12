@@ -11,8 +11,6 @@ import { dateRenderer } from '../../../renderers/dateRenderer';
 import * as cellStyle from '../types/xlsx/cell-style';
 import {
   ALL_XLSX_TOKENS,
-  keyWith,
-  keyWithAll,
   keyWithoutFlag,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
@@ -721,17 +719,6 @@ describe('Xlsx export license gates', () => {
     expect(full).toEqual(unrestricted);
   });
 
-  it('exports like a full key, and says nothing, for a flagged key that lists xlsx:all', async() => {
-    const full = await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
-    const all = await exportSnapshot(keyWithAll());
-
-    expect(all).toEqual(full);
-
-    await exportSnapshot(keyWithAll(['no-console-warns']));
-
-    expect(warnSpy).not.toHaveBeenCalled();
-  });
-
   it('names only the tokens the export gates in its warning', async() => {
     await exportSnapshot(tierKeyWithout(['xlsx:import']));
 
@@ -746,7 +733,7 @@ describe('Xlsx export license gates', () => {
     ]);
   });
 
-  it('leaves a key without the listed-capabilities flag unrestricted, whatever it lists', async() => {
+  it('leaves a key that names no tier unrestricted, whatever it lists', async() => {
     const unflagged = await exportSnapshot(keyWithoutFlag(PARTIAL_TOKENS));
     const legacy = await exportSnapshot('non-commercial-and-evaluation');
 
