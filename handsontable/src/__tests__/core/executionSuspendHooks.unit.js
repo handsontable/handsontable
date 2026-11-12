@@ -329,6 +329,113 @@ describe('execution suspend hooks', () => {
     });
 
     it.each([
+      ['afterSuspendExecution', [...SUSPEND_PAIR, 'nested', 'callback', ...RESUME_PAIR]],
+      ['beforeResumeExecution', [...SUSPEND_PAIR, 'callback', RESUME_PAIR[0], 'nested', RESUME_PAIR[1]]],
+    ])('should fire no hooks for a balanced batch made from a %s listener', (hookName, expected) => {
+      hot = createHot(container);
+
+      const log = recordExecutionHooks(hot);
+      const batchedMappers = [];
+      let batchedOnce = false;
+
+      hot.addHook(hookName, () => {
+        if (!batchedOnce) {
+          batchedOnce = true;
+          hot.batchExecution(() => {
+            log.push('nested');
+            batchedMappers.push(hot.rowIndexMapper.isBatched, hot.columnIndexMapper.isBatched);
+          });
+        }
+      });
+
+      hot.batchExecution(() => log.push('callback'));
+
+      expect(log).toEqual(expected);
+      // The nested batch joins the suspension in progress, so the mappers stay batched while it runs.
+      expect(batchedMappers).toEqual([true, true]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it('should fire no hooks, and not recurse, for a batch made from a beforeSuspendExecution listener', () => {
+      hot = createHot(container);
+
+      const log = recordExecutionHooks(hot);
+      let batchedOnce = false;
+
+      hot.addHook('beforeSuspendExecution', () => {
+        if (!batchedOnce) {
+          batchedOnce = true;
+          hot.batchExecution(() => log.push('nested'));
+        }
+      });
+
+      hot.batchExecution(() => log.push('callback'));
+
+      expect(log).toEqual(['beforeSuspendExecution', 'nested', 'afterSuspendExecution', 'callback', ...RESUME_PAIR]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it('should not recurse, and keep the counter right, when a beforeSuspendExecution listener always batches', () => {
+      hot = createHot(container);
+
+      let calls = 0;
+
+      hot.addHook('beforeSuspendExecution', () => {
+        calls += 1;
+        hot.batch(() => hot.setCellMeta(0, 0, 'className', 'x'));
+      });
+
+      expect(() => hot.batch(() => {})).not.toThrow();
+      expect(calls).toBe(1);
+      expect(hot.isExecutionSuspended()).toBe(false);
+    });
+
+    it('should not recurse when a beforeResumeExecution listener resumes the execution', () => {
+      hot = createHot(container);
+
+      const log = recordExecutionHooks(hot);
+
+      hot.addHook('beforeResumeExecution', () => hot.resumeExecution());
+      hot.batchExecution(() => log.push('callback'));
+
+      expect(log).toEqual([...SUSPEND_PAIR, 'callback', ...RESUME_PAIR]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+      expect(hot.rowIndexMapper.isBatched).toBe(false);
+
+      // The counter did not go below zero: a later batch still fires one full cycle.
+      log.length = 0;
+      hot.batchExecution(() => {});
+
+      expect(log).toEqual(FULL_CYCLE);
+    });
+
+    it('should keep the execution suspended when a beforeResumeExecution listener leaves a suspension open', () => {
+      hot = createHot(container);
+
+      const log = recordExecutionHooks(hot);
+      let suspendedOnce = false;
+
+      hot.addHook('beforeResumeExecution', () => {
+        if (!suspendedOnce) {
+          suspendedOnce = true;
+          hot.suspendExecution();
+        }
+      });
+
+      hot.batchExecution(() => log.push('callback'));
+
+      // Still suspended: `afterResumeExecution` has not fired, because nothing was released.
+      expect(log).toEqual([...SUSPEND_PAIR, 'callback', 'beforeResumeExecution']);
+      expect(hot.isExecutionSuspended()).toBe(true);
+
+      hot.resumeExecution();
+
+      expect(log).toEqual([...SUSPEND_PAIR, 'callback', 'beforeResumeExecution', ...RESUME_PAIR]);
+      expect(hot.isExecutionSuspended()).toBe(false);
+      expect(hot.rowIndexMapper.isBatched).toBe(false);
+    });
+
+    it.each([
       ['batch', (instance, fn) => instance.batch(fn)],
       ['batchExecution', (instance, fn) => instance.batchExecution(fn)],
       ['safeBatch', (instance, fn) => safeBatch(instance, fn)],

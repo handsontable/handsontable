@@ -2260,6 +2260,10 @@ export const REGISTERED_HOOKS = [
    * Its return value cannot cancel the suspension, but a listener that throws stops it, and the error
    * reaches the caller. The hook does not fire while the instance is being destroyed.
    *
+   * A listener can suspend and resume the execution of the same instance (for example, with
+   * [`batch()`](@/api/core.md#batch)). Those calls belong to the suspension in progress, so they fire no
+   * execution hooks.
+   *
    * @event Hooks#beforeSuspendExecution
    * @since 19.0.0
    * @example
@@ -2357,6 +2361,10 @@ export const REGISTERED_HOOKS = [
    * nested call, and a call while the execution is not suspended fire nothing. It cannot cancel the resume.
    * When a listener throws, the execution still resumes, `afterResumeExecution` still fires, and the error
    * reaches the caller. The hook does not fire while the instance is being destroyed.
+   *
+   * A listener can suspend and resume the execution of the same instance. Those calls belong to the resume in
+   * progress, so they fire no execution hooks. A listener that leaves the execution suspended keeps it
+   * suspended, and `afterResumeExecution` fires with the call that ends it.
    *
    * @event Hooks#beforeResumeExecution
    * @since 19.0.0

@@ -43,6 +43,15 @@ This directory holds the `Hooks` singleton, the per-instance `HooksBucket`, and 
   `afterResumeExecution` (a later throw replaces an earlier one); and `batch()`, `batchExecution()` and
   `safeBatch()` keep `resumeRender()` and `resumeExecution()` in `finally` blocks around the suspend. Renders
   suspend the execution too (AutoColumnSize, AutoRowSize), so a listener that renders re-enters the hooks.
+  A suspend or resume a `before*` listener makes on the same grid fires no hooks
+  (`isRunningBeforeExecutionHook` in `core.ts`): the counter is still unchanged while that listener runs, so
+  the call would fire the hook again and recurse. `resumeExecution()` therefore decrements the LIVE counter
+  after `beforeResumeExecution` and fires `afterResumeExecution` only when the execution is really resumed;
+  a listener that leaves a suspension open keeps the grid suspended and the hook fires with the call that
+  ends it. A throw from `beforeSuspendExecution`/`beforeResumeExecution` clears the flag in a `finally`.
+  When the callback of `batch()`/`batchExecution()`/`safeBatch()` throws and a resume listener throws as well,
+  the listener's error replaces the callback's (`finally` semantics; `suspendExecution()`'s own rollback keeps
+  the original cause).
   Pinned by `src/__tests__/core/executionSuspendHooks.unit.js`.
 
 Pointers:

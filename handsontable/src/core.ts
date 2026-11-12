@@ -536,6 +536,12 @@ export default function Core(
    */
   let isBeingDestroyed = false;
   /**
+   * Set while a `beforeSuspendExecution` or `beforeResumeExecution` listener runs. A suspend or resume the
+   * listener makes on this grid is part of the call that fired it, so it fires no execution hooks (see
+   * `suspendExecution()`).
+   */
+  let isRunningBeforeExecutionHook = false;
+  /**
    * The settings core's own init settings pass applies, while `beforeInit` runs, or `null` outside that
    * window (see `_replaceInitPassSettings()`).
    */
@@ -5213,6 +5219,8 @@ export default function Core(
    * [`beforeSuspendExecution`](@/api/hooks.md#beforesuspendexecution) and
    * [`afterSuspendExecution`](@/api/hooks.md#aftersuspendexecution) hooks. When an `afterSuspendExecution`
    * listener throws, the method resumes the execution (firing the resume hooks) and rethrows the error.
+   * A call a `beforeSuspendExecution` or `beforeResumeExecution` listener makes on the same instance fires no
+   * hooks.
    *
    * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
    * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, but a render in between
@@ -5237,10 +5245,18 @@ export default function Core(
   this.suspendExecution = function(this: HotInstance & CoreInternals) {
     // The hooks report the state change, so a nested call fires nothing. A grid being destroyed fires
     // nothing either: its teardown runs in a `batchExecution()` whose resume comes after `afterDestroy`.
-    const changesState = this.executionSuspendedCounter === 0 && !isBeingDestroyed;
+    // A call a `before*` listener makes fires nothing: the counter is still 0 while that listener runs, so
+    // it would fire the hook again and recurse.
+    const changesState = this.executionSuspendedCounter === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
 
     if (changesState) {
-      this.runHooks('beforeSuspendExecution');
+      isRunningBeforeExecutionHook = true;
+
+      try {
+        this.runHooks('beforeSuspendExecution');
+      } finally {
+        isRunningBeforeExecutionHook = false;
+      }
     }
 
     this.executionSuspendedCounter += 1;
@@ -5307,20 +5323,29 @@ export default function Core(
   this.resumeExecution = function(this: HotInstance & CoreInternals, forceFlushChanges = false) {
     const nextValue = this.executionSuspendedCounter - 1;
     // Only the resume that brings the counter back to 0 changes the state (see `suspendExecution`).
-    const changesState = nextValue === 0 && !isBeingDestroyed;
+    const changesState = nextValue === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
 
     // Each step runs in a `finally`, so a throwing listener (of these hooks or of a cache update) cannot
     // keep the grid or a mapper suspended, and `afterResumeExecution` (where a plugin releases what it held
     // on the suspension) still fires.
     try {
       if (changesState) {
-        this.runHooks('beforeResumeExecution');
+        isRunningBeforeExecutionHook = true;
+
+        try {
+          this.runHooks('beforeResumeExecution');
+        } finally {
+          isRunningBeforeExecutionHook = false;
+        }
       }
     } finally {
-      this.executionSuspendedCounter = Math.max(nextValue, 0);
+      // The counter is read again: a balanced suspend and resume the `beforeResumeExecution` listener made
+      // leaves it where it was, and one it left open keeps the execution suspended (the hook then fires
+      // with the call that ends it).
+      this.executionSuspendedCounter = Math.max(this.executionSuspendedCounter - 1, 0);
 
       try {
-        if ((!this.isExecutionSuspended() && nextValue === this.executionSuspendedCounter) || forceFlushChanges) {
+        if ((!this.isExecutionSuspended() && nextValue >= 0) || forceFlushChanges) {
           try {
             this.columnIndexMapper.resumeOperations();
           } finally {
@@ -5328,7 +5353,7 @@ export default function Core(
           }
         }
       } finally {
-        if (changesState) {
+        if (changesState && !this.isExecutionSuspended()) {
           this.runHooks('afterResumeExecution');
         }
       }
