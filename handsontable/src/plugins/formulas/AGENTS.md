@@ -1133,6 +1133,23 @@ pre-load order as well reordered the sheet twice (a plain `setupSyncEndpoint()` 
 1, 2 and 2 order calls where the tests pin 0, 1 and 1).
 Pinned by `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
 
+**A switch back to a sheet the grid left reads it through the order it was left in** (`#leftSheetOrders`,
+`#rememberLeftSheetOrder()`, `#takeLeftSheetOrder()`). The first visit of a sheet moves its lines in the engine by
+a configured `manualRowMove` / `manualColumnMove` array (or a sort or a drag), and the engine keeps that order
+after the grid leaves. The next `switchSheet()` loaded the sheet in the engine's order as if it were physical, and
+the arrays, re-applied on `afterLoadData`, moved it again: with `[2, 0, 1]`, A, B, A, B rotated each sheet on
+every visit (develop rotated the sheet left, and showed the arriving one with other rows' results, since it sent
+the move to the sheet it left). Now a load that leaves a bound sheet records its engine order when it is not
+physical, and a later load of that sheet reads it back in physical order through the record and takes the order
+over (`#reloadKeepingOrder(data, plan, false)`: the order held, the order the load's listeners apply kept, so the
+re-applied array lands on the order the engine holds and nothing is sent). A record of another engine, or of a
+sheet whose dimensions changed meanwhile (a host insert or removal), is dropped and the sheet loads as the engine
+holds it; a host move that keeps the dimensions is not told apart (grid and engine stay equal, the records show in
+the host's order). A sheet sorted on its last visit shows in its own order again (the load clears the sort) and
+the engine follows. The records are cleared on enable, disable and `destroy()`; the sheets bar's switch holds the
+order itself (`runWithEngineOrderHeld()`), so nothing is recorded or taken while an order hold is open. Pinned by
+`__tests__/switchSheetRevisit.unit.js`.
+
 **Every path that binds or fills a sheet on a live grid sets the sync endpoint up** (DEV-3760). The invariant: no
 order change reaches the axis syncers while they point at no engine sheet. The paths, and what each one does:
 
@@ -1338,9 +1355,12 @@ same sheet id, no `runWithEngineOrderHeld()` running), the reload:
   change set wrote early is part of the snapshot, so a host write over it is a change:
   the load drops the set, and `#onChangesDropped` leaves the host's value, which the engine holds (`leaves the grid
   and the engine agreeing when the host writes a cell a waiting change wrote early`).
-  A grid built with `data` keeps only the load's snapshot, so its writes cost nothing extra; its
-  `switchSheet(<its sheet>)` reloads in place only when nothing wrote the sheet since that load, and takes
-  `loadData()` after any write, as before this path existed. The source rows are not compared any more: two rows
+  **A grid built with `data` keeps no snapshot** (`#recordLoadedSheet()` records one only for a grid built from the
+  sheet), so its writes cost nothing extra and it holds no copy of a sheet it switched to; its
+  `switchSheet(<its sheet>)` takes `loadData()`, as before this path existed. A first version recorded the load's
+  snapshot for it too: never kept in step with its writes, it was a full copy for the grid's lifetime that went
+  stale with the first edit (review of PR #14243; pinned by `keeps no copy of the sheet on a grid built with data
+  after switchSheet()`). The source rows are not compared any more: two rows
   that differ only in formulas (a report sheet reading another sheet), or only by a number against its text,
   passed that comparison when the host moved them. Do not bring it back, and do not bring back a line-count check
   either: the snapshot covers both.

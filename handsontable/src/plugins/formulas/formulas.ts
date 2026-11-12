@@ -727,6 +727,21 @@ export class Formulas extends BasePlugin {
   #sheetBuiltBindingAtDisable: SheetBuiltBinding | null = null;
 
   /**
+   * The engine order each sheet this grid left with `switchSheet()` (or a reload that bound another sheet) was in,
+   * by sheet id, while it was not physical on an axis, with the engine and the sheet's dimensions then. A later
+   * load of that sheet reads it back in physical order through the order and takes the order over
+   * (`#takeLeftSheetOrder()`), so the move plugins' arrays, re-applied on `afterLoadData`, land on the order the
+   * engine already holds. Cleared on enable, on disable and by `destroy()`.
+   */
+  #leftSheetOrders = new Map<number, {
+    engine: HyperFormulaEngine;
+    row: EngineOrder;
+    column: EngineOrder;
+    height: number;
+    width: number;
+  }>();
+
+  /**
    * The `formulas.sheetName` setting the binding last followed (see `#requestedSheetName()`), or
    * `undefined` before the first one.
    *
@@ -1421,6 +1436,7 @@ export class Formulas extends BasePlugin {
     this.#ownSheetExists = null;
     this.#unquotedSheetNames.clear();
     this.#sheetsNotNamingOwnSheet.clear();
+    this.#leftSheetOrders.clear();
 
     if (!this.engine) {
       warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -1696,6 +1712,7 @@ export class Formulas extends BasePlugin {
     // `#notifyEngineDetach()`, whose listeners can still write the sheet.
     this.#sheetBuiltBindingAtDisable = this.#hotWasInitializedWithEmptyData && this.engine && this.sheetId !== null
       && this.#hasOwnSheet() ? this.#keepSheetBuiltBinding(this.engine, this.sheetId) : null;
+    this.#leftSheetOrders.clear();
     // Any other grid's next load of a sheet starts the comparison over; a sheet-built grid's binding above holds the
     // snapshot for its next enable.
     this.#loadedSheetContent = null;
@@ -2018,6 +2035,7 @@ export class Formulas extends BasePlugin {
     this.engine = null;
     this.#ownSheetExists = null;
     this.#sheetBuiltBindingAtDisable = null;
+    this.#leftSheetOrders.clear();
     this.#loadedSheetContent = null;
 
     super.destroy();
@@ -2223,6 +2241,10 @@ export class Formulas extends BasePlugin {
     const keepsOrder = isSameSheetReload && this.#engineOrderHolds === 0
       && this.indexSyncer!.getEngine() === this.engine && this.indexSyncer!.getSheetId() === this.sheetId;
 
+    if (!isSameSheetReload && this.#engineOrderHolds === 0) {
+      this.#rememberLeftSheetOrder();
+    }
+
     this.#updateSheetNameAndSheetId(sheetName);
 
     const sheetContent = this.engine.getSheetSerialized(this.sheetId);
@@ -2233,7 +2255,10 @@ export class Formulas extends BasePlugin {
     // An engine sheet that still holds what this grid left in it cannot have lost a line the grid holds content in,
     // so the plan reads no source row then.
     const isSheetAsLeft = keepsOrder && this.#isSheetAsLeft(sheetContent, previousContent);
-    const reload = keepsOrder ? this.#planReload(unescaped, isSheetAsLeft) : null;
+    // A sheet this grid left in a non-physical engine order is read back in physical order through that order, as a
+    // reload that keeps the order is.
+    const revisit = !isSameSheetReload && this.#engineOrderHolds === 0 ? this.#takeLeftSheetOrder(unescaped) : null;
+    const reload = keepsOrder ? this.#planReload(unescaped, isSheetAsLeft) : revisit;
     const physical = reload === null ? unescaped : this.#toPhysicalOrder(unescaped, reload);
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
@@ -2244,6 +2269,15 @@ export class Formulas extends BasePlugin {
     const serialized = this.#isColumnCountCappedBySettings(padded[0]?.length ?? 0)
       ? trimTrailingEmptyCells(physical) : padded;
     const loadsData = serialized.length > 0;
+
+    if (revisit !== null && loadsData) {
+      this.#recordLoadedSheet(sheetContent);
+      // The grid's order is the one the load's listeners apply: the move plugins re-apply their arrays onto the rows
+      // in physical order, which is the order the engine holds, so nothing is sent.
+      this.#reloadKeepingOrder(serialized, revisit, false);
+
+      return;
+    }
 
     if (reload !== null && loadsData) {
       // Only a sheet nothing but this grid changed since the grid loaded it is reloaded in place. Any other change
@@ -2277,6 +2311,72 @@ export class Formulas extends BasePlugin {
     if (loadsData) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
     }
+  }
+
+  /**
+   * Records the engine order of the bound sheet a load is about to leave (`#leftSheetOrders`), while the syncers
+   * are synced with it and the order is not physical; a physical order drops the record.
+   */
+  #rememberLeftSheetOrder(): void {
+    if (this.engine === null || this.sheetId === null || this.indexSyncer?.getEngine() !== this.engine
+      || this.indexSyncer.getSheetId() !== this.sheetId) {
+      return;
+    }
+
+    const order = this.exportEngineOrder();
+
+    if (order === null) {
+      this.#leftSheetOrders.delete(this.sheetId);
+
+      return;
+    }
+
+    const { height, width } = this.engine.getSheetDimensions(this.sheetId);
+
+    this.#leftSheetOrders.set(this.sheetId, {
+      engine: this.engine, row: order.rowOrder, column: order.columnOrder, height, width,
+    });
+  }
+
+  /**
+   * Takes the record of the bound sheet out of `#leftSheetOrders` and plans its load through it: each axis is read
+   * back in physical order through the recorded order, which the load then takes over. A record of another engine,
+   * or of a sheet whose dimensions changed since the grid left it (a host that inserted or removed lines), describes
+   * nothing the engine holds now, and the sheet is loaded as the engine holds it. A host move that keeps the
+   * dimensions is not told apart: the grid then shows that sheet's records in another order, grid and engine equal.
+   *
+   * Before DEV-3760 the sheet loaded in the engine's order, and the move plugins' arrays, re-applied on
+   * `afterLoadData`, moved it again on every visit (`manualRowMove: [2, 0, 1]` rotated the sheet per visit).
+   *
+   * @param {Array<Array<*>>} rows The sheet content, in engine order.
+   * @returns {object|null}
+   */
+  #takeLeftSheetOrder(rows: unknown[][]): { row: ReloadAxis; column: ReloadAxis } | null {
+    const record = this.sheetId === null ? undefined : this.#leftSheetOrders.get(this.sheetId);
+
+    if (record === undefined) {
+      return null;
+    }
+
+    this.#leftSheetOrders.delete(this.sheetId!);
+
+    const { height, width } = this.engine!.getSheetDimensions(this.sheetId!);
+
+    if (record.engine !== this.engine || record.height !== height || record.width !== width) {
+      return null;
+    }
+
+    const planAxis = (order: EngineOrder, engineLength: number): ReloadAxis => ({
+      order,
+      elements: listEngineElements(order.sequence, order.fillSequence, Math.max(engineLength, order.sequence.length)),
+      previousSequence: [],
+      stale: false,
+    });
+
+    return {
+      row: planAxis(record.row, rows.length),
+      column: planAxis(record.column, widestRowLength(rows)),
+    };
   }
 
   /**
@@ -2430,9 +2530,19 @@ export class Formulas extends BasePlugin {
    * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returned it.
    */
   #recordLoadedSheet(sheetContent: unknown[][]): void {
+    this.#foreignSheetChange = false;
+
+    // Only a grid built from the sheet keeps the snapshot in step with its own writes (`#trackOwnEngineWrite()`). A
+    // grid built with `data` that switched sheets held a full copy that went stale with its first edit, after which
+    // every `switchSheet()` to that sheet compared against it only to take `loadData()`; it takes it at once now.
+    if (!this.#hotWasInitializedWithEmptyData) {
+      this.#loadedSheetContent = null;
+
+      return;
+    }
+
     // A copy: the rows the grid loads can be the very arrays the engine returned, and the grid writes into them.
     this.#loadedSheetContent = sheetContent.map(row => row.slice());
-    this.#foreignSheetChange = false;
   }
 
   /**
@@ -2683,10 +2793,16 @@ export class Formulas extends BasePlugin {
    * An axis whose recorded order no longer describes the engine sheet (`#planReloadAxis()`) is read as the
    * engine holds it instead, and the grid shows it in that order.
    *
+   * A switch back to a sheet the grid left (`#takeLeftSheetOrder()`) loads it the same way, but keeps the order the
+   * load's listeners applied (`putBackOrder` `false`): the grid's order before the load belongs to the sheet it left.
+   *
    * @param {Array<Array<*>>} data The sheet content, in physical order.
    * @param {object} reload The plan of both axes (`#planReload()`).
+   * @param {boolean} [putBackOrder=true] Whether to put the grid's order before the load back.
    */
-  #reloadKeepingOrder(data: unknown[][], reload: { row: ReloadAxis; column: ReloadAxis }): void {
+  #reloadKeepingOrder(
+    data: unknown[][], reload: { row: ReloadAxis; column: ReloadAxis }, putBackOrder: boolean = true,
+  ): void {
     this.runWithEngineOrderHeld(() => {
       this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId, false);
       this.#reloadEngineOrder = { row: reload.row.order, column: reload.column.order };
@@ -2714,8 +2830,10 @@ export class Formulas extends BasePlugin {
         }
       };
 
-      putBack(this.hot.rowIndexMapper, reload.row.previousSequence);
-      putBack(this.hot.columnIndexMapper, reload.column.previousSequence);
+      if (putBackOrder) {
+        putBack(this.hot.rowIndexMapper, reload.row.previousSequence);
+        putBack(this.hot.columnIndexMapper, reload.column.previousSequence);
+      }
 
       if (!this.rowAxisSyncer!.isEngineOrderPhysical() || !this.columnAxisSyncer!.isEngineOrderPhysical()) {
         this.#sourceHasStaleFormulas = this.#sourceHasStaleFormulas || this.#engineHoldsFormula();
