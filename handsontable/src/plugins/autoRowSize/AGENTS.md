@@ -120,9 +120,12 @@ the text (DEV-986). The measurement was not lost: the hidden top-left row was me
   `tests/e2e/auto-row-size-merged-hidden-origin.spec.ts`. The E2E block below the fold is the case that fails without
   the comparison; the cases in view pass without it, because a full render measures them anyway.
 - **Not covered:** a merge drawn by `virtualized` from a row the viewport moved it to, and a block drawn on the bottom
-  overlay's first row; both are drawn on a cell this rule does not name. A merge that re-anchors onto a row that holds
-  the text after a trim or filter, where the new top-left cell still carries the `hidden` flag it had as a covered cell,
-  is skipped by the sampler's `hidden` check and drifts the same way; that is a MergeCells meta defect, not this rule.
+  overlay's first row; both are drawn on a cell this rule does not name.
+- **A merge that a trim, a filter, or the removal of its first row re-anchors needs no rule here.** The cell it is drawn from afterwards held `hidden`
+  while the merge covered it, and the sampler skips every cell with `hidden`, so its text was never measured. MergeCells
+  now removes the flag from the new top-left cell when it re-anchors (see "Trimming re-anchors a merge, and clips it"
+  in `../mergeCells/AGENTS.md`), so the sampler sees an ordinary cell. Pinned by
+  `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
 
 ## `updateSettings` does not recalculate — with one exception
 

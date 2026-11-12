@@ -954,7 +954,7 @@ type NamedExpressionPredicate = (name: string, expression: string) => boolean;
  * the result is about to be applied to.
  *
  * Handsontable resolves `layoutDirection` once, while the instance is built, and `metaSchema.ts`
- * documents that a later `updateSettings` is ignored, so the applier cannot follow the workbook's
+ * documents that a later `updateSettings` throws, so the applier cannot follow the workbook's
  * direction. Recording the mismatch here keeps it inside the plugin's one warning per call; nothing
  * is recorded when the result is not applied. The full reasoning is in this plugin's `AGENTS.md`.
  */

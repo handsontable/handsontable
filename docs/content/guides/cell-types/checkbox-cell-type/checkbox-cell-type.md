@@ -29,7 +29,7 @@ To check the box, use the mouse or press <kbd>**Space**</kbd> or <kbd>**Enter**<
 
 To uncheck the box, use the mouse or press <kbd>**Space**</kbd>, <kbd>**Enter**</kbd>, <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>.
 
-You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>**Space**</kbd>.
+You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>**Space**</kbd>. Selecting a column header, a row header, or the corner selects the cells under it. Press <kbd>**Space**</kbd> to change those checkboxes, also when [`navigableHeaders`](@/api/options.md#navigableheaders) is enabled.
 
 To let users select whole rows with checkboxes and a "select all" checkbox, without storing the checked state in your data, use [row selection](@/guides/rows/row-selection/row-selection.md) instead.
 

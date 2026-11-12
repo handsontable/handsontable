@@ -330,6 +330,9 @@ export interface HotInstance {
   _getEditorManager(): EditorManagerInstance;
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
+  _alignInsertedRowSizes(physicalRow: number, amount: number): void;
+  _readRowSizeOrigins(): Map<'rowHeights' | 'minRowHeights', unknown[]> | null;
+  _writeRowSizeOrigins(origins: Map<'rowHeights' | 'minRowHeights', unknown[]>): void;
   _getOperationScope(): OperationScope;
   _hasPendingValidation(): boolean;
   _isAnsweringStaleValidation(): boolean;
@@ -345,6 +348,9 @@ export interface HotInstance {
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
   _addSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
   _removeSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
+  _requirePlugin(pluginKey: string, requirer: object): void;
+  _releasePlugin(pluginKey: string, requirer: object): void;
+  _isPluginRequired(pluginKey: string): boolean;
   _getWaitingChangeSets(): Array<{ changes: CellChange[], source: string | undefined }>;
   _addDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void

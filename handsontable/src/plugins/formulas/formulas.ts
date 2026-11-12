@@ -19,6 +19,7 @@ import {
   getDateInHfFormat,
   getDateInHotFormat,
   getTimeFromHfTimeFraction,
+  insertEmptyRows,
   isDate,
   isDateValid,
   isEngineEscapedValue,
@@ -420,6 +421,93 @@ const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
 const HYPERLINK_SETTINGS_WARN_KEY = 'formulas-hyperlinks-settings';
 
 /**
+ * The column space of the source data array the engine was fed (see `Formulas#readSyncedColumnSpace`):
+ * physical columns, visual columns, or, for array rows a `columns` list projects, the array index of each
+ * visual column (`null` for one bound to no source index).
+ */
+type SyncedColumnSpace = 'physical' | 'visual' | Array<number | null>;
+
+/**
+ * Tells whether a value is a `Date`, also one from another window.
+ *
+ * @param {*} value The value.
+ * @returns {boolean}
+ */
+function isDateObject(value: unknown): value is Date {
+  return Object.prototype.toString.call(value) === '[object Date]';
+}
+
+/**
+ * Returns the value a record of what the engine was fed keeps for a cell. A `Date` is copied: the host can change
+ * the one it holds in place (`setFullYear()`), and a record that kept the same object would change with it.
+ *
+ * @param {*} value The value the engine got.
+ * @returns {*}
+ */
+function toSyncedValue(value: unknown): unknown {
+  return isDateObject(value) ? new Date(value.getTime()) : value;
+}
+
+/**
+ * Tells whether a recorded cell holds the value read now. A missing cell reads as `null`, the way the engine
+ * reads it. `NaN` equals itself (`Object.is()`), a `Date` equals one of the same time, and any other object
+ * counts as changed, because the host can change it in place.
+ *
+ * @param {*} recorded The recorded value.
+ * @param {*} value The value read now.
+ * @returns {boolean}
+ */
+function areSyncedValuesEqual(recorded: unknown, value: unknown): boolean {
+  if (typeof value === 'object' && value !== null) {
+    return isDateObject(recorded) && isDateObject(value) && Object.is(recorded.getTime(), value.getTime());
+  }
+
+  // The strict check first: it answers for almost every cell, and reading a type tag per cell made the comparison
+  // of a 10,000 x 50 sheet take 44 ms instead of 3 ms.
+  return recorded === value || Object.is(recorded ?? null, value ?? null);
+}
+
+/**
+ * Tells whether two rows of a source data array hold the same values. A missing cell reads as `null`, the way
+ * the engine reads it, so a row the grid created (`[]`) equals a row of `null` values.
+ *
+ * @param {Array} recorded The recorded row.
+ * @param {Array} row The row read now.
+ * @returns {boolean}
+ */
+function areSyncedRowsEqual(recorded: unknown[] | undefined, row: unknown[]): boolean {
+  const recordedRow = recorded ?? [];
+  const length = Math.max(recordedRow.length, row.length);
+
+  for (let column = 0; column < length; column += 1) {
+    if (!areSyncedValuesEqual(recordedRow[column], row[column])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Copies every `Date` of a source data array the engine was fed in place (`toSyncedValue()`), so the array can
+ * be kept as the record of what the engine holds.
+ *
+ * @param {Array<Array<*>>} rows The array.
+ * @returns {Array<Array<*>>}
+ */
+function toSyncedRows(rows: unknown[][]): unknown[][] {
+  rows.forEach((row) => {
+    for (let column = 0; column < row.length; column += 1) {
+      if (typeof row[column] === 'object' && row[column] !== null) {
+        row[column] = toSyncedValue(row[column]);
+      }
+    }
+  });
+
+  return rows;
+}
+
+/**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
  * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
  * powerful calculation engine with an extensive number of features.
@@ -760,6 +848,21 @@ export class Formulas extends BasePlugin {
    * `restoreState()`.
    */
   #sourceHasStaleFormulas = false;
+
+  /**
+   * The content the last full write from the source data (`#writeSheet()`) fed the engine sheet, escaped,
+   * in physical row order, kept in step with the grid's own cell writes and row inserts and removals: what
+   * the sheet would hold had every later change been written in physical order. A resync whose source data
+   * reads the same skips the write and the order replay (`#isSyncedContent()`), because the engine already
+   * holds that content, in the grid's order, with the references the user's own moves left. `null` when no
+   * such record is kept: a write it cannot follow drops it, and the next resync writes the sheet in full.
+   */
+  #syncedContent: {
+    engine: HyperFormulaEngine;
+    sheetId: number | null;
+    rows: unknown[][];
+    columnSpace: SyncedColumnSpace;
+  } | null = null;
 
   /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
@@ -1306,7 +1409,14 @@ export class Formulas extends BasePlugin {
       this.hot.rowIndexMapper, this.hot.columnIndexMapper, () => {
         // Nothing is postponed: the axis syncers postpone the initial order only while no sheet is bound, and
         // the plugin sets the sync endpoint up with a bound sheet only. Each setup sends the order itself.
-      }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn));
+      }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn),
+      () => this.#isRowOrderSorted(),
+      // The engine's references then depend on the order (DEV-917), and only a write of the data repairs them
+      // once the order is gone: a cleared sort is itself an order sent, so the next resync writes. A reset of
+      // the grid's order (`onOrderReset()`) reaches no engine call, so only that write brings the engine to it.
+      () => {
+        this.#syncedContent = null;
+      });
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
     this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
@@ -1320,6 +1430,7 @@ export class Formulas extends BasePlugin {
     // Any reorder rewrites formula references inside the engine, a sort included.
     this.addHook('afterRowSequenceChange', this.#onAfterSequenceChange);
     this.addHook('afterColumnSequenceChange', this.#onAfterSequenceChange);
+    this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
     this.addHook('beforeRowMove',
       (movedRows: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
@@ -1452,6 +1563,7 @@ export class Formulas extends BasePlugin {
     // plugin does), and that edit's render runs this plugin's `afterRenderer`, which would wrap the
     // `HYPERLINK` anchors again after the cleanup below. The engine is still set here too.
     this.#notifyEngineDetach();
+    this.#syncedContent = null;
     this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
@@ -1952,6 +2064,8 @@ export class Formulas extends BasePlugin {
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
   #loadSheet(sheetName: string): void {
+    this.#syncedContent = null;
+
     if (!this.engine?.doesSheetExist(sheetName)) {
       error(`The sheet named \`${sheetName}\` does not exist, switch aborted.`);
 
@@ -2801,6 +2915,7 @@ export class Formulas extends BasePlugin {
     // The host removed this grid's sheet from the engine, so there is no sheet to bring in line. The
     // versions still follow the restored state, so a later capture compares against it.
     if (!this.#hasOwnSheet()) {
+      this.#syncedContent = null;
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
@@ -2823,6 +2938,8 @@ export class Formulas extends BasePlugin {
     this.#sourceHasStaleFormulas = state.sourceHasStaleFormulas;
 
     if (reloadsSheet) {
+      // The sheet is loaded from the recorded state, not written cell by cell, so the record cannot follow it.
+      this.#syncedContent = null;
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
@@ -2831,6 +2948,8 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Only cells are written back, and each one goes into the record (`#writeSourceChangesToEngine()`), so a
+    // re-render after an edit and its undo still finds the data the engine holds and skips the write.
     this.#dataVersion = state.dataVersion;
     this.#flushRestoredWrites();
     this.#syncPeerSources(this.#restorePeerRewrites(state, context, true));
@@ -3224,6 +3343,7 @@ export class Formulas extends BasePlugin {
    * @returns {Array}
    */
   #loadEngineSheet(snapshot: EngineSheetSnapshot): unknown[] {
+    this.#syncedContent = null;
     this.#internalOperationPending = true;
 
     try {
@@ -3274,6 +3394,17 @@ export class Formulas extends BasePlugin {
    */
   #onAfterSequenceChange = () => {
     this.#markStructureChanged();
+  };
+
+  /**
+   * `afterColumnSequenceChange` hook callback. Object rows, and array rows a `columns` list projects, are
+   * read in visual column order, so a column move moves their cells in the source data array and the record
+   * of what the engine was fed (`#syncedContent`) no longer lines up with it.
+   */
+  #onAfterColumnSequenceChange = () => {
+    if (this.#syncedContent !== null && this.#syncedContent.columnSpace !== 'physical') {
+      this.#syncedContent = null;
+    }
   };
 
   /**
@@ -3356,7 +3487,11 @@ export class Formulas extends BasePlugin {
       newValue = this.#escapeEngineBoundValue(newValue, this.hot.getCellMetaTransient(row, column));
     }
 
-    return this.engine?.setCellContents(address, newValue);
+    const changes = this.engine?.setCellContents(address, newValue);
+
+    this.#recordSyncedCell(this.hot.toPhysicalRow(row), column, newValue);
+
+    return changes;
   }
 
   /**
@@ -4293,7 +4428,7 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      this.#writeSheet(sourceDataArray);
+      this.#writeSheet(sourceDataArray, true);
     });
   }
 
@@ -4317,12 +4452,30 @@ export class Formulas extends BasePlugin {
    * the next settings update. Shared by `#resyncSheet()` and the `#onAfterLoadData` write branch,
    * so the two cannot drift.
    *
+   * With `skipWhenSynced` (the resync of a settings update, every React or Vue re-render), a source data array
+   * that reads the same as the content the engine was last fed, with the grid's own changes since
+   * (`#syncedContent`), is not written: the engine already holds it in the grid's order, with every reference
+   * the user's moves left, in this sheet, in other sheets and in named expressions. Writing it again in
+   * physical order and replaying the order could only move those references a second time (DEV-3972).
+   *
    * @param {Array<Array<*>>} sourceDataArray The array `#getProcessedSourceDataArray()` produced.
+   * @param {boolean} [skipWhenSynced=false] Whether an unchanged array is left unwritten.
    */
-  #writeSheet(sourceDataArray: unknown[][]): unknown[] {
+  #writeSheet(sourceDataArray: unknown[][], skipWhenSynced = false): unknown[] {
     this.#escapeSourceDataArray(sourceDataArray);
     this.#beginHeldSheetWrite();
 
+    if (skipWhenSynced && this.#isSyncedContent(sourceDataArray)) {
+      this.#recordSyncedLayout();
+
+      return [];
+    }
+
+    // Read before the write, while the data hooks answer as they did for the escape above: the write's own
+    // guard makes them return early, and inside an engine batch a read through them would throw.
+    const columnSpace = this.#readSyncedColumnSpace();
+
+    this.#syncedContent = null;
     this.#internalOperationPending = true;
 
     let dependentCells: unknown[] = [];
@@ -4342,9 +4495,138 @@ export class Formulas extends BasePlugin {
       this.#internalOperationPending = false;
     }
 
+    this.#syncedContent = {
+      engine: this.engine!,
+      sheetId: this.sheetId,
+      rows: toSyncedRows(sourceDataArray),
+      columnSpace,
+    };
     this.#recordSyncedLayout();
 
     return dependentCells;
+  }
+
+  /**
+   * Tells whether the engine holds what a write of `sourceDataArray` would give it: the array reads the same
+   * as `#syncedContent`, the engine and the sheet are the ones it was recorded for, and the engine holds both
+   * axes in the grid's order (a data load can reset the grid's order, and an order held for the sheets bar
+   * is not the grid's). A value written in place into the host's data reads differently, so it is written.
+   *
+   * @param {Array<Array<*>>} sourceDataArray The escaped array a write would feed the engine.
+   * @returns {boolean}
+   */
+  #isSyncedContent(sourceDataArray: unknown[][]): boolean {
+    const synced = this.#syncedContent;
+
+    if (synced === null || synced.engine !== this.engine || synced.sheetId !== this.sheetId
+      || synced.rows.length !== sourceDataArray.length || !this.#hasOwnSheet()
+      || !this.rowAxisSyncer!.holdsGridOrder() || !this.columnAxisSyncer!.holdsGridOrder()) {
+      return false;
+    }
+
+    return sourceDataArray.every((row, index) => areSyncedRowsEqual(synced.rows[index], row));
+  }
+
+  /**
+   * Records a value the grid wrote into one engine cell in `#syncedContent`, at the cell's place in the
+   * source data array, so a later resync does not take the grid's own write for a change of the data. A cell
+   * the array has no place for drops the record.
+   *
+   * @param {number|null} physicalRow The physical row.
+   * @param {number} visualColumn The visual column.
+   * @param {*} value The value the engine got.
+   */
+  #recordSyncedCell(physicalRow: number | null, visualColumn: number, value: unknown) {
+    const synced = this.#syncedContent;
+
+    if (synced === null) {
+      return;
+    }
+
+    const column = this.#syncedColumnIndex(synced.columnSpace, visualColumn);
+
+    if (physicalRow === null || physicalRow < 0 || column === null || column < 0) {
+      this.#syncedContent = null;
+
+      return;
+    }
+
+    while (synced.rows.length <= physicalRow) {
+      synced.rows.push([]);
+    }
+
+    synced.rows[physicalRow][column] = toSyncedValue(value);
+  }
+
+  /**
+   * Reads the column space of the source data array `#getProcessedSourceDataArray()` builds: physical columns
+   * for plain array rows, visual columns for object rows (built in visual order), and for array rows a
+   * `columns` list projects, the place of each visual column among the visible columns bound to a source
+   * index, built once here so a recorded cell is a lookup. Read when the array is written, because the read
+   * goes through the data hooks, which a write inside an engine batch must not run.
+   *
+   * @returns {string|Array}
+   */
+  #readSyncedColumnSpace(): SyncedColumnSpace {
+    if (this.#doesEngineHoldPhysicalColumns()) {
+      return 'physical';
+    }
+
+    if (!this.#isSourceDataArrayOfArrays()) {
+      return 'visual';
+    }
+
+    const projectedIndexes: Array<number | null> = [];
+    let index = 0;
+
+    for (let column = 0; column < this.hot.countCols(); column += 1) {
+      if (typeof this.hot.colToProp(column) === 'number') {
+        projectedIndexes.push(index);
+        index += 1;
+      } else {
+        projectedIndexes.push(null);
+      }
+    }
+
+    return projectedIndexes;
+  }
+
+  /**
+   * Returns the index of a visual column in the source data array, in the column space it was recorded in.
+   *
+   * @param {string|Array} columnSpace The column space (`#readSyncedColumnSpace()`).
+   * @param {number} visualColumn The visual column.
+   * @returns {number|null}
+   */
+  #syncedColumnIndex(columnSpace: SyncedColumnSpace, visualColumn: number): number | null {
+    if (columnSpace === 'physical') {
+      return this.hot.toPhysicalColumn(visualColumn);
+    }
+
+    if (columnSpace === 'visual') {
+      return visualColumn;
+    }
+
+    return columnSpace[visualColumn] ?? null;
+  }
+
+  /**
+   * Follows a row insert or removal in `#syncedContent`, by physical index: the engine got an empty row, or
+   * lost one, at the same place. NestedRows moves rows inside the source data itself, so under it the record
+   * is dropped instead.
+   *
+   * @param {Function} update Changes the recorded rows.
+   */
+  #followSyncedRows(update: (rows: unknown[][]) => boolean) {
+    const synced = this.#syncedContent;
+
+    if (synced === null) {
+      return;
+    }
+
+    if (this.hot.getPlugin('nestedRows')?.enabled || !update(synced.rows)) {
+      this.#syncedContent = null;
+    }
   }
 
   /**
@@ -4358,6 +4640,7 @@ export class Formulas extends BasePlugin {
    * a sort of the rejected sheet reordered that other sheet's formulas.
    */
   #clearRejectedSheet(): unknown[] {
+    this.#syncedContent = null;
     this.#internalOperationPending = true;
 
     let dependentCells: unknown[] = [];
@@ -4603,6 +4886,7 @@ export class Formulas extends BasePlugin {
    */
   #adoptEngineSheet(order: FormulasEngineSheetOrder) {
     this.#sheetResyncPending = false;
+    this.#syncedContent = null;
 
     if (order.content !== undefined) {
       this.engine!.setSheetContent(this.sheetId, order.content);
@@ -4622,6 +4906,20 @@ export class Formulas extends BasePlugin {
    */
   #isBoundTo(order: FormulasEngineSheetOrder): boolean {
     return order.engine === this.engine && order.sheetId === this.sheetId;
+  }
+
+  /**
+   * Tells whether the grid's row order is a sort's (ColumnSorting or MultiColumnSorting). A sort reaches the
+   * engine as one order, so a reload sends it as one again, also from a syncer that has no record of it.
+   *
+   * @returns {boolean}
+   */
+  #isRowOrderSorted(): boolean {
+    const columnSorting = this.hot.getPlugin('columnSorting');
+    const multiColumnSorting = this.hot.getPlugin('multiColumnSorting');
+
+    return (columnSorting?.enabled === true && columnSorting.isSorted())
+      || (multiColumnSorting?.enabled === true && multiColumnSorting.isSorted());
   }
 
   /**
@@ -5410,6 +5708,7 @@ export class Formulas extends BasePlugin {
       this.engine!.setCellContents(address, newValue).forEach((dependentCell: unknown) => {
         dependentCells.push(dependentCell);
       });
+      this.#recordSyncedCell(physicalRow, visualColumn, newValue);
     });
 
     const engine = this.engine!;
@@ -5756,6 +6055,15 @@ export class Formulas extends BasePlugin {
     } finally {
       this.#sourceDataSyncPending = false;
     }
+
+    // The engine already holds these formulas; the source data now holds them too.
+    changes.forEach(([physicalRow, prop, value]) => {
+      const visualColumn = this.hot.propToCol(prop);
+
+      if (isNumeric(visualColumn)) {
+        this.#recordSyncedCell(physicalRow, visualColumn as number, value);
+      }
+    });
   }
 
   /**
@@ -5838,6 +6146,17 @@ export class Formulas extends BasePlugin {
   #onAfterCreateRow = (visualRow: number, amount: number, source: string) => {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
+    this.#followSyncedRows((rows) => {
+      const physicalRow = this.hot.toPhysicalRow(visualRow) ?? rows.length;
+
+      if (physicalRow > rows.length) {
+        return false;
+      }
+
+      insertEmptyRows(rows, physicalRow, amount);
+
+      return true;
+    });
 
     if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
@@ -5867,6 +6186,7 @@ export class Formulas extends BasePlugin {
   #onAfterCreateCol = (visualColumn: number, amount: number, source: string) => {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
+    this.#syncedContent = null;
 
     if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
@@ -5897,6 +6217,23 @@ export class Formulas extends BasePlugin {
   #onAfterRemoveRow = (row: number, amount: number, physicalRows: number[], source: string) => {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
+    this.#followSyncedRows((rows) => {
+      // One pass that moves every kept row up once: a splice per removed row (or per span, when the removed
+      // rows are scattered) shifts the rest of the array each time, which is quadratic on a large removal.
+      const removed = new Set(physicalRows);
+      let kept = 0;
+
+      for (let physicalRow = 0; physicalRow < rows.length; physicalRow += 1) {
+        if (!removed.has(physicalRow)) {
+          rows[kept] = rows[physicalRow];
+          kept += 1;
+        }
+      }
+
+      rows.length = kept;
+
+      return true;
+    });
 
     if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
@@ -5926,6 +6263,7 @@ export class Formulas extends BasePlugin {
   #onAfterRemoveCol = (col: number, amount: number, physicalColumns: number[], source: string) => {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
+    this.#syncedContent = null;
 
     if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
@@ -6163,6 +6501,7 @@ export class Formulas extends BasePlugin {
    * operation is read from `#committedMoveCells` instead, captured before any listener could run.
    */
   #onAfterMoveCells = () => {
+    this.#syncedContent = null;
     const committed = this.#committedMoveCells;
     const dependentCells = this.#moveCellsChanges;
 
@@ -6353,6 +6692,7 @@ export class Formulas extends BasePlugin {
   #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>,
                          finalElementRowIndex: number, source?: string) => {
     this.#markStructureChanged();
+    this.#syncedContent = null;
 
     try {
       if (isBlockedSource(source)) {

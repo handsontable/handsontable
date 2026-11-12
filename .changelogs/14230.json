@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the first `updateSettings()` call accepting an init-only option (`layoutDirection`, `renderAllRows`, `renderAllColumns`, `ariaTags`) that the grid was created without. It now throws, like every later call.",
+  "type": "fixed",
+  "issueOrPR": 14230,
+  "breaking": false,
+  "framework": "none"
+}

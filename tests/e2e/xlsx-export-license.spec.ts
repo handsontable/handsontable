@@ -260,7 +260,9 @@ for (const engine of ['native', 'exceljs'] as const) {
       const error = await lic.exportBytes({ protection: { password: 1234 } }).then(() => null, (e: Error) => e);
 
       expect(error?.message).toContain('ExportFile: the "protection.password" option has to be a string.');
-      expect(error?.message.includes('1234')).toBe(false);
+      // The message also carries the throw site's stack frames, and a line number in the bundle can hold
+      // those digits (`handsontable.js:111234:46`). Only the first line is the library's own text.
+      expect(error?.message.split('\n')[0]).not.toContain('1234');
     });
 
     test('a key without xlsx:protection writes no sheetProtection despite the option, and the warning has no password', async({

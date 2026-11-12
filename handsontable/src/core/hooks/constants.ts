@@ -1726,7 +1726,11 @@ export const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeCellAlignment
    * @param {object} stateBefore An object where each key is a visual row index and each value is an array
-   *                             of class names indexed by visual column.
+   *                             indexed by visual column. Each entry holds the alignment class names set in the
+   *                             cell's `className` (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`,
+   *                             `htMiddle`, `htBottom`), separated by a space. Other class names are left out,
+   *                             and so are the class names a renderer adds, such as the `htRight` of a numeric
+   *                             cell. The entry is `undefined` when the `className` holds no alignment class name.
    * @param {CellRange[]} range An array of `CellRange` coordinates where the alignment will be applied.
    * @param {string} type Type of the alignment - either `horizontal` or `vertical`.
    * @param {string} alignmentClass String defining the alignment class added to the cell.
