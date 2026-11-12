@@ -10,7 +10,8 @@
  *     feature);
  *   - the committed `feature.generated.ts` modules the plugins read their `PLUGIN_DEPS` and `LICENSE` from;
  *   - the committed `utils/xlsxEngine/licenseCapabilities.generated.ts`, the XLSX token lists the license check reads;
- *   - the committed `featureManifest/released-tokens.json`, which keeps ids from being removed or sold later.
+ *   - the committed `featureManifest/released-tokens.json`, which keeps ids from being removed or sold later;
+ *   - the feature-to-tier matrix between the `license-tiers` markers of the license key guide in `docs/`.
  *
  * CommonJS on purpose, like `option-levels.js`: the CLI (`scripts/generate-feature-manifest.mjs`) imports it as
  * ESM and the Jest tests import it through Babel. The rules it enforces are documented in
@@ -161,6 +162,14 @@ const RELEASED_FILE = 'src/featureManifest/released-tokens.json';
 const OUTPUT_FILE = 'dist/manifest.json';
 
 /**
+ * The license key guide, relative to `handsontable/`, and the markers around the feature-to-tier matrix it holds.
+ * Everything between the markers is generated; the rest of the page is hand-written.
+ */
+const LICENSE_GUIDE_FILE = '../docs/content/guides/getting-started/license-key/license-key.md';
+const TIER_MATRIX_START = '<!-- license-tiers:start -->';
+const TIER_MATRIX_END = '<!-- license-tiers:end -->';
+
+/**
  * Plugins that stay out of keys (D7): both are `@private`, have no option, and turn on by themselves on touch
  * devices, so a token would quietly break mobile scrolling and selection on a restricted key.
  */
@@ -294,6 +303,7 @@ function loadSources(packageDir) {
     released: readSourceFile(packageDir, RELEASED_FILE) ?? {},
     releasedText: readText(RELEASED_FILE),
     xlsxLicenseModuleText: readText(XLSX_LICENSE_MODULE_FILE),
+    licenseGuideText: readText(LICENSE_GUIDE_FILE),
   };
 }
 
@@ -445,7 +455,9 @@ function checkId(entry, recorded) {
     problems.push(`id "${entry.id}" fails the license-key token rule ${TOKEN_RULE}`);
   }
   if (name === 'all') {
-    problems.push(`id "${entry.id}" is reserved: "<namespace>:all" grants a whole namespace`);
+    // Keys issued before tiers can carry `<namespace>:all`. The library ignores that token now, but a feature with
+    // that id would collide with what those keys hold, so the name stays reserved.
+    problems.push(`id "${entry.id}" is reserved: keys issued before tiers used "<namespace>:all"`);
   }
   if (namespace === TIER_NAMESPACE) {
     problems.push(`id "${entry.id}" is reserved: the "${TIER_NAMESPACE}" namespace is reserved for tier tokens`);
@@ -1128,6 +1140,62 @@ function renderXlsxLicenseModule(sources) {
 }
 
 /**
+ * The name a sold entry has in the feature-to-tier matrix. An XLSX sub-feature can share its name with a plugin
+ * (`Comments`, `Formulas`), so it reads `XLSX: <name>`, unless its name already starts with `XLSX`.
+ *
+ * @param {string} file The source file of the entry.
+ * @param {object} entry A manifest entry.
+ * @returns {string}
+ */
+function toMatrixName(file, entry) {
+  return file === XLSX_SOURCE_FILE && !entry.name.startsWith('XLSX') ? `XLSX: ${entry.name}` : entry.name;
+}
+
+/**
+ * Renders the feature-to-tier matrix of the license key guide as a Markdown table: one row per sold entry, sorted by
+ * kind (in `KINDS` order), then by name, and one column per tier, in the order `tiers.json` declares them. A cell
+ * reads `Yes` when the tier includes the feature, and is empty otherwise. The table names no ids.
+ *
+ * @param {object} sources What `loadSources()` returns, already checked.
+ * @returns {string}
+ */
+function renderTierMatrix(sources) {
+  const rows = listEntries(sources)
+    .filter(({ entry }) => entry.licensing === 'token')
+    .map(({ file, entry }) => ({ entry, name: toMatrixName(file, entry) }))
+    .sort((a, b) => (KINDS.indexOf(a.entry.kind) - KINDS.indexOf(b.entry.kind)) ||
+      (a.name < b.name ? -1 : Number(a.name > b.name)));
+  const titles = sources.tiers.map(tier => `${tier[0].toUpperCase()}${tier.slice(1)}`);
+
+  return [
+    `| Feature | ${titles.join(' | ')} |`,
+    `| --- | ${titles.map(() => ':---:').join(' | ')} |`,
+    ...rows.map(({ entry, name }) => `| ${name} | ${sources.tiers
+      .map(tier => (entry.tiers.includes(tier) ? 'Yes' : '')).join(' | ')} |`),
+    '',
+  ].join('\n');
+}
+
+/**
+ * Renders the license key guide with the feature-to-tier matrix between its markers replaced.
+ *
+ * @param {object} sources What `loadSources()` returns, already checked.
+ * @returns {string}
+ */
+function renderLicenseGuide(sources) {
+  const page = sources.licenseGuideText;
+  const start = page?.indexOf(TIER_MATRIX_START) ?? -1;
+  const end = page?.indexOf(TIER_MATRIX_END) ?? -1;
+
+  if (start === -1 || end < start) {
+    throw new Error(`${LICENSE_GUIDE_FILE} must hold ${TIER_MATRIX_START} followed by ${TIER_MATRIX_END}`);
+  }
+
+  return `${page.slice(0, start + TIER_MATRIX_START.length)}\n\n${renderTierMatrix(sources)}\n` +
+    `${page.slice(end)}`;
+}
+
+/**
  * Checks the shape of a record of released ids: every id lists the distinct `licensing` values it has had.
  *
  * @param {object} record The parsed record.
@@ -1226,7 +1294,8 @@ function checkRecordAgainstBase(base, current) {
 
 /**
  * Lists the committed files the sources generate: one module per plugin whose dependencies are checked at init
- * or that a license key can name, the XLSX license token module, and the record of released ids.
+ * or that a license key can name, the XLSX license token module, the record of released ids, and the license key
+ * guide with its feature-to-tier matrix. Every path is relative to `handsontable/`, so the guide's starts with `../`.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {Array<{file: string, content: string}>}
@@ -1244,6 +1313,7 @@ function buildCommittedOutputs(sources) {
     ...modules,
     { file: XLSX_LICENSE_MODULE_FILE, content: renderXlsxLicenseModule(sources) },
     { file: RELEASED_FILE, content: `${JSON.stringify(buildReleased(sources), null, 2)}\n` },
+    { file: LICENSE_GUIDE_FILE, content: renderLicenseGuide(sources) },
   ];
 }
 
@@ -1260,6 +1330,7 @@ function findStaleOutputs(sources) {
   // The file's own bytes, so a record reordered or reformatted by hand reads as stale too.
   current.set(RELEASED_FILE, sources.releasedText);
   current.set(XLSX_LICENSE_MODULE_FILE, sources.xlsxLicenseModuleText);
+  current.set(LICENSE_GUIDE_FILE, sources.licenseGuideText);
 
   const stale = expected.filter(({ file, content }) => current.get(file) !== content).map(({ file }) => file);
   const orphaned = sources.generatedModules.map(({ file }) => file)
@@ -1276,6 +1347,7 @@ exports.RELEASED_FILE = RELEASED_FILE;
 exports.TIERS_FILE = TIERS_FILE;
 exports.XLSX_LICENSE_MODULE_FILE = XLSX_LICENSE_MODULE_FILE;
 exports.OUTPUT_FILE = OUTPUT_FILE;
+exports.LICENSE_GUIDE_FILE = LICENSE_GUIDE_FILE;
 exports.loadSources = loadSources;
 exports.listEntries = listEntries;
 exports.indexEntries = indexEntries;
@@ -1287,5 +1359,6 @@ exports.toPluginDeps = toPluginDeps;
 exports.toPluginLicense = toPluginLicense;
 exports.buildManifest = buildManifest;
 exports.renderXlsxLicenseModule = renderXlsxLicenseModule;
+exports.renderTierMatrix = renderTierMatrix;
 exports.buildCommittedOutputs = buildCommittedOutputs;
 exports.findStaleOutputs = findStaleOutputs;

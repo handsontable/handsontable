@@ -631,7 +631,7 @@ Only `loadData()` counts, not `updateData()`. Pinned by `__tests__/exportFile.un
 
 ## The license check: every export method, and the menu item
 
-The plugin is on in every grid, so a license key that lists its features is checked when an export is asked
+The plugin is on in every grid, so a license key that names tiers is checked when an export is asked
 for, not at enable (`gate: 'call'` in `feature.json`). `exportAsString()`, `exportAsBlob()`, `exportAsBlobAsync()`,
 `downloadFile()` and `downloadFileAsync()` call `assertLicensedCall(this.hot, LICENSE)` first: a key that does not
 cover `feat:export_file` writes the license message and throws it (the async methods reject). The token covers
@@ -639,9 +639,9 @@ every format, CSV included. `supportsExportFormat()` does no work and writes no 
 the same token with `hasLicenseCapability(this.hot, LICENSE.capability)` before the `xlsx:export` entitlement, so it
 answers `false` whenever an xlsx call would throw, for either token, and the "To Excel" sub-item hides with it. For
 `'csv'` and every other format it does not read the token, on purpose: the predicate answers "can this format
-be produced", and the parent item already hides for the token). Pinned by "on a key that lists its features" in
-`__tests__/exportFile.unit.js`, which builds keys without `feat:all` (`keyWithoutFlag(tokens,
-[LISTED_CAPABILITIES_FLAG])`): `keyWith()` always adds it. The parent "Export" item of
+be produced", and the parent item already hides for the token). Pinned by "on a key that unlocks only the features it names" in
+`__tests__/exportFile.unit.js`, which builds its keys with `tierKeyWith()` (a made-up tier that includes only the
+given ids; `resetTierKeys()` in `afterEach`, see `../../utils/entitlementLicenseKey/AGENTS.md`). The parent "Export" item of
 the context menu is hidden when the key does not cover the token (`contextMenuItem/exportItem.ts`), silently,
 because a click would only throw. **Read another plugin's state through `.enabled`** in `dataProvider.ts`: a
 plugin the key leaves out keeps its setting, so `isEnabled()` answers `true` while it never ran (MergeCells then

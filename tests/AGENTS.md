@@ -498,6 +498,20 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `demo/xlsx-license.html` takes a third fail-loud allowlisted param besides
   `?theme=`/`?bundle=`: `?engine=` (`native` or `exceljs`); an unknown value
   throws, like the other two.
+- **License specs use made-up tiers, never the real ones.** Which features
+  `standard` or `professional` include can change in any release, so no spec
+  names a real tier or assumes what it holds. `fixtures/licenseTiers.ts` holds
+  the presets (`LICENSE_PRESETS`: a made-up tier, the feature ids it includes,
+  and the key flags), builds a preset's key (`presetKey()`, through
+  `keyWithTier()`) and its query (`presetLicenseQuery()`, `presetQuery()`), and
+  reads the build's real tiers from `handsontable/dist/manifest.json` only to
+  pick one with or without a feature (`requiredTierWithout()`,
+  `requiredTierWithEvery()`, `tiersLeavingOut()`), so rebuild the core before
+  you trust a run. `demo/license-capabilities.html` applies the made-up tiers of
+  `?presets=` before the grid is built, by redefining each sold plugin's static
+  `LICENSE` getter so its `tiers` also list the presets that include it. A case
+  no tier can express (a plugin without what it requires, which the generator
+  refuses) belongs in a unit test, not here; no license spec is skipped.
 
 ## Two clicks on the same cell are a double click
 
@@ -1170,7 +1184,12 @@ fixture; one fixture can be scanned in several states), `fixture` (under `fixtur
 `query` (appended after the theme), `root` (when the fixture has several grids), `cell` (where a
 menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in `a11y/harness.ts`: add a new
 opener there for a new kind of surface, keyboard first), `device` (a Playwright device to emulate,
-for a surface that exists on a phone only) and `surface` (what it covers). Keep
+for a surface that exists on a phone only), `surface` (what it covers), and `licensePreset` (a
+key of `LICENSE_PRESETS` in `fixtures/licenseTiers.ts`, for a page that shows what a license
+key leaves out). `pages.mjs` is plain JavaScript and cannot build a key, so every spec opens a
+catalog page through the TypeScript `fixtureUrl()` in `a11y/harness.ts`, which appends the
+preset's made-up tiers and key and throws on an unknown preset; the `fixtureUrl()` of
+`pages.mjs` leaves them out. Keep
 `{ id: '…'` at the start of the entry's first line: the check run annotates a new finding on that
 line, and `lib/__tests__/a11y-check-run.test.mjs` finds every page there. The fixture keeps the
 fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or

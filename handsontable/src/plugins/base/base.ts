@@ -1000,7 +1000,7 @@ export class BasePlugin {
       this.enablePlugin();
     }
 
-    // A key passed later that does not list the plugin turns it off, like a hard conflict that appears.
+    // A key passed later whose tiers leave the plugin out turns it off, like a hard conflict that appears.
     if (
       this.enabled &&
       this.isEnabled() &&

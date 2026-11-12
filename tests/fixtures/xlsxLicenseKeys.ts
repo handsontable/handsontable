@@ -21,6 +21,6 @@ export const INVALID_KEY = 'non-commercial-and-evaluation';
 
 /**
  * A current subscription key with the `core` capability only, as the real generator issued it. It
- * carries no `listed-capabilities` flag, so it is unrestricted for the whole family.
+ * names no tier, so it is unrestricted for the whole family.
  */
 export const CORE_ONLY_KEY: string = SUBSCRIPTION_KEY;

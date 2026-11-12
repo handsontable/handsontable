@@ -10,6 +10,7 @@ import {
 } from '../../src/utils/xlsxEngine/licenseCapabilities.generated';
 
 import {
+  LICENSE_GUIDE_FILE,
   RELEASED_FILE,
   XLSX_LICENSE_MODULE_FILE,
   buildCommittedOutputs,
@@ -22,6 +23,7 @@ import {
   indexEntries,
   listEntries,
   loadSources,
+  renderTierMatrix,
   renderXlsxLicenseModule,
   toPluginDeps,
 } from '../../scripts/utils/feature-manifest';
@@ -29,7 +31,8 @@ import {
 /**
  * The feature manifest has three parts that can drift apart: the `feature.json`/`features.json` sources, the
  * source code they describe, and the committed files generated from them (`feature.generated.ts`,
- * `licenseCapabilities.generated.ts`, `released-tokens.json`). These tests pin all three together. The rules are in
+ * `licenseCapabilities.generated.ts`, `released-tokens.json`, and the tier matrix of the license key guide in
+ * `docs/`). These tests pin all three together. The rules are in
  * `src/featureManifest/AGENTS.md`; regenerate with `npm run generate:feature-manifest --prefix handsontable`.
  */
 
@@ -389,6 +392,62 @@ describe('feature manifest', () => {
       expect(findStaleOutputs({ ...sources, xlsxLicenseModuleText: `${sources.xlsxLicenseModuleText}// edit\n` }))
         .toEqual([XLSX_LICENSE_MODULE_FILE]);
       expect(findStaleOutputs({ ...sources, xlsxLicenseModuleText: null })).toEqual([XLSX_LICENSE_MODULE_FILE]);
+    });
+  });
+
+  describe('the license tiers matrix', () => {
+    // The XLSX sub-features share names with plugins (Comments, Formulas), so the matrix prefixes them.
+    const rowNameOf = entry => (entry.id.startsWith('xlsx:') && !entry.name.startsWith('XLSX') ?
+      `XLSX: ${entry.name}` : entry.name);
+
+    it('should render one matrix row per sold feature and one column per tier', () => {
+      const lines = renderTierMatrix(sources).trim().split('\n');
+      const sold = [...byId.values()].filter(entry => entry.licensing === 'token');
+
+      const titles = sources.tiers.map(tier => tier[0].toUpperCase() + tier.slice(1));
+
+      expect(lines[0]).toBe(`| Feature | ${titles.join(' | ')} |`);
+      // Header, separator, then one row per sold feature.
+      expect(lines).toHaveLength(sold.length + 2);
+      sold.forEach((entry) => {
+        const row = lines.find(line => line.startsWith(`| ${rowNameOf(entry)} |`));
+
+        expect({ id: entry.id, cells: row.split('|').slice(2, -1).map(cell => cell.trim()) })
+          .toEqual({ id: entry.id, cells: sources.tiers.map(tier => (entry.tiers.includes(tier) ? 'Yes' : '')) });
+      });
+    });
+
+    it('should give every row a name of its own and name no feature id', () => {
+      const names = renderTierMatrix(sources).trim().split('\n').slice(2).map(line => line.split('|')[1].trim());
+
+      expect(new Set(names).size).toBe(names.length);
+      expect(names.filter(name => byId.has(name) || /^[a-z]+:/.test(name))).toEqual([]);
+    });
+
+    it('should follow a tier assignment changed in a source, with no code change', () => {
+      const changed = withEntry(sources, 'feat:filters', entry => ({ ...entry, tiers: ['professional'] }));
+
+      expect(renderTierMatrix(changed).split('\n')).toContain('| Filters |  | Yes |');
+      // The plugin's generated LICENSE carries its tiers too.
+      expect(findStaleOutputs(changed)).toEqual(['src/plugins/filters/feature.generated.ts', LICENSE_GUIDE_FILE]);
+    });
+
+    it('should read the guide as stale when the block is edited, and keep the text around it', () => {
+      const edited = sources.licenseGuideText.replace('| Filters | Yes | Yes |', '| Filters |  | Yes |');
+      const output = buildCommittedOutputs(sources).find(({ file }) => file === LICENSE_GUIDE_FILE);
+
+      expect(edited).not.toBe(sources.licenseGuideText);
+      expect(findStaleOutputs({ ...sources, licenseGuideText: edited })).toEqual([LICENSE_GUIDE_FILE]);
+      expect(output.content.startsWith(sources.licenseGuideText.split('<!-- license-tiers:start -->')[0]))
+        .toBe(true);
+      expect(output.content.endsWith(sources.licenseGuideText.split('<!-- license-tiers:end -->')[1])).toBe(true);
+    });
+
+    it('should refuse a guide without the markers', () => {
+      const withoutMarkers = sources.licenseGuideText.replace('<!-- license-tiers:end -->', '');
+
+      expect(() => buildCommittedOutputs({ ...sources, licenseGuideText: withoutMarkers }))
+        .toThrow('license-tiers:end');
     });
   });
 
