@@ -44,21 +44,6 @@ const READER_PROJECTS = [...readFileSync(path.join(TESTS_ROOT, 'playwright.scree
 const TRIAGE_REASONS = {
   'reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid': 'NVDA with Firefox names the grid by the sheet\'s old name, '
     + 'where both Chromium readers say the new one: a stale name kept by Firefox or a name the grid sets on another element, not told apart yet.',
-  'reader|vo-chromium|token-missing|||dropdown-menu|arrow-down-read-only': 'VoiceOver reads the Read only item, a menuitemcheckbox with '
-    + 'aria-checked false, as a menu item with no state: macOS speaks no state for an unchecked menu item, so it may be the reader\'s own '
-    + 'convention; a control menu decides.',
-  'reader|vo-webkit|token-missing|||dropdown-menu|arrow-down-read-only': 'As on VoiceOver with Chromium: an unchecked menuitemcheckbox is '
-    + 'read with no state, the grid\'s or the reader\'s convention, not told apart yet.',
-  'reader|vo-webkit|token-missing|||collapsible-headers|enter-expand': 'VoiceOver with WebKit reads aria-expanded turning false on the '
-    + 'header and says nothing when the same header turns it true, where the other three readers say expanded: not told apart from WebKit '
-    + 'dropping the change yet.',
-  'reader|vo-webkit|token-missing|||password-editor|commit-secret': 'VoiceOver with WebKit says nothing when Enter commits the password '
-    + 'and the focus moves to the next cell, in every run, where VoiceOver with Chromium reads that cell: not explained yet.',
-  'reader|vo-webkit|token-missing|||select-editor|arrow-down-first': 'VoiceOver with WebKit says nothing when ArrowDown changes the select '
-    + 'editor\'s option, where NVDA and VoiceOver with Chromium read it: the editor sets selectedIndex itself and stops the key, and whether '
-    + 'WebKit then reports no value change is not known.',
-  'reader|vo-webkit|token-missing|||select-editor|arrow-down-second': 'As arrow-down-first: VoiceOver with WebKit is silent on the select '
-    + 'editor\'s scripted option change.',
 };
 
 /**

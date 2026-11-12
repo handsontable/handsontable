@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triageLimit is the exact number of sampled finding shapes that need triage: lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one, and every shape left there has its reason in that test's TRIAGE_REASONS.",
-  "triageLimit": 7,
+  "triageLimit": 1,
   "clusters": [
     {
       "id": "overlay-clones-split-tree",
@@ -258,6 +258,20 @@
       ]
     },
     {
+      "id": "collapse-expand-silent-webkit",
+      "title": "VoiceOver with WebKit says nothing when Enter expands a collapsed column group, though it reads the collapse; a plain header put through the same redraw is read both ways, so the silence comes from the grid",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["collapsible-headers"], "where": ["^enter-expand$"] }
+      ]
+    },
+    {
+      "id": "password-commit-silent-webkit",
+      "title": "VoiceOver with WebKit says nothing when Enter commits the password editor and moves the focus to the next cell; it reads the focus leaving a plain password field and the select editor's commit to a cell, so the silence comes from the grid",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["password-editor"], "where": ["^commit-secret$"] }
+      ]
+    },
+    {
       "id": "focusable-separator-review",
       "title": "axe's experimental focus-order-semantics rule lists the freeze bars for review: a focusable separator is the window splitter pattern, which the rule does not take as a widget",
       "match": [
@@ -290,6 +304,20 @@
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["default-mode", "handsontable-editor", "select-editor", "virtualization", "nested-headers"], "where": ["^(tab-into-grid|to-row-end|to-row-start|commit-row|commit-option|page-down-again|to-first-row|arrow-up-to-header)$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["password-editor"], "where": ["^commit-secret$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] }
+      ]
+    },
+    {
+      "id": "voiceover-unchecked-state-silent",
+      "title": "VoiceOver says checked for a checked menu item and nothing for an unchecked one, on a well-formed menu too: the screen reader's behavior, not the grid's (the Read only item reads checked once its column is read only)",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-menu"], "where": ["^arrow-down-read-only$"] }
+      ]
+    },
+    {
+      "id": "voiceover-webkit-select-change-silent",
+      "title": "VoiceOver with WebKit says nothing when the keys change the option of a closed select, on a plain select too, whether a script changes it as the select editor does or its own type-ahead does: the screen reader's behavior, not the grid's",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["select-editor"], "where": ["^arrow-down-(first|second)$"] }
       ]
     },
     {
