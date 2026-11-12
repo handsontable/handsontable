@@ -20,15 +20,16 @@ import { XLSX_CAPABILITY_IDS } from '../../xlsxEngine/licenseCapabilities';
 export const ALL_XLSX_TOKENS = XLSX_CAPABILITY_IDS;
 
 /**
- * Builds a current subscription key granting `core` plus `tokens` and naming no tier: such a key
- * unlocks every xlsx feature, whatever it lists. It runs to 2027-08-12 with a 60-day
- * notice and a 90-day grace period.
+ * Builds a current subscription key whose Handsontable entry lists `core` plus `tokens` and no
+ * `tier:<name>` token. Only a tier restricts a key, so this key unlocks every feature, whatever tokens it
+ * lists: the case that proves a token outside a tier changes nothing. It runs to 2027-08-12 with a
+ * 60-day notice and a 90-day grace period.
  *
  * @param {string[]} tokens The capability tokens besides `core`.
  * @param {string[]} [flags] The product flags.
  * @returns {string}
  */
-export function keyWithoutFlag(tokens, flags = []) {
+export function keyWithoutTier(tokens, flags = []) {
   return buildTestKey({
     products: {
       handsontable: {

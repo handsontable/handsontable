@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { test, expect, type CDPSession, type Page, type TestInfo } from '@playwright/test';
-import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { PORTAL_MARK, STATES, emulate, expectEditorOpen, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
+import { A11Y_PAGES, type A11yPage } from '../pages.mjs';
+import { fixtureUrl, PORTAL_MARK, STATES, emulate, expectEditorOpen, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   diffTabOrder,

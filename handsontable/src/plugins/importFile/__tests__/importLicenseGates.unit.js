@@ -11,7 +11,7 @@ import { loadFixture as fixture } from '../../../utils/xlsxEngine/__tests__/help
 import * as consoleHelpers from '../../../helpers/console';
 import {
   ALL_XLSX_TOKENS,
-  keyWithoutFlag,
+  keyWithoutTier,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 
@@ -666,10 +666,10 @@ describe('ImportFile license report', () => {
 
     warnSpy.mockClear();
 
-    const unflagged = await pluginFor(keyWithoutFlag(PARTIAL_TOKENS))
+    const noTier = await pluginFor(keyWithoutTier(PARTIAL_TOKENS))
       .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
-    expect(unflagged).toEqual(legacy);
+    expect(noTier).toEqual(legacy);
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
   });
 

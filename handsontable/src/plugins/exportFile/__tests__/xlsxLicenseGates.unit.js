@@ -11,7 +11,7 @@ import { dateRenderer } from '../../../renderers/dateRenderer';
 import * as cellStyle from '../types/xlsx/cell-style';
 import {
   ALL_XLSX_TOKENS,
-  keyWithoutFlag,
+  keyWithoutTier,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 
@@ -734,10 +734,10 @@ describe('Xlsx export license gates', () => {
   });
 
   it('leaves a key that names no tier unrestricted, whatever it lists', async() => {
-    const unflagged = await exportSnapshot(keyWithoutFlag(PARTIAL_TOKENS));
+    const noTier = await exportSnapshot(keyWithoutTier(PARTIAL_TOKENS));
     const legacy = await exportSnapshot('non-commercial-and-evaluation');
 
-    expect(unflagged).toEqual(legacy);
+    expect(noTier).toEqual(legacy);
     expect(warnSpy).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,8 @@
 import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { LicenseCapabilitiesPage } from '../fixtures/pages/LicenseCapabilitiesPage';
-import { presetQuery } from '../fixtures/licenseTiers';
+import { isLicensePreset, presetLicenseQuery, type LicensePresetName } from '../fixtures/licenseTiers';
 import { A11Y_PAGES } from '../a11y/pages.mjs';
+import { fixtureUrl } from '../a11y/harness';
 
 const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
   '(feat:filters). They are turned off. To add them, contact sales@handsontable.com.';
@@ -151,13 +152,19 @@ test.describe('license keys that name tiers', { tag: [THEMES_TAG, BUNDLES_TAG] }
 
 /**
  * The accessibility catalog cannot build a key (it is plain JS that node scripts read too), so its
- * missing-features page carries the query of the `tier-base` preset verbatim. A change to a preset or
- * to the key builder has to update that query, and this test says so.
+ * missing-features page names a preset (`licensePreset`), and the tier's TypeScript `fixtureUrl()` adds
+ * that preset's tiers and key. A preset renamed or removed here would leave the page without its key.
  */
 test.describe('the accessibility catalog\'s license page', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
-  test('opens the fixture with the tier-base preset', () => {
-    const entry = A11Y_PAGES.find(page => page.id === 'license-missing-features');
+  test('names a preset that exists, and opens the fixture with its tiers and key', () => {
+    const entries = A11Y_PAGES.filter(page => page.licensePreset !== undefined);
 
-    expect(entry?.query).toBe(presetQuery('tier-base', 'filters'));
+    expect(entries.map(page => page.id)).toContain('license-missing-features');
+
+    for (const entry of entries) {
+      expect(isLicensePreset(entry.licensePreset ?? ''), entry.id).toBe(true);
+      expect(fixtureUrl(entry, 'main'), entry.id)
+        .toContain(presetLicenseQuery(entry.licensePreset as LicensePresetName));
+    }
   });
 });

@@ -4,31 +4,23 @@ import {
   ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWithTier, INVALID_KEY,
 } from '../fixtures/xlsxLicenseKeys';
 import {
-  featuresMissingFrom, tierWithEveryOrSkip, tierWithoutOrSkip,
+  featuresMissingFrom, requiredTierWithEvery, requiredTierWithout, tiersLeavingOut,
 } from '../fixtures/licenseTiers';
 
 /**
  * The keys name the build's real tiers, read from `dist/manifest.json` when a test runs, so no test
  * assumes which features a tier holds. A test that needs a feature off takes the first tier that leaves
- * it out, and skips when every tier lists it: no real key can switch it off alone then, and the unit
- * suite covers that gate with made-up tiers.
+ * it out, and fails when every tier lists it.
+ *
+ * A feature every real tier lists cannot be switched off by a real key, so those cases live in the unit
+ * suite, which builds keys with made-up tiers: the import refused without xlsx:import
+ * (`handsontable/src/plugins/importFile/__tests__/importFile.unit.js`), and the parts and license entries
+ * without xlsx:formulas or xlsx:layout (`handsontable/src/plugins/importFile/__tests__/importLicenseGates.unit.js`).
  */
 test.describe('xlsx import license gate', { tag: BUNDLES_TAG }, () => {
-  test('rejects the import without xlsx:import', async({ page, theme, bundle }) => {
-    const lic = new XlsxLicensePage(page, theme, bundle);
-    const tier = tierWithoutOrSkip('xlsx:import');
-
-    await lic.goto();
-    await lic.create(keyWithTier([tier]));
-
-    const bytes = await lic.exportBytes();
-
-    await expect(lic.importBytes(bytes)).rejects.toThrow('does not unlock "xlsx:import"');
-  });
-
   for (const [name, key] of [
     // Every tier that lists the import lists the export too, or the test exports nothing to import.
-    ['a key naming a tier that lists xlsx:import', () => keyWithTier([tierWithEveryOrSkip(['xlsx:import', 'xlsx:export'])])],
+    ['a key naming a tier that lists xlsx:import', () => keyWithTier([requiredTierWithEvery(['xlsx:import', 'xlsx:export'])])],
     ['a key with no xlsx token', () => CORE_ONLY_KEY],
     ['an invalid key, which restricts nothing', () => INVALID_KEY],
   ] as const) {
@@ -159,7 +151,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       page, theme, bundle,
     }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
-      const tier = tierWithoutOrSkip(PARTIAL_TIER_LACKS);
+      const tier = requiredTierWithout(PARTIAL_TIER_LACKS);
       const missing = importMissingTokens(tier);
 
       await lic.goto();
@@ -201,17 +193,22 @@ for (const engine of ['native', 'exceljs'] as const) {
         .toEqual([]);
     });
 
-    // One test per token, so a token every tier lists skips alone. A tier can leave several out at once,
-    // so each test expects exactly the parts of every token its tier lacks.
-    for (const token of IMPORT_FEATURE_TOKENS) {
-      test(`the first tier without ${token} removes exactly the parts it leaves out`, async({ page, theme, bundle }) => {
-        const lic = new XlsxLicensePage(page, theme, bundle, engine);
-        const tier = tierWithoutOrSkip(token);
+    // Every tier that leaves an import feature out, once: tiers that lack the same features are one
+    // case, and each is expected to drop exactly the parts of every token it lacks.
+    test('each tier that leaves import features out removes exactly the parts it leaves out', async({
+      page, theme, bundle,
+    }) => {
+      const lic = new XlsxLicensePage(page, theme, bundle, engine);
+      const tiers = tiersLeavingOut(IMPORT_FEATURE_TOKENS);
+
+      expect(tiers.length).toBeGreaterThan(0);
+
+      await lic.goto();
+
+      const bytes = await fullWorkbook(lic);
+
+      for (const tier of tiers) {
         const missing = featuresMissingFrom(tier, IMPORT_FEATURE_TOKENS);
-
-        await lic.goto();
-
-        const bytes = await fullWorkbook(lic);
 
         await lic.create(keyWithTier([tier]));
 
@@ -222,18 +219,18 @@ for (const engine of ['native', 'exceljs'] as const) {
           !missing.includes(id) || id === 'xlsx:number_formats',
         ]));
 
-        expect(features, token).toEqual(expected);
+        expect(features, tier).toEqual(expected);
         // The import names only its own tokens, so a missing export-only token leaves no entry, and
         // only a feature the file carries: the umd bundle has no HyperFormula, so its export holds
         // no formula.
-        expect(result.dropped.filter((name: string) => name.startsWith('license:')), token)
+        expect(result.dropped.filter((name: string) => name.startsWith('license:')), tier)
           .toEqual(importDroppedTokens(tier, bundle).map(id => `license:${id}`));
-      });
-    }
+      }
+    });
 
     test('a tier that lists every xlsx feature imports the same result as an invalid key', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
-      const tier = tierWithEveryOrSkip(ALL_XLSX_TOKENS);
+      const tier = requiredTierWithEvery(ALL_XLSX_TOKENS);
 
       await lic.goto();
 
@@ -255,7 +252,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       page, theme, bundle,
     }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
-      const tier = tierWithoutOrSkip('xlsx:styles');
+      const tier = requiredTierWithout('xlsx:styles');
 
       await lic.goto();
 

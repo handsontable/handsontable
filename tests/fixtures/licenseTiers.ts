@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { test } from './test';
 import { keyWithTier } from './xlsxLicenseKeys';
 
 /**
@@ -107,36 +106,49 @@ export function featuresMissingFrom(tier: string, ids: readonly string[]): strin
 }
 
 /**
- * Skips the running test when no tier of the manifest leaves a feature out: no real key can then
- * switch it off alone, and the unit suite covers the gate with made-up tiers. Otherwise returns that
- * tier. Call it inside a test body.
+ * The first tier of the manifest that leaves a feature out, for a test that needs it off. It throws when
+ * every tier lists the feature, so the test fails rather than passing on a key that switched nothing
+ * off: a case no real tier can express belongs in the unit suite, which builds keys with made-up tiers.
  *
  * @param {string} id The feature id.
  * @returns {string}
  */
-export function tierWithoutOrSkip(id: string): string {
+export function requiredTierWithout(id: string): string {
   const tier = tierWithout(id);
 
-  // eslint-disable-next-line no-restricted-syntax -- DEV-4024: no real tier may leave the feature out.
-  test.skip(tier === null, `no tier leaves ${id} out; covered by the unit suite`);
+  if (tier === null) {
+    throw new Error(`No tier of the manifest leaves ${id} out, so no real key can switch it off.`);
+  }
 
-  return tier as string;
+  return tier;
 }
 
 /**
- * Skips the running test when no tier of the manifest lists every one of the features, and otherwise
- * returns the first tier that does. Call it inside a test body.
+ * The first tier of the manifest that lists every one of the features. It throws when no tier lists them
+ * all, so the test fails rather than passing on a key that switched some of them off.
  *
  * @param {string[]} ids The feature ids.
  * @returns {string}
  */
-export function tierWithEveryOrSkip(ids: readonly string[]): string {
+export function requiredTierWithEvery(ids: readonly string[]): string {
   const tier = tierWithEvery(ids);
 
-  // eslint-disable-next-line no-restricted-syntax -- DEV-4024: no real tier may list every feature.
-  test.skip(tier === null, `no tier lists every one of ${ids.join(', ')}`);
+  if (tier === null) {
+    throw new Error(`No tier of the manifest lists every one of ${ids.join(', ')}.`);
+  }
 
-  return tier as string;
+  return tier;
+}
+
+/**
+ * Every tier of the manifest that leaves at least one of the features out, in manifest order: one key
+ * per distinct way a real key can switch some of them off.
+ *
+ * @param {string[]} ids The feature ids.
+ * @returns {string[]}
+ */
+export function tiersLeavingOut(ids: readonly string[]): string[] {
+  return manifestTiers().filter(tier => featuresMissingFrom(tier, ids).length > 0);
 }
 
 /**
@@ -206,15 +218,25 @@ export function presetKey(name: LicensePresetName): string {
 }
 
 /**
- * The fixture query for a preset: every preset's tier with its features (`presets`), the preset's key
- * (`licenseKey`), and the options the grid asks for (`plugins`). The accessibility catalog
- * (`tests/a11y/pages.mjs`) carries one such query verbatim, and a spec checks it against this.
+ * Tells whether a name is a preset, for a caller that holds a plain string (the accessibility catalog's
+ * `licensePreset`).
+ *
+ * @param {string} name The name.
+ * @returns {boolean}
+ */
+export function isLicensePreset(name: string): name is LicensePresetName {
+  return Object.prototype.hasOwnProperty.call(LICENSE_PRESETS, name);
+}
+
+/**
+ * The license part of the fixture query for a preset: every preset's tier with its features (`presets`)
+ * and the preset's key (`licenseKey`). The accessibility catalog names a preset
+ * (`licensePreset` in `tests/a11y/pages.mjs`), and its TypeScript side appends this.
  *
  * @param {string} name The preset.
- * @param {string} plugins The options the grid asks for.
  * @returns {string}
  */
-export function presetQuery(name: LicensePresetName, plugins: string): string {
+export function presetLicenseQuery(name: LicensePresetName): string {
   const presets: Record<string, string[]> = {};
 
   Object.values(LICENSE_PRESETS).forEach(({ tier, features }) => {
@@ -223,6 +245,16 @@ export function presetQuery(name: LicensePresetName, plugins: string): string {
     }
   });
 
-  return `presets=${encodeURIComponent(JSON.stringify(presets))}` +
-    `&licenseKey=${encodeURIComponent(presetKey(name))}&plugins=${plugins}`;
+  return `presets=${encodeURIComponent(JSON.stringify(presets))}&licenseKey=${encodeURIComponent(presetKey(name))}`;
+}
+
+/**
+ * The fixture query for a preset and the options the grid asks for (`plugins`).
+ *
+ * @param {string} name The preset.
+ * @param {string} plugins The options the grid asks for.
+ * @returns {string}
+ */
+export function presetQuery(name: LicensePresetName, plugins: string): string {
+  return `${presetLicenseQuery(name)}&plugins=${plugins}`;
 }

@@ -1,9 +1,9 @@
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWithTier, keyWithoutFlag, INVALID_KEY,
+  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWithTier, keyWithoutTier, INVALID_KEY,
 } from '../fixtures/xlsxLicenseKeys';
-import { tierWithEveryOrSkip } from '../fixtures/licenseTiers';
+import { requiredTierWithEvery } from '../fixtures/licenseTiers';
 
 /**
  * An arbitrary subset of the xlsx tokens. It is not a product package: which tokens a product grants
@@ -41,7 +41,7 @@ test.describe('xlsx license fixture', { tag: BUNDLES_TAG }, () => {
     page, theme, bundle,
   }) => {
     const lic = new XlsxLicensePage(page, theme, bundle);
-    const tier = tierWithEveryOrSkip(ALL_XLSX_TOKENS);
+    const tier = requiredTierWithEvery(ALL_XLSX_TOKENS);
 
     await lic.goto();
     await lic.create(INVALID_KEY);
@@ -79,7 +79,7 @@ test.describe('xlsx license fixture', { tag: BUNDLES_TAG }, () => {
     expect(invalidKeyImport.styles).toBeDefined();
     expect(invalidKeyImport.comments).toBeDefined();
 
-    await lic.create(keyWithoutFlag(PARTIAL_TOKENS));
+    await lic.create(keyWithoutTier(PARTIAL_TOKENS));
 
     const bytes = await lic.exportBytes(exportOptions);
 

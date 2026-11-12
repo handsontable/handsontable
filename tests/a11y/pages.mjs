@@ -68,12 +68,11 @@ export const A11Y_PAGES = [
     surface: 'a notification toast with a close button and two actions' },
   { id: 'license-bar', fixture: 'license-bar.html', query: 'width=600', state: 'none',
     surface: 'the license notification bar under the grid and its text contrast' },
-  // The `tier-base` preset of `tests/fixtures/licenseTiers.ts` (`presetQuery('tier-base', 'filters')`): a key that
-  // names a made-up tier and the features the fixture gives it. This file cannot build a key, so the query is kept
-  // verbatim, and `e2e/license-capabilities.spec.ts` fails until it matches the preset.
-  { id: 'license-missing-features', fixture: 'license-capabilities.html',
-    query: 'presets=%7B%22e2e_base%22%3A%5B%22feat%3Aauto_column_size%22%2C%22feat%3Aautofill%22%2C%22feat%3Acheckbox_header%22%2C%22feat%3Acopy_paste%22%2C%22feat%3Adrag_to_scroll%22%2C%22feat%3Aexport_file%22%2C%22feat%3Aimport_file%22%2C%22feat%3Aundo_redo%22%2C%22feat%3Aview_state%22%5D%2C%22e2e_column_menu%22%3A%5B%22feat%3Aauto_column_size%22%2C%22feat%3Aautofill%22%2C%22feat%3Acheckbox_header%22%2C%22feat%3Acopy_paste%22%2C%22feat%3Adrag_to_scroll%22%2C%22feat%3Aexport_file%22%2C%22feat%3Aimport_file%22%2C%22feat%3Aundo_redo%22%2C%22feat%3Aview_state%22%2C%22feat%3Adropdown_menu%22%5D%2C%22e2e_filters%22%3A%5B%22feat%3Aauto_column_size%22%2C%22feat%3Aautofill%22%2C%22feat%3Acheckbox_header%22%2C%22feat%3Acopy_paste%22%2C%22feat%3Adrag_to_scroll%22%2C%22feat%3Aexport_file%22%2C%22feat%3Aimport_file%22%2C%22feat%3Aundo_redo%22%2C%22feat%3Aview_state%22%2C%22feat%3Afilters%22%2C%22feat%3Adropdown_menu%22%2C%22feat%3Ahidden_rows%22%5D%2C%22e2e_no_ui%22%3A%5B%22feat%3Aauto_column_size%22%2C%22feat%3Aautofill%22%2C%22feat%3Acheckbox_header%22%2C%22feat%3Acopy_paste%22%2C%22feat%3Adrag_to_scroll%22%2C%22feat%3Aexport_file%22%2C%22feat%3Aimport_file%22%2C%22feat%3Aundo_redo%22%2C%22feat%3Aview_state%22%5D%2C%22e2e_minimal%22%3A%5B%22feat%3Adropdown_menu%22%2C%22feat%3Aauto_column_size%22%5D%7D&licenseKey=This%20is%20a%20test%20license%20key.%0A%0A%5BeyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbInRpZXI6ZTJlX2Jhc2UiXSwicmVsZWFzZV91bnRpbCI6IjIwOTktMTItMzEiLCJub3RpY2UiOjYwLCJncmFjZSI6OTAsImZsYWdzIjpbXX19LCJ2IjoyLCJwcm9zZSI6IjEzZjM1ZGUwZDdlMTgxZTQ5MzYwMDlkYTVjZTAxZjViZjgwOTAxNmMzZmZjNjhhZDFhM2RjMzBmYmIzZWJjYjQifQ1fe9bce513c4620963908388a4b40131927ed23dd6bf7d1e23ff2682859999977b54bd7b0c7eb34f634c4690b0488263c06a190c511428f12d827ed381be2555%5D&plugins=filters',
-    state: 'none', surface: 'the license bar naming the features a license key leaves out, and its sales link' },
+  // `licensePreset` names a preset of `tests/fixtures/licenseTiers.ts`: the TypeScript side (`fixtureUrl()` in
+  // `harness.ts`) adds its made-up tiers and its key to the query, because this file cannot build a key.
+  { id: 'license-missing-features', fixture: 'license-capabilities.html', query: 'plugins=filters',
+    licensePreset: 'tier-base', state: 'none',
+    surface: 'the license bar naming the features a license key leaves out, and its sales link' },
   { id: 'license-powered-by', fixture: 'license-branding.html', query: 'key=sponsored-badge', state: 'none',
     surface: 'the "Powered by Handsontable DataGrid" bar of a key with the badge flag, its link and text contrast' },
   // Menus, opened from the keyboard.
@@ -150,6 +149,10 @@ export const A11Y_PAGES = [
 /**
  * The fixture URL a page is scanned at, relative to the fixture server (`support/static-server.mjs`,
  * `http://localhost:8123` by default).
+ *
+ * A page with a `licensePreset` also needs that preset's tiers and key, which only the TypeScript side
+ * can build: open it through `fixtureUrl()` in `harness.ts`. This one leaves them out, so the grid it opens
+ * has no license key.
  *
  * @param {{fixture: string, query?: string}} page The page.
  * @param {string} theme The theme.

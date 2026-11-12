@@ -1,6 +1,7 @@
 import { expect, devices, type Page } from '@playwright/test';
 import { awaitBundle } from '../fixtures/bundle';
-import { fixtureUrl, type A11yPage, type A11yState } from './pages.mjs';
+import { isLicensePreset, presetLicenseQuery } from '../fixtures/licenseTiers';
+import { fixtureUrl as catalogFixtureUrl, type A11yPage, type A11yState } from './pages.mjs';
 
 /**
  * The shared half of the accessibility tier: how a page of the catalog (`pages.mjs`) is opened, how
@@ -9,6 +10,28 @@ import { fixtureUrl, type A11yPage, type A11yState } from './pages.mjs';
  * here, so a menu, an editor or a selection is the same DOM for all of them. Policy:
  * `tests/AGENTS.md`, "A11y: the axe scan and its baseline" and "A11y: the checks beyond axe".
  */
+
+/**
+ * The path and query of a catalog page in a theme, with the made-up tiers and the key of its
+ * `licensePreset` when it names one (`pages.mjs` cannot build a key). Every spec of the tier opens a page
+ * and records its URL through this, never through `pages.mjs` directly.
+ *
+ * @param page The page.
+ * @param theme The theme.
+ * @returns The path and query.
+ */
+export function fixtureUrl(page: Pick<A11yPage, 'fixture' | 'query' | 'licensePreset'>, theme: string): string {
+  const url = catalogFixtureUrl(page, theme);
+
+  if (page.licensePreset === undefined) {
+    return url;
+  }
+  if (!isLicensePreset(page.licensePreset)) {
+    throw new Error(`Unknown licensePreset ${JSON.stringify(page.licensePreset)} in tests/a11y/pages.mjs.`);
+  }
+
+  return `${url}&${presetLicenseQuery(page.licensePreset)}`;
+}
 
 export const DEFAULT_ROOT = '[data-testid="grid"]';
 export const DEFAULT_CELL: [number, number] = [1, 1];
