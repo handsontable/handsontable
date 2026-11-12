@@ -12,10 +12,9 @@ import { FrozenSeamEdgeEndCornersPage } from '../fixtures/pages/FrozenSeamEdgeEn
  * overlay below the end corner is there but covered. Column 97 is the control: the `top` or `bottom` overlay
  * draws its slice, unchanged.
  *
- * Two scroll states: scrolled to the end, where the end band stands on the last scrollable column and
- * that column's border is the freeze line, and scrolled partway (column 40), where the end band's first
- * cell draws the freeze line itself. Partway, an edge started one pixel before the band stuck out past the
- * freeze line, outside the selection.
+ * Two scroll states: scrolled to the end and scrolled partway (column 40). In both the end band's first cell
+ * draws the freeze line itself (its column reaches one pixel over the column before the band), so an edge
+ * started one pixel before the band would stick out past the freeze line, outside the selection.
  */
 const PARTWAY_COLUMN = 40;
 
@@ -87,20 +86,21 @@ const PARTWAY_COLUMN = 40;
       { line: 'bottom' as const, row: 98, select: [92, 95, 98, 99] as const },
       { line: 'top' as const, row: 1, select: [1, 95, 5, 99] as const },
     ].forEach(({ line, row, select }) => {
-      test(`starts the ${line} edge on the border before the end band, scrolled to the end`, async () => {
+      test(`starts the ${line} edge on the end band, scrolled to the end`, async () => {
         await grid.scrollTo(row, 98);
         await grid.selectCells(...select);
 
-        // Here the last scrollable column's border is the freeze line, so the edge starts one pixel early.
-        await expect.poll(() => grid.endCornerEdgeOffsets(line, 99)).toEqual([1]);
+        // The band's first column reaches over the last scrollable column's border, so the band's own first
+        // cell draws the freeze line here too, and the edge starts on it, not one pixel before it.
+        await expect.poll(() => grid.endCornerEdgeOffsets(line, 99)).toEqual([0]);
       });
 
-      test(`moves the ${line} edge onto the end band when scrolled from the end to partway`, async () => {
+      test(`keeps the ${line} edge on the end band when scrolled from the end to partway`, async () => {
         // Selected at the end, then scrolled: the edge must follow the new scroll position at once, not
         // keep the one from before the scroll until the next render.
         await grid.scrollTo(row, 98);
         await grid.selectCells(select[0], 99, select[2], 99);
-        await expect.poll(() => grid.endCornerEdgeOffsets(line, 99)).toEqual([1]);
+        await expect.poll(() => grid.endCornerEdgeOffsets(line, 99)).toEqual([0]);
 
         await grid.scrollTo(row, PARTWAY_COLUMN);
 
