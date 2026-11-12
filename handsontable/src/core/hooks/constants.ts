@@ -145,8 +145,9 @@ export const REGISTERED_HOOKS = [
    * which is always at least one microtask after the change was made. The change is written to the record it was
    * made on, even when a sort, a row move, a filter, or a row insert or removal moved that record in the meantime,
    * and `row` is the visual row the record has when the value lands. When a filter or another trimming feature
-   * took the record out of the visual space in the meantime, `row` is `null`. When the record was removed in the
-   * meantime, the change is not written, and this hook does not report it.
+   * took the record out of the visual space in the meantime, `row` is `null`; to find that record, pass the change
+   * to [`getPhysicalRowOfChange()`](@/api/core.md#getphysicalrowofchange) inside this hook. When the record was
+   * removed in the meantime, the change is not written, and this hook does not report it.
    *
    * **Breaking change (19.0):** `row` can be `null`, and the type of `changes` is `AppliedCellChange[] | null`
    * instead of `CellChange[] | null`. See the migration guide.
@@ -1895,7 +1896,8 @@ export const REGISTERED_HOOKS = [
    *
    * `row` is a visual row index. For a change that waited for a [`validator`](@/api/options.md#validator), it is
    * the visual row the changed record has when the value lands, or `null` when a filter or another trimming feature
-   * took the record out of the visual space while the change waited (see {@link Hooks#afterChange}).
+   * took the record out of the visual space while the change waited (see {@link Hooks#afterChange}). To find that
+   * record, pass the change to [`getPhysicalRowOfChange()`](@/api/core.md#getphysicalrowofchange).
    *
    * **Breaking change (19.0):** `row` can be `null`, and the type of `changes` is `AppliedCellChange[]` instead of
    * `CellChange[]`.

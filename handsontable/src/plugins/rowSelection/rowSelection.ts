@@ -3020,7 +3020,7 @@ export class RowSelection extends BasePlugin {
    * `isRowSelectable` rejects are marked too. `null` after the change, where the change's own old value
    * is used.
    * @param {Function} [toPhysicalRow] Resolves a change to a physical row. Defaults to the row of the change's
-   * record (`_getChangePhysicalRow()`, which also answers for a record a filter took out of the visual space while
+   * record (`getPhysicalRowOfChange()`, which also answers for a record a filter took out of the visual space while
    * the change waited for its validator); source-data changes already carry physical rows.
    * @returns {object|null} The physical rows that get selected and deselected, the indexes of those
    * changes, and the indexes of the changes that would select a row `isRowSelectable` rejects.
@@ -3029,7 +3029,7 @@ export class RowSelection extends BasePlugin {
     changes: Array<unknown[] | null>,
     checksBeforeChange: RowChecks | null,
     toPhysicalRow: (row: number, change: unknown[]) => number | null = (row, change) => this.hot
-      ._getChangePhysicalRow(change),
+      .getPhysicalRowOfChange(change),
   ) {
     const boundColumn = this.getBoundColumn();
 

@@ -269,7 +269,7 @@ describe('Core validation of a change while its record moves', () => {
       const physicalRows = [];
 
       hot.addHook('afterChange', (changes) => {
-        changes?.forEach(change => physicalRows.push(hot._getChangePhysicalRow(change)));
+        changes?.forEach(change => physicalRows.push(hot.getPhysicalRowOfChange(change)));
       });
       hot.setDataAtCell(1, 0, 'zzz');
 
@@ -906,7 +906,7 @@ describe('Core validation of a change while its record moves', () => {
 
       hot.addHook('afterChange', (changes, source) => {
         if (source === 'edit') {
-          changes.forEach(change => seen.push({ change, during: hot._getChangePhysicalRow(change) }));
+          changes.forEach(change => seen.push({ change, during: hot.getPhysicalRowOfChange(change) }));
         }
       });
       hot.setDataAtCell(1, 0, 'zzz');
@@ -918,7 +918,102 @@ describe('Core validation of a change while its record moves', () => {
       await answerAll();
 
       expect(seen.map(({ during }) => during)).toEqual([1]);
-      expect(seen.map(({ change }) => hot._getChangePhysicalRow(change))).toEqual([null]);
+      expect(seen.map(({ change }) => hot.getPhysicalRowOfChange(change))).toEqual([null]);
+    });
+  });
+
+  describe('getPhysicalRowOfChange()', () => {
+    it('should return the physical row of the record a waiting change follows, while it waits and in its hooks', async() => {
+      createGrid();
+
+      const inHooks = [];
+
+      hot.addHook('beforeChangeRender', (changes) => {
+        changes.forEach(change => inHooks.push(['beforeChangeRender', change[0], hot.getPhysicalRowOfChange(change)]));
+      });
+      hot.addHook('afterChange', (changes, source) => {
+        if (source === 'edit') {
+          changes.forEach(change => inHooks.push(['afterChange', change[0], hot.getPhysicalRowOfChange(change)]));
+        }
+      });
+
+      let waiting = null;
+
+      hot.addHook('afterSetDataAtCell', (changes) => {
+        waiting = changes[0];
+      });
+      hot.setDataAtCell(1, 0, 'zzz', 'edit');
+      sortByKey();
+
+      expect(waiting[0]).toBe(1);
+      expect(hot.getPhysicalRowOfChange(waiting)).toBe(1);
+
+      await answerAll();
+
+      expect(inHooks).toEqual([
+        ['beforeChangeRender', 4, 1],
+        ['afterChange', 4, 1],
+      ]);
+    });
+
+    it('should return the physical row of a change written to a record a filter took out of the visual rows', async() => {
+      createGrid();
+
+      const inHooks = [];
+
+      hot.addHook('afterChange', (changes, source) => {
+        if (source === 'edit') {
+          changes.forEach(change => inHooks.push([change[0], hot.getPhysicalRowOfChange(change)]));
+        }
+      });
+      hot.setDataAtCell(3, 0, 'zzz', 'edit');
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [1]);
+      filters.filter();
+      await answerAll();
+
+      expect(inHooks).toEqual([[null, 3]]);
+    });
+
+    it('should return null for a waiting change once its record was removed', async() => {
+      createGrid();
+
+      let waiting = null;
+
+      hot.addHook('afterSetDataAtCell', (changes) => {
+        waiting = changes[0];
+      });
+      hot.setDataAtCell(1, 0, 'zzz', 'edit');
+      hot.alter('remove_row', 1);
+
+      expect(hot.getPhysicalRowOfChange(waiting)).toBeNull();
+
+      await answerAll();
+    });
+
+    it('should return the physical row of the visual row of a change no validator waited on', () => {
+      createGrid({ cells: () => ({}) });
+      sortByKey();
+
+      const inHooks = [];
+
+      hot.addHook('afterChange', (changes, source) => {
+        if (source === 'edit') {
+          changes.forEach(change => inHooks.push([change[0], hot.getPhysicalRowOfChange(change)]));
+        }
+      });
+      hot.setDataAtCell(4, 0, 'zzz', 'edit');
+
+      expect(inHooks).toEqual([[4, 1]]);
+      expect(hot.getPhysicalRowOfChange([4, 0, 'p1', 'zzz'])).toBe(1);
+    });
+
+    it('should return null for a change whose row is null and that no record follows', () => {
+      createGrid();
+
+      expect(hot.getPhysicalRowOfChange([null, 0, 'p1', 'zzz'])).toBeNull();
     });
   });
 

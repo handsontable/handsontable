@@ -5458,7 +5458,7 @@ export class Formulas extends BasePlugin {
   /**
    * Writes into the engine a change whose row reads `null`: a change that waited for its validator and landed
    * on a record a trimming map (a filter, a collapse) took out of the visual space meanwhile. The engine keeps
-   * trimmed rows, so the record is addressed by its physical row (`_getChangePhysicalRow()`).
+   * trimmed rows, so the record is addressed by its physical row (`getPhysicalRowOfChange()`).
    *
    * @param {Array} change The change.
    * @param {Array} writtenCells Collects the cells written.
@@ -5466,7 +5466,7 @@ export class Formulas extends BasePlugin {
    */
   #writeTrimmedRecordChange(change: CellChange, writtenCells: WrittenCell[], changedCells: unknown[]) {
     const [, prop, oldValue, value] = change;
-    const physicalRow = this.hot._getChangePhysicalRow(change);
+    const physicalRow = this.hot.getPhysicalRowOfChange(change);
     const visualColumn = this.hot.propToCol(prop as string | number);
     const physicalColumn = visualColumn === null ? null : this.hot.toPhysicalColumn(visualColumn);
 

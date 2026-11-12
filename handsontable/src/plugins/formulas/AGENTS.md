@@ -835,7 +835,7 @@ again. The rules:
 - **The write-back reads the row core resolved, and a `null` row by its record.** Core writes a waiting change to
   its record and hands `beforeChangeRender` the record's current visual row, so a sort or a move in the window is
   already in `change[0]`. A record a filter or a collapse trimmed meanwhile arrives with a `null` row:
-  `#writeTrimmedRecordChange()` addresses it by physical row (`_getChangePhysicalRow()`), which the engine still
+  `#writeTrimmedRecordChange()` addresses it by physical row (`getPhysicalRowOfChange()`), which the engine still
   holds. A record removed meanwhile is dropped by core and reaches `#onChangesDropped` in a new array, which
   matches no awaiting set.
 - **`#clearRejectedSheet` does not bump the count.** Writing one change back into a sheet the engine

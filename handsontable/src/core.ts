@@ -622,7 +622,7 @@ export default function Core(
   const waitingChangeSets: Map<CellChange[], { source: string | undefined, records: WaitingChangeRecords }> =
     new Map();
   /**
-   * The record bookkeeping of every change a waiting set captured a record for, read by `_getChangePhysicalRow()`
+   * The record bookkeeping of every change a waiting set captured a record for, read by `getPhysicalRowOfChange()`
    * in O(1). An entry lives from the capture until the set has dispatched its `afterChange` (or was dropped), when
    * `WaitingChangeRecords#release()` takes it out, so a listener of `beforeChangeRender` or `afterChange` can still
    * find the record of a change whose row reads `null`. Weak, so it holds no change alive.
@@ -6672,18 +6672,46 @@ export default function Core(
   };
 
   /**
-   * Returns the physical row of the record a change addresses. A change that waited for its validator is
-   * tracked by its record (`validateAndApplyChanges()`): while it waits, its row is the visual row it was made at,
-   * which a sort, a move, a filter, or an insert or removal above it no longer points at; once applied, its row is
-   * the record's current visual row, or `null` while the record is trimmed out of the visual space. This method
-   * answers for both: the record's physical row while the change waits (`null` once the record is gone) or after
-   * it was applied, and `toPhysicalRow(change[0])` for any other change.
+   * Returns the physical index of the row a change was written to.
    *
-   * @private
-   * @param {Array} change The change, as the change hooks received it.
-   * @returns {number|null}
+   * Use it in the [`afterChange`](@/api/hooks.md#afterchange) and
+   * [`beforeChangeRender`](@/api/hooks.md#beforechangerender) hooks to find the record of a change whose `row` is
+   * `null`. A change to a cell with a [`validator`](@/api/options.md#validator) is written to the record it was
+   * made on when the validator answers. When a filter or another trimming feature took that record out of the
+   * visual space in the meantime, the record has no visual index, so the hooks report `row` as `null`, and only
+   * the physical index still names the record. Pass the physical index to
+   * [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow) to read the record, or to
+   * [`getRowIdAtPhysicalRow()`](@/api/core.md#getrowidatphysicalrow) to read its id.
+   *
+   * The method answers for a change that waited for its validator until the `afterChange` hook that reports it
+   * has run: while the change waits, it returns the physical row of its record now (`null` once the record was
+   * removed), and in `beforeChangeRender` and `afterChange` it returns the physical row the change was written
+   * to. After the `afterChange` hook, the grid no longer follows the record, so read the physical index (or the
+   * row's id) inside the hook, and keep it if you need it later. For any other change, and for a change after its
+   * `afterChange` hook, the method returns the physical index of the change's visual `row` now, or `null` when
+   * `row` is `null`.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowOfChange
+   * @since 19.0.0
+   * @param {Array} change A change, as the [`afterChange`](@/api/hooks.md#afterchange) or
+   * [`beforeChangeRender`](@/api/hooks.md#beforechangerender) hook passes it: `[row, prop, oldValue, newValue]`.
+   * Pass the array the hook passes, not a copy.
+   * @returns {number|null} The physical row index, or `null` when the change addresses no row.
+   * @example
+   * ```js
+   * hot.addHook('afterChange', (changes, source) => {
+   *   changes?.forEach((change) => {
+   *     const physicalRow = hot.getPhysicalRowOfChange(change);
+   *
+   *     if (physicalRow !== null) {
+   *       save(hot.getSourceDataAtRow(physicalRow));
+   *     }
+   *   });
+   * });
+   * ```
    */
-  this._getChangePhysicalRow = function(change: readonly unknown[]): number | null {
+  this.getPhysicalRowOfChange = function(change: readonly unknown[]): number | null {
     const recordRow = waitingChangeRecords.get(change)?.getPhysicalRow(change);
 
     if (recordRow !== undefined) {

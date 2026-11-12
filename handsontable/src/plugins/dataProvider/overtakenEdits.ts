@@ -136,7 +136,7 @@ export class OvertakenEdits {
    * Called right before a refetch that follows a save loads its rows. Every set core still lists as waiting for
    * its validators will be dropped by the load, so the row id each change of a set DataProvider saves addresses is
    * read now, while the rows it was made on are still loaded. The id is read from the record core tracks for the
-   * change (`_getChangePhysicalRow()`), not from the visual row it was made at: a row move or an insert made while
+   * change (`getPhysicalRowOfChange()`), not from the visual row it was made at: a row move or an insert made while
    * it waits leaves another record there. An editor that waits for its validator is closed by
    * the load; its cell and the text the user typed are kept with the set it saved.
    *
@@ -155,7 +155,7 @@ export class OvertakenEdits {
 
       changes.forEach((change) => {
         const rowId = readRowIdAtPhysicalRowOrUndefined(
-          this.#hot, this.#getRowIdOption(), this.#hot._getChangePhysicalRow(change),
+          this.#hot, this.#getRowIdOption(), this.#hot.getPhysicalRowOfChange(change),
         );
 
         rowIds.set(change, rowId);

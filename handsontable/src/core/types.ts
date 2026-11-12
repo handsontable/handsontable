@@ -181,6 +181,7 @@ export interface HotInstance {
   getVisualRowById(id: unknown): number | null;
   getPhysicalRowById(id: unknown): number | null;
   getRowIdAtPhysicalRow(physicalRow: number): unknown;
+  getPhysicalRowOfChange(change: readonly unknown[]): number | null;
   getRowIds(rows?: number[]): unknown[];
   getVisualRowsByIds(ids: unknown[]): Array<number | null>;
   getPhysicalRowsByIds(ids: unknown[]): Array<number | null>;
@@ -353,7 +354,6 @@ export interface HotInstance {
   _releasePlugin(pluginKey: string, requirer: object): void;
   _isPluginRequired(pluginKey: string): boolean;
   _getWaitingChangeSets(): Array<{ changes: CellChange[], source: string | undefined }>;
-  _getChangePhysicalRow(change: readonly unknown[]): number | null;
   _trackRecord(visualRow: number): TrackedRecordHandle | null;
   _addDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void

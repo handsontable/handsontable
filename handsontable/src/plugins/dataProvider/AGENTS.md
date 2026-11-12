@@ -146,7 +146,7 @@ loads when it arrives, so every promise, hook, overlay, and pager update keeps i
   `afterChange` fires for an empty set) until the next load, which then took it as waiting.
 - **The record is found by row id, read before the load.** `overtakeWaitingSets()` reads the row id of every
   change right before the load, while the rows the change was made on are still loaded, from the record core
-  tracks for the change (`_getChangePhysicalRow()`), not from the visual row the change was made at, which a row
+  tracks for the change (`getPhysicalRowOfChange()`), not from the visual row the change was made at, which a row
   move or an insert made while it waits gives to another record, through `readRowIdAtPhysicalRowOrUndefined()`
   (`query/crud.ts`): a `rowId` function that throws reads as no id, so the change stays
   dropped and the refetch, which runs this inside `#fetchFor()`'s `try`, is not reported as failed (that would
