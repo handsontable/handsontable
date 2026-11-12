@@ -176,6 +176,44 @@ describe('FormulaBuilder with formulas.batchEvaluation', () => {
       expect(withBar.grid.getPlugin('formulaBuilder').getRawCellText(0, 0)).toBe('100');
     });
 
+    it('keeps the bar current inside a suspended execution when batchEvaluation is off', () => {
+      const engine = buildEngine();
+      const grid = mountGrid(engine, {
+        data: [[1, 2, '=A1+B1']],
+        formulas: { batchEvaluation: false },
+        formulaBuilder: { builder: core, showFormulaBar: true },
+      });
+
+      grid.selectCell(0, 0);
+      grid.suspendExecution();
+      grid.setSourceDataAtCell(0, 0, 'written');
+      grid.render();
+
+      // Nothing is held without the option, so the bar has nothing to wait for.
+      expect(barText(grid)).toBe('written');
+
+      grid.resumeExecution();
+    });
+
+    it('shows the written text of the active cell right after a write in batchExecution()', () => {
+      const engine = buildEngine();
+      const grid = mountGrid(engine, {
+        data: [[1, 2, '=A1+B1']],
+        formulaBuilder: { builder: core, showFormulaBar: true },
+      });
+      let insideBatch = '';
+
+      grid.selectCell(0, 0);
+      grid.batchExecution(() => {
+        grid.setSourceDataAtCell(0, 0, 'written');
+        insideBatch = barText(grid);
+      });
+
+      // The write renders, a render recalculates, and the held engine is not read for the bar after it.
+      expect(insideBatch).toBe('written');
+      expect(barText(grid)).toBe('written');
+    });
+
     it('re-reads the active cell into the bar when the execution resumes, without waiting for a draw', () => {
       const engine = buildEngine();
       const grid = mountGrid(engine, {

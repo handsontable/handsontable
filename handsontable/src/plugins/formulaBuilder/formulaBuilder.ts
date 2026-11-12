@@ -531,6 +531,11 @@ export class FormulaBuilder extends BasePlugin {
    * it (`#onIndexCacheUpdated`).
    */
   #barCellStale = false;
+  /**
+   * Whether `#resyncBarCell()` left its read for `afterResumeExecution`: the Formulas plugin holds writes
+   * (`batchEvaluation`), and the read would recalculate them once per write.
+   */
+  #barResyncDeferred = false;
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -1381,15 +1386,24 @@ export class FormulaBuilder extends BasePlugin {
       this.#rememberFocusedCell();
       this.#resyncBarCell();
     }
+
+    // A re-read left for the resume (`#barResyncDeferred`) goes ahead once a draw recalculated the held engine:
+    // the read needs no recalculation then.
+    if (this.#barResyncDeferred && this.#formulasPlugin?.isEngineHeld() !== true) {
+      this.#barResyncDeferred = false;
+      this.#resyncBarCell();
+    }
   };
 
   /**
    * `afterResumeExecution` hook listener - re-reads the bar's cell that `#resyncBarCell()` left for the
-   * resume. It runs after the Formulas plugin released its hold (order -1), so the read needs no recalculation.
+   * resume (`#barResyncDeferred`, set only while a held engine would recalculate for the read). It runs after
+   * the Formulas plugin released its hold (order -1), so the read needs no recalculation.
    */
   #onAfterResumeExecution = (): void => {
-    if (this.#barCellStale && !this.hot.isExecutionSuspended()) {
-      this.#onBeforeViewRender();
+    if (this.#barResyncDeferred) {
+      this.#barResyncDeferred = false;
+      this.#resyncBarCell();
     }
   };
 
@@ -1408,9 +1422,9 @@ export class FormulaBuilder extends BasePlugin {
 
     // A read of the cell recalculates a held engine (`formulas.batchEvaluation`), so each write inside a
     // `batch()` would recalculate once more. The bar re-reads when the execution resumes
-    // (`#onAfterResumeExecution`), or on the next draw if that comes first.
-    if (this.hot.isExecutionSuspended()) {
-      this.#barCellStale = true;
+    // (`#onAfterResumeExecution`). A draw recalculates the held engine first, so a re-read from it is not held.
+    if (this.#formulasPlugin?.isEngineHeld() === true) {
+      this.#barResyncDeferred = true;
 
       return;
     }

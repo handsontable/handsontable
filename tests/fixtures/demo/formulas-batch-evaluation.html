@@ -57,29 +57,34 @@
     window.renderLog = [];
     container.className = `ht-theme-${window.htTheme}`;
 
-    window.hot = new Handsontable(container, {
-      data: Array.from({ length: ROWS }, (_, row) => [row + 1, `=A${row + 1}*1000`]),
-      formulas: { engine, sheetName: 'Sheet1', batchEvaluation: true },
-      colHeaders: true,
-      rowHeaders: true,
-      width: 500,
-      height: 200,
-      afterFormulasValuesUpdate() {
-        window.valuesUpdates += 1;
-      },
-      afterRender() {
-        // What the draw left on screen for the formula cell of the first row, kept for the spec.
-        const td = document.querySelector('[data-testid="cell-0-1"]');
+    try {
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: ROWS }, (_, row) => [row + 1, `=A${row + 1}*1000`]),
+        formulas: { engine, sheetName: 'Sheet1', batchEvaluation: true },
+        colHeaders: true,
+        rowHeaders: true,
+        width: 500,
+        height: 200,
+        afterFormulasValuesUpdate() {
+          window.valuesUpdates += 1;
+        },
+        afterRender() {
+          // What the draw left on screen for the formula cell of the first row, kept for the spec.
+          const td = document.querySelector('[data-testid="cell-0-1"]');
 
-        if (td) {
-          window.renderLog.push({ text: td.textContent, fits: td.scrollWidth <= td.clientWidth });
-        }
-      },
-      afterRenderer(td, row, col) {
-        td.setAttribute('data-testid', `cell-${row}-${col}`);
-      },
-      licenseKey: window.htTestLicenseKey,
-    });
+          if (td) {
+            window.renderLog.push({ text: td.textContent, fits: td.scrollWidth <= td.clientWidth });
+          }
+        },
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
   </script>
 </body>
 </html>

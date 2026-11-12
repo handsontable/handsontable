@@ -1461,12 +1461,16 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   addresses from before it (a formula write, then an insert above it: the release validated the cell above the
   dependent `SUM`). The grid moves its cells before the engine does (`afterCreateRow` writes the engine), so they
   are validated from `beforeCreateRow`/`Col` and `beforeRemoveRow`/`Col` (not for `auto`, which adds and gives back
-  rows at the end), `beforeRowMove`, `beforeColumnMove` and `beforeColumnSort` (a write, then a sort: the order reports every
-  value cell it moves at its new address, and the release validated them all). A freeze, `moveCells` and a
-  NestedRows detach showed no difference and have no listener. **Open:** a sort followed by a cell write in the same hold validates another dependent than without
-  the option (`hot.batch(() => { sort; setDataAtCell(4, 0, 50) })` on the `runValidatedBatch` fixture: `5:2` where
-  the option off validates `4:2`); reproduced on the first version of the option, cause not found, the HF-versus-
-  visual defect below is the suspect. `switchSheet()` validates in `#loadSheet()`, before the load.
+  rows at the end), `beforeRowMove`, `beforeColumnMove` and `beforeColumnSort` (a write, then a sort: the order
+  reports every value cell it moves at its new address, and the release validated them all). The sort listener
+  also runs for a sort that is cancelled or impossible, which costs one early recalculation and validation, the
+  per-write result without the option. A freeze, `moveCells` and a NestedRows detach showed no difference and
+  have no listener. **Open:** a sort followed by a cell write in the same hold validates another dependent
+  than without the option (`hot.batch(() => { sort; setDataAtCell(4, 0, 50) })` on the `runValidatedBatch`
+  fixture: `5:2` where the option off validates `4:2`). It reproduced on the first version of the option, before
+  any fix of this file, so the order write sharing the write's recalculation is not the cause (the engine is not
+  held at the sort); the HF-versus-visual defect below is the suspect. `switchSheet()` validates in
+  `#loadSheet()`, before the load.
   `beforeLoadData`/`beforeUpdateData` validate only the other sheets' dependents (`leavingSheetId`): the Core
   destroys the data map before those hooks, so the dependents on this grid's own sheet of a write made before a
   host's `loadData()`/`updateData()` in the same hold are not validated (without the option they are, against the
@@ -1498,6 +1502,13 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   `planEngineWorkbook()`, the copy's named expressions and serialized sheet, `getFillRangeData`) and ImportFile
   (before the mapping). `#readEngineContent()` after a
   `setDataAtCell()` write is deferred, not flushed: it would recalculate once per write.
+- **AutoColumnSize needs no pre-draw recalculation.** Recalculating a holder from `#onBeforeRenderStart`, ahead of
+  AutoColumnSize's `beforeRender` listener, was tried (an `afterFormulasValuesUpdate` that fires after that
+  listener consumed its queue looked able to paint a changed value at the old width) and removed: in a browser a
+  full render makes AutoColumnSize sample the visible columns, and the sampling reads the cells through
+  `modifyData`, which recalculates first, so no draw paints the new value cut off (`tests/e2e/
+  formulas-batch-evaluation.spec.ts`, "measures the formula column before the draw"). Do not add the earlier flush back
+  without a reproduction in a real browser.
 - **`#onBeforeRender` flushes only for a grid that holds the engine.** Unconditional, a second grid that writes
   inside the first grid's `batch()` ended the hold on each of its own renders. A non-holder therefore flushes from
   the first formula cell of its draw. A paint asked for while this grid prepares a draw that starts with the engine

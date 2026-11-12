@@ -350,9 +350,13 @@ declare global {
      * cached `getPlugin('autofill')` still holds it.
      */
     destroyedAutofill?: { enablePlugin(): void, disablePlugin(): void, updatePlugin(): void };
-    /** `formulas-batch-evaluation` fixture: the recalculations the grid reported (`afterFormulasValuesUpdate`). */
+    /**
+     * `formulas-batch-evaluation` fixture: the recalculations the grid reported (`afterFormulasValuesUpdate`).
+     */
     valuesUpdates: number;
-    /** `formulas-batch-evaluation` fixture: the text of the first formula cell and whether it fits, per draw. */
+    /**
+     * `formulas-batch-evaluation` fixture: the text of the first formula cell and whether it fits, per draw.
+     */
     renderLog: Array<{ text: string | null, fits: boolean }>;
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;

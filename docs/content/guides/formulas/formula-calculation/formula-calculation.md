@@ -1007,7 +1007,24 @@ const hotSettings = ref({
 :::
 
 Then wrap your changes in [`batch()`](@/api/core.md#batch), called on the Handsontable instance (`hot`).
-In React, Angular, and Vue, get the instance from the component's `hotInstance` property.
+
+::: only-for react
+
+In React, get the instance from the `hotInstance` property of the `HotTable` ref.
+
+:::
+
+::: only-for angular
+
+In Angular, get the instance from the `hotInstance` property of the `HotTable` component.
+
+:::
+
+::: only-for vue
+
+In Vue, get the instance from the `hotInstance` property of the `HotTable` ref.
+
+:::
 
 ```js
 // Update the stock of five products. HyperFormula recalculates once, after the callback.
@@ -1049,12 +1066,12 @@ The setting has these limits:
 - Writing formulas into a validated column (for example, a `numeric`, `date`, or `dropdown` column) saves
   nothing. The validator checks each formula's result, so Handsontable reads it right after the change, and
   that read recalculates the changes made before it.
-- Inserting, removing, or moving rows or columns inside the batch recalculates the changes made before
-  it. Handsontable validates their dependent cells before the structure changes, as it does without the
-  setting. A removal also recalculates before the next change.
+- Inserting, removing, moving, or sorting rows or columns inside the batch recalculates the changes made
+  before it. Handsontable validates their dependent cells before the structure changes, as it does without
+  the setting. A removal also recalculates before the next change.
 - Loading data with [`loadData()`](@/api/core.md#loaddata) or [`updateData()`](@/api/core.md#updatedata)
-  inside the batch replaces the data. Handsontable doesn't validate the formula cells that depend on the
-  changes made before the load.
+  inside the batch replaces the data. Handsontable doesn't validate the cells of that grid that depend on the
+  changes made before the load. It still validates the dependent cells on other sheets.
 
 For more on batching, see [Batch operations](@/guides/optimization/batch-operations/batch-operations.md).
 

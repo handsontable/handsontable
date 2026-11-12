@@ -234,7 +234,7 @@ When the execution changes from resumed to suspended, Handsontable fires the [`b
 - The hooks fire only on that change. A nested [`suspendExecution()`](@/api/core.md#suspendexecution) or [`resumeExecution()`](@/api/core.md#resumeexecution) call fires nothing.
 - [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend and resume the execution the same way, so they fire the hooks too. Handsontable also suspends the execution on its own, for example to size columns on a render.
 - The hooks can't cancel the change. Handsontable ignores their return values. A listener that throws in `beforeSuspendExecution` stops the suspension, and the error reaches the caller.
-- A listener can suspend and resume the execution of the same instance. Those calls belong to the change in progress, so they fire no hooks.
+- A `beforeSuspendExecution` or `beforeResumeExecution` listener can suspend and resume the execution of the same instance. Those calls belong to the change in progress, so they fire no hooks. If the listener leaves the execution suspended, `beforeResumeExecution` fires again, and `afterResumeExecution` fires, with the call that ends it.
 
 ```js
 hot.addHook('afterResumeExecution', () => {

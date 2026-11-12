@@ -2514,6 +2514,18 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Tells whether this instance's engine holds writes that are not recalculated yet (the `batchEvaluation`
+   * setting), so a read of a formula cell would recalculate them. Another plugin that wants to avoid that read
+   * until the writes end asks first.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isEngineHeld(): boolean {
+    return isEvaluationHeld(this.engine);
+  }
+
+  /**
    * Returns the names of the sheets of `engine` that Handsontable instances other than this one are bound to.
    *
    * The engine is an argument because a caller can ask before this instance is bound to it.

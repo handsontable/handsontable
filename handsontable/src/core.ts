@@ -5294,7 +5294,9 @@ export default function Core(
    * [`afterResumeExecution`](@/api/hooks.md#afterresumeexecution) hooks. A forced nested call
    * (`forceFlushChanges`) updates the index cache too, and the execution stays suspended. A nested call, a
    * forced nested call, and a call while the execution is not suspended fire nothing. The execution resumes,
-   * and `afterResumeExecution` fires, even when a `beforeResumeExecution` listener throws.
+   * and `afterResumeExecution` fires, even when a `beforeResumeExecution` listener throws. A
+   * `beforeResumeExecution` listener that leaves the execution suspended keeps it suspended: the hook fires again,
+   * with `afterResumeExecution`, on the call that ends it.
    *
    * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
    * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, until the execution

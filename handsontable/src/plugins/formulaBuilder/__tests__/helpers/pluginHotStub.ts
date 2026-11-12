@@ -44,6 +44,7 @@ export interface FormulasStub {
    * Recalculates the writes held on the engine (`batchEvaluation`); nothing is held in the stub.
    */
   flushEngineEvaluation: () => void;
+  isEngineHeld: () => boolean;
 }
 
 /**
@@ -181,6 +182,7 @@ export function makePluginHotStub(
       return () => this.engineDetachListeners.delete(listener);
     },
     flushEngineEvaluation() {},
+    isEngineHeld: () => false,
   };
   const settings: Record<string, unknown> = {
     formulaBuilder: { builder: core, ...pluginSettings },

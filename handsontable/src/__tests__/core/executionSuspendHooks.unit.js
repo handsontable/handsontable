@@ -500,6 +500,32 @@ describe('execution suspend hooks', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
+    it.each([
+      ['beforeSuspendExecution', (instance, fn) => instance.batchExecution(fn)],
+      ['beforeResumeExecution', (instance, fn) => instance.batchExecution(fn)],
+    ])('should fire the hooks of the next batch after a %s listener threw', (hookName, run) => {
+      hot = createHot(container);
+
+      const log = recordExecutionHooks(hot);
+      let throwOnce = true;
+
+      hot.addHook(hookName, () => {
+        if (throwOnce) {
+          throwOnce = false;
+          throw new Error('listener failed');
+        }
+      });
+
+      expect(() => run(hot, () => {})).toThrow('listener failed');
+
+      // The flag that keeps the hooks quiet while a before listener runs is cleared with the throw. Left set, no
+      // suspension of this grid fires a hook again, and a plugin that holds something on them never gets one.
+      log.length = 0;
+      run(hot, () => {});
+
+      expect(log).toEqual(FULL_CYCLE);
+    });
+
     it('should roll the suspension back through the resume pair when afterSuspendExecution throws', () => {
       hot = createHot(container);
 

@@ -2364,7 +2364,8 @@ export const REGISTERED_HOOKS = [
    *
    * A listener can suspend and resume the execution of the same instance. Those calls belong to the resume in
    * progress, so they fire no execution hooks. A listener that leaves the execution suspended keeps it
-   * suspended, and `afterResumeExecution` fires with the call that ends it.
+   * suspended. `beforeResumeExecution` then fires again, and `afterResumeExecution` fires, with the call that
+   * ends it.
    *
    * @event Hooks#beforeResumeExecution
    * @since 19.0.0
