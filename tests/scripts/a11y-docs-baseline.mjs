@@ -7,9 +7,10 @@
  *
  * Every docs merge can add or remove findings on the staging deploy, so the baseline goes stale with the docs.
  * The refresh (`lib/a11y-docs-baseline.mjs`) takes every count from the run, deletes what the run no longer
- * found, adds a new finding under the issue its rule and target already belong to, and keeps the entries of the
- * pages the run did not scan. It writes nothing when a scan read another deploy than the staging one, or when a
- * new finding needs an issue no entry names yet: those are listed, and a person names the issue.
+ * found, adds a new finding under the issue its rule and target already belong to, keeps the entries of the pages
+ * the run did not scan, and drops those of a page that left the page list. It writes nothing when a scan read
+ * another deploy than the staging one, or when a new finding needs an issue no entry names yet: those are listed,
+ * and a person names the issue.
  *
  * `--dry-run` prints what would change and writes nothing; `--baseline <file>` names another file to rewrite
  * (the tooling test's copy). Needs `gh`, signed in, for `--run`.
@@ -96,13 +97,14 @@ function report(changes, scanCount, source) {
   const lines = [
     `${scanCount} scans from ${source}.`,
     `  added ${changes.added.length}, raised ${changes.raised.length}, lowered ${changes.lowered.length}, `
-      + `impact changed ${changes.impact.length}, removed ${changes.removed.length}; `
+      + `impact changed ${changes.impact.length}, removed ${changes.removed.length}, dropped with their page ${changes.unlisted.length}; `
       + `${changes.unverified} kept unverified (page not scanned).`,
     ...changes.added.map(entry => `  + ${line(entry)}: ${entry.nodes} (${entry.issue})`),
     ...changes.raised.map(entry => `  ↑ ${line(entry)}: ${entry.from} → ${entry.nodes}`),
     ...changes.lowered.map(entry => `  ↓ ${line(entry)}: ${entry.from} → ${entry.nodes}`),
     ...changes.impact.map(entry => `  ! ${line(entry)}: impact ${entry.from} → ${entry.impact}`),
     ...changes.removed.map(entry => `  - ${line(entry)}: ${entry.nodes} (${entry.issue})`),
+    ...changes.unlisted.map(entry => `  - ${line(entry)}: ${entry.nodes} (${entry.issue}), its page left the page list`),
     ...changes.removedIssues.map(id => `  - issue ${id}: no entry left`),
     ...(changes.engine ? [`  axe-core ${changes.engine.from} → ${changes.engine.to}`] : []),
   ];

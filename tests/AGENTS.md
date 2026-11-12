@@ -1972,11 +1972,12 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   first). It compares the run's scans with the file through the scan's own comparator, so whichever
   baseline the run compared against makes no difference. It takes every count and impact from the run,
   deletes a finding the run no longer found, adds a new one under the issue its rule and target already
-  belong to, and keeps the entries of a page the run did not scan. It writes nothing when a scan read
-  another deploy than staging, or when a new finding's rule and target belong to no issue yet: name that
-  issue, add the listed entries under it, and run it again. The file stays in the order and form the
-  script writes (`lib/__tests__/a11y-docs-baseline.test.mjs`), so a refresh diff holds the changed lines
-  only. Refresh from a develop dispatch with no staging deploy in flight
+  belong to, and keeps the entries of a page the run did not scan. It drops the entries of a page that left
+  the page list (`docs/tests/paths.js` or `EXTRA_PAGES`), since nothing scans it again. It writes nothing
+  when a scan read another deploy than staging, or when a new finding's rule and target belong to no issue
+  yet: name that issue, add the listed entries under it, and run it again. The file stays in the order and
+  form the script writes (`lib/__tests__/a11y-docs-baseline.test.mjs`), so a refresh diff holds the changed
+  lines only. Refresh from a develop dispatch with no staging deploy in flight
   (`gh run list --workflow docs-staging.yml`): a deploy between that run and the pull request's own scan
   reads as new findings again.
 - **No keyboard walker yet.** The checks beyond axe (`a11y/checks/`) open fixture targets through the

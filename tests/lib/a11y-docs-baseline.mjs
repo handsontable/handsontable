@@ -4,8 +4,9 @@
  * (`scripts/a11y-docs-baseline.mjs`), never a hand edit. It compares the run's scans with the baseline
  * through the scan's own comparator, so it reads what the reporter reads, whatever baseline the run was
  * compared with: a grown or improved entry takes the run's count, a stale one goes, a new finding joins the
- * issue its rule and target already belong to, and an entry of a page the run did not scan stays. A new
- * finding whose rule and target no issue has yet needs a person to name its issue, so it stops the refresh.
+ * issue its rule and target already belong to, an entry of a page the run did not scan stays, and an entry of a
+ * page that left the page list goes. A new finding whose rule and target no issue has yet needs a person to name
+ * its issue, so it stops the refresh.
  */
 import { compareViolations, entryKey, findingsFromScan, validateBaseline } from './a11y-baseline.mjs';
 
@@ -29,7 +30,8 @@ export const ISSUE_FIELDS = ['id', 'title', 'tracker'];
  */
 export function refreshBaseline({ baseline, scans, pages, themes, baseUrl, baselineFile = 'a11y/docs/docs-baseline.json',
   pagesFile = 'tests/a11y/docs/pages.mjs' }) {
-  const changes = { added: [], raised: [], lowered: [], impact: [], removed: [], removedIssues: [], unverified: 0, engine: null };
+  const changes = { added: [], raised: [], lowered: [], impact: [], removed: [], unlisted: [], removedIssues: [], unverified: 0,
+    engine: null };
 
   if (scans.length === 0) {
     return { document: null, changes, unplaced: [], problems: ['the run holds no scan, so it proves nothing about any entry'] };
@@ -61,13 +63,18 @@ export function refreshBaseline({ baseline, scans, pages, themes, baseUrl, basel
   const found = new Map([...verdict.matched, ...verdict.grown, ...verdict.improved].map(finding => [entryKey(finding), finding]));
   const gone = new Set(verdict.stale.map(item => entryKey(item)));
   const unplaced = verdict.newViolations.filter(finding => finding.suggestedIssue === null).map(entryOf);
+  // A page or theme that left the list is never scanned again, so its entries would stay unverified for good
+  // and fail the validation below: the refresh drops them, as removing a page by hand would.
+  const listed = item => pages.includes(item.page) && themes.includes(item.theme);
   const entries = [];
 
   for (const entry of baseline.entries) {
     const key = entryKey(entry);
     const finding = found.get(key);
 
-    if (gone.has(key)) {
+    if (!listed(entry)) {
+      changes.unlisted.push(entryOf(entry));
+    } else if (gone.has(key)) {
       changes.removed.push(entryOf(entry));
     } else if (finding) {
       // The run's count and impact; the issue stays the one the entry names.
@@ -102,7 +109,7 @@ export function refreshBaseline({ baseline, scans, pages, themes, baseUrl, basel
     return used.has(issue.id);
   }).map(issue => pick(issue, ISSUE_FIELDS));
 
-  changes.unverified = verdict.unverified.length;
+  changes.unverified = verdict.unverified.filter(listed).length;
   if (engines[0] !== baseline.axeCoreVersion) {
     changes.engine = { from: baseline.axeCoreVersion, to: engines[0] };
   }

@@ -119,6 +119,26 @@ test('a refresh of a run that matches the baseline changes nothing', () => {
   assert.deepEqual([changes.added, changes.raised, changes.lowered, changes.impact, changes.removed], [[], [], [], [], []]);
 });
 
+test('a refresh drops the entries of a page that left the page list, and an issue left without any', () => {
+  // A page removed from the docs visual list is never scanned again: kept as unverified, its entries would fail
+  // the baseline's validation and the refresh would write nothing.
+  const { document, changes, problems } = refreshBaseline({
+    baseline: BASELINE,
+    scans: [scan('intro', 'light', { 'link-in-text-block:a': 2, 'region:div': 1 }), scan('intro', 'dark', { 'link-in-text-block:a': 2 })],
+    pages: ['intro'],
+    themes: ORDER.themes,
+    baseUrl: BASE,
+  });
+
+  assert.deepEqual(problems, []);
+  assert.deepEqual(document.entries, BASELINE.entries.slice(0, 3));
+  assert.deepEqual(document.issues, [ISSUES[0], ISSUES[2]]);
+  assert.deepEqual(changes.unlisted.map(item => `${item.page}|${item.theme}|${item.rule}`), ['license|light|color-contrast']);
+  assert.deepEqual(changes.removed, []);
+  assert.deepEqual(changes.removedIssues, ['line-number-contrast']);
+  assert.equal(changes.unverified, 0);
+});
+
 test('a new finding no issue covers stops the refresh and is listed for a person to name its issue', () => {
   const { document, unplaced, problems } = refreshBaseline({
     baseline: BASELINE,
