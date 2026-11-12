@@ -188,7 +188,7 @@ jobs:
   checks:
     name: website checks
     needs: [ check-inputs ]
-    # TEMPORARY, reverted before the pull request is ready: the proof run of the checks on this pull request.
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-26.04
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
@@ -203,7 +203,7 @@ jobs:
       HOT_A11Y_SITE: website
       # A subset run names its checks; empty runs every one. The config refuses an entry that is no check id.
       A11Y_CHECKS: ${{ inputs.checks }}
-      A11Y_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      A11Y_HEAD_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
