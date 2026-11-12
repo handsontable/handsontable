@@ -1,11 +1,12 @@
 import Handsontable from 'handsontable/base';
-import { ManualRowMove, NestedRows, registerPlugin } from 'handsontable/plugins';
+import { ManualRowMove, MergeCells, NestedRows, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ManualRowMove);
 registerPlugin(NestedRows);
+registerPlugin(MergeCells);
 
 describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
   let container;
@@ -160,28 +161,26 @@ describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
       expect(sequence()).toEqual([1, 2, 3, 0, 4, 5]);
     });
 
-    describe('skipHiddenRowsFrom()', () => {
-      it('should point at the visible row after the hidden block when the drop index starts at a hidden row', () => {
+    describe('getLowerHalfDropIndex()', () => {
+      it('should point at the visible row after the hidden block when the next index is a hidden row', () => {
         const plugin = createGrid([2, 3], 'hiding');
 
-        // The pointer in the lower half of the row above the block resolves to 2.
-        expect(plugin.skipHiddenRowsFrom(2, 1)).toBe(4);
-        expect(plugin.skipHiddenRowsFrom(3, 1)).toBe(4);
+        // The pointer in the lower half of the row above the block would resolve to 2.
+        expect(plugin.getLowerHalfDropIndex(1)).toBe(4);
       });
 
-      it('should leave a drop index that points at a visible row', () => {
+      it('should leave a drop index that already points at a visible row', () => {
         const plugin = createGrid([2, 3], 'hiding');
 
-        expect(plugin.skipHiddenRowsFrom(0, 0)).toBe(0);
-        expect(plugin.skipHiddenRowsFrom(1, 0)).toBe(1);
-        expect(plugin.skipHiddenRowsFrom(4, 3)).toBe(4);
-        expect(plugin.skipHiddenRowsFrom(6, 5)).toBe(6);
+        expect(plugin.getLowerHalfDropIndex(0)).toBe(1);
+        expect(plugin.getLowerHalfDropIndex(4)).toBe(5);
+        expect(plugin.getLowerHalfDropIndex(5)).toBe(6);
       });
 
       it('should leave a drop index when the hidden rows run to the end of the grid', () => {
         const plugin = createGrid([4, 5], 'hiding');
 
-        expect(plugin.skipHiddenRowsFrom(4, 3)).toBe(4);
+        expect(plugin.getLowerHalfDropIndex(3)).toBe(4);
       });
 
       it('should step over hidden rows that sit next to trimmed ones', () => {
@@ -194,7 +193,7 @@ describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
         hiding.setValueAtIndex(2, true);
         hiding.setValueAtIndex(3, true);
 
-        expect(plugin.skipHiddenRowsFrom(1, 0)).toBe(3);
+        expect(plugin.getLowerHalfDropIndex(0)).toBe(3);
 
         hot.rowIndexMapper.unregisterMap('test-hide');
       });
@@ -203,20 +202,43 @@ describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
         const plugin = createGrid([1, 2], 'hiding', { fixedRowsTop: 3 });
 
         // Row 0 is in the frozen band, the next visible row (3) is below it.
-        expect(plugin.skipHiddenRowsFrom(1, 0)).toBe(1);
+        expect(plugin.getLowerHalfDropIndex(0)).toBe(1);
       });
 
       it('should leave a drop index that would step into the fixedRowsBottom band', () => {
         const plugin = createGrid([3, 4], 'hiding', { fixedRowsBottom: 3 });
 
         // Rows 3, 4 and 5 are the bottom band. Row 2 is above it, the next visible row (5) is inside it.
-        expect(plugin.skipHiddenRowsFrom(3, 2)).toBe(3);
+        expect(plugin.getLowerHalfDropIndex(2)).toBe(3);
       });
 
       it('should step over hidden rows that sit inside one fixed band', () => {
         const plugin = createGrid([1, 2], 'hiding', { fixedRowsTop: 4 });
 
-        expect(plugin.skipHiddenRowsFrom(1, 0)).toBe(3);
+        expect(plugin.getLowerHalfDropIndex(0)).toBe(3);
+      });
+
+      it('should leave a drop index that would put the rows inside a merged cell', () => {
+        // The merge covers the rows 2 to 4 and starts at a hidden row, so the visible row 4 draws it.
+        const plugin = createGrid([2, 3], 'hiding', { mergeCells: [{ row: 2, col: 0, rowspan: 3, colspan: 1 }] });
+
+        expect(plugin.getLowerHalfDropIndex(1)).toBe(2);
+      });
+
+      it('should step over hidden rows when the next visible row starts a merged cell', () => {
+        const plugin = createGrid([2, 3], 'hiding', { mergeCells: [{ row: 4, col: 0, rowspan: 2, colspan: 1 }] });
+
+        expect(plugin.getLowerHalfDropIndex(1)).toBe(4);
+      });
+
+      it('should leave the merged cell whole when a lower-half drop is dragged over it', () => {
+        const plugin = createGrid([2, 3], 'hiding', { mergeCells: [{ row: 2, col: 0, rowspan: 3, colspan: 1 }] });
+
+        plugin.dragRow(0, plugin.getLowerHalfDropIndex(1));
+
+        expect(sequence()).toEqual([1, 0, 2, 3, 4, 5]);
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.map(({ row, rowspan }) => [row, rowspan]))
+          .toEqual([[2, 3]]);
       });
 
       it('should leave a drop index when the NestedRows plugin is enabled', () => {
@@ -227,7 +249,7 @@ describe('ManualRowMove – where moved rows land next to trimmed rows', () => {
 
         // The target parent comes from the row at the drop index, so a step over hidden rows could
         // make the moved row a child of a hidden one.
-        expect(plugin.skipHiddenRowsFrom(2, 1)).toBe(2);
+        expect(plugin.getLowerHalfDropIndex(1)).toBe(2);
       });
     });
   });

@@ -97,7 +97,11 @@ export class ManualRowMoveHiddenGapPage {
    * of another rendered column's header, then release.
    */
   async dragColumnHeader(fromRenderedColumn: number, toRenderedColumn: number, half: 'left' | 'right'): Promise<void> {
-    await this.page.evaluate((c) => (window as any).hot.selectColumns(c), fromRenderedColumn);
+    await this.page.evaluate((c) => {
+      const hot = (window as any).hot;
+
+      hot.selectColumns(hot.columnIndexMapper.getVisualFromRenderableIndex(c));
+    }, fromRenderedColumn);
     await expect(this.firstColumnTexts().first()).toBeVisible();
 
     const source = await this.columnHeader(fromRenderedColumn).boundingBox();

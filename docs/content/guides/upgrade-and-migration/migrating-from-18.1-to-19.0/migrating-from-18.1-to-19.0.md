@@ -3423,9 +3423,9 @@ The [`beforeRowMove`](@/api/hooks.md#beforerowmove) and [`afterRowMove`](@/api/h
 
 A drag that ends right before the moved row itself changes too. Drag row 4 up to the lower half of row 1: in 18.1, `getIndexesSequence()` returned `[0, 1, 4, 2, 3, 5]` and `afterRowMove` reported `orderChanged: true`. In 19.0, `dropIndex` is `4`, `orderChanged` is `false`, and nothing moves. Check `orderChanged` in your `afterRowMove` listener with this in mind.
 
-The exceptions: a row dropped on its own lower half stays where it is, so a row right above the hidden rows does not jump over them. The drop index also stays as it was when landing after the hidden rows would cross the edge of the fixed rows at the top or at the bottom, and when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled.
+The exceptions: a row dropped on its own lower half stays where it is, so a row right above the hidden rows does not jump over them with that drop. The upper half of the row below the hidden rows still moves it after them, as it did in 18.1. The drop index also stays as it was when landing after the hidden rows would cross the edge of the fixed rows at the top or at the bottom, when it would split a merged cell, and when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled.
 
-The [`moveRows()`](@/api/manualRowMove.md#moverows), [`moveRow()`](@/api/manualRowMove.md#moverow), [`dragRows()`](@/api/manualRowMove.md#dragrows), and [`dragRow()`](@/api/manualRowMove.md#dragrow) methods are not affected. They use the index you pass, so `dragRow(0, 2)` still puts the row in front of the hidden rows.
+The [`moveRows()`](@/api/manualRowMove.md#moverows), [`moveRow()`](@/api/manualRowMove.md#moverow), [`dragRows()`](@/api/manualRowMove.md#dragrows), and [`dragRow()`](@/api/manualRowMove.md#dragrow) methods are not affected. They use the index you pass, so `dragRow(0, 2)` still puts the row in front of the hidden rows, and `dragRow(0, 3)` puts it between the two hidden rows of the example.
 
 ### Who is affected
 
