@@ -22,6 +22,7 @@ export interface SummaryEndpoint {
   destinationRow?: number;
   destinationColumn?: number;
   forceNumeric?: boolean;
+  includeSummaryResults?: boolean;
   type?: string;
   result?: number | string;
   customFunction?: ((this: ColumnSummary, endpoint: SummaryEndpoint) => number | string) | null;

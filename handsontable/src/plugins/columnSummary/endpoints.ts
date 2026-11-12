@@ -28,6 +28,7 @@ export interface EndpointConfig {
   customFunction?: ((endpoint: Record<string, unknown>) => number | string) | null;
   readOnly?: boolean;
   roundFloat?: number | boolean;
+  includeSummaryResults?: boolean;
   result?: number | string;
   alterRowOffset?: number;
   alterColumnOffset?: number;
@@ -145,6 +146,7 @@ class Endpoints {
         customFunction: endpoint.customFunction,
         readOnly: endpoint.readOnly,
         roundFloat: endpoint.roundFloat,
+        includeSummaryResults: endpoint.includeSummaryResults,
       };
 
       if (!endpoint.rangesFromDefault) {
@@ -350,6 +352,7 @@ class Endpoints {
       this.assignSetting(val, newEndpoint, 'customFunction', null);
       this.assignSetting(val, newEndpoint, 'readOnly', true);
       this.assignSetting(val, newEndpoint, 'roundFloat', false);
+      this.assignSetting(val, newEndpoint, 'includeSummaryResults', false);
 
       endpointsArray.push(newEndpoint);
     });
