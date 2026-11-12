@@ -96,36 +96,6 @@ test.describe('undo of a gesture', { tag: CROSS_BROWSER_TAG }, () => {
     expect(await grid.bordersOf(2, 2)).toMatchObject([topBorderOfCell]);
   });
 
-  test('adding a comment through the context menu is one step, recorded when the editor is left', async ({ page }) => {
-    await grid.initGrid({ contextMenu: true, comments: true });
-    await grid.openContextMenuOnCell(1, 1);
-    await grid.chooseContextMenuItem('Add comment');
-    await expect(grid.commentTextArea()).toBeFocused();
-    await page.keyboard.type('Check this');
-
-    // Nothing is recorded while the editor is open.
-    expect(await grid.undoStackSize()).toBe(0);
-
-    // The text is saved, and the step recorded, when the editor loses the focus. The cell clicked is the
-    // last row's first one, clear of the editor, which opens to the right of cell (1, 1). The blur
-    // handler writes the comment a frame later, so the state is polled.
-    await grid.cell(5, 0).click();
-
-    await expect(grid.cell(1, 1)).toHaveClass(/\bhtCommentCell\b/);
-    await expect.poll(() => grid.comment(1, 1)).toBe('Check this');
-    await expect.poll(() => grid.undoStackSize()).toBe(1);
-
-    await grid.undo();
-
-    expect(await grid.comment(1, 1)).toBeUndefined();
-    await expect(grid.cell(1, 1)).not.toHaveClass(/\bhtCommentCell\b/);
-
-    await grid.redo();
-
-    expect(await grid.comment(1, 1)).toBe('Check this');
-    await expect(grid.cell(1, 1)).toHaveClass(/\bhtCommentCell\b/);
-  });
-
   test('deleting a comment through the context menu is one step that an undo brings the comment back from', async () => {
     await grid.initGrid({ contextMenu: true, comments: true });
     await grid.setComment(1, 1, 'Check this');
@@ -204,5 +174,49 @@ test.describe('undo of a gesture', { tag: CROSS_BROWSER_TAG }, () => {
     await grid.redo();
 
     await expect.poll(() => grid.renderedRowHeight(1)).toBe(draggedHeight);
+  });
+});
+
+/**
+ * Adding a comment through the context menu needs the comment editor to keep the keyboard focus after
+ * the menu closes, and WebKit moves the focus back to the cell there (Chromium keeps it in the editor).
+ * So this block has no `CROSS_BROWSER_TAG` and runs on the Chromium legs only.
+ */
+test.describe('undo of a comment added through the context menu', () => {
+  let grid: UndoGridPage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new UndoGridPage(page, theme, bundle);
+    await grid.goto();
+  });
+
+  test('adding a comment through the context menu is one step, recorded when the editor is left', async ({ page }) => {
+    await grid.initGrid({ contextMenu: true, comments: true });
+    await grid.openContextMenuOnCell(1, 1);
+    await grid.chooseContextMenuItem('Add comment');
+    await expect(grid.commentTextArea()).toBeFocused();
+    await page.keyboard.type('Check this');
+
+    // Nothing is recorded while the editor is open.
+    expect(await grid.undoStackSize()).toBe(0);
+
+    // The text is saved, and the step recorded, when the editor loses the focus. The cell clicked is the
+    // last row's first one, clear of the editor, which opens to the right of cell (1, 1). The blur
+    // handler writes the comment a frame later, so the state is polled.
+    await grid.cell(5, 0).click();
+
+    await expect(grid.cell(1, 1)).toHaveClass(/\bhtCommentCell\b/);
+    await expect.poll(() => grid.comment(1, 1)).toBe('Check this');
+    await expect.poll(() => grid.undoStackSize()).toBe(1);
+
+    await grid.undo();
+
+    expect(await grid.comment(1, 1)).toBeUndefined();
+    await expect(grid.cell(1, 1)).not.toHaveClass(/\bhtCommentCell\b/);
+
+    await grid.redo();
+
+    expect(await grid.comment(1, 1)).toBe('Check this');
+    await expect(grid.cell(1, 1)).toHaveClass(/\bhtCommentCell\b/);
   });
 });
