@@ -173,8 +173,12 @@ editor that reopens on the record a rejected value was typed into, after a sort 
 page (`BaseEditor#discardEditor()`). **The reveal refuses when the current page is no longer the page recorded
 at the start of the wait.** The user changed the page during the wait, and switching back would undo their
 navigation, so the editor closes with nothing written. A check made only when the validator answers cannot
-tell the two apart: the record is off the current page either way. Pinned by
-`src/__tests__/core/validateChangesRecordTracking.unit.js` and `tests/e2e/editor-hidden-cell.spec.ts`.
+tell the two apart: the record is off the current page either way. The refusal is pinned by
+`src/__tests__/core/validateChangesRecordTracking.unit.js`, the reveal itself by
+`tests/e2e/pending-edit-follows-record.spec.ts`. **The editor runs a reveal of a row that is not rendered in a
+microtask, after the validator's answer released its hold on the change's transaction** (`operationScope.hold()`):
+run inside it, `setPage()`'s `runOperation('set_page')` joined the change, and UndoRedo recorded an empty
+`change` step instead of `set_page` (pinned by the `undo step of its own` case of the same unit file).
 `#getPageOfRow()` counts the row's position among the rows no other hiding map hides (one pass over the
 visual rows) and finds the page whose `getState()` window holds it; a row another feature hides, a
 `dataProvider` grid (the rows are one page), or a row already on the current page answers `false`, and

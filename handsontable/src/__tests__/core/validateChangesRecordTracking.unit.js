@@ -793,6 +793,31 @@ describe('Core validation of a change while its record moves', () => {
       expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
     });
 
+    it('should record the page change of the reveal as an undo step of its own', async() => {
+      createGrid({
+        allowInvalid: false,
+        filters: false,
+        trimRows: false,
+        hiddenRows: false,
+        pagination: { pageSize: 3 },
+        undoRedo: true,
+      });
+
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      sortByKey();
+      undoRedo.clear();
+      typeInto(1, 'zzz');
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      expect(undoRedo.doneActions.map(({ actionType }) => actionType)).toEqual(['col_sort']);
+
+      await answerAll(false);
+
+      expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(2);
+      expect(undoRedo.doneActions.map(({ actionType }) => actionType)).toEqual(['col_sort', 'set_page']);
+    });
+
     it('should close without saving and keep the page the user moved to while the editor waited', async() => {
       createGrid({
         allowInvalid: false,

@@ -791,15 +791,42 @@ export class BaseEditor {
 
     const isRejected = result === false && this.cellProperties.allowInvalid !== true;
     const rowReveal = this.#rowReveal;
-    let answeredRow = this.#answeredRow;
+    const answeredRow = this.#answeredRow;
 
     this.#answeredRow = undefined;
     this.#rowReveal = null;
 
-    if (isRejected && typeof answeredRow === 'number' && rowReveal?.(answeredRow) !== true) {
-      answeredRow = null;
+    if (!isRejected || typeof answeredRow !== 'number' || rowReveal === null) {
+      this.#settleAnswer(isRejected, answeredRow);
+
+      return;
     }
 
+    if (this.hot.rowIndexMapper.getRenderableFromVisualIndex(answeredRow) !== null) {
+      this.#settleAnswer(isRejected, rowReveal(answeredRow) ? answeredRow : null);
+
+      return;
+    }
+
+    this.hot._registerMicrotask(() => {
+      if (this.state === EDITOR_STATE.FINISHED) {
+        this.#settleAnswer(isRejected, rowReveal(answeredRow) ? answeredRow : null);
+      }
+    });
+  }
+
+  /**
+   * Reopens the editor on the row of its record after a rejected value, or closes it. A reveal that changes what a
+   * feature shows (Pagination's page) runs as an operation of its own, so `discardEditor()` calls this method for
+   * such a reveal in a microtask: the validator's answer runs inside the transaction of the change it answers
+   * (`operationScope.hold()`), and a page change made there joined that transaction, so UndoRedo recorded the page
+   * change as part of an empty change step.
+   *
+   * @param {boolean} isRejected Whether the validator rejected the value under `allowInvalid: false`.
+   * @param {number|null|undefined} answeredRow The visual row of the record (`null` when no cell of it can be
+   * shown), or `undefined` when no record was followed.
+   */
+  #settleAnswer(isRejected: boolean, answeredRow: number | null | undefined): void {
     if (isRejected && answeredRow !== null) {
       const row = answeredRow ?? this.row;
 
