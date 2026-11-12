@@ -248,9 +248,8 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
     }
   }
 
-  // Each task reads the sheet before it writes, so `retrying` can run it again after a 429 or 5xx.
   function enqueueWrite(task: () => Promise<void>) {
-    writeQueue = writeQueue.then(() => retrying(task)).catch(handleError);
+    writeQueue = writeQueue.then(task).catch(handleError);
   }
 
   // Writes a batch of grid edits. Reads the sheet first to find each row's current position
@@ -361,16 +360,19 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
 
     enqueueWrite(async () => {
       try {
-        // A 5xx can come back after Google added the rows, so a retry skips the ones it has.
-        const { names, body } = parse(await readSheet());
+        // Each try reads the sheet first. A 5xx can come back after Google added the rows, so a
+        // retry skips the ones the sheet already has.
+        await retrying(async () => {
+          const { names, body } = parse(await readSheet());
 
-        checkColumns(names);
+          checkColumns(names);
 
-        const present = byId(body);
+          const present = byId(body);
 
-        await appendRows(newRows.filter((row) => !present.has(idOf(row))));
+          await appendRows(newRows.filter((row) => !present.has(idOf(row))));
+        });
       } catch (error) {
-        // The rows never reached the sheet, so the next poll removes them from the grid.
+        // Every try failed: the rows never reached the sheet, so the next poll removes them here.
         newIds.forEach((id) => pendingAppends.delete(id));
         throw error;
       }
@@ -411,7 +413,7 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
         const batch = editBatch;
 
         editBatch = new Map();
-        writeQueue = writeQueue.then(() => flushEdits(batch)).catch(handleError);
+        enqueueWrite(() => flushEdits(batch));
       }, EDIT_DEBOUNCE_MS);
     });
 
@@ -442,16 +444,20 @@ export function startSync(container: HTMLElement, onStatus: (text: string, isErr
       ids.forEach((id) => pendingDeletes.add(id));
       enqueueWrite(async () => {
         try {
-          const { names, body } = parse(await readSheet());
+          // Each try reads the sheet first, so it deletes the rows where they are now.
+          await retrying(async () => {
+            const { names, body } = parse(await readSheet());
 
-          checkColumns(names);
+            checkColumns(names);
 
-          const remote = byId(body);
-          const sheetRows = ids.flatMap((id) => remote.get(id)?.sheetRow ?? []);
+            const remote = byId(body);
+            const sheetRows = ids.flatMap((id) => remote.get(id)?.sheetRow ?? []);
 
-          await deleteRows(sheetRows);
+            await deleteRows(sheetRows);
+          });
         } catch (error) {
-          // The rows are still in the sheet, so the next poll brings them back to the grid.
+          // Every try failed. The rows are still in the sheet, so the next poll brings them back
+          // to the grid.
           ids.forEach((id) => pendingDeletes.delete(id));
           throw error;
         }
