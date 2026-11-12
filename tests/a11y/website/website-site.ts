@@ -341,8 +341,65 @@ export async function openWebsitePage(page: Page, entry: { route: string; state:
     await expect(page.getByRole(role, { name, ...(role === 'tab' ? { selected: true } : { checked: true }) }),
       `${url} selects its ${role} "${name}"`).toBeVisible();
   }
+  await plantDefects(page);
 
   return { url, response, guard, requests };
+}
+
+/**
+ * PLANTED DEFECTS, a temporary commit: one defect per website check and one for the scan, which the proof run must
+ * report. Reverted before the pull request is marked ready.
+ *
+ * @param page The page.
+ */
+async function plantDefects(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    // website-structure: page-title-missing, page-lang-missing. The scan: document-title, html-has-lang.
+    document.title = '';
+    document.documentElement.setAttribute('lang', '');
+
+    // The scan: image-alt.
+    const image = document.createElement('img');
+
+    image.className = 'planted-image';
+    image.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+    image.style.cssText = 'width:8px;height:8px';
+    document.body.append(image);
+
+    // website-keyboard: a first Tab stop nobody sees (focus-stop-hidden), ahead of the skip link.
+    const hidden = document.createElement('button');
+
+    hidden.className = 'planted-hidden';
+    hidden.textContent = 'Planted';
+    hidden.style.cssText = 'position:absolute;left:-9999px;top:0';
+    document.body.prepend(hidden);
+
+    // website-focus-contrast and website-forced-colors-motion: no focus indicator anywhere (focus-not-visible,
+    // focus-lost-in-forced-colors).
+    const style = document.createElement('style');
+
+    style.textContent = '*:focus, *:focus-visible { outline: none !important; box-shadow: none !important; }';
+    document.head.append(style);
+
+    // website-reflow: a block wider than 320 px that pushes the page sideways (page-scrolls-sideways).
+    const wide = document.createElement('div');
+
+    wide.className = 'planted-wide';
+    wide.style.cssText = 'width:900px;height:4px;background:#888';
+    document.body.prepend(wide);
+
+    // website-forced-colors-motion: content that moves without end (moves-over-five-seconds).
+    const spinner = document.createElement('div');
+
+    spinner.className = 'planted-spinner';
+    spinner.textContent = '*';
+    spinner.style.cssText = 'position:fixed;bottom:4px;right:4px;width:12px;height:12px';
+    document.body.append(spinner);
+    spinner.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 1000, iterations: Infinity });
+
+    // website-forms: no field carries its input purpose (autocomplete-missing).
+    document.querySelectorAll('input[autocomplete]:not([autocomplete="off"])').forEach(input => input.removeAttribute('autocomplete'));
+  });
 }
 
 /**
