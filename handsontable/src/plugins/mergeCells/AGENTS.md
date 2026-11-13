@@ -793,12 +793,11 @@ with the others. Three things are derived per pane, and each has its own owner:
     then grows the wrapper toward the wrong side, so a right-aligned number shows in neither pane. The block's
     remaining columns lie on the same side of the pane whatever the cell's direction is (`leftOutside` and
     `rightOutside` come from `hot.isRtl()`), and the width is `100%` plus both.
-  - **No compensation for the end clone's freeze-line border.** Mid-scroll the clone's first cell draws the
-    freeze line as a 1px border of its own and the master's cell of the block has none, so the wrapper starts 1px
-    later than a master copy would. Mid-scroll the clone is pinned elsewhere and the two copies line up with
-    nothing; at the junction, where they overlap, `htFreezeLineShared` zeroes that border and the drift is 0
-    (pinned to the pixel by the end-of-scroll spec). Do not add the border to the wrapper's overhang: the class
-    is toggled after the draw, so a paint-time read is one draw stale in exactly the state that matters.
+  - **No compensation for the end clone's freeze-line border.** The end clone's first column is rendered 1px
+    wider and its first cell carries the freeze line as a 1px border of its own (walkontable `AGENTS.md`, the end
+    freeze line), so the cell's content box starts where the master's copy of that column starts, at every scroll
+    offset, and the drift is 0 (pinned to the pixel by the end-of-scroll spec). Do not add the border to the
+    wrapper's overhang.
   - **The renderer's `before()` (`beforeRenderer`) puts the content back before every paint**
     (`releaseContentWindow`), and `after()` wraps it again. The wrapper of each cell is kept in a `WeakMap` keyed
     by the cell, so it is found wherever it sits (a hook that wrapped the cell's whole content in a link after

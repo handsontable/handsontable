@@ -531,6 +531,11 @@ export class FormulaBuilder extends BasePlugin {
    * it (`#onIndexCacheUpdated`).
    */
   #barCellStale = false;
+  /**
+   * Whether `#resyncBarCell()` left its read for `afterResumeExecution`: the Formulas plugin holds writes
+   * (`batchEvaluation`), and the read would recalculate them once per write.
+   */
+  #barResyncDeferred = false;
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -1212,6 +1217,10 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    // The Formulas plugin can hold the engine's recalculation (`batchEvaluation`), and the engine refuses
+    // value reads until it is recalculated.
+    this.#formulasPlugin?.flushEngineEvaluation();
+
     const cellValue = this.#engine?.getCellValue({ sheet: sheetId, row: hfRow, col: hfCol });
 
     this.#markCell(cellEl, cellValue);
@@ -1377,6 +1386,25 @@ export class FormulaBuilder extends BasePlugin {
       this.#rememberFocusedCell();
       this.#resyncBarCell();
     }
+
+    // A re-read left for the resume (`#barResyncDeferred`) goes ahead once a draw recalculated the held engine:
+    // the read needs no recalculation then.
+    if (this.#barResyncDeferred && this.#formulasPlugin?.isEngineHeld() !== true) {
+      this.#barResyncDeferred = false;
+      this.#resyncBarCell();
+    }
+  };
+
+  /**
+   * `afterResumeExecution` hook listener - re-reads the bar's cell that `#resyncBarCell()` left for the
+   * resume (`#barResyncDeferred`, set only while a held engine would recalculate for the read). It runs after
+   * the Formulas plugin released its hold (order -1), so the read needs no recalculation.
+   */
+  #onAfterResumeExecution = (): void => {
+    if (this.#barResyncDeferred) {
+      this.#barResyncDeferred = false;
+      this.#resyncBarCell();
+    }
   };
 
   /**
@@ -1389,6 +1417,16 @@ export class FormulaBuilder extends BasePlugin {
    */
   #resyncBarCell = (): void => {
     if (this.#builder === null || this.#isEditing()) {
+      return;
+    }
+
+    // A read of the cell recalculates a held engine (`formulas.batchEvaluation`), so each write inside a
+    // `batch()` would recalculate once more. The bar re-reads when the execution resumes
+    // (`#onAfterResumeExecution`). A draw recalculates the held engine first, so a re-read from it is not held.
+    // Only this grid's own suspension waits: another grid can hold the engine while this one never resumes.
+    if (this.hot.isExecutionSuspended() && this.#formulasPlugin?.isEngineHeld() === true) {
+      this.#barResyncDeferred = true;
+
       return;
     }
 
@@ -1983,6 +2021,8 @@ export class FormulaBuilder extends BasePlugin {
       return '';
     }
 
+    this.#formulasPlugin?.flushEngineEvaluation();
+
     return this.#core.readCellText(
       engine as unknown as Parameters<CoreModule['readCellText']>[0],
       { sheet: sheetId, row: hfRow, col: hfCol },
@@ -2212,6 +2252,7 @@ export class FormulaBuilder extends BasePlugin {
     // `afterSetSourceDataAtCell` listener, which moves to the end of the list when it re-enables.
     this.addHook('afterSetSourceDataAtCell', this.#resyncBarCell, 2);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
+    this.addHook('afterResumeExecution', this.#onAfterResumeExecution);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.rowIndexMapper.addLocalHook('indexesInserted', this.#onRowIndexesInserted);
@@ -2695,6 +2736,7 @@ export class FormulaBuilder extends BasePlugin {
     this.hot.rowIndexMapper.removeLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
     this.hot.columnIndexMapper.removeLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     this.#barCellStale = false;
+    this.#barResyncDeferred = false;
     this.#clearCellErrorMarks();
     this.#removeEngineDetachListener?.();
     this.#removeEngineDetachListener = null;

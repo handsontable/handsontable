@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `fixedColumnsEnd` freeze line, which moved by 1px at the end of the horizontal scroll, showed twice where a column lined up with the frozen columns, and cut the selection edge on the first of them. A selection that scrolling lines up with the `fixedColumnsStart`, `fixedColumnsEnd`, or `fixedRowsTop` area now draws its edge on the freeze line, as on any other gridline.",
+  "type": "fixed",
+  "issueOrPR": 14239,
+  "breaking": false,
+  "framework": "none"
+}

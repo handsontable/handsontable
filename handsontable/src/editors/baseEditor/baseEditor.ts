@@ -1276,8 +1276,8 @@ export class BaseEditor {
 
   /**
    * Calculates the width the editor of a cell may not grow into because the frozen end columns (`fixedColumnsEnd`)
-   * are painted over it. It is `0` for a cell of an end clone, which stands at the band itself, and for a grid
-   * without end columns.
+   * are painted over it, the pixel their first column reaches over the freeze line included. It is `0` for a cell
+   * of an end clone, which stands at the band itself, and for a grid without end columns.
    *
    * @param {string} overlayName The name of the overlay containing the edited cell.
    * @returns {number}
@@ -1298,8 +1298,10 @@ export class BaseEditor {
     // so the free room between the two counts as taken as well.
     const restingGap = wtViewport.hasHorizontalScroll() ?
       0 : Math.max(wtViewport.getWorkspaceWidth() - wtTable.getTotalWidth(), 0);
+    // The band's first column reaches over the freeze line, and the end clones paint that pixel too.
+    const freezeLineOverlap = wtOverlays.inlineEndOverlay?.getFreezeLineOverlap() ?? 0;
 
-    return bandWidth + restingGap;
+    return bandWidth + restingGap + freezeLineOverlap;
   }
 
   /**

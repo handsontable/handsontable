@@ -13,15 +13,18 @@ import type { HotInstance } from '../core/types';
  */
 export function safeBatch<T>(hot: HotInstance, operations: () => T): T {
   hot.suspendRender();
-  hot.suspendExecution();
 
+  // A listener of the execution hooks can throw from `suspendExecution` too; rendering resumes then
+  // as well, and the execution is left resumed by `suspendExecution` itself.
   try {
-    return operations();
-  } finally {
+    hot.suspendExecution();
+
     try {
-      hot.resumeExecution();
+      return operations();
     } finally {
-      hot.resumeRender();
+      hot.resumeExecution();
     }
+  } finally {
+    hot.resumeRender();
   }
 }

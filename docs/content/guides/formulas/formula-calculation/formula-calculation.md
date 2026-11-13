@@ -983,6 +983,150 @@ const hotSettings = ref({
 
 :::
 
+## Batch formula recalculation
+
+By default, HyperFormula recalculates the formulas after each change you make through the grid's API.
+Ten `setDataAtCell()` calls mean ten recalculations, even inside [`batch()`](@/api/core.md#batch).
+
+To recalculate once for the whole batch, set the `batchEvaluation` setting of the
+[`formulas`](@/api/options.md#formulas) option to `true`. The setting is off by default.
+
+::: only-for javascript
+
+```js
+new Handsontable(element, {
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  formulas={{
+    engine: HyperFormula,
+    batchEvaluation: true,
+  }}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const configurationOptions: GridSettings = {
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+Then wrap your changes in [`batch()`](@/api/core.md#batch), called on the Handsontable instance (`hot`).
+
+::: only-for react
+
+In React, get the instance from the `hotInstance` property of the `HotTable` ref.
+
+:::
+
+::: only-for angular
+
+In Angular, get the instance from the `hotInstance` property of the `HotTable` component.
+
+:::
+
+::: only-for vue
+
+In Vue, get the instance from the `hotInstance` property of the `HotTable` ref.
+
+:::
+
+```js
+// Update the stock of five products. HyperFormula recalculates once, after the callback.
+const updatedStock = [142, 0, 67, 25, 310];
+
+hot.batch(() => {
+  updatedStock.forEach((quantity, row) => {
+    hot.setDataAtCell(row, 1, quantity);
+  });
+});
+```
+
+With `batchEvaluation` on, Handsontable pauses HyperFormula's recalculation at the first change inside
+the batch. When the batch ends, HyperFormula recalculates once, the
+[`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook fires once, and Handsontable
+validates the dependent formula cells once.
+
+One `setDataAtCell()` call with an array of changes already recalculates once. The setting helps when
+your code makes many separate calls.
+
+Reads through the grid stay correct inside the batch. For example, `getDataAtCell()` returns the current
+value of a formula cell. To return it, Handsontable recalculates the changes made so far, so each such
+read after a change adds a recalculation.
+
+The setting has these limits:
+
+- Inside the batch, after a change through the grid, a direct HyperFormula read such as
+  `engine.getCellValue()` throws a "Computations are suspended" error. Read through the grid, for example
+  with `getDataAtCell()`, or read from the engine after the batch.
+- The pause covers the whole engine. When several grids share one HyperFormula instance, a grid that
+  doesn't use `batchEvaluation` gets the same error on its direct engine reads during another grid's
+  batch. Its reads through the grid still work. It also gets one
+  [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) call for the whole batch, and
+  Handsontable validates its dependent cells when the other grid's batch ends.
+- The saving needs changes with no render in between. [`batch()`](@/api/core.md#batch) suspends
+  rendering, so it gets the full saving.
+  [`batchExecution()`](@/api/core.md#batchexecution) and a
+  [`suspendExecution()`](@/api/core.md#suspendexecution) and
+  [`resumeExecution()`](@/api/core.md#resumeexecution) pair don't suspend rendering. Each render inside
+  them recalculates the formulas.
+- Writing formulas into a validated column (for example, a `numeric`, `date`, or `dropdown` column) saves
+  nothing. The validator checks each formula's result, so Handsontable reads it right after the change, and
+  that read recalculates the changes made before it.
+- Inserting, removing, moving, or sorting rows or columns inside the batch recalculates the changes made
+  before it. Handsontable validates their dependent cells before the structure changes, as it does without
+  the setting. A removal also recalculates before the next change.
+- A sort inside the batch takes effect when the batch ends. Handsontable validates a change made after the
+  sort, in the same batch, at the end of the batch, on the sorted rows, so it validates the cells that hold
+  the change. Without the setting, it validates them at the change, before the sort takes effect.
+- A direct `engine.undo()` after an array `setDataAtCell()` call inside the batch reverts only the last
+  change of the array, because the changes are separate engine writes. The grid's own undo is not affected.
+- Loading data with [`loadData()`](@/api/core.md#loaddata) or [`updateData()`](@/api/core.md#updatedata)
+  inside the batch replaces the data. Handsontable doesn't validate the cells of that grid that depend on the
+  changes made before the load. It still validates the dependent cells on other sheets.
+
+For more on batching, see [Batch operations](@/guides/optimization/batch-operations/batch-operations.md).
+
 ## Named expressions
 
 A named expression assigns a human-friendly label to a value or formula. Once defined, the name can
