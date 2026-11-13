@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "intl-date-editor",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T12:10:24.716Z"
+  },
+  "steps": {
+    "arrive-on-date": "06 slash 10 slash 2024 row 1 column 1 date edit multi line month spin button 06",
+    "open-editor": "",
+    "type-date": "00 year spin button 2020",
+    "commit-date": "2024",
+    "back-to-committed": "01 slash 01 slash 2020 row 1 column 1 date edit multi line month spin button 01"
+  }
+}

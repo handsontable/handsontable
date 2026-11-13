@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "datetime-editor",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:08:58.009Z"
+  },
+  "steps": {
+    "open-editor": "",
+    "type-date": "2024 year stepper",
+    "commit-datetime": "2024 year stepper",
+    "back-to-committed": "datetime 01 01 2024 09 30 00 column 6 row conference 6 10 24 6 10 24 6 10 24 09 30 am 01 01 2024 09 30 00",
+    "reopen-editor": "01 month stepper",
+    "cancel-edit": ""
+  }
+}

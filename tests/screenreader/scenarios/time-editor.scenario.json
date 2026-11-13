@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "time-editor",
+  "surface": "The time editor, a native time input over the cell: opening it, typing a time, Enter committing it, and Escape cancelling a second edit.",
+  "group": "editors",
+  "page": "time-editor",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [0, 4]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["hour", "hours"]],
+      "note": "Enter opens the editor on the Time cell (`9:30 AM`) and focuses its native time input, which holds 09:30. Required: the control, in the reader's words: the hour segment the focus lands on (NVDA `Hours, spin button, 09`, VoiceOver `hour stepper` or `Hours stepper`). `time` is not a synonym, because the column is named Time and a reader that reads the cell would satisfy it. Finding: VoiceOver says nothing when the time editor opens, on both browsers, and reads the stepper only when the editor opens a second time (the reopen step); the date editor records the same silence."
+    },
+    {
+      "id": "type-time",
+      "action": {"type": "1145"},
+      "expect": [],
+      "note": "Four digits fill the hour and the minute of the input in Chromium and Firefox (11:45; the AM or PM segment keeps its value). WebKit's time input does not move to the next segment, so the digits overwrite each other and the commit gives 12:30 AM: on VoiceOver with WebKit the groups of the next steps that name the typed time fail for the input, not for the reading. Nothing is required here: a reader speaks a segment's new value in its own words (NVDA `AM slash PM, spin button`, VoiceOver `AM AM/PM stepper`)."
+    },
+    {
+      "id": "commit-time",
+      "action": {"press": "Enter"},
+      "expect": [["10:15"], ["row 3"]],
+      "note": "Enter commits the time and moves the selection one row down (enterMoves), to the next row's Time, drawn as `10:15 AM`. Required: that cell's value and its row. Finding: the focus stays on the closed time input, as the date editor leaves it, so no reader reads the cell: NVDA with Chromium reads the input's AM/PM segment, NVDA with Firefox says nothing, and VoiceOver reads a stepper of the hidden input (`10 hour stepper` with WebKit, `AM AM/PM stepper` with Chromium)."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["11:45"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `11:45 AM` (`12:30 AM` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell, and NVDA and VoiceOver with Chromium read it."
+    },
+    {
+      "id": "reopen-editor",
+      "action": {"press": "Enter"},
+      "expect": [["hour", "hours"]],
+      "note": "The editor opens again, on the new value, and every reader names the hour segment this time."
+    },
+    {
+      "id": "cancel-edit",
+      "action": {"press": "Escape"},
+      "expect": [["11:45"]],
+      "note": "Escape closes the editor without a change. Finding: no reader says anything, on any browser, and the focus stays on the closed input, as the commit leaves it."
+    }
+  ]
+}

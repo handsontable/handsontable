@@ -61,7 +61,7 @@ export const SR_PAGE_COVERAGE = {
   'multiselect-editor': { scenarios: ['multiselect-editor'] },
   'select-editor': { scenarios: ['select-editor'] },
   'date-editor': { scenarios: ['date-editor'] },
-  'datetime-editor': { gap: 'the intl-datetime editor is read by no scenario' },
+  'datetime-editor': { scenarios: ['datetime-editor'] },
   comments: { scenarios: ['comment-editor'] },
   'freeze-bar': { scenarios: ['freeze-bar'] },
   'selection-handles': { none: 'the drag handles of a desktop selection are drawn under the pointer only, with no role, name or focus a reader meets' },
@@ -69,9 +69,9 @@ export const SR_PAGE_COVERAGE = {
   'auto-link': { scenarios: ['auto-link'] },
   'row-selection': { scenarios: ['row-selection'] },
   'async-values': { scenarios: ['async-values'] },
-  'time-editor': { gap: 'the time editor is read by no scenario' },
-  'intl-date-editor': { gap: 'the native date input of the intl-date editor is read by no scenario' },
-  'intl-time-editor': { gap: 'the native time input of the intl-time editor is read by no scenario' },
+  'time-editor': { scenarios: ['time-editor'] },
+  'intl-date-editor': { scenarios: ['intl-date-editor'] },
+  'intl-time-editor': { scenarios: ['intl-time-editor'] },
   'password-editor': { scenarios: ['password-editor'] },
   'dark-grid': { none: 'the dark color scheme changes colors, never an element, a role or a name: a reader reads the grid page\'s tree' },
   'dark-context-menu': { none: 'the dark color scheme changes colors, never an element, a role or a name: a reader reads the context menu page\'s tree' },
@@ -146,19 +146,19 @@ export const SR_FEATURE_COVERAGE = {
   dateEditor: { scenarios: ['date-editor'] },
   dropdownEditor: { scenarios: ['dropdown-editor'] },
   handsontableEditor: { scenarios: ['handsontable-editor'] },
-  intlDateEditor: { gap: 'the intl-date editor is read by no scenario' },
-  intlDatetimeEditor: { gap: 'the intl-datetime editor is read by no scenario' },
-  intlTimeEditor: { gap: 'the intl-time editor is read by no scenario' },
+  intlDateEditor: { scenarios: ['intl-date-editor'] },
+  intlDatetimeEditor: { scenarios: ['datetime-editor'] },
+  intlTimeEditor: { scenarios: ['intl-time-editor'] },
   multiSelectEditor: { scenarios: ['multiselect-editor'] },
   numericEditor: { none: 'draws the text editor\'s textarea, which grid-core reads' },
   passwordEditor: { scenarios: ['password-editor'] },
   selectEditor: { scenarios: ['select-editor'] },
   textEditor: { scenarios: ['grid-core'] },
-  timeEditor: { gap: 'the time editor is read by no scenario' },
+  timeEditor: { scenarios: ['time-editor'] },
 };
 
 /**
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 23;
+export const SR_GAP_LIMIT = 15;

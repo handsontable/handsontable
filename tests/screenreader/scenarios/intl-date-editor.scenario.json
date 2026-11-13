@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "intl-date-editor",
+  "surface": "The intl-date editor with `imeFastEdit` on, where the browser focus sits in the editor's input while a cell is only selected: arriving on a date cell, opening the editor, typing a date, and Enter committing it.",
+  "group": "editors",
+  "page": "intl-date-editor",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [
+    {"updateSettings": {"data": [["2024-06-10", "two", "09:30"], ["2024-01-05", "four", "10:15"]]}},
+    {"selectCell": [0, 1]}
+  ],
+  "steps": [
+    {
+      "id": "arrive-on-date",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["06/10/2024", "06 slash 10 slash 2024"]],
+      "note": "The setup gives the fixture's grid dates and times to show (its own values are not dates). ArrowLeft selects the date cell, drawn as `06/10/2024`. With `imeFastEdit` the grid first focuses the cell, then moves the focus to the editor's hidden date input, so an IME can start composing. Required: the selected cell's value. NVDA reads the cell and then the hidden input (`date edit. Month, spin button, 06`), so a user who only moves hears an editor's control on every date cell. Finding: VoiceOver reads the cell, the input's month segment (`6 month stepper`) or nothing, and which one changes from run to run on both browsers, because it races the grid's delayed move of the focus into the input."
+    },
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["date", "month stepper", "month spin button"]],
+      "note": "Enter opens the editor on that cell: the native date input the focus already sat in, now shown, holding 2024-06-10. Required: the control, in the reader's words. NVDA said `date edit` when the focus arrived, so here it reads only the segment, `Month, spin button`, a synonym. Finding: NVDA with Firefox says nothing, because the focus does not move."
+    },
+    {
+      "id": "type-date",
+      "action": {"type": "01012020"},
+      "expect": [],
+      "note": "Eight digits fill the segments of the input (01/01/2020) in Chromium and Firefox; WebKit's input does not move to the next segment (the date editor scenario says more). Nothing is required here."
+    },
+    {
+      "id": "commit-date",
+      "action": {"press": "Enter"},
+      "expect": [["01/05/2024", "01 slash 05 slash 2024"], ["row 2"]],
+      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's date, drawn as `01/05/2024`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row. Finding: no reader reads the cell; the focus stays in the input, and NVDA and VoiceOver read a segment of it (`Year, spin button, 2024`, `1 month stepper`), or nothing."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["01/01/2020", "01 slash 01 slash 2020"]],
+      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2020`. NVDA reads the cell, then the hidden input again. Finding: VoiceOver reads the cell in one run and only the input's month segment (`01 Month stepper`), or nothing, in another, for the same race as on arrival."
+    }
+  ]
+}
