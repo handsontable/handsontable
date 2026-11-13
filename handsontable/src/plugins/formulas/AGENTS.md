@@ -56,10 +56,12 @@ visual column on both paths.
 ## Undo/redo: the plugin observes, the engine's own stack is never used
 
 The grid restores its own state on undo and redo (see `../undoRedo/AGENTS.md`), and this plugin only
-brings the engine in line with the restored grid. It never calls `engine.undo()` or `engine.redo()`:
-the grid's stack holds steps the engine never saw (hiding, resizing, a sort in another grid on the same
-engine), so two stacks cannot be kept in step. HyperFormula still records its own undo entries for
-every call this plugin makes, and nothing reads them.
+brings the engine in line with the restored grid. It never calls `engine.undo()` or `engine.redo()` to
+follow the grid's history: the grid's stack holds steps the engine never saw (hiding, resizing, a sort in
+another grid on the same engine), so two stacks cannot be kept in step. HyperFormula still records its own
+undo entries for every call this plugin makes, and nothing reads them. The one `engine.undo()` it makes
+takes back its own validation probe in the same task (see "A change the Core can reject reaches the engine
+only when the Core applies it"); it never reaches an entry of the grid's or the host's.
 
 Two source predicates split the work:
 
@@ -574,7 +576,8 @@ filters column scan), so `#onModifyData` is the plugin's hottest path. Two rules
   engine removing this instance's sheet still invalidates it), `#updateSheetNameAndSheetId()`, the `engine`
   assignments in `enablePlugin` / `disablePlugin` / `destroy`, and the plugin's own `engine.undo()` /
   `engine.redo()` calls — HyperFormula's undo and redo add, remove, and rename sheets through its
-  `UndoRedo` operations, which emit no sheet event. A host calling `engine.undo()` directly on a sheet
+  `UndoRedo` operations, which emit no sheet event. The validation probe's `engine.undo()` takes back a
+  batch of cell writes only, which cannot add, remove, or rename a sheet, so it resets nothing. A host calling `engine.undo()` directly on a sheet
   operation is the one path left uncovered; it also desyncs the two undo stacks, so it is unsupported
   regardless. A new invalidation point is needed whenever a new path writes `sheetName`, `sheetId`, or
   `engine` without going through those. `#onEngineSheetRemoved` still does not null `sheetName` — the
@@ -774,7 +777,9 @@ Rules that keep it correct:
 - **The plugin postpones no index sync, so its postpone callback does nothing.** `AxisSyncer` postpones the
   initial order (`#syncInitialOrder()` through `IndexSyncer#getPostponeAction()`) only while the engine or the
   sheet id is `null`, and it runs only from `IndexSyncer#setupSyncEndpoint()`, which the plugin calls with a
-  sheet it has just written or bound. Each setup sends the grid's order itself. `calculateAndSyncMoves()`
+  sheet it has just written or bound. Each setup sends the grid's order itself, except the one in
+  `#loadSheet()`, which sends none when a load follows (`syncOrder = !loadsData`; see
+  "`sheetName`, `switchSheet()` and the engine instance"). `calculateAndSyncMoves()`
   passes its move to `getPostponeAction()` as an argument, which is ignored, so a move made with no sheet
   bound (ManualColumnMove's array at init) is never queued either; the setup sends that order. The one-off
   `init` listener the callback used to add, and the ready-step queue that replaced it, replayed nothing. Do not
@@ -792,7 +797,8 @@ Rules that keep it correct:
   and a foreign `afterUpdateSettings` listener that ran `disablePlugin(); enablePlugin()` mid-update
   lost the update's data the same way. `enablePlugin()` sets `#sheetResyncPending` there, which the
   next draw or read drains. Three cases skip it: no view yet (construction), a grid built without data
-  (it reads the engine sheet as its data), and a load core is about to make (`isDataLoadPending()`,
+  (it reads the engine sheet as its data, and takes over the order the engine holds it in instead; see "Every path
+  that binds or fills a sheet on a live grid sets the sync endpoint up"), and a load core is about to make (`isDataLoadPending()`,
   the sheets bar's switch), which feeds the sheet itself. Pinned by `__tests__/reenableSharedEngine.unit.js`
   and "writes the new data when a listener disables and re-enables the plugin mid-update".
 - **An enable while a load is pending never adds back the sheet it was bound to.** `disablePlugin()` keeps
@@ -819,29 +825,314 @@ Tests: `__tests__/deferredResync.unit.js` (scan count, every drain, init fill, l
 engine size limit, mid-update read, sheet switch, undo depth) and `tests/e2e/formulas-nested-rows-toggle.spec.ts`
 (`rebuilds the sheet once per toggle`).
 
-## A validated write reaches the engine BEFORE the source data
+## A change the Core can reject reaches the engine only when the Core applies it (DEV-3760)
 
-`#onAfterSetDataAtCell` writes a `setDataAtCell()` / `setDataAtRowProp()` change into the engine
-synchronously, but the Core applies a change to the source data only after the column's validators
-resolve — and `validateCell` always resolves in a microtask. Any cell with a validator opens that window:
-a `numeric`, `date`, `dropdown` or `autocomplete` column, or a custom `validator`. A full sheet write from
-the source data inside it (`#writeSheet`, reached from an `updateSettings()` in the same synchronous task)
-scans data that does not hold the change yet and silently drops it from the engine: the cell reads its raw
-formula text through `getDataAtCell()` and every formula depending on it keeps the previous value, with no
-error. Pre-existing — reproduced identically on 18.1.1. Repro: a grid with `columns: [{ type: 'numeric' }]`,
-`setDataAtCell(2, 0, '=SUM(A1:A2)')` then `updateSettings({})` in the same task.
+The Core applies a `setDataAtCell()` / `setDataAtRowProp()` change set to the source data only after the
+validators of its cells answered, and `validateCell` always answers in a microtask, so a set with a
+validated cell waits at least one microtask, and as long as an async validator takes (a server round
+trip: seconds). The plugin used to write every change into the engine from `afterSetDataAtCell`, before
+validation, so for the whole wait the grid showed values computed from the typed value (a `-7` typed into
+a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a rejection. Now:
 
-The repair is `#onBeforeChangeRender`. `#onAfterSetDataAtCell` records each change set in
-`#changesAwaitingApply` (a `WeakMap` keyed by the change array — the Core hands the same array to
-`beforeChangeRender`), together with `#sheetWriteCount` and `sheetId`. When the count has moved, or
-the sheet id has changed, by the time the Core applies the set, the set is written into the engine
-again. The rules:
+- **Only a change the Core can reject waits.** `#splitChangesByValidation()` sorts the set in
+  `afterSetDataAtCell` by `#canCoreRejectChange()`: the cell has a validator (`getCellValidator()`) AND
+  `allowInvalid === false`, read from the cell meta (`getCellMetaTransient()`, the same cascade). That is
+  the condition `queueValidators()` drops a change under (`result === false && allowInvalid === false`,
+  `afterValidate` included); a cell that accepts invalid values only gets an invalid mark, so its change
+  always reaches the data. Every other in-bounds change, a `numeric`, `date` or `dropdown` column with the
+  default `allowInvalid: true` included, is written at once, as before DEV-3760: same timing, same
+  `afterFormulasValuesUpdate` count, same events in other grids. A change past the last row or column waits
+  too: its row or column exists only once the Core applies the set. The record (`#changesAwaitingApply`, a
+  `WeakMap` keyed by the change array, which the Core hands to `beforeChangeRender` too) keeps the waiting
+  ones in `deferredChanges`.
+- **`#onBeforeChangeRender` writes them**, in one batch, from the array the Core applies: a rejected change
+  is spliced out of that array (`validateChanges()`), and so is a change the write ledger dropped because a
+  newer applied write to the cell overtook it, so neither reaches the engine. A fully rejected set never
+  fires `beforeChangeRender` and writes nothing, so it draws no data version and UndoRedo records no step
+  for it; an accepted edit draws its version inside the operation the Core resumes for the apply, so it is
+  one grid step. A validator correction (`*Validator` source) rewrites the change in place before the
+  apply, so the corrected value is what is written. `beforeChangeRender`, not `afterChange`: the Core
+  renders between the two, so the render paints the new results. A change past the last row of a set
+  without a rejectable cell is written here too (the set applies synchronously, inside `setDataAtCell()`):
+  it used to wait for `afterChange`, through a listener keyed by the change array (`#outOfBoundsWrites`),
+  which is gone, so its `afterFormulasValuesUpdate` now fires before the render instead of after it.
+- **Nothing takes a rejected change back any more.** The previous repair (`#onChangesRejected`, fed by a
+  `@private` core `_addRejectedChangesListener()`, both removed) restored the engine after a rejection;
+  with nothing written early for a cell the Core can reject, none of it is needed.
+- **The deferred cells are left out of the dependent validation of the early write.**
+  `#onAfterSetDataAtCell` adds their engine addresses to `changedCells`, so `validateDependentCells()` skips
+  them: read from the engine, a deferred cell whose old formula reads an early-written cell was validated a
+  second time by that old formula (source `undefined`), and an out-of-order answer left an invalid value
+  with a valid mark. The Core validates them as changes. Pinned by `validates a deferred cell of a mixed set
+  once, by its new value` (both sources).
+- **So are the cells a deferred change also recalculates.** In a mixed set, the early write of an
+  immediate cell recalculates a formula that reads a deferred cell too (`C = A1+B1`, A deferred, B immediate)
+  from the deferred cell's OLD value. Validated then, its validator and `afterValidate` ran for a value the
+  cell never ends with, and an out-of-order async answer of that stale validation overwrote the mark of the
+  right one (C = 52 marked valid). `#splitDependentsOfDeferred()` walks `getCellDependents()` from the
+  deferred cells (formulas and ranges, transitively, `#collectDependentKeys()`), leaves those cells out of the
+  early validation, and keeps them on the record (`heldDependents`). `#onBeforeChangeRender` validates them
+  with the write's own dependents (`uniqueCellChanges()`), with the final engine values, also when every
+  deferred change was rejected and the apply writes nothing: the immediate changes still reach the data, so
+  the set reaches `beforeChangeRender`. Pinned by `validates a dependent of a deferred and an immediate cell
+  of one set once, at the apply` (reverse-order answers) and `validates a shared dependent when the deferred
+  cell is rejected and the immediate one applies`. **Not covered by a test, documented** (two overlapping
+  calls where the second overtakes the first's immediate cell would reach it): a set reaches
+  no `beforeChangeRender` only when its array ends empty. A cell without `allowInvalid: false` can leave it
+  only through the write ledger, when a newer applied write to the same cell overtook it, so a set whose
+  immediate changes were all overtaken and whose deferred changes were all rejected or overtaken never
+  validates its held dependents. The newer writes recalculated and validated them, and their marks stay. A
+  dropped set (a `loadData()`) needs none: the data was replaced.
+- **A cell of the set written at once that reads a deferred cell of the set is validated once, by the
+  probe's result (`#findReadersOfDeferred()`).** Case: A1 deferred, B1 `=A1*5` with a validator and
+  `allowInvalid: true` (written at once), both in one `setDataAtCell()`. The early write computed B1 from
+  A1's OLD content, so the Core validated B1 by `#VALUE!` (A1 held `'x'`) and marked it invalid for the
+  whole wait; the apply then validated it again as a held dependent, outside the edit's undo step, so what
+  its validator or `afterValidate` wrote was undone with nothing. Before DEV-3760 it was validated once, by the new A1.
+  Now `#onAfterSetDataAtCell` takes the immediate changes the walk from the deferred cells reaches (one walk,
+  shared with `#splitDependentsOfDeferred()`; only a cell with a validator) and hands them to the probe as
+  readers: the probe runs for them even without a deferred formula, writes every deferred plain value of the
+  set into its second batch (a reader can read a deferred cell through a formula without a validator, which
+  is not a reader), and reads their results into `#validationValues`, so the Core validates B1 by 20. The
+  probe returns the readers it read a result for, and only those go on the record (`readersOfDeferred`);
+  the apply leaves them out of the dependent validation when every deferred change was accepted (B1 holds
+  the probe's result). After a rejection (a rejectable change missing from the array, `rejectableChanges` on
+  the record) B1 holds a value computed from the old content, so the apply validates it again. Rules:
+  - **A reader without a probe result is no reader.** Without a probe (`undoLimit` below 2, evaluation
+    suspended) or when the probe read no result, it gets no entry (an entry without a result would hand the
+    validator the formula text), the Core validates it by the engine's value, from the deferred cells' old
+    content, and it stays a held dependent, validated again at the apply. Recorded
+    as a reader, it was validated only by `#VALUE!` and ended invalid while holding 20. Pinned by
+    `validates an immediate formula that reads a deferred cell again at the apply without a probe` (both
+    limits).
+  - **A cell the set changes more than once is no reader.** The Core validates every change, and
+    `#onBeforeValidate` hands an entry with the same source to a change whose value does not match, so the
+    earlier change took the last one's result and the last one read the engine's `#VALUE!`; the apply then
+    skipped it, and it ended invalid. It stays a held dependent. Pinned by `validates an immediate formula
+    changed twice in its set again at the apply`.
+  - **The re-validation after a rejection joins the edit's undo step only when the reader's validator
+    answered in its own call.** Inside the step, `validateCell()` holds it until the validator answers, so
+    an async validator made `isUndoAvailable()` `false` and an `undo()` right after `afterChange` was lost
+    for good. Whether a validator answers in its call cannot be known before it runs, so the plugin watches
+    the Core's validation of the change: `#onBeforeValidate` starts `#trackReaderAnswer()` when it hands out
+    a reader's entry, `#onAfterValidate` marks the answer, and a check queued from a microtask queued in
+    `beforeValidate` (so it runs after the validator's own microtask, `validateCell()` queues it after the
+    hook) records whether the answer had come. A reader that answered so is validated again through
+    `validateDependentCells()`, inside the step, so what its validator or `afterValidate` writes is undone
+    with the edit; any other one goes through `#validateDependentCellsUnrecorded()`, like a dependent, and
+    such a write joins no step. Before DEV-3760 the reader was validated once, inside
+    the step, by the rejected value then written into the engine. **Known limit:** a validator that
+    answers in its call the first time and later asynchronously (a cache) holds the step after a rejection.
+    **The watch lives two microtasks.** Each record (`ReaderAnswer`, in `#readerAnswers` per cell) leaves
+    the map when its check runs, and the map is cleared on a load, on disable and on destroy: a reader
+    validator that threw or never answered used to leave its record, and the next validation of the cell
+    marked it instead of its own, so that reader was taken for an async one. `#onAfterValidate` marks the
+    oldest unanswered record of the cell with the same value and source (what `beforeValidate` handed the
+    validator). **Known limit:** another validation of the cell with that value and source that answers
+    inside the watch (a `validateCells()` in the same task, with the engine already holding the value) marks
+    it, and an async reader is then taken for a sync one; the Core passes no token of the validation to
+    `afterValidate`. Pinned by `keeps what the afterValidate of a reader of a rejected cell writes at the
+    apply in the edit's undo step` (sync), `keeps an edit undoable right after it is applied when an async
+    validator of a reader of a rejected cell still works`, and `classes a reader by its own validation
+    after a reader validation of the cell that never answered`.
 
-- **`beforeChangeRender`, not `afterChange`.** The Core renders between the two, so writing back from
-  `afterChange` painted the raw formula text until the next render (negative control in the test below).
-- **`#clearRejectedSheet` does not bump the count.** Writing one change back into a sheet the engine
-  refused to hold would leave it holding that one cell.
-- **A sheet switch in the window drops the change, and the plugin takes its first write back.** Every
+  Pinned by `validates an immediate formula that reads a deferred cell of its set once, by the new value`,
+  `validates an immediate formula again by the old value when the deferred cell it reads is rejected`, and
+  `keeps what the afterValidate of an immediate formula reading a deferred cell writes in the edit's undo
+  step`.
+- **When the set holds a change the Core can reject, the apply's dependent validation joins no undo
+  step.** `validateCell()` holds the step it runs in until the validator answers. Called from the apply,
+  an async validator on a dependent (a total row over the column) held the edit's step for its whole run, so
+  `isUndoAvailable()` was `false` and an `undo()` made right after `afterChange` was dropped. Before DEV-3760 the
+  dependents were validated during the edit's own wait, so the step settled with the edit. So
+  `#onBeforeChangeRender` validates them through `#validateDependentCellsUnrecorded()`, which runs each
+  `validateCell()` under the grid's `operationScope.suppress()`, when the record says `hasRejectableChange`.
+  **The cost: for a set with a deferred change, what the validator or `afterValidate` listener of a
+  dependent validated at the apply writes (a `setCellMeta()`, a `*Validator` correction) is recorded in no
+  step, so an undo of the edit does not undo it.** That covers every dependent of the deferred cells, a
+  dependent the set's immediate cells share with them included (it is validated only at the apply). Before
+  DEV-3760 those writes joined the edit's step. A dependent of the immediate cells only is validated by the
+  early write inside the step. An apply without a rejectable change (a set past the last row
+  only, or the whole-set write-back of a resync window when nothing was deferred) validates inside the step;
+  so do the write of a restored state and a source write. There an async dependent validator
+  still delays the step. Pinned by `makes an accepted edit undoable as soon as it is applied, while a
+  dependent is still validated`, the Playwright step of `tests/e2e/editor-validation-wait-own-cell.spec.ts`,
+  `undoes what a dependent's afterValidate writes with an edit written at once, as before`, and `undoes
+  what a dependent's afterValidate writes with a write past the last row, as before`.
+
+**A validator that reads a dependent formula while the change waits sees the pre-change result (intended).** A
+cell the Core can reject reaches the engine only at the apply, so until then every formula that depends on it
+holds its old result, and a validator of another cell that reads such a formula (through `getDataAtCell()` or the
+engine) gets that result. A rejected value must not show through a dependent, and a validator that needs the
+result for the new value reads it from the probe's entry (`#validationValues`) for its own cell only. Do not
+write the pending value into the engine to change this: see "why the probe's write is not kept".
+
+**A validated write a listener makes during an editor save joins the editor's save set.** A `setDataAtCell()` a
+`beforeChange` or `afterChange` listener makes while an editor saves is marked as part of that save's sets
+(`../columnSorting/AGENTS.md`, the header sort's wait), so a validator of that write that never answers keeps a
+header sort waiting, as the editor's own validator would. An API write made outside a save does not.
+
+**Known limit (the predicate is duplicated).** Formulas decides in `afterSetDataAtCell`; the Core reads
+the cell's validator when it validates and `allowInvalid` when the validator answers (`queueValidators()`).
+Any change of the cell's validator or `allowInvalid` between the two (an `afterSetDataAtCell` listener
+registered after Formulas, or a `setCellMeta()` / `updateSettings()` made while the validator of a change
+written at once still works) that turns it into a change the Core rejects leaves that change written: with
+the restore gone, the engine keeps the rejected value until the next full write.
+
+**Known limit (held dependents are engine addresses).** `heldDependents` keeps the engine addresses the
+early write found. A row or column inserted or removed while a deferred change waits for its validator
+moves the real dependent, so the apply validates the cell now at the old address and the moved dependent
+is not validated. The Core has the same limit for the change itself, and it decides where the edit lands:
+the waiting set is applied at its old visual coordinates, so after `alter('insert_row_above', 0)` an edit of
+row 1 writes the record now at row 1 (the old row 0), and the apply's validation of the held dependent at
+the old address validates the cell that write reaches (checked, insert above and remove
+above). Translating only the held addresses through the structural change would validate the moved record,
+which the edit no longer touches, and leave the cell it does reach unvalidated. The fix belongs to the Core:
+move a waiting set with its records (row identity) or drop it on a structural change, as on a `loadData()`;
+the dependents then follow by being read again at the apply.
+
+**Known limit (a deferred cell past the last row starts no walk).** `#splitDependentsOfDeferred()` walks
+from deferred cells the engine already holds. A deferred change past the last row has no engine cell yet,
+so a dependent it shares with an immediate cell of the set (`=SUM(A1:A5)+B1`, A5 created by the set) is
+validated by the early write from the old value, and an out-of-order async answer can leave its mark
+wrong. Before DEV-3760 it behaved the same.
+
+**The validator of a formula still gets its result: the validation probe.** `#onBeforeValidate` hands a
+validator the engine's result for a formula cell (an error as its text, a date or time column's serial
+turned into the grid's format, `#readValidationValue()` and `#toValidationValue()`). For a deferred cell
+the engine does not hold the formula yet, so `#probeValidationValues()`, in `afterSetDataAtCell` after the
+early write, writes it, reads the results, and takes the write back with `engine.undo()` plus
+`clearRedoStack()`, all in the same task, so nothing paints it and the engine ends as it was. Rules:
+
+- **Formulas first, then only the plain values they read** (`#runProbe()`): the deferred formulas go into
+  one batch; a deferred plain value goes into a second batch only when a probed formula reads its cell
+  (`getCellPrecedents()`, a range included, `isAddressInPrecedent()`). A named expression is reported as a
+  precedent with `sheet: -1` and does not say which cells it reads, so when any probed formula reads one,
+  every deferred plain value of the set goes into the second batch (pinned by `writes a plain value of the
+  set a formula reads through a named expression into the probe`). Every formula of the set is in the
+  first batch, so a chain through other formulas of the set is covered, and the validator sees what it saw
+  when every change was written first: a formula reading another deferred cell of the set reads its new
+  value, and one that reaches itself through a dependent is `#CYCLE!`. Each batch is undone. Writing the
+  whole set instead made a paste of many values with one formula probe every cell. `calculateFormula()` is
+  wrong for the cycle, for references into the set, for `ROW()` and for a spill (it evaluates in isolation
+  at A1); `validation.spec.js` pins the cycle case.
+- **`engine.undo()`, not writing the old content back**: the undo restores an array formula's spill
+  exactly, where a serialized value written into a spilled cell breaks the spill. An empty batch still
+  pushes an engine undo entry (checked on 3.3.0), so with room for both batches each undo takes back its
+  own batch. The undo cannot add, remove or rename a sheet, so it does not reset `#ownSheetExists`. **The
+  guard is `undoLimit` itself** (`engine.getConfig().undoLimit`): a probe pushes up to two batches, and an
+  engine keeping fewer entries drops the first, so the second `undo()` threw `There is no operation to undo`
+  out of `afterSetDataAtCell` with the formula left in the engine (the grid then read 30 over a source
+  holding 2). Below 2 (`undoLimit: 0` or `1`) no probe is written: each deferred formula is calculated on
+  its own with `calculateFormula()` (`#calculateDetached()`), with the limits above, and a formula the
+  engine cannot parse is validated as its text. Pinned by `does not throw or keep the probe in the engine
+  when the engine keeps one undo entry`.
+- **Known limit: the host's own engine undo history.** Each probe batch is pushed and popped, and HF drops
+  its oldest entry when the stack is at `undoLimit`, so a probe can evict the host's oldest engine undo
+  entries (a two-batch probe on `undoLimit: 2` drops up to two). HF exposes `undoLimit` but no stack length, so the
+  guard above cannot tell how full the stack is. The grid's undo never reads that stack.
+- **A set without a deferred formula skips the round trip**, but every deferred in-bounds change still
+  gets an entry in `#validationValues` (keyed by visual row and column, one entry per change, matched on the
+  change's value and source, cleared in a microtask: the Core validates a set synchronously right after `afterSetDataAtCell`). An entry
+  without a result hands the change's own value through, so a value written over a formula cell is
+  validated as the value, not as the result the engine still holds there. With the engine's evaluation
+  suspended (a host's `batch()`), no probe runs and a formula is validated as its text. **Known limit:** a
+  `validateCells()` in the same task with the change's source, or a dependent validation of a pending cell
+  written with source `undefined`, reads the pending entry. **A cell written more than once before the Core
+  validates** (twice in one set, or by two sets in one task) has one entry per change: a validation takes
+  the first entry with its value and source and removes it, since the Core validates in write order, so the
+  same formula written by two sets around a write to its precedent gets each set's result. In one set, the
+  cell's last value is the one in the probe, as the apply will hold; an earlier change with the same value
+  shares that entry, and an earlier formula with another value is calculated on its own
+  (`#calculateDetached()`, with its limits). Pinned by `validates each change of a set that writes one cell
+  twice by its own value` and the two `validates the same formula ...` cases.
+- **The probe is invisible to every grid on the engine**: it runs in `withPluginEngineProbe()`
+  (`indexSyncer/pluginEngineWrite.ts`, a per-engine depth next to the write scope), and every grid's
+  `#onEngineValuesUpdated` returns at once while `isPluginEngineProbe(engine)` answers `true`. So no grid
+  fires `afterFormulasValuesUpdate` with probe values (a reader grid used to log the probe value and the
+  undo for an edit later rejected) and none paints for it. Pinned by `fires no afterFormulasValuesUpdate in
+  another grid on the engine for the probe of a rejected edit`.
+- **Except what the round trip did not put back: a volatile formula.** `RAND()`, `NOW()` and `TODAY()`
+  recalculate on the probe's batch and on each undo, so the engine ends with a value no grid heard, and a
+  cell showed the old one until the next render (for a rejected edit, which the Core does not render, and
+  under `renderMode: 'onChange'`). `#runProbe()` keeps the undo's changes (a later undo's value of a cell
+  wins), and `#findChangesKeptByProbe()` takes the ones that are neither a cell the probe wrote nor one
+  that reads it (`#collectDependentKeys()`, walked only when the undo changed a cell the probe did not
+  write): those are the cells the round trip changed for good. `#announceProbeChangesKept()` hands them to
+  every grid on the engine as an engine event, in a `'cells'` write of its own after the probe, so each
+  fires `afterFormulasValuesUpdate` once with the kept value and paints once, this grid included. Nothing
+  fires for the probe's write or for a dependent the undo put back. **Known limit:** a volatile formula
+  that also reads a probed cell (`=RAND()+A1`) is taken for such a dependent and not announced. Pinned by
+  `reports and paints the new value of a volatile formula the probe of a rejected edit recalculated`
+  (a stubbed `Math.random`). **Cost:** the announce also runs on an ACCEPTED set, where the apply recalculates
+  the volatile formula again anyway, so while the engine holds a volatile formula every probed set (a formula or
+  a reader in a set with a deferred change) costs one extra dependency walk from the written addresses and one
+  extra `afterFormulasValuesUpdate` and paint per grid on the engine. Announcing only after a rejection would need
+  the validation result, which comes later than the probe; the cost is accepted.
+- **The probe builds engine-bound values only for a set it runs for.** A set with no formula (raw value
+  starting with `=`), no object (a `valueGetter` can turn one into a formula; the escape never makes one)
+  and no reader skips the probe, so its values are not turned into engine values (`valueGetter`, the cell
+  meta read of the escape): the apply does that once. A 10k plain paste read the cell meta twice per
+  change. Pinned by `builds no engine-bound value for the probe of a set without a formula` (the
+  `getCellMetaTransient()` count matches a column written at once). The cell's last write and its entry are
+  looked up in `Set`s, so a set of thousands of formulas stays linear. A host's own `valuesUpdated` listener on the engine still sees both
+  events. The probe depth lives in this bundle's module, so a grid from a second Handsontable bundle sharing
+  the engine does not see it and still fires for the probe.
+- **Cost, measured** (jsdom, Jest, 1000-row grid, a paste of 1000 values with one formula that reads A1
+  into a column with a sync validator and `allowInvalid: false`, time to the apply, median of 6 runs):
+  pre-DEV-3760 early write 42.8 ms (1000 `setCellContents`); deferred write without a probe 47.1 ms;
+  probe of the whole set 52 ms (2000); probe of the formula and the value it reads 47.3 ms (1002).
+- **Cost of a formula paste, measured, and why the probe's write is not kept.** Headless Chromium
+  (Playwright, `handsontable.full.js`), a 2000-row grid, a paste (`populateFromArray()`, source
+  `CopyPaste.paste`) into a column with a sync validator and `allowInvalid: false`, time from the call to
+  `afterChange`, median of 7, against a develop build from before DEV-3760 (2e15365c43):
+  - N formulas `=B{i}*2`: before DEV-3760 20.8 ms (N = 500) and 50.8 ms (N = 2000); with the deferred write
+    28.2 ms and 80.3 ms. Each formula is written by the probe, undone, and written again by the apply. The review
+    measured 22.5 → 39.4 ms and 196 → 387 ms on its own setup.
+  - 2000 plain values next to 2000 readers `=A{i}*2` (validator, `allowInvalid: true`): before DEV-3760
+    93 ms; with the deferred write and no probe for readers 108 ms; with the probe for readers 146 ms. The readers' probe writes the 2000 values and
+    undoes them, the price of validating each reader by the new value.
+  - 2000 plain values next to 2000 plain values with a validator (no reader): before DEV-3760 78.6 ms;
+    with the deferred write 86.2 ms without the dependency walk, 86.8 ms with it. The dependency walk from the deferred cells costs nothing
+    measurable, and no probe runs.
+
+  Keeping the probe's write when nothing is rejected cannot meet the rule that a pending value never
+  reaches a dependent: the Core validates in a microtask, always (`validateCell()`, "validation should be
+  always asynchronous"), so `setDataAtCell()` returns before any validator runs, a sync one included (only
+  `beforeValidate` fires inside the call), and a kept probe would be readable through every dependent
+  (`getDataAtCell()`, another grid's render) from that return until the apply, with no way to know yet
+  whether a validator is async. Taking it back later is also unsafe: anything a validator,
+  `beforeValidate` or `afterValidate` listener writes into the engine meanwhile (a `*Validator` correction is
+  a nested `setDataAtCell()` with its own early write) lands on top of it, and `engine.undo()` would take
+  that write back instead. So the cost stays, for a paste of formulas into a column whose cells can reject
+  it, and for a paste whose formulas written at once read such a column; a paste of plain values with no
+  formula reading them runs no probe.
+
+Pinned by `__tests__/deferredValidatedWrite.unit.js` (the wait for a rejected and an accepted value, a
+mixed set, a sync validator, `allowInvalid: true` and a numeric column written at once, a formula validated
+by its result, a value over a formula cell, a formula reading the set or a range of it, the probe's cells
+and trace, a cycle, undo right after the apply, the mixed-set dependent validation, a reading grid) and the
+dependents, Escape and undo steps of `tests/e2e/editor-validation-wait-own-cell.spec.ts`.
+
+### The early-written cells of a waiting set
+
+A waiting set can still have changes in the engine: every in-bounds change the Core cannot reject (no
+validator, or `allowInvalid` left `true`). They keep the older rules.
+
+A full sheet write from the source data inside the window (`#writeSheet`, reached from an `updateSettings()`
+in the same synchronous task) scans data that does not hold the change yet and drops it from the engine:
+the cell reads its raw formula text through `getDataAtCell()` and every formula depending on it keeps the
+previous value, with no error. Pre-existing, reproduced on 18.1.1. So `#onAfterSetDataAtCell` records `#sheetWriteCount` and `sheetId` on the set, and
+when the count has moved, or the sheet id has changed, by the time the Core applies it,
+`#onBeforeChangeRender` writes the WHOLE set, early-written changes included, not just the deferred ones.
+The rules:
+
+- **A full write the engine refused leaves the set out.** `#clearRejectedSheet` empties a sheet the engine
+  cannot hold and does not bump `#sheetWriteCount`; it bumps `#refusedSheetWriteCount` and records the write
+  count (`#sheetWriteCountAtRefusal`). A set that waited across such a write, with no full write since, is
+  not written at all (`#isSheetEmptiedSince()`): its cells would leave the refused sheet holding just those.
+  Pinned by `does not write a change back into a sheet the engine refused to hold`.
+- **A sheet switch in the window drops the set, and the plugin takes its early writes back.** Every
   sheet switch is a `loadData()` (`switchSheet()`, the sheets bar's `_applySettingsAndData()`), and the
   Core drops a change set that waited for its validators across a load instead of writing it into the
   loaded rows (`handsontable/AGENTS.md`, "A change waiting for an async validator is dropped"). A dropped
@@ -854,7 +1145,8 @@ again. The rules:
   without a load. Pinned by `drops the change from both sheets when the sheet switched while the change was
   validated` (switch plus a full write) and `drops the change from both sheets when the switch alone ran
   while the change was validated` (switch only).
-- **A dropped set puts the switched-AWAY sheet back.** `afterSetDataAtCell` already wrote the change into
+- **A dropped set puts the switched-AWAY sheet back.** `afterSetDataAtCell` already wrote the set's
+  in-bounds changes the Core cannot reject (the only ones a waiting set can have written; see above) into
   the sheet the grid showed then, so without the restore one `setDataAtCell()` stayed in that sheet while
   its grid data never got it, and a switch back showed it. `#restoreSwitchedAwaySheet` writes the change
   set's OLD values back into the sheet recorded on the set (they are what that sheet held, since the grid's
@@ -901,61 +1193,40 @@ again. The rules:
   sheet-level check gives. Pinned by `leaves a switched-away sheet alone when it was removed from the
   engine before the change was dropped` (the removed-sheet case, which throws only with both deleted) and
   `does not put back a cell the engine refused the first write of` (the per-cell guard alone).
-- **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
-  the last row or column is not written from `afterSetDataAtCell` but from `afterChange`, after the Core
-  created the row: `#outOfBoundsWrites` keeps the changes keyed by the set's change array, and
-  `#onAfterChangeWriteOutOfBounds` writes them only for that same array. It used to be a one-off
-  `addHookOnce('afterChange')`, which any `afterChange` took, and a `loadData()` fires one (`null` changes):
-  the stale value went into the loaded sheet while the set was then dropped, so the engine held a value the
-  grid did not (pinned by `does not write a dropped change past the last row into the loaded data`). A drop
-  deletes the entry. By `beforeChangeRender` that row exists, so the write-back
-  covers it and sets `writtenBack` on the record, which the `afterChange` listener checks. Writing it
-  twice is a redundant engine write and an extra entry on the ENGINE's own undo stack. A grid undo never
-  calls `engine.undo()` (it restores the engine from the state the plugin recorded), so only an app that
-  calls `engine.undo()` itself would see that entry. Pinned by the `setCellContents` count in `writes the
-  out-of-bounds rows of a paste into the engine once, not again from afterChange`. Its neighbor, `undoes a
-  paste past the last row in the grid and the engine`, checks the undo only and does not pin the single
-  write.
+- **Each write is one batch, so one engine undo entry.** A grid undo never calls `engine.undo()` (it
+  restores the engine from the state the plugin recorded), so only an app that calls `engine.undo()` itself
+  would see a second entry. Pinned by the `setCellContents` count in `writes the out-of-bounds rows of a
+  paste into the engine once, not again from afterChange`, and `does not write a dropped change past the
+  last row into the loaded data` (a dropped set writes nothing).
 - **The write-back repaints the other sheets' grids that read the cell** (the write scope, see `valuesUpdated` below), like
   the `afterSetDataAtCell` path: a grid on another sheet kept painting the old value while its data was
   already right. Pinned by `repaints another sheet's grid that reads the written-back cell`.
-- **The write-back validates the dependents it recalculated**, like the `afterSetDataAtCell` path. The
-  first validation ran against the settings the update replaced (a swapped validator, for one).
+- **The write on apply validates the dependents it recalculated**, like the `afterSetDataAtCell` path: a
+  dependent of a deferred change is validated only then, and a write-back after a resync validates again,
+  against the settings in force at the apply (a validator an `updateSettings()` in the window swapped in,
+  for one). Pinned by `validates the formulas that a write-back recalculated`.
 
-**Overlapping async sets on one cell across a switch restore a stale old value (DEV-3308, open).** With
-an async validator, a second set on the same cell, written while the first is still validating, records
-the same old value as the first. When the first set applies on sheet A, the grid switches, and the second
-set applies on the other sheet, `#restoreSwitchedAwaySheet` writes that old value into A over the first
-set's applied value. **Compare-and-restore does NOT fix it** – skipping the restore when a later write
-owns the cell was checked by the reviewer against a patched bundle, and A still ends with the old value,
-because the second set IS the last writer of the cell, so its guard passes. The fix is to refresh the
-recorded old value of the other pending sets that wrote the same cell when a set applies on its own sheet:
-a per-cell list of pending sets beside the `WeakMap`, cleared when a set applies or is dropped. The base
-build also ends with a wrong value here, so this is pre-existing.
+**Overlapping async sets on one cell across a switch restore a stale old value (DEV-3308, open, now
+narrower).** A cell the Core can reject is never written early any more, so this needs a cell without
+`allowInvalid: false` written by two waiting sets. A second set on the same cell, written while the first is still waiting,
+records the same old value as the first. When the first set applies on sheet A, the grid switches, and the
+second set is dropped, `#restoreSwitchedAwaySheet` writes that old value into A over the first set's
+applied value. **Compare-and-restore does NOT fix it** – the second set IS the last writer of the cell, so
+its guard passes. The fix is to refresh the recorded old value of the other pending sets that wrote the
+same cell when a set applies on its own sheet: a per-cell list of pending sets beside the `WeakMap`,
+cleared when a set applies or is dropped. Pre-existing.
 
-A validator's rejection needs no guard **in the write-back**: `validateChanges()` splices a rejected change
-out of the very array `beforeChangeRender` receives, so the write-back never sees it. Keep the write-back
-reading that array, not a copy taken in `afterSetDataAtCell`. **That does not hold for the FIRST write.**
-`afterSetDataAtCell` writes the change into the engine before validation, and nothing puts the old value
-back when the validator rejects it: when every change of the set is rejected `beforeChangeRender` does not
-fire at all, and a partly rejected set is applied without the rejected cell. A formula reading that cell
-shows a wrong result until the next full resync (`allowInvalid: false` numeric column, `setDataAtCell(2, 0,
-'abc')`: the engine holds `'abc'`, the grid keeps the old number). Pre-existing on `develop`, deferred to a
-follow-up. The test `does not write a change the validator rejected back into the engine` calls
-`updateSettings({})`, which rebuilds the sheet from source data, so it does not cover this leak.
+Cost: the split reads each change's cell meta once more (`getCellMetaTransient()` plus
+`getCellValidator()`), as the Core does when it validates (part of the 47.1 ms above).
 
-The write-back adds one engine undo entry on top of the resync's own, which is what keeps a later grid undo
-of that change consistent: `engine.undo()` then reverts the write-back, not the resync. Without a resync the
-listener costs a `WeakMap` get and delete per change set and writes nothing (measured: a 10,000-change
-`setDataAtCell()` makes 10,000 `setCellContents` calls either way; with a resync, 20,000 – the first write
-plus one write-back).
-
-Older than this repair, and harmless to the grid: WITHOUT a resync, a paste that reaches past the last row
-writes the in-bounds changes and the out-of-bounds ones in two engine batches – two entries on the engine's
-own undo stack for one grid action. A grid undo does not use that stack, so it restores the engine
-correctly; an app that calls `engine.undo()` directly reverts only the out-of-bounds half.
-
-Tests: `__tests__/validatedWriteResync.unit.js`.
+Tests: `__tests__/deferredValidatedWrite.unit.js`, `__tests__/validatedWriteResync.unit.js` (the resync,
+switch, drop and refusal rules; its column A has a validator with the default `allowInvalid: true`, so it is
+written early and restored as before, and `REJECTING_COLUMNS` sets `allowInvalid: false` for the cases that
+need A to wait, the `the early-written cells of a mixed set` block among them) and
+`__tests__/rejectedWriteStaysOut.unit.js` (every edit path ends with the engine and the grid agreeing after a
+rejection: single cell with an async and a sync validator, a multi-cell `setDataAtCell()`, paste, autofill,
+Ctrl+Enter, an `afterValidate` rejection, past the last row, a rejected formula, four overlap orders, a
+reading grid, dependent validation, undo).
 
 ## A `sheetName` change applied ahead of its data only binds (DEV-3040)
 
@@ -1063,6 +1334,407 @@ setting over a user instance is an engine change while a load is pending** (`#en
 sheets bar's switch): kept on the instance, a sheet that passes the class wrote itself into another sheet's
 engine. Pinned by `__tests__/sheetNameSetting.unit.js`
 and the engine binding cases of `../sheetsBar/__tests__/formulaSheets.unit.js`.
+
+**A sheet bound by loading sets the sync endpoint before the load, and sends no order when a load
+follows**
+(`#loadSheet()` calls `setupSyncEndpoint(engine, sheetId, !loadsData)` right after
+`#updateSheetNameAndSheetId()` and before `loadData()`; this covers `switchSheet()`, a grid built from an
+engine sheet without `data`, and the plugin's own reloads). Before DEV-3760 it set no endpoint, with three
+measured effects: (1) a grid built without `data` had no engine on its syncer, so the first sort or
+`setIndexesSequence()` threw `Cannot read properties of null (reading 'getSheetDimensions')`; (2) its
+initial `manualRowMove` never reached the engine, so formula results were wrong with no error; (3) a
+`switchSheet()` on a data-built grid with a manual row move sent the re-applied move to the sheet it left
+(old sheet rotated twice, new sheet never reordered). The endpoint has to exist BEFORE the load because
+ManualRowMove/ManualColumnMove re-apply their arrays through `syncMoves` during it. `syncOrder` is
+`!loadsData`: `false` when a load follows (an empty sheet has none, so the grid sends its order itself).
+The load resets the grid's index maps, and the move plugins re-apply against identity, so sending the
+pre-load order as well reordered the sheet twice (a plain `setupSyncEndpoint()` before the load measured
+1, 2 and 2 order calls where the tests pin 0, 1 and 1).
+Pinned by `__tests__/sheetBuiltGridSyncEndpoint.unit.js` and `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`.
+
+**A switch back to a sheet the grid left reads it through the order it was left in** (`#leftSheetOrders`,
+`#rememberLeftSheetOrder()`, `#takeLeftSheetOrder()`). The first visit of a sheet moves its lines in the engine by
+a configured `manualRowMove` / `manualColumnMove` array (or a sort or a drag), and the engine keeps that order
+after the grid leaves. The next `switchSheet()` loaded the sheet in the engine's order as if it were physical, and
+the arrays, re-applied on `afterLoadData`, moved it again: with `[2, 0, 1]`, A, B, A, B rotated each sheet on
+every visit (before DEV-3760 the sheet rotated left, and the grid showed the arriving one with other rows' results, since it sent
+the move to the sheet it left). Now a load that leaves a bound sheet records its engine order when it is not
+physical, and a later load of that sheet reads it back in physical order through the record and takes the order
+over (`#reloadKeepingOrder(data, plan, false)`: the order held, the order the load's listeners apply kept). When
+nothing moved the lines after the array, the re-applied array lands on the order the engine holds and nothing is
+sent. **A reorder made on the visit before (a drag) leaves the engine elsewhere**, and the hold's release sends the
+difference. The release sends it as moves (`AxisSyncer#releaseAdoptedOrderAsMoves()`) when the difference is moves:
+either moves alone reached the left order from physical (no order shifts, no order base), or moves reached it from
+the last order the engine took as one order (`#orderPoint`, the grid sequence that order brought it to, kept with
+the shifts, exported and adopted with the engine order) and the grid's order at the release is that point again.
+The second case is a grid built with `data` on an engine with another sheet: its move array reaches the engine at
+init as one order (the load fallback below), so the left order carries shifts, and a drag on top of it is undone by
+moves on the return. The return keeps the values the grid showed before it left, not those of init: a range whose end
+row the drag moved stays where the drag left it, because an engine move does not put a range end back. `sheetKept`: the sheet was not rewritten, so other sheets and named expressions followed every
+move too, and `#planSafeMoves()` skips its readers-outside-the-sheet fallback; its array, `maxRows` and cost
+fallbacks stay. One order there kept each moved formula's relative offsets: drag, switch away and back showed
+`#REF!` (also in another sheet's `='A'!B2`) and an empty-cell `1000` (659bb5878a until this fix). A sort or a
+`setIndexesSequence()` the grid does not return to (the load resets it), with or without a drag after it, or one set
+in the hold, still goes back as one order, as a cleared sort or a reset sequence does on a grid that stays on the
+sheet. The flag is cleared by every release, a later adoption or reload in the hold, and an order change other than a
+move. **Pre-existing develop behavior, not changed here:** that data-built grid's cross-row references are off from
+init (its move array goes as one order on a multi-sheet engine), and the next `updateSettings({})` after the return
+moves them again (the loaded source data holds the engine's formula text, and the reload sends the one order on top
+of it); develop drifts the same way, without `#REF!`. A record of another engine, or of a
+sheet whose dimensions changed meanwhile (a host insert or removal), is dropped and the sheet loads as the engine
+holds it; a host move that keeps the dimensions is not told apart (grid and engine stay equal, the records show in
+the host's order). A sheet sorted on its last visit shows in its own order again (the load clears the sort) and
+the engine follows. The records are cleared on enable, disable and `destroy()`; the sheets bar's switch holds the
+order itself (`runWithEngineOrderHeld()`), so nothing is recorded or taken while an order hold is open. Pinned by
+`__tests__/switchSheetRevisit.unit.js`.
+
+**Every path that binds or fills a sheet on a live grid sets the sync endpoint up** (DEV-3760). The invariant: no
+order change reaches the axis syncers while they point at no engine sheet. The paths, and what each one does:
+
+- `#loadSheet()` (above), `#adoptEngineSheet()` (adopts a stored order), `#clearRejectedSheet()` (an empty sheet)
+  and `#writeSheet()` (a load, a resync, an undo restore from the source) set it up themselves.
+- The `enablePlugin()` branch that binds a sheet a shared engine still holds owes a resync, which runs at the
+  next read or render. It sets the endpoint up as soon as its syncers exist, without an order
+  (`setupSyncEndpoint(engine, sheetId, false)`); the resync's `#writeSheet()` rewrites the sheet and sends the
+  grid's order once. Without it, an order change in that window (a sort or a move with rendering suspended, or
+  right after a direct `enablePlugin()`) reached no engine: the drain put the order right, but a move was dropped
+  until then and the guard below warned. An order change in the window still reaches the stale sheet, which the
+  resync then replaces, so such an enable can send one order more than it ends with.
+- The `enablePlugin()` branch that adds a sheet under the kept `sheetName` from the grid's data, and the
+  `updatePlugin()` branch that adds one when nothing is bound, call `#setupSyncEndpointForFilledSheet()` (the
+  enable once its syncers exist). Before DEV-3760 neither set an endpoint: `updateSettings({ formulas })` on a
+  live grid, a re-enable with an engine class, and `disablePlugin(); enablePlugin()` all left the syncers with no
+  engine, so the first sort threw `Cannot read properties of null (reading 'getSheetDimensions')`,
+  and a guard that turned the throw into a skipped order left the formula column with its unsorted results.
+- **The `updatePlugin()` branch no longer skips a call that carries `data`.** Core loads that data before the
+  plugins update, so a plugin the same call enables never saw the load, never bound a sheet, and the grid
+  showed its formulas as text (`updateSettings({ data, formulas })` on a grid built without Formulas). While a
+  load is still to come (`isDataLoadPending()`) the load binds the sheet, as before; when the plugin was already
+  enabled, its `afterLoadData` bound one, so the branch's `sheetName === null` keeps it out. **A call that passes
+  `data` keeps it when its `sheetName` names a sheet the engine already holds** (`keepsDataOfCall`: no sheet bound
+  yet, `data` in the call, no load pending): the grid's data is written into that sheet (`#loadSourceDataIntoSheet()`
+  in one `#writeOwnSheet()`, whose `#writeSheet()` sets the endpoint up), as construction does. Before, both the
+  `#requestedSheetName()` branch and this one called `#loadSheet()`, which loaded the engine sheet over the data the
+  call had just passed. A call without `data` still loads the named sheet. Pinned by `writes the data passed in the
+  same call into the sheet a shared engine already holds under the sheet name`.
+- `#followEngineChange()` runs only while a load is pending, and that load fills and sets up the sheet.
+- **A re-enable of a grid built from an engine sheet without `data`** (`disablePlugin(); enablePlugin()`, or
+  `updateSettings({ formulas: false })` and back, with or without `sheetName`, to the same instance or to an engine
+  class) goes through `#setupSyncEndpointForSheetBuiltGrid()`. The `!#hotWasInitializedWithEmptyData` check kept
+  such a grid out of the resync branch above (it reads the sheet as its data, nothing is written to it), and no
+  other branch set an endpoint, so a grid sorted before the disable reordered on its next sort while the engine
+  kept its rows: sheet `[b, 2, =B1*2], [a, 1, =B2*2], [c, 3, =B3*2], [d, 4, =B4*2]`, sort B desc, re-enable, sort
+  asc gave C `8, 6, 4, 2` for `2, 4, 6, 8`, and only the `noSyncEndpoint` warning fired. Only the old syncers knew
+  the order the engine holds the sheet in, so `disablePlugin()` keeps the binding (`#sheetBuiltBindingAtDisable`:
+  the engine sheet, the grid's row and column counts, the order from `exportEngineOrder()`, `null` while both axes
+  are physical, and the reload snapshot `#loadedSheetContent` with `#foreignSheetChange`; cleared by the next enable
+  and by `destroy()`). **One copy of the sheet is kept while the plugin is off**: the snapshot (the same array the
+  grid held), from which the enable rebuilds the content of a sheet it adds back (`#sheetBuiltContent()`). With an
+  order stored, the disable reads the live sheet once (`#keepSheetBuiltBinding()`): equal to the snapshot, only the
+  snapshot is kept; different (a host change made after the grid's last write that no comparison found yet: a
+  value, or a `moveRows()` that changes no value), the read is kept as the order's content, the snapshot is dropped
+  (still one copy; a missing snapshot forces a full reload) and the change is marked foreign. A sheet added back with a foreign change is loaded as it is (`#loadSheet()`), because the stored order
+  may not describe a host move. A first version kept both copies, two for a sorted grid; a second one read nothing
+  and rebuilt from the snapshot, which lost such a host change when the engine class or a host `removeSheet()` made
+  the enable add the sheet back (`keeps one copy of the sheet while off`, `with a host change, … before a direct
+  disable`). With no order stored (both axes physical) nothing is read, and an added-back sheet is filled from the
+  source data, which does not hold a host change either (pre-existing). The enable sets the endpoint up without an order and the new syncers
+  adopt the stored one (`adoptEngineOrder()`), so the engine follows the grid's current order from it: a grid that
+  kept its order sends nothing, and a sort or a move made while the plugin was off reaches the engine as one order
+  (an adopted order is released as one order, as in "Sequence syncing"). With no order stored, the setup sends the
+  grid's order by the load rule below. **The snapshot is put back too** (taken anew for a sheet added back from the content), so the
+  next settings update reloads in place and keeps the sort state and the cell meta, as on a grid never turned off;
+  without it that reload took `loadData()` and dropped both. A host change made while the plugin was off is still
+  told by the comparison (a host `moveRows()` that changes no value makes the reload take `loadData()`).
+  The binding is taken over only for the same engine sheet, or for the sheet the enable adds back from the stored
+  content when the engine no longer holds it (an engine class builds a new engine). That content is written instead
+  of the source data: the grid's source data holds the formula text of the engine's order
+  (`#sourceHasStaleFormulas`), and filled in physical order and then reordered it read other cells (`#REF!` and
+  zeros). **Otherwise the enable loads the engine sheet into the grid** (`#loadSheet()` once the plugin is enabled,
+  as a switch to it would): another engine instance holding a sheet of the same name (it showed the first engine's
+  records mapped onto the other sheet, and sent the grid's sort to the host's sheet), and a grid whose row or column
+  count changed while the plugin was off (a row removed showed the results of other records, a row inserted showed a
+  formula's text). The grid then shows the sheet as the engine holds it, in the engine's order, and the insert or
+  removal made while off is dropped: the engine never got it, and a sheet-built grid reads the engine as its data.
+  A host edit of the engine sheet made while the plugin was off shows mixed values until the next settings update:
+  the grid keeps its source data, and the formula results read the host's values (pre-existing; the reload then
+  shows the host's sheet). Edits made in the grid while the plugin was off show in the grid until the next settings
+  update reloads the sheet, which drops them, as before (in between, an edited number shows next to a formula result computed from the old one); a sheet
+  added back from the stored content does not hold them either (measured), while a fill from the source data (an
+  engine class with no stored order) keeps them. Pinned by the `again after it was turned off, on a grid built from
+  an engine sheet` cases and `sorts a grid built from an engine sheet that was sorted before Formulas was turned off
+  and on` in `tests/e2e/formulas-enable-on-live-grid.spec.ts`.
+
+**The setup sends the grid's current order the way every other load does** (`AxisSyncer#init()`, the load rule
+in "Sequence syncing" above): the enable fills the sheet in physical order and starts new syncers, which know
+nothing of how the grid reached its order. An order no sort set (moves, a `manualRowMove` array, a
+`setIndexesSequence()` made while the plugin was off) goes as moves, so every cross-row reference stays on its
+record, as in a grid built with Formulas and that move array. A sorted order (`#isRowOrderSorted()`) goes as one
+order, as in a grid built with Formulas and the same `initialConfig` sort, and the next re-render sends it as one
+order again, so the values do not change on it ("Sorting does not remap formula addresses" below). **Known
+limit:** moves made under that sort go in the same one order, because nothing short of the sort plugins' pre-sort
+order tells them apart, and reading it is the second mechanism the DEV-3760 narrowing (9d503c2047) removed; a grid
+built with the move array and the sort sends the moves first and can read a cross-row reference differently. The
+unit cases compare each enable against a grid that gets the same kind of call. Pinned by
+`__tests__/enableOnLiveGridSyncEndpoint.unit.js` and `tests/e2e/formulas-enable-on-live-grid.spec.ts`.
+
+**The null-engine guard in `AxisSyncer#syncOrderWithEngine` warns once and returns.** No known path reaches it.
+The formulas, sheetsBar, sorting, move, undoRedo, formulaBuilder and nestedRows unit suites were instrumented and
+never hit it. Reviews then found two windows, the shared-engine re-enable and the re-enable of a grid built from an
+engine sheet above, and both are now closed and pinned by the `with a shared engine that still holds the sheet,
+before anything reads or renders` and `again after it was turned off, on a grid built from an engine sheet` cases
+(no warning, the engine follows the order). The one shape left in theory, not reproduced, is an enable whose
+`#addSheet()` the engine refuses (its `addSheet()` throws): nothing is bound, so nothing sets an endpoint. It stays as a guard because a throw there ends the user's sort or move half-done; the
+`warnOnce` names the lost order. The no-throw, warn-once contract is pinned on syncers unbound by hand (`warns once,
+and does not throw, when an order reaches a syncer that is bound to no engine sheet`).
+
+**Known limit: an enabled grid whose sheet the engine refused to add retries on every wrapper re-render.** The
+`updatePlugin()` branch that adds a sheet runs whenever nothing is bound (`sheetName === null`), now also for a
+call carrying `data`. If `#addSheet()` returned no name (the engine refused the sheet), a React or Vue re-render,
+which always sends `data`, retries the add and its full source scan on every commit, where it used to retry on
+settings-only calls alone. No path is known to reach that state short of an engine refusal.
+
+**A reload of the sheet the syncers are synced with keeps the grid's order, and its state** (`#reloadInPlace()`,
+or `#reloadKeepingOrder()` when anything but this grid changed the sheet). A grid built from an engine sheet without `data`
+reloads that sheet on every `updateSettings()` (`#onAfterCellMetaReset`, the `#hotWasInitializedWithEmptyData`
+branch, through `#loadSheet()`), and React and Vue call `updateSettings()` on every re-render. The engine holds the
+sheet in the grid's order. A `loadData()` resets the grid's order, and ManualRowMove/ManualColumnMove re-apply
+their arrays in `afterLoadData`: read as the engine holds it and taken as physical, the re-applied array moved
+the rows once more per update and was sent to the engine again (rows `b, a, c` with `manualRowMove: [2, 0, 1]`
+showed `c, b, a`, then `a, c, b`, then `b, a, c`). A `loadData()` also drops every change still waiting for its
+validator (core bumps its load generation), so an edit made right before a re-render never landed, and it
+resets the sort plugins' state, so a sorted grid kept its sorted rows with no sort config and `clearSort()`
+could not bring the manual order back. So when the bound sheet is the one both syncers point at (same engine,
+same sheet id, no `runWithEngineOrderHeld()` running), the reload:
+
+- reads the sheet back in **physical** order (`#toPhysicalOrder()`, through `listEngineElements()` and the
+  syncers' `getEngineOrder()`), after the unescape step, which already reads engine order. Physical indexes
+  stay what they were, so the syncers' engine order, padded lines and order shifts stay valid.
+- covers the whole axis on an axis the engine holds out of physical order: the engine leaves out trailing
+  lines that hold nothing, and a blank line the order put last is one of them, so read as it is the line in
+  front of it took its place. An axis in physical order is read as before, so a line emptied there still drops
+  on a reload (DEV-1143) and a sheet the host replaced by a smaller one still shrinks the grid.
+- **loads it with `updateData()`** (`#reloadInPlace()`), not `loadData()`, **only when nothing but this grid
+  changed the engine sheet since the grid last loaded it** (`#canReloadInPlace()`); then every physical index
+  still names the record it named. `updateData()` keeps the index maps, so the order, a sort, moves, hidden
+  lines and manual sizes stay; ManualRowMove/ManualColumnMove listen to `afterLoadData` only, so nothing is
+  re-applied and nothing
+  is sent to the engine (0 order calls per update); ColumnSorting and MultiColumnSorting keep their config, the
+  indicator, the order `clearSort()` goes back to, and a header-click sort that waits for the edited cell's
+  validator (`#awaitingHeaderSorts`, dropped on `afterLoadData` only); and the Core keeps a change waiting for its
+  validator and writes it at its coordinates of the reloaded rows, which hold the same records because the order
+  is kept. Nothing of the old hold/adopt machinery runs on this path: the syncers' record is never reset
+  (`setupSyncEndpoint()` is not called), so there is nothing to adopt or put back. A user's drag survives the
+  update too, as on a grid built with `data`.
+- **falls back to `loadData()` (`#reloadKeepingOrder()`) on any change someone else made**: the host through the
+  engine API (`setCellContents()`, `setSheetContent()`, `addRows()`, `removeRows()`, `moveRows()`,
+  `setRowOrder()`, and the column twins), or another grid bound to the same sheet. Such a change can move or
+  replace the records under the grid's physical indexes (`fitToLength()` only cuts or appends the LAST index),
+  so on `updateData()` the cell meta (`readOnly` included), a hidden row, a Filters condition and a waiting edit
+  stayed on the index and landed on another record (the waiting edit was written into a record the user never
+  touched, and reached the engine). The load drops all of them instead, as before this path existed. **How a
+  foreign change is told** (`#canReloadInPlace()`): HyperFormula 3.3.0 emits no event at all for a host
+  `addRows()`, `removeRows()` or `moveRows()` that changes no value (measured; removing a row whose formulas'
+  results do not change included), so `valuesUpdated` cannot tell. The plugin keeps a **snapshot** of the bound
+  sheet in the shape `getSheetSerialized()` returns (`#loadedSheetContent`): taken, copied, at every load of the
+  sheet into the grid (`#recordLoadedSheet()`), and, for a grid built from the sheet only, kept in step with every
+  write of this grid to the engine (`#trackOwnEngineWrite()`, run inside `#writeOwnSheet()`, `runEngineWrite()`
+  and the plain `withPluginEngineWrite()` scopes of this file, so the axis syncer's own-write scope, the deferred
+  write on apply, the undo and redo restore and the structural writes are all covered). A reload is in place only
+  when the sheet equals the snapshot **exactly** (`areSheetContentsEqual()`, `===` per cell: formula text, `7`
+  against `'7'`, an empty cell) and no foreign change was found since (`#foreignSheetChange`). Every plugin write
+  runs in a scope (see "External engine changes" below), so any difference is a change someone else made, whatever
+  the order or the stale formula text. The writes come in three kinds (`OwnEngineWriteKind`), so a write costs no
+  more than it did before the snapshot existed, except an order or a move:
+  1. **A cell write** (`'cells'`: `#writeChangesToEngine()`, which carries an edit, a paste, a validator's
+     correction, the early write and the write on apply; the restore of written cells; the switched-away restore)
+     refreshes only the cells of the bound sheet the engine reported changed while it ran (`valuesUpdated`,
+     collected by `#collectTrackedChanges()`, read again with `getCellSerialized()` into the snapshot by
+     `setSheetSnapshotCell()`, which grows the snapshot past its extent and trims the empty tail the way
+     `getSheetSerialized()` does). The engine names every cell whose content is set, and every value it
+     recalculated, so spilled values follow too (measured: `getSheetSerialized()` writes a spilled value as plain
+     data in its cell, and a write to a precedent, a new spilling formula, a value over a spilled cell, and a
+     cleared anchor all report the cells they change; pinned by `reloads in place after the grid's own writes that
+     spill, change a spill, or clear one`). A cell the write set itself (`#noteOwnCellWrite()`) takes whatever the
+     engine holds. A cell the engine only recalculated takes the engine's content only while neither side is a
+     formula: a recalculation never changes a formula's text, so a formula that differs there (or a formula where
+     the snapshot held none) is a change of someone else's, and `#foreignSheetChange` is set instead of taking it
+     in. Without that rule, a host `moveRows()` of rows that hold only formulas reading the edited cell
+     (`=$A$1*2`, `=$A$1*3`) was taken in by the edit's refresh, and the meta stayed on the swapped record (`takes a
+     host move of rows that only recalculate from the grid's own edit as a change ...`). No check runs first: a
+     host change made before the write stays visible because the cells it touched are not read again, unless this
+     write set them, and then the snapshot holds what the engine and the grid both hold. A host's structural change
+     shifted lines this write does not refresh, so it stays visible as well (`takes a host change made before the
+     grid's own edit as a change ...`).
+  2. **A structural write** (`'structural'`, the default: an order or a move from the axis syncer, MoveCells, an
+     undo or redo restore of the sheet, a NestedRows detach, the sheets bar's own writes) reads the snapshot again
+     in full when it ends. Read in full, it would take in a host change made before it, so it first compares the
+     sheet with the snapshot, and a difference sets `#foreignSheetChange` until the next load. The two reads are
+     noise next to the operation (a sort of 10,000 rows takes about 1.9 s in jsdom, a drag shows no change), and
+     keeping them keeps a sorted or dragged grid in place on the next re-render, which is the point of the reload.
+     Measured in headless Chrome on a 100,000 x 5 sheet-built grid (two formula columns, median of 5): the two
+     reads add about 80 ms to a header sort ascending (8.19 s against 8.24 s for a data-built grid on develop, which
+     cannot sort a sheet-built grid at all), about 160 ms to a descending one (17.03 s against 16.95 s), and about
+     80 ms to a one-row move (0.77 s against 0.78 s; 0.27 s of serialization against 0.19 s). **Do not replace the
+     read after with a permutation of the snapshot**: the engine rewrites formula text on every order it takes,
+     so a permuted snapshot never equals `getSheetSerialized()` and every reload would fall back to `loadData()`.
+     Measured on `[b, 2, =B1*2, =SUM($B$1:$B$4)]...`: a sort turns `=B1*2` into `=B3*2` and `=A1` into `=#REF!`
+     (relative offsets kept), a move turns `=B1+1` into `=B4+1` and `$B$1:$B$4` into `$B$1:$B$3` (references follow
+     their cells, and a range shrinks). Keeping the snapshot in step without the read means reimplementing the
+     engine's reference transformation. The snapshot is a second full copy of the sheet for the grid's lifetime,
+     needed because the engine reports no event for a host's structural change that changes no value.
+  3. **An insert or a removal** of rows or columns (`'resets'`) reads nothing and drops the snapshot when it ends,
+     so the next reload takes `loadData()`, as every reload did before this path existed, and takes a new snapshot;
+     the re-render after it reloads in place again. The two full reads cost an insert or a removal about 20 ms at
+     200k cells (84 to 104 ms in jsdom), so they were dropped (`reads no sheet when the grid inserts a row ...`).
+     A host change made before it is dropped with the snapshot, so it cannot be taken in either (`takes a host
+     change made before the grid's own row insert as a change`).
+  Nested writes join the outermost one (`#joinTrackedWrite()`): a reset makes the whole write reset, and a
+  structural write nested in a cell write turns the whole write structural (the cells collected so far are
+  refreshed first, then the check runs).
+  Two more details: **the load's snapshot is a copy**, because the rows the grid loads can be the very arrays
+  `getSheetSerialized()` returned and the grid writes into them (an uncopied snapshot followed every edit and never
+  matched again); and a validation probe takes its own write back before it ends (`isPluginEngineProbe()`), so it
+  is not tracked, a write that throws counts as foreign, and a write after which the binding moved drops the
+  snapshot, and so does binding another sheet (`#updateSheetNameAndSheetId()`) and `destroy()`. A cell a waiting
+  change set wrote early is part of the snapshot, so a host write over it is a change:
+  the load drops the set, and `#onChangesDropped` leaves the host's value, which the engine holds (`leaves the grid
+  and the engine agreeing when the host writes a cell a waiting change wrote early`).
+  **A grid built with `data` keeps no snapshot** (`#recordLoadedSheet()` records one only for a grid built from the
+  sheet), so its writes cost nothing extra and it holds no copy of a sheet it switched to; its
+  `switchSheet(<its sheet>)` takes `loadData()`, as before this path existed. A first version recorded the load's
+  snapshot for it too: never kept in step with its writes, it was a full copy for the grid's lifetime that went
+  stale with the first edit (review of PR #14243; pinned by `keeps no copy of the sheet on a grid built with data
+  after switchSheet()`). The source rows are not compared any more: two rows
+  that differ only in formulas (a report sheet reading another sheet), or only by a number against its text,
+  passed that comparison when the host moved them. Do not bring it back, and do not bring back a line-count check
+  either: the snapshot covers both.
+- reads an axis as the engine holds it when the record no longer describes the sheet (`#planReloadAxis()`,
+  `stale`): a line the engine left out while the grid holds content in it (`#readOwnSourceRows()`, the projection
+  suspended) means the host removed lines or replaced the sheet with a smaller one through the engine API.
+  Then the reload falls back to `loadData()` (`#reloadKeepingOrder()`): that axis is taken as physical (the
+  order adopted is physical and the grid shows the sheet in the engine's order, so the grid shrinks as it does
+  without a move and as it did before DEV-3760), the load runs inside `runWithEngineOrderHeld()`, the plugin's own
+  `afterLoadData` (the early return for its own source) adopts the recorded order of the other axis
+  (`#reloadEngineOrder`) before the move plugins re-apply their arrays, so those moves are held
+  (`adoptedWhileHeld`), and the grid's order is put back after the load, so the release sends nothing. Covering
+  the axis through the stale record kept phantom blank lines and moved records. Do not bound the cover with
+  `getSheetDimensions()` instead: measured on HyperFormula 3.3.0, `setSheetContent()` with a smaller sheet keeps
+  the old height (it would not shrink), and a `moveRows()` that puts a blank row last drops it from the height
+  (the blank line would drop again). Lines the engine gained are read through the record (`listEngineElements()`
+  names them after the recorded ones), and the order put back names them after the grid's lines, so the grid
+  shows them where the engine has them.
+  **Cost**, measured in jsdom on a 10,000 x 20 sheet-built grid with one formula column (AutoColumnSize and
+  AutoRowSize off, rendering suspended, medians of five interleaved runs against `ff330cdc00`): an edit 0.8 ms
+  (0.8), a row insert 75.2 ms (74.2), a row removal 75.8 ms (76.1), a re-render after an edit 24.0 ms (24.7), a
+  plain re-render 22.7 ms (24.6). A cell write pays one `getCellSerialized()` per changed cell; an order or a move
+  pays two `getSheetSerialized()` reads (about 8 ms each at that size) and a comparison (0.4 ms). Re-reading the
+  whole sheet after every write, as a first version did, made an edit 29.5 ms instead of 14 with rendering on. The
+  plugin keeps one copy of the sheet's content alive (dropped on `disablePlugin()`, `destroy()` and a switch to
+  another sheet). Pinned by `does not read the grid's source rows on a reload of ...` and `keeps the state of a grid
+  with blank spare rows past the sheet, reading no row`.
+- sets `#sourceHasStaleFormulas` when the engine order is not physical and the sheet holds a formula: the
+  engine's text names lines in the engine's order, now stored in physical rows, so a step that brings the
+  order back to physical and then restructures must undo from the engine sheet, not from that text.
+
+Do not "re-apply the array instead" on the `loadData()` path: after a drag the array is not the engine's order,
+and the release then sent it with `setRowOrder`, which wrote `#REF!` (the first attempt). Do not "re-apply the
+sort config" there either: ColumnSorting clears back to the order in force when it sorts, which would be the
+sorted order put back.
+
+**What a re-render of a sheet-built grid fires and keeps changed with the `updateData()` path**, to the
+behavior a grid built with `data` already has on a re-render. These are user-observable, so the changelog and
+the formulas guide (`formula-calculation.md`, "A grid built from an engine sheet") name them:
+
+- **The events.** `updateSettings()` used to fire `beforeLoadData`/`afterLoadData('Formulas.switchSheet')` and
+  `afterChange(null, 'loadData')`. It now fires `beforeUpdateData`/`afterUpdateData('Formulas.switchSheet')` and
+  `afterChange(null, 'updateData')`. A host that rebuilt its own state in `afterLoadData`, or keyed an
+  `afterChange` listener on `'loadData'`, no longer gets the call on a re-render. A reload that falls back to
+  `loadData()` (any change someone else made) still fires the load events.
+- **AutoColumnSize.** The load ran a full `recalculateAllColumnsWidth()` sweep on every re-render; `updateData()`
+  runs none. A value the host writes into the engine sheet is a foreign change, so that re-render takes
+  `loadData()` and its sweep, as before. Measured before the foreign-change gate existed, the in-place path also
+  refit it from `afterFormulasValuesUpdate` (the engine reports the written cell). Pinned by `fits a column to a
+  value the host wrote into the engine sheet after a re-render` in `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`
+  (longer, then shorter again).
+- **The state.** The cell meta stays (a `setCellMeta()` value and the invalid marks survive a re-render, where the
+  load dropped them), runtime hiding and trimming stay, Filters keeps its conditions and re-reads its states
+  (`afterUpdateData`), FormulaBuilder's `afterUpdateData` drops its remembered focus as its `afterLoadData` did,
+  and an editor that waits for its validator is not closed (a load closed it, `_endValidationWait()`).
+- **UndoRedo history.** It is kept when the reloaded rows hold the same values as the ones it was recorded on, so
+  an edit made before a re-render can be undone after it. The rows are compared by value for at most
+  `MAX_COPIED_ROWS` (1000, `../undoRedo/sameRows.ts`), so a sheet-built grid of more than 1000 rows still clears
+  the history on every re-render, as before. The first reload of a moved or sorted grid with formulas loads the
+  engine's formula text, which names lines in the engine's order, so its rows differ and the history starts over
+  there, once; a sheet the host changed starts it over too. A re-render after an undo of an insert or a removal
+  drops the redo stack (`isRedoAvailable()` is `false`), the same as an `updateData()` with copied rows on a grid
+  built with `data`: the undo is kept, the redo is not.
+
+A first load, a switch to another sheet, and a reload inside `runWithEngineOrderHeld()` (the sheets bar) take
+the old `loadData()` path, so the initial counts above (0, 1, 1) hold. A grid built with `data` reloads from the
+sheet only through `switchSheet(<the sheet it is bound to>)`, which is a same-sheet reload and takes this path
+too: it now keeps its order and state there, where it rotated before DEV-3760.
+
+Six limits:
+
+- **On the `loadData()` path, a host that reorders the engine sheet, or writes it with the same shape, is read
+  through the record.** The grid shows the engine's lines where the engine has them (the record maps engine line
+  `i` to the grid's position `i`), but the physical identity of the records drifts. The load drops the state
+  keyed by physical indexes, so nothing lands on the wrong record; the identity of the rows themselves still
+  drifts. Two grids that reorder one sheet were already broken before this.
+- **A foreign change that leaves the serialized sheet exactly as it was is not seen** (two identical rows swapped,
+  a cell written with the content it holds). The records under the indexes hold the same content then, so the
+  state follows content that is the same.
+- **A plugin write that bypasses `#trackOwnEngineWrite()` reads as foreign** (none known: every engine mutation
+  of this file runs in one of the tracked scopes), and so would a cell write the engine reports no change for while
+  it runs. Measured, neither host wrapper causes that: under a host's `suspendEvaluation()` the plugin's own
+  `engine.batch()` resumes the evaluation (as on `ff330cdc00`), so `valuesUpdated` fires inside the tracked write
+  and the reload stays in place; inside a host's `batch()` the grid's write throws `Batch mode wasn't started` (as on
+  `ff330cdc00`), the value still lands, and the next reload agrees. Such a write costs only the old behavior on the
+  next re-render; it would hide a foreign change only if a host change exactly undid it.
+- **A cell write takes in a host change to non-formula content of a cell it recalculates.** A spilled value is
+  plain data in the serialized sheet, so a host write of a plain value into a cell that the grid's own edit then
+  spills over is taken in with the spill. So is a host value a spill now runs into (the anchor shows `#SPILL!` and
+  the host value stays, `=SEQUENCE()` grown over a cell the host wrote): the engine reports that cell, and neither
+  side holds a formula there. In both cases the cell holds what the engine and the grid both hold, and no record
+  moves. A formula is never taken in this way (see the cell write above).
+- **A host that removes only lines that are blank in the grid is not detected.** The check needs a line the
+  engine left out that holds content in the grid, so after the host removes the blank row a move put last
+  (`removeRows()` on rows `[a], [null], [c]` with `manualRowMove: [2, 0]`), the grid keeps that blank row
+  while the engine has two. Nothing is lost, since the line was blank.
+- **A reload after the host inserted or removed lines is a `loadData()`**, on an axis in physical order and out
+  of it. On that path the cell meta, the hidden lines, the Filters conditions, the waiting edits and the sort
+  state are dropped as before (on a moved axis the rows keep the order put back), because the grid's physical
+  indexes no longer name the records they named. The host changed the sheet behind the grid, so the records under
+  that state are not the ones it was set on anyway. The same holds for any other foreign change.
+
+Pinned by the `Formulas reload of a moved sheet-built grid` block in
+`__tests__/sheetBuiltGridSyncEndpoint.unit.js` and by `__tests__/sheetBuiltGridReloadState.unit.js`. They cover:
+
+- rows, columns, both, a new array;
+- a drag with `true` and with an array;
+- the cross-row results of the rows and the drag case;
+- a blank line the move put last, and the trailing blank lines of the sheet;
+- a host that shrinks the sheet by `removeRows`, by a smaller `setSheetContent()`, or by `removeColumns`;
+- a host that adds a row at the end or in the middle;
+- a host that removes or inserts rows or columns on a grid without a move, and a host that removes one row and
+  inserts another, rewrites a cell or moves a row (with and without a move), also on a sheet whose rows differ
+  only in formulas or only by a number against its text, and a host change made before an own edit: the cell
+  meta, a hidden line, a Filters condition and a waiting edit are dropped, not moved onto another record; blank
+  spare rows do not count; a host write over a cell a waiting set wrote early leaves the grid and the engine
+  agreeing; a host change before the grid's own row insert is seen; the grid's own writes that spill, change a
+  spill or clear one stay in place;
+- a moved, dragged and sorted grid with cross-row formulas reloads in place on every re-render;
+- the grid's own edits (a number typed as text, a formula), a hidden row, a cell meta value and a sort survive the
+  re-render that follows them;
+- sorting, the sort config and indicator across reloads and `clearSort()` back to the manual order (both
+  sorting plugins, with and without a move);
+- a change waiting for its validator across a reload, accepted and rejected, without a move, with a move and
+  with a sort, and a header-click sort that waits for it;
+- undo of a move, undo after the order came back, and undo of an edit made before a reload.
+
+The `updateSettings()`, sort-state and waiting-edit steps of `tests/e2e/formulas-sheet-built-grid-sort.spec.ts`
+cover it in a browser.
 
 **A sheet the engine refuses still gets the sync endpoint** (`#clearRejectedSheet()` calls
 `setupSyncEndpoint()`): left on the sheet bound before, a sort of the refused sheet reordered that other
@@ -1429,7 +2101,7 @@ dependent measurement path.
 
 `valuesUpdated` is engine-wide. `#onEngineValuesUpdated` paints this grid once when the change list names this instance's sheet. It does not copy the engine value into source data, and it does not validate. An engine write the host makes paints at once, once per write: `engine.batch()` emits after its callback, so several writes in one `batch()` paint once. A paint never runs later than the write that caused it. A throw from `hot.render()` there (a user hook inside the engine's emit) is caught and reported with `warn`, so the engine call, the other grids and the listeners after this one run.
 
-A plugin write runs inside `withPluginEngineWrite` (`indexSyncer/pluginEngineWrite.ts`), a per-engine scope. While one is open, the listener only hands its grid's paint to the scope. When the outermost scope on that engine ends, in a `finally`, each such grid paints once. A paint that throws does not stop the others, and the first error is rethrown to the caller after all have run (unless the write itself threw), as a dependent grid's render error reached the caller on develop. The scope is dropped before the paints run, so an engine write a paint's `afterRender` makes is an external write. HyperFormula emits inside `batch()` before `batch()` returns, so the scope wraps the `batch()` call, not a `setCellContents` nested in it. The grid that made the write is left out through `#writeOwnSheet()`, because the Core or the caller paints it. Plain `withPluginEngineWrite` is used where this grid must paint too (the out-of-bounds `afterChange` write, the `restored` undo write, the public `addSheet`). The axis syncer reaches `#writeOwnSheet()` through `IndexSyncer#getOwnEngineWrite()` for the two writes that emit: `batch` in `syncMoves`, and the order write in `#syncOrderWithEngine()`. The latter is one scope around the whole write, so the pad (`setCellContents` twice, then `setRowOrder` / `setColumnOrder`, see "The engine's sheet size" below) paints a dependent grid once, not once per engine call. `#isOrderAllowed()` only reads, and stays outside it. Pinned by the `a padded sheet, with a second grid that reads it` cases of `__tests__/externalEngineRender.unit.js`: a sequence or a sort that pads the sheet paints the dependent grid once and the editing grid not at all or once (its own sort render), where an unscoped write painted the editing grid one extra time. The SheetsBar plugin calls `Formulas#runEngineWrite` for its own engine calls, so a standalone grid on the engine paints whether or not the bar's grid has Formulas bound to it. A missing engine (a listener disabled the plugin mid-flow) runs `fn` with no scope, as develop did: `withPluginEngineWrite()` takes `null`, so a call site passes `this.engine` without `!`. A repaint that throws at the end of `addSheet` does not undo the registration: `#addSheet()` returns the name the engine took and the paint errors apart, `enablePlugin()` and `updatePlugin()` bind the sheet first and throw the first paint error at the end of the call, and the public `addSheet()` throws it after the sheet is in. Reading the error as "no sheet" left the grid unbound, and the next sync added a second sheet. A new plugin write needs a scope, or the listener paints it once per emit.
+A plugin write runs inside `withPluginEngineWrite` (`indexSyncer/pluginEngineWrite.ts`), a per-engine scope. While one is open, the listener only hands its grid's paint to the scope. When the outermost scope on that engine ends, in a `finally`, each such grid paints once. A paint that throws does not stop the others, and the first error is rethrown to the caller after all have run (unless the write itself threw), as a dependent grid's render error reached the caller on develop. The scope is dropped before the paints run, so an engine write a paint's `afterRender` makes is an external write. HyperFormula emits inside `batch()` before `batch()` returns, so the scope wraps the `batch()` call, not a `setCellContents` nested in it. The grid that made the write is left out through `#writeOwnSheet()`, because the Core or the caller paints it. Plain `withPluginEngineWrite` is used where this grid must paint too (the `restored` undo write, the public `addSheet`, the restore of a dropped set). The deferred write of a change set (`beforeChangeRender`, past-the-last-row changes included) goes through `#writeOwnSheet()`, because the Core renders right after it. The axis syncer reaches `#writeOwnSheet()` through `IndexSyncer#getOwnEngineWrite()` for the two writes that emit: `batch` in `syncMoves`, and the order write in `#syncOrderWithEngine()`. The latter is one scope around the whole write, so the pad (`setCellContents` twice, then `setRowOrder` / `setColumnOrder`, see "The engine's sheet size" below) paints a dependent grid once, not once per engine call. `#isOrderAllowed()` only reads, and stays outside it. Pinned by the `a padded sheet, with a second grid that reads it` cases of `__tests__/externalEngineRender.unit.js`: a sequence or a sort that pads the sheet paints the dependent grid once and the editing grid not at all or once (its own sort render), where an unscoped write painted the editing grid one extra time. The SheetsBar plugin calls `Formulas#runEngineWrite` for its own engine calls, so a standalone grid on the engine paints whether or not the bar's grid has Formulas bound to it. A missing engine (a listener disabled the plugin mid-flow) runs `fn` with no scope, as develop did: `withPluginEngineWrite()` takes `null`, so a call site passes `this.engine` without `!`. A repaint that throws at the end of `addSheet` does not undo the registration: `#addSheet()` returns the name the engine took and the paint errors apart, `enablePlugin()` and `updatePlugin()` bind the sheet first and throw the first paint error at the end of the call, and the public `addSheet()` throws it after the sheet is in. Reading the error as "no sheet" left the grid unbound, and the next sync added a second sheet. A new plugin write needs a scope, or the listener paints it once per emit.
 
 A grid whose data is written into its sheet registers it inside one `#writeOwnSheet()`: `addSheet` re-resolves a formula in another grid that named the sheet first (`#REF!` becomes the cell's value, or empty), and the fill follows. On the `updateSettings` path the fill comes later, from `#resyncSheet()` at the first render, so the registration scope calls `holdPluginEngineWritePaints()` and the grids it named paint when the resync scope ends, once, after the data is in. A grid whose fill never comes (a throw before the resync) keeps its stale paint until the next plugin write on that engine. A grid built from the sheet (`#hotWasInitializedWithEmptyData`) writes nothing and registers unscoped. `updateConfig` is not wrapped: it does not emit `valuesUpdated`.
 
@@ -1590,6 +2262,34 @@ Core only, also when a later write in the same recalculation changes it; the las
 resume (its `valuesUpdated`) ends the hold before that resume is recorded; and a Walkontable scroll draw fires no
 `beforeRender`, so a hold that outlives the task (a host pair across an `await`) can paint a grid inside such a
 draw. Tests: `__tests__/batchEvaluation.unit.js`.
+
+**How the hold meets the DEV-3760 paths** (merged after both landed):
+- **The deferred write of a change the Core can reject** (`#onBeforeChangeRender`) joins a hold like any cell
+  write, so it reports no dependents; `#validateChangedDependents()` records its cells (`recordHeldWrite()`) and the
+  release validates their dependents, against the recalculated values. That validation runs where the release runs
+  (the resume), not outside the edit's undo step as `#validateDependentCellsUnrecorded()` does without a hold. The
+  dependents the early write left to the apply (`heldDependents`) are still validated at the apply, which flushes.
+  The early write of the immediate changes is validated as develop's `afterSetDataAtCell` validated it. Its cells
+  are recorded (`recordHeldWrite()`) **before** the probe: the probe can flush the hold, and a flush whose
+  recalculation names no written cell validates nothing (`collectHeldDependents()`), so recorded after it the
+  dependents of the early write were never validated.
+- **The validation probe flushes the hold first** when the set has something to probe (a deferred formula or a
+  reader): it writes and reads the engine, and a suspended engine would skip it and hand the validator the formula
+  text. A set with nothing to probe keeps the hold. A flush runs before `#readValidationValue()` too.
+- **The sheet snapshot of a grid built from a sheet (`#trackOwnEngineWrite()`) survives a `'cells'` write made
+  while the plugin holds the engine suspended.** `getSheetSerialized()` and `getCellSerialized()` refuse then, and
+  the engine holds its `valuesUpdated` back until the resume, so the write keeps its cells in `#heldSnapshotCells`
+  (`#holdTrackedCells()`) and one deferred read (`runAfterEvaluationFlush()`) takes them into the snapshot once
+  the engine resumes, with the cells that resume's `valuesUpdated` names (`#refreshHeldSnapshotCells()`, by the
+  rule of `#refreshTrackedCells()`). Dropping the snapshot there made every `updateSettings()` after an edit inside
+  `batch()` reload through `loadData()`: the rows stayed sorted with an empty sort config, and the cell meta was
+  gone. A `'structural'` or `'resets'` write made while suspended still drops the snapshot, and so does a cell
+  write inside a suspension the host owns (nothing tells when the engine can be read); the deferred read does
+  nothing when the snapshot it was recorded against is gone. A host's plain value written into a plain cell inside
+  the plugin's hold comes in with that resume and reads as a recalculated cell, so the reload stays in place and
+  shows it; a host change that moves a formula still reads as foreign. The disable's `#keepSheetBuiltBinding()` and
+  the enable's `#recordLoadedSheet()` flush before they read. Tests: `__tests__/sheetBuiltGridReloadState.unit.js`
+  ("with batchEvaluation").
 
 ## Testing
 

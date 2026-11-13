@@ -392,6 +392,88 @@ describe('Formulas batchEvaluation', () => {
       expect(counts.valuesUpdated).toBe(1);
       expect(counts.batch).not.toHaveBeenCalled();
     });
+
+    it('validates the dependents of a cell written at once, when a formula of the set goes into a cell ' +
+      'the Core can reject', async() => {
+      const engine = buildEngine();
+      const hot = mountGrid(engine, {
+        data: [[1, 1, '=A1*2']],
+        formulas: { batchEvaluation: true },
+        settings: {
+          columns: [
+            {},
+            { validator: acceptAll, allowInvalid: false },
+            { validator: (value, callback) => callback(value < 100) },
+          ],
+        },
+      });
+      const validated = recordValidations(hot);
+
+      // The formula for B1 makes the validation probe end the hold before the write of A1 is recorded.
+      hot.batch(() => {
+        hot.setDataAtCell([[0, 0, 60], [0, 1, '=1+1']]);
+      });
+      await waitForValidation();
+
+      expect(hot.getDataAtCell(0, 2)).toBe(120);
+      expect(hot.getDataAtCell(0, 1)).toBe(2);
+      expect(countEach(validated)['0:2']).toBe(1);
+      expect(hot.getCellMeta(0, 2).valid).toBe(false);
+    });
+
+    it('validates the dependents of a cell written at once, when a formula of the set reads a cell ' +
+      'the Core can reject', async() => {
+      const engine = buildEngine();
+      const hot = mountGrid(engine, {
+        data: [[1, 1, '=A1*2', null]],
+        formulas: { batchEvaluation: true },
+        settings: {
+          columns: [
+            {},
+            { validator: acceptAll, allowInvalid: false },
+            { validator: (value, callback) => callback(value < 100) },
+            { validator: acceptAll },
+          ],
+        },
+      });
+      const validated = recordValidations(hot);
+
+      hot.batch(() => {
+        hot.setDataAtCell([[0, 0, 60], [0, 1, 7], [0, 3, '=B1*1']]);
+      });
+      await waitForValidation();
+
+      expect(hot.getDataAtCell(0, 2)).toBe(120);
+      expect(hot.getDataAtCell(0, 3)).toBe(7);
+      expect(countEach(validated)['0:2']).toBe(1);
+      expect(hot.getCellMeta(0, 2).valid).toBe(false);
+    });
+
+    it('validates the dependents of a cell written at once, when the set also holds a plain value for a ' +
+      'cell the Core can reject', async() => {
+      const engine = buildEngine();
+      const hot = mountGrid(engine, {
+        data: [[1, 1, '=A1*2']],
+        formulas: { batchEvaluation: true },
+        settings: {
+          columns: [
+            {},
+            { validator: acceptAll, allowInvalid: false },
+            { validator: (value, callback) => callback(value < 100) },
+          ],
+        },
+      });
+      const validated = recordValidations(hot);
+
+      hot.batch(() => {
+        hot.setDataAtCell([[0, 0, 60], [0, 1, 5]]);
+      });
+      await waitForValidation();
+
+      expect(hot.getDataAtCell(0, 2)).toBe(120);
+      expect(countEach(validated)['0:2']).toBe(1);
+      expect(hot.getCellMeta(0, 2).valid).toBe(false);
+    });
   });
 
   describe('reads inside the batch', () => {

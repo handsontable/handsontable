@@ -25,10 +25,12 @@ interface FixtureWindow {
     loadData(data: Row[]): void;
     updateData(data: Row[]): void;
     getSourceData(): Row[];
+    getSourceDataAtCol(col: number): unknown[];
+    validateCells(): void;
     destroy(): void;
   };
   htSortPlugin: SortPlugin;
-  heldValidations: Array<(valid: boolean) => void>;
+  heldValidations: Array<((valid: boolean) => void) & { htRow?: number }>;
   postAfterValidateCount: number;
   htAsyncErrors: string[];
 }
@@ -88,6 +90,53 @@ export class ColumnSortingWaitingHeaderSortPage {
   }
 
   /**
+   * Selects rows `fromRow`-`toRow` of column A with the mouse, types `value`, and fills the selection with
+   * Ctrl+Enter (Cmd+Enter on macOS). The editor waits for the edited cell (`fromRow`), and the fill holds one
+   * validator call per cell. Resolves once they are all held.
+   */
+  async fillColumnA(fromRow: number, toRow: number, value: string): Promise<void> {
+    await this.cell(fromRow, 0).click();
+    await this.cell(toRow, 0).click({ modifiers: ['Shift'] });
+    // Typing opens the editor on the focused cell, `fromRow`. Enter would move the focus within the range first.
+    await this.page.keyboard.type(value);
+    await expect(this.page.locator('textarea.handsontableInput')).toHaveValue(value);
+    await this.page.keyboard.press('ControlOrMeta+Enter');
+    await expect.poll(() => this.heldValidationCount()).toBe(toRow - fromRow + 1);
+  }
+
+  /**
+   * Clicks the clickable label of a column header.
+   */
+  async clickSortHeader(col: number): Promise<void> {
+    await this.sortLabel(col).click();
+  }
+
+  /**
+   * Answers the held validator calls of the given visual rows as valid, in the order given, then waits until
+   * the grid ran `postAfterValidate` for them and one more task has passed.
+   */
+  async answerRows(rows: number[]): Promise<void> {
+    const before = await this.page.evaluate(() => (window as unknown as FixtureWindow).postAfterValidateCount);
+
+    await this.page.evaluate((rowsToAnswer) => {
+      const fixture = window as unknown as FixtureWindow;
+
+      rowsToAnswer.forEach((row) => {
+        const index = fixture.heldValidations.findIndex(callback => callback.htRow === row);
+
+        if (index === -1) {
+          throw new Error(`No held validation for row ${row}`);
+        }
+
+        fixture.heldValidations.splice(index, 1)[0](true);
+      });
+    }, rows);
+    await expect.poll(() => this.page.evaluate(
+      () => (window as unknown as FixtureWindow).postAfterValidateCount)).toBe(before + rows.length);
+    await this.nextTask();
+  }
+
+  /**
    * Clicks a column header label once more while the first sort waits, with Ctrl (Cmd on macOS) held when
    * `ctrl` is set. The editor stays open until the validator answers, so this press waits too and starts no
    * validation of its own.
@@ -113,6 +162,41 @@ export class ColumnSortingWaitingHeaderSortPage {
     await expect.poll(() => this.page.evaluate(
       () => (window as unknown as FixtureWindow).postAfterValidateCount)).toBe(1);
     await this.nextTask();
+  }
+
+  /**
+   * Starts `validateCells()`, which validates every cell of column A, the edited cell's stored value included.
+   * The column A validator holds each call after the edit's own call, which stays first in the list.
+   */
+  async validateAllCells(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as FixtureWindow).hot.validateCells();
+    });
+  }
+
+  /**
+   * Answers every held validator call but the first one (the edit's) as valid, then waits until the grid ran
+   * `postAfterValidate` for each of them and one more task has passed.
+   */
+  async answerAllButTheEdit(): Promise<void> {
+    const answered = await this.page.evaluate(() => {
+      const calls = (window as unknown as FixtureWindow).heldValidations.splice(1);
+
+      calls.forEach(callback => callback(true));
+
+      return calls.length;
+    });
+
+    await expect.poll(() => this.page.evaluate(
+      () => (window as unknown as FixtureWindow).postAfterValidateCount)).toBe(answered);
+    await this.nextTask();
+  }
+
+  /**
+   * Column A in source order, which a sort does not change.
+   */
+  async sourceLabels(): Promise<unknown[]> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getSourceDataAtCol(0));
   }
 
   /**

@@ -13,12 +13,14 @@ import {
   unregisterEngine,
 } from './engine/register';
 import {
+  areSheetContentsEqual,
   coalesceIndexesToSpans,
   escapeTextValue,
   getDateFromExcelDate,
   getDateInHfFormat,
   getDateInHotFormat,
   getTimeFromHfTimeFraction,
+  hasContentPast,
   insertEmptyRows,
   isDate,
   isDateValid,
@@ -27,8 +29,11 @@ import {
   isPreservedText,
   normalizeValueForFormulaEngine,
   padRowsToWidestRow,
+  setSheetSnapshotCell,
+  trimTrailingEmptyCells,
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
+  widestRowLength,
 } from './utils';
 import {
   LINK_CLASS_NAME,
@@ -71,9 +76,13 @@ import IndexSyncer from './indexSyncer';
 import {
   deferPaintToPluginEngineWrite,
   holdPluginEngineWritePaints,
+  isPluginEngineProbe,
+  withPluginEngineProbe,
   withPluginEngineWrite,
 } from './indexSyncer/pluginEngineWrite';
+import { listEngineElements } from './indexSyncer/engineElements';
 import type AxisSyncer from './indexSyncer/axisSyncer';
+import type { IndexMapper } from '../../translations';
 import type { EngineOrder } from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
 import type { CellChange, CellValue } from '../../settings';
@@ -156,19 +165,51 @@ interface MoveCellsRect {
 }
 
 /**
- * A `setDataAtCell()` / `setDataAtRowProp()` change set written into the engine and not yet applied
- * to the source data by the Core (see `Formulas#changesAwaitingApply`). `writeCount` and `sheetId`
- * are taken when the set is written; `writtenBack` is set once `beforeChangeRender` has written the
- * whole set again, so the deferred write of its out-of-bounds changes is skipped.
+ * A `setDataAtCell()` / `setDataAtRowProp()` change set the Core has not applied to the source data
+ * yet (see `Formulas#changesAwaitingApply`). `writeCount` and `sheetId` are taken in
+ * `afterSetDataAtCell`, when the changes the Core cannot reject are written into the engine.
  */
 interface ChangeSetAwaitingApply {
   writeCount: number;
+  /**
+   * `#refusedSheetWriteCount` when the set was recorded.
+   */
+  refusedWriteCount: number;
   /**
    * The number of loads the plugin did not make itself (`#foreignLoadCount`) when the set was written.
    */
   foreignLoadCount: number;
   sheetId: number | null;
-  writtenBack: boolean;
+  /**
+   * The changes `afterSetDataAtCell` did not write: the ones the Core can reject (a validator and
+   * `allowInvalid: false`), and the ones past the last row or column. `beforeChangeRender` writes those
+   * still in the set's array once the Core applies it, so a change a validator rejected never reaches the
+   * engine.
+   */
+  deferredChanges: Set<CellChange>;
+  /**
+   * `true` when the set holds a change the Core can reject: only then are the dependents validated at the
+   * apply outside the undo step (`#validateDependentCellsUnrecorded()`).
+   */
+  hasRejectableChange: boolean;
+  /**
+   * The cells the early write recalculated that a deferred change recalculates too, validated at the apply
+   * (see `#splitDependentsOfDeferred()`).
+   */
+  heldDependents: unknown[];
+  /**
+   * The changes of the set the Core can reject. The Core splices a rejected one out of the set's array, so
+   * the apply tells a rejection by a change missing from it.
+   */
+  rejectableChanges: CellChange[];
+  /**
+   * The cells of the set written at once that read a deferred cell of the set (`#findReadersOfDeferred()`)
+   * and got the validation probe's result (`#probeValidationValues()`). The Core validated them by that
+   * result, with the deferred cells' new values, so the apply leaves them out of the dependent validation,
+   * unless a deferred change was rejected: they then hold a value computed from the old content, and the
+   * apply validates them again. A reader without a probe result is not here: it stays a held dependent.
+   */
+  readersOfDeferred: { address: FormulasCellAddress; answer: ReaderAnswer }[];
   /**
    * The cells the first write really reached, with the value each held before it. A sheet switch
    * before the Core applies the set drops it and restores exactly these (`#restoreSwitchedAwaySheet`): by then the
@@ -176,6 +217,130 @@ interface ChangeSetAwaitingApply {
    * other cells.
    */
   writtenCells: WrittenCell[];
+}
+
+/**
+ * The value `beforeValidate` hands a validator for a change still waiting for it (see
+ * `Formulas#validationValues`): the formula result the validation probe read, or the change's own value
+ * when `hasResult` is `false`.
+ */
+interface ValidationValue {
+  source: string | undefined;
+  /**
+   * The change's own value, which tells two changes of one set to the same cell apart.
+   */
+  changeValue: unknown;
+  hasResult: boolean;
+  result: unknown;
+  /**
+   * Set for the entry of a reader of a deferred cell (`ProbeReader`): how the Core's validation of the
+   * change answered.
+   */
+  readerAnswer?: ReaderAnswer;
+}
+
+/**
+ * How the validator of a reader of a deferred cell (`Formulas#findReadersOfDeferred`) answered the Core's
+ * validation of its change: `answered` once `afterValidate` fired for it, and `isSyncChecked` /
+ * `wasAnsweredAtCheck` once a check queued behind the validator's own microtask ran. The Core runs every
+ * validator in a microtask, so a validator that answers in its call has answered by then. `value` and
+ * `source` are what `beforeValidate` handed the validator, which `afterValidate` receives too.
+ */
+interface ReaderAnswer {
+  value: unknown;
+  source: string | undefined;
+  answered: boolean;
+  isSyncChecked: boolean;
+  wasAnsweredAtCheck: boolean;
+}
+
+/**
+ * One cell of the validation probe (`Formulas#probeValidationValues`): the change, the value a write puts
+ * into the engine, the engine address, and the `beforeValidate` entry it fills.
+ */
+interface ProbeWrite {
+  rejectable: RejectableChange;
+  value: unknown;
+  address: FormulasCellAddress;
+  entry: ValidationValue;
+}
+
+/**
+ * A cell of the set written at once that reads a deferred cell of the set (`Formulas#findReadersOfDeferred`):
+ * the probe does not write it (the engine holds it already), it reads its result into `entry`.
+ */
+interface ProbeReader {
+  visualRow: number;
+  visualColumn: number;
+  address: FormulasCellAddress;
+  entry: ValidationValue;
+}
+
+/**
+ * Builds the key that names an engine cell.
+ *
+ * @param {object} address The engine address.
+ * @returns {string}
+ */
+function toCellKey({ sheet, row, col }: { sheet?: number | null; row?: number; col?: number }) {
+  return `${sheet}:${row}x${col}`;
+}
+
+/**
+ * Drops the repeated cells of an engine change list, keeping the first of each.
+ *
+ * @param {object[]} changes The engine change list.
+ * @returns {object[]}
+ */
+function uniqueCellChanges(changes: unknown[]) {
+  const seen = new Set<string>();
+
+  return changes.filter((change) => {
+    const address = isHFCellChange(change) ? change.address : undefined;
+
+    if (!address) {
+      return true;
+    }
+
+    const key = toCellKey(address);
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+
+    return true;
+  });
+}
+
+/**
+ * Answers whether an engine cell is a precedent `getCellPrecedents()` reported, or inside one.
+ *
+ * @param {object} address The engine address.
+ * @param {object} precedent A precedent cell or range.
+ * @returns {boolean}
+ */
+function isAddressInPrecedent(address: FormulasCellAddress, precedent: FormulasCellAddress | FormulasCellRange) {
+  if ('start' in precedent) {
+    return precedent.start.sheet === address.sheet &&
+      address.row >= precedent.start.row && address.row <= precedent.end.row &&
+      address.col >= precedent.start.col && address.col <= precedent.end.col;
+  }
+
+  return precedent.sheet === address.sheet && precedent.row === address.row && precedent.col === address.col;
+}
+
+/**
+ * A change the Core can reject (its cell has a validator and `allowInvalid: false`), with the grid
+ * coordinates `afterSetDataAtCell` resolved for it.
+ */
+interface RejectableChange {
+  change: CellChange;
+  visualRow: number;
+  visualColumn: number;
+  physicalRow: number;
+  physicalColumn: number;
 }
 
 /**
@@ -217,6 +382,20 @@ export interface FormulasEngineSheetOrder {
   readonly rowOrder: EngineOrder;
   readonly columnOrder: EngineOrder;
   readonly content?: unknown[][];
+}
+
+/**
+ * What `disablePlugin()` keeps of a grid built from an engine sheet, for the next enable (see
+ * `Formulas#sheetBuiltBindingAtDisable`).
+ */
+interface SheetBuiltBinding {
+  readonly engine: HyperFormulaEngine;
+  readonly sheetId: number;
+  readonly rowCount: number;
+  readonly columnCount: number;
+  readonly order: FormulasEngineSheetOrder | null;
+  readonly snapshot: unknown[][] | null;
+  readonly foreignSheetChange: boolean;
 }
 
 /**
@@ -333,6 +512,64 @@ const isRestoreSource = (source: unknown) => source === 'UndoRedo.undo' || sourc
  * moved or sorted, the engine rewrites formula references in its own order and the source data keeps
  * the text written in the physical one.
  */
+/**
+ * How a write of this grid to the engine keeps the snapshot of the bound sheet in step (see
+ * `Formulas#trackOwnEngineWrite()`): `'cells'` refreshes the cells it changed, `'structural'` reads the sheet again,
+ * `'resets'` drops the snapshot, so the next reload loads the sheet and takes a new one.
+ */
+type OwnEngineWriteKind = 'cells' | 'structural' | 'resets';
+
+/**
+ * The cells of the cell writes of this grid made while a `batchEvaluation` hold kept the engine suspended (see
+ * `Formulas#holdTrackedCells()`).
+ */
+interface HeldSnapshotCells {
+  /**
+   * The engine the writes went to.
+   */
+  engine: HyperFormulaEngine;
+  /**
+   * The sheet the grid was bound to.
+   */
+  sheetId: number;
+  /**
+   * The snapshot the writes were made against.
+   */
+  snapshot: unknown[][];
+  /**
+   * The engine addresses the writes set themselves (`row,col`).
+   */
+  setCells: Set<string>;
+  /**
+   * The engine addresses the engine reported changed, during the writes or by the resume that ends them.
+   */
+  changedCells: Array<{ row: number; col: number }>;
+}
+
+/**
+ * How a reload that keeps the grid's order reads one axis of the sheet back (see `Formulas#planReloadAxis()`).
+ */
+interface ReloadAxis {
+  /**
+   * The engine order the reload takes over.
+   */
+  order: EngineOrder;
+  /**
+   * The physical index of each engine line, to read the sheet back in physical order with, or `null` to read
+   * the axis as the engine holds it.
+   */
+  elements: number[] | null;
+  /**
+   * The grid's order to put back after the load; empty for the identity.
+   */
+  previousSequence: number[];
+  /**
+   * Whether the recorded order no longer describes the engine sheet, so the axis is read as the engine holds
+   * it and the grid shows it in that order.
+   */
+  stale: boolean;
+}
+
 interface EngineSheetSnapshot {
   readonly content: unknown[][];
   readonly rowOrder: EngineOrder;
@@ -623,6 +860,41 @@ export class Formulas extends BasePlugin {
   #pendingAdoption: { order: FormulasEngineSheetOrder; adopted: boolean } | null = null;
 
   /**
+   * The engine order of both axes the running load takes over, while `#reloadKeepingOrder()` reloads the
+   * sheet the order syncers are synced with; `null` outside such a load. The plugin's own `afterLoadData`
+   * takes it over, so the moves the move plugins re-apply in the same hook are held and not sent.
+   */
+  #reloadEngineOrder: { row: EngineOrder; column: EngineOrder } | null = null;
+
+  /**
+   * What `disablePlugin()` keeps of a grid built from an engine sheet without `data`, for the next `enablePlugin()`
+   * to bind the sheet again as the grid left it (`#setupSyncEndpointForSheetBuiltGrid()`), or `null` for a grid built
+   * with `data` or bound to no sheet: the engine sheet; the grid's row and column counts; the order the engine held
+   * the sheet in (`exportEngineOrder()`, `null` while both axes are physical); and the reload snapshot
+   * (`#loadedSheetContent`, the same array the grid held, not a copy) with `#foreignSheetChange`. One copy of the
+   * sheet is kept while the plugin is off: the snapshot, from which the enable rebuilds the content of a sheet it adds
+   * back (`#sheetBuiltContent()`). The disable reads the live sheet once when an order is stored, and only when it
+   * differs from the snapshot does the order carry it as its content (`#keepSheetBuiltBinding()`). Cleared by the next enable and
+   * by `destroy()`.
+   */
+  #sheetBuiltBindingAtDisable: SheetBuiltBinding | null = null;
+
+  /**
+   * The engine order each sheet this grid left with `switchSheet()` (or a reload that bound another sheet) was in,
+   * by sheet id, while it was not physical on an axis, with the engine and the sheet's dimensions then. A later
+   * load of that sheet reads it back in physical order through the order and takes the order over
+   * (`#takeLeftSheetOrder()`), so the move plugins' arrays, re-applied on `afterLoadData`, land on the order the
+   * engine already holds. Cleared on enable, on disable and by `destroy()`.
+   */
+  #leftSheetOrders = new Map<number, {
+    engine: HyperFormulaEngine;
+    row: EngineOrder;
+    column: EngineOrder;
+    height: number;
+    width: number;
+  }>();
+
+  /**
    * The `formulas.sheetName` setting the binding last followed (see `#requestedSheetName()`), or
    * `undefined` before the first one.
    *
@@ -702,6 +974,23 @@ export class Formulas extends BasePlugin {
   #sheetWriteCount = 0;
 
   /**
+   * Counts the full sheet writes the engine refused (`#clearRejectedSheet`), and `#sheetWriteCountAtRefusal`
+   * holds `#sheetWriteCount` at the last one. A change set that waited for its validators across such a
+   * write, with no full write since, is not written when the Core applies it: the sheet the engine could
+   * not hold was emptied, and writing the set's cells would leave it holding just those.
+   *
+   * @type {number}
+   */
+  #refusedSheetWriteCount = 0;
+
+  /**
+   * The value `#sheetWriteCount` had at the last full sheet write the engine refused.
+   *
+   * @type {number}
+   */
+  #sheetWriteCountAtRefusal = 0;
+
+  /**
    * Counts the `loadData()` / `updateData()` calls the plugin did not make itself (`switchSheet()` loads
    * the grid from the sheet with its own source). A change set records it when it is written, and
    * `#onChangesDropped` puts the grid data back only while it has not moved: any other load replaced
@@ -713,38 +1002,48 @@ export class Formulas extends BasePlugin {
   #foreignLoadCount = 0;
 
   /**
-   * The `setDataAtCell()` / `setDataAtRowProp()` change sets written into the engine that the Core
-   * has not applied to the source data yet, keyed by the change array itself (the Core hands the
-   * same array to `afterSetDataAtCell` and to `beforeChangeRender`). Each one records the sheet write
-   * count and the sheet id at the moment it was written.
+   * The `setDataAtCell()` / `setDataAtRowProp()` change sets the Core has not applied to the source
+   * data yet, keyed by the change array itself (the Core hands the same array to `afterSetDataAtCell`
+   * and to `beforeChangeRender`). Each one records the sheet write count and the sheet id at the
+   * moment `afterSetDataAtCell` ran, and the changes it left to `beforeChangeRender`.
    *
-   * The plugin writes a change into the engine from `afterSetDataAtCell`, before validation, while
-   * the Core applies a validated change to the source data only after its validators resolve, in a
-   * microtask. A full sheet write in between - an `updateSettings()` in the same task - scans source
-   * data that does not hold the change yet and drops it from the engine; `#onBeforeChangeRender`
-   * writes it back. A sheet switch in between is a `loadData()`, so the Core drops the set instead of
-   * applying it, and `#onChangesDropped` takes the first write back. A `WeakMap`, so a change set that
-   * never reaches either holds nothing alive.
+   * The plugin writes a change the Core cannot reject into the engine from `afterSetDataAtCell`,
+   * while the Core applies a set with a validated change to the source data only after its validators
+   * resolve, in a microtask. A full sheet write in between - an `updateSettings()` in the same task -
+   * scans source data that does not hold the change yet and drops it from the engine;
+   * `#onBeforeChangeRender` writes it back. A sheet switch in between is a `loadData()`, so the Core
+   * drops the set instead of applying it, and `#onChangesDropped` takes the first write back. A
+   * `WeakMap`, so a change set that never reaches either holds nothing alive.
    *
    * @type {WeakMap<CellChange[], ChangeSetAwaitingApply>}
    */
   #changesAwaitingApply = new WeakMap<CellChange[], ChangeSetAwaitingApply>();
 
   /**
-   * The changes of a set that `afterSetDataAtCell` could not write because their row or column did not
-   * exist yet, keyed by the set's change array. `afterChange` reports that same array once the Core
-   * applied the set and created the rows, and `#onAfterChangeWriteOutOfBounds` writes them then. Keyed by
-   * the array, never taken by the next `afterChange` of any kind: a `loadData()` fires one with `null`, and
-   * the first cut wrote the changes of a set the load was about to drop into the loaded sheet. A dropped
-   * set's entry is deleted, and a `WeakMap` keeps a set that never applies (every change rejected) from
-   * holding anything alive.
+   * The values `beforeValidate` hands the validators of the change set `afterSetDataAtCell` just
+   * recorded, keyed by `#validationValueKey()`, one entry per change to the cell. The Core validates a set
+   * synchronously right after `afterSetDataAtCell`, so the entries are cleared in a microtask. See
+   * `#probeValidationValues()`.
    *
-   * @type {WeakMap<CellChange[], object>}
+   * @type {Map<string, ValidationValue[]>}
    */
-  #outOfBoundsWrites = new WeakMap<CellChange[], {
-    awaitingApply: ChangeSetAwaitingApply;
-    changes: [number, number, unknown][];
-  }>();
+  #validationValues = new Map<string, ValidationValue[]>();
+
+  /**
+   * `true` while `#validateDependentCellsUnrecorded()` runs: `validateDependentCells()` then validates each
+   * dependent with the grid's operation scope suppressed.
+   *
+   * @type {boolean}
+   */
+  #dependentValidationUnrecorded = false;
+
+  /**
+   * The answer records of the readers of deferred cells whose change the Core is validating, keyed by
+   * `#validationValueKey()`, oldest first (see `#trackReaderAnswer()`).
+   *
+   * @type {Map<string, ReaderAnswer[]>}
+   */
+  #readerAnswers = new Map<string, ReaderAnswer[]>();
 
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
@@ -852,6 +1151,56 @@ export class Formulas extends BasePlugin {
    * `restoreState()`.
    */
   #sourceHasStaleFormulas = false;
+
+  /**
+   * The bound sheet as `getSheetSerialized()` returned it at the end of the last load of it into the grid
+   * (`#loadSheet()`), or of the last write of this grid to the engine after it (`#trackOwnEngineWrite()`), or
+   * `null` before a load. A reload that finds the engine sheet still holding exactly this knows nothing but this
+   * grid changed it (`#canReloadInPlace()`). Kept up to date after writes only for a grid built from the sheet,
+   * the one that reloads on every settings update.
+   */
+  #loadedSheetContent: unknown[][] | null = null;
+
+  /**
+   * Set when a write of this grid finds the engine sheet changed since the snapshot (`#loadedSheetContent`): a host
+   * change, or another grid's, came before it, and the snapshot taken after the write would hide it. Cleared by
+   * the next load.
+   */
+  #foreignSheetChange = false;
+
+  /**
+   * How many writes of this grid to the engine are on the stack (`#trackOwnEngineWrite()`).
+   */
+  #trackedOwnWriteDepth = 0;
+
+  /**
+   * Whether the tracked write on the stack changes the sheet's structure or order, so the snapshot is read again
+   * in full when it ends, rather than cell by cell (`#trackOwnEngineWrite()`).
+   */
+  #trackedWriteIsStructural = false;
+
+  /**
+   * The engine addresses on the bound sheet the engine reported changed (`valuesUpdated`) during the tracked
+   * cell write on the stack, refreshed in the snapshot one by one when it ends.
+   */
+  #trackedChangedCells: Array<{ row: number; col: number }> = [];
+
+  /**
+   * The engine addresses on the bound sheet the tracked cell write on the stack set itself (`row,col`), as against
+   * the ones the engine only recalculated (`#refreshTrackedCells()`).
+   */
+  #trackedSetCells = new Set<string>();
+
+  /**
+   * Whether a write in the tracked write on the stack drops the snapshot when it ends (`'resets'`).
+   */
+  #trackedWriteResets = false;
+
+  /**
+   * The cells of the tracked cell writes made while a `batchEvaluation` hold kept the engine suspended, read into
+   * the snapshot once the engine resumes (`#holdTrackedCells()`), or `null` when no such write waits.
+   */
+  #heldSnapshotCells: HeldSnapshotCells | null = null;
 
   /**
    * The content the last full write from the source data (`#writeSheet()`) fed the engine sheet, escaped,
@@ -1005,6 +1354,20 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   #onEngineValuesUpdated = (changes: unknown[]) => {
+    // A validation probe on this engine, by any grid, takes its own write back before anything reads it
+    // (see `#probeValidationValues()`), so the round trip changes nothing a listener could act on.
+    if (isPluginEngineProbe(this.engine)) {
+      return;
+    }
+
+    if (this.#trackedOwnWriteDepth > 0) {
+      this.#collectTrackedChanges(changes);
+    }
+
+    if (this.#heldSnapshotCells !== null) {
+      this.#collectHeldSnapshotChanges(this.#heldSnapshotCells, changes);
+    }
+
     const exportedChanges = changes.map(change => this.#exportChangeValue(
       change as { address?: { sheet: number; row: number; col: number }; newValue: unknown }
     ));
@@ -1336,6 +1699,7 @@ export class Formulas extends BasePlugin {
     this.#ownSheetExists = null;
     this.#unquotedSheetNames.clear();
     this.#sheetsNotNamingOwnSheet.clear();
+    this.#leftSheetOrders.clear();
 
     if (!this.engine) {
       warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -1345,6 +1709,23 @@ export class Formulas extends BasePlugin {
     }
 
     let sheetPaintErrors: unknown[] = [];
+    // Set when this enable fills a new sheet from the grid's data; the sync endpoint is set up once the syncers exist.
+    let filledSheet = false;
+    // Set when this enable binds again the sheet a grid built from it was turned off on, or adds that sheet back from
+    // the content the engine held at the disable. The endpoint is set up once the syncers exist, taking over the
+    // order the engine holds the sheet in (`#setupSyncEndpointForSheetBuiltGrid()`).
+    let reboundSheetBuiltGrid = false;
+    // Set when this enable added that sheet back from the stored content, which is in the stored order.
+    let addedSheetBuiltContent = false;
+    // Set when the sheet bound again cannot take the stored binding over; it is loaded into the grid once the plugin
+    // is enabled (`#setupSyncEndpointForSheetBuiltGrid()`).
+    let loadsSheetBuiltGrid = false;
+    const sheetBuiltBinding = this.#sheetBuiltBindingAtDisable;
+
+    this.#sheetBuiltBindingAtDisable = null;
+    // Set when this enable binds a sheet the engine still holds and owes it a resync; the endpoint is set up once
+    // the syncers exist, without an order, which the resync's `#writeSheet()` sends.
+    let boundHeldSheet = false;
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName) && this.isDataLoadPending()) {
@@ -1352,22 +1733,41 @@ export class Formulas extends BasePlugin {
       this.sheetId = null;
 
     } else if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
-      const sourceDataArray = this.#getProcessedSourceDataArray();
+      // A grid built from an engine sheet gets the sheet back as the engine held it, in that engine order: the
+      // grid's source data holds the formula text of that order (`#sourceHasStaleFormulas`), so the sheet filled
+      // from it in physical order and then sorted read other cells (an engine class builds a new engine).
+      const sheetBuiltContent = this.#hotWasInitializedWithEmptyData && this.hot.view
+        ? this.#sheetBuiltContent(sheetBuiltBinding) : undefined;
+      let sourceDataArray = sheetBuiltContent;
 
-      this.#escapeSourceDataArray(sourceDataArray);
+      if (sourceDataArray === undefined) {
+        sourceDataArray = this.#getProcessedSourceDataArray();
+        this.#escapeSourceDataArray(sourceDataArray);
+      }
 
       const { addedSheetName, paintErrors } = this.#addSheet(this.sheetName, sourceDataArray);
 
       if (typeof addedSheetName === 'string') {
         this.#updateSheetNameAndSheetId(addedSheetName);
+        filledSheet = sheetBuiltContent === undefined;
+        reboundSheetBuiltGrid = sheetBuiltContent !== undefined;
+        addedSheetBuiltContent = reboundSheetBuiltGrid;
       }
 
       sheetPaintErrors = paintErrors;
+
+    } else if (this.sheetName !== null && this.hot.view && this.#hotWasInitializedWithEmptyData
+      && !this.isDataLoadPending()) {
+      // A grid built from an engine sheet reads the sheet as its data, so nothing is written to it: the engine
+      // holds it as the grid left it, in the order the grid had at the disable.
+      this.#updateSheetNameAndSheetId(this.sheetName);
+      reboundSheetBuiltGrid = true;
 
     } else if (this.sheetName !== null && this.hot.view && !this.#hotWasInitializedWithEmptyData
       && !this.isDataLoadPending()) {
       this.#updateSheetNameAndSheetId(this.sheetName);
       this.#sheetResyncPending = true;
+      boundHeldSheet = true;
     }
 
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
@@ -1389,12 +1789,12 @@ export class Formulas extends BasePlugin {
     this.addHook('modifyData', this.#onModifyData);
     this.addHook('modifySourceData', this.#onModifySourceData);
     this.addHook('beforeValidate', this.#onBeforeValidate);
+    this.addHook('afterValidate', this.#onAfterValidate);
 
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterSetDataAtCell', this.#onAfterSetDataAtCell);
     this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtCell);
     this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
-    this.addHook('afterChange', this.#onAfterChangeWriteOutOfBounds);
     this.hot._addDroppedChangesListener(this.#onChangesDropped);
 
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
@@ -1427,6 +1827,19 @@ export class Formulas extends BasePlugin {
 
     if (this.#engineOrderHolds > 0) {
       this.indexSyncer.setOrderHeld(true);
+    }
+
+    if (filledSheet) {
+      this.#setupSyncEndpointForFilledSheet();
+
+    } else if (reboundSheetBuiltGrid) {
+      loadsSheetBuiltGrid = !this.#setupSyncEndpointForSheetBuiltGrid(sheetBuiltBinding, addedSheetBuiltContent);
+
+    } else if (boundHeldSheet && this.sheetId !== null) {
+      // An order change before the resync drains (a sort or a move with rendering suspended, or right after a
+      // direct `enablePlugin()`) reaches this sheet instead of no engine. The resync rewrites the sheet from the
+      // source data and sends the grid's order then, so no order is sent here.
+      this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId, false);
     }
 
     this.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
@@ -1547,6 +1960,11 @@ export class Formulas extends BasePlugin {
 
     super.enablePlugin();
 
+    // Once the plugin is whole: the load runs this plugin's own `afterLoadData` and `modifyData` listeners.
+    if (loadsSheetBuiltGrid && this.sheetName !== null) {
+      this.#loadSheet(this.sheetName);
+    }
+
     if (sheetPaintErrors.length > 0) {
       throw sheetPaintErrors[0];
     }
@@ -1570,6 +1988,7 @@ export class Formulas extends BasePlugin {
     this.#notifyEngineDetach();
     this.#syncedContent = null;
     this.hot._removeDroppedChangesListener(this.#onChangesDropped);
+    this.#readerAnswers.clear();
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -1582,6 +2001,17 @@ export class Formulas extends BasePlugin {
     this.#sourceRowCountAtLastSync = null;
     this.#sheetIdAtLastSync = null;
     this.#sheetResyncPending = false;
+    // A grid built from an engine sheet leaves the sheet in the grid's order, which only these syncers know, and the
+    // snapshot its next reload compares against: the next enable takes both over, and the snapshot is the one copy
+    // of the sheet kept while the plugin is off (see `#sheetBuiltBindingAtDisable`). Read after
+    // `#notifyEngineDetach()`, whose listeners can still write the sheet.
+    this.#sheetBuiltBindingAtDisable = this.#hotWasInitializedWithEmptyData && this.engine && this.sheetId !== null
+      && this.#hasOwnSheet() ? this.#keepSheetBuiltBinding(this.engine, this.sheetId) : null;
+    this.#leftSheetOrders.clear();
+    // Any other grid's next load of a sheet starts the comparison over; a sheet-built grid's binding above holds the
+    // snapshot for its next enable.
+    this.#loadedSheetContent = null;
+    this.#foreignSheetChange = false;
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -1650,9 +2080,13 @@ export class Formulas extends BasePlugin {
     }
 
     const requestedSheetName = this.#requestedSheetName();
+    // A call that passes `data` to a grid bound to no sheet yet keeps that data, as construction does: core loaded
+    // it before the plugins updated, so the sheet the call names takes the grid's data (the unbound branch below).
+    // Loaded from the sheet here, it replaced the data of the call.
+    const keepsDataOfCall = this.sheetName === null && hasOwnProperty(newSettings, 'data') && !this.isDataLoadPending();
 
     if (
-      requestedSheetName !== undefined &&
+      requestedSheetName !== undefined && !keepsDataOfCall &&
       // Sheet ids are compared rather than names, because `sheetName` holds the engine's casing
       // while the setting keeps the one it was written with. An unknown name has no id, which
       // still differs from the current one and lets `switchSheet` report it.
@@ -1675,14 +2109,27 @@ export class Formulas extends BasePlugin {
       this.#followSheetNameSettingWhenBound();
     }
 
-    // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
-    // new sheet using the currently used data. Otherwise, it will be handled by the `afterLoadData` call.
-    if (!newSettings.data && !this.isDataLoadPending() && this.sheetName === null) {
+    // No sheet is connected to the instance -> create a new sheet using the currently used data. A load still to
+    // come in this call binds one itself (`afterLoadData`). A `data` passed in the same call does not: core loads
+    // it before the plugins update, so a plugin that this call enables never saw that load, and the grid showed
+    // its formulas as text.
+    if (!this.isDataLoadPending() && this.sheetName === null) {
       const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
-      if (sheetName && this.engine?.doesSheetExist(sheetName)) {
+      if (sheetName && this.engine?.doesSheetExist(sheetName) && !keepsDataOfCall) {
         this.#loadSheet(sheetName);
+
+      } else if (sheetName && this.engine?.doesSheetExist(sheetName)) {
+        const engine = this.engine;
+
+        // One write, as `#onAfterLoadData` binds and fills: the grids that read the sheet paint once the data is
+        // in. `#writeSheet()` sets the sync endpoint up and sends the grid's order.
+        this.#writeOwnSheet(engine, () => {
+          this.#updateSheetNameAndSheetId(sheetName);
+          this.#followSheetNameSettingWhenBound();
+          this.#loadSourceDataIntoSheet();
+        });
 
       } else {
         const sourceDataArray = this.#getProcessedSourceDataArray();
@@ -1693,6 +2140,7 @@ export class Formulas extends BasePlugin {
 
         if (typeof addedSheetName === 'string') {
           this.#updateSheetNameAndSheetId(addedSheetName);
+          this.#setupSyncEndpointForFilledSheet();
         }
 
         sheetPaintErrors = paintErrors;
@@ -1871,6 +2319,7 @@ export class Formulas extends BasePlugin {
     this.#notifyEngineDetach();
     this.#engineDetachListeners.clear();
     this.hot._removeDroppedChangesListener(this.#onChangesDropped);
+    this.#readerAnswers.clear();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
     // The core has torn the view, the data and the index mappers down by now, and the execution hooks are
@@ -1884,6 +2333,9 @@ export class Formulas extends BasePlugin {
 
     this.engine = null;
     this.#ownSheetExists = null;
+    this.#sheetBuiltBindingAtDisable = null;
+    this.#leftSheetOrders.clear();
+    this.#loadedSheetContent = null;
 
     super.destroy();
   }
@@ -1895,6 +2347,11 @@ export class Formulas extends BasePlugin {
    */
   #updateSheetNameAndSheetId(sheetName: string) {
     const sheetId = this.engine?.getSheetId(sheetName) ?? null;
+
+    // The snapshot describes the sheet bound until now; the next load of the new one takes its own.
+    if (sheetId !== this.sheetId) {
+      this.#loadedSheetContent = null;
+    }
 
     // Store the name the engine itself reports. The engine matches names without regard to case
     // but keeps the casing it was given, so the name passed here may differ from the engine's own.
@@ -1979,6 +2436,260 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Whether the `batchEvaluation` setting is on. Read when the execution is suspended, so a change applies
+   * from the next suspension without restarting the plugin.
+   *
+   * @returns {boolean}
+   */
+  #isBatchEvaluationEnabled(): boolean {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return isFormulasSettingsObject(pluginSettings) && pluginSettings.batchEvaluation === true;
+  }
+
+  /**
+   * `afterSuspendExecution` hook callback. With `batchEvaluation` on, the grid holds the engine's
+   * recalculation: the engine is suspended at the first engine write the plugin makes from now on, not here,
+   * so a suspension that writes only index maps (every render's autosizing, a filter, a hidden row) never
+   * touches the engine.
+   */
+  #onAfterSuspendExecution = () => {
+    if (this.engine && this.#isBatchEvaluationEnabled()) {
+      joinEvaluationHold(this.engine, this.hot);
+    }
+  };
+
+  /**
+   * `afterResumeExecution` hook callback. Releases the hold this grid has on the engine.
+   */
+  #onAfterResumeExecution = () => {
+    this.#releaseEvaluationHold();
+  };
+
+  /**
+   * Takes this grid out of the hold on its engine. When it was the last grid holding it, the held writes are
+   * recalculated, once, and their dependents are validated, once each. Both run in one plugin write scope, so
+   * the grids paint after the validation, and a paint that suspends a grid's execution again (its render's
+   * autosizing) starts a hold of its own. When the host holds the engine suspended itself, the hold ends and
+   * the dependents are validated when the host resumes it.
+   *
+   * @param {boolean} [leaving=false] `true` when the grid is being destroyed: its own cells are not validated,
+   *   and another grid on the engine validates the rest.
+   */
+  #releaseEvaluationHold(leaving = false) {
+    const engine = this.engine;
+
+    if (!engine) {
+      return;
+    }
+
+    const wasHolder = isEvaluationHolder(engine, this.hot);
+
+    if (!leaveEvaluationHold(engine, this.hot)) {
+      // Another grid on the engine is still suspended, so the hold goes on. This grid's execution is over,
+      // though: its writes take effect and its dependents are validated now, as without the setting. Left to
+      // the last grid's release, they would wait for a resume that may never come.
+      if (wasHolder && !leaving) {
+        this.#recalculateAndValidateHeldWrites(engine);
+      }
+
+      return;
+    }
+
+    this.#endEvaluationHold(engine, leaving ? this.sheetId : null);
+  }
+
+  /**
+   * Recalculates the writes held on the engine and validates their dependents, while the hold stays open for
+   * the grids still suspended. Both run in one plugin write scope, so the grids paint after the validation.
+   *
+   * @param {object} engine The engine.
+   */
+  #recalculateAndValidateHeldWrites(engine: HyperFormulaEngine) {
+    withPluginEngineWrite(engine, () => {
+      flushEvaluationHold(engine);
+
+      const recalculations = takeHeldRecalculations(engine);
+
+      if (recalculations.length > 0) {
+        this.#validateHeldDependents(engine, recalculations, null);
+      }
+    });
+  }
+
+  /**
+   * Releases the hold of the grids whose execution resumed without a release: an `afterResumeExecution`
+   * listener that runs before the plugin's threw (a global one runs before every grid's own). Called before
+   * each draw of any grid on the engine, so the later writes of the other grids are not held for them.
+   */
+  #releaseResumedHolders() {
+    const engine = this.engine;
+
+    if (engine && leaveResumedHolders(engine)) {
+      this.#endEvaluationHold(engine, null);
+    }
+  }
+
+  /**
+   * Recalculates the writes a hold no grid holds anymore and settles it (`#releaseEvaluationHold()`).
+   *
+   * @param {object} engine The engine.
+   * @param {number|null} leavingSheetId The sheet of a grid that is being destroyed, or `null`.
+   */
+  #endEvaluationHold(engine: HyperFormulaEngine, leavingSheetId: number | null) {
+    withPluginEngineWrite(engine, () => {
+      // Settled also when a listener of the recalculation throws, so the next hold starts empty.
+      try {
+        flushEvaluationHold(engine);
+      } finally {
+        settleEvaluationHold(engine, (recalculations: HeldRecalculation[]) => {
+          this.#validateHeldDependents(engine, recalculations, leavingSheetId);
+        });
+      }
+    });
+  }
+
+  /**
+   * Validates the dependents a hold's recalculations owe a validation (`collectHeldDependents()`). Each one is
+   * validated by the grid bound to its sheet, whichever grid ends the hold, because `validateDependentCells()`
+   * checks the addresses against the size of the grid it runs on. The cells of a destroyed grid's sheet are
+   * left out.
+   *
+   * @param {object} engine The engine.
+   * @param {Array} recalculations The recalculations of the hold.
+   * @param {number|null} leavingSheetId The sheet of a grid that is being destroyed, or `null`.
+   */
+  #validateHeldDependents(engine: HyperFormulaEngine, recalculations: HeldRecalculation[],
+                          leavingSheetId: number | null) {
+    const dependentsBySheet = new Map<number, unknown[]>();
+
+    collectHeldDependents(recalculations).forEach((change) => {
+      const sheet = isHFCellChange(change) ? change.address?.sheet : undefined;
+
+      if (sheet === undefined || sheet === leavingSheetId) {
+        return;
+      }
+
+      const dependents = dependentsBySheet.get(sheet);
+
+      if (dependents === undefined) {
+        dependentsBySheet.set(sheet, [change]);
+      } else {
+        dependents.push(change);
+      }
+    });
+
+    // Most holds end with nothing to validate (every render's autosizing), so the registry is not read for them.
+    if (dependentsBySheet.size === 0) {
+      return;
+    }
+
+    const boundGrids = getRegisteredHotInstances(engine);
+
+    dependentsBySheet.forEach((dependents, sheet) => {
+      const plugin = boundGrids.get(sheet)?.getPlugin('formulas');
+
+      if (plugin?.enabled && plugin.engine === engine) {
+        plugin.validateDependentCells(dependents);
+      }
+    });
+  }
+
+  /**
+   * Recalculates the writes held on the engine, so it can be read (see `flushEngineEvaluation()`).
+   */
+  #flushEvaluation() {
+    flushEvaluationHold(this.engine);
+  }
+
+  /**
+   * Validates the dependents of the writes held so far, before a structure change (an insert, a removal, a
+   * move, a load) moves the cells the engine named them by, as they were validated without a hold.
+   * The writes are recalculated first, without painting this grid: the change paints it.
+   *
+   * @param {boolean} [skipOwnSheet=false] `true` for a load: it replaces this grid's cells, and its data map is
+   *   already gone, so only the other sheets' dependents are validated, by the grids bound to them.
+   */
+  #validateHeldWritesNow(skipOwnSheet = false) {
+    const engine = this.engine;
+
+    if (!engine) {
+      return;
+    }
+
+    if (isEvaluationHeld(engine)) {
+      this.#writeOwnSheet(engine, () => flushEvaluationHold(engine));
+    }
+
+    const recalculations = takeHeldRecalculations(engine);
+
+    if (recalculations.length > 0) {
+      this.#validateHeldDependents(engine, recalculations, skipOwnSheet ? this.sheetId : null);
+    }
+  }
+
+  /**
+   * The callback of the structure change hooks that carry no source (the row and column moves, a sort). See
+   * `#validateHeldWritesNow()`.
+   */
+  #onBeforeStructureChange = () => {
+    this.#validateHeldWritesNow();
+  };
+
+  /**
+   * `beforeLoadData` and `beforeUpdateData` hook callback. See `#validateHeldWritesNow()`. The Core runs these
+   * hooks with the data map already gone, so a recalculation listener that throws is reported, not rethrown:
+   * the load must go on, or the grid is left with no data map.
+   */
+  #onBeforeLoadHeldData = () => {
+    try {
+      this.#validateHeldWritesNow(true);
+    } catch (e) {
+      warn(`Formulas: the recalculation before a data load failed: ${e instanceof Error ? e.message : e}`);
+    }
+  };
+
+  /**
+   * `#validateHeldWritesNow()` for a row or column insert or removal. The rows and columns `auto` adds or
+   * gives back (`minSpareRows` and the like) sit at the end, so they move no cell a held write named.
+   *
+   * @param {string} [source] The source of the change.
+   */
+  #validateHeldWritesBeforeAlter(source?: string) {
+    if (!isBlockedSource(source)) {
+      this.#validateHeldWritesNow();
+    }
+  }
+
+  /**
+   * Validates the dependents of a cell write, or, when the write was held, records the cells it set, so
+   * the release validates the dependents once, against the recalculated values.
+   *
+   * @param {Array} dependentCells The engine's change list of the write.
+   * @param {Array} changedCells The cells the write set (`{ address }`).
+   */
+  #validateWriteDependents(dependentCells: unknown[], changedCells: unknown[]) {
+    if (!recordHeldWrite(this.engine, changedCells)) {
+      this.validateDependentCells(dependentCells, changedCells);
+    }
+  }
+
+  /**
+   * Runs an undo or redo write that needs its change list right away. When the write was held, the engine
+   * is recalculated now and the recalculation is taken out of the hold: the restore validates its
+   * dependents itself, so a restored cell is not validated twice (DEV-2036).
+   *
+   * @param {object} engine The engine.
+   * @param {Function} write The write, returning the engine's change list.
+   * @returns {object} The dependents, and the cells the held writes before it set (to leave out of them).
+   */
+  #runRestoreWrite(engine: HyperFormulaEngine, write: () => unknown[]): HeldRecalculation {
+    const dependents = write();
+
+    return flushEvaluationHoldNow(engine) ?? { dependents, changed: [] };
+  }
+
+  /**
    * Adds the sheet to the engine and tells what the engine did, apart from what the grids that repaint did.
    * A repaint that throws once the sheet is in the engine does not make the registration fail: the caller
    * binds the sheet first and then reports the error, so the grid is never left unbound to a sheet that
@@ -2008,7 +2719,7 @@ export class Formulas extends BasePlugin {
     let registered: string | undefined;
 
     try {
-      withPluginEngineWrite(engine, () => {
+      withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(() => {
         const actualSheetName = engine.addSheet(sheetName ?? undefined);
 
         if (sheetData) {
@@ -2016,7 +2727,7 @@ export class Formulas extends BasePlugin {
         }
 
         registered = actualSheetName;
-      });
+      }));
     } catch (e) {
       if (registered === undefined) {
         warn(e instanceof Error ? e.message : String(e));
@@ -2081,26 +2792,879 @@ export class Formulas extends BasePlugin {
     // `#onAfterCellMetaReset` performs on the empty-data branch - can confirm the unescaping against
     // the grid's own source data, which a switch to a genuinely different sheet cannot.
     const isSameSheetReload = this.engine.getSheetId(sheetName) === this.sheetId;
+    // A reload of the sheet the order syncers are synced with keeps the grid's order (`#reloadKeepingOrder()`).
+    const keepsOrder = isSameSheetReload && this.#engineOrderHolds === 0
+      && this.indexSyncer!.getEngine() === this.engine && this.indexSyncer!.getSheetId() === this.sheetId;
+
+    if (!isSameSheetReload && this.#engineOrderHolds === 0) {
+      this.#rememberLeftSheetOrder();
+    }
 
     // The writes held before the switch are recalculated with the sheet they were made in still bound, and
     // their dependents validated while the grid still shows it (the load drops the data map first).
     this.#validateHeldWritesNow();
     this.#updateSheetNameAndSheetId(sheetName);
 
-    const unescaped = this.#unescapeEngineSheetArray(
-      this.#readableSheet(this.engine.getSheetSerialized(this.sheetId)), isSameSheetReload
-    );
+    const sheetContent = this.engine.getSheetSerialized(this.sheetId);
+    const previousContent = this.#loadedSheetContent;
+    const unescaped = this.#unescapeEngineSheetArray(this.#readableSheet(sheetContent), isSameSheetReload);
+    // The engine holds the sheet in its own order; a reload that keeps the grid's order reads it back in
+    // physical order.
+    // An engine sheet that still holds what this grid left in it cannot have lost a line the grid holds content in,
+    // so the plan reads no source row then.
+    const isSheetAsLeft = keepsOrder && this.#isSheetAsLeft(sheetContent, previousContent);
+    // A sheet this grid left in a non-physical engine order is read back in physical order through that order, as a
+    // reload that keeps the order is.
+    const revisit = !isSameSheetReload && this.#engineOrderHolds === 0 ? this.#takeLeftSheetOrder(unescaped) : null;
+    const reload = keepsOrder ? this.#planReload(unescaped, isSheetAsLeft) : revisit;
+    const physical = reload === null ? unescaped : this.#toPhysicalOrder(unescaped, reload);
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
-    const padded = padRowsToWidestRow(unescaped);
+    const padded = padRowsToWidestRow(physical);
     // A grid whose settings cap the column count below the padded width is left as it was: padding the
     // source rows past that count would make `#areSourceColumnsSkipped()` true, and the next resync would
     // write only the visible columns back into the sheet.
-    const serialized = this.#isColumnCountCappedBySettings(padded[0]?.length ?? 0) ? unescaped : padded;
+    const serialized = this.#isColumnCountCappedBySettings(padded[0]?.length ?? 0)
+      ? trimTrailingEmptyCells(physical) : padded;
+    const loadsData = serialized.length > 0;
 
-    if (serialized.length > 0) {
+    if (revisit !== null && loadsData) {
+      this.#recordLoadedSheet(sheetContent);
+      // The grid's order is the one the load's listeners apply: the move plugins re-apply their arrays onto the rows
+      // in physical order. The engine holds the order the grid left the sheet in, which is that order only when
+      // nothing moved the lines after the arrays; otherwise the hold's release sends the difference, as moves when
+      // the left order was reached by moves alone (a drag), as one order when a sort or a sequence set reached it.
+      this.#reloadKeepingOrder(serialized, revisit, false);
+
+      return;
+    }
+
+    if (reload !== null && loadsData) {
+      // Only a sheet nothing but this grid changed since the grid loaded it is reloaded in place. Any other change
+      // can have moved or replaced the records under the grid's physical indexes, so it takes `loadData()`, which
+      // drops the state keyed by them.
+      const inPlace = this.#canReloadInPlace(reload, isSheetAsLeft);
+
+      this.#recordLoadedSheet(sheetContent);
+
+      if (inPlace) {
+        this.#reloadInPlace(serialized);
+      } else {
+        this.#reloadKeepingOrder(serialized, reload);
+      }
+
+      return;
+    }
+
+    if (loadsData) {
+      this.#recordLoadedSheet(sheetContent);
+    }
+
+    // The order syncers are pointed at the bound sheet BEFORE the load: the load's `afterLoadData` re-applies
+    // a configured `manualRowMove`/`manualColumnMove`, and that move has to reach this sheet, not the one
+    // bound before (a grid built without `data` had no endpoint at all, so its first sort threw). The grid's
+    // order is not sent when a load follows: the load resets it, and the order it takes afterwards reaches
+    // the engine once, through the sequence and move hooks. Sending the order the grid held before the load
+    // as well reordered the sheet twice.
+    this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId, !loadsData);
+
+    if (loadsData) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
     }
+  }
+
+  /**
+   * Records the engine order of the bound sheet a load is about to leave (`#leftSheetOrders`), while the syncers
+   * are synced with it and the order is not physical; a physical order drops the record.
+   */
+  #rememberLeftSheetOrder(): void {
+    if (this.engine === null || this.sheetId === null || this.indexSyncer?.getEngine() !== this.engine
+      || this.indexSyncer.getSheetId() !== this.sheetId) {
+      return;
+    }
+
+    const order = this.exportEngineOrder();
+
+    if (order === null) {
+      this.#leftSheetOrders.delete(this.sheetId);
+
+      return;
+    }
+
+    const { height, width } = this.engine.getSheetDimensions(this.sheetId);
+
+    this.#leftSheetOrders.set(this.sheetId, {
+      engine: this.engine, row: order.rowOrder, column: order.columnOrder, height, width,
+    });
+  }
+
+  /**
+   * Takes the record of the bound sheet out of `#leftSheetOrders` and plans its load through it: each axis is read
+   * back in physical order through the recorded order, which the load then takes over. A record of another engine,
+   * or of a sheet whose dimensions changed since the grid left it (a host that inserted or removed lines), describes
+   * nothing the engine holds now, and the sheet is loaded as the engine holds it. A host move that keeps the
+   * dimensions is not told apart: the grid then shows that sheet's records in another order, grid and engine equal.
+   *
+   * Before DEV-3760 the sheet loaded in the engine's order, and the move plugins' arrays, re-applied on
+   * `afterLoadData`, moved it again on every visit (`manualRowMove: [2, 0, 1]` rotated the sheet per visit).
+   *
+   * @param {Array<Array<*>>} rows The sheet content, in engine order.
+   * @returns {object|null}
+   */
+  #takeLeftSheetOrder(rows: unknown[][]): { row: ReloadAxis; column: ReloadAxis } | null {
+    const record = this.sheetId === null ? undefined : this.#leftSheetOrders.get(this.sheetId);
+
+    if (record === undefined) {
+      return null;
+    }
+
+    this.#leftSheetOrders.delete(this.sheetId!);
+
+    const { height, width } = this.engine!.getSheetDimensions(this.sheetId!);
+
+    if (record.engine !== this.engine || record.height !== height || record.width !== width) {
+      return null;
+    }
+
+    const planAxis = (order: EngineOrder, engineLength: number): ReloadAxis => ({
+      order,
+      elements: listEngineElements(order.sequence, order.fillSequence, Math.max(engineLength, order.sequence.length)),
+      previousSequence: [],
+      stale: false,
+    });
+
+    return {
+      row: planAxis(record.row, rows.length),
+      column: planAxis(record.column, widestRowLength(rows)),
+    };
+  }
+
+  /**
+   * Points the order syncers at the bound sheet, which a live grid has just filled from its source data, and
+   * sends the grid's current order to it as every other load does (`AxisSyncer#init()`): an order no sort set goes
+   * as moves, so each reference stays on its record, and a sorted order goes as one order. The new syncers have no
+   * record of the order's history, so moves made under a sort go in that one order too. Every path that fills or binds
+   * a sheet on a live grid has to come through here or through `#loadSheet()`: an enable left without an
+   * endpoint sent no order to the engine at all, so a sort reordered the grid and left the formula results
+   * where they were.
+   */
+  #setupSyncEndpointForFilledSheet(): void {
+    if (this.engine === null || this.sheetId === null) {
+      return;
+    }
+
+    this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId);
+  }
+
+  /**
+   * Builds what `disablePlugin()` keeps of a grid built from an engine sheet (`#sheetBuiltBindingAtDisable`). With an
+   * order stored, the live sheet is read once: a sheet that equals the snapshot is kept as the snapshot alone (one
+   * copy), and the enable rebuilds the content from it; any other sheet (a host change made after the grid's last
+   * write, a value change or a move that changes no value, which no comparison has found yet) is kept as the order's
+   * content, the snapshot is dropped so only that one copy is kept, and the change is marked foreign, so the next reload
+   * of the same sheet takes `loadData()` (a missing snapshot forces it). Rebuilt from
+   * the snapshot instead, the host change was lost when the enable added the sheet back. With no order (both axes
+   * physical) nothing is read: the enable fills an added-back sheet from the source data, and a sheet the engine
+   * still holds is compared against the snapshot by the next write or reload.
+   *
+   * @param {object} engine The engine.
+   * @param {number} sheetId The bound sheet.
+   * @returns {object}
+   */
+  #keepSheetBuiltBinding(engine: HyperFormulaEngine, sheetId: number): SheetBuiltBinding {
+    let snapshot = this.#loadedSheetContent;
+    let foreignSheetChange = this.#foreignSheetChange;
+    let order = this.exportEngineOrder();
+
+    if (order !== null) {
+      flushEvaluationHold(engine);
+
+      const live = engine.getSheetSerialized(sheetId);
+      const snapshotHoldsSheet = snapshot !== null && !foreignSheetChange && areSheetContentsEqual(live, snapshot);
+
+      if (!snapshotHoldsSheet) {
+        order = { ...order, content: this.#readableSheet(live) };
+        foreignSheetChange = snapshot !== null;
+        // The order carries the content now, so only one copy is kept; a missing snapshot forces a full reload.
+        snapshot = null;
+      }
+    }
+
+    return {
+      engine,
+      sheetId,
+      rowCount: this.hot.rowIndexMapper.getNumberOfIndexes(),
+      columnCount: this.hot.columnIndexMapper.getNumberOfIndexes(),
+      order,
+      snapshot,
+      foreignSheetChange,
+    };
+  }
+
+  /**
+   * Returns the content a re-enable adds back the sheet of a grid built from an engine sheet with, in the stored
+   * engine order (`#sheetBuiltBindingAtDisable`), or `undefined` when no order was stored (the source data then
+   * fills the sheet in physical order). The order carries the content when the disable found no snapshot holding the
+   * sheet; otherwise it is rebuilt from the snapshot, which the disable found equal to the live sheet
+   * (`#keepSheetBuiltBinding()`, `getSheetSerialized()` form).
+   *
+   * @param {object|null} binding What the disable kept.
+   * @returns {Array<Array<*>>|undefined}
+   */
+  #sheetBuiltContent(binding: SheetBuiltBinding | null): unknown[][] | undefined {
+    if (binding === null || binding.order === null) {
+      return undefined;
+    }
+
+    if (binding.order.content !== undefined) {
+      return binding.order.content;
+    }
+
+    return binding.snapshot === null ? undefined : this.#readableSheet(binding.snapshot);
+  }
+
+  /**
+   * Binds again the sheet of a grid built from an engine sheet on a re-enable, as the grid left it at the disable
+   * (`#sheetBuiltBindingAtDisable`): the engine holds it in the grid's order of then, or the enable has just added it
+   * back from the content the engine held then (an engine class builds a new engine). The new syncers take that
+   * order over, so the engine follows the grid's current order from it: a sort or a move made while the plugin was
+   * off reaches the engine as one order, and a grid that kept its order sends nothing. With no stored order (the
+   * engine held the physical order on both axes) the setup sends the grid's order as
+   * `#setupSyncEndpointForFilledSheet()` does: as moves unless a sort set it. The reload snapshot is put back too
+   * (taken anew for a sheet added back), so the next settings update reloads in place and keeps the sort state and the
+   * cell meta; a change someone else made to the sheet while the plugin was off is told by the next write or reload,
+   * as on a grid never turned off.
+   *
+   * The binding is not taken over when it describes no sheet the engine holds now: another engine sheet (another
+   * engine instance holding a sheet of the same name), or a grid whose row or column count changed while the plugin
+   * was off (the engine never got the insert or the removal). The caller then loads the engine sheet into the grid
+   * (`#loadSheet()`), as switching to it would: the grid shows what the engine holds, in the engine's order, and the
+   * change made while off is dropped. Mapped through the stored order or the identity, the grid showed the results of
+   * other records, or a formula's text.
+   *
+   * Before DEV-3760 no path set the endpoint up here: a sorted grid's next sort reordered the grid and left the
+   * engine's rows where they were, so the formula column showed the wrong records' results.
+   *
+   * @param {object|null} binding What the disable kept.
+   * @param {boolean} addedFromContent Whether the enable has just added the sheet from the stored content
+   *   (`#sheetBuiltContent()`).
+   * @returns {boolean} `false` when the caller has to load the sheet into the grid instead.
+   */
+  #setupSyncEndpointForSheetBuiltGrid(
+    binding: SheetBuiltBinding | null,
+    addedFromContent: boolean,
+  ): boolean {
+    if (this.engine === null || this.sheetId === null) {
+      return true;
+    }
+
+    const countsKept = binding !== null
+      && binding.rowCount === this.hot.rowIndexMapper.getNumberOfIndexes()
+      && binding.columnCount === this.hot.columnIndexMapper.getNumberOfIndexes();
+    const sameSheet = binding !== null && binding.engine === this.engine && binding.sheetId === this.sheetId;
+
+    // A foreign change found by the disable (or before it) means the stored order may not describe the content the
+    // enable added back (a host move), so that sheet is loaded as it is.
+    if (binding === null || !countsKept || (addedFromContent ? binding.foreignSheetChange : !sameSheet)) {
+      return false;
+    }
+
+    if (addedFromContent) {
+      // The enable wrote the sheet itself, so it holds exactly what the grid left.
+      this.#flushEvaluation();
+      this.#recordLoadedSheet(this.engine.getSheetSerialized(this.sheetId));
+    } else {
+      this.#loadedSheetContent = binding.snapshot;
+      this.#foreignSheetChange = binding.foreignSheetChange;
+    }
+
+    const { order } = binding;
+
+    this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId, order === null);
+
+    if (order !== null) {
+      this.rowAxisSyncer!.adoptEngineOrder(order.rowOrder);
+      this.columnAxisSyncer!.adoptEngineOrder(order.columnOrder);
+    }
+
+    return true;
+  }
+
+  /**
+   * Records what a load of the bound sheet read, for the next reload to compare against.
+   *
+   * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returned it.
+   */
+  #recordLoadedSheet(sheetContent: unknown[][]): void {
+    this.#foreignSheetChange = false;
+
+    // Only a grid built from the sheet keeps the snapshot in step with its own writes (`#trackOwnEngineWrite()`). A
+    // grid built with `data` that switched sheets held a full copy that went stale with its first edit, after which
+    // every `switchSheet()` to that sheet compared against it only to take `loadData()`; it takes it at once now.
+    if (!this.#hotWasInitializedWithEmptyData) {
+      this.#loadedSheetContent = null;
+
+      return;
+    }
+
+    // A copy: the rows the grid loads can be the very arrays the engine returned, and the grid writes into them.
+    this.#loadedSheetContent = sheetContent.map(row => row.slice());
+  }
+
+  /**
+   * Tells whether the engine sheet holds exactly what this grid left in it: the snapshot of the last load or of
+   * this grid's last write after it (`#loadedSheetContent`), with no change of someone else's found in between
+   * (`#foreignSheetChange`).
+   *
+   * @param {Array<Array<*>>} sheetContent The sheet as `getSheetSerialized()` returns it now.
+   * @param {Array<Array<*>>|null} previousContent The snapshot, or `null` before a load.
+   * @returns {boolean}
+   */
+  #isSheetAsLeft(sheetContent: unknown[][], previousContent: unknown[][] | null): boolean {
+    return previousContent !== null && !this.#foreignSheetChange
+      && areSheetContentsEqual(sheetContent, previousContent);
+  }
+
+  /**
+   * Tells whether a reload of the sheet the syncers are synced with can keep the grid's state (`#reloadInPlace()`):
+   * nothing but this grid changed the engine sheet since the grid last loaded it. The engine reports no event for
+   * a host's `addRows()`, `removeRows()` or `moveRows()` that changes no value, so the content is compared, exactly
+   * (`areSheetContentsEqual()`: formula text, a number against its text, an empty cell), against the snapshot
+   * this grid keeps of the sheet after its load and after each of its own writes (`#trackOwnEngineWrite()`).
+   * Every write of this grid runs in such a scope, so any difference is a change of someone else's: the host, or
+   * another grid on the sheet. An axis whose record no longer describes the sheet (`stale`) never reloads in place.
+   *
+   * @param {object} reload The plan of both axes (`#planReload()`).
+   * @param {boolean} isSheetAsLeft What `#isSheetAsLeft()` answered for the sheet the reload read.
+   * @returns {boolean}
+   */
+  #canReloadInPlace(reload: { row: ReloadAxis; column: ReloadAxis }, isSheetAsLeft: boolean): boolean {
+    return !reload.row.stale && !reload.column.stale && isSheetAsLeft;
+  }
+
+  /**
+   * Runs a write of this grid to the engine and keeps the snapshot of the bound sheet (`#loadedSheetContent`) in
+   * step with it, for a grid built from the sheet. Three kinds, so a write costs no more than it did before the
+   * snapshot existed, except an order or a move:
+   *
+   * - **`'cells'`** (an edit, a paste, a validator's correction, the early write, the write on apply, a restore of
+   *   written cells): each cell of the bound sheet the engine reports changed while it runs (`valuesUpdated`) is
+   *   read again into the snapshot when it ends (`#refreshTrackedCells()`): a cell it set itself as the engine
+   *   holds it, a recalculated one only while neither side is a formula (spilled values). A host change made before
+   *   it stays visible: the cells it touched are not read again, unless this write set them too, and then the
+   *   snapshot holds what the engine and the grid both hold.
+   * - **`'structural'`** (the default: an order or a move from the axis syncer, MoveCells, an undo or redo restore
+   *   of the sheet, a NestedRows detach, the sheets bar's writes): the snapshot is read again in full when it ends.
+   *   Read in full, it would take in a host change made before the write, so the write first compares the sheet
+   *   with the snapshot, and a difference sets `#foreignSheetChange` until the next load.
+   * - **`'resets'`** (an insert or a removal of rows or columns): the snapshot is dropped, so the next reload loads
+   *   the sheet with `loadData()`, as every reload did before this path existed, and takes a new one. Nothing is
+   *   read, so the insert or removal costs what it did.
+   *
+   * Nested writes join the outermost one (`#joinTrackedWrite()`). A write that throws counts as a foreign change. A
+   * validation probe takes its own write back before it ends, so it is not tracked.
+   *
+   * While a `batchEvaluation` hold keeps the engine suspended, the engine refuses the reads the snapshot takes. A
+   * `'cells'` write made then keeps the snapshot and reads its cells once the engine resumes
+   * (`#holdTrackedCells()`). Any other write made then drops the snapshot, as an insert does.
+   *
+   * @param {Function} fn The write.
+   * @param {string} [kind] How the write keeps the snapshot in step.
+   * @returns {*} What `fn` returns.
+   */
+  #trackOwnEngineWrite<T>(fn: () => T, kind: OwnEngineWriteKind = 'structural'): T {
+    if (this.#trackedOwnWriteDepth > 0) {
+      this.#joinTrackedWrite(kind);
+
+      return fn();
+    }
+
+    const sheetId = this.sheetId;
+
+    if (!this.#hotWasInitializedWithEmptyData || this.#loadedSheetContent === null || sheetId === null
+      || !this.engine || isPluginEngineProbe(this.engine) || !this.#hasOwnSheet()) {
+      return fn();
+    }
+
+    const engine = this.engine;
+
+    // A suspended engine (a `batchEvaluation` hold) refuses the reads the snapshot takes, so a write made then
+    // drops it, as an insert does, unless it is a cell write, whose cells are read once the engine resumes.
+    this.#trackedWriteIsStructural = kind === 'structural';
+    this.#trackedWriteResets = kind === 'resets' || (kind !== 'cells' && engine.isEvaluationSuspended());
+    this.#trackedChangedCells = [];
+    this.#trackedSetCells.clear();
+
+    if (this.#trackedWriteIsStructural && !this.#trackedWriteResets) {
+      this.#checkSheetAsLeft();
+    }
+
+    this.#trackedOwnWriteDepth += 1;
+
+    let result: T;
+
+    try {
+      result = fn();
+    } catch (e) {
+      this.#foreignSheetChange = true;
+
+      throw e;
+    } finally {
+      this.#trackedOwnWriteDepth -= 1;
+    }
+
+    if (this.#trackedWriteResets || this.engine !== engine || this.sheetId !== sheetId || !this.#hasOwnSheet()) {
+      this.#loadedSheetContent = null;
+    } else if (engine.isEvaluationSuspended()) {
+      if (this.#trackedWriteIsStructural || !this.#holdTrackedCells(engine, sheetId)) {
+        this.#loadedSheetContent = null;
+      }
+    } else if (this.#trackedWriteIsStructural) {
+      this.#loadedSheetContent = engine.getSheetSerialized(sheetId);
+    } else {
+      this.#refreshTrackedCells();
+    }
+
+    this.#trackedChangedCells = [];
+    this.#trackedSetCells.clear();
+
+    return result;
+  }
+
+  /**
+   * Joins a write nested in the tracked write on the stack. A write that drops the snapshot makes the whole write
+   * drop it. A structural write nested in a cell write turns the whole write structural: the cells collected so far
+   * are refreshed first, then the sheet is checked (`#checkSheetAsLeft()`), as the outermost write would have.
+   *
+   * @param {string} kind The nested write's kind.
+   */
+  #joinTrackedWrite(kind: OwnEngineWriteKind): void {
+    if (kind === 'resets' || (kind !== 'cells' && this.engine?.isEvaluationSuspended())) {
+      this.#trackedWriteResets = true;
+    } else if (kind === 'structural' && !this.#trackedWriteIsStructural && !this.#trackedWriteResets) {
+      this.#refreshTrackedCells();
+      this.#checkSheetAsLeft();
+      this.#trackedWriteIsStructural = true;
+    }
+  }
+
+  /**
+   * Notes an engine cell of the bound sheet a tracked cell write sets itself (`#refreshTrackedCells()`).
+   *
+   * @param {object} address The engine address.
+   */
+  #noteOwnCellWrite(address: { sheet: number | null; row: number; col: number }): void {
+    if (this.#trackedOwnWriteDepth > 0 && address.sheet === this.sheetId) {
+      this.#trackedSetCells.add(`${address.row},${address.col}`);
+    }
+  }
+
+  /**
+   * Sets `#foreignSheetChange` when the engine sheet no longer holds the snapshot (`#loadedSheetContent`).
+   */
+  #checkSheetAsLeft(): void {
+    if (!this.#foreignSheetChange && this.#loadedSheetContent !== null
+      && !areSheetContentsEqual(this.engine!.getSheetSerialized(this.sheetId!), this.#loadedSheetContent)) {
+      this.#foreignSheetChange = true;
+    }
+  }
+
+  /**
+   * Keeps the engine addresses on the bound sheet from a `valuesUpdated` change list, for the tracked write on the
+   * stack.
+   *
+   * @param {Array} changes The engine's change list.
+   */
+  #collectTrackedChanges(changes: unknown[]): void {
+    changes.forEach((change) => {
+      const address = (change as { address?: { sheet: number; row: number; col: number } }).address;
+
+      if (address && address.sheet === this.sheetId) {
+        this.#trackedChangedCells.push({ row: address.row, col: address.col });
+      }
+    });
+  }
+
+  /**
+   * Reads the cells the tracked write changed into the snapshot (`setSheetSnapshotCell()`). A cell the write set
+   * itself takes whatever the engine holds. A cell the engine only recalculated changes its value, never its
+   * content, except a spilled value, which the engine serializes as plain data: so a recalculated cell takes the
+   * engine's content only when neither side is a formula. A formula there that differs from the snapshot, or a
+   * formula where the snapshot holds none, is a change of someone else's (a host's row move of formulas that read
+   * the edited cell), and `#foreignSheetChange` is set instead of taking it in.
+   */
+  #refreshTrackedCells(): void {
+    this.#refreshSnapshotCells(this.#trackedChangedCells, this.#trackedSetCells);
+    this.#trackedChangedCells = [];
+  }
+
+  /**
+   * Reads cells into the snapshot, by the rule of `#refreshTrackedCells()`.
+   *
+   * @param {Array} changedCells The engine addresses on the bound sheet to read.
+   * @param {Set<string>} setCells The ones a write of this grid set itself (`row,col`).
+   */
+  #refreshSnapshotCells(changedCells: Array<{ row: number; col: number }>, setCells: Set<string>): void {
+    const snapshot = this.#loadedSheetContent;
+
+    if (snapshot === null) {
+      return;
+    }
+
+    changedCells.forEach(({ row, col }) => {
+      const content: unknown = this.engine!.getCellSerialized({ sheet: this.sheetId!, row, col });
+
+      if (!setCells.has(`${row},${col}`)) {
+        const previous = snapshot[row]?.[col];
+
+        if ((isFormula(previous) || isFormula(content)) && previous !== content) {
+          this.#foreignSheetChange = true;
+
+          return;
+        }
+      }
+
+      setSheetSnapshotCell(snapshot, row, col, content);
+    });
+  }
+
+  /**
+   * Keeps the cells of the tracked cell write that just ended while a `batchEvaluation` hold kept the engine
+   * suspended, to read them into the snapshot once the engine resumes (`#refreshHeldSnapshotCells()`), together
+   * with the cells that resume recalculates. Reading them now would recalculate once per write. Every held write
+   * up to that resume shares one record and one deferred read.
+   *
+   * @param {object} engine The engine the write went to.
+   * @param {number} sheetId The bound sheet.
+   * @returns {boolean} `false` when the plugin does not own the suspension (a host's `suspendEvaluation()`), so
+   *   nothing tells when the engine can be read, and the caller drops the snapshot.
+   */
+  #holdTrackedCells(engine: HyperFormulaEngine, sheetId: number): boolean {
+    const snapshot = this.#loadedSheetContent!;
+    let held = this.#heldSnapshotCells;
+
+    if (held === null || held.engine !== engine || held.sheetId !== sheetId || held.snapshot !== snapshot) {
+      const record: HeldSnapshotCells = {
+        engine, sheetId, snapshot, setCells: new Set(), changedCells: [],
+      };
+
+      if (!runAfterEvaluationFlush(engine, () => this.#refreshHeldSnapshotCells(record))) {
+        return false;
+      }
+
+      this.#heldSnapshotCells = record;
+      held = record;
+    }
+
+    const record = held;
+
+    this.#trackedSetCells.forEach(key => record.setCells.add(key));
+    this.#trackedChangedCells.forEach(cell => record.changedCells.push(cell));
+
+    return true;
+  }
+
+  /**
+   * Keeps the engine addresses on the bound sheet from the `valuesUpdated` change list of the resume that ends
+   * held cell writes (`#holdTrackedCells()`).
+   *
+   * @param {object} held The record of the held writes.
+   * @param {Array} changes The engine's change list.
+   */
+  #collectHeldSnapshotChanges(held: HeldSnapshotCells, changes: unknown[]): void {
+    changes.forEach((change) => {
+      const address = (change as { address?: { sheet: number; row: number; col: number } }).address;
+
+      if (address && address.sheet === held.sheetId) {
+        held.changedCells.push({ row: address.row, col: address.col });
+      }
+    });
+  }
+
+  /**
+   * Reads the cells of held cell writes into the snapshot, now that the engine resumed: every cell the writes
+   * set, and the cells the resume recalculated, by the rule of `#refreshTrackedCells()`. Nothing is read when the
+   * snapshot the writes were made against is gone: a later write of the hold dropped it, or the grid left the
+   * sheet or the engine.
+   *
+   * @param {object} held The record of the held writes.
+   */
+  #refreshHeldSnapshotCells(held: HeldSnapshotCells): void {
+    if (this.#heldSnapshotCells === held) {
+      this.#heldSnapshotCells = null;
+    }
+
+    if (this.#loadedSheetContent !== held.snapshot || this.engine !== held.engine
+      || this.sheetId !== held.sheetId || !this.#hasOwnSheet()) {
+      return;
+    }
+
+    const cells = new Map<string, { row: number; col: number }>();
+
+    held.changedCells.forEach(cell => cells.set(`${cell.row},${cell.col}`, cell));
+    held.setCells.forEach((key) => {
+      const [row, col] = key.split(',').map(Number) as [number, number];
+
+      cells.set(key, { row, col });
+    });
+
+    this.#refreshSnapshotCells(Array.from(cells.values()), held.setCells);
+  }
+
+  /**
+   * Reloads the sheet the order syncers are synced with through `updateData()`, which keeps the grid's state:
+   * the index maps (row and column order, a sort, moves, hidden lines, manual sizes; `fitToLength()` drops only
+   * blank lines past the sheet, since a sheet anything but this grid changed takes `#reloadKeepingOrder()`),
+   * the sort plugins' state, the cell meta, and every change still waiting for
+   * its validator, which the Core then writes at its coordinates of the reloaded rows. The rows come in physical
+   * order (`#toPhysicalOrder()`, done by the caller) and the grid keeps its order, so the syncers' engine order
+   * still describes the engine sheet and nothing is sent to the engine. ManualRowMove and ManualColumnMove
+   * re-apply their arrays on `afterLoadData` only, so they do not move the rows again. A `loadData()` here
+   * dropped a waiting edit and reset the sort state while the order put back kept the rows sorted.
+   *
+   * The engine's formula text is in the engine's order, so with the order not physical the loaded source data
+   * holds text the engine would write differently in physical order: `#sourceHasStaleFormulas` records it.
+   *
+   * @param {Array<Array<*>>} data The sheet content, in physical order.
+   */
+  #reloadInPlace(data: unknown[][]): void {
+    this.hot.updateData(data, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+
+    // A listener can have destroyed the grid or turned the plugin off during the update.
+    if (!this.enabled || this.hot.isDestroyed) {
+      return;
+    }
+
+    if (!this.rowAxisSyncer!.isEngineOrderPhysical() || !this.columnAxisSyncer!.isEngineOrderPhysical()) {
+      this.#sourceHasStaleFormulas = this.#sourceHasStaleFormulas || this.#engineHoldsFormula();
+    }
+  }
+
+  /**
+   * Reloads the sheet the order syncers are synced with, keeping the grid's row and column order, when anything
+   * but this grid changed the engine sheet since the grid loaded it (`#canReloadInPlace()`), or the recorded order
+   * of an axis no longer describes it (`#planReloadAxis()`): the load drops the state keyed by physical indexes,
+   * which may no longer name the same records. A grid
+   * built from an engine sheet without `data` reloads it on every `updateSettings()`. The engine holds the
+   * sheet in the grid's order, and the load resets the grid's order, after which ManualRowMove and
+   * ManualColumnMove re-apply their arrays in `afterLoadData`. Read as the engine holds it and taken as
+   * physical, the re-applied move moved the rows once more per reload, and was sent to the engine again. So
+   * the sheet is read back in physical order (`#toPhysicalOrder()`, done by the caller), which keeps the
+   * physical indexes and with them the syncers' engine order valid, and the load runs with the order held:
+   * the plugin's own `afterLoadData` takes the engine order over (`#reloadEngineOrder`), the re-applied moves
+   * are not sent, and the grid's order is put back to the one it had before the load. The release finds the
+   * engine holding that order and sends nothing. So a user's drag survives the reload too, as it does on a
+   * grid built with `data`, where `updateSettings()` loads nothing.
+   *
+   * The engine's formula text is in the engine's order, so with the order not physical the loaded source data
+   * holds text the engine would write differently in physical order: `#sourceHasStaleFormulas` records it.
+   *
+   * An axis whose recorded order no longer describes the engine sheet (`#planReloadAxis()`) is read as the
+   * engine holds it instead, and the grid shows it in that order.
+   *
+   * A switch back to a sheet the grid left (`#takeLeftSheetOrder()`) loads it the same way, but keeps the order the
+   * load's listeners applied (`putBackOrder` `false`): the grid's order before the load belongs to the sheet it left.
+   * That order can differ from the one the engine kept (a drag on the visit before), and the release sends the
+   * difference: as moves when the kept order was reached by moves alone (`releaseAdoptedOrderAsMoves()`), otherwise
+   * as one order.
+   *
+   * @param {Array<Array<*>>} data The sheet content, in physical order.
+   * @param {object} reload The plan of both axes (`#planReload()`).
+   * @param {boolean} [putBackOrder=true] Whether to put the grid's order before the load back.
+   */
+  #reloadKeepingOrder(
+    data: unknown[][], reload: { row: ReloadAxis; column: ReloadAxis }, putBackOrder: boolean = true,
+  ): void {
+    this.runWithEngineOrderHeld(() => {
+      this.indexSyncer!.setupSyncEndpoint(this.engine, this.sheetId, false);
+      this.#reloadEngineOrder = { row: reload.row.order, column: reload.column.order };
+
+      try {
+        this.hot.loadData(data, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+      } finally {
+        this.#reloadEngineOrder = null;
+      }
+
+      // A listener can have destroyed the grid or turned the plugin off during the load.
+      if (!this.enabled || this.hot.isDestroyed) {
+        return;
+      }
+
+      // The order the load's listeners applied is dropped: the rows already stood in the grid's order. A
+      // line the sheet gained since takes its place as the engine reads it (`listEngineElements()`); an axis
+      // read as the engine holds it is shown in that order (the identity).
+      const putBack = (mapper: IndexMapper, previousSequence: number[]) => {
+        const sequence = listEngineElements(previousSequence, null, mapper.getNumberOfIndexes());
+        const current = mapper.getIndexesSequence();
+
+        if (sequence.some((physicalIndex, position) => physicalIndex !== current[position])) {
+          mapper.setIndexesSequence(sequence);
+        }
+      };
+
+      if (putBackOrder) {
+        putBack(this.hot.rowIndexMapper, reload.row.previousSequence);
+        putBack(this.hot.columnIndexMapper, reload.column.previousSequence);
+      } else {
+        // The engine kept the sheet in the order the grid left it in, reached by moves when no sort or sequence set
+        // reached it; the arrays applied again reach the grid's order from it by moves too, so the release sends
+        // them as moves (one order would shift the references across the moved lines).
+        this.rowAxisSyncer!.releaseAdoptedOrderAsMoves();
+        this.columnAxisSyncer!.releaseAdoptedOrderAsMoves();
+      }
+
+      if (!this.rowAxisSyncer!.isEngineOrderPhysical() || !this.columnAxisSyncer!.isEngineOrderPhysical()) {
+        this.#sourceHasStaleFormulas = this.#sourceHasStaleFormulas || this.#engineHoldsFormula();
+      }
+    });
+  }
+
+  /**
+   * Tells whether the engine holds a formula in the bound sheet.
+   *
+   * @returns {boolean}
+   */
+  #engineHoldsFormula(): boolean {
+    return this.engine!.getSheetFormulas(this.sheetId!).some(row => row.some(isDefined));
+  }
+
+  /**
+   * Plans a reload that keeps the grid's order (`#reloadKeepingOrder()`), per axis (`#planReloadAxis()`). It
+   * runs before the sync endpoint is set up again, while the syncers still hold the recorded engine order. The
+   * grid's source rows are read once, and only when an axis needs them.
+   *
+   * @param {Array<Array<*>>} rows The sheet content, in engine order.
+   * @returns {object}
+   */
+  #planReload(rows: unknown[][], isSheetAsLeft: boolean): { row: ReloadAxis; column: ReloadAxis } {
+    // Read only when an axis asks: that takes an axis out of physical order with lines the engine left out, and a
+    // sheet someone else changed, so a reload of a sheet only this grid changed (every React or Vue re-render of
+    // one) reads nothing.
+    let sourceRows: unknown[][] | null = null;
+    const readSourceRows = () => {
+      sourceRows ??= this.#readOwnSourceRows();
+
+      return sourceRows;
+    };
+    const hasContent = (value: unknown) => value !== null && value !== undefined && value !== '';
+
+    return {
+      row: this.#planReloadAxis(
+        this.rowAxisSyncer!, this.hot.rowIndexMapper, rows.length,
+        physicalRow => !isSheetAsLeft && this.#readOwnSourceRow(physicalRow).some(hasContent),
+      ),
+      column: this.#planReloadAxis(
+        this.columnAxisSyncer!, this.hot.columnIndexMapper, widestRowLength(rows),
+        physicalColumn => !isSheetAsLeft && readSourceRows().some(row => hasContent(row?.[physicalColumn])),
+      ),
+    };
+  }
+
+  /**
+   * Plans how a reload that keeps the grid's order reads one axis of the sheet back. An axis the engine holds
+   * in physical order is read as it is. An axis it holds in another order is read back in physical order
+   * through the recorded order (`elements`), and covers the whole axis: the engine leaves out its trailing
+   * lines that hold nothing, and a blank line the order put last is one of them. The engine sheet can have
+   * changed since the record, though: a host that removed lines or replaced the sheet with a smaller one
+   * through the engine API. That shows as a line the engine left out while the grid holds content in it, so
+   * then the record no longer describes the sheet, and the axis is read as the engine holds it and taken as
+   * physical (`elements` `null`, the order physical, the grid shown in that order), the way a grid without a
+   * move reads it. Lines the engine gained are read through the record too (`listEngineElements()` names
+   * them after the recorded ones), so the grid shows them where the engine has them.
+   *
+   * @param {AxisSyncer} syncer The axis syncer.
+   * @param {IndexMapper} indexMapper The axis' index mapper.
+   * @param {number} engineLength How many lines of the axis the engine wrote out.
+   * @param {Function} hasContent Tells whether the grid holds content in a line, by its physical index.
+   * @returns {object}
+   */
+  #planReloadAxis(
+    syncer: AxisSyncer,
+    indexMapper: IndexMapper,
+    engineLength: number,
+    hasContent: (physicalIndex: number) => boolean,
+  ): ReloadAxis {
+    const order = syncer.getEngineOrder();
+    const previousSequence = indexMapper.getIndexesSequence();
+
+    if (syncer.isEngineOrderPhysical()) {
+      return { order, elements: null, previousSequence, stale: false };
+    }
+
+    const gridLength = indexMapper.getNumberOfIndexes();
+
+    const elements = listEngineElements(order.sequence, order.fillSequence, Math.max(engineLength, gridLength));
+
+    if (hasContentPast(engineLength, gridLength, engineIndex => hasContent(elements[engineIndex]))) {
+      return {
+        order: { sequence: [], fillSequence: null, paddedElements: [], orderShifts: [] },
+        elements: null,
+        previousSequence: [],
+        stale: true,
+      };
+    }
+
+    return { order, elements, previousSequence, stale: false };
+  }
+
+  /**
+   * Reads one of the grid's source rows as the grid stores it, by physical row, without the engine's projection.
+   *
+   * @param {number} physicalRow The physical row.
+   * @returns {Array<*>}
+   */
+  #readOwnSourceRow(physicalRow: number): unknown[] {
+    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
+
+    this.#sourceDataProjectionSuspended = true;
+
+    try {
+      const row: unknown = this.hot.getSourceDataAtRow(physicalRow);
+
+      return Array.isArray(row) ? row as unknown[] : [];
+    } finally {
+      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
+    }
+  }
+
+  /**
+   * Reads the grid's source rows as the grid stores them, by physical row, without the engine's projection.
+   *
+   * @returns {Array<Array<*>>}
+   */
+  #readOwnSourceRows(): unknown[][] {
+    return Array.from(
+      { length: this.hot.rowIndexMapper.getNumberOfIndexes() }, (_, physicalRow) => this.#readOwnSourceRow(physicalRow)
+    );
+  }
+
+  /**
+   * Puts the rows and columns of a sheet read from the engine back in physical order, through the elements
+   * `#planReloadAxis()` planned for each axis. An axis with no elements is left as read.
+   *
+   * @param {Array<Array<*>>} rows The sheet content, in engine order.
+   * @param {object} reload The plan of both axes.
+   * @returns {Array<Array<*>>}
+   */
+  #toPhysicalOrder(rows: unknown[][], reload: { row: ReloadAxis; column: ReloadAxis }): unknown[][] {
+    const rowElements = reload.row.elements;
+    const columnElements = reload.column.elements;
+
+    if (rowElements === null && columnElements === null) {
+      return rows;
+    }
+
+    const height = rowElements?.length ?? rows.length;
+    const width = columnElements?.length ?? rows.reduce((widest, row) => Math.max(widest, row.length), 0);
+    const physical = Array.from({ length: height }, () => new Array<unknown>(width).fill(null));
+
+    rows.forEach((row, engineRow) => {
+      row.forEach((value, engineColumn) => {
+        physical[rowElements?.[engineRow] ?? engineRow][columnElements?.[engineColumn] ?? engineColumn] = value;
+      });
+    });
+
+    return physical;
   }
 
   /**
@@ -2496,7 +4060,7 @@ export class Formulas extends BasePlugin {
    * @returns {*} What `fn` returns.
    */
   runEngineWrite<T>(engine: object, fn: () => T): T {
-    return withPluginEngineWrite(engine, fn);
+    return withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(fn));
   }
 
   /**
@@ -2555,274 +4119,24 @@ export class Formulas extends BasePlugin {
    *
    * @param {object|null|undefined} engine The engine `fn` writes.
    * @param {Function} fn The mutation.
+   * @param {string} [kind] How the write keeps the sheet snapshot in step (`#trackOwnEngineWrite()`).
    * @returns {*} What `fn` returns.
    */
-  #writeOwnSheet<T>(engine: object | null | undefined, fn: () => T): T {
+  #writeOwnSheet<T>(engine: object | null | undefined, fn: () => T, kind: OwnEngineWriteKind = 'structural'): T {
     this.#ownWriteDepth += 1;
 
     try {
-      return withPluginEngineWrite(engine, fn);
+      return withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(fn, kind));
     } finally {
       this.#ownWriteDepth -= 1;
     }
   }
 
   /**
-   * Whether the `batchEvaluation` setting is on. Read when the execution is suspended, so a change applies
-   * from the next suspension without restarting the plugin.
-   *
-   * @returns {boolean}
-   */
-  #isBatchEvaluationEnabled(): boolean {
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-
-    return isFormulasSettingsObject(pluginSettings) && pluginSettings.batchEvaluation === true;
-  }
-
-  /**
-   * `afterSuspendExecution` hook callback. With `batchEvaluation` on, the grid holds the engine's
-   * recalculation: the engine is suspended at the first engine write the plugin makes from now on, not here,
-   * so a suspension that writes only index maps (every render's autosizing, a filter, a hidden row) never
-   * touches the engine.
-   */
-  #onAfterSuspendExecution = () => {
-    if (this.engine && this.#isBatchEvaluationEnabled()) {
-      joinEvaluationHold(this.engine, this.hot);
-    }
-  };
-
-  /**
-   * `afterResumeExecution` hook callback. Releases the hold this grid has on the engine.
-   */
-  #onAfterResumeExecution = () => {
-    this.#releaseEvaluationHold();
-  };
-
-  /**
-   * Takes this grid out of the hold on its engine. When it was the last grid holding it, the held writes are
-   * recalculated, once, and their dependents are validated, once each. Both run in one plugin write scope, so
-   * the grids paint after the validation, and a paint that suspends a grid's execution again (its render's
-   * autosizing) starts a hold of its own. When the host holds the engine suspended itself, the hold ends and
-   * the dependents are validated when the host resumes it.
-   *
-   * @param {boolean} [leaving=false] `true` when the grid is being destroyed: its own cells are not validated,
-   *   and another grid on the engine validates the rest.
-   */
-  #releaseEvaluationHold(leaving = false) {
-    const engine = this.engine;
-
-    if (!engine) {
-      return;
-    }
-
-    const wasHolder = isEvaluationHolder(engine, this.hot);
-
-    if (!leaveEvaluationHold(engine, this.hot)) {
-      // Another grid on the engine is still suspended, so the hold goes on. This grid's execution is over,
-      // though: its writes take effect and its dependents are validated now, as without the setting. Left to
-      // the last grid's release, they would wait for a resume that may never come.
-      if (wasHolder && !leaving) {
-        this.#recalculateAndValidateHeldWrites(engine);
-      }
-
-      return;
-    }
-
-    this.#endEvaluationHold(engine, leaving ? this.sheetId : null);
-  }
-
-  /**
-   * Recalculates the writes held on the engine and validates their dependents, while the hold stays open for
-   * the grids still suspended. Both run in one plugin write scope, so the grids paint after the validation.
-   *
-   * @param {object} engine The engine.
-   */
-  #recalculateAndValidateHeldWrites(engine: HyperFormulaEngine) {
-    withPluginEngineWrite(engine, () => {
-      flushEvaluationHold(engine);
-
-      const recalculations = takeHeldRecalculations(engine);
-
-      if (recalculations.length > 0) {
-        this.#validateHeldDependents(engine, recalculations, null);
-      }
-    });
-  }
-
-  /**
-   * Releases the hold of the grids whose execution resumed without a release: an `afterResumeExecution`
-   * listener that runs before the plugin's threw (a global one runs before every grid's own). Called before
-   * each draw of any grid on the engine, so the later writes of the other grids are not held for them.
-   */
-  #releaseResumedHolders() {
-    const engine = this.engine;
-
-    if (engine && leaveResumedHolders(engine)) {
-      this.#endEvaluationHold(engine, null);
-    }
-  }
-
-  /**
-   * Recalculates the writes a hold no grid holds anymore and settles it (`#releaseEvaluationHold()`).
-   *
-   * @param {object} engine The engine.
-   * @param {number|null} leavingSheetId The sheet of a grid that is being destroyed, or `null`.
-   */
-  #endEvaluationHold(engine: HyperFormulaEngine, leavingSheetId: number | null) {
-    withPluginEngineWrite(engine, () => {
-      // Settled also when a listener of the recalculation throws, so the next hold starts empty.
-      try {
-        flushEvaluationHold(engine);
-      } finally {
-        settleEvaluationHold(engine, (recalculations: HeldRecalculation[]) => {
-          this.#validateHeldDependents(engine, recalculations, leavingSheetId);
-        });
-      }
-    });
-  }
-
-  /**
-   * Validates the dependents a hold's recalculations owe a validation (`collectHeldDependents()`). Each one is
-   * validated by the grid bound to its sheet, whichever grid ends the hold, because `validateDependentCells()`
-   * checks the addresses against the size of the grid it runs on. The cells of a destroyed grid's sheet are
-   * left out.
-   *
-   * @param {object} engine The engine.
-   * @param {Array} recalculations The recalculations of the hold.
-   * @param {number|null} leavingSheetId The sheet of a grid that is being destroyed, or `null`.
-   */
-  #validateHeldDependents(engine: HyperFormulaEngine, recalculations: HeldRecalculation[],
-                          leavingSheetId: number | null) {
-    const dependentsBySheet = new Map<number, unknown[]>();
-
-    collectHeldDependents(recalculations).forEach((change) => {
-      const sheet = isHFCellChange(change) ? change.address?.sheet : undefined;
-
-      if (sheet === undefined || sheet === leavingSheetId) {
-        return;
-      }
-
-      const dependents = dependentsBySheet.get(sheet);
-
-      if (dependents === undefined) {
-        dependentsBySheet.set(sheet, [change]);
-      } else {
-        dependents.push(change);
-      }
-    });
-
-    // Most holds end with nothing to validate (every render's autosizing), so the registry is not read for them.
-    if (dependentsBySheet.size === 0) {
-      return;
-    }
-
-    const boundGrids = getRegisteredHotInstances(engine);
-
-    dependentsBySheet.forEach((dependents, sheet) => {
-      const plugin = boundGrids.get(sheet)?.getPlugin('formulas');
-
-      if (plugin?.enabled && plugin.engine === engine) {
-        plugin.validateDependentCells(dependents);
-      }
-    });
-  }
-
-  /**
-   * Recalculates the writes held on the engine, so it can be read (see `flushEngineEvaluation()`).
-   */
-  #flushEvaluation() {
-    flushEvaluationHold(this.engine);
-  }
-
-  /**
-   * Validates the dependents of the writes held so far, before a structure change (an insert, a removal, a
-   * move, a load) moves the cells the engine named them by, as they were validated without a hold.
-   * The writes are recalculated first, without painting this grid: the change paints it.
-   *
-   * @param {boolean} [skipOwnSheet=false] `true` for a load: it replaces this grid's cells, and its data map is
-   *   already gone, so only the other sheets' dependents are validated, by the grids bound to them.
-   */
-  #validateHeldWritesNow(skipOwnSheet = false) {
-    const engine = this.engine;
-
-    if (!engine) {
-      return;
-    }
-
-    if (isEvaluationHeld(engine)) {
-      this.#writeOwnSheet(engine, () => flushEvaluationHold(engine));
-    }
-
-    const recalculations = takeHeldRecalculations(engine);
-
-    if (recalculations.length > 0) {
-      this.#validateHeldDependents(engine, recalculations, skipOwnSheet ? this.sheetId : null);
-    }
-  }
-
-  /**
-   * The callback of the structure change hooks that carry no source (the row and column moves, a sort). See
-   * `#validateHeldWritesNow()`.
-   */
-  #onBeforeStructureChange = () => {
-    this.#validateHeldWritesNow();
-  };
-
-  /**
-   * `beforeLoadData` and `beforeUpdateData` hook callback. See `#validateHeldWritesNow()`. The Core runs these
-   * hooks with the data map already gone, so a recalculation listener that throws is reported, not rethrown:
-   * the load must go on, or the grid is left with no data map.
-   */
-  #onBeforeLoadHeldData = () => {
-    try {
-      this.#validateHeldWritesNow(true);
-    } catch (e) {
-      warn(`Formulas: the recalculation before a data load failed: ${e instanceof Error ? e.message : e}`);
-    }
-  };
-
-  /**
-   * `#validateHeldWritesNow()` for a row or column insert or removal. The rows and columns `auto` adds or
-   * gives back (`minSpareRows` and the like) sit at the end, so they move no cell a held write named.
-   *
-   * @param {string} [source] The source of the change.
-   */
-  #validateHeldWritesBeforeAlter(source?: string) {
-    if (!isBlockedSource(source)) {
-      this.#validateHeldWritesNow();
-    }
-  }
-
-  /**
-   * Validates the dependents of a cell write, or, when the write was held, records the cells it set, so
-   * the release validates the dependents once, against the recalculated values.
-   *
-   * @param {Array} dependentCells The engine's change list of the write.
-   * @param {Array} changedCells The cells the write set (`{ address }`).
-   */
-  #validateWriteDependents(dependentCells: unknown[], changedCells: unknown[]) {
-    if (!recordHeldWrite(this.engine, changedCells)) {
-      this.validateDependentCells(dependentCells, changedCells);
-    }
-  }
-
-  /**
-   * Runs an undo or redo write that needs its change list right away. When the write was held, the engine
-   * is recalculated now and the recalculation is taken out of the hold: the restore validates its
-   * dependents itself, so a restored cell is not validated twice (DEV-2036).
-   *
-   * @param {object} engine The engine.
-   * @param {Function} write The write, returning the engine's change list.
-   * @returns {object} The dependents, and the cells the held writes before it set (to leave out of them).
-   */
-  #runRestoreWrite(engine: HyperFormulaEngine, write: () => unknown[]): HeldRecalculation {
-    const dependents = write();
-
-    return flushEvaluationHoldNow(engine) ?? { dependents, changed: [] };
-  }
-
-  /**
-   * Validates dependent cells based on the cells that are modified by the change.
+   * Validates dependent cells based on the cells that are modified by the change. Called inside the
+   * operation of the change, so `validateCell()` holds that undo step until the validators answer, and
+   * what a dependent's validator or `afterValidate` listener writes joins it. The deferred apply calls
+   * `#validateDependentCellsUnrecorded()` instead.
    *
    * @private
    * @param {object[]} dependentCells The values and location of applied changes within HF engine.
@@ -2831,9 +4145,8 @@ export class Formulas extends BasePlugin {
   validateDependentCells(dependentCells: unknown[], changedCells: unknown[] = []) {
     const stringifyAddress = (change: unknown) => {
       const address = isHFCellChange(change) ? change.address : undefined;
-      const { row, col, sheet } = address ?? {};
 
-      return isDefined(sheet) ? `${sheet}:${row}x${col}` : '';
+      return address && isDefined(address.sheet) ? toCellKey(address) : '';
     };
     const changedCellsSet = new Set(changedCells.map((change: unknown) => stringifyAddress(change)));
 
@@ -2875,14 +4188,39 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        // It will just re-render certain cell when necessary.
-        boundHot.validateCell(
+        const validate = () => boundHot.validateCell(
           boundHot.getDataAtCell(visualRow, visualColumn),
           boundHot.getCellMeta(visualRow, visualColumn),
           () => {}
         );
+
+        // It will just re-render certain cell when necessary.
+        if (this.#dependentValidationUnrecorded) {
+          boundHot._getOperationScope().suppress(validate);
+        } else {
+          validate();
+        }
       }
     });
+  }
+
+  /**
+   * Validates the dependents of a deferred change's apply (see `#onBeforeChangeRender`) outside every undo
+   * step. Inside the edit's step, `validateCell()` held it until a dependent's async validator answered, so
+   * the edit could not be undone right after `afterChange`. The cost: what a dependent's validator or
+   * `afterValidate` listener writes there is recorded in no step, so an undo of the edit leaves it.
+   *
+   * @param {object[]} dependentCells The cells the write recalculated.
+   * @param {object[]} changedCells The cells the write changed.
+   */
+  #validateDependentCellsUnrecorded(dependentCells: unknown[], changedCells: unknown[]) {
+    this.#dependentValidationUnrecorded = true;
+
+    try {
+      this.validateDependentCells(dependentCells, changedCells);
+    } finally {
+      this.#dependentValidationUnrecorded = false;
+    }
   }
 
   /**
@@ -3556,6 +4894,8 @@ export class Formulas extends BasePlugin {
       newValue = this.#escapeEngineBoundValue(newValue, this.hot.getCellMetaTransient(row, column));
     }
 
+    this.#noteOwnCellWrite(address);
+
     const changes = this.engine?.setCellContents(address, newValue);
 
     this.#recordSyncedCell(this.hot.toPhysicalRow(row), column, newValue);
@@ -4187,12 +5527,18 @@ export class Formulas extends BasePlugin {
    * The hook allows to translate the formula value to calculated value before it goes to the
    * validator function.
    *
+   * A change the Core can reject is not in the engine yet (see `#splitChangesByValidation()`), so
+   * its value comes from `#validationValues`, which `afterSetDataAtCell` filled for the set the Core is
+   * validating: the result of a formula, or the change's own value. Every other validation (a dependent
+   * cell, `validateCells()`) reads the engine.
+   *
    * @param {*} value The cell value to validate.
    * @param {number} visualRow The visual row index.
    * @param {number|string} prop The visual column index or property name of the column.
+   * @param {string} [source] The source of the validation.
    * @returns {*} Returns value to validate.
    */
-  #onBeforeValidate = (value: unknown, visualRow: number, prop: number | string) => {
+  #onBeforeValidate = (value: unknown, visualRow: number, prop: number | string, source?: string) => {
     const visualColumn = this.hot.propToCol(prop);
 
     // A prop that names no existing column has no engine address to validate against.
@@ -4200,32 +5546,153 @@ export class Formulas extends BasePlugin {
       return value;
     }
 
-    if (this.isFormulaCellType(visualRow, visualColumn)) {
-      const address = {
-        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-        sheet: this.sheetId,
-      };
+    const entries = this.#validationValues.get(this.#validationValueKey(visualRow, visualColumn)) ?? [];
+    // A cell can be written more than once before the Core validates (twice in one set, or by two sets in one
+    // task). The Core validates the changes in the order they were written, so each validation takes the
+    // first entry with its value and removes it: the next change to the cell gets its own entry, also when
+    // it writes the same value against other precedents.
+    let index = entries.findIndex(entry => entry.source === source && Object.is(entry.changeValue, value));
 
-      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+    for (let last = entries.length - 1; index === -1 && last >= 0; last--) {
+      if (entries[last].source === source) {
+        index = last;
+      }
+    }
 
-      // Only a formula cell reads the engine, so a validated plain write keeps a held recalculation.
-      this.#flushEvaluation();
+    if (index !== -1) {
+      const [pending] = entries.splice(index, 1);
 
-      let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel-like date).
-
-      if (cellMeta.type === 'date' && isNumeric(cellValue)) {
-        cellValue = getDateFromExcelDate(cellValue);
-      } else if (cellMeta.type === 'time' && isNumeric(cellValue)) {
-        cellValue = getTimeFromHfTimeFraction(cellValue as number);
+      if (pending.readerAnswer) {
+        this.#trackReaderAnswer(visualRow, visualColumn, pending.readerAnswer);
       }
 
-      // If `cellValue` is an object it is expected to be an error
-      return hasValueProperty(cellValue) ? cellValue.value : cellValue;
+      return pending.hasResult ? pending.result : value;
+    }
+
+    if (this.isFormulaCellType(visualRow, visualColumn)) {
+      return this.#readValidationValue(visualRow, visualColumn);
     }
 
     return value;
   };
+
+  /**
+   * Starts watching how the validator of a reader of a deferred cell answers the Core's validation of its
+   * change (see `ReaderAnswer`). `beforeValidate` fires in the `validateCell()` call, before the call queues
+   * the validator's microtask, so a check queued from a microtask queued now runs after the validator's.
+   * The check ends the watch: the record leaves `#readerAnswers` then, so a validator that throws or never
+   * answers leaves nothing that a later validation of the cell would mark.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @param {object} answer The answer record of the reader.
+   */
+  #trackReaderAnswer(visualRow: number, visualColumn: number, answer: ReaderAnswer) {
+    const key = this.#validationValueKey(visualRow, visualColumn);
+
+    this.#readerAnswers.set(key, [...(this.#readerAnswers.get(key) ?? []), answer]);
+    this.hot._registerMicrotask(() => this.hot._registerMicrotask(() => {
+      answer.isSyncChecked = true;
+      answer.wasAnsweredAtCheck = answer.answered;
+      this.#forgetReaderAnswer(key, answer);
+    }));
+  }
+
+  /**
+   * Takes a record out of `#readerAnswers`.
+   *
+   * @param {string} key The cell key (`#validationValueKey()`).
+   * @param {object} answer The record.
+   */
+  #forgetReaderAnswer(key: string, answer: ReaderAnswer) {
+    const answers = this.#readerAnswers.get(key) ?? [];
+    const index = answers.indexOf(answer);
+
+    if (index !== -1) {
+      answers.splice(index, 1);
+    }
+
+    if (answers.length === 0) {
+      this.#readerAnswers.delete(key);
+    }
+  }
+
+  /**
+   * `afterValidate` hook callback. Marks the answer of a reader of a deferred cell the Core is validating
+   * (see `#trackReaderAnswer()`): the oldest record of the cell with the same value and source. **Known
+   * limit:** another validation of the cell with the same value and source that answers inside the watch
+   * (a `validateCells()` in the same task, while the engine already holds that value) marks the record, so
+   * an async reader is taken for a sync one and its re-validation after a rejection holds the edit's step.
+   *
+   * @param {boolean} isValid The validation result.
+   * @param {*} value The validated value.
+   * @param {number} visualRow The visual row index.
+   * @param {number|string} prop The visual column index or property name of the column.
+   * @param {string} [source] The source of the validation.
+   */
+  #onAfterValidate = (
+    isValid: boolean, value: unknown, visualRow: number, prop: number | string, source?: string,
+  ) => {
+    if (this.#readerAnswers.size === 0) {
+      return;
+    }
+
+    const visualColumn = this.hot.propToCol(prop);
+    const key = visualColumn === null ? null : this.#validationValueKey(visualRow, visualColumn);
+    const answers = key === null ? undefined : this.#readerAnswers.get(key);
+
+    const answer = answers?.find(record => !record.answered && record.source === source &&
+      Object.is(record.value, value));
+
+    if (answer) {
+      answer.answered = true;
+    }
+  };
+
+  /**
+   * Reads the value a validator gets for a formula cell: its result in the engine, a date or a time
+   * column's serial number turned into the grid's format, and an error as its text.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {*}
+   */
+  #readValidationValue(visualRow: number, visualColumn: number) {
+    const address = {
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      sheet: this.sheetId,
+    };
+
+    // Only a formula cell reads the engine, so a validated plain write keeps a held recalculation.
+    this.#flushEvaluation();
+
+    // Date as an integer (Excel-like date).
+    return this.#toValidationValue(visualRow, visualColumn, this.engine!.getCellValue(address));
+  }
+
+  /**
+   * Turns an engine value into what a validator gets: a date or a time column's serial number in the
+   * grid's format, and an error as its text.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @param {*} engineValue The engine value.
+   * @returns {*}
+   */
+  #toValidationValue(visualRow: number, visualColumn: number, engineValue: unknown) {
+    const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+    let cellValue = engineValue;
+
+    if (cellMeta.type === 'date' && isNumeric(cellValue)) {
+      cellValue = getDateFromExcelDate(cellValue);
+    } else if (cellMeta.type === 'time' && isNumeric(cellValue)) {
+      cellValue = getTimeFromHfTimeFraction(cellValue as number);
+    }
+
+    // If `cellValue` is an object it is expected to be an error
+    return hasValueProperty(cellValue) ? cellValue.value : cellValue;
+  }
 
   /**
    * `onBeforeAutofill` hook callback.
@@ -4711,6 +6178,8 @@ export class Formulas extends BasePlugin {
   #clearRejectedSheet(): unknown[] {
     this.#syncedContent = null;
     this.#internalOperationPending = true;
+    this.#refusedSheetWriteCount += 1;
+    this.#sheetWriteCountAtRefusal = this.#sheetWriteCount;
 
     let dependentCells: unknown[] = [];
 
@@ -4881,8 +6350,18 @@ export class Formulas extends BasePlugin {
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
     this.#hyperlinkCells.clear();
+    // A load drops every waiting set, so no watch of a reader's answer is needed any more.
+    this.#readerAnswers.clear();
 
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
+      // The engine already holds the reloaded sheet in this order (see `#reloadKeepingOrder()`). Taken over
+      // here, after the load reset the grid's order and before the move plugins re-apply their arrays, so
+      // their moves are held (`AxisSyncer#calculateAndSyncMoves`).
+      if (this.#reloadEngineOrder !== null) {
+        this.rowAxisSyncer!.adoptEngineOrder(this.#reloadEngineOrder.row);
+        this.columnAxisSyncer!.adoptEngineOrder(this.#reloadEngineOrder.column);
+      }
+
       return;
     }
 
@@ -5341,69 +6820,628 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const { dependentCells, changedCells, outOfBoundsChanges, writtenCells } = this.#writeChangesToEngine(changes);
-    const awaitingApply: ChangeSetAwaitingApply = {
+    const { immediateChanges, deferredChanges, rejectableChanges } = this.#splitChangesByValidation(changes);
+    const { dependentCells, changedCells, writtenCells } = immediateChanges.length > 0
+      ? this.#writeChangesToEngine(immediateChanges)
+      : { dependentCells: [], changedCells: [] as unknown[], writtenCells: [] };
+
+    // The Core validates the deferred cells as changes of the set, so the dependent validation skips them:
+    // read from the engine, they would be validated again by the formula they are about to replace.
+    rejectableChanges.forEach(({ visualRow, visualColumn }) => {
+      changedCells.push({ address: this.#toEngineCellAddress(visualRow, visualColumn) });
+    });
+
+    // One walk of the engine's dependency graph from the deferred cells serves both splits below.
+    const isWalkNeeded = rejectableChanges.length > 0 && (dependentCells.length > 0 || immediateChanges.length > 0);
+    const reachedFromDeferred = isWalkNeeded
+      ? this.#collectDependentKeys(rejectableChanges
+        .map(({ visualRow, visualColumn }) => this.#toEngineCellAddress(visualRow, visualColumn)))
+      : new Set<string>();
+    const { earlyDependents, heldDependents } = this.#splitDependentsOfDeferred(dependentCells, reachedFromDeferred);
+    const readersOfDeferred = this.#findReadersOfDeferred(immediateChanges, reachedFromDeferred);
+
+    this.#changesAwaitingApply.set(changes, {
       writeCount: this.#sheetWriteCount,
+      refusedWriteCount: this.#refusedSheetWriteCount,
       foreignLoadCount: this.#foreignLoadCount,
       sheetId: this.sheetId,
-      writtenBack: false,
+      deferredChanges,
+      hasRejectableChange: rejectableChanges.length > 0,
+      heldDependents,
+      rejectableChanges: rejectableChanges.map(({ change }) => change),
+      readersOfDeferred: [],
       writtenCells,
-    };
+    });
 
-    this.#changesAwaitingApply.set(changes, awaitingApply);
+    // The probe can end a `batchEvaluation` hold, so a held write is recorded before it: the recalculation
+    // the probe causes then names the written cells, and the release validates their dependents.
+    const isWriteHeld = recordHeldWrite(this.engine, changedCells);
 
-    if (outOfBoundsChanges.length) {
-      this.#outOfBoundsWrites.set(changes, { awaitingApply, changes: outOfBoundsChanges });
+    this.#changesAwaitingApply.get(changes)!.readersOfDeferred =
+      this.#probeValidationValues(rejectableChanges, source, readersOfDeferred);
+
+    if (!isWriteHeld) {
+      this.validateDependentCells(earlyDependents, changedCells);
     }
-
-    this.#validateWriteDependents(dependentCells, changedCells);
   };
 
   /**
-   * `afterChange` hook callback. Writes the changes of a set that reached past the last row or column
-   * (`#outOfBoundsWrites`), once the Core applied the set and created those rows and columns: the engine
-   * would otherwise create them a second time. Only the set's own `afterChange` writes them.
+   * Splits a change set into the changes `afterSetDataAtCell` writes into the engine at once and the
+   * ones left to `beforeChangeRender`. A change the Core can reject waits: written now, the engine and
+   * every formula that reads the cell showed the rejected value while the validator worked, and kept it
+   * after a rejection. The Core rejects a change only when the cell has a validator (`getCellValidator()`
+   * of the cell meta) AND `allowInvalid` is `false` (`queueValidators()` drops a change whose validator
+   * answered `false` under that condition), so that is the test here too. A validated cell that accepts
+   * invalid values (`allowInvalid` defaults to `true`: a `numeric`, `date` or `dropdown` column) is written
+   * at once, as before. A change past the last row or column waits too, because the Core creates its row
+   * or column only when it applies the set. A change whose property names no column has no engine address
+   * and is left out.
    *
-   * A write-back in `beforeChangeRender` already wrote the whole set, these changes included, once the
-   * Core had created their rows and columns. A second write would be redundant and would add an entry to
-   * the engine's own undo stack (a grid undo never uses that stack, but an app calling `engine.undo()`
-   * directly would revert only that entry). The Core painted before it created these rows, so this grid
-   * paints too.
-   *
-   * @param {Array[]|null} changes The applied change array.
+   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   * @returns {{ immediateChanges: Array[], deferredChanges: Set<Array>, rejectableChanges: object[] }}
    */
-  #onAfterChangeWriteOutOfBounds = (changes: CellChange[] | null) => {
-    const pending = changes ? this.#outOfBoundsWrites.get(changes) : undefined;
+  #splitChangesByValidation(changes: CellChange[]) {
+    const immediateChanges: CellChange[] = [];
+    const deferredChanges = new Set<CellChange>();
+    const rejectableChanges: RejectableChange[] = [];
 
-    if (!changes || !pending) {
-      return;
+    changes.forEach((change) => {
+      const [visualRow, prop] = change;
+
+      if (typeof prop !== 'string' && typeof prop !== 'number') {
+        return;
+      }
+
+      // This hook runs before the change is applied, so a write past the last column on array data
+      // addresses a column that does not exist yet. Its index is kept, as in `dataChange.ts`.
+      const visualColumn = this.hot.propToCol(prop) ?? (typeof prop === 'number' ? prop : null);
+
+      if (visualColumn === null) {
+        return;
+      }
+
+      const physicalRow = this.hot.toPhysicalRow(visualRow);
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalRow === null || physicalColumn === null) {
+        deferredChanges.add(change);
+
+      } else if (this.#canCoreRejectChange(visualRow, visualColumn)) {
+        deferredChanges.add(change);
+        rejectableChanges.push({ change, visualRow, visualColumn, physicalRow, physicalColumn });
+
+      } else {
+        immediateChanges.push(change);
+      }
+    });
+
+    return { immediateChanges, deferredChanges, rejectableChanges };
+  }
+
+  /**
+   * Splits the cells the early write recalculated into the ones validated now and the ones a deferred
+   * change of the set also recalculates (directly or through other formulas, `getCellDependents()` walked
+   * from the deferred cells). Those hold a value computed from the deferred cell's old content until the
+   * apply, so validating them now ran their validator and `afterValidate` for a value the cell never ends
+   * with, and an out-of-order answer of that stale validation overwrote the mark of the right one.
+   * `#onBeforeChangeRender` validates them with the final values.
+   *
+   * @param {object[]} dependentCells The cells the early write recalculated.
+   * @param {Set<string>} reached The keys of the cells the deferred changes of the set recalculate
+   *   (`#collectDependentKeys()`).
+   * @returns {{ earlyDependents: object[], heldDependents: object[] }}
+   */
+  #splitDependentsOfDeferred(dependentCells: unknown[], reached: Set<string>) {
+    if (reached.size === 0 || dependentCells.length === 0) {
+      return { earlyDependents: dependentCells, heldDependents: [] };
     }
 
-    this.#outOfBoundsWrites.delete(changes);
+    const earlyDependents: unknown[] = [];
+    const heldDependents: unknown[] = [];
 
-    if (pending.awaitingApply.writtenBack || !this.engine) {
-      return;
+    dependentCells.forEach((change) => {
+      const address = isHFCellChange(change) ? change.address : undefined;
+
+      (address && reached.has(toCellKey(address)) ? heldDependents : earlyDependents).push(change);
+    });
+
+    return { earlyDependents, heldDependents };
+  }
+
+  /**
+   * Finds the changes of the set written at once (`afterSetDataAtCell`) whose cell reads a deferred cell
+   * of the same set, directly or through other formulas: a formula the early write put into the engine
+   * that the deferred cell's new value recalculates. The engine computed it from the deferred cell's old
+   * content, so the Core validated it by a value it never ends with (`#VALUE!` read from an old text),
+   * marked it invalid for the whole wait, and the apply validated it a second time outside the edit's
+   * undo step. The validation probe reads its result with the deferred cells' new values instead
+   * (`#probeValidationValues()`). A cell the set changes more than once is left out, and so is a cell
+   * without a validator: the probe result is for the Core's validation of the change.
+   *
+   * @param {Array[]} immediateChanges The changes written at once.
+   * @param {Set<string>} reached The keys of the cells the deferred changes of the set recalculate.
+   * @returns {object[]} The changes with their coordinates and engine address.
+   */
+  #findReadersOfDeferred(immediateChanges: CellChange[], reached: Set<string>) {
+    const readers = new Map<string, RejectableChange & { address: FormulasCellAddress }>();
+    const changedKeys = new Set<string>();
+
+    if (reached.size === 0) {
+      return [];
+    }
+
+    immediateChanges.forEach((change) => {
+      const [visualRow, prop] = change;
+      const visualColumn = this.hot.propToCol(prop as string | number);
+
+      if (visualColumn === null) {
+        return;
+      }
+
+      const physicalRow = this.hot.toPhysicalRow(visualRow);
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalRow === null || physicalColumn === null) {
+        return;
+      }
+
+      const address = this.#toEngineCellAddress(visualRow, visualColumn);
+      const key = toCellKey(address);
+
+      // A cell the set changes more than once is not a reader: the Core validates each change, and
+      // `#onBeforeValidate` hands an entry to a change of the cell whose value does not match it, so the
+      // earlier change took the last one's result. It stays a held dependent, validated at the apply.
+      if (changedKeys.has(key)) {
+        readers.delete(key);
+
+        return;
+      }
+
+      changedKeys.add(key);
+
+      if (reached.has(key) && this.hot.getCellValidator(this.hot.getCellMetaTransient(visualRow, visualColumn))) {
+        readers.set(key, { change, visualRow, visualColumn, physicalRow, physicalColumn, address });
+      }
+    });
+
+    return [...readers.values()];
+  }
+
+  /**
+   * Collects the keys (`toCellKey()`) of every cell that depends on the given cells, directly or through
+   * other formulas and ranges, from the engine's dependency graph.
+   *
+   * @param {object[]} addresses The engine addresses to start from.
+   * @returns {Set<string>}
+   */
+  #collectDependentKeys(addresses: FormulasCellAddress[]) {
+    const engine = this.engine!;
+    const reached = new Set<string>();
+    const visitedRanges = new Set<string>();
+    const queue: (FormulasCellAddress | FormulasCellRange)[] = [...addresses];
+
+    while (queue.length > 0) {
+      engine.getCellDependents(queue.pop()!).forEach((dependent) => {
+        const key = 'start' in dependent
+          ? `${toCellKey(dependent.start)}:${toCellKey(dependent.end)}`
+          : toCellKey(dependent);
+        const visited = 'start' in dependent ? visitedRanges : reached;
+
+        if (!visited.has(key)) {
+          visited.add(key);
+          queue.push(dependent);
+        }
+      });
+    }
+
+    return reached;
+  }
+
+  /**
+   * Answers whether the Core can reject a change to the cell: it has a validator and does not accept
+   * invalid values. The condition `queueValidators()` drops a change under, read from the same cell meta.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {boolean}
+   */
+  #canCoreRejectChange(visualRow: number, visualColumn: number) {
+    const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+
+    return cellMeta.allowInvalid === false && !!this.hot.getCellValidator(cellMeta);
+  }
+
+  /**
+   * Builds the engine address of a grid cell on the bound sheet.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {object}
+   */
+  #toEngineCellAddress(visualRow: number, visualColumn: number) {
+    return {
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      sheet: this.sheetId as number,
+    };
+  }
+
+  /**
+   * Reads, for each change of a set the Core can reject, the value `beforeValidate` hands its validator.
+   * The plugin validates a formula by its result, so such a formula has to be calculated while the engine
+   * does not hold it yet. The set's rejectable changes are written into the engine in one batch, the
+   * results of its formulas are read, and the batch is taken back with `engine.undo()` and
+   * `clearRedoStack()`, all in this task, so nothing paints the probe and the engine ends as it was.
+   * Writing all of them, plain values included, keeps what the validator saw when the plugin wrote every
+   * change before validation: a formula that reads another deferred cell of the set reads its new value,
+   * and one that reads itself through a dependent is a cycle. A set without a formula skips the round
+   * trip. Its changes still get an entry, so a value written over a formula cell is validated as the
+   * value, not as the result the engine still holds. The other grids on the engine paint once, when the
+   * write scope ends, and this grid fires no `afterFormulasValuesUpdate` for the probe's write; the
+   * volatile values the round trip changed are announced to every grid (`#announceProbeChangesKept()`).
+   *
+   * An engine that keeps fewer than two undo entries (`undoLimit` below 2) cannot take a two-batch probe back
+   * without risking an array formula's spill, so each formula is calculated on its own there (`#calculateDetached()`).
+   *
+   * A formula of the set written at once that reads a deferred cell of the set (`#findReadersOfDeferred()`)
+   * gets an entry too, so its validator sees the result the cell holds once the deferred cells are written:
+   * the probe runs for it even without a deferred formula, writes the deferred cells it reads, and reads its
+   * result. Without a probe (an engine keeping fewer than two undo entries, evaluation suspended) it has no
+   * entry and is validated by what the engine holds, from the deferred cells' old content.
+   *
+   * @param {object[]} rejectableChanges The changes the Core can reject.
+   * @param {string} [source] The change source, which the Core hands `beforeValidate`.
+   * @param {object[]} [readersOfDeferred] The changes written at once that read a deferred cell of the set.
+   * @returns {object[]} The readers that got the probe's result: their address and answer record.
+   */
+  #probeValidationValues(
+    rejectableChanges: RejectableChange[],
+    source: string | undefined,
+    readersOfDeferred: (RejectableChange & { address: FormulasCellAddress })[] = [],
+  ): ChangeSetAwaitingApply['readersOfDeferred'] {
+    if (rejectableChanges.length === 0) {
+      return [];
+    }
+
+    if (this.#validationValues.size === 0) {
+      this.hot._registerMicrotask(() => this.#validationValues.clear());
+    }
+
+    // A set the probe skips (no formula, no reader) needs no engine-bound value: building one runs the
+    // column's `valueGetter` and reads the cell meta for the escape, which the apply does again. Only an
+    // object can turn into a formula through the `valueGetter`, and the escape never makes one.
+    const needsEngineValues = readersOfDeferred.length > 0 ||
+      rejectableChanges.some(({ change: [, , , value] }) => isFormula(value) || (isObject(value) && value !== null));
+    const writes: ProbeWrite[] = rejectableChanges.map(rejectable => ({
+      rejectable,
+      value: needsEngineValues ? this.#toEngineBoundChangeValue(rejectable) : rejectable.change[3],
+      address: this.#toEngineCellAddress(rejectable.visualRow, rejectable.visualColumn),
+      entry: { source, changeValue: rejectable.change[3], hasResult: false, result: undefined } as ValidationValue,
+    }));
+    const lastWriteByCell = new Map<string, ProbeWrite>();
+
+    writes.forEach((write) => {
+      lastWriteByCell.set(this.#validationValueKey(write.rejectable.visualRow, write.rejectable.visualColumn), write);
+    });
+
+    writes.forEach((write) => {
+      const key = this.#validationValueKey(write.rejectable.visualRow, write.rejectable.visualColumn);
+      const lastWrite = lastWriteByCell.get(key)!;
+      const entries = this.#validationValues.get(key) ?? [];
+
+      // An earlier change that writes the same value as the cell's last change of the set reads what the
+      // last one reads (the probe's result), not a value calculated on its own.
+      if (lastWrite !== write && Object.is(lastWrite.entry.changeValue, write.entry.changeValue)) {
+        write.entry = lastWrite.entry;
+      }
+
+      entries.push(write.entry);
+      this.#validationValues.set(key, entries);
+    });
+
+    // The probe reads the engine, so a recalculation held by `batchEvaluation` ends first; a set with nothing
+    // to probe keeps it.
+    if (readersOfDeferred.length > 0 || writes.some(({ value }) => isFormula(value))) {
+      this.#flushEvaluation();
     }
 
     const engine = this.engine;
+    const canProbe = !!engine && this.sheetId !== null && !engine.isEvaluationSuspended();
+    const { undoLimit } = canProbe ? engine.getConfig() : { undoLimit: undefined };
+    // The detached calculation below cannot read the deferred cells' new values, so a reader gets an entry
+    // only with a probe.
+    const readers: ProbeReader[] = canProbe && !(typeof undoLimit === 'number' && undoLimit < 2)
+      ? readersOfDeferred.map(({ change, visualRow, visualColumn, address }) => ({
+        visualRow,
+        visualColumn,
+        address,
+        entry: { source, changeValue: change[3], hasResult: false, result: undefined },
+      }))
+      : [];
 
-    withPluginEngineWrite(engine, () => runEngineBatch(engine, () => {
-      pending.changes.forEach(([row, column, newValue]) => {
-        this.syncChangeWithEngine(row, column, newValue);
+    readers.forEach(({ visualRow, visualColumn, entry }) => {
+      const key = this.#validationValueKey(visualRow, visualColumn);
+
+      this.#validationValues.set(key, [...(this.#validationValues.get(key) ?? []), entry]);
+    });
+
+    if (!canProbe || (readers.length === 0 && !writes.some(({ value }) => isFormula(value)))) {
+      return [];
+    }
+
+    // A probe pushes up to two batches and undoes each. An engine that keeps fewer undo entries would drop
+    // the first one, and the second `undo()` would throw with the probe still in the engine.
+    if (typeof undoLimit === 'number' && undoLimit < 2) {
+      writes.forEach(({ rejectable: { visualRow, visualColumn }, value, entry }) => {
+        if (isFormula(value)) {
+          entry.hasResult = true;
+          entry.result = this.#calculateDetached(visualRow, visualColumn, value as string);
+        }
       });
-    }));
-  };
+
+      return [];
+    }
+
+    // A cell the set writes twice holds its last value in the engine, as after the apply; an earlier formula
+    // for it is calculated on its own.
+    const lastWrites = [...lastWriteByCell.values()];
+    // Sets, so a paste of thousands of formulas stays linear.
+    const lastWriteSet = new Set(lastWrites);
+    const lastEntries = new Set(lastWrites.map(lastWrite => lastWrite.entry));
+
+    writes.forEach(({ rejectable: { visualRow, visualColumn }, value, entry }, index) => {
+      if (isFormula(value) && !lastWriteSet.has(writes[index]) && !lastEntries.has(entry)) {
+        entry.hasResult = true;
+        entry.result = this.#calculateDetached(visualRow, visualColumn, value as string);
+      }
+    });
+
+    const changesKept = withPluginEngineProbe(engine!, () => this.#writeOwnSheet(
+      engine, () => this.#runProbe(lastWrites, readers),
+    ));
+
+    if (changesKept.length > 0) {
+      // A write of its own, so every grid that reads the cells paints once when it ends, this one included:
+      // the Core renders nothing for a set its validators reject.
+      withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(
+        () => this.#announceProbeChangesKept(changesKept), 'cells',
+      ));
+    }
+
+    // A reader the probe read no result for is validated by the engine's value, as a cell of the set written at
+    // once: its entry would hand the validator the formula text.
+    return readers.flatMap(({ visualRow, visualColumn, address, entry }) => {
+      if (!entry.hasResult) {
+        const entries = this.#validationValues.get(this.#validationValueKey(visualRow, visualColumn)) ?? [];
+        const index = entries.indexOf(entry);
+
+        if (index !== -1) {
+          entries.splice(index, 1);
+        }
+
+        return [];
+      }
+
+      entry.readerAnswer = {
+        value: entry.result, source, answered: false, isSyncChecked: false, wasAnsweredAtCheck: false,
+      };
+
+      return [{ address, answer: entry.readerAnswer }];
+    });
+  }
 
   /**
-   * Writes a `setDataAtCell()` / `setDataAtRowProp()` change set into the engine, in one batch.
-   * A change whose row or column does not exist yet is not written: it is returned in
-   * `outOfBoundsChanges` for the caller to write once the Core created it.
+   * Writes the probe (see `#probeValidationValues()`), reads the formula results into their entries, and
+   * takes every batch it wrote back. The formulas go in first. A plain value of the set goes in, in a
+   * second batch, only when one of those formulas reads its cell (`getCellPrecedents()`, a range
+   * included): a formula of the set reads every other formula of the set from the first batch, so this
+   * covers a chain through them, and a paste of many plain values with one formula writes one cell, not
+   * the whole paste. A reader of the set (a formula written at once that reads a deferred cell) is in the
+   * engine already, so it is not written; with one, every plain value of the set goes into the second batch,
+   * and its result is read too. Without a deferred formula, the first batch is not written.
+   *
+   * The undo puts every cell back except a volatile formula (`RAND()`, `NOW()`), which the probe's write and
+   * each undo recalculated. Every grid ignored those events, so the cells whose last change the undo made
+   * and that the probe's cells do not reach are returned, for `#announceProbeChangesKept()`.
+   *
+   * @param {object[]} writes The probe writes: the change, its engine-bound value, address and entry.
+   * @param {object[]} [readers] The cells written at once whose result the probe reads.
+   * @returns {object[]} The engine changes the undo made that the probe did not take back.
+   */
+  #runProbe(writes: ProbeWrite[], readers: ProbeReader[] = []): unknown[] {
+    const engine = this.engine!;
+    const formulaWrites = writes.filter(({ value }) => isFormula(value));
+    const writtenAddresses: FormulasCellAddress[] = [];
+    const undoneChanges = new Map<string, unknown>();
+    let batches = 0;
+
+    try {
+      if (formulaWrites.length > 0) {
+        batches += 1;
+        this.#writeProbeBatch(formulaWrites);
+        writtenAddresses.push(...formulaWrites.map(({ address }) => address));
+      }
+
+      const precedents = formulaWrites.flatMap(({ address }) => engine.getCellPrecedents(address));
+      // A named expression is reported with sheet -1 and hides the cells it reads, so any plain value of
+      // the set may be one of them.
+      const readsNamedExpression = precedents
+        .some(precedent => ('start' in precedent ? precedent.start : precedent).sheet < 0);
+      // A reader can read a deferred cell through a formula written at once that is not a reader itself (one
+      // without a validator), so with a reader every plain value of the set goes in.
+      const readValueWrites = writes.filter(({ value, address }) => !isFormula(value) &&
+        (readsNamedExpression || readers.length > 0 ||
+          precedents.some(precedent => isAddressInPrecedent(address, precedent))));
+
+      if (readValueWrites.length > 0) {
+        batches += 1;
+        this.#writeProbeBatch(readValueWrites);
+        writtenAddresses.push(...readValueWrites.map(({ address }) => address));
+      }
+
+      [...formulaWrites.map(({ rejectable, entry }) => ({ ...rejectable, entry })), ...readers]
+        .forEach(({ visualRow, visualColumn, entry }) => {
+          if (this.isFormulaCellType(visualRow, visualColumn)) {
+            entry.hasResult = true;
+            entry.result = this.#readValidationValue(visualRow, visualColumn);
+          }
+        });
+    } finally {
+      // An empty batch still pushes an undo entry, so this never takes back an earlier operation.
+      for (let batch = 0; batch < batches; batch++) {
+        const undone = engine.undo();
+
+        (Array.isArray(undone) ? undone : []).forEach((change) => {
+          const address = isHFCellChange(change) ? change.address : undefined;
+
+          // A later undo's value of a cell replaces an earlier one's.
+          if (address) {
+            undoneChanges.delete(toCellKey(address));
+            undoneChanges.set(toCellKey(address), change);
+          }
+        });
+      }
+
+      engine.clearRedoStack?.();
+    }
+
+    return this.#findChangesKeptByProbe(writtenAddresses, [...undoneChanges.values()]);
+  }
+
+  /**
+   * Picks, from the changes the probe's undo made, the cells whose value the round trip did not put back:
+   * neither a cell the probe wrote nor one that reads it, directly or through other formulas
+   * (`#collectDependentKeys()`), so a volatile formula recalculated by the write and the undo. The walk runs
+   * only when the undo changed a cell the probe did not write. **Known limit:** a volatile formula that
+   * also reads a probed cell (`=RAND()+A1`) is taken for a dependent the undo put back, and is not
+   * announced.
+   *
+   * @param {object[]} writtenAddresses The engine addresses the probe wrote.
+   * @param {object[]} undoneChanges The undo's changes, one per cell.
+   * @returns {object[]}
+   */
+  #findChangesKeptByProbe(writtenAddresses: FormulasCellAddress[], undoneChanges: unknown[]) {
+    const written = new Set(writtenAddresses.map(address => toCellKey(address)));
+    const others = undoneChanges.filter((change) => {
+      const address = isHFCellChange(change) ? change.address : undefined;
+
+      return address !== undefined && !written.has(toCellKey(address));
+    });
+
+    if (others.length === 0) {
+      return [];
+    }
+
+    const reached = this.#collectDependentKeys(writtenAddresses);
+
+    return others.filter(change => isHFCellChange(change) && !reached.has(toCellKey(change.address!)));
+  }
+
+  /**
+   * Hands the changes the validation probe did not take back (`#runProbe()`) to every grid on the engine,
+   * as an engine event would have: each one fires `afterFormulasValuesUpdate` and paints, once, when the
+   * plugin write the caller runs it in ends. A host's own `valuesUpdated` listener heard the probe's events
+   * already.
+   *
+   * @param {object[]} changes The changes.
+   */
+  #announceProbeChangesKept(changes: unknown[]) {
+    if (!this.engine) {
+      return;
+    }
+
+    getRegisteredHotInstances(this.engine).forEach((boundHot) => {
+      const plugin = boundHot.getPlugin(PLUGIN_KEY as 'formulas') as unknown as Formulas | undefined;
+
+      if (plugin instanceof Formulas && plugin.engine === this.engine) {
+        plugin.#onEngineValuesUpdated(changes);
+      }
+    });
+  }
+
+  /**
+   * Writes probe values into the engine in one batch, skipping a cell the engine cannot hold.
+   *
+   * @param {object[]} writes The probe writes.
+   */
+  #writeProbeBatch(writes: ProbeWrite[]) {
+    const engine = this.engine!;
+
+    engine.batch(() => {
+      writes.forEach(({ address, value }) => {
+        if (engine.isItPossibleToSetCellContents(address)) {
+          engine.setCellContents(address, value);
+        }
+      });
+    });
+  }
+
+  /**
+   * Calculates a formula for its validator without writing it (`calculateFormula()`), for an engine that
+   * keeps fewer than two undo entries (`undoLimit` below 2). The engine evaluates it on its own, as if it were in the first cell, so a cycle
+   * through the cell itself, a reference to another deferred cell of the set, `ROW()` and a spill are not
+   * what the cell would hold; a parse error reads as the formula text. An engine without the method hands
+   * the formula text to the validator.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @param {string} formula The engine-bound formula.
+   * @returns {*}
+   */
+  #calculateDetached(visualRow: number, visualColumn: number, formula: string) {
+    const engine = this.engine!;
+
+    if (typeof engine.calculateFormula !== 'function' || !engine.validateFormula(formula)) {
+      return formula;
+    }
+
+    let result = engine.calculateFormula(formula, this.sheetId as number);
+
+    if (Array.isArray(result)) {
+      result = result[0]?.[0];
+    }
+
+    return this.#toValidationValue(visualRow, visualColumn, result);
+  }
+
+  /**
+   * Builds the key of a cell in `#validationValues`.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {string}
+   */
+  #validationValueKey(visualRow: number, visualColumn: number) {
+    return `${visualRow}:${visualColumn}`;
+  }
+
+  /**
+   * Turns a change into the value a write puts into the engine, the way `syncChangeWithEngine()` does:
+   * the column's `valueGetter` resolves an object, and a text value is escaped
+   * (`#escapeEngineBoundValue`).
+   *
+   * @param {object} validated The change with its coordinates.
+   * @returns {*} The engine-bound value.
+   */
+  #toEngineBoundChangeValue({ change, visualRow, visualColumn, physicalRow, physicalColumn }: RejectableChange) {
+    const value = this.#getValueGetterValue(physicalRow, physicalColumn, change[3]);
+
+    if (typeof value !== 'string') {
+      return value;
+    }
+
+    return this.#escapeEngineBoundValue(value, this.hot.getCellMetaTransient(visualRow, visualColumn));
+  }
+
+  /**
+   * Writes a `setDataAtCell()` / `setDataAtRowProp()` change set into the engine, in one batch. The
+   * caller passes only changes whose row and column exist; a change whose property names no column is
+   * skipped.
    *
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
-   * @returns {{ dependentCells: unknown[], changedCells: unknown[], outOfBoundsChanges: Array[] }}
+   * @returns {{ dependentCells: unknown[], changedCells: unknown[], writtenCells: object[] }}
    */
   #writeChangesToEngine(changes: CellChange[]) {
-    const outOfBoundsChanges: [number, number, unknown][] = [];
     const changedCells: unknown[] = [];
     const writtenCells: WrittenCell[] = [];
 
@@ -5415,9 +7453,7 @@ export class Formulas extends BasePlugin {
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
         }
-        // This hook runs before the change is applied, so a write past the last column on array
-        // data addresses a column that does not exist yet. Its index is kept, as in `dataChange.ts`,
-        // so the value still reaches the engine through the out-of-bounds path below.
+
         const visualColumn = this.hot.propToCol(prop) ?? (typeof prop === 'number' ? prop : null);
 
         // A property that names no column has no engine address to sync.
@@ -5427,27 +7463,27 @@ export class Formulas extends BasePlugin {
 
         const physicalRow = this.hot.toPhysicalRow(visualRow);
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+        // A row or column the Core could not create (`maxRows`, `allowInsertRow: false`).
+        if (physicalRow === null || physicalColumn === null) {
+          return;
+        }
+
         const address = {
           row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
           col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
           sheet: this.sheetId,
         };
 
-        newValue = this.#getValueGetterValue(physicalRow, physicalColumn, newValue);
-
-        if (physicalRow !== null && physicalColumn !== null) {
-          this.syncChangeWithEngine(visualRow, visualColumn, newValue);
-          writtenCells.push({
-            address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue, writtenContent: undefined,
-          });
-
-        } else {
-          outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
-        }
-
+        this.syncChangeWithEngine(
+          visualRow, visualColumn, this.#getValueGetterValue(physicalRow, physicalColumn, newValue),
+        );
+        writtenCells.push({
+          address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue, writtenContent: undefined,
+        });
         changedCells.push({ address });
       });
-    }));
+    }), 'cells');
 
     const readWrittenContent = () => writtenCells.forEach((cell) => {
       cell.writtenContent = this.#readEngineContent(cell.address);
@@ -5459,30 +7495,30 @@ export class Formulas extends BasePlugin {
       readWrittenContent();
     }
 
-    return { dependentCells, changedCells, outOfBoundsChanges, writtenCells };
+    return { dependentCells, changedCells, writtenCells };
   }
 
   /**
    * `beforeChangeRender` hook callback.
    *
-   * Writes a change set back into the engine when a full sheet write from the source data replaced
-   * the sheet, or a sheet switch replaced the grid's data, between `afterSetDataAtCell` (where the
-   * change first reached the engine) and now, when the Core applied it. `beforeChangeRender` is the first hook `applyChanges` runs on its own
-   * after it writes the set to the data (the row and column hooks of `alter()`, such as
-   * `beforeCreateRow`/`afterCreateRow`, can fire before it, from `writeChangesToData` and
-   * `adjustRowsAndCols`, when a change lies out of bounds). It runs before the render that follows, so
-   * the cell never paints its raw formula text. That window
-   * is open while the Core validates a change, which it does in a microtask, so an `updateSettings()`
-   * in the same task rebuilds the sheet from source data that does not hold the change yet. A sheet
-   * switch loads data, so the Core drops a set that waited across one and this listener never sees it
-   * (`#onChangesDropped` handles it). The sheet id is still compared, so a set that does reach the
-   * render after the binding moved to another sheet is written into the current one, where the grid
-   * holds it.
+   * Writes what `afterSetDataAtCell` left of a change set into the engine, now that the Core applies it:
+   * the changes the Core could reject that the validators accepted (the Core spliced the rejected
+   * ones out of this very array, so they never reach the engine), and the changes past the last row or
+   * column, whose rows and columns the Core has just created. `beforeChangeRender` is the first hook
+   * `applyChanges` runs on its own after it writes the set to the data (the row and column hooks of
+   * `alter()`, such as `beforeCreateRow`/`afterCreateRow`, can fire before it, from `writeChangesToData`
+   * and `adjustRowsAndCols`, when a change lies out of bounds), and it runs before the render that
+   * follows, so the grid paints the values the engine computes from the write.
    *
-   * By now the Core has created the rows and columns an out-of-bounds change needed, so the whole set
-   * is written in one batch - one engine undo entry for one grid action - and the deferred
-   * `afterChange` write of those changes is skipped. The dependents the write recalculated are
-   * validated, as on the `afterSetDataAtCell` path.
+   * The whole set is written instead when a full sheet write from the source data replaced the sheet, or
+   * the binding moved to another sheet, between `afterSetDataAtCell` and now: an `updateSettings()` in
+   * the same task as the change rebuilds the sheet from source data that does not hold the changes
+   * written early yet. A sheet switch loads data, so the Core drops a set that waited across one and this
+   * listener never sees it (`#onChangesDropped` handles it). The sheet id is still compared, so a set that
+   * does reach the render after the binding moved to another sheet is written into the current one, where
+   * the grid holds it, and the sheet it left gets its early-written cells back.
+   *
+   * Each write is one batch - one engine undo entry - and the dependents it recalculated are validated.
    *
    * @param {Array[]|null} changes An array of changes in format [[row, prop, oldValue, value], ...].
    */
@@ -5495,27 +7531,99 @@ export class Formulas extends BasePlugin {
 
     this.#changesAwaitingApply.delete(changes);
 
-    if (
-      !this.engine ||
-      (awaitingApply.writeCount === this.#sheetWriteCount && awaitingApply.sheetId === this.sheetId) ||
-      changes.length === 0
-    ) {
+    const engine = this.engine;
+    const isSheetReplaced = awaitingApply.writeCount !== this.#sheetWriteCount ||
+      awaitingApply.sheetId !== this.sheetId;
+    const changesToWrite = isSheetReplaced
+      ? changes
+      : changes.filter(change => awaitingApply.deferredChanges.has(change));
+
+    if (!engine || this.#isSheetEmptiedSince(awaitingApply)) {
       return;
     }
 
     // One write, so a grid on another sheet that reads a restored cell and a written one paints once.
-    const { dependentCells, changedCells } = this.#writeOwnSheet(this.engine!, () => {
-      if (awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId) {
-        this.#restoreSwitchedAwaySheet(awaitingApply.writtenCells, awaitingApply.sheetId);
-      }
+    const { dependentCells, changedCells } = changesToWrite.length === 0
+      ? { dependentCells: [], changedCells: [] }
+      : this.#writeOwnSheet(engine, () => {
+        if (awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId) {
+          this.#restoreSwitchedAwaySheet(awaitingApply.writtenCells, awaitingApply.sheetId);
+        }
 
-      return this.#writeChangesToEngine(changes);
-    });
+        return this.#writeChangesToEngine(changesToWrite);
+      }, 'cells');
+    // The dependents the early write left to the apply (see `#splitDependentsOfDeferred()`), also when every
+    // deferred change was rejected and nothing is written here.
+    const dependentsToValidate = uniqueCellChanges([...dependentCells, ...awaitingApply.heldDependents]);
+    const { readersOfDeferred } = awaitingApply;
+    const readerKeys = new Set(readersOfDeferred.map(({ address }) => toCellKey(address)));
+    const isReader = (change: unknown) => isHFCellChange(change) && !!change.address &&
+      readerKeys.has(toCellKey(change.address));
 
-    awaitingApply.writtenBack = true;
+    if (readerKeys.size === 0) {
+      this.#validateChangedDependents(awaitingApply, dependentsToValidate, changedCells);
 
-    this.#validateWriteDependents(dependentCells, changedCells);
+      return;
+    }
+
+    // The Core validated the readers of the deferred cells by the probe's result, which is what they hold
+    // now when every deferred change was accepted, so they are not validated again. After a rejection they
+    // hold a value computed from the old content, so they are validated again. A reader whose validator
+    // answered in its own call is validated inside the edit's undo step, so what its validator or
+    // `afterValidate` writes is undone with the edit. Any other one is validated outside every step, like a
+    // dependent: inside, its validator would hold the step and an undo right after `afterChange` was lost.
+    const isAnyRejected = awaitingApply.rejectableChanges.some(change => !changes.includes(change));
+    const otherChangedCells = changedCells.filter(change => !isReader(change));
+
+    this.#validateChangedDependents(
+      awaitingApply,
+      dependentsToValidate.filter(change => !isReader(change)),
+      [...changedCells, ...readersOfDeferred],
+    );
+
+    if (isAnyRejected) {
+      const isSync = ({ answer }: { answer: ReaderAnswer }) => answer.answered &&
+        (!answer.isSyncChecked || answer.wasAnsweredAtCheck);
+
+      this.validateDependentCells(readersOfDeferred.filter(isSync), otherChangedCells);
+      this.#validateDependentCellsUnrecorded(readersOfDeferred.filter(reader => !isSync(reader)), otherChangedCells);
+    }
   };
+
+  /**
+   * Validates the dependents an apply recalculated: outside every undo step when the set held a change the
+   * Core can reject (`#validateDependentCellsUnrecorded()`), inside the edit's step otherwise.
+   *
+   * @param {object} awaitingApply The record of the change set.
+   * @param {object[]} dependentCells The cells to validate.
+   * @param {object[]} changedCells The cells the Core validates as changes of the set.
+   */
+  #validateChangedDependents(
+    awaitingApply: ChangeSetAwaitingApply, dependentCells: unknown[], changedCells: unknown[],
+  ) {
+    // A held apply (`batchEvaluation`) reports no dependents: the release validates them, once, against the
+    // recalculated values. The dependents the early write left to the apply are validated now.
+    recordHeldWrite(this.engine, changedCells);
+
+    if (awaitingApply.hasRejectableChange) {
+      this.#validateDependentCellsUnrecorded(dependentCells, changedCells);
+    } else {
+      this.validateDependentCells(dependentCells, changedCells);
+    }
+  }
+
+  /**
+   * Answers whether the engine refused a full write of the sheet while the change set waited, with no
+   * full write since: the sheet was emptied (`#clearRejectedSheet`), and the set's cells are not written
+   * into it.
+   *
+   * @param {object} awaitingApply The record of the change set.
+   * @returns {boolean}
+   */
+  #isSheetEmptiedSince(awaitingApply: ChangeSetAwaitingApply) {
+    return awaitingApply.refusedWriteCount !== this.#refusedSheetWriteCount &&
+      this.#sheetWriteCountAtRefusal === this.#sheetWriteCount;
+  }
 
   /**
    * Called by the Core for a change set it dropped: the set waited for its validators while
@@ -5535,14 +7643,13 @@ export class Formulas extends BasePlugin {
    *
    * The restore runs in a plugin write that paints this grid as well: the Core renders nothing for a
    * dropped set, so a cell of the sheet shown that reads a restored cell kept the value computed from the
-   * dropped one. The set's pending out-of-bounds write is dropped with it.
+   * dropped one. Only the changes the Core cannot reject were written early; the others never
+   * reached the engine, so they need nothing.
    *
    * @param {Array[]} changes The dropped change array, the one `afterSetDataAtCell` received.
    */
   #onChangesDropped = (changes: CellChange[]) => {
     const awaitingApply = this.#changesAwaitingApply.get(changes);
-
-    this.#outOfBoundsWrites.delete(changes);
 
     if (!awaitingApply) {
       return;
@@ -5560,7 +7667,9 @@ export class Formulas extends BasePlugin {
     this.#flushEvaluation();
 
     if (sheetId !== this.sheetId) {
-      withPluginEngineWrite(this.engine, () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId));
+      withPluginEngineWrite(this.engine, () => this.#trackOwnEngineWrite(
+        () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId), 'cells',
+      ));
 
     } else if (foreignLoadCount === this.#foreignLoadCount) {
       this.#restoreReloadedCells(writtenCells);
@@ -5634,8 +7743,8 @@ export class Formulas extends BasePlugin {
    * The cells come from the record the FIRST write kept (`ChangeSetAwaitingApply#writtenCells`), not
    * from mapping the changes again: by now the grid's indexes describe the switched-to sheet's data -
    * rows the Core just created included - so a fresh mapping named cells that write never touched
-   * and skipped ones it did. An out-of-bounds change was never written there (its write is the
-   * deferred `afterChange` one), so it has no record. The old values are what that sheet held,
+   * and skipped ones it did. An out-of-bounds change, or one the Core could reject, was never written
+   * there (it waits for `beforeChangeRender`), so it has no record. The old values are what that sheet held,
    * because the grid's data was that sheet's when the change was made. A sheet removed from the
    * engine in the meantime is left alone.
    *
@@ -5774,6 +7883,7 @@ export class Formulas extends BasePlugin {
       }
 
       changedCells.push({ address });
+      this.#noteOwnCellWrite(address);
       this.engine!.setCellContents(address, newValue).forEach((dependentCell: unknown) => {
         dependentCells.push(dependentCell);
       });
@@ -5786,15 +7896,15 @@ export class Formulas extends BasePlugin {
       this.#writeOwnSheet(engine, () => {
         beginHeldEngineWrite(engine);
         writeAll();
-      });
+      }, 'cells');
       this.#validateWriteDependents(dependentCells, changedCells);
 
       return;
     }
 
-    const { dependents, changed } = withPluginEngineWrite(engine, () => (
+    const { dependents, changed } = withPluginEngineWrite(engine, () => this.#trackOwnEngineWrite(() => (
       this.#runRestoreWrite(engine, () => runEngineBatch(engine, writeAll))
-    ));
+    ), 'cells'));
 
     this.validateDependentCells(dependentCells.concat(dependents), changedCells.concat(changed));
   }
@@ -6239,7 +8349,7 @@ export class Formulas extends BasePlugin {
       beginHeldEngineWrite(engine);
 
       return engine.addRows(this.sheetId, [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]);
-    }));
+    }, 'resets'));
 
     this.#syncFormulasToSourceData();
   };
@@ -6269,7 +8379,7 @@ export class Formulas extends BasePlugin {
       beginHeldEngineWrite(engine);
 
       return engine.addColumns(this.sheetId, [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]);
-    }));
+    }, 'resets'));
 
     this.#syncFormulasToSourceData();
   };
@@ -6315,7 +8425,7 @@ export class Formulas extends BasePlugin {
 
     this.#trackPeerRewrites(() => this.#writeOwnSheet(engine, () => runEngineBatch(engine, () => {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
-    }, { movesCells: true })));
+    }, { movesCells: true }), 'resets'));
 
     this.#syncFormulasToSourceData(true);
   };
@@ -6345,7 +8455,7 @@ export class Formulas extends BasePlugin {
 
     this.#trackPeerRewrites(() => this.#writeOwnSheet(engine, () => runEngineBatch(engine, () => {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
-    }, { movesCells: true })));
+    }, { movesCells: true }), 'resets'));
 
     this.#syncFormulasToSourceData(true);
   };
