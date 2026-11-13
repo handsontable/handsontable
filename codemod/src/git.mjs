@@ -20,6 +20,24 @@ function gitEnv() {
 }
 
 /**
+ * Options in front of every git command the tool runs, because a repository's own configuration can make git execute
+ * a program:
+ *
+ * - `core.fsmonitor` names a command that `git status` and `git ls-files` run to learn which files changed. A
+ *   repository can set it to anything, so it is turned off.
+ * - `--no-pager` keeps `core.pager` and `pager.<command>` out of the way. The tool reads the output through a pipe,
+ *   where git does not page, and this makes sure of it.
+ *
+ * The commands the tool uses (`rev-parse`, `ls-files`, `status`) do not run `diff.external`, a `textconv` filter, or a
+ * hook, and open no network connection, so `diff.*`, `core.hooksPath`, `core.sshCommand`, and `credential.helper` have
+ * no effect on them. A clean filter (`filter.<name>.clean` with a `filter=<name>` attribute) does run in `git status`
+ * for a file whose content has to be compared, as it does for every git command in that repository. It cannot be
+ * turned off without marking every file a filter manages (Git LFS, say) as modified, so the README says to run the tool
+ * only in a repository you trust.
+ */
+const GIT_OPTIONS = ['--no-pager', '-c', 'core.fsmonitor=false'];
+
+/**
  * Run git in a directory.
  *
  * @param {string[]} args Git arguments.
@@ -27,7 +45,11 @@ function gitEnv() {
  * @returns {Promise<string>} Standard output.
  */
 async function git(args, cwd) {
-  const { stdout } = await execFileAsync('git', args, { cwd, env: gitEnv(), maxBuffer: 256 * 1024 * 1024 });
+  const { stdout } = await execFileAsync('git', [...GIT_OPTIONS, ...args], {
+    cwd,
+    env: gitEnv(),
+    maxBuffer: 256 * 1024 * 1024,
+  });
 
   return stdout;
 }

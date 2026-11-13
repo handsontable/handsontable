@@ -6,8 +6,8 @@
  * @module lib/pnpm-catalog
  */
 
-import { readFile } from 'node:fs/promises';
 import { join, posix } from 'node:path';
+import { readUtf8, stripBom } from './text-file.mjs';
 
 const WORKSPACE_FILE = 'pnpm-workspace.yaml';
 const UNREADABLE_VALUE = /^[*&[{|>!%@`]/;
@@ -143,7 +143,7 @@ export async function findCatalog(cwd, packageFile) {
     const file = dir === '.' ? WORKSPACE_FILE : posix.join(dir, WORKSPACE_FILE);
 
     try {
-      return { file, catalogs: parseCatalogs(await readFile(join(cwd, file), 'utf8')) };
+      return { file, catalogs: parseCatalogs(stripBom(await readUtf8(join(cwd, file)))) };
     } catch {
       // No workspace file here, or one that cannot be read: look one directory up.
     }

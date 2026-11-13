@@ -47,8 +47,14 @@ jobs:
         run: npm run in handsontable test:eslint-rules
       # The codemod's own suite (`node --test`, literal file list). It imports jscodeshift and postcss, so it
       # cannot join the root `test:tooling` glob, whose job installs nothing; this job has the workspace
-      # installed. The package's `lint` already ran in `npm run lint` above.
+      # installed. The package's `lint` already ran in `npm run lint` above. It runs only when the codemod
+      # scope changed or on a run-all (`run-codemod`, set by `test.yml`), because the suite takes about a
+      # minute and every pull request reaches this job, on the critical path of `build`. When it does run,
+      # this step is the Linux leg on the Node version of `.nvmrc`, and the `codemod` job below adds Node 20
+      # and 24 on Linux and Node 22 on Windows, so the supported versions are all covered whenever the
+      # scope changes.
       - name: Codemod tests
+        if: inputs.run-codemod
         run: npm run test --prefix codemod
 
       # The frozen Jasmine suite's determinism rules (no-fixed-sleep-in-spec,
@@ -103,8 +109,9 @@ jobs:
 
   # The codemod is a CLI customers run on their own machines, so its suite also
   # runs where they do: Windows (path separators, CRLF, git) and the Node versions
-  # its `engines` field allows. The `core` job above covers Linux on the Node
-  # version of `.nvmrc`. Only the codemod's own dependencies are installed.
+  # its `engines` field allows. The `Codemod tests` step of the `core` job above
+  # covers Linux on the Node version of `.nvmrc`, on the same `run-codemod` gate.
+  # Only the codemod's own dependencies are installed.
   codemod:
     name: codemod (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}

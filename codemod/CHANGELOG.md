@@ -46,6 +46,25 @@ How versions are chosen:
   that the flag moves the default `--to` to the newest draft.
 - The note about a pin in `resolutions` says "resolutions", not "overrides".
 - The TODO of `19.0.0/resize-state-methods` on a call it keeps names the method.
+- A second run adds no second TODO to a call that shared a line with other code inside a function, a method, or an
+  object (`mounted() { this.hot = new Handsontable(...); this.hot.undo(); }`). The first run spreads the object over
+  lines, and the second run now finds the comment the first run put above the enclosing statement.
+- A file that is not valid UTF-8 is skipped with a `skipped-file` warning and keeps its bytes. Before, a rule that
+  edited it replaced every byte it could not decode with U+FFFD. A UTF-8 byte order mark still stays in a file.
+- A `package.json` with a byte order mark gets its bumps, and the mark stays. Before, the file failed to parse.
+- A file the tool cannot write is a `write-error` warning with exit code 1, and the summary does not count it as
+  changed. Before, the run stopped with a stack trace.
+- A URL in a dependency spec shows `//***@` for its user information in the console, the report file, the `--dry-run`
+  diff, and the messages on standard error. Before, `git+https://user:TOKEN@host/repo.git` was printed as written.
+- `--report` with a directory that does not exist, or that is not writable, or a path that is a directory, is a usage
+  error before any file changes. Before, the files were migrated and the run ended with a stack trace. A report that
+  cannot be written after the run is one line on standard error, with exit code 1, after the summary.
+- The git commands of the tool run with `core.fsmonitor` off and with no pager, so the configuration of a project
+  cannot make `--dry-run` run a program. The README says that a clean filter still runs in `git status`.
+- A page with many unclosed `<script>` tags, and a file with many unclosed `/* TODO(handsontable-codemod` comments,
+  takes linear time. Before, 1 MiB of either took a minute or more.
+- The guide anchors of two `notAutomated` entries of the 19.0 draft (the Cmd/Ctrl rows) are the ids of the built
+  site, and the test helper slugs a heading with inline tags and a double hyphen the way the site does.
 
 ## [0.1.0] – not published
 

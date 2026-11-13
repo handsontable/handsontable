@@ -18,6 +18,7 @@ import {
   findRequires,
   getImportedBindings,
 } from '../lib/imports.mjs';
+import { createLineCounter, scanScripts } from '../lib/inline-script.mjs';
 import { GENERIC_OPTIONS, KNOWN_OPTIONS, findOptionObjects, hasSpread } from '../lib/option-objects.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import { printTree } from '../lib/print.mjs';
@@ -1628,11 +1629,6 @@ function describeElement(env, elementPath) {
 }
 
 /**
- * An inline `<script>` element with no `src` attribute. The groups are its attributes and its text.
- */
-const INLINE_SCRIPT = /<script\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\b[^>]*>/gid;
-
-/**
  * Find where the arguments of a call end, by counting parentheses and skipping strings, template literals, and
  * comments. This is a raw-text scan, not a parse.
  *
@@ -1680,20 +1676,19 @@ function closeOfCall(text, start) {
 function matchInlineMissingOption(env, node) {
   const key = new RegExp(`\\b${node.spec.missingOption}\\b`);
   const matches = [];
+  const lineOfOffset = createLineCounter(env.source);
 
-  for (const script of env.source.matchAll(INLINE_SCRIPT)) {
-    const [from] = script.indices[2];
-
-    if (/\bsrc\s*=/i.test(script[1])) {
+  for (const script of scanScripts(env.source)) {
+    if (/\bsrc\s*=/i.test(script.attributes)) {
       continue;
     }
 
-    for (const call of script[2].matchAll(/\bnew\s+Handsontable\s*\(/g)) {
+    for (const call of script.body.matchAll(/\bnew\s+Handsontable\s*\(/g)) {
       const open = call.index + call[0].length;
-      const args = script[2].slice(open, closeOfCall(script[2], open));
+      const args = script.body.slice(open, closeOfCall(script.body, open));
 
       if (args.includes('{') && !key.test(args)) {
-        matches.push({ line: env.source.slice(0, from + call.index).split('\n').length });
+        matches.push({ line: lineOfOffset(script.bodyStart + call.index) });
       }
     }
   }

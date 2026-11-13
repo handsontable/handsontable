@@ -2,6 +2,8 @@ import { JsonDocument, detectIndent } from '../lib/json-edit.mjs';
 
 export { detectIndent };
 
+const BOM = 0xFEFF;
+
 /**
  * Adapter for JSON, in practice `package.json`. The whole file is one `json` part whose `root` is the parsed
  * value, for reading. A transform changes the file through `part.json` (a `JsonDocument`, see `lib/json-edit.mjs`),
@@ -22,14 +24,19 @@ const jsonAdapter = {
    * @returns {import('../types.mjs').ParseHandle} Handle with one part.
    */
   parse(source) {
-    const root = JSON.parse(source);
+    // npm accepts a leading byte order mark and `JSON.parse` does not. The document works on the text after the mark,
+    // so every offset stays right, and `print()` puts the mark back.
+    const bom = source.charCodeAt(0) === BOM ? source[0] : '';
+    const text = source.slice(bom.length);
+    const root = JSON.parse(text);
 
     return {
+      bom,
       parts: [{
         fileKind: 'json',
-        source,
+        source: text,
         root,
-        json: new JsonDocument(source, root),
+        json: new JsonDocument(text, root),
         j: null,
         lineOffset: 0,
         changed: false,
@@ -38,12 +45,14 @@ const jsonAdapter = {
   },
 
   /**
-   * @param {import('../types.mjs').ParseHandle} handle Handle from `parse`.
+   * @param {import('../types.mjs').ParseHandle & {bom?: string}} handle Handle from `parse`.
    * @param {string} source Original file text.
    * @returns {string} Printed file.
    */
   print(handle, source) {
-    return handle.parts[0].json?.text ?? source;
+    const [part] = handle.parts;
+
+    return part.json ? `${handle.bom ?? ''}${part.json.text}` : source;
   },
 };
 

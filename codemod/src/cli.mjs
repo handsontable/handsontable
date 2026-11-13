@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
+import { redact } from './lib/redact.mjs';
 import { BELOW_FROM_RULE_ID, plural, renderConsole, renderMarkdown } from './report.mjs';
 import { describeRules, resolvePlan, run } from './runner.mjs';
 
@@ -182,10 +183,14 @@ function nextSteps(result, stdout) {
  */
 export async function main(argv, {
   cwd = process.cwd(),
-  stdout = text => process.stdout.write(text),
-  stderr = text => process.stderr.write(text),
+  stdout: writeOut = text => process.stdout.write(text),
+  stderr: writeErr = text => process.stderr.write(text),
   progress = Boolean(process.stdout.isTTY),
 } = {}) {
+  // Everything that reaches a terminal or a log passes through one filter, so the user information of a URL in a
+  // dependency spec never shows up, whichever message or diff line carries it.
+  const stdout = text => writeOut(redact(text));
+  const stderr = text => writeErr(redact(text));
   let parsed;
 
   try {
@@ -283,13 +288,19 @@ export async function main(argv, {
     if (values.report) {
       const date = new Date().toISOString().slice(0, 10);
 
-      await writeFile(resolve(cwd, values.report), renderMarkdown(result.report, {
-        ...summary,
-        from: result.from,
-        to: result.to,
-        date,
-      }));
-      stdout(`Report written to ${values.report}.\n`);
+      try {
+        await writeFile(resolve(cwd, values.report), renderMarkdown(result.report, {
+          ...summary,
+          from: result.from,
+          to: result.to,
+          date,
+        }));
+        stdout(`Report written to ${values.report}.\n`);
+      } catch (error) {
+        // The files are migrated and the summary is printed. A report that cannot be written must not hide the rest.
+        stderr(`Could not write the report to ${values.report}: ${error.message}\n`);
+        result.exitCode = 1;
+      }
     }
 
     if (!dryRun) {

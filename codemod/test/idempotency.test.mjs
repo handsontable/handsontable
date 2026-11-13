@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import { VERSIONS_DIR, buildPlan, loadManifest, loadManifests } from '../src/manifest.mjs';
+import { VERSIONS_DIR, buildPlan, loadManifests } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { listFixtures } from './helpers/fixtures.mjs';
 import { loadReleasedManifests } from './helpers/manifests.mjs';
@@ -14,7 +14,9 @@ const fullPlan = buildPlan(await loadReleasedManifests(), []);
 const draftPlan = buildPlan((await loadManifests(VERSIONS_DIR)).filter(manifest => manifest.status === 'draft'), []);
 
 /**
- * Transform a text three times in a row, each run on the output of the one before.
+ * Transform a text three times in a row, each run on the output of the one before. A run that changes nothing hands the
+ * same text to the next one, and `transformFile()` is a pure function of its input, so the next run is not repeated: its
+ * result is the one just computed.
  *
  * @param {string} filePath File name, for the adapter.
  * @param {string} source Starting text.
@@ -25,9 +27,11 @@ const draftPlan = buildPlan((await loadManifests(VERSIONS_DIR)).filter(manifest 
 async function threeRuns(filePath, source, plan, options = {}) {
   const outputs = [];
   let text = source;
+  let previous = null;
 
   for (let run = 0; run < 3; run += 1) {
-    text = (await transformFile({ filePath, source: text, plan, options })).output;
+    previous = previous?.changed === false ? previous : await transformFile({ filePath, source: text, plan, options });
+    text = previous.output;
     outputs.push(text);
   }
 
@@ -193,37 +197,6 @@ describe('idempotency of TODO comments', () => {
   });
 });
 
-describe('every fixture output is stable across three runs', async() => {
-  const fixtures = await listFixtures();
-
-  for (const fixture of fixtures) {
-    it(`${fixture.version}/${fixture.name}`, async() => {
-      const manifest = await loadManifest(join(VERSIONS_DIR, fixture.version));
-      const optionsFile = await readFile(join(fixture.dir, 'options.json'), 'utf8').catch(() => '{}');
-      const config = JSON.parse(optionsFile);
-      const output = await readFile(join(fixture.dir, fixture.outputName), 'utf8');
-      const plan = buildPlan([manifest], config.only ?? []);
-      const options = { aggressive: Boolean(config.aggressive) };
-      const facts = new Set(config.facts ?? []);
-      let text = output;
-
-      for (let run = 2; run <= 3; run += 1) {
-        const result = await transformFile({
-          filePath: fixture.outputName,
-          source: text,
-          plan,
-          options,
-          facts,
-          phase: config.phase ?? 1,
-        });
-
-        assert.equal(result.changed, false, `run ${run} changed the output`);
-        text = result.output;
-      }
-    });
-  }
-});
-
 /**
  * Count the entries a run leaves for the user to read, by rule id. A `changed` entry says what the run did, so the next
  * run has none. A `manual` or `warning` entry says what is still there, so the next run reports it again, unless
@@ -245,9 +218,26 @@ function standingEntries(entries) {
   return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)));
 }
 
+/**
+ * Every fixture of every manifest is swept twice: with the rules of the fixture, and with every rule of the manifest.
+ * Run 2 must change no file. Run 3 is not run: it would start from the text of run 2, which is the text of run 1, and
+ * `transformFile()` is a pure function of its input, so it could only repeat run 2. The three-run check stays where a
+ * run can change the text (the shapes above and `idempotency-nested.test.mjs`).
+ */
 describe('every rule of every manifest, drafts included, reports a spot once however many times it runs', async() => {
   const fixtures = await listFixtures();
   const manifests = await loadManifests(VERSIONS_DIR);
+  // One plan per manifest and per set of rules, built once: a plan is read-only data.
+  const plans = new Map();
+  const planOf = (manifest, only) => {
+    const key = `${manifest.version}\u0000${only.join(',')}`;
+
+    if (!plans.has(key)) {
+      plans.set(key, buildPlan([manifest], only));
+    }
+
+    return plans.get(key);
+  };
 
   for (const fixture of fixtures) {
     const manifest = manifests.find(item => item.version === fixture.version);
@@ -256,7 +246,7 @@ describe('every rule of every manifest, drafts included, reports a spot once how
       it(`${fixture.version}/${fixture.name}, ${scope}`, async() => {
         const config = JSON.parse(await readFile(join(fixture.dir, 'options.json'), 'utf8').catch(() => '{}'));
         const input = await readFile(join(fixture.dir, fixture.inputName), 'utf8');
-        const plan = buildPlan([manifest], scope === 'every rule of the manifest' ? [] : config.only ?? []);
+        const plan = planOf(manifest, scope === 'every rule of the manifest' ? [] : config.only ?? []);
         const args = {
           filePath: fixture.inputName,
           plan,
@@ -265,14 +255,17 @@ describe('every rule of every manifest, drafts included, reports a spot once how
           phase: config.phase ?? 1,
         };
         const first = await transformFile({ ...args, source: input });
-        const second = await transformFile({ ...args, source: first.output });
-        const third = await transformFile({ ...args, source: second.output });
+        // A run that changed nothing returns its input, so a second run would start from the same text.
+        const second = first.changed ? await transformFile({ ...args, source: first.output }) : first;
+
+        if (scope === 'the rules of the fixture') {
+          // The committed output is what run 1 gives, so run 2 starts from it: the output of a fixture is stable.
+          assert.equal(first.output, await readFile(join(fixture.dir, fixture.outputName), 'utf8'),
+            'run 1 does not give the committed output');
+        }
 
         assert.equal(second.changed, false, 'run 2 changed the output');
-        assert.equal(third.changed, false, 'run 3 changed the output');
-        const [one, two, three] = [first, second, third].map(result => standingEntries(result.entries));
-
-        assert.deepEqual(three, two, 'run 3 reports other entries than run 2');
+        const [one, two] = [first, second].map(result => standingEntries(result.entries));
 
         for (const [key, count] of Object.entries(two)) {
           assert.ok(count <= (one[key] ?? 0), `run 2 reports ${key} ${count} times, run 1 ${one[key] ?? 0}`);

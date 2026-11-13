@@ -1,18 +1,34 @@
 import assert from 'node:assert/strict';
 
 /**
- * Slug of a heading text the way the docs site builds an anchor: the list number (`6. `) and the Markdown code
- * ticks are dropped, the text is lower-cased, every character that is not a letter, a digit, a space, a hyphen, or
- * an underscore is removed, and each space becomes a hyphen. So `Replace \`handsontable/common\` imports` is
- * `replace-handsontablecommon-imports` and `Numbro.js` is `numbrojs`.
+ * The text of a heading as the page shows it, which is what the site slugs: the list number is dropped, an inline
+ * tag (`<kbd>`) is dropped and its text stays, and a double hyphen outside a code span becomes the dash that the site's
+ * typography makes of it. A code span keeps its text as it is, tags and hyphens included.
+ *
+ * @param {string} text Heading text without the leading `#` marks.
+ * @returns {string} The text without inline markup.
+ */
+export function headingTextOf(text) {
+  return text
+    .replace(/^\d+\.\s+/, '')
+    .split(/(`[^`]*`)/)
+    .map(part => (part.startsWith('`') && part.endsWith('`') && part.length > 1 ? part.slice(1, -1)
+      : part.replace(/<\/?[A-Za-z][^>]*>/g, '').replace(/-{2,3}/g, '~')))
+    .join('');
+}
+
+/**
+ * Slug of a heading text the way the docs site builds an anchor: the text of the heading with its inline markup
+ * removed (`headingTextOf()`) is lower-cased, every character that is not a letter, a digit, a space, a hyphen, or an
+ * underscore is removed, and each space becomes a hyphen. So `Replace \`handsontable/common\` imports` is
+ * `replace-handsontablecommon-imports`, `Numbro.js` is `numbrojs`, and `<kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click`
+ * is `cmdctrl--click`. The test `guide-anchors.test.mjs` pins this function to the ids of the built site.
  *
  * @param {string} text Heading text without the leading `#` marks.
  * @returns {string} The slug, before the `-1`, `-2` suffix that repeated headings get.
  */
 export function slugOf(text) {
-  return text
-    .replace(/^\d+\.\s+/, '')
-    .replace(/`/g, '')
+  return headingTextOf(text)
     .trim()
     .toLowerCase()
     .replace(/[^\p{L}\p{M}\p{N}\p{Pc} -]/gu, '')
@@ -28,9 +44,15 @@ export function slugOf(text) {
  */
 export function missingAnchors(manifest, markdown) {
   const anchors = anchorsOf(markdown);
+  const sections = [
+    ...manifest.rules.map(rule => ({ id: rule.id, guide: rule.guide })),
+    ...(manifest.notAutomated ?? []).map(item => ({
+      id: `notAutomated ${item.guide ?? item.title ?? ''}`.trim(),
+      guide: item.guide,
+    })),
+  ];
 
-  return manifest.rules.filter(rule => rule.guide && !anchors.has(rule.guide))
-    .map(rule => ({ id: rule.id, guide: rule.guide }));
+  return sections.filter(section => section.guide && !anchors.has(section.guide));
 }
 
 /**
@@ -60,14 +82,14 @@ export function checkAnchors(manifest, markdown, context) {
 }
 
 /**
- * Every anchor a Markdown page offers: the slug of each `##` to `######` heading outside a code fence, with the
- * numeric suffix that the site gives a heading whose slug was seen before.
+ * Every anchor a Markdown page offers, in document order: the slug of each `##` to `######` heading outside a code
+ * fence, with the numeric suffix that the site gives a heading whose slug was seen before.
  *
  * @param {string} markdown Page text.
- * @returns {Set<string>} The anchors.
+ * @returns {string[]} The anchors, one per heading.
  */
-export function anchorsOf(markdown) {
-  const anchors = new Set();
+export function anchorListOf(markdown) {
+  const anchors = [];
   const seen = new Map();
   let fence = null;
 
@@ -91,9 +113,19 @@ export function anchorsOf(markdown) {
       const count = seen.get(slug) ?? 0;
 
       seen.set(slug, count + 1);
-      anchors.add(count === 0 ? slug : `${slug}-${count}`);
+      anchors.push(count === 0 ? slug : `${slug}-${count}`);
     }
   }
 
   return anchors;
+}
+
+/**
+ * Every anchor a Markdown page offers.
+ *
+ * @param {string} markdown Page text.
+ * @returns {Set<string>} The anchors.
+ */
+export function anchorsOf(markdown) {
+  return new Set(anchorListOf(markdown));
 }

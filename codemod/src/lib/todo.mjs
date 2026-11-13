@@ -124,6 +124,28 @@ export function collectComments(file) {
 }
 
 /**
+ * The text between the end of a comment and the start of a node. The offsets of a node are offsets in the text recast
+ * handed to the parser, which joins the lines with the platform's line terminator and turns leading tabs into spaces,
+ * so on Windows, or in a file indented with tabs, they are not offsets of the original text. The `Lines` object that
+ * recast keeps for the parse reads the same text by line and column, which are right in both. The original text is the
+ * fallback for a node that has no such object.
+ *
+ * @param {{loc?: object, end?: number}} comment A comment with source offsets.
+ * @param {{loc?: object, start?: number}} node A node with a source offset.
+ * @param {string} source Original text of the part.
+ * @returns {string} The text in between.
+ */
+function textBetween(comment, node, source) {
+  const lines = node.loc?.lines;
+
+  if (lines && comment.loc?.end && node.loc?.start) {
+    return lines.sliceString(comment.loc.end, node.loc.start);
+  }
+
+  return source.slice(comment.end, node.start);
+}
+
+/**
  * Whether a comment sits directly in front of a node: nothing but white space, commas, and a closing `}` (the end
  * of a JSX comment container) lies between them in the source. Where the parser attached the comment (to the node,
  * to the property before it, or to the one after) does not matter.
@@ -138,7 +160,7 @@ function sitsBefore(comment, node, source) {
     return false;
   }
 
-  return /^[\s,}]*$/.test(source.slice(comment.end, node.start));
+  return /^[\s,}]*$/.test(textBetween(comment, node, source));
 }
 
 /**
@@ -155,6 +177,25 @@ function hasTodo(node, body, scan) {
   if ((node.comments ?? []).some(comment => comment.value.trim() === body)) {
     return true;
   }
+
+  return Boolean(scan) && scan.comments()
+    .some(comment => comment.value.trim() === body && sitsBefore(comment, node, scan.source));
+}
+
+/**
+ * Whether an earlier run, or the user, left the same TODO in front of a node of the original parse. Unlike
+ * `hasJsTodo()` it ignores the comments this run inserts, so a marker that this run wrote for one spot never stands in
+ * for another spot of the same rule further down.
+ *
+ * @param {object} node An AST node.
+ * @param {string} ruleId Id of the rule that asks for the follow-up.
+ * @param {string} text What the user has to do.
+ * @param {string|null} guideUrl Link to the guide section, or `null` for none.
+ * @param {CommentScan|null} scan The part's comments as the parser attached them.
+ * @returns {boolean} `true` when the source already had a comment with this text in front of the node.
+ */
+export function hasEarlierTodo(node, ruleId, text, guideUrl, scan) {
+  const body = formatTodo(ruleId, text, guideUrl);
 
   return Boolean(scan) && scan.comments()
     .some(comment => comment.value.trim() === body && sitsBefore(comment, node, scan.source));

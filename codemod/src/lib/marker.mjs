@@ -100,6 +100,64 @@ export function markerTargets(path) {
 }
 
 /**
+ * Every node above a path where an earlier run could have left a marker for the code at the path: each statement,
+ * declaration, class or object member, and array element on the way to the root. The printer spreads a one-line
+ * object over several lines when a comment lands in it, so code that shared a line with its statement in the first run
+ * has lines of its own in the second, and its nearest anchor is now a node inside the one the first run commented.
+ * The layout only ever moves anchors inward, so the node the first run chose is always one of these.
+ *
+ * @param {object} path NodePath to start from.
+ * @returns {object[]} AST nodes, nearest first.
+ */
+export function anchorsAbove(path) {
+  const found = [];
+
+  for (let current = path; current; current = current.parent) {
+    const { node, parent } = current;
+    const isStatement = /(?:Statement|Declaration)$/.test(node.type) && node.type !== 'BlockStatement';
+
+    if (MEMBER_NODES.has(node.type) || parent?.node.type === 'ArrayExpression' || isStatement) {
+      found.push(node, ...sharedLineSiblings(current));
+    }
+  }
+
+  return found;
+}
+
+/**
+ * The siblings before a node that end on the line it starts on, nearest first, and the ones that chain to them the
+ * same way. When code shares a line with a statement, the first run puts its comment before the first of them (the
+ * outermost node of the line, first in document order). The printer then spreads that first statement over lines, the
+ * statement after it starts on the line where the first one ends, and the second run must look in front of the first.
+ *
+ * @param {object} path NodePath of a node that sits in a list (statements, members, elements).
+ * @returns {object[]} The earlier siblings that share a line with the node or with one that chains to it.
+ */
+function sharedLineSiblings(path) {
+  const list = path.parentPath?.value;
+  const found = [];
+
+  if (!Array.isArray(list)) {
+    return found;
+  }
+
+  let next = path.node;
+
+  for (let index = list.indexOf(path.node) - 1; index >= 0; index -= 1) {
+    const sibling = list[index];
+
+    if (!sibling?.loc || !next.loc || sibling.loc.end.line !== next.loc.start.line) {
+      break;
+    }
+
+    found.push(sibling);
+    next = sibling;
+  }
+
+  return found;
+}
+
+/**
  * Index the nodes of a parsed js part by the line they start on, so a marker for a report line finds its place in one
  * lookup. Only nodes from the original parse count: a node the run built has no position. Where several nodes start
  * on one line, the outermost one is kept: the statement or property that the line opens takes the comment, so a
@@ -107,8 +165,9 @@ export function markerTargets(path) {
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
- * @returns {(line: number) => object[]} A function from a one-based line to the marker targets, nearest first (see
- * `markerTargets()`).
+ * @returns {(line: number) => {targets: object[], above: object[]}} A function from a one-based line to the marker
+ * targets, nearest first (see `markerTargets()`), and the nodes above them where an earlier run may have left the same
+ * comment (see `anchorsAbove()`).
  */
 export function createMarkerIndex(j, root) {
   const outermost = new Map();
@@ -127,7 +186,15 @@ export function createMarkerIndex(j, root) {
     }
   });
 
-  return line => (outermost.has(line) ? markerTargets(outermost.get(line).path) : []);
+  return (line) => {
+    if (!outermost.has(line)) {
+      return { targets: [], above: [] };
+    }
+
+    const { path } = outermost.get(line);
+
+    return { targets: markerTargets(path), above: anchorsAbove(path) };
+  };
 }
 
 /**

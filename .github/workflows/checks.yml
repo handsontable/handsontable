@@ -320,9 +320,12 @@ jobs:
               - './handsontable/src/**'
               - './handsontable/test/**'
             # The codemod is a CLI that runs on customer machines, so its suite also
-            # runs on Windows and on the Node versions its `engines` allows.
+            # runs on Windows and on the Node versions its `engines` allows. The
+            # lockfile is in scope: a bump of jscodeshift, recast, or postcss changes
+            # what the codemod runs on, and a Dependabot PR touches nothing else.
             test-codemod:
               - './codemod/**'
+              - './pnpm-lock.yaml'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra

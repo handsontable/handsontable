@@ -1,7 +1,9 @@
-import { readFile, stat } from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { UsageError } from './errors.mjs';
 import { aliasRange, isSourceSpec, rangeAdmits } from './lib/dependency-range.mjs';
+import { redact } from './lib/redact.mjs';
+import { readUtf8, stripBom } from './lib/text-file.mjs';
 
 /**
  * A parsed version. A partial input such as `17` or `17.1` keeps `parts` below 3 so callers can tell it
@@ -28,7 +30,7 @@ export function parseVersion(input) {
   const match = VERSION_PATTERN.exec(String(input).trim());
 
   if (!match) {
-    throw new UsageError(`"${input}" is not a version. Use a form like 17, 17.1, or 18.0.0.`);
+    throw new UsageError(`"${redact(input)}" is not a version. Use a form like 17, 17.1, or 18.0.0.`);
   }
 
   const [, major, minor, patch, prerelease] = match;
@@ -405,7 +407,7 @@ export async function detectProjectVersion(cwd, paths = []) {
  */
 async function readJson(path) {
   try {
-    return JSON.parse(await readFile(path, 'utf8'));
+    return JSON.parse(stripBom(await readUtf8(path)));
   } catch {
     // A missing or malformed file only means this source cannot name a version.
     return null;

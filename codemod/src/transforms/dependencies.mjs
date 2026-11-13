@@ -2,6 +2,7 @@ import { attributeName, propertyName } from '../lib/ast.mjs';
 import { isRemoteSource, parseCatalogSpec, planRange, rangeAdmits } from '../lib/dependency-range.mjs';
 import { addFact, dirOf, factSite, hasFactFor } from '../lib/facts.mjs';
 import { memberPosition } from '../lib/json-edit.mjs';
+import { redact } from '../lib/redact.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { problemsOf } from '../lib/validate.mjs';
 import { BELOW_FROM_RULE_ID } from '../report.mjs';
@@ -289,7 +290,7 @@ function reportBelowFrom(ctx, found) {
   }
 
   const lowest = list.map(item => item.line).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))[0];
-  const declared = list.map(item => `${item.name} ${item.range}`).join(' and ');
+  const declared = list.map(item => `${item.name} ${redact(item.range)}`).join(' and ');
 
   ctx.report({
     ruleId: BELOW_FROM_RULE_ID,
@@ -344,7 +345,7 @@ function reportCatalog(ctx, rule, { name, section, spec, target, catalog, mergeK
   const place = catalog.name ? `catalogs.${catalog.name}` : 'catalog';
   const range = ctx.catalog?.catalogs.get(catalog.name ?? '')?.get(name);
   const file = ctx.catalog?.file ?? 'pnpm-workspace.yaml';
-  const lead = `${name} "${spec}" in ${section} takes its range from the pnpm catalog.`;
+  const lead = `${name} "${redact(spec)}" in ${section} takes its range from the pnpm catalog.`;
 
   if (range && (['keep', 'skip'].includes(planRange(range, target).action) || rangeAdmits(range, target) === true)) {
     return;
@@ -355,7 +356,8 @@ function reportCatalog(ctx, rule, { name, section, spec, target, catalog, mergeK
     severity: 'manual',
     mergeKey,
     message: range
-      ? `${lead} The ${place} section of ${file} has "${range}". Set it to ^${target} there, not in package.json.`
+      ? `${lead} The ${place} section of ${file} has "${redact(range)}". `
+        + `Set it to ^${target} there, not in package.json.`
       : `${lead} Set it to ^${target} in the ${place} section of ${file}, not in package.json.`,
   });
 }
@@ -407,7 +409,7 @@ function bump(ctx, rule) {
           ruleId: rule.id,
           severity: 'manual',
           mergeKey,
-          message: `Update ${name} in ${section} from "${original}" to "${plan.value}".`,
+          message: `Update ${name} in ${section} from "${redact(original)}" to "${plan.value}".`,
         });
       } else if (plan.action === 'rewrite' && !setRange(ctx, section, name, plan.value)) {
         ctx.report({
@@ -415,7 +417,7 @@ function bump(ctx, rule) {
           severity: 'manual',
           mergeKey,
           message: `Could not edit ${name} in ${section} without reformatting package.json. `
-            + `Set it from "${original}" to "${plan.value}" by hand.`,
+            + `Set it from "${redact(original)}" to "${plan.value}" by hand.`,
         });
       } else if (plan.action === 'rewrite') {
         written.set(key, original);
@@ -424,7 +426,7 @@ function bump(ctx, rule) {
           ruleId: rule.id,
           severity: 'changed',
           mergeKey,
-          message: `Updated ${name} in ${section} from "${original}" to "${plan.value}".`,
+          message: `Updated ${name} in ${section} from "${redact(original)}" to "${plan.value}".`,
         });
 
         if (section === 'peerDependencies') {
@@ -435,15 +437,15 @@ function bump(ctx, rule) {
           ruleId: rule.id,
           severity: 'manual',
           mergeKey,
-          message: `${name} "${current}" in ${section} ${plan.reason}. Set it to ^${target} by hand.`,
+          message: `${name} "${redact(current)}" in ${section} ${plan.reason}. Set it to ^${target} by hand.`,
         });
       } else if (plan.action === 'skip' && isRemoteSource(current)) {
         ctx.report({
           ruleId: rule.id,
           severity: 'manual',
           mergeKey,
-          message: `${name} "${current}" in ${section} installs from a repository or a URL, so the tool cannot tell `
-            + `its version. Point it at ${target} by hand.`,
+          message: `${name} "${redact(current)}" in ${section} installs from a repository or a URL, so the tool `
+            + `cannot tell its version. Point it at ${target} by hand.`,
         });
       }
     }
@@ -507,7 +509,7 @@ function reportPins(ctx, rule) {
         ruleId: rule.id,
         severity: 'manual',
         mergeKey: `pin:${label}`,
-        message: `${label} pins ${name} to "${value}", which does not allow ${bumps[name]}. `
+        message: `${label} pins ${name} to "${redact(value)}", which does not allow ${bumps[name]}. `
           + `Update or remove it by hand. The tool does not edit ${label.replace(/\[.*$/s, '')}.`,
       });
     }
@@ -532,7 +534,7 @@ function reportPins(ctx, rule) {
           ruleId: rule.id,
           severity: 'manual',
           mergeKey: `alias:${section}:${key}`,
-          message: `${key} in ${section} is an alias of ${alias[1]}@${alias[2]}, which does not allow `
+          message: `${key} in ${section} is an alias of ${alias[1]}@${redact(alias[2])}, which does not allow `
             + `${bumps[alias[1]]}. Update it by hand.`,
         });
       }

@@ -1,3 +1,5 @@
+import { redact } from './lib/redact.mjs';
+
 /**
  * Rule id of the entry that says a file was not analyzed. These entries are not rule results: both renderers
  * list them in a "Skipped files" section.
@@ -405,7 +407,7 @@ export function renderConsole(report, {
 
   lines.push(summaryLine(report, { filesChanged, dryRun }));
 
-  return `${lines.join('\n')}\n`;
+  return redact(`${lines.join('\n')}\n`);
 }
 
 /**
@@ -495,5 +497,5 @@ export function renderMarkdown(report, {
     lines.push('');
   }
 
-  return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+  return redact(lines.join('\n').replace(/\n{3,}/g, '\n\n'));
 }

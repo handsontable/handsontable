@@ -5,10 +5,12 @@ import tsxParser from 'jscodeshift/parser/tsx.js';
 const PARSERS = { babylon: babylonParser, ts: tsParser, tsx: tsxParser };
 
 /**
- * The comments this tool writes: a `//` line, or a block comment (a JSX comment and a stylesheet comment are blocks),
- * that starts with `TODO(handsontable-codemod `.
+ * Where a comment the tool wrote starts: a `//` line, which runs to the end of its line, or the opening of a block
+ * comment (a JSX comment and a stylesheet comment are blocks). Both begin with `TODO(handsontable-codemod `. A block
+ * ends at the first `*\/` after it, which `blankToolComments()` looks up with `indexOf()`: a lazy expression for the
+ * block read to the end of the text for every opening that never closes.
  */
-const TOOL_COMMENT = /\/\/[ \t]*TODO\(handsontable-codemod [^\r\n]*|\/\*[ \t]*TODO\(handsontable-codemod [\s\S]*?\*\//g;
+const TOOL_COMMENT_START = /\/\/[ \t]*TODO\(handsontable-codemod [^\r\n]*|\/\*[ \t]*TODO\(handsontable-codemod /g;
 
 /**
  * Replace the characters of a range with spaces and keep the line breaks.
@@ -32,7 +34,36 @@ function blank(text) {
  * @returns {string} The text without the comments of the tool.
  */
 export function blankToolComments(source) {
-  return source.includes('TODO(handsontable-codemod ') ? source.replace(TOOL_COMMENT, blank) : source;
+  if (!source.includes('TODO(handsontable-codemod ')) {
+    return source;
+  }
+
+  const starts = new RegExp(TOOL_COMMENT_START);
+  let text = '';
+  let copied = 0;
+  let unterminated = false;
+
+  for (let match = starts.exec(source); match; match = starts.exec(source)) {
+    let end = match.index + match[0].length;
+
+    if (match[0].startsWith('/*')) {
+      // With no `*/` after one opening there is none after a later one, so the search stops being repeated.
+      const close = unterminated ? -1 : source.indexOf('*/', end);
+
+      if (close === -1) {
+        unterminated = true;
+        continue;
+      }
+
+      end = close + 2;
+      starts.lastIndex = end;
+    }
+
+    text += source.slice(copied, match.index) + blank(source.slice(match.index, end));
+    copied = end;
+  }
+
+  return text + source.slice(copied);
 }
 
 /**

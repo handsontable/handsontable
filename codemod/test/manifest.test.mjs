@@ -111,7 +111,10 @@ describe('every shipped manifest', () => {
     assert.equal(slugOf('6. Update theme wrapper border variables'), 'update-theme-wrapper-border-variables');
     assert.equal(slugOf('Migrate numeric format from Numbro.js `pattern` to `Intl.NumberFormat`'),
       'migrate-numeric-format-from-numbrojs-pattern-to-intlnumberformat');
-    assert.equal(slugOf('How to migrate -- date cells'), 'how-to-migrate----date-cells');
+    assert.equal(slugOf('How to migrate -- date cells'), 'how-to-migrate--date-cells');
+    assert.equal(slugOf('8. <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click on a cell'), 'cmdctrl--click-on-a-cell');
+    assert.equal(slugOf('Icons are rendered as `<i>` elements'), 'icons-are-rendered-as-i-elements');
+    assert.equal(slugOf('Use `--ht-gap` for spacing'), 'use---ht-gap-for-spacing');
     assert.deepEqual([...anchorsOf('## A\n### Who\n```sh\n## not a heading\n```\n## B\n### Who\n')],
       ['a', 'who', 'b', 'who-1']);
   });

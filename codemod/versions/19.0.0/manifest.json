@@ -41,7 +41,7 @@
       "reason": "It depends on character references inside the text you give to titles, labels, and cell text, which the tool does not read."
     },
     {
-      "guide": "kbdcmdkbdkbdctrlkbd--click-on-a-selected-cell-moves-the-highlight",
+      "guide": "cmdctrl--click-on-a-selected-cell-moves-the-highlight",
       "reason": "It changes what a click does inside a selection, and no code or setting of yours selects it."
     },
     {
@@ -93,7 +93,7 @@
       "reason": "It depends on the form of the entitlement key that you pass, and the tool never reads or changes a license key."
     },
     {
-      "guide": "kbdcmdkbdkbdctrlkbd--arrow-keys-on-a-row-header-expand-and-collapse-row-groups",
+      "guide": "cmdctrl--arrow-keys-on-a-row-header-expand-and-collapse-row-groups",
       "reason": "It changes what two keyboard shortcuts do on a row header, and no pattern in your code marks it."
     },
     {

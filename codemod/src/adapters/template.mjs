@@ -1,3 +1,5 @@
+import { createLineCounter, scanScripts } from '../lib/inline-script.mjs';
+
 /**
  * Cheap test on raw template text: does it mention the Handsontable package, a wrapper element or component, a
  * theme variable, or one of the class name families the migration rules look for. It is case-sensitive on the
@@ -5,11 +7,6 @@
  * require the word "handsontable", because a page that only styles the grid rarely says it.
  */
 export const TEMPLATE_PRECHECK = /--ht-|\bht-|\bht[A-Z]|[Hh]andsontable|hot-table|HotTable|HotColumn|hot-column|pika-/;
-
-/**
- * An inline `<script>` element: its tag, no `src` attribute, and its text.
- */
-const INLINE_SCRIPT = /<script\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\b[^>]*>/gi;
 
 /**
  * Adapter for HTML templates: Angular component templates and plain pages. `parse` returns one read-only
@@ -42,22 +39,21 @@ const templateAdapter = {
    * @returns {Array<{line: number, message: string}>} No note, or one.
    */
   skipNotes(source, checks = []) {
-    const lines = [...source.matchAll(INLINE_SCRIPT)]
-      .filter(match => !/\bsrc\s*=/i.test(match[1]) && /handsontable/i.test(match[2]))
-      .map(match => source.slice(0, match.index).split('\n').length);
+    const scripts = scanScripts(source)
+      .filter(script => !/\bsrc\s*=/i.test(script.attributes) && /handsontable/i.test(script.body));
 
-    if (lines.length === 0) {
+    if (scripts.length === 0) {
       return [];
     }
 
+    const count = scripts.length;
     const listed = checks.length > 0 ? ` Check by hand: ${checks.join(', ')}.` : '';
 
     return [{
-      line: lines[0],
-      message: `${lines.length === 1 ? 'An inline <script> that uses'
-        : `${lines.length} inline <script> elements that use`} `
-        + `Handsontable ${lines.length === 1 ? 'was' : 'were'} not analyzed. The tool reads no JavaScript inside an `
-        + `HTML page. Check ${lines.length === 1 ? 'it' : 'them'} by hand.${listed}`,
+      line: createLineCounter(source)(scripts[0].index),
+      message: `${count === 1 ? 'An inline <script> that uses' : `${count} inline <script> elements that use`} `
+        + `Handsontable ${count === 1 ? 'was' : 'were'} not analyzed. The tool reads no JavaScript inside an `
+        + `HTML page. Check ${count === 1 ? 'it' : 'them'} by hand.${listed}`,
     }];
   },
 

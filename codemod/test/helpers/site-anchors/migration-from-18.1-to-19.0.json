@@ -1,0 +1,1101 @@
+{
+  "page": "migration-from-18.1-to-19.0",
+  "note": "Headings of the guide as written in Markdown, with the id the built docs site gave each one, read from the rendered page. test/guide-anchors.test.mjs holds slugOf() to these ids. The guide itself may change; this file does not.",
+  "headings": [
+    {
+      "level": 2,
+      "markdown": "1. `date` cells reach the formula engine the same way on every data path",
+      "id": "date-cells-reach-the-formula-engine-the-same-way-on-every-data-path"
+    },
+    {
+      "level": 3,
+      "markdown": "Values that are not ISO dates stay text",
+      "id": "values-that-are-not-iso-dates-stay-text"
+    },
+    {
+      "level": 3,
+      "markdown": "A `type` set through `cells()` now applies",
+      "id": "a-type-set-through-cells-now-applies"
+    },
+    {
+      "level": 3,
+      "markdown": "Your `cells()` function and meta hooks run on those paths",
+      "id": "your-cells-function-and-meta-hooks-run-on-those-paths"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate"
+    },
+    {
+      "level": 2,
+      "markdown": "2. A `beforeInit` callback in your settings now runs",
+      "id": "a-beforeinit-callback-in-your-settings-now-runs"
+    },
+    {
+      "level": 3,
+      "markdown": "Why a dormant callback can break the grid",
+      "id": "why-a-dormant-callback-can-break-the-grid"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-1"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-1"
+    },
+    {
+      "level": 3,
+      "markdown": "Two hooks that still cannot be used as options",
+      "id": "two-hooks-that-still-cannot-be-used-as-options"
+    },
+    {
+      "level": 2,
+      "markdown": "3. Confirming an editor without typing writes nothing",
+      "id": "confirming-an-editor-without-typing-writes-nothing"
+    },
+    {
+      "level": 3,
+      "markdown": "Validation is unchanged",
+      "id": "validation-is-unchanged"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-2"
+    },
+    {
+      "level": 3,
+      "markdown": "An editor that `beforeChange` used to close",
+      "id": "an-editor-that-beforechange-used-to-close"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-2"
+    },
+    {
+      "level": 3,
+      "markdown": "Related: choosing what an emptied cell stores",
+      "id": "related-choosing-what-an-emptied-cell-stores"
+    },
+    {
+      "level": 2,
+      "markdown": "4. A sanitizer that returns a `TrustedHTML` skips paste normalization",
+      "id": "a-sanitizer-that-returns-a-trustedhtml-skips-paste-normalization"
+    },
+    {
+      "level": 2,
+      "markdown": "5. `toHTML()` puts headers through your sanitizer",
+      "id": "tohtml-puts-headers-through-your-sanitizer"
+    },
+    {
+      "level": 2,
+      "markdown": "6. Character references in grid copy and cell text",
+      "id": "character-references-in-grid-copy-and-cell-text"
+    },
+    {
+      "level": 2,
+      "markdown": "7. `checked` is a reserved context menu item property",
+      "id": "checked-is-a-reserved-context-menu-item-property"
+    },
+    {
+      "level": 2,
+      "markdown": "8. <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click on a selected cell moves the highlight",
+      "id": "cmdctrl--click-on-a-selected-cell-moves-the-highlight"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-3"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-3"
+    },
+    {
+      "level": 2,
+      "markdown": "9. Formulas shortcut methods",
+      "id": "formulas-shortcut-methods"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-4"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-4"
+    },
+    {
+      "level": 2,
+      "markdown": "10. Removing a parent row removes every row below it",
+      "id": "removing-a-parent-row-removes-every-row-below-it"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-5"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-5"
+    },
+    {
+      "level": 2,
+      "markdown": "11. A plain value written into a key/value `source` cell resolves to the matching object",
+      "id": "a-plain-value-written-into-a-keyvalue-source-cell-resolves-to-the-matching-object"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-6"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-6"
+    },
+    {
+      "level": 2,
+      "markdown": "12. A `dropdown` column with `strict: false` validates strictly",
+      "id": "a-dropdown-column-with-strict-false-validates-strictly"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-7"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-7"
+    },
+    {
+      "level": 2,
+      "markdown": "13. Leaving a merged cell with a left or right arrow lands on its top row",
+      "id": "leaving-a-merged-cell-with-a-left-or-right-arrow-lands-on-its-top-row"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-8"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-8"
+    },
+    {
+      "level": 2,
+      "markdown": "14. Row elements move with their rows on a vertical scroll",
+      "id": "row-elements-move-with-their-rows-on-a-vertical-scroll"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-9"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-9"
+    },
+    {
+      "level": 2,
+      "markdown": "15. AutoColumnSize includes the list-cell arrow in the column width",
+      "id": "autocolumnsize-includes-the-list-cell-arrow-in-the-column-width"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-10"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-10"
+    },
+    {
+      "level": 2,
+      "markdown": "16. The list cell types default to a single line",
+      "id": "the-list-cell-types-default-to-a-single-line"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-11"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-11"
+    },
+    {
+      "level": 2,
+      "markdown": "17. `height: 'auto'` no longer clips the grid",
+      "id": "height-auto-no-longer-clips-the-grid"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-12"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-12"
+    },
+    {
+      "level": 2,
+      "markdown": "18. `getCopyableData()` returns a string",
+      "id": "getcopyabledata-returns-a-string"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-13"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-13"
+    },
+    {
+      "level": 2,
+      "markdown": "19. Dropdown editor lists are no longer confined to the grid",
+      "id": "dropdown-editor-lists-are-no-longer-confined-to-the-grid"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-14"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-14"
+    },
+    {
+      "level": 2,
+      "markdown": "20. `spliceCol()` and `spliceRow()` are deprecated",
+      "id": "splicecol-and-splicerow-are-deprecated"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-15"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-15"
+    },
+    {
+      "level": 2,
+      "markdown": "21. A `numeric` cell aligns itself by its type, not by its value",
+      "id": "a-numeric-cell-aligns-itself-by-its-type-not-by-its-value"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-16"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-16"
+    },
+    {
+      "level": 2,
+      "markdown": "22. `colToProp()` and `propToCol()` return `null` for an unknown column",
+      "id": "coltoprop-and-proptocol-return-null-for-an-unknown-column"
+    },
+    {
+      "level": 3,
+      "markdown": "Why this changed",
+      "id": "why-this-changed"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-17"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-17"
+    },
+    {
+      "level": 3,
+      "markdown": "TypeScript",
+      "id": "typescript"
+    },
+    {
+      "level": 3,
+      "markdown": "Hooks: what did not change",
+      "id": "hooks-what-did-not-change"
+    },
+    {
+      "level": 3,
+      "markdown": "Other behavior that did not change",
+      "id": "other-behavior-that-did-not-change"
+    },
+    {
+      "level": 3,
+      "markdown": "`getDataAtProp()` returns an empty array for an index that names no column",
+      "id": "getdataatprop-returns-an-empty-array-for-an-index-that-names-no-column"
+    },
+    {
+      "level": 3,
+      "markdown": "One hook does change",
+      "id": "one-hook-does-change"
+    },
+    {
+      "level": 2,
+      "markdown": "23. The `filters` option is type-checked",
+      "id": "the-filters-option-is-type-checked"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-18"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-18"
+    },
+    {
+      "level": 2,
+      "markdown": "24. Undo and redo restore a recorded state",
+      "id": "undo-and-redo-restore-a-recorded-state"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-19"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-19"
+    },
+    {
+      "level": 2,
+      "markdown": "25. `maxLength` is a built-in cell option",
+      "id": "maxlength-is-a-built-in-cell-option"
+    },
+    {
+      "level": 3,
+      "markdown": "What changed",
+      "id": "what-changed"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-20"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-20"
+    },
+    {
+      "level": 2,
+      "markdown": "26. The narrowest column width depends on the theme",
+      "id": "the-narrowest-column-width-depends-on-the-theme"
+    },
+    {
+      "level": 3,
+      "markdown": "What changed",
+      "id": "what-changed-1"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-21"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-21"
+    },
+    {
+      "level": 2,
+      "markdown": "27. Icons are rendered as `<i>` elements",
+      "id": "icons-are-rendered-as-i-elements"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-22"
+    },
+    {
+      "level": 3,
+      "markdown": "The Filters caption text moved into a child element",
+      "id": "the-filters-caption-text-moved-into-a-child-element"
+    },
+    {
+      "level": 3,
+      "markdown": "The new element can collide with your own selectors",
+      "id": "the-new-element-can-collide-with-your-own-selectors"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-22"
+    },
+    {
+      "level": 2,
+      "markdown": "28. Frozen columns can be dragged, and the unfreeze hooks get a target",
+      "id": "frozen-columns-can-be-dragged-and-the-unfreeze-hooks-get-a-target"
+    },
+    {
+      "level": 3,
+      "markdown": "Frozen columns can be dragged",
+      "id": "frozen-columns-can-be-dragged"
+    },
+    {
+      "level": 3,
+      "markdown": "A drag changes the frozen columns without firing the freeze hooks",
+      "id": "a-drag-changes-the-frozen-columns-without-firing-the-freeze-hooks"
+    },
+    {
+      "level": 3,
+      "markdown": "The unfreeze hooks get a third argument",
+      "id": "the-unfreeze-hooks-get-a-third-argument"
+    },
+    {
+      "level": 3,
+      "markdown": "The new `restoreColumnPosition` option",
+      "id": "the-new-restorecolumnposition-option"
+    },
+    {
+      "level": 2,
+      "markdown": "29. License keys are checked more strictly",
+      "id": "license-keys-are-checked-more-strictly"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-23"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-23"
+    },
+    {
+      "level": 2,
+      "markdown": "30. <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + arrow keys on a row header expand and collapse row groups",
+      "id": "cmdctrl--arrow-keys-on-a-row-header-expand-and-collapse-row-groups"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-24"
+    },
+    {
+      "level": 2,
+      "markdown": "31. `HotColumn` no longer types hook props",
+      "id": "hotcolumn-no-longer-types-hook-props"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-24"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-25"
+    },
+    {
+      "level": 2,
+      "markdown": "32. `editor: false` is honored by typed and checkbox columns",
+      "id": "editor-false-is-honored-by-typed-and-checkbox-columns"
+    },
+    {
+      "level": 3,
+      "markdown": "A column `type` no longer re-enables editing",
+      "id": "a-column-type-no-longer-re-enables-editing"
+    },
+    {
+      "level": 3,
+      "markdown": "A checkbox cell with no editor can't be toggled",
+      "id": "a-checkbox-cell-with-no-editor-cant-be-toggled"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-25"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-26"
+    },
+    {
+      "level": 2,
+      "markdown": "33. Changing `dataSchema` resets the grid's index state",
+      "id": "changing-dataschema-resets-the-grids-index-state"
+    },
+    {
+      "level": 3,
+      "markdown": "What counts as a change",
+      "id": "what-counts-as-a-change"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-26"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-27"
+    },
+    {
+      "level": 2,
+      "markdown": "34. `colWidths` addresses columns by physical index",
+      "id": "colwidths-addresses-columns-by-physical-index"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-27"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-28"
+    },
+    {
+      "level": 2,
+      "markdown": "35. An auto-sized column is no longer capped at the width of the grid",
+      "id": "an-auto-sized-column-is-no-longer-capped-at-the-width-of-the-grid"
+    },
+    {
+      "level": 2,
+      "markdown": "36. A custom editor's `setValue()` receives the cell value",
+      "id": "a-custom-editors-setvalue-receives-the-cell-value"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-28"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-29"
+    },
+    {
+      "level": 2,
+      "markdown": "37. A string `dataProvider.rowId` reads a property with a dot in its name",
+      "id": "a-string-dataproviderrowid-reads-a-property-with-a-dot-in-its-name"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-29"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-30"
+    },
+    {
+      "level": 2,
+      "markdown": "38. XLSX export no longer needs ExcelJS",
+      "id": "xlsx-export-no-longer-needs-exceljs"
+    },
+    {
+      "level": 3,
+      "markdown": "`supportsExportFormat('xlsx')` now answers `true` with no engine configured",
+      "id": "supportsexportformatxlsx-now-answers-true-with-no-engine-configured"
+    },
+    {
+      "level": 3,
+      "markdown": "The \"To Excel\" context menu item shows with no engine configured",
+      "id": "the-to-excel-context-menu-item-shows-with-no-engine-configured"
+    },
+    {
+      "level": 3,
+      "markdown": "An XLSX export with no engine configured now succeeds",
+      "id": "an-xlsx-export-with-no-engine-configured-now-succeeds"
+    },
+    {
+      "level": 3,
+      "markdown": "Bug fixes that change the exported file",
+      "id": "bug-fixes-that-change-the-exported-file"
+    },
+    {
+      "level": 4,
+      "markdown": "An empty checkbox exports as an empty cell",
+      "id": "an-empty-checkbox-exports-as-an-empty-cell"
+    },
+    {
+      "level": 4,
+      "markdown": "The frozen pane counts only exported rows and columns",
+      "id": "the-frozen-pane-counts-only-exported-rows-and-columns"
+    },
+    {
+      "level": 4,
+      "markdown": "`NaN` and infinite numbers export as text",
+      "id": "nan-and-infinite-numbers-export-as-text"
+    },
+    {
+      "level": 4,
+      "markdown": "A cleared `numeric` cell exports as an empty cell",
+      "id": "a-cleared-numeric-cell-exports-as-an-empty-cell"
+    },
+    {
+      "level": 4,
+      "markdown": "Functions added after Excel 2007 carry Excel's stored prefix",
+      "id": "functions-added-after-excel-2007-carry-excels-stored-prefix"
+    },
+    {
+      "level": 4,
+      "markdown": "A formula is exported with the row it belongs to",
+      "id": "a-formula-is-exported-with-the-row-it-belongs-to"
+    },
+    {
+      "level": 4,
+      "markdown": "A formula keeps its references when columns are moved and hidden",
+      "id": "a-formula-keeps-its-references-when-columns-are-moved-and-hidden"
+    },
+    {
+      "level": 4,
+      "markdown": "A formula error is stored as an error cell",
+      "id": "a-formula-error-is-stored-as-an-error-cell"
+    },
+    {
+      "level": 4,
+      "markdown": "A number or `TRUE`/`FALSE` the Formulas plugin computed keeps its type",
+      "id": "a-number-or-truefalse-the-formulas-plugin-computed-keeps-its-type"
+    },
+    {
+      "level": 4,
+      "markdown": "An array formula is written as an array",
+      "id": "an-array-formula-is-written-as-an-array"
+    },
+    {
+      "level": 4,
+      "markdown": "Range arithmetic is written as a one-cell array",
+      "id": "range-arithmetic-is-written-as-a-one-cell-array"
+    },
+    {
+      "level": 4,
+      "markdown": "A decimal comma is written as a dot",
+      "id": "a-decimal-comma-is-written-as-a-dot"
+    },
+    {
+      "level": 4,
+      "markdown": "A formula over a name the file cannot hold is written as its value",
+      "id": "a-formula-over-a-name-the-file-cannot-hold-is-written-as-its-value"
+    },
+    {
+      "level": 4,
+      "markdown": "Values past Excel's limits are written at Excel's maximum",
+      "id": "values-past-excels-limits-are-written-at-excels-maximum"
+    },
+    {
+      "level": 4,
+      "markdown": "A control character is removed from a sheet name",
+      "id": "a-control-character-is-removed-from-a-sheet-name"
+    },
+    {
+      "level": 4,
+      "markdown": "A cell a merge covers keeps its own formatting",
+      "id": "a-cell-a-merge-covers-keeps-its-own-formatting"
+    },
+    {
+      "level": 4,
+      "markdown": "A currency symbol is written in quotes",
+      "id": "a-currency-symbol-is-written-in-quotes"
+    },
+    {
+      "level": 4,
+      "markdown": "A date Excel cannot store exports as text",
+      "id": "a-date-excel-cannot-store-exports-as-text"
+    },
+    {
+      "level": 4,
+      "markdown": "The dropdown list sheet is hidden instead of very hidden",
+      "id": "the-dropdown-list-sheet-is-hidden-instead-of-very-hidden"
+    },
+    {
+      "level": 4,
+      "markdown": "A grid on a right-to-left page exports a right-to-left sheet",
+      "id": "a-grid-on-a-right-to-left-page-exports-a-right-to-left-sheet"
+    },
+    {
+      "level": 4,
+      "markdown": "A malformed conditional formatting rule is skipped",
+      "id": "a-malformed-conditional-formatting-rule-is-skipped"
+    },
+    {
+      "level": 4,
+      "markdown": "A carriage return is stored as `_x000D_`",
+      "id": "a-carriage-return-is-stored-as-_x000d_"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-30"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-31"
+    },
+    {
+      "level": 2,
+      "markdown": "39. `removeCellMeta()` accepts an index past the grid's range",
+      "id": "removecellmeta-accepts-an-index-past-the-grids-range"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-31"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-32"
+    },
+    {
+      "level": 2,
+      "markdown": "40. A `dataSchema` with non-`null` values creates a column for each value",
+      "id": "a-dataschema-with-non-null-values-creates-a-column-for-each-value"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-32"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-33"
+    },
+    {
+      "level": 2,
+      "markdown": "41. Ten options are type-checked",
+      "id": "ten-options-are-type-checked"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-33"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-34"
+    },
+    {
+      "level": 2,
+      "markdown": "42. A hook set to `null` through `updateSettings()` is removed",
+      "id": "a-hook-set-to-null-through-updatesettings-is-removed"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-34"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-35"
+    },
+    {
+      "level": 2,
+      "markdown": "43. `colWidths: null` sizes columns like `undefined`",
+      "id": "colwidths-null-sizes-columns-like-undefined"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-35"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-36"
+    },
+    {
+      "level": 2,
+      "markdown": "44. An `afterRender` hook that writes to the engine loops",
+      "id": "an-afterrender-hook-that-writes-to-the-engine-loops"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-36"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-37"
+    },
+    {
+      "level": 2,
+      "markdown": "45. The copy, cut, and paste shortcuts are registered in the `grid` context",
+      "id": "the-copy-cut-and-paste-shortcuts-are-registered-in-the-grid-context"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-37"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-38"
+    },
+    {
+      "level": 2,
+      "markdown": "46. The Vue 3 wrapper props are type-checked",
+      "id": "the-vue-3-wrapper-props-are-type-checked"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-38"
+    },
+    {
+      "level": 3,
+      "markdown": "Boolean attributes without a value",
+      "id": "boolean-attributes-without-a-value"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-39"
+    },
+    {
+      "level": 2,
+      "markdown": "47. Four `MergedCellsCollection` methods are deprecated",
+      "id": "four-mergedcellscollection-methods-are-deprecated"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-39"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-40"
+    },
+    {
+      "level": 2,
+      "markdown": "48. The `Loading` plugin needs the `Dialog` plugin registered",
+      "id": "the-loading-plugin-needs-the-dialog-plugin-registered"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-40"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-41"
+    },
+    {
+      "level": 2,
+      "markdown": "49. Plugins apply their settings before the first render",
+      "id": "plugins-apply-their-settings-before-the-first-render"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-41"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-42"
+    },
+    {
+      "level": 2,
+      "markdown": "50. `rowHeights` sets an exact row height",
+      "id": "rowheights-sets-an-exact-row-height"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-42"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-43"
+    },
+    {
+      "level": 2,
+      "markdown": "51. `loadData()` drops a change that waits for its validator",
+      "id": "loaddata-drops-a-change-that-waits-for-its-validator"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-43"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-44"
+    },
+    {
+      "level": 2,
+      "markdown": "52. `SHEET()` keeps a sheet's number after an earlier sheet is removed",
+      "id": "sheet-keeps-a-sheets-number-after-an-earlier-sheet-is-removed"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-44"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-45"
+    },
+    {
+      "level": 2,
+      "markdown": "53. `updateSettings()` keeps the rows of a server-backed grid",
+      "id": "updatesettings-keeps-the-rows-of-a-server-backed-grid"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-45"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-46"
+    },
+    {
+      "level": 2,
+      "markdown": "54. The React and Angular wrappers pass only the settings that changed",
+      "id": "the-react-and-angular-wrappers-pass-only-the-settings-that-changed"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-46"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-47"
+    },
+    {
+      "level": 2,
+      "markdown": "55. The `non-commercial-and-evaluation` license key no longer works",
+      "id": "the-non-commercial-and-evaluation-license-key-no-longer-works"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-47"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-48"
+    },
+    {
+      "level": 2,
+      "markdown": "56. The minimum browser versions are higher",
+      "id": "the-minimum-browser-versions-are-higher"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-48"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-49"
+    },
+    {
+      "level": 2,
+      "markdown": "57. Removed deprecated APIs",
+      "id": "removed-deprecated-apis"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-49"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-50"
+    },
+    {
+      "level": 2,
+      "markdown": "58. `rowHeights` and `minRowHeights` address rows by physical index",
+      "id": "rowheights-and-minrowheights-address-rows-by-physical-index"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-50"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-51"
+    },
+    {
+      "level": 2,
+      "markdown": "59. Turning `loading` off turns the `Dialog` plugin off",
+      "id": "turning-loading-off-turns-the-dialog-plugin-off"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-51"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-52"
+    },
+    {
+      "level": 2,
+      "markdown": "60. A row dragged into a gap with hidden rows lands after them",
+      "id": "a-row-dragged-into-a-gap-with-hidden-rows-lands-after-them"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-52"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-53"
+    }
+  ]
+}

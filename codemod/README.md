@@ -139,8 +139,8 @@ A migration for version `v` runs when `from < v <= to`. `--from 17` means any 17
 | Code | Meaning |
 |---|---|
 | 0 | Done. |
-| 1 | A file could not be read, parsed, or transformed. The other files are still migrated. |
-| 2 | Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to migrate, unknown rule id. |
+| 1 | A file could not be read, parsed, transformed, or written, or the report file could not be written. The other files are still migrated. |
+| 2 | Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to migrate, unknown rule id, a `--report` path that cannot be written. |
 
 ### Output
 
@@ -152,8 +152,9 @@ about the run itself, such as a `--to` above every known migration, come first. 
 - **Read once.** A note that holds for every file, such as "CellValue is now `unknown`", appears one time with the
   files it applies to, not once per file.
 - **Skipped files.** Files and blocks the tool did not analyze: Less, Stylus, and Sass files, Vue `<style>` blocks in
-  those languages or with `src=`, HTML pages with inline scripts that use Handsontable, and files above
-  `--max-file-size`. Check them by hand.
+  those languages or with `src=`, HTML pages with inline scripts that use Handsontable, files that are not valid UTF-8
+  (the tool reads and writes UTF-8 only, so it leaves such a file as it is), and files above `--max-file-size`. Check
+  them by hand.
 
 A package whose `handsontable` range is below `--from` is not raised, because the steps from its own version were not
 selected. The tool warns once for that `package.json` (also on standard error, with exit code 0) and names the `--from`
@@ -162,7 +163,10 @@ to use on the package. Source files under it still get the selected rules.
 The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The file from `--report`
 has a title with the versions and the date, then the same line, every location, one checkbox per entry, and a link to
 the migration guide section of each rule. The tool refuses a `--report` path that is a symbolic link, a file git
-tracks, or a file it migrates. A rewrite is checked. A manual step is not. After the run the tool says how many manual steps have a marker in the code
+tracks, a file it migrates, a directory, or a file in a directory that does not exist or cannot be written. It checks
+the path before it changes any file. The user information of a URL (`//user:TOKEN@host`) is shown as `//***@host` in
+the console, the report file, and the `--dry-run` diff, so a dependency spec with a credential never reaches a log.
+A diff line that holds such a URL is therefore for reading, not for `git apply`. A rewrite is checked. A manual step is not. After the run the tool says how many manual steps have a marker in the code
 and how many are in the report only. On a terminal, a long run prints a progress line to the
 standard error stream every two seconds.
 
@@ -322,6 +326,12 @@ the tool reads the version from `package.json`, which the run raised, and answer
 ## Limitations
 
 - The tool reads one file at a time. It does not follow a settings object across files.
+- It reads and writes UTF-8. A file with a UTF-8 byte order mark keeps it, in a script, a stylesheet, and a
+  `package.json`. A file in another encoding is listed under "Skipped files" and is not touched.
+- It runs `git rev-parse`, `git ls-files`, and `git status` in your project, with `core.fsmonitor` off and no pager,
+  so the configuration of the repository cannot start a program through those two settings. Git itself still applies
+  the repository's clean filters (`filter.<name>.clean` with a `filter=<name>` attribute) when `git status` has to
+  compare a file, as it does for any git command there. Run the tool only in a repository you trust.
 - It follows a reference one hop inside the file and no further: an identifier or a member read such as `PRESET.chf`
   that a `const` holds, also through `as const`. An import, a parameter, a `let`, and a second hop are not followed. A
   `numericFormat` that comes from such a reference, or from an object that spreads one, is reported with "if it sets

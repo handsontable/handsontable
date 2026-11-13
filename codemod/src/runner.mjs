@@ -1,17 +1,22 @@
-import { lstat, readFile, realpath, stat, writeFile } from 'node:fs/promises';
-import { basename, join, posix, relative, resolve, sep } from 'node:path';
+import { constants } from 'node:fs';
+import { access, lstat, realpath, stat, writeFile } from 'node:fs/promises';
+import { basename, dirname, join, posix, relative, resolve, sep } from 'node:path';
 import { adapterFor } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
 import { discover, resolvesInside } from './discover.mjs';
 import { insideRelative } from './lib/paths.mjs';
+import { redact } from './lib/redact.mjs';
 import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { registerPackageDir } from './lib/facts.mjs';
 import { findCatalog } from './lib/pnpm-catalog.mjs';
+import { NotUtf8Error, readUtf8, stripBom } from './lib/text-file.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
 import { MarkerCarriers } from './lib/carrier.mjs';
 import { arrayOfTarget, createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
-import { addCssTodo, addJsTodo, collectComments, formatTodo, hasJsTodo, lineOf } from './lib/todo.mjs';
+import {
+  addCssTodo, addJsTodo, collectComments, formatTodo, hasEarlierTodo, hasJsTodo, lineOf,
+} from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
 import { Report, SKIPPED_RULE_ID, plural } from './report.mjs';
 import { registry as defaultRegistry } from './transforms/index.mjs';
@@ -446,7 +451,7 @@ function applyMarkers(part, marks, plan) {
     let placed = false;
 
     for (const line of mark.lines) {
-      const targets = [find(line)].flat();
+      const { targets, above } = isJs ? find(line) : { targets: [find(line)].flat().filter(Boolean), above: [] };
 
       if (targets.length === 0) {
         continue;
@@ -456,10 +461,12 @@ function applyMarkers(part, marks, plan) {
 
       if (isJs) {
         // The same comment further up the chain counts: an earlier run may have put it on the element of a one-line
-        // object that the printer then spread over several lines.
+        // object that the printer then spread over several lines. So does one in front of any node above, from a
+        // run before this one, because that run saw the code on the same line as the node that took the comment.
         const scan = commentScan(part);
         const body = formatTodo(mark.ruleId, mark.text, guideUrl);
         const there = targets.some(target => hasJsTodo(target, mark.ruleId, mark.text, guideUrl, scan))
+          || above.some(node => hasEarlierTodo(node, mark.ruleId, mark.text, guideUrl, scan))
           || carriers.has(targets[0], body);
 
         // An untouched array element takes its comment as text, so the printer leaves its layout alone.
@@ -641,8 +648,26 @@ export async function transformFile({
 async function assertReportTarget(cwd, reportPath, files, repo) {
   const target = resolve(cwd, reportPath);
   const info = await lstat(target).catch(() => null);
+  const folder = dirname(target);
+  const folderInfo = await stat(folder).catch(() => null);
+
+  // The report is written after the files are migrated, so a target that cannot be written is refused first.
+  if (!folderInfo?.isDirectory()) {
+    throw new UsageError(`--report ${reportPath}: the directory ${relative(cwd, folder) || '.'} does not exist. `
+      + 'Create it, or choose a file in an existing directory.');
+  }
+
+  if (info?.isDirectory()) {
+    throw new UsageError(`--report ${reportPath} is a directory. Choose a file name, for example `
+      + `${posix.join(reportPath.split(sep).join('/').replace(/\/+$/, ''), 'migration-report.md')}.`);
+  }
 
   if (!info) {
+    await access(folder, constants.W_OK).catch(() => {
+      throw new UsageError(`--report ${reportPath}: the directory ${relative(cwd, folder) || '.'} is not writable. `
+        + 'Choose another file.');
+    });
+
     return;
   }
 
@@ -679,7 +704,7 @@ async function scanPackageVersions(cwd, paths) {
     let manifest = null;
 
     try {
-      manifest = JSON.parse(await readFile(join(cwd, file), 'utf8'));
+      manifest = JSON.parse(stripBom(await readUtf8(join(cwd, file))));
     } catch {
       // A package.json that does not parse names no version.
     }
@@ -754,7 +779,7 @@ export async function resolvePlan({
       notes.push(`Detected --from ${fromText} (${detected.source}).`);
     } else if (detected) {
       throw new UsageError(`${detected.source.replace(/ \w+Dependencies$| dependencies$/, '')} names handsontable `
-        + `as "${detected.range}", which is not a version. Pass --from.`);
+        + `as "${redact(detected.range)}", which is not a version. Pass --from.`);
     } else if (!lenientFrom) {
       const { found: scanned, unversioned } = await scanPackageVersions(cwd, paths);
 
@@ -765,7 +790,7 @@ export async function resolvePlan({
       }
 
       if (scanned.length === 0 && unversioned) {
-        throw new UsageError(`${unversioned.file} names handsontable as "${unversioned.range}", `
+        throw new UsageError(`${unversioned.file} names handsontable as "${redact(unversioned.range)}", `
           + 'which is not a version. Pass --from.');
       }
 
@@ -1072,8 +1097,17 @@ export async function run({
         return;
       }
 
-      source = await readFile(join(cwd, file), 'utf8');
+      source = await readUtf8(join(cwd, file));
     } catch (error) {
+      if (error instanceof NotUtf8Error) {
+        if (phase === 1) {
+          report.add(skippedEntry(file, null, 'The file is not valid UTF-8, so it was not analyzed. Convert it to '
+            + 'UTF-8 to include it, or migrate it by hand.'));
+        }
+
+        return;
+      }
+
       report.add({
         ruleId: 'read-error',
         severity: 'warning',
@@ -1106,12 +1140,24 @@ export async function run({
     }
 
     if (outcome.changed) {
+      if (write) {
+        try {
+          await writeFile(join(cwd, file), outcome.output);
+        } catch (error) {
+          // A file that could not be written is not a changed file: the summary must count what is on disk.
+          report.add({
+            ruleId: 'write-error',
+            severity: 'warning',
+            file,
+            message: `The file could not be written: ${error.message}`,
+          });
+
+          return;
+        }
+      }
+
       result.changedFiles.push(file);
       result.diffs.push({ file, diff: unifiedDiff(file, source, outcome.output) });
-
-      if (write) {
-        await writeFile(join(cwd, file), outcome.output);
-      }
     }
   };
 
@@ -1138,7 +1184,7 @@ export async function run({
 
   result.changedFiles = [...new Set(result.changedFiles)].sort();
 
-  if (['parse-error', 'transform-error', 'read-error'].some(ruleId => report.has(ruleId))) {
+  if (['parse-error', 'transform-error', 'read-error', 'write-error'].some(ruleId => report.has(ruleId))) {
     result.exitCode = 1;
   }
 
