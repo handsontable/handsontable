@@ -426,6 +426,18 @@ export class UndoGridPage {
   }
 
   /**
+   * Send the `mouseleave` the page body reports when the pointer ends outside its box, such as after a
+   * context menu item is clicked on a page whose body is as short as the grid. A real one lands on a
+   * frame the layout and the engine decide, so the test sends it at a point of its own choosing. The
+   * handlers run before this returns, so a focus they take is already taken when the next assertion reads it.
+   */
+  async pointerLeavesBody(): Promise<void> {
+    await this.page.evaluate(() => {
+      document.body.dispatchEvent(new MouseEvent('mouseleave'));
+    });
+  }
+
+  /**
    * The comment editor's text area.
    */
   commentTextArea(): Locator {
