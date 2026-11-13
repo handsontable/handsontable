@@ -19,11 +19,13 @@ export function parse(source, parser = 'tsx') {
 }
 
 /**
- * Print a Collection with the quote style the tests use.
+ * Print a Collection with the quote style the tests use and `\n` as the line terminator. recast ends a line with
+ * `os.EOL` unless told otherwise, which is `\r\n` on Windows, so a test never calls `toSource()` itself.
  *
  * @param {object} root The parsed Collection.
+ * @param {object} [options] More recast print options.
  * @returns {string} Source text.
  */
-export function print(root) {
-  return root.toSource({ quote: 'single' });
+export function print(root, options = {}) {
+  return root.toSource({ quote: 'single', ...options, lineTerminator: options.lineTerminator ?? '\n' });
 }

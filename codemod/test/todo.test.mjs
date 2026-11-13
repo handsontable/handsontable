@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import jscodeshift from 'jscodeshift';
 import postcss from 'postcss';
 import { addCssTodo, addJsTodo, formatTodo, lineOf, shortenAdvice } from '../src/lib/todo.mjs';
+import { print } from './helpers/parse.mjs';
 
 describe('shortenAdvice', () => {
   it('keeps the first sentence and leaves version numbers and dotted names whole', () => {
@@ -68,7 +69,7 @@ describe('addJsTodo', () => {
     const root = j(code);
     const inserted = addJsTodo(j, root.find(j.ImportDeclaration).paths()[0], 'r/x', text);
 
-    return { output: root.toSource(), inserted };
+    return { output: print(root), inserted };
   }
 
   it('inserts a line comment before the node', () => {

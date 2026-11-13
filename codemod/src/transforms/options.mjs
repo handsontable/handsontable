@@ -20,6 +20,7 @@ import {
   getProperty,
   hasSpread as isSpreadObject,
 } from '../lib/option-objects.mjs';
+import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
 import { invalidateScope } from '../lib/scope.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
@@ -212,7 +213,7 @@ function reportBelowBar(env, node, what) {
  * @returns {string} The text.
  */
 function printed(j, node) {
-  return j(node).toSource().trim();
+  return printTree(j, node).trim();
 }
 
 /**

@@ -2,6 +2,7 @@ import { access, readdir, readFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ManifestError } from './errors.mjs';
+import { leavesDirectory } from './lib/paths.mjs';
 import { REPORT_ONLY_KINDS, requiresSafe } from './lib/safety.mjs';
 import { registry } from './transforms/index.mjs';
 
@@ -292,7 +293,7 @@ function resolveInside(dir, name, label) {
   const absolute = resolve(dir, name);
   const inside = relative(dir, absolute);
 
-  if (isAbsolute(name) || inside.startsWith('..') || inside.split(sep)[0] === '..') {
+  if (isAbsolute(name) || inside.startsWith('..') || inside.split(sep)[0] === '..' || leavesDirectory(inside)) {
     throw new ManifestError(`${label}: "${name}" must stay inside the version directory`);
   }
 

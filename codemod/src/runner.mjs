@@ -3,7 +3,8 @@ import { basename, join, posix, relative, resolve, sep } from 'node:path';
 import { adapterFor } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
-import { discover, leavesDirectory, resolvesInside } from './discover.mjs';
+import { discover, resolvesInside } from './discover.mjs';
+import { insideRelative } from './lib/paths.mjs';
 import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { registerPackageDir } from './lib/facts.mjs';
 import { findCatalog } from './lib/pnpm-catalog.mjs';
@@ -124,9 +125,9 @@ async function linkMessage(cwd, file, files) {
 
   try {
     const [root, real] = await Promise.all([realpath(cwd), realpath(join(cwd, file))]);
-    const target = relative(root, real).split(sep).join('/');
+    const target = insideRelative(root, real);
 
-    if (target === '' || leavesDirectory(target)) {
+    if (target === null || target === '') {
       return general;
     }
 

@@ -13,6 +13,7 @@ import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { findDynamicImports, findImports, findReExports, findRequires } from '../lib/imports.mjs';
 import { GENERIC_OPTIONS, KNOWN_OPTIONS, findOptionObjects, hasSpread } from '../lib/option-objects.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
+import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
 import { lookup } from '../lib/scope.mjs';
 
@@ -1263,7 +1264,7 @@ function matchSelector(env, node) {
  * @returns {void}
  */
 function markUnknown(env, candidate, source) {
-  const text = typeof source === 'string' ? source : env.j(source).toSource().trim().replace(/\s+/g, ' ');
+  const text = typeof source === 'string' ? source : printTree(env.j, source).trim().replace(/\s+/g, ' ');
 
   candidate.unknown = true;
   candidate.unresolved.push(text.length > 40 ? `${text.slice(0, 37)}...` : text);
@@ -1289,7 +1290,7 @@ function readKeys(env, objectNode, candidate, objectPath = null) {
       if (spread) {
         readKeys(env, spread.node, candidate);
       } else {
-        markUnknown(env, candidate, `the spread ...${env.j(property.argument).toSource()}`);
+        markUnknown(env, candidate, `the spread ...${printTree(env.j, property.argument)}`);
       }
 
       return;
@@ -1348,7 +1349,7 @@ function describeElement(env, elementPath) {
       if (spread) {
         readKeys(env, spread.node, candidate);
       } else {
-        markUnknown(env, candidate, `the spread ...${env.j(attribute.argument).toSource()}`);
+        markUnknown(env, candidate, `the spread ...${printTree(env.j, attribute.argument)}`);
       }
 
       return;

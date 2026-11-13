@@ -13,6 +13,8 @@
  * can never undo a rewrite.
  */
 
+import { printTree } from './print.mjs';
+
 const SENTINEL_PREFIX = '__codemodMarker';
 const LINE_BREAK = /[\n\r\u2028\u2029]/;
 /**
@@ -59,7 +61,7 @@ function printWithoutComments(j, node) {
 
   Object.defineProperty(copy, 'original', { value: detach(node.original), enumerable: false, configurable: true });
 
-  return j(copy).toSource();
+  return printTree(j, copy);
 }
 
 /**

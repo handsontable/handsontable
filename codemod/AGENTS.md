@@ -383,6 +383,15 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 
 ## Traps
 
+- **Windows.** The suite runs on Windows in CI. Three rules keep it green. (1) recast ends a printed line with `os.EOL`
+  (`\r\n` there) unless it gets `lineTerminator`: product code prints through `printTree()` (`src/lib/print.mjs`) or
+  passes the terminator itself (`printJsPart()`), and tests print through `print()` in `test/helpers/parse.mjs`.
+  `test/windows.test.mjs` fails on any `.toSource(` in `src/` without `lineTerminator`. To reproduce a Windows
+  failure on another host, preload a module that sets `os.EOL` to `\r\n` (`node --import <file> --test ...`).
+  (2) A path decision goes through `src/lib/paths.mjs` (`leavesDirectory()`, `insideRelative()`, `toPosix()`), which
+  takes the `path` flavor, so the tests run the `path.win32` cases anywhere. Never test a path that was already turned
+  into forward slashes with the platform `sep`, and compare `realpath()` results only (a temp path may be a short
+  `RUNNER~1` name). (3) Reported paths are project-relative with forward slashes on every platform.
 - ESLint runs with the root config through `.eslintrc.cjs` and needs `--ext .mjs,.cjs`. `space-before-function-paren`
   is `never`, so write `async() =>`, and `arrow-parens` wants parentheses around a parameter of a block-bodied
   arrow. `npx eslint --fix` fixes both.

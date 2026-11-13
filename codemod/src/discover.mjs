@@ -1,23 +1,16 @@
 import { lstat, readdir, realpath, stat } from 'node:fs/promises';
-import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { isCandidate } from './adapters/index.mjs';
 import { UsageError } from './errors.mjs';
 import { isGitRepo, listFiles } from './git.mjs';
+import { insideRelative, leavesDirectory, toPosix } from './lib/paths.mjs';
+
+export { leavesDirectory };
 
 /**
  * Directory names discovery never enters or lists.
  */
 export const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', 'coverage', '.git']);
-
-/**
- * Convert a platform path to a forward-slash path.
- *
- * @param {string} path Path with the platform separator.
- * @returns {string} Path with forward slashes.
- */
-function toPosix(path) {
-  return sep === '/' ? path : path.split(sep).join('/');
-}
 
 /**
  * Tell whether a project-relative path is generated or vendored output: it sits under a skipped directory,
@@ -43,17 +36,6 @@ export function isSkipped(filePath) {
  * @typedef {object} SkippedLink
  * @property {string} file Project-relative path with forward slashes of the link itself.
  */
-
-/**
- * Tell whether a path from `path.relative()` leaves the directory it was made relative to.
- *
- * @param {string} rel Relative path with the platform separator.
- * @returns {boolean} `true` for `..`, a path that starts with `..` and a separator, and an absolute path (another
- * drive on Windows). A name that merely starts with two dots, such as `..odd`, stays inside.
- */
-export function leavesDirectory(rel) {
-  return rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel);
-}
 
 /**
  * Walk a directory without git, skipping the skipped directories. A symbolic link is never followed: a link to a
@@ -177,7 +159,7 @@ export async function resolvesInside(cwd, file) {
   try {
     const [root, real] = await Promise.all([realpath(cwd), realpath(join(cwd, file))]);
 
-    return !leavesDirectory(relative(root, real));
+    return insideRelative(root, real) !== null;
   } catch {
     return false;
   }
