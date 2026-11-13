@@ -151,3 +151,27 @@ test('the docs check run counts drift as a warning on a change run, a finding th
   assert.equal(caused.conclusion, 'failure', 'a finding the audit did not see is this change\'s');
   assert.equal(build(drifted, { drift, scope: 'audit' }).conclusion, 'failure', 'an audit counts every open finding, drift or not');
 });
+
+test('a grown finding is compared by the ledger row\'s sum: a sibling location that masks alike does not hide its growth', () => {
+  const entry = (target, nodes) => ({ page: 'js-api-core', theme: 'light', rule: 'link-in-text-block', target, impact: 'serious', nodes,
+    issue: 'prose-link-color-only' });
+  const finding = target => ({ page: 'js-api-core', theme: 'light', rule: 'link-in-text-block', target, impact: 'serious', help: 'h',
+    helpUrl: 'https://dequeuniversity.com/x', wcag: ['1.4.1'], nodes: 1 });
+  // Two list items' links mask to one ledger row (`li:nth-child(n) > a`), which keeps the sum of their nodes.
+  const comparison = (first, second) => compareViolations({
+    baseline: [entry('li:nth-child(1) > a', 3), entry('li:nth-child(2) > a', 2)], issues: [{ id: 'prose-link-color-only', title: 'Prose links' }],
+    violations: [...Array.from({ length: first }, () => finding('li:nth-child(1) > a')), ...Array.from({ length: second }, () => finding('li:nth-child(2) > a'))],
+    scanned: [{ page: 'js-api-core', theme: 'light' }], mode: 'warn', baselineFile: 'a11y/docs/docs-baseline.json',
+  });
+  const audit = recorded => siteAudit({
+    nights: [{ source: 'docs', runId: '200', seenAt: '2026-11-10T10:29:01Z', axe: { complete: true } }],
+    rows: [row({ rule: 'link-in-text-block', page: 'js-api-core', theme: 'light', where: 'li:nth-child(n) > a', nodes: recorded })],
+  }, 'docs');
+  const grewByOne = comparison(4, 2);
+
+  assert.deepEqual(grewByOne.grown.map(item => [item.target, item.nodes]), [['li:nth-child(1) > a', 4]]);
+  assert.equal(driftOf(audit(5), grewByOne)(grewByOne.grown[0]), false,
+    'the row went from 5 to 6 nodes: the growth is this change\'s, though the one location (4) is under the row\'s 5');
+  assert.equal(driftOf(audit(6), grewByOne)(grewByOne.grown[0]), true, 'the audit recorded the row at 6: develop grew it that far');
+  assert.equal(driftOf(audit(null), grewByOne)(grewByOne.grown[0]), false, 'a row with no count says nothing');
+});

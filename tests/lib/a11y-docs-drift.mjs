@@ -106,7 +106,9 @@ export function siteAudit(ledger, site) {
 /**
  * The drift predicate of a change run: a new finding of the comparison the audit saw (`isDrift()`), and a grown one
  * the audit saw with at least as many nodes as the run counts (develop's docs grew it that far). A grown finding past
- * the audit's count, or on a row with no count, is not drift.
+ * the audit's count, or on a row with no count, is not drift. Both counts are per ledger row: the ledger keeps one row
+ * for every location whose element masks alike and sums their nodes, so the run's count is that sum too, over every
+ * finding it reproduced. One location's growth is then not hidden by a sibling's nodes.
  *
  * @param {{keys: Set<string>, nodes?: Map<string, number|null>}|null} audit The audit (`siteAudit()`).
  * @param {{newViolations?: object[], grown?: object[]}|null} comparison The site's comparison.
@@ -115,6 +117,16 @@ export function siteAudit(ledger, site) {
 export function driftOf(audit, comparison) {
   const fresh = new Set(comparison?.newViolations ?? []);
   const grown = new Set(comparison?.grown ?? []);
+  // The run's nodes per ledger row, over what the ledger sums for an audit: the new findings and every location of a
+  // known issue. A location with no count leaves its row's count unknown.
+  const counted = new Map();
+
+  for (const item of ['newViolations', 'grown', 'matched', 'improved'].flatMap(set => comparison?.[set] ?? [])) {
+    const key = itemKey(item);
+    const before = counted.has(key) ? counted.get(key) : 0;
+
+    counted.set(key, before === null || !Number.isFinite(item.nodes) ? null : before + item.nodes);
+  }
 
   return (item) => {
     if (fresh.has(item)) {
@@ -125,8 +137,9 @@ export function driftOf(audit, comparison) {
     }
 
     const recorded = audit.nodes?.get(itemKey(item)) ?? null;
+    const runs = counted.get(itemKey(item)) ?? null;
 
-    return recorded !== null && Number.isFinite(item.nodes) && recorded >= item.nodes;
+    return recorded !== null && runs !== null && recorded >= runs;
   };
 }
 

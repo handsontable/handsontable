@@ -1970,7 +1970,8 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   change run a new finding that audit saw counts as a warning at most, with the remedy in the summary: refresh the
   baseline from that audit (the summary gives the command with the audit's run id, "A refresh is one command"
   below). A grown finding is drift when the audit counted at least as many nodes for it as the run does: each scan
-  row of the ledger keeps its latest node count (`nodes`). Past the audit's count the growth is the change's and
+  row of the ledger keeps its latest node count (`nodes`), summed over every location whose element masks alike, so
+  the run's count is the same sum (one location's growth is not hidden by a sibling's nodes). Past the audit's count the growth is the change's and
   keeps its severity, and so does growth on a row recorded before the ledger kept counts; the summary says which.
   When develop's docs grew a finding after the audit, dispatch the audit and re-run the job. A finding the audit did
   not see keeps its severity: this change made it, or the docs gained it after the audit, and when the staging
