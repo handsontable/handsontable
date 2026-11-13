@@ -10,6 +10,7 @@ import {
 } from '../../lib/site-forms.mjs';
 import { openAxSession } from '../checks/walker';
 import { attachEvidence, readEnvironment, type EvidenceFinding } from '../evidence';
+import { WEBSITE_PAGES } from '../website/pages.mjs';
 import { BOOKING, SUBMISSIONS, VISITOR, fillForm, hydrated, openWebsitePage, pickTime, settleWebsite } from '../website/website-site';
 import { declareSiteTarget } from './harness';
 import { siteDefinition, type SitePage } from './sites';
@@ -46,6 +47,26 @@ const LIVE = '[aria-live]:not([aria-live="off"]), [role="status"], [role="alert"
 const FIELDS = 'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]), select, textarea, '
   + '[role="combobox"]:not(input):not(select), [role="textbox"]:not(input):not(textarea)';
 const MALFORMED_EMAIL = 'ada.example.com';
+
+/**
+ * The tab or the radio button an address must open selected, read from the website's page list
+ * (`a11y/website/pages.mjs`), the one place an address's selection is written. `openWebsitePage()` asserts it, so an
+ * address that stops selecting its tab fails the test, rather than measuring the default tab's form under this one's
+ * id. An address with a query or a hash that the list gives no selection is a tooling error.
+ *
+ * @param path The address.
+ * @returns The role and the name, or `undefined` for an address that selects nothing.
+ */
+function selectedOf(path: string): readonly string[] | undefined {
+  const listed = WEBSITE_PAGES.find(item => item.route === path && (item as { selected?: readonly string[] }).selected);
+  const selected = (listed as { selected?: readonly string[] } | undefined)?.selected;
+
+  if (!selected && /[?#]/.test(path)) {
+    throw new Error(`${path}: an address with a query or a hash names the tab it selects in a11y/website/pages.mjs`);
+  }
+
+  return selected;
+}
 
 interface FormTarget extends SitePage {
   /**
@@ -114,7 +135,7 @@ test.describe(CHECK, () => {
 
       await watchLiveRegions(page);
 
-      const { guard, requests } = await openWebsitePage(page, { route: entry.path, state: 'none' }, {
+      const { guard, requests } = await openWebsitePage(page, { route: entry.path, state: 'none', selected: selectedOf(entry.path) }, {
         viewport: 'desktop', baseUrl: SITE.baseUrl, pageErrors, clock: true,
         answers: { submissions: entry.success !== null && entry.form !== 'booker', booking: entry.success !== null && entry.form === 'booker' },
       });
