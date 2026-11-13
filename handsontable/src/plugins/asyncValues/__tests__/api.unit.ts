@@ -613,6 +613,44 @@ describe('AsyncValues: progress, retry, and request options', () => {
       destroy();
     });
 
+    it('should finalize a call whose value a validator rejected after a trim took its record out', async() => {
+      const answers: Array<() => void> = [];
+      const validator = (value: unknown, callback: (valid: boolean) => void) => {
+        answers.push(() => callback(value !== 'bad'));
+      };
+      const { hot, plugin, destroy } = createGrid({
+        undo: true,
+        trimRows: true,
+        columns: [{ data: 'sku' }, { data: 'name', validator, allowInvalid: false }, { data: 'price' }],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      const requests = [deferred(), deferred()];
+      const results = plugin.setAsyncValues(0, 1, 1, 1, ({ row }) => requests[row!].promise, { undo: 'record' });
+
+      requests[0].resolve('bad');
+      await settle();
+      hot.getPlugin('trimRows').trimRow(0);
+      undoRedo.clear();
+      answers.shift()?.();
+      requests[1].resolve('good');
+      await results;
+      await settle();
+      answers.shift()?.();
+      await settle();
+
+      expect(hot.getSourceDataAtCol(1)).toEqual(['old A', 'good', 'old C', 'old D']);
+      expect(undoRedo.isUndoAvailable()).toBe(true);
+      expect(hot.rowIndexMapper.variousMapsCollection.get('AsyncValues')?.getValues().every(state => state === null))
+        .toBe(true);
+
+      undoRedo.undo();
+
+      expect(hot.getSourceDataAtCol(1)).toEqual(['old A', 'old B', 'old C', 'old D']);
+
+      destroy();
+    });
+
     it('should not undo a value a data replacement brought in over a call\'s write', async() => {
       const { hot, plugin, destroy } = createGrid({ undo: true, rowId: 'id' });
       const undoRedo = hot.getPlugin('undoRedo');

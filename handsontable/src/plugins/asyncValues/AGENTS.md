@@ -81,8 +81,12 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   or overtaken one is found by the grid's own list instead: `#onAfterSetDataAtRowProp` keeps, on each flight,
   the change tuple and the list core validates and applies (the list after `beforeChange` and the
   `valueSetter`), the grid splices a rejected or overtaken tuple out of that list, and `#onPostAfterValidate`
-  (it runs after the answer is applied) ends every flight of the cell whose tuple is gone. Source and value
-  cannot do it: two calls can write the same value with the same source. A call's kept write that has not
+  (it runs after the answer is applied) ends every flight on the answer's prop whose tuple is gone, on every
+  row: the reported row is `null` once a filter or a trim took the record out during the wait, and a tuple that
+  left the list never lands anywhere. Looked up by that row, the rejected flight stayed queued, the call never
+  finalized and its row state was never released (pinned by "should finalize a call whose value a validator
+  rejected after a trim took its record out"). Source and value cannot do it: two calls can write the same
+  value with the same source. A call's kept write that has not
   landed stays under the next call's write to the cell (`PendingWrite#supersedes`): the grid applies the
   last write made, so the older write lands only when the newer one does not, a rejection for one
   (`#removeWrite` reveals it again), and the newer one landing drops it (`#dropSuperseded`). A change of
@@ -246,9 +250,9 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   `undo: 'record'` call never finalized: no step, even for the cells that landed. `#onChangesDropped`,
   added through the Core's `@private` `_addDroppedChangesListener()` in `enablePlugin()` and removed in
   `disablePlugin()` and `destroy()`, ends every queued flight whose `flight.changes` is the dropped array,
-  the way a rejection does. Walking the tuples still in the array is not enough: a tuple rejected under
-  `allowInvalid: false` was spliced out before the drop, and `#onPostAfterValidate` looks its row up by
-  the visual row the validation started with, which a load that reorders the ids hands to another record.
+  the way a rejection does. Walking the tuples still in the array is not enough: the last answer drops the
+  set before its own `postAfterValidate` runs, and a tuple that answer rejected under `allowInvalid: false`
+  was already spliced out.
   The call's promise still reports `resolved` (the value was passed to the grid), as for a rejected value.
   Pinned by "should record a call whose earlier write a data load dropped while its validator ran" and
   "should record a call whose dropped write lost a rejected tuple after a load reordered the rows".

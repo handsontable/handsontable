@@ -3360,30 +3360,38 @@ export class AsyncValues extends BasePlugin {
    * `postAfterValidate` hook callback, which runs once the grid has applied the answer. Ends the flights of
    * the cell whose change the grid took out of its list: a validator rejected it under
    * `allowInvalid: false`, or a newer write overtook it. Such a change never lands, and `afterChange` does
-   * not report it. A validator's answer names no flight, so the list is what tells which one it was.
+   * not report it. A validator's answer names no flight, so the list is what tells which one it was. The
+   * flights of every row are checked, not only the one at the reported row: the row is `null` once a filter
+   * or a trim took the record out of the visual space, and a tuple that left its list never lands on any row.
    *
    * @param {boolean} isValid Whether the value is valid.
    * @param {*} value The validated value.
-   * @param {number} row Visual row index.
+   * @param {number|null} row Visual row index, or `null` for a record out of the visual space.
    * @param {string|number} prop The property of the cell.
    */
-  readonly #onPostAfterValidate = (isValid: boolean, value: unknown, row: number, prop: string | number): void => {
-    const physicalRow = this.#states.size === 0 ? null : this.hot.toPhysicalRow(row);
-    const state = physicalRow === null ? null : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+  readonly #onPostAfterValidate = (
+    isValid: boolean, value: unknown, row: number | null, prop: string | number,
+  ): void => {
+    const ended: Flight[] = [];
 
-    state?.flights.get(prop)
-      ?.filter(flight => flight.change && !flight.changes?.includes(flight.change))
-      .forEach(flight => this.#endFlight(state, prop, flight, true));
+    this.#states.forEach((state) => {
+      state.flights.get(prop)?.forEach((flight) => {
+        if (flight.change && !flight.changes?.includes(flight.change)) {
+          ended.push(flight);
+        }
+      });
+    });
+
+    ended.forEach(flight => this.#endFlight(flight.state, flight.prop, flight, true));
   };
 
   /**
    * Called by the Core for a change set it dropped: the set waited for its validators while `loadData()`
    * replaced the data, so it never lands, and neither `afterChange` nor a spliced-out tuple tells the
    * plugin so. Ends the flight of every tuple the plugin wrote as failed, like a rejected one, so its call
-   * can finalize and its row state is released. A tuple a validator rejected was spliced out of the array
-   * before the drop, and `#onPostAfterValidate` finds its flight by the visual row the validation started
-   * with, which a load that reorders the rows hands to another record. So every flight that holds this
-   * array (`flight.changes`) is ended, not only the flights of the tuples still in it.
+   * can finalize and its row state is released. The last validator's answer drops the set before its own
+   * `postAfterValidate` runs, and a tuple that answer rejected was already spliced out of the array. So every
+   * flight that holds this array (`flight.changes`) is ended, not only the flights of the tuples still in it.
    *
    * @param {Array[]} changes The dropped change array.
    */
