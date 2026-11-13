@@ -36,6 +36,7 @@ const masterData = [
   },
   { firstName: 'Elijah', lastName: 'Brown', plan: 'Team', seats: 11, pricePerSeat: 24, lastActive: '2026-03-01' },
 ];
+/* end:skip-in-preview */
 
 const normalizePlanLabel = (plan) => (typeof plan === 'string' ? plan.toUpperCase() : 'N/A');
 
