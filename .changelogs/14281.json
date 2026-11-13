@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a cell that a column move took out of a merge staying uncopyable and uneditable after undo and redo of the move.",
+  "type": "fixed",
+  "issueOrPR": 14281,
+  "breaking": false,
+  "framework": "none"
+}
