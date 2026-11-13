@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the comment editor lost the keyboard focus in Safari right after \"Add comment\" or \"Edit comment\" was chosen from the context menu.",
+  "type": "fixed",
+  "issueOrPR": 14283,
+  "breaking": false,
+  "framework": "none"
+}

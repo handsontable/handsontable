@@ -2,12 +2,17 @@
   "schemaVersion": 1,
   "capabilities": [
     {
-      "id": "core",
+      "id": "grid",
       "kind": "core_area",
-      "name": "Core",
-      "description": "The data grid itself, which every key unlocks: rendering, data binding, selection, keyboard navigation, editing, validation, frozen rows and columns, themes, translations, and the text cell type.",
+      "name": "Data grid",
+      "description": "The data grid itself: rendering, data binding, selection, keyboard navigation, editing, validation, frozen rows and columns, themes, translations, and the text cell type.",
       "status": "stable",
-      "licensing": "core"
+      "licensing": "token",
+      "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

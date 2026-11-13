@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scenario": "formula-builder",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-12T18:21:20.605Z"
+  },
+  "steps": {
+    "tab-address-box": "cell address edit selected c 1",
+    "tab-formula-input": "formula editor combo box collapsed has auto complete multi line editable equals a 1 plus b 1",
+    "tab-into-grid": "table 3 c row 2 b column 4",
+    "open-editor": "formula editor combo box collapsed has auto complete multi line editable equals a 1 plus b 1",
+    "select-formula-text": "equals a 1 plus b 1 selected",
+    "type-function-prefix": "unselected formula suggestions list substitute 1 of 15",
+    "type-named-prefix": "",
+    "erase-to-function": "",
+    "open-function-help": "table formula editor combo box collapsed has auto complete multi line editable sum function help equals sum",
+    "close-function-help": "",
+    "cancel-edit": "3 c row 2 b column 4",
+    "move-down": "5 c row 3 b column 4",
+    "error-cell": "number name invalid entry c row 4 b column 4 number name function name nope not recognized"
+  }
+}

@@ -1,8 +1,21 @@
-import {
-  SUBSCRIPTION_KEY,
-  FLAGGED_BASE_KEY,
-  FLAGGED_MINIMAL_KEY,
-} from '../../entitlementLicenseKey/__tests__/fixtures';
+import { SUBSCRIPTION_KEY } from '../../entitlementLicenseKey/__tests__/fixtures';
+
+/**
+ * The base package: the nine plugins that are on by default.
+ *
+ * @type {string[]}
+ */
+const BASE_FEATURES = [
+  'feat:auto_column_size',
+  'feat:autofill',
+  'feat:checkbox_header',
+  'feat:copy_paste',
+  'feat:drag_to_scroll',
+  'feat:export_file',
+  'feat:import_file',
+  'feat:undo_redo',
+  'feat:view_state',
+];
 
 /**
  * The plugins that are on in every grid (`gate: 'call'`) check the license key when they are used. Every test
@@ -10,6 +23,8 @@ import {
  */
 describe('license gates of the plugins that are on in every grid', () => {
   let Handsontable;
+  let tierKeyWith;
+  let resetTierKeys;
   let consoleError;
   let containers;
   let grids;
@@ -63,6 +78,9 @@ describe('license gates of the plugins that are on in every grid', () => {
     // A fresh copy for every test: the console message prints once per page.
     // eslint-disable-next-line global-require
     Handsontable = require('handsontable').default;
+    // The tier keys must spy on the plugin classes of the same fresh copy.
+    // eslint-disable-next-line global-require
+    ({ tierKeyWith, resetTierKeys } = require('../../entitlementLicenseKey/__tests__/tierKeys'));
     consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     containers = [];
     grids = [];
@@ -72,11 +90,31 @@ describe('license gates of the plugins that are on in every grid', () => {
     grids.forEach(hot => hot.destroy());
     containers.forEach(container => container.remove());
     consoleError.mockRestore();
+    resetTierKeys();
   });
+
+  /**
+   * Builds a key that unlocks the base package.
+   *
+   * @returns {string}
+   */
+  function baseKey() {
+    return tierKeyWith(BASE_FEATURES);
+  }
+
+  /**
+   * Builds a key that unlocks the column menu and the AutoColumnSize it requires, and leaves every other
+   * plugin that is on by default out.
+   *
+   * @returns {string}
+   */
+  function minimalKey() {
+    return tierKeyWith(['feat:dropdown_menu', 'feat:auto_column_size']);
+  }
 
   describe('ExportFile', () => {
     it('should refuse an export the key does not cover, and report it once', async() => {
-      const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY });
+      const hot = createGrid({ licenseKey: minimalKey() });
       const exportFile = hot.getPlugin('exportFile');
       const expected = messageFor('Export to file (feat:export_file)');
       const printedAtInit = missingFeatureErrors().length;
@@ -109,7 +147,7 @@ describe('license gates of the plugins that are on in every grid', () => {
     });
 
     it('should export when the key covers it, and when the key is not flagged', () => {
-      expect(createGrid({ licenseKey: FLAGGED_BASE_KEY }).getPlugin('exportFile').exportAsString('csv', { bom: false }))
+      expect(createGrid({ licenseKey: baseKey() }).getPlugin('exportFile').exportAsString('csv', { bom: false }))
         .toBe('1,2,true\r\n3,4,false');
       expect(createGrid({ licenseKey: SUBSCRIPTION_KEY }).getPlugin('exportFile').exportAsString('csv', { bom: false }))
         .toBe('1,2,true\r\n3,4,false');
@@ -119,8 +157,8 @@ describe('license gates of the plugins that are on in every grid', () => {
     it('should hide the "Export" menu item when the key does not cover it', () => {
       // eslint-disable-next-line global-require
       const exportItem = require('handsontable/plugins/exportFile/contextMenuItem/exportItem').default;
-      const restricted = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, exportFile: {} });
-      const covered = createGrid({ licenseKey: FLAGGED_BASE_KEY, exportFile: {} });
+      const restricted = createGrid({ licenseKey: minimalKey(), exportFile: {} });
+      const covered = createGrid({ licenseKey: baseKey(), exportFile: {} });
 
       expect(exportItem(restricted.getPlugin('exportFile')).hidden.call(restricted)).toBe(true);
       expect(exportItem(covered.getPlugin('exportFile')).hidden.call(covered)).toBe(false);
@@ -132,7 +170,7 @@ describe('license gates of the plugins that are on in every grid', () => {
       // eslint-disable-next-line global-require
       const ExportDataProvider = require('handsontable/plugins/exportFile/dataProvider').default;
       const hot = createGrid({
-        licenseKey: FLAGGED_BASE_KEY,
+        licenseKey: baseKey(),
         mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
       });
       const provider = new ExportDataProvider(hot);
@@ -147,7 +185,7 @@ describe('license gates of the plugins that are on in every grid', () => {
       // eslint-disable-next-line global-require
       const ExportDataProvider = require('handsontable/plugins/exportFile/dataProvider').default;
       const hot = createGrid({
-        licenseKey: FLAGGED_BASE_KEY,
+        licenseKey: baseKey(),
         columnSummary: [{ sourceColumn: 0, destinationRow: 1, destinationColumn: 1, type: 'sum' }],
       });
       const provider = new ExportDataProvider(hot);
@@ -163,7 +201,7 @@ describe('license gates of the plugins that are on in every grid', () => {
 
   describe('ImportFile', () => {
     it('should refuse an import the key does not cover', async() => {
-      const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY });
+      const hot = createGrid({ licenseKey: minimalKey() });
       const importFile = hot.getPlugin('importFile');
       const expected = messageFor('Import from file (feat:import_file)');
       const printedAtInit = missingFeatureErrors().length;
@@ -179,7 +217,7 @@ describe('license gates of the plugins that are on in every grid', () => {
     });
 
     it('should infer column types when the key covers it', () => {
-      const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY });
+      const hot = createGrid({ licenseKey: baseKey() });
 
       expect(hot.getPlugin('importFile').inferColumnTypes([['1'], ['2']]).columns.length).toBe(1);
     });
@@ -187,7 +225,7 @@ describe('license gates of the plugins that are on in every grid', () => {
 
   describe('ViewState', () => {
     it('should refuse to read, check, or restore a view state the key does not cover', () => {
-      const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY });
+      const hot = createGrid({ licenseKey: minimalKey() });
       const viewState = hot.getPlugin('viewState');
       const expected = messageFor('View state (feat:view_state)');
       const printedAtInit = missingFeatureErrors().length;
@@ -203,7 +241,7 @@ describe('license gates of the plugins that are on in every grid', () => {
     });
 
     it('should read the view state when the key covers it', () => {
-      const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY });
+      const hot = createGrid({ licenseKey: baseKey() });
 
       expect(typeof hot.getPlugin('viewState').getViewState()).toBe('object');
     });
@@ -216,7 +254,7 @@ describe('license gates of the plugins that are on in every grid', () => {
     };
 
     it('should draw no header checkbox the key does not cover, and name it in the one message of the grid', async() => {
-      const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
+      const hot = createGrid({ licenseKey: minimalKey(), ...settings });
       // CheckboxHeader checks its columns in its ready step, after the plugins the key keeps off are known.
       // The grid prints one message, before the constructor returns, that names both.
       const printedAtInit = missingFeatureErrors();
@@ -241,7 +279,7 @@ describe('license gates of the plugins that are on in every grid', () => {
 
     it('should print one message when an `init` listener updates the settings before the `init` write', async() => {
       const hot = createGrid({
-        licenseKey: FLAGGED_MINIMAL_KEY,
+        licenseKey: minimalKey(),
         ...settings,
         colWidths: 60,
         init() {
@@ -267,7 +305,7 @@ describe('license gates of the plugins that are on in every grid', () => {
       let thrown = null;
 
       createGrid({
-        licenseKey: FLAGGED_MINIMAL_KEY,
+        licenseKey: minimalKey(),
         ...settings,
         colWidths: 60,
         init() {
@@ -299,7 +337,7 @@ describe('license gates of the plugins that are on in every grid', () => {
         });
 
         createGrid({
-          licenseKey: FLAGGED_MINIMAL_KEY,
+          licenseKey: minimalKey(),
           ...settings,
           init() {
             seen.init = read(this);
@@ -318,9 +356,10 @@ describe('license gates of the plugins that are on in every grid', () => {
       });
 
     it.each([
-      ['a key that leaves out the header checkbox', FLAGGED_MINIMAL_KEY],
-      ['a key that covers every feature', SUBSCRIPTION_KEY],
-    ])('should let an `afterInit` listener destroy the grid built with %s', (_, licenseKey) => {
+      ['a key that leaves out the header checkbox', () => minimalKey()],
+      ['a key that covers every feature', () => SUBSCRIPTION_KEY],
+    ])('should let an `afterInit` listener destroy the grid built with %s', (_, buildKey) => {
+      const licenseKey = buildKey();
       const container = document.createElement('div');
 
       document.body.appendChild(container);
@@ -343,7 +382,7 @@ describe('license gates of the plugins that are on in every grid', () => {
     it('should name the header checkbox of a column the first render does not draw in the one message', async() => {
       const columnCount = 40;
       const hot = createGrid({
-        licenseKey: FLAGGED_MINIMAL_KEY,
+        licenseKey: minimalKey(),
         data: [Array.from({ length: columnCount }, (_, column) => column === columnCount - 1)],
         columns: Array.from({ length: columnCount }, (_, column) => (
           column === columnCount - 1 ? { type: 'checkbox', headerCheckbox: true } : {}
@@ -372,7 +411,7 @@ describe('license gates of the plugins that are on in every grid', () => {
       document.body.appendChild(container);
       containers.push(container);
 
-      const hot = new Handsontable(container, { licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
+      const hot = new Handsontable(container, { licenseKey: minimalKey(), ...settings });
 
       grids.push(hot);
 
@@ -389,7 +428,7 @@ describe('license gates of the plugins that are on in every grid', () => {
     });
 
     it('should name the header checkbox of a column added by a later settings pass in that pass\'s message', () => {
-      const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, data: [[1, true]], colWidths: 60 });
+      const hot = createGrid({ licenseKey: minimalKey(), data: [[1, true]], colWidths: 60 });
       const printedAtInit = missingFeatureErrors();
 
       expect(printedAtInit.every(text => !text.includes('feat:checkbox_header'))).toBe(true);
@@ -408,7 +447,7 @@ describe('license gates of the plugins that are on in every grid', () => {
     it('should write nothing more for a refused header checkbox when a key that covers it arrives', async() => {
       // The ready step refuses the header checkbox and leaves a write to a microtask; the key below is passed
       // before that microtask runs, so the write finds nothing missing.
-      const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
+      const hot = createGrid({ licenseKey: minimalKey(), ...settings });
       const printedAtInit = missingFeatureErrors();
 
       hot.updateSettings({ licenseKey: SUBSCRIPTION_KEY });
@@ -420,14 +459,14 @@ describe('license gates of the plugins that are on in every grid', () => {
     });
 
     it('should draw the header checkbox when the key covers it', () => {
-      const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY, ...settings });
+      const hot = createGrid({ licenseKey: baseKey(), ...settings });
 
       expect(hot.getPlugin('checkboxHeader').hasHeaderCheckbox(0)).toBe(true);
       expect(hot.rootElement.querySelector('.htCheckboxHeaderInput')).not.toBeNull();
     });
 
     it('should report nothing for a grid whose columns ask for no header checkbox', async() => {
-      createGrid({ licenseKey: FLAGGED_MINIMAL_KEY });
+      createGrid({ licenseKey: minimalKey() });
 
       await Promise.resolve();
 
@@ -437,7 +476,7 @@ describe('license gates of the plugins that are on in every grid', () => {
 
   describe('AutoRowSize kept off by the key', () => {
     it('should let the engine measure the rows itself', () => {
-      const restricted = createGrid({ licenseKey: FLAGGED_BASE_KEY, autoRowSize: true });
+      const restricted = createGrid({ licenseKey: baseKey(), autoRowSize: true });
       const unrestricted = createGrid({ licenseKey: SUBSCRIPTION_KEY, autoRowSize: true });
 
       expect(restricted.getPlugin('autoRowSize').enabled).toBe(false);

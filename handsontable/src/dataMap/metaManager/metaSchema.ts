@@ -1599,8 +1599,13 @@ export default (): Record<string, unknown> => {
      *
      * The array and the function address a column by its physical index, so a width stays with its column
      * when the user moves the column. The physical index doesn't change when columns are moved
-     * or hidden. When you insert or remove a column with [`alter()`](@/api/core.md#alter), an array
-     * `colWidths` is updated to match, so the other widths stay with their columns.
+     * or hidden. When you insert or remove a column with [`alter()`](@/api/core.md#alter), each width of an array
+     * `colWidths` stays with its column. A column added after the last one takes the next width in the array.
+     * A column inserted between others has no width of its own, and neither has a column inserted after a column
+     * the user moved to the end. The array itself is never changed:
+     * [`getSettings()`](@/api/core.md#getsettings) returns the array you passed. A function is called with the
+     * physical index the column has now. Switching `colWidths` to or from an array, or passing a new array to
+     * [`updateSettings()`](@/api/core.md#updatesettings), clears the undo history, the way enabling a plugin does.
      * The [`rowHeights`](#rowHeights) option addresses rows by their physical index in the same way.
      *
      * Setting `colWidths` even for a single column disables the {@link AutoColumnSize} plugin
@@ -4206,6 +4211,21 @@ export default (): Record<string, unknown> => {
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
      * | `hyperlinks` | `true` \|<br>`false` (default) \|<br>An object with `target` and `schemes`                                                                                                                                                   |
+     * | `batchEvaluation` | `true` \|<br>`false` (default)                                                                                                                                                                                  |
+     *
+     * Set `batchEvaluation` to `true` to make HyperFormula recalculate once for the writes the grid makes while
+     * its execution is suspended. [`batch()`](@/api/core.md#batch) is the way to get that saving, because it
+     * suspends rendering too. Without the setting, every write recalculates.
+     *
+     * A read of a formula cell through the grid, such as `getDataAtCell()`, recalculates first, so it never
+     * returns a stale value. Each render recalculates too. For that reason
+     * [`batchExecution()`](@/api/core.md#batchexecution), or a
+     * [`suspendExecution()`](@/api/core.md#suspendexecution) and
+     * [`resumeExecution()`](@/api/core.md#resumeexecution) pair, saves nothing when each write renders.
+     *
+     * After a write, and until the next grid read or the end of the batch, a direct HyperFormula read
+     * (`engine.getCellValue()`) throws "Computations are suspended". That includes another grid that shares the
+     * engine. Read through the grid inside the batch, or read the engine after it.
      *
      * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
      * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
@@ -4251,6 +4271,12 @@ export default (): Record<string, unknown> => {
      * formulas: {
      *   engine: HyperFormula,
      *   hyperlinks: true
+     * }
+     *
+     * // or, recalculate once for all writes made inside `batch()`
+     * formulas: {
+     *   engine: HyperFormula,
+     *   batchEvaluation: true
      * }
      *
      * // or, open `HYPERLINK()` links in the same tab and link only web URLs
@@ -5059,11 +5085,11 @@ export default (): Record<string, unknown> => {
      * `'ht68e-1f2b7-47158-70b05-0842f'`, are not valid keys: they lock the grid, as any invalid key does.
      * See [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
      *
-     * An entitlement license key can list the features it unlocks. A plugin such a key does not list
-     * stays off, and the console and the bar under the grid name it. The plugin's option keeps the
-     * value you set, so passing a key that lists the feature through `updateSettings()` turns the plugin
-     * on. A key that does not list its features unlocks every feature. See
-     * [Keys that list features](@/guides/getting-started/license-key/license-key.md#keys-that-list-features).
+     * An entitlement license key can name one or more tiers. The grid turns on the features of those
+     * tiers, and a plugin they do not include stays off: the console and the bar under the grid name it.
+     * The plugin's option keeps the value you set, so passing a key whose tier includes the feature
+     * through `updateSettings()` turns the plugin on. A key that names no tier turns on every feature. See
+     * [Keys that name a tier](@/guides/getting-started/license-key/license-key.md#keys-that-name-a-tier).
      *
      * Read more:
      * - [License key](@/guides/getting-started/license-key/license-key.md)

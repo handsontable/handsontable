@@ -166,7 +166,7 @@ export default class A11yReporter implements Reporter {
       suite,
     }));
     writeFileSync(path.join(this.#outputDir, 'a11y-findings.json'),
-      `${JSON.stringify(agentFindings({ verdict, problems, suite }), null, 2)}\n`);
+      `${JSON.stringify(agentFindings({ verdict, problems, suite, scans }), null, 2)}\n`);
     process.stdout.write(`\n${summary}\nHTML report: ${path.join(this.#outputDir, this.#scan.reportFile)}\n`);
 
     if (process.env.GITHUB_ACTIONS === 'true') {

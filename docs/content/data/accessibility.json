@@ -43,7 +43,7 @@
       "platform": "macOS",
       "browsers": ["WebKit (Playwright)", "Chromium"],
       "howTested": ["automated-nightly"],
-      "scenarios": 43,
+      "scenarios": 44,
       "unsupported": []
     },
     {
@@ -64,7 +64,7 @@
       "platform": "Windows Server 2025",
       "browsers": ["Chromium", "Firefox (Playwright)"],
       "howTested": ["automated-nightly"],
-      "scenarios": 43,
+      "scenarios": 44,
       "unsupported": ["read in"]
     },
     {
@@ -79,6 +79,12 @@
     { "name": "Firefox", "version": "143.0.4" }
   ],
   "knownLimitations": [
+    {
+      "id": "formula-builder-contrast",
+      "text": "Some text colors of the formula builder (error values, unknown function names, comments, named expressions, and references) are below a 4.5:1 contrast ratio in every theme.",
+      "criteria": ["1.4.3"],
+      "reportRef": null
+    },
     {
       "id": "sorting-not-announced",
       "text": "Sorting state changes are not announced to screen readers.",

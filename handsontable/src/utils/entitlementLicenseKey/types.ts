@@ -104,9 +104,9 @@ export interface LicenseChannels {
  * (unlock everything) and entitlement keys (unlock exactly the tokens the
  * payload lists) without the caller branching on the key family.
  *
- * An entitlement entry lists its tokens whether or not it carries the
- * `listed-capabilities` flag. What an entry without the flag unlocks is the
- * product's decision - see `LISTED_CAPABILITIES_FLAG` in `./constants`.
+ * The reader lists every token an entry carries. What they unlock is the
+ * product's decision: Handsontable gates on the `tier:<name>` tokens alone
+ * (`_getLicenseState` in `helpers/mixed.ts`) and does not read these grants.
  */
 export interface LicenseGrants {
   unrestricted: boolean;

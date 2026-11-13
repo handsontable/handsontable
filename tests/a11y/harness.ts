@@ -1,6 +1,7 @@
 import { expect, devices, type Page } from '@playwright/test';
 import { awaitBundle } from '../fixtures/bundle';
-import { fixtureUrl, type A11yPage, type A11yState } from './pages.mjs';
+import { isLicensePreset, presetLicenseQuery } from '../fixtures/licenseTiers';
+import { fixtureUrl as catalogFixtureUrl, type A11yPage, type A11yState } from './pages.mjs';
 
 /**
  * The shared half of the accessibility tier: how a page of the catalog (`pages.mjs`) is opened, how
@@ -9,6 +10,28 @@ import { fixtureUrl, type A11yPage, type A11yState } from './pages.mjs';
  * here, so a menu, an editor or a selection is the same DOM for all of them. Policy:
  * `tests/AGENTS.md`, "A11y: the axe scan and its baseline" and "A11y: the checks beyond axe".
  */
+
+/**
+ * The path and query of a catalog page in a theme, with the made-up tiers and the key of its
+ * `licensePreset` when it names one (`pages.mjs` cannot build a key). Every spec of the tier opens a page
+ * and records its URL through this, never through `pages.mjs` directly.
+ *
+ * @param page The page.
+ * @param theme The theme.
+ * @returns The path and query.
+ */
+export function fixtureUrl(page: Pick<A11yPage, 'fixture' | 'query' | 'licensePreset'>, theme: string): string {
+  const url = catalogFixtureUrl(page, theme);
+
+  if (page.licensePreset === undefined) {
+    return url;
+  }
+  if (!isLicensePreset(page.licensePreset)) {
+    throw new Error(`Unknown licensePreset ${JSON.stringify(page.licensePreset)} in tests/a11y/pages.mjs.`);
+  }
+
+  return `${url}&${presetLicenseQuery(page.licensePreset)}`;
+}
 
 export const DEFAULT_ROOT = '[data-testid="grid"]';
 export const DEFAULT_CELL: [number, number] = [1, 1];
@@ -317,6 +340,31 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
   'formula-function-help': async(page, entry, root, cell) => {
     await typeIntoFormulaEditor(page, entry, root, cell, '=SUM(');
     await expect(page.locator('.hfe-fn-help')).toBeVisible();
+    await markFormulaPopups(page);
+  },
+  /**
+   * A range extended from the keyboard (Shift+ArrowUp, Shift+ArrowLeft) from a formula error cell, so
+   * the range holds error values while the focus stays on that cell, whose error popup opens for it.
+   */
+  'formula-error-range': async(page, _entry, root, [row, col]) => {
+    await selectCell(page, root, [row, col]);
+    await page.keyboard.press('Shift+ArrowUp');
+    await page.keyboard.press('Shift+ArrowLeft');
+    await expect.poll(() => page.evaluate((selector) => {
+      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
+
+      return hot?.getSelected();
+    }, root), { message: 'Shift+arrows extended the selection' }).toEqual([[row, col, row - 1, col - 1]]);
+    await expect(page.locator('.hfe-error')).toBeVisible();
+    await markFormulaPopups(page);
+  },
+  /**
+   * The fixture's named expression is the only name `=SUMM` matches, so it is the active row.
+   */
+  'formula-named-suggestion': async(page, entry, root, cell) => {
+    await typeIntoFormulaEditor(page, entry, root, cell, '=SUMM');
+    await expect(page.locator('.hfe-suggestions [role="option"].hfe-suggestions__item--active.hfe-suggestions__item--named'))
+      .toBeVisible();
     await markFormulaPopups(page);
   },
   // The fixture fills the cell from a promise it never settles, so the cell stays pending: the

@@ -61,7 +61,7 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
-import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { ColumnSizeSettings } from './core/columnSizeSettings';
 import { RowSizeSettings, type RowSizeOption } from './core/rowSizeSettings';
 import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
@@ -535,6 +535,12 @@ export default function Core(
    * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
    */
   let isBeingDestroyed = false;
+  /**
+   * Set while a `beforeSuspendExecution` or `beforeResumeExecution` listener runs. A suspend or resume the
+   * listener makes on this grid is part of the call that fired it, so it fires no execution hooks (see
+   * `suspendExecution()`).
+   */
+  let isRunningBeforeExecutionHook = false;
   /**
    * The settings core's own init settings pass applies, while `beforeInit` runs, or `null` outside that
    * window (see `_replaceInitPassSettings()`).
@@ -1957,20 +1963,13 @@ export default function Core(
 
             if (colDelta) {
               // `getColHeader()` reads the array by the physical index, so the empty entries go in at the
-              // physical index the created column takes, the same as `colWidths` below. The array is changed
-              // in place, because the user holds it and UndoRedo refills it in place.
+              // physical index the created column takes. The array is changed in place, because the user holds
+              // it and UndoRedo refills it in place.
               if (Array.isArray(tableMeta.colHeaders)) {
                 const spliceArray = [startColumnPhysicalIndex!, 0];
 
                 spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
-              }
-
-              // `colWidths` is addressed by the physical index, which a created column takes in the middle of
-              // the physical order after any column move, so the widths after it shift with their columns.
-              if (Array.isArray(tableMeta.colWidths)) {
-                tableMeta.colWidths =
-                  insertColWidths(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
               }
 
               selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
@@ -2128,7 +2127,7 @@ export default function Core(
                 // The physical indexes of the columns the removal takes, read before it renumbers them.
                 const removedPhysicalColumns: number[] = [];
 
-                if (Array.isArray(tableMeta.colWidths) || Array.isArray(tableMeta.colHeaders)) {
+                if (Array.isArray(tableMeta.colHeaders)) {
                   const firstRemovedVisualColumn = isEmpty(groupIndex) ?
                     Math.max(totalColumnsBefore - groupAmount, 0) : calcIndex;
 
@@ -2224,10 +2223,6 @@ export default function Core(
                   });
                 }
 
-                if (Array.isArray(tableMeta.colWidths)) {
-                  tableMeta.colWidths = removeColWidths(tableMeta.colWidths, removedPhysicalColumns);
-                }
-
                 offset += groupAmount;
               });
             };
@@ -2256,9 +2251,9 @@ export default function Core(
 
         // The index mapper update already asked for a full render and dropped the size caches, but a
         // `hot.render()` a hook made from inside this call consumed that request and rebuilt the caches from
-        // state this call had not finished writing, such as the `colHeaders` and `colWidths` arrays. The
+        // state this call had not finished writing, such as the `colHeaders` array and the fixed counts. The
         // closing render must repaint the headers and re-measure the widths. It sits in the `finally`, so a
-        // hook that throws after the arrays were written does not leave the next fast draw with that paint.
+        // hook that throws after the state was written does not leave the next fast draw with that paint.
         instance.forceFullRender = true;
         instance.view.invalidateColumnWidthCache();
       }
@@ -5209,9 +5204,22 @@ export default function Core(
    * The method is intended to be used by advanced users. Suspending the execution
    * process could cause visual glitches caused by not updated the internal table cache.
    *
+   * Calls nest. Only the outermost call suspends the execution and fires the
+   * [`beforeSuspendExecution`](@/api/hooks.md#beforesuspendexecution) and
+   * [`afterSuspendExecution`](@/api/hooks.md#aftersuspendexecution) hooks. When an `afterSuspendExecution`
+   * listener throws, the method resumes the execution (firing the resume hooks) and rethrows the error.
+   * A call a `beforeSuspendExecution` or `beforeResumeExecution` listener makes on the same instance fires no
+   * hooks.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, but a render in between
+   * still recalculates.
+   *
    * @memberof Core#
    * @function suspendExecution
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
    * @example
    * ```js
    * hot.suspendExecution();
@@ -5224,9 +5232,42 @@ export default function Core(
    * ```
    */
   this.suspendExecution = function(this: HotInstance & CoreInternals) {
+    // The hooks report the state change, so a nested call fires nothing. A grid being destroyed fires
+    // nothing either: its teardown runs in a `batchExecution()` whose resume comes after `afterDestroy`.
+    // A call a `before*` listener makes fires nothing: the counter is still 0 while that listener runs, so
+    // it would fire the hook again and recurse.
+    const changesState = this.executionSuspendedCounter === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
+
+    if (changesState) {
+      isRunningBeforeExecutionHook = true;
+
+      try {
+        this.runHooks('beforeSuspendExecution');
+      } finally {
+        isRunningBeforeExecutionHook = false;
+      }
+    }
+
     this.executionSuspendedCounter += 1;
     this.columnIndexMapper.suspendOperations();
     this.rowIndexMapper.suspendOperations();
+
+    if (changesState) {
+      try {
+        this.runHooks('afterSuspendExecution');
+      } catch (error) {
+        // The caller gets no suspension to resume, so take it back here, through the resume hooks: a
+        // listener that ran before the throw may hold something it releases on resume. The listener's
+        // error is the one the caller gets, also when a resume listener throws as well.
+        try {
+          this.resumeExecution();
+        } catch {
+          // The rollback's own error would replace the cause.
+        }
+
+        throw error;
+      }
+    }
   };
 
   /**
@@ -5237,6 +5278,19 @@ export default function Core(
    * The method is intended to be used by advanced users. Suspending the execution
    * process could cause visual glitches caused by not updated the internal table cache.
    *
+   * Only the call that ends the outermost {@link Core#suspendExecution} call resumes the execution and fires
+   * the [`beforeResumeExecution`](@/api/hooks.md#beforeresumeexecution) and
+   * [`afterResumeExecution`](@/api/hooks.md#afterresumeexecution) hooks. A forced nested call
+   * (`forceFlushChanges`) updates the index cache too, and the execution stays suspended. A nested call, a
+   * forced nested call, and a call while the execution is not suspended fire nothing. The execution resumes,
+   * and `afterResumeExecution` fires, even when a `beforeResumeExecution` listener throws. A
+   * `beforeResumeExecution` listener that leaves the execution suspended keeps it suspended: the hook fires again,
+   * with `afterResumeExecution`, on the call that ends it.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, until the execution
+   * resumes.
+   *
    * @memberof Core#
    * @function resumeExecution
    * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
@@ -5244,6 +5298,8 @@ export default function Core(
    * {@link Core#batchExecution} calls, it can be desire to recalculate the table
    * after each batch.
    * @since 8.3.0
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.suspendExecution();
@@ -5257,12 +5313,41 @@ export default function Core(
    */
   this.resumeExecution = function(this: HotInstance & CoreInternals, forceFlushChanges = false) {
     const nextValue = this.executionSuspendedCounter - 1;
+    // Only the resume that brings the counter back to 0 changes the state (see `suspendExecution`).
+    const changesState = nextValue === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
 
-    this.executionSuspendedCounter = Math.max(nextValue, 0);
+    // Each step runs in a `finally`, so a throwing listener (of these hooks or of a cache update) cannot
+    // keep the grid or a mapper suspended, and `afterResumeExecution` (where a plugin releases what it held
+    // on the suspension) still fires.
+    try {
+      if (changesState) {
+        isRunningBeforeExecutionHook = true;
 
-    if ((!this.isExecutionSuspended() && nextValue === this.executionSuspendedCounter) || forceFlushChanges) {
-      this.columnIndexMapper.resumeOperations();
-      this.rowIndexMapper.resumeOperations();
+        try {
+          this.runHooks('beforeResumeExecution');
+        } finally {
+          isRunningBeforeExecutionHook = false;
+        }
+      }
+    } finally {
+      // The counter is read again: a balanced suspend and resume the `beforeResumeExecution` listener made
+      // leaves it where it was, and one it left open keeps the execution suspended (the hook then fires
+      // with the call that ends it).
+      this.executionSuspendedCounter = Math.max(this.executionSuspendedCounter - 1, 0);
+
+      try {
+        if ((!this.isExecutionSuspended() && nextValue >= 0) || forceFlushChanges) {
+          try {
+            this.columnIndexMapper.resumeOperations();
+          } finally {
+            this.rowIndexMapper.resumeOperations();
+          }
+        }
+      } finally {
+        if (changesState && !this.isExecutionSuspended()) {
+          this.runHooks('afterResumeExecution');
+        }
+      }
     }
   };
 
@@ -5278,6 +5363,14 @@ export default function Core(
    * Like [`batch()`](@/api/core.md#batch), the callback is one operation: every change it makes is one
    * undo step of the [`UndoRedo`](@/api/undoRedo.md) plugin, with the `'batch'` action type.
    *
+   * The method suspends and resumes the execution through {@link Core#suspendExecution} and
+   * {@link Core#resumeExecution}, so the outermost call fires the four execution hooks around the callback.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, but `batchExecution()`
+   * does not suspend rendering, so each render inside the callback still recalculates. For fewer
+   * recalculations, use [`batch()`](@/api/core.md#batch).
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -5286,6 +5379,10 @@ export default function Core(
    * it can be a desire to recalculate the table after each batch.
    * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.batchExecution(() => {
@@ -5301,6 +5398,8 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     // The operation wraps the resume too: the cache rebuild it triggers belongs to this batch.
     return operationScope.run('batch', undefined, () => {
+      // Outside the `try`: a throw from `suspendExecution` leaves nothing suspended, because a throwing
+      // `afterSuspendExecution` listener makes the method resume on its own.
       instance.suspendExecution();
 
       let completed = false;
@@ -5328,11 +5427,21 @@ export default function Core(
    * performance of wrapped operations. Rendering and execution resume even when the
    * callback throws; the error is rethrown.
    *
+   * The method suspends and resumes the execution through {@link Core#suspendExecution} and
+   * {@link Core#resumeExecution}, so the outermost call fires the four execution hooks around the callback.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too.
+   *
    * @memberof Core#
    * @function batch
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.batch(() => {
@@ -5359,20 +5468,21 @@ export default function Core(
     // this batch, so the transaction settles only after them.
     return operationScope.run('batch', undefined, () => {
       instance.suspendRender();
-      instance.suspendExecution();
 
       // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
-      // instance suspended for the rest of its life, so it never painted again. The two resumes are
-      // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
-      // the flush) still lets `resumeRender` run.
+      // instance suspended for the rest of its life, so it never painted again. The calls are
+      // nested so that a throw from `suspendExecution` or `resumeExecution` (a listener of the execution
+      // hooks, or an `afterUpdateSettings`-style hook firing on the flush) still lets `resumeRender` run.
       try {
-        return wrappedOperations();
-      } finally {
+        instance.suspendExecution();
+
         try {
-          instance.resumeExecution();
+          return wrappedOperations();
         } finally {
-          instance.resumeRender();
+          instance.resumeExecution();
         }
+      } finally {
+        instance.resumeRender();
       }
     });
   };
@@ -8351,8 +8461,24 @@ export default function Core(
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
+   * This method fires [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell). It doesn't fire
+   * [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange), so a custom
+   * `source` never reaches those two hooks. To pass a custom `source` to `afterChange`, use
+   * [`setDataAtCell()`](@/api/core.md#setdataatcell) or
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
+   *
+   * The hook also lists a change that the [`sourceDataValidator`](@/api/options.md#sourcedatavalidator)
+   * rejects. When [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, the grid doesn't store that
+   * value, but the `changes` array of the hook still lists it.
+   *
    * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
    * editor shows the new value.
+   *
+   * __Note__: this method takes physical row and column indexes. {@link Core#setDataAtCell} takes a visual
+   * row and a visual column, and {@link Core#setDataAtRowProp} takes a visual row. Swapping one call for the
+   * other with the same numbers can write to a different row when the grid is sorted or filtered. To
+   * translate an index, use {@link Core#toVisualRow} or {@link Core#toVisualColumn}. A trimmed row has no
+   * visual index, so neither of those two methods can write it.
    *
    * @memberof Core#
    * @function setSourceDataAtCell
@@ -8360,7 +8486,11 @@ export default function Core(
    * @param {number|string|Function} column Physical column index, prop name, or a `columns[].data`
    *   accessor function (called as `accessor(rowObject, value)`).
    * @param {*} value The value to be set at the provided coordinates.
-   * @param {string} [source] Source of the change as a string.
+   * @param {string} [source] Source of the change as a string. The method passes it to the
+   *   `afterSetSourceDataAtCell` hook. In the array form, pass it as the fourth argument
+   *   (`setSourceDataAtCell(changes, undefined, undefined, source)`): a source in the second
+   *   argument only reaches the undo step, and the hook gets `undefined`.
+   * @fires Hooks#afterSetSourceDataAtCell
    */
 
   this.setSourceDataAtCell = function(
@@ -9574,16 +9704,6 @@ export default function Core(
   };
 
   /**
-   * Translates a visual column index to the index that the `colWidths` array and function use.
-   * Headers (negative indexes) and columns outside the index mapper have no physical index,
-   * so they keep the index they were given.
-   *
-   * @param {number} col Visual col index.
-   * @returns {number}
-   */
-  const toPhysicalWidthIndex = (col: number): number => (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
-
-  /**
    * Return column width from settings (no guessing). Private use intended.
    *
    * A `null` width names no width and is returned as `undefined`, the way `AutoColumnSize#isEnabled()`
@@ -9593,8 +9713,9 @@ export default function Core(
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {number} col Visual col index. The `colWidths` array and function are read by the
-   * matching physical index.
+   * @param {number} col Visual col index. The `colWidths` function is called with the matching physical index,
+   * and the `colWidths` array is read at the entry that column was declared at, which it keeps when columns are
+   * inserted or removed (`ColumnSizeSettings`). A column outside the grid gets no width from either.
    * @returns {number|undefined}
    */
   this._getColWidthFromSettings = function(col: number) {
@@ -9611,13 +9732,30 @@ export default function Core(
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
-        case 'object': // array, addressed by the physical column index
-          width = (width as Record<number, unknown>)[toPhysicalWidthIndex(col)];
-          break;
+        case 'object': { // array, addressed by the physical column index
+          if (col < 0) {
+            width = (width as Record<number, unknown>)[col];
+            break;
+          }
 
-        case 'function': // called with the physical column index
-          width = (width as (col: number) => unknown)(toPhysicalWidthIndex(col));
+          const physicalColumn = instance.toPhysicalColumn(col);
+          // The grid-level array is read through the entry each column was declared at, which the column keeps
+          // when columns are inserted or removed. A column inserted between others has none. A column outside
+          // the index mapper has no physical index and keeps the index it was given.
+          const entry = physicalColumn === null ?
+            col : columnSizeSettings.getDeclaredIndex(physicalColumn, width as unknown[]);
+
+          width = entry === null ? undefined : (width as Record<number, unknown>)[entry];
           break;
+        }
+
+        case 'function': { // called with the physical column index
+          // A header, and a column outside the index mapper, keep the index they were given.
+          const physicalColumn = (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
+
+          width = (width as (col: number) => unknown)(physicalColumn);
+          break;
+        }
         default:
           break;
       }
@@ -11354,6 +11492,7 @@ export default function Core(
   });
 
   const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
+  const columnSizeSettings = new ColumnSizeSettings(instance);
   const rowSizeSettings = new RowSizeSettings(instance);
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {

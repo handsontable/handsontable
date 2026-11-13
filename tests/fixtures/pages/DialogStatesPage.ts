@@ -184,6 +184,52 @@ export class DialogStatesPage {
   }
 
   /**
+   * Starts recording the `dialogFocusNextElement` and `dialogFocusPreviousElement` hooks. Each run adds
+   * one entry, `<hook>:<test id of document.activeElement at that moment>`, to `window.htFocusHookLog`.
+   */
+  async recordFocusHooks(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as {
+        htFocusHookLog: string[];
+        hot: { addHook(name: string, callback: () => void): void };
+      };
+      const record = (hook: string) => (...args: unknown[]) => {
+        const active = document.activeElement as HTMLElement | null;
+
+        win.htFocusHookLog.push(`${hook}:${active?.dataset.testid ?? active?.tagName}:${args.length} args`);
+      };
+
+      win.htFocusHookLog = [];
+      win.hot.addHook('dialogFocusNextElement', record('next'));
+      win.hot.addHook('dialogFocusPreviousElement', record('previous'));
+    });
+  }
+
+  /**
+   * The entries `recordFocusHooks()` collected so far.
+   *
+   * @returns {Promise<string[]>}
+   */
+  async focusHookLog(): Promise<string[]> {
+    return this.page.evaluate(() => (window as unknown as { htFocusHookLog: string[] }).htFocusHookLog);
+  }
+
+  /**
+   * The entries `recordFocusHooks()` collected, read after two animation frames in one evaluation, so a hook
+   * run queued by the last press and arriving late is in the log. Use it only beside a polled read of the same
+   * log, which proves the expected entries arrived.
+   *
+   * @returns {Promise<string[]>}
+   */
+  async settledFocusHookLog(): Promise<string[]> {
+    return this.page.evaluate(async() => {
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+      return (window as unknown as { htFocusHookLog: string[] }).htFocusHookLog.slice();
+    });
+  }
+
+  /**
    * Whether nothing on the page holds the focus (`document.activeElement` is the body).
    *
    * @returns {Promise<boolean>}
