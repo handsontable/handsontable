@@ -2261,15 +2261,27 @@ draw. Tests: `__tests__/batchEvaluation.unit.js`.
   release validates their dependents, against the recalculated values. That validation runs where the release runs
   (the resume), not outside the edit's undo step as `#validateDependentCellsUnrecorded()` does without a hold. The
   dependents the early write left to the apply (`heldDependents`) are still validated at the apply, which flushes.
-  The early write of the immediate changes goes through `#validateWriteDependents()`, as develop's
-  `afterSetDataAtCell` did.
+  The early write of the immediate changes is validated as develop's `afterSetDataAtCell` validated it. Its cells
+  are recorded (`recordHeldWrite()`) **before** the probe: the probe can flush the hold, and a flush whose
+  recalculation names no written cell validates nothing (`collectHeldDependents()`), so recorded after it the
+  dependents of the early write were never validated.
 - **The validation probe flushes the hold first** when the set has something to probe (a deferred formula or a
   reader): it writes and reads the engine, and a suspended engine would skip it and hand the validator the formula
   text. A set with nothing to probe keeps the hold. A flush runs before `#readValidationValue()` too.
-- **The sheet snapshot of a grid built from a sheet (`#trackOwnEngineWrite()`) is dropped by a write made while the
-  engine is suspended**, as an insert drops it (`'resets'`): `getSheetSerialized()` and `getCellSerialized()` refuse
-  then, and the engine holds its `valuesUpdated` back until the resume. The next reload takes `loadData()`. The
-  disable's `#keepSheetBuiltBinding()` and the enable's `#recordLoadedSheet()` flush before they read.
+- **The sheet snapshot of a grid built from a sheet (`#trackOwnEngineWrite()`) survives a `'cells'` write made
+  while the plugin holds the engine suspended.** `getSheetSerialized()` and `getCellSerialized()` refuse then, and
+  the engine holds its `valuesUpdated` back until the resume, so the write keeps its cells in `#heldSnapshotCells`
+  (`#holdTrackedCells()`) and one deferred read (`runAfterEvaluationFlush()`) takes them into the snapshot once
+  the engine resumes, with the cells that resume's `valuesUpdated` names (`#refreshHeldSnapshotCells()`, by the
+  rule of `#refreshTrackedCells()`). Dropping the snapshot there made every `updateSettings()` after an edit inside
+  `batch()` reload through `loadData()`: the rows stayed sorted with an empty sort config, and the cell meta was
+  gone. A `'structural'` or `'resets'` write made while suspended still drops the snapshot, and so does a cell
+  write inside a suspension the host owns (nothing tells when the engine can be read); the deferred read does
+  nothing when the snapshot it was recorded against is gone. A host's plain value written into a plain cell inside
+  the plugin's hold comes in with that resume and reads as a recalculated cell, so the reload stays in place and
+  shows it; a host change that moves a formula still reads as foreign. The disable's `#keepSheetBuiltBinding()` and
+  the enable's `#recordLoadedSheet()` flush before they read. Tests: `__tests__/sheetBuiltGridReloadState.unit.js`
+  ("with batchEvaluation").
 
 ## Testing
 

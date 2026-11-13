@@ -520,6 +520,33 @@ const isRestoreSource = (source: unknown) => source === 'UndoRedo.undo' || sourc
 type OwnEngineWriteKind = 'cells' | 'structural' | 'resets';
 
 /**
+ * The cells of the cell writes of this grid made while a `batchEvaluation` hold kept the engine suspended (see
+ * `Formulas#holdTrackedCells()`).
+ */
+interface HeldSnapshotCells {
+  /**
+   * The engine the writes went to.
+   */
+  engine: HyperFormulaEngine;
+  /**
+   * The sheet the grid was bound to.
+   */
+  sheetId: number;
+  /**
+   * The snapshot the writes were made against.
+   */
+  snapshot: unknown[][];
+  /**
+   * The engine addresses the writes set themselves (`row,col`).
+   */
+  setCells: Set<string>;
+  /**
+   * The engine addresses the engine reported changed, during the writes or by the resume that ends them.
+   */
+  changedCells: Array<{ row: number; col: number }>;
+}
+
+/**
  * How a reload that keeps the grid's order reads one axis of the sheet back (see `Formulas#planReloadAxis()`).
  */
 interface ReloadAxis {
@@ -1170,6 +1197,12 @@ export class Formulas extends BasePlugin {
   #trackedWriteResets = false;
 
   /**
+   * The cells of the tracked cell writes made while a `batchEvaluation` hold kept the engine suspended, read into
+   * the snapshot once the engine resumes (`#holdTrackedCells()`), or `null` when no such write waits.
+   */
+  #heldSnapshotCells: HeldSnapshotCells | null = null;
+
+  /**
    * The content the last full write from the source data (`#writeSheet()`) fed the engine sheet, escaped,
    * in physical row order, kept in step with the grid's own cell writes and row inserts and removals: what
    * the sheet would hold had every later change been written in physical order. A resync whose source data
@@ -1329,6 +1362,10 @@ export class Formulas extends BasePlugin {
 
     if (this.#trackedOwnWriteDepth > 0) {
       this.#collectTrackedChanges(changes);
+    }
+
+    if (this.#heldSnapshotCells !== null) {
+      this.#collectHeldSnapshotChanges(this.#heldSnapshotCells, changes);
     }
 
     const exportedChanges = changes.map(change => this.#exportChangeValue(
@@ -3127,6 +3164,10 @@ export class Formulas extends BasePlugin {
    * Nested writes join the outermost one (`#joinTrackedWrite()`). A write that throws counts as a foreign change. A
    * validation probe takes its own write back before it ends, so it is not tracked.
    *
+   * While a `batchEvaluation` hold keeps the engine suspended, the engine refuses the reads the snapshot takes. A
+   * `'cells'` write made then keeps the snapshot and reads its cells once the engine resumes
+   * (`#holdTrackedCells()`). Any other write made then drops the snapshot, as an insert does.
+   *
    * @param {Function} fn The write.
    * @param {string} [kind] How the write keeps the snapshot in step.
    * @returns {*} What `fn` returns.
@@ -3148,9 +3189,9 @@ export class Formulas extends BasePlugin {
     const engine = this.engine;
 
     // A suspended engine (a `batchEvaluation` hold) refuses the reads the snapshot takes, so a write made then
-    // drops it, as an insert does.
+    // drops it, as an insert does, unless it is a cell write, whose cells are read once the engine resumes.
     this.#trackedWriteIsStructural = kind === 'structural';
-    this.#trackedWriteResets = kind === 'resets' || engine.isEvaluationSuspended();
+    this.#trackedWriteResets = kind === 'resets' || (kind !== 'cells' && engine.isEvaluationSuspended());
     this.#trackedChangedCells = [];
     this.#trackedSetCells.clear();
 
@@ -3172,9 +3213,12 @@ export class Formulas extends BasePlugin {
       this.#trackedOwnWriteDepth -= 1;
     }
 
-    if (this.#trackedWriteResets || engine.isEvaluationSuspended() || this.engine !== engine
-      || this.sheetId !== sheetId || !this.#hasOwnSheet()) {
+    if (this.#trackedWriteResets || this.engine !== engine || this.sheetId !== sheetId || !this.#hasOwnSheet()) {
       this.#loadedSheetContent = null;
+    } else if (engine.isEvaluationSuspended()) {
+      if (this.#trackedWriteIsStructural || !this.#holdTrackedCells(engine, sheetId)) {
+        this.#loadedSheetContent = null;
+      }
     } else if (this.#trackedWriteIsStructural) {
       this.#loadedSheetContent = engine.getSheetSerialized(sheetId);
     } else {
@@ -3195,7 +3239,7 @@ export class Formulas extends BasePlugin {
    * @param {string} kind The nested write's kind.
    */
   #joinTrackedWrite(kind: OwnEngineWriteKind): void {
-    if (kind === 'resets' || this.engine?.isEvaluationSuspended()) {
+    if (kind === 'resets' || (kind !== 'cells' && this.engine?.isEvaluationSuspended())) {
       this.#trackedWriteResets = true;
     } else if (kind === 'structural' && !this.#trackedWriteIsStructural && !this.#trackedWriteResets) {
       this.#refreshTrackedCells();
@@ -3250,16 +3294,27 @@ export class Formulas extends BasePlugin {
    * the edited cell), and `#foreignSheetChange` is set instead of taking it in.
    */
   #refreshTrackedCells(): void {
+    this.#refreshSnapshotCells(this.#trackedChangedCells, this.#trackedSetCells);
+    this.#trackedChangedCells = [];
+  }
+
+  /**
+   * Reads cells into the snapshot, by the rule of `#refreshTrackedCells()`.
+   *
+   * @param {Array} changedCells The engine addresses on the bound sheet to read.
+   * @param {Set<string>} setCells The ones a write of this grid set itself (`row,col`).
+   */
+  #refreshSnapshotCells(changedCells: Array<{ row: number; col: number }>, setCells: Set<string>): void {
     const snapshot = this.#loadedSheetContent;
 
     if (snapshot === null) {
       return;
     }
 
-    this.#trackedChangedCells.forEach(({ row, col }) => {
+    changedCells.forEach(({ row, col }) => {
       const content: unknown = this.engine!.getCellSerialized({ sheet: this.sheetId!, row, col });
 
-      if (!this.#trackedSetCells.has(`${row},${col}`)) {
+      if (!setCells.has(`${row},${col}`)) {
         const previous = snapshot[row]?.[col];
 
         if ((isFormula(previous) || isFormula(content)) && previous !== content) {
@@ -3271,7 +3326,89 @@ export class Formulas extends BasePlugin {
 
       setSheetSnapshotCell(snapshot, row, col, content);
     });
-    this.#trackedChangedCells = [];
+  }
+
+  /**
+   * Keeps the cells of the tracked cell write that just ended while a `batchEvaluation` hold kept the engine
+   * suspended, to read them into the snapshot once the engine resumes (`#refreshHeldSnapshotCells()`), together
+   * with the cells that resume recalculates. Reading them now would recalculate once per write. Every held write
+   * up to that resume shares one record and one deferred read.
+   *
+   * @param {object} engine The engine the write went to.
+   * @param {number} sheetId The bound sheet.
+   * @returns {boolean} `false` when the plugin does not own the suspension (a host's `suspendEvaluation()`), so
+   *   nothing tells when the engine can be read, and the caller drops the snapshot.
+   */
+  #holdTrackedCells(engine: HyperFormulaEngine, sheetId: number): boolean {
+    const snapshot = this.#loadedSheetContent!;
+    let held = this.#heldSnapshotCells;
+
+    if (held === null || held.engine !== engine || held.sheetId !== sheetId || held.snapshot !== snapshot) {
+      const record: HeldSnapshotCells = {
+        engine, sheetId, snapshot, setCells: new Set(), changedCells: [],
+      };
+
+      if (!runAfterEvaluationFlush(engine, () => this.#refreshHeldSnapshotCells(record))) {
+        return false;
+      }
+
+      this.#heldSnapshotCells = record;
+      held = record;
+    }
+
+    const record = held;
+
+    this.#trackedSetCells.forEach(key => record.setCells.add(key));
+    this.#trackedChangedCells.forEach(cell => record.changedCells.push(cell));
+
+    return true;
+  }
+
+  /**
+   * Keeps the engine addresses on the bound sheet from the `valuesUpdated` change list of the resume that ends
+   * held cell writes (`#holdTrackedCells()`).
+   *
+   * @param {object} held The record of the held writes.
+   * @param {Array} changes The engine's change list.
+   */
+  #collectHeldSnapshotChanges(held: HeldSnapshotCells, changes: unknown[]): void {
+    changes.forEach((change) => {
+      const address = (change as { address?: { sheet: number; row: number; col: number } }).address;
+
+      if (address && address.sheet === held.sheetId) {
+        held.changedCells.push({ row: address.row, col: address.col });
+      }
+    });
+  }
+
+  /**
+   * Reads the cells of held cell writes into the snapshot, now that the engine resumed: every cell the writes
+   * set, and the cells the resume recalculated, by the rule of `#refreshTrackedCells()`. Nothing is read when the
+   * snapshot the writes were made against is gone: a later write of the hold dropped it, or the grid left the
+   * sheet or the engine.
+   *
+   * @param {object} held The record of the held writes.
+   */
+  #refreshHeldSnapshotCells(held: HeldSnapshotCells): void {
+    if (this.#heldSnapshotCells === held) {
+      this.#heldSnapshotCells = null;
+    }
+
+    if (this.#loadedSheetContent !== held.snapshot || this.engine !== held.engine
+      || this.sheetId !== held.sheetId || !this.#hasOwnSheet()) {
+      return;
+    }
+
+    const cells = new Map<string, { row: number; col: number }>();
+
+    held.changedCells.forEach(cell => cells.set(`${cell.row},${cell.col}`, cell));
+    held.setCells.forEach((key) => {
+      const [row, col] = key.split(',').map(Number) as [number, number];
+
+      cells.set(key, { row, col });
+    });
+
+    this.#refreshSnapshotCells(Array.from(cells.values()), held.setCells);
   }
 
   /**
@@ -6700,9 +6837,16 @@ export class Formulas extends BasePlugin {
       writtenCells,
     });
 
+    // The probe can end a `batchEvaluation` hold, so a held write is recorded before it: the recalculation
+    // the probe causes then names the written cells, and the release validates their dependents.
+    const isWriteHeld = recordHeldWrite(this.engine, changedCells);
+
     this.#changesAwaitingApply.get(changes)!.readersOfDeferred =
       this.#probeValidationValues(rejectableChanges, source, readersOfDeferred);
-    this.#validateWriteDependents(earlyDependents, changedCells);
+
+    if (!isWriteHeld) {
+      this.validateDependentCells(earlyDependents, changedCells);
+    }
   };
 
   /**

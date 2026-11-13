@@ -691,6 +691,155 @@ describe('Formulas reload of a sheet-built grid keeps the grid\'s state', () => 
     expect(isAnyCellMarked()).toBe(true);
   });
 
+  describe('with batchEvaluation, after writes made inside batch()', () => {
+    it('keeps the sort config and the cell meta, and loads no data', () => {
+      const engine = buildEngine();
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1', batchEvaluation: true },
+        columnSorting: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      hot.setCellMeta(0, 1, 'className', 'marked');
+
+      const afterLoadData = jest.fn();
+      let suspendedInBatch;
+
+      hot.addHook('afterLoadData', afterLoadData);
+      hot.batch(() => {
+        hot.setDataAtCell(0, 1, 10);
+        suspendedInBatch = engine.isEvaluationSuspended();
+      });
+      hot.updateSettings({});
+
+      expect(suspendedInBatch).toBe(true);
+      expect(hot.getData()).toEqual([['a', 10, 20], ['b', 2, 4], ['c', 3, 6]]);
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+      expect(afterLoadData).not.toHaveBeenCalled();
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+      expect(hot.getCellMeta(0, 1).className).toBe('marked');
+    });
+
+    it('reloads in place after several batches, each with several writes and a read in between', () => {
+      const engine = buildEngine();
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1', batchEvaluation: true },
+        licenseKey: LICENSE_KEY,
+      });
+      hot.setCellMeta(0, 0, 'className', 'marked');
+
+      const loadData = jest.spyOn(hot, 'loadData');
+
+      hot.batch(() => {
+        hot.setDataAtCell(0, 1, 10);
+        hot.setDataAtCell(1, 1, 20);
+        // The read recalculates the writes held so far; the ones after it are held again.
+        hot.getDataAtCell(0, 2);
+        hot.setDataAtCell(2, 1, 30);
+        hot.setDataAtCell(0, 2, '=B1*3');
+        hot.setDataAtCell(0, 1, 11);
+      });
+      hot.updateSettings({});
+      hot.batch(() => {
+        hot.setDataAtCell(1, 0, null);
+      });
+      hot.updateSettings({});
+
+      expect(hot.getData()).toEqual([['b', 11, 33], [null, 20, 40], ['c', 30, 60]]);
+      expect(hot.getSourceDataAtCell(0, 2)).toBe('=B1*3');
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+      expect(loadData).not.toHaveBeenCalled();
+      expect(isAnyCellMarked()).toBe(true);
+    });
+
+    it('reloads in place after writes that spill, change a spill, or clear one', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      engine.addSheet('S1');
+      engine.setSheetContent(engine.getSheetId('S1'), [[1, 2], [3, 4], ['=ARRAYFORMULA(TRANSPOSE(A1:B2))']]);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1', batchEvaluation: true },
+        licenseKey: LICENSE_KEY,
+      });
+      hot.setCellMeta(0, 0, 'className', 'marked');
+
+      const loadData = jest.spyOn(hot, 'loadData');
+      const writes = [
+        () => hot.setDataAtCell(0, 0, 10),
+        () => hot.setDataAtCell(0, 3, '=SEQUENCE(3)'),
+        () => hot.setDataAtCell(1, 3, 'x'),
+        () => hot.setDataAtCell(1, 3, null),
+        () => hot.setDataAtCell(2, 0, null),
+      ];
+
+      writes.forEach((write) => {
+        hot.batch(write);
+        hot.updateSettings({});
+
+        expect(readEngineThroughGrid()).toEqual(hot.getData());
+      });
+
+      expect(loadData).not.toHaveBeenCalled();
+      expect(isAnyCellMarked()).toBe(true);
+    });
+
+    it('still takes a host move of rows made inside the batch as a change', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      engine.addSheet('S1');
+      engine.setSheetContent(engine.getSheetId('S1'), [[10], ['=$A$1*2', '=$A$1+2'], ['=$A$1*3', '=$A$1+3']]);
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1', batchEvaluation: true },
+        licenseKey: LICENSE_KEY,
+      });
+      hot.setCellMeta(1, 0, 'className', 'marked');
+
+      hot.batch(() => {
+        hot.setDataAtCell(0, 0, 20);
+        engine.moveRows(engine.getSheetId('S1'), 1, 1, 3);
+      });
+      hot.updateSettings({});
+
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+      expect(isAnyCellMarked()).toBe(false);
+    });
+
+    it('still drops the snapshot for a row insert made inside the batch, and reloads in place after the ' +
+      'next load', () => {
+      const engine = buildEngine();
+
+      hot = new Handsontable(container, {
+        formulas: { engine, sheetName: 'S1', batchEvaluation: true },
+        licenseKey: LICENSE_KEY,
+      });
+
+      const loadData = jest.spyOn(hot, 'loadData');
+
+      hot.batch(() => {
+        hot.setDataAtCell(0, 1, 10);
+        hot.alter('insert_row_above', 1);
+        hot.setDataAtCell(2, 1, 20);
+      });
+      hot.updateSettings({});
+
+      expect(loadData).toHaveBeenCalledTimes(1);
+      expect(hot.getData()).toEqual([['b', 10, 20], [null, null, null], ['a', 20, 40], ['c', 3, 6]]);
+
+      hot.batch(() => {
+        hot.setDataAtCell(0, 1, 11);
+      });
+      hot.updateSettings({});
+
+      expect(loadData).toHaveBeenCalledTimes(1);
+      expect(readEngineThroughGrid()).toEqual(hot.getData());
+    });
+  });
+
   it.each([
     ['without a move', {}],
     ['with a manualRowMove', { manualRowMove: [0, 2, 1] }],
