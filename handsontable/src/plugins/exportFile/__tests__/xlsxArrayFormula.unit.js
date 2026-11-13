@@ -4,7 +4,7 @@ import Handsontable from '../../../index';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { readZip } from '../../../utils/xlsxEngine/adapters/native/zip/reader';
-import { keyWithout } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
@@ -27,6 +27,7 @@ describe('Xlsx export: array formulas', () => {
   });
 
   afterEach(() => {
+    resetTierKeys();
     writeSpy.mockRestore();
     hot?.destroy();
     hot = null;
@@ -127,7 +128,7 @@ describe('Xlsx export: array formulas', () => {
         { row: 1, col: 0, rowspan: 1, colspan: 2 },
         { row: 0, col: 1, rowspan: 1, colspan: 2 },
       ],
-      licenseKey: keyWithout('xlsx:layout'),
+      licenseKey: tierKeyWithout(['xlsx:layout']),
     });
 
     expect(rows[0][0].formula.array).toEqual({ ref: 'A1:A3', dynamic: true });

@@ -10,6 +10,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "feat:auto_column_size"

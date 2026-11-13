@@ -8,6 +8,10 @@ import { ColumnSortingWaitingHeaderSortPage, type Row } from '../fixtures/pages/
  * validator. Turning the plugin off, loading new data and starting the column order over drop the waiting
  * sort; `updateData()` with the same records keeps it, and so does a second header press made during the wait.
  *
+ * The sort waits for the edited cell's own answer: a `validateCells()` batch that answers first leaves the rows
+ * where they are, or the edit would be written by visual row onto another record. After a Ctrl+Enter fill it
+ * also waits until core wrote the whole fill, which happens only once every cell of it answered.
+ *
  * The fixture's validator holds its callback until the spec answers it, so the wait has no timer. The
  * first case is the positive control: without it, a gesture that never queued a sort would pass every
  * "did not sort" case.
@@ -39,6 +43,41 @@ test.describe('a header sort waiting for an async validator', () => {
 
     await expect.poll(() => grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
     expect(await grid.labels()).toEqual(['p0', 'p3', 'p2', 'p5', 'zzz', 'p4']);
+  });
+
+  test('waits for the edited cell when an unrelated validation answers first', async() => {
+    await grid.goto();
+    await grid.editThenClickSortHeader(1, 'zzz');
+    await grid.validateAllCells();
+    await expect.poll(() => grid.heldValidationCount()).toBe(7);
+
+    await grid.answerAllButTheEdit();
+
+    expect(await grid.sortConfig()).toEqual([]);
+    expect(await grid.labels()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+
+    await grid.answerHeldValidations();
+
+    await expect.poll(() => grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(await grid.labels()).toEqual(['p0', 'p3', 'p2', 'p5', 'zzz', 'p4']);
+    expect(await grid.sourceLabels()).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+  });
+
+  test('waits for the whole Ctrl+Enter fill when the edited cell answers first', async() => {
+    await grid.goto();
+    await grid.fillColumnA(1, 3, 'zzz');
+    await grid.clickSortHeader(1);
+
+    // The edited cell answers first and ends the editor's wait; core writes the fill only after every cell.
+    await grid.answerRows([1]);
+
+    expect(await grid.sortConfig()).toEqual([]);
+    expect(await grid.labels()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+
+    await grid.answerRows([2, 3]);
+
+    await expect.poll(() => grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(await grid.sourceLabels()).toEqual(['p0', 'zzz', 'zzz', 'zzz', 'p4', 'p5']);
   });
 
   test('drops the sort when `updateSettings()` turns ColumnSorting off', async() => {

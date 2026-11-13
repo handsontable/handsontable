@@ -402,6 +402,44 @@ export class FormulaBuilderPage {
   }
 
   /**
+   * The color the grid paints the selected cell's border with: the background of a drawn edge of
+   * the master's `current` border. `null` while no edge is drawn. It reads Walkontable's
+   * `.wtBorder.current` elements, so a change to how the selection border is drawn changes this read.
+   *
+   * @returns {Promise<string | null>}
+   */
+  async selectionBorderColor(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const master = (window as unknown as FixtureWindow).hot.rootElement.querySelector('.ht_master');
+      const edge = [...(master?.querySelectorAll<HTMLElement>('.wtBorder.current') ?? [])]
+        .find(border => border.offsetWidth > 0 && border.offsetHeight > 0);
+
+      return edge ? getComputedStyle(edge).backgroundColor : null;
+    });
+  }
+
+  /**
+   * The theme's accent color as the browser serializes it, resolved through a probe element inside
+   * the grid's root, where the theme applies.
+   *
+   * @returns {Promise<string>}
+   */
+  async accentColor(): Promise<string> {
+    return this.page.evaluate(() => {
+      const probe = document.createElement('div');
+
+      probe.style.color = 'var(--ht-accent-color, transparent)';
+      (window as unknown as FixtureWindow).hot.rootElement.appendChild(probe);
+
+      const color = getComputedStyle(probe).color;
+
+      probe.remove();
+
+      return color;
+    });
+  }
+
+  /**
    * The last selection range, as `getSelectedLast()` returns it.
    *
    * @returns {Promise<SelectionTuple | null>}

@@ -1,5 +1,5 @@
 /**
- * Where a plugin checks its license token. `enable` keeps the plugin off when the key does not list the token.
+ * Where a plugin checks its license token. `enable` keeps the plugin off when the key's tiers do not include it.
  * `call` is for a plugin that is on in every grid: its public methods check the token when they are called.
  */
 export type PluginLicenseGate = 'enable' | 'call';
@@ -10,7 +10,7 @@ export type PluginLicenseGate = 'enable' | 'call';
  */
 export interface PluginLicense {
   /**
-   * The token a license key lists to unlock the plugin, for example `'feat:filters'`.
+   * The plugin's feature id, for example `'feat:filters'`, as the license message and the manifest name it.
    */
   readonly capability: string;
   /**
@@ -22,8 +22,7 @@ export interface PluginLicense {
    */
   readonly gate: PluginLicenseGate;
   /**
-   * Every token the plugin requires, directly or through other features. A key that lists the plugin's token
-   * grants these too, so a key keeps working when a later release adds a requirement.
+   * The license tiers that include the plugin. A key that names one of them unlocks it.
    */
-  readonly implies: readonly string[];
+  readonly tiers: readonly string[];
 }

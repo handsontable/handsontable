@@ -498,6 +498,24 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `demo/xlsx-license.html` takes a third fail-loud allowlisted param besides
   `?theme=`/`?bundle=`: `?engine=` (`native` or `exceljs`); an unknown value
   throws, like the other two.
+- **License specs name no real tier, and the plugin specs use made-up ones.** Which features
+  `standard` or `professional` include can change in any release, so no spec
+  writes a real tier's name or a list of what it holds. The xlsx license specs
+  still run on the build's real tiers, read from the manifest, because a fixture
+  cannot add a made-up tier to the bundle's XLSX tier table: each picks its tier by
+  the feature it needs off or on, and fails with the reason when a tier edit leaves
+  no tier that fits. That is a prompt to move the case to the unit suite. `fixtures/licenseTiers.ts` holds
+  the presets (`LICENSE_PRESETS`: a made-up tier, the feature ids it includes,
+  and the key flags), builds a preset's key (`presetKey()`, through
+  `keyWithTier()`) and its query (`presetLicenseQuery()`, `presetQuery()`), and
+  reads the build's real tiers from `handsontable/dist/manifest.json` only to
+  pick one with or without a feature (`requiredTierWithout()`,
+  `requiredTierWithEvery()`, `tiersLeavingOut()`), so rebuild the core before
+  you trust a run. `demo/license-capabilities.html` applies the made-up tiers of
+  `?presets=` before the grid is built, by redefining each sold plugin's static
+  `LICENSE` getter so its `tiers` also list the presets that include it. A case
+  no tier can express (a plugin without what it requires, which the generator
+  refuses) belongs in a unit test, not here; no license spec is skipped.
 
 ## Two clicks on the same cell are a double click
 
@@ -1170,7 +1188,13 @@ fixture; one fixture can be scanned in several states), `fixture` (under `fixtur
 `query` (appended after the theme), `root` (when the fixture has several grids), `cell` (where a
 menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in `a11y/harness.ts`: add a new
 opener there for a new kind of surface, keyboard first), `device` (a Playwright device to emulate,
-for a surface that exists on a phone only) and `surface` (what it covers). Keep
+for a surface that exists on a phone only), `surface` (what it covers), and `licensePreset` (a
+key of `LICENSE_PRESETS` in `fixtures/licenseTiers.ts`, for a page that shows what a license
+key leaves out). `pages.mjs` is plain JavaScript and cannot build a key, so every spec opens a
+catalog page through the TypeScript `fixtureUrl()` in `a11y/harness.ts`, which appends the
+preset's made-up tiers and key and throws on an unknown preset; the `fixtureUrl()` of
+`pages.mjs` leaves them out, so the HTML report and `a11y-findings.json` link such a page to the
+URL its scan recorded (`withScannedUrls()` in `lib/a11y-suites.mjs`). Keep
 `{ id: '…'` at the start of the entry's first line: the check run annotates a new finding on that
 line, and `lib/__tests__/a11y-check-run.test.mjs` finds every page there. The fixture keeps the
 fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or
@@ -1961,14 +1985,153 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   staging deploy: run again once it is done. The findings land in `docs-a11y-axe-results` (`a11y-findings.json` at its root), and the HTML
   report is `docs-a11y-report.html`, uploaded unzipped: an unzipped artifact is named after its file, and a
   run that calls both scans uploads both reports.
+- **A pull request is red only for what it caused.** A pull request's run reads the staging deploy of develop, never
+  the pull request's own docs, so a new or grown finding there exists on develop's docs already unless the pull
+  request's scan code made it. Docs merges add such drift every day. So `A11y / docs-axe report` (posted by the scan
+  job, `scripts/a11y-check-run.mjs --suite docs`) reads develop's latest docs audit from the findings ledger
+  (`lib/a11y-docs-drift.mjs`: the docs rows sighted on the latest docs night that read the scan, keyed by rule,
+  page, scheme and masked element; a night of the checks alone sighted none, so it is never the audit), and on a
+  change run a new finding that audit saw counts as a warning at most, with the remedy in the summary: refresh the
+  baseline from that audit (the summary gives the command with the audit's run id, "A refresh is one command"
+  below). A grown finding keeps its severity, and the summary says why: the ledger keeps no node count of a docs
+  finding, so the audit cannot tell develop's docs growing it from the change growing it. A finding the audit did
+  not see keeps its severity: this change made it, or the docs gained it after the audit, and when the staging
+  deploy is newer than the audit the summary says so and names the dispatch that measures it (`gh workflow run
+  docs-a11y.yml --ref develop`). A ledger that cannot be read, or holds no docs night that read the scan, leaves
+  every finding at its severity and says why. An audit run (a dispatch) counts every open finding, drift or not.
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
   stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
   a `tracker` waits until someone files the task. Findings on the docs site are recorded here and fixed in
   `docs/`, never in the change that adds or refreshes the scan.
-- **No keyboard walker yet.** The checks beyond axe (`a11y/checks/`) open fixture targets through the
-  harness and bracket a grid's root with sentinels; the docs chrome has neither, so the docs site's
-  keyboard paths are a gap of this scan, not a pass.
+- **A refresh is one command, never a hand edit.** Every docs merge can add or remove findings, so the
+  baseline drifts with the docs. `node tests/scripts/a11y-docs-baseline.mjs --run <run-id>` rewrites it from
+  that run's `docs-a11y-axe-results` (`--scans <folder>` for a local run, `--dry-run` to read the changes
+  first). It compares the run's scans with the file through the scan's own comparator, so whichever
+  baseline the run compared against makes no difference. It takes every count and impact from the run,
+  deletes a finding the run no longer found, adds a new one under the issue its rule and target already
+  belong to, and keeps the entries of a page the run did not scan. It drops the entries of a page that left
+  the page list (`docs/tests/paths.js` or `EXTRA_PAGES`), since nothing scans it again. It writes nothing
+  when a scan read another deploy than staging, or when a new finding's rule and target belong to no issue
+  yet: name that issue, add the listed entries under it, and run it again. The file stays in the order and
+  form the script writes (`lib/__tests__/a11y-docs-baseline.test.mjs`), so a refresh diff holds the changed
+  lines only. Refresh from a develop dispatch with no staging deploy in flight
+  (`gh run list --workflow docs-staging.yml`): a deploy between that run and the pull request's own scan
+  reads as new findings again.
+- **The checks beyond axe of the docs are their own tier.** The keyboard, the structure, focus and contrast,
+  reflow, forced colors and motion of the docs site are "A11y: the site checks beyond axe" below; they open a
+  page the way this scan does (`a11y/docs/docs-site.ts`: the blocked hosts, the color scheme, `settle()`, the
+  states), so a check and the scan read one DOM.
+
+## A11y: the site checks beyond axe
+
+The product checks (`a11y/checks/`) bracket a grid's root with sentinels and open fixture targets; a site has
+neither. `a11y/sites/` measures a deployed site the same way, the whole document as the product, and writes the
+same evidence document per check (`mergeEvidence()`, "A11y: the checks beyond axe"), so the conformance report
+cites a site check as it cites a product one. One config, `playwright.a11y-sites.config.ts`, runs one site per run
+(`HOT_A11Y_SITE`, `docs` when unset), one project per check of `SITE_CHECKS` (`lib/a11y-site-checks.mjs`) for that
+site. A site check is named by its site and kind (`docs-keyboard`), so its check run (`A11y / docs-keyboard
+report`), its ledger rows (the `docs-checks` source) and its catalog rules never meet the product's. The sites,
+their sample pages, popups, help controls and link normalization are one definition each (`a11y/sites/sites.ts`);
+a site added later adds its definition, its registry entries and nothing in a spec. Locally:
+`npm --prefix tests run test:a11y-sites` (`-- --project=docs-keyboard` for one check, `DOCS_A11Y_BASE_URL` for
+another deploy); CI: the `checks` job of `.github/workflows/docs-a11y.yml`.
+
+- **The same pages, opened the same way, as the docs scan.** `SITE.open()` is `openDocsPage()`: the viewport, the
+  blocked hosts, the color scheme before the first paint, the status, the password wall, the examples loaded and
+  the scheme taken. Service workers are blocked (`serviceWorkers: 'block'`), so every request goes through the
+  routing. Smooth scrolling is turned off for the checks that walk (`instantScrolling()`): the docs set
+  `scroll-behavior: smooth`, and a stop read two frames after Tab read the element before it arrived on screen,
+  so most stops of a long page read as off screen. It changes nothing that shows at rest.
+- **Every page, or a sample.** The structure and reflow checks read every page at rest (`SITE.pages`, 171 on the
+  docs). The keyboard, focus-contrast and forced-colors checks walk the sample (`SITE.sample`): one page per
+  template and framework variant, each header popup in its state, and the introduction on production, the one
+  build with search. The API template is walked on a plugin's page: the Core page holds thousands of stops, the
+  same template many times over. A theme moves no stop and no box, so only the focus-contrast check runs both
+  color schemes.
+- **An embedded grid is one region.** A stop inside an example grid is `grid`: the walk does not judge it (the
+  product checks own the grid), and after `GRID_STOPS` such stops in a row it takes the documented way out
+  (Ctrl+End, then Tab). A grid that still holds the walk after as many again is `grid-holds-focus` (2.1.2), and
+  the walk goes on from the first element past it, so the rest of the page is still measured. The budget counts
+  each grid's stops twice over, so a page whose walk ran out of presses is a tooling problem, never a trap.
+- **A walk short of the end measured part of the page.** A walk that ran out of presses, whose Tab loaded another
+  page, or that found nothing past a grid holding it, is a tooling problem (`walkProblem()`): its target is not
+  measured, so the ledger resolves no row on a stop it never reached. After a Tab that loaded another page, the
+  check opens its page again before it measures anything else.
+- **One finding per kind of element per page.** A stop is reported once per shape (tag, first class that is no
+  build hash, role) with a count, and a reflow finding once per kind, element kind and condition: the same
+  defect on a hundred sidebar links, or on a hundred checkboxes of the hooks list, is one finding. Names never
+  carry an element's id or text, which would make each element its own finding.
+- **`<site>-structure`** (`structure.spec.ts`, `structure-read.ts`, judged by `lib/site-structure.mjs`): the title,
+  the language, the headings, the landmarks, the skip links and the links, read once per page as the
+  accessibility tree exposes them (an element under `aria-hidden`, `inert` or `hidden`, or not rendered, is left
+  out). 2.4.2's duplicates compare each title with every page's, read from the start of each page's HTML once
+  per worker; the same address at another viewport is the same page. 2.4.5 counts the navigation that links the
+  page and the site's search, read once per worker from the page that holds it; a search that could not be read
+  is a problem of the reference page, and no page evaluates 2.4.5 that run. 3.2.3, 3.2.4 and 3.2.6 compare each
+  page with the site's reference page at the same viewport: the shared links of each header and footer
+  navigation in the same order (a link added or left out keeps the order), one name per target within one
+  landmark (the framework switcher's tab and the header's section link are two controls), and the help controls
+  in the same order. 2.4.4 is advisory: a link named "here" or "read more" says nothing in a screen reader's list
+  of links, and a person reads the text around it.
+- **`<site>-keyboard`** (`keyboard.spec.ts`, judged by `lib/site-keyboard.mjs`): Tab from a sentinel before the
+  page to one after it, each stop's role and name read over CDP. The start sentinel has `tabindex="1"`, so the walk
+  passes every positive tabindex first, as the browser orders them. A stop nobody can see (no size, opacity 0,
+  clipped by an ancestor, outside the page, or a fixed layer moved out of the viewport, which is how a closed
+  panel that slides away keeps its controls rendered) is `focus-stop-hidden` (2.4.3, 2.4.7); one under
+  `aria-hidden`, one whose role needs a name and has none, and one with no role are 4.1.2. Then the skip link
+  (the first stop, visible on focus, and its next Tab inside the main content), the controls a click acts on that
+  no key reaches (a widget role or an `onclick` with no way to focus it, outside a composite widget whose items
+  the arrow keys reach), an input on each kind of form control the walk passed, and, on the site's shortcut
+  pages, every printable key with nothing focused (2.1.4), the page reloaded after a key that acted. A popup
+  state opens its popup from the keyboard and is judged on whether Tab or ArrowDown reaches an item, whether a
+  modal holds the focus, and whether Escape closes it (judged once the page holds still: a panel that slides
+  away is on screen until its animation ends) and gives the focus back to its trigger.
+- **`<site>-focus-contrast`** (`focus-contrast.spec.ts`, `focus.ts`): 2.4.11 from a Tab walk forward and one back
+  with Shift+Tab (going back, the browser scrolls a stop to the top of the viewport, under a sticky header), 25
+  points of each stop sampled with `elementFromPoint()`; a stop the keyboard check calls hidden is its finding,
+  never sampled here. The indicator of the first stop of each shape is captured with nothing focused and again
+  after a key press and the focus (what makes `:focus-visible` match), and judged by `focusFindings()` of
+  `lib/contrast.mjs`; a text field's or a select's boundary and fill against the page around it
+  (`boundaryFindings()`, 1.4.11). A popup state is left out: its items' indicators touch each other and the
+  trigger's, so no capture before the focus is clean.
+- **`<site>-reflow`** (`reflow.spec.ts`): one load per page, resized through `CONDITIONS` of `lib/reflow.mjs` and
+  then given the text-spacing override, plus both orientations (1.3.4). At 320 px the page must not scroll
+  sideways (`page-scrolls-sideways`, naming the widest element that pushes it): a scroll container, a data table
+  and preformatted code are the two-dimensional content 1.4.10 exempts. Under every condition: text an
+  `overflow: hidden` or `clip` container cuts off, read from each text node's box against its container's
+  (`text-truncated` when an ellipsis ends it), controls drawn over each other on one layer (a link that wraps
+  onto two lines has one box around both lines, so it is left out, and so is a control in a fixed layer outside
+  the viewport), and a fixed layer whose text reaches past the viewport where scrolling cannot bring it: its
+  text, not its box, since a column can be wider than what it holds, and text inside a scroll area is reachable
+  while the area shows.
+- **`<site>-forced-colors-motion`** (`forced-colors-motion.spec.ts`): each sample page at rest watched for five
+  seconds without the reduced-motion preference (2.2.2, the product check's watch, `a11y/checks/animations.ts`),
+  from two frames after load, never after `SITE.settle()`: a settle waits for finite animations to end, so it
+  would wait out the ones the watch is for;
+  each popup opened with the preference and without it (2.3.3; the run without it evaluates nothing); and, with
+  forced colors on, the indicator of each stop shape (`focus-lost-in-forced-colors`) and each element in a state
+  a style shows (`aria-current`, `aria-selected`, `aria-pressed`, `aria-checked`) against a sibling without it:
+  a state whose computed style matches the sibling's in forced colors and differed without them is
+  `state-lost-in-forced-colors` (1.4.1, moderate: the state still reaches a screen reader, and its place often
+  says it, like a breadcrumb's last item). Styles are compared as they paint: a transparent background shows the
+  background behind it (forced colors keeps an author's alpha, so a filled item and a transparent sibling are two
+  strings and one look), and a border or outline color with no border or outline shows nothing.
+- **Where they run: a dispatch or a call of `Docs a11y`, never a pull request.** The `checks` job runs beside the
+  scan, against the same deploy (`DOCS_A11Y_BASE_URL`), and uploads `docs-a11y-checks-evidence` (30 days from a
+  run of every check, 7 from a subset); `scripts/a11y-evidence-report.mjs` with `HOT_A11Y_SITE=docs` writes the
+  summary and posts one `A11y / docs-<check> report` per check, and the scan posts `A11y / docs-axe report`
+  (`scripts/a11y-check-run.mjs --suite docs`). The `verdict` job then follows the worst of them, as the A11y
+  nightly does. The checks take about 8 minutes on four workers and the scan about 15 (develop dispatches of
+  2026-11-10 to 2026-11-12); their steps time out at 30 and 20 minutes, and the jobs' own timeouts are the
+  backstop. The checks' `checks` input runs a subset on a
+  branch (`gh workflow run docs-a11y.yml --ref <branch> -f checks=docs-keyboard`); `check-inputs` refuses one on
+  develop, where the dispatch is the audit. Every document names the deploy it read (`run.baseUrl`), and the
+  findings ledger records the staging deploy's only.
+- **A check lands with its findings recorded, not fixed.** As for the product checks: what a check finds on the
+  docs is listed in its pull request and filed as docs tasks; a finding the check gets wrong is fixed in the
+  check. Each check shows a planted defect (a test-side change to the deployed page on a temporary commit,
+  reverted before the pull request is ready) in a proof run from its branch.
 
 ## A11y: the verdict of a check run
 
@@ -2060,7 +2223,9 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   pull request's own code, and a fork's pull request from the fork's `develop` reports `develop` as its
   branch; recording it would resolve every row its code no longer shows. `isA11yRun()` takes a run of
   `A11y nightly`, `Screen reader nightly` or `Docs a11y`, on develop, started by its schedule or a dispatch,
-  and nothing else. A run's sources are its workflow's (`SOURCES_OF_WORKFLOW`): a list, so a workflow that
+  and nothing else. The docs night holds the docs site scan (source `docs`) and the docs site checks (source
+  `docs-checks`, read from `docs-a11y-checks-evidence` like the product checks, and only when the document's
+  `run.baseUrl` is the staging deploy). A run's sources are its workflow's (`SOURCES_OF_WORKFLOW`): a list, so a workflow that
   calls several of the scans names every source its run uploads, and a night of another source is refused.
   A subset dispatch (`checks`, `projects`, `groups`) never becomes a night: the nightlies' `check-inputs`
   job refuses one on develop, because the page draws the latest night of each source and a subset night
@@ -2131,7 +2296,9 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   ```json
   {
     "schema": 1,
-    "triageLimit": 26,
+    "triage": [
+      { "shape": "reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid", "reason": "Why it is not sorted yet." }
+    ],
     "clusters": [
       {
         "id": "dialogs-leak-tab",
@@ -2148,14 +2315,22 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   `lib/__tests__/fixtures/a11y-findings-sample.json` (one row per distinct finding shape of a real night, with
   the check that had not run yet written by hand and said so) and fails on an ambiguous one, on a cluster
   or a rule that matches nothing in the sample (a cluster leaves the catalog with its last finding, like a
-  baseline issue), and on a triage count other than `triageLimit`, exactly: lowered when a shape is sorted
-  into a cluster, raised only visibly, in the change that adds one. The sample is frozen, so the test also
+  baseline issue), and on a queue other than the catalog's `triage` list, exactly. Each entry names a queued
+  shape as `findingShape()` writes it, with its reason (why it is neither a known cause nor the reader's own
+  behavior yet), so the reason sits beside the shape and the limit is the list's length, never a second
+  number: an entry leaves when its shape is sorted into a cluster, and joins only visibly, in the change that
+  adds it. The validator refuses an entry with no reason, a repeated shape, and a catalog that gives both
+  `triage` and the bare `triageLimit` (still read from a catalog that gives the number alone, like the ledger's
+  test fixtures). The sample is frozen, so the test also
   checks every id a rule names against its live source: `criteria` against `WCAG_CRITERIA`, `themes` against
   the scan's themes, `axeIssues` against `a11y/axe-baseline.json`, a reader rule's `checks` against the
   projects of `playwright.screenreader.config.ts`, and a check rule's `kinds` against the kinds the checks'
   code can emit. Renaming one of those fails the catalog's test until the catalog follows. On a live night
   the collector raises a `::warning` on its run for a row two clusters match and for a night with more
-  triage shapes than `triageLimit`, which is the sign to refresh the sample and sort the new shapes. A
+  triage shapes than the `triage` list holds, which is the sign to refresh the sample and sort the new shapes.
+  A rule that exists only for rows an intended change retires (an outdated expectation, a golden recorded
+  before the change) says so in its cluster's title and leaves in the change that next refreshes the sample:
+  until then it would file a real miss on those steps under the old cause. A
   cluster is a root cause, not a bucket: add one when its findings would be fixed by one change (the
   overlay clones split the tree, the focus is not returned after Escape), name it by what is wrong, and
   put a screen reader's own behavior in a cluster that says so rather than in the queue. The axe baseline's
@@ -2189,15 +2364,16 @@ release run the full set. The CI mechanics are in `.ai/CI.md`; this section is t
 - **An audit is a dispatch on develop with no inputs, and only on develop.** Dispatch the screen reader
   workflow, then the checks (`gh workflow run screenreader-nightly.yml --ref develop`, then
   `gh workflow run a11y-nightly.yml --ref develop`), and the docs site scan when the audit covers the docs
-  (`gh workflow run docs-a11y.yml --ref develop`, with no `base-url`, so the ledger records it; "A11y: the
-  docs site scan"), wait for all, then dispatch `test-health.yml` with
+  (`gh workflow run docs-a11y.yml --ref develop`, with no `base-url` and no `checks`, so the ledger records it
+  and it runs the docs site checks beside the scan; "A11y: the docs site scan" and "A11y: the site checks beyond
+  axe"), wait for all, then dispatch `test-health.yml` with
   each run id in the order the runs completed (`gh workflow run test-health.yml -f run-id=<id>`). The
   `workflow_run` chain collects a develop dispatch on its own; the dispatch is the backfill, and it is
   idempotent (a night collected twice changes nothing, "Nights are read once per attempt, in order"
   above). It publishes to the live site, which is why no run from a branch goes through it, and why a
   branch's proof run is never an audit. The audit takes no input: each nightly starts with a
   `check-inputs` job (`scripts/a11y-dispatch-inputs.mjs`) that refuses `suite=pull-request`, `checks`,
-  `projects` and `groups` on develop before the build, because the test-health page draws the latest
+  `projects` and `groups` on develop before the build (`Docs a11y` refuses its own `checks` the same way), because the test-health page draws the latest
   night of each source and its trends from per-night counts, so a subset night would show the checks or
   lanes it skipped as gone and draw a drop to zero in every cluster. Nothing schedules the audit, so
   nothing keeps the evidence the conformance report cites inside the `a11y-checks-evidence` artifact's
@@ -2217,7 +2393,8 @@ release run the full set. The CI mechanics are in `.ai/CI.md`; this section is t
   trim, so `check-inputs` refuses a space or a typo before the build (`namedSubset()` in
   `lib/a11y-subset.mjs`, the one reader of every subset input: the config, the report script, the guard
   and the verdict), where a lane skipped on one side and expected on the other would end red for the
-  wrong reason after a macOS runner was spent. A subset's evidence keeps 7 days, since it cites nothing,
+  wrong reason after a macOS runner was spent. `gh workflow run docs-a11y.yml --ref <branch> -f checks=<id>[,<id>]`
+  runs the named docs site checks beside the scan the same way. A subset's evidence keeps 7 days, since it cites nothing,
   and a proof run on a branch is not a night at all: `isA11yRun()` takes develop only.
 
 ## Screen readers: the NVDA and VoiceOver lanes

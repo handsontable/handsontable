@@ -336,6 +336,10 @@ first, while `hot` still exists: the callback starts with `this.hot.toPhysicalCo
 instance destroyed ahead of the grid threw on the next header render. Pinned by
 `tests/e2e/plugin-destroy-update-settings.spec.ts`.
 
+## The condition list is moved into the viewport and capped by `scrollInViewport` (DEV-3994)
+
+The condition list (`.htFiltersConditionsMenu`, built in `ui/select.ts`) is a standalone `Menu` that opens under its select with `keepInViewport: false`. On a page whose window cannot scroll (an app shell, a frame the size of its content) its lower rows used to end below the edge with nothing to reach them. The menu sets `scrollInViewport: true`, which moves the list up so its bottom ends inside the viewport and caps a list taller than the viewport so it scrolls in itself, on desktop as well. Keep `keepInViewport: false` and do not switch to `true`: the flip-above and the horizontal fit it adds would put the list beside its select, not over it (`../../utils/menu/AGENTS.md`, the cap section). Any new measurement or full draw of this menu's grid must be followed by `updateMenuDimensions()`, which re-applies the cap.
+
 ## Where to look next
 
 - Coordinate translation rules and `IndexMapper` usage: `coordinate-systems` skill and `handsontable/.ai/ARCHITECTURE.md`.

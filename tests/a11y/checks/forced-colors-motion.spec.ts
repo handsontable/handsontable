@@ -1,11 +1,12 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
-import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { emulate, openTarget, reachState, releaseParkedFetches, selectCell, type OpenedTarget } from '../harness';
+import { A11Y_PAGES, type A11yPage } from '../pages.mjs';
+import { fixtureUrl, emulate, openTarget, reachState, releaseParkedFetches, selectCell, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { dominantColor, indicatorChange, isDrawn, strongestPixel } from '../../lib/contrast.mjs';
 import { FORCED_COLORS_CRITERIA, controlProblems, forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../../lib/motion.mjs';
 import { capture, cellBox, grow, settle, type Image } from './pixels';
+import { watchAnimations } from './animations';
 
 /**
  * Forced colors and reduced motion: WCAG 2.2.2, 2.3.3, and the forced-colors support of 1.4.1, 1.4.11
@@ -28,96 +29,6 @@ import { capture, cellBox, grow, settle, type Image } from './pixels';
 
 const WATCH_MS = 5000;
 const INTERACTION_MS = 1500;
-
-interface SeenAnimation {
-  kind: string;
-  name: string;
-  properties: string[];
-  duration: number;
-  // 'Infinity' for an endless animation: the record is attached as JSON, which writes the number as null.
-  iterations: number | 'Infinity';
-  target: string;
-  firstSeen: number;
-  lastSeen: number;
-  running: boolean;
-}
-
-interface Watch {
-  animations: SeenAnimation[];
-  // When the watch's first and last frames ran, on the clock of `firstSeen` and `lastSeen`.
-  frames: { first: number; last: number };
-}
-
-/**
- * Watches `document.getAnimations()` on every frame for a time and records each animation seen running:
- * its kind, its name (the animation name or the transitioned property), the properties it animates, its
- * duration and iterations, its target, and when it was first and last seen running. It also records when
- * its own first and last frames ran, which bound what "seen for the whole watch" means.
- *
- * @param page The page.
- * @param ms How long to watch.
- * @returns The animations and the watch's frames.
- */
-async function watchAnimations(page: Page, ms: number): Promise<Watch> {
-  return page.evaluate(async(duration) => {
-    const start = performance.now();
-    const frames = { first: -1, last: -1 };
-    const records = new Map<Animation, Record<string, unknown>>();
-    const kebab = (name: string) => name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
-    const describe = (animation: Animation) => {
-      const effect = animation.effect as KeyframeEffect | null;
-      const target = effect?.target as Element | null;
-      const css = animation as Animation & { animationName?: string; transitionProperty?: string };
-      const keyframes = effect?.getKeyframes?.() ?? [];
-      const properties = css.transitionProperty
-        ? [css.transitionProperty]
-        : [...new Set(keyframes.flatMap(frame => Object.keys(frame).filter(key => !['offset', 'computedOffset', 'easing', 'composite'].includes(key))))].map(kebab);
-      const timing = effect?.getComputedTiming?.() ?? {};
-      const classes = target ? [...target.classList].slice(0, 1).map(name => `.${name}`).join('') : '';
-
-      return {
-        kind: animation.constructor.name,
-        // A script animation's `id` is '' unless the script set one.
-        name: css.animationName ?? css.transitionProperty ?? (animation.id || 'animation'),
-        properties,
-        duration: Number(timing.duration) || 0,
-        iterations: timing.iterations === Infinity ? 'Infinity' : Number(timing.iterations ?? 1),
-        target: target ? `${target.tagName.toLowerCase()}${classes}` : 'none',
-      };
-    };
-
-    await new Promise<void>((resolve) => {
-      const tick = () => {
-        const now = performance.now() - start;
-
-        if (frames.first < 0) {
-          frames.first = now;
-        }
-        frames.last = now;
-        for (const animation of document.getAnimations()) {
-          if (animation.playState === 'running') {
-            const record = records.get(animation) ?? { ...describe(animation), firstSeen: now };
-
-            record.lastSeen = now;
-            records.set(animation, record);
-          }
-        }
-        if (now >= duration) {
-          resolve();
-        } else {
-          requestAnimationFrame(tick);
-        }
-      };
-
-      requestAnimationFrame(tick);
-    });
-
-    return {
-      animations: [...records].map(([animation, record]) => ({ ...record, running: animation.playState === 'running' }) as SeenAnimation),
-      frames,
-    };
-  }, ms);
-}
 
 /**
  * Watches every catalog state at rest for five seconds, without the reduced-motion preference: 2.2.2 asks

@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-11-05T13:54:37.827Z"
+    "at": "2026-11-12T08:40:28.827Z"
   },
   "steps": {
     "tab-add-sheet": "add sheet button",
@@ -20,6 +20,6 @@
     "enter-commit-rename": "budget button collapsed sub menu current",
     "shift-tab-all-sheets": "all sheets button collapsed sub menu",
     "shift-tab-add-sheet": "add sheet button",
-    "shift-tab-grid": "beta table b 4 b row 3 column 3"
+    "shift-tab-grid": "budget table b 4 b row 3 column 3"
   }
 }

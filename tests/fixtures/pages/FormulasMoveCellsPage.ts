@@ -158,6 +158,91 @@ export class FormulasMoveCellsPage {
     await this.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
   }
 
+  /**
+   * Drag rows to a drop index through the ManualRowMove plugin, the call the header drag makes.
+   * Resolves to whether the order changed.
+   */
+  async dragRows(rows: number[], dropIndex: number): Promise<boolean> {
+    return this.page.evaluate(([movedRows, drop]) => {
+      const moved = window.hot.getPlugin('manualRowMove').dragRows(movedRows, drop);
+
+      window.hot.render();
+
+      return moved;
+    }, [rows, dropIndex] as [number[], number]);
+  }
+
+  /**
+   * Resend the settings through `updateSettings({})`, as a React or Vue re-render does.
+   */
+  async rerender(): Promise<void> {
+    await this.page.evaluate(() => window.hot.updateSettings({}));
+  }
+
+  /**
+   * Resend the grid's own `data` array through `updateSettings({ data })`, as a React re-render does: the
+   * wrapper forwards `data` with every update.
+   */
+  async rerenderWithSameData(): Promise<void> {
+    await this.page.evaluate(() => window.hot.updateSettings({ data: window.hot.getSettings().data }));
+  }
+
+  /**
+   * Start counting the calls that write the grid's engine sheet or send it an order: `setSheetContent`,
+   * `moveRows` and `setRowOrder`. Read the count with `engineWriteCount()`.
+   */
+  async countEngineWrites(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as any;
+      const engine = win.hot.getPlugin('formulas').engine;
+
+      win.engineWrites = 0;
+      ['setSheetContent', 'moveRows', 'setRowOrder'].forEach((name) => {
+        const original = engine[name].bind(engine);
+
+        engine[name] = (...args: unknown[]) => {
+          win.engineWrites += 1;
+
+          return original(...args);
+        };
+      });
+    });
+  }
+
+  /**
+   * The number of calls `countEngineWrites()` counted so far.
+   */
+  async engineWriteCount(): Promise<number> {
+    return this.page.evaluate(() => (window as any).engineWrites);
+  }
+
+  /**
+   * Build a second grid on the grid's own engine, on a sheet of its own, whose one cell reads the given
+   * cell of the grid's sheet (for example `A1`). It is kept in `window.readerHot` and destroyed with the
+   * page.
+   */
+  async addReaderGrid(cellAddress: string): Promise<void> {
+    await this.page.evaluate((address) => {
+      const win = window as any;
+      const plugin = win.hot.getPlugin('formulas');
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+      win.readerHot = new win.Handsontable(container, {
+        data: [[`='${plugin.sheetName}'!${address}`]],
+        formulas: { engine: plugin.engine, sheetName: 'Reader' },
+        licenseKey: window.htTestLicenseKey,
+      });
+    }, cellAddress);
+  }
+
+  /**
+   * The value the second grid's cell shows (`getDataAtCell`).
+   */
+  async readerValue(): Promise<CellValue> {
+    return this.page.evaluate(() => (window as any).readerHot.getDataAtCell(0, 0));
+  }
+
   /** Veto the next move through the public beforeMoveCells hook. */
   async vetoNextMove(): Promise<void> {
     await this.page.evaluate(() => window.hot.addHookOnce('beforeMoveCells', () => false));

@@ -265,6 +265,66 @@ export class EditorRowHeaderBorderPage {
   }
 
   /**
+   * Names the topmost element on the gridline pixel in front of a cell, at the middle of the cell's other
+   * axis: the pixel before its inline-start edge (`'start'`) or above its top edge (`'top'`). Named
+   * `<overlay>/<element>`, so a test can tell whether a frozen overlay paints the selection there.
+   *
+   * @param {GridName} grid The grid.
+   * @param {number} row The visual row.
+   * @param {number} col The visual column.
+   * @param {'start'|'top'} side Which gridline of the cell.
+   * @param {object} [options] The read options.
+   * @param {boolean} [options.inside] Read the cell's own first pixel on that side instead.
+   * @returns {Promise<string>}
+   */
+  async gridlinePixelOwner(
+    grid: GridName, row: number, col: number, side: 'start' | 'top', { inside = false } = {},
+  ): Promise<string> {
+    return this.page.evaluate(([name, r, c, gridline, insideCell]) => {
+      const hot = (window as unknown as Record<string, {
+        getCell: (row: number, col: number, topmost?: boolean) => HTMLElement,
+        isRtl: () => boolean,
+      }>)[`hot_${name.replace(/-/g, '_')}`];
+      // A hit test needs the cell inside the window. Only the window moves, so the grid keeps its own scroll.
+      const before = hot.getCell(r, c, true).getBoundingClientRect();
+
+      window.scrollBy(before.left - (window.innerWidth / 2), before.top - (window.innerHeight / 2));
+
+      const cell = hot.getCell(r, c, true).getBoundingClientRect();
+      // The gridline pixel in front of the cell, or with `inside` the cell's own first pixel.
+      const step = insideCell ? 0.5 : -0.5;
+      let x = cell.left + (cell.width / 2);
+      let y = cell.top + step;
+
+      if (gridline === 'start') {
+        x = hot.isRtl() ? cell.right - step : cell.left + step;
+        y = cell.top + (cell.height / 2);
+      }
+
+      const element = document.elementFromPoint(x, y);
+      const overlay = element?.closest('.handsontable')?.className.match(/ht_clone_\w+|ht_master/)?.[0] ?? 'none';
+
+      return `${overlay}/${element?.tagName.toLowerCase()}.${element?.className ?? ''}`;
+    }, [grid, row, col, side, inside] as const);
+  }
+
+  /**
+   * Gives one cell of a grid a 1px custom border on its top and inline-start sides.
+   *
+   * @param {GridName} grid The grid.
+   * @param {number} row The visual row.
+   * @param {number} col The visual column.
+   */
+  async addCustomStartBorder(grid: GridName, row: number, col: number): Promise<void> {
+    await this.page.evaluate(([name, r, c]) => {
+      (window as unknown as Record<string, { updateSettings: (settings: object) => void }>)[
+        `hot_${name.replace(/-/g, '_')}`].updateSettings({
+        customBorders: [{ row: r, col: c, top: { width: 1, color: 'red' }, start: { width: 1, color: 'red' } }],
+      });
+    }, [grid, row, col] as const);
+  }
+
+  /**
    * Scroll a grid so that a row is the first scrollable one it shows, and wait until the scroll has
    * settled. Reading the first visible row while the viewport is still moving can return an interim one.
    *

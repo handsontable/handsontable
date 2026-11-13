@@ -19,7 +19,7 @@
  * header cells, every status an icon and a word as well as a color.
  */
 import { entryKey, findingsByRule, headline, isSafeLink, selectorText, verdictCounts } from './a11y-baseline.mjs';
-import { FIXTURE_SERVER, PRODUCT_SUITE } from './a11y-suites.mjs';
+import { FIXTURE_SERVER, PRODUCT_SUITE, withScannedUrls } from './a11y-suites.mjs';
 
 // The fixture server's default address, kept here for the callers that read it from the report.
 export { FIXTURE_SERVER };
@@ -136,7 +136,8 @@ function byPageOrder(pages, themes) {
  * @param {object} [model.suite] The scan (`lib/a11y-suites.mjs`); the product scan when absent.
  * @returns {string} The HTML document.
  */
-export function renderHtmlReport({ verdict, scans, pages: pageList, run, suite = PRODUCT_SUITE }) {
+export function renderHtmlReport({ verdict, scans, pages: pageList, run, suite: plainSuite = PRODUCT_SUITE }) {
+  const suite = withScannedUrls(plainSuite, scans);
   const counts = verdictCounts(verdict);
   const pages = pageList ?? suite.pages;
   const context = {

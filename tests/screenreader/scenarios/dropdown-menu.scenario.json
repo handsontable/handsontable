@@ -36,7 +36,7 @@
       "id": "arrow-down-read-only",
       "action": {"press": "ArrowDown"},
       "expect": [["read only"], ["not checked", "unchecked"]],
-      "note": "Read only is a checkable item (`menuitemcheckbox`, aria-checked false while no column is read only): its label and its state are each required. The role is not required here: NVDA names no role, and VoiceOver says `menu item`. Finding: VoiceOver reads `Read only menu item` with no checked state, on both browsers."
+      "note": "Read only is a checkable item (`menuitemcheckbox`, aria-checked false while no column is read only): its label and its state are each required. The role is not required here: NVDA names no role, and VoiceOver says `menu item`. VoiceOver reads `Read only menu item` with no state, on both browsers, and `Read only checked menu item` once the column is read only. It does the same on a well-formed ARIA menu: it says `checked` for a checked item and nothing for an unchecked one (its behavior)."
     },
     {
       "id": "close-menu",

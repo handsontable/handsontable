@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the fixedRowsBottom rows shifting one column off their headers after a short horizontal scroll followed by a vertical scroll.",
+  "type": "fixed",
+  "issueOrPR": 14277,
+  "breaking": false,
+  "framework": "none"
+}

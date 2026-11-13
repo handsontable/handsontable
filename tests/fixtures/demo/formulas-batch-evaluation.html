@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulas batchEvaluation e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    A grid with `formulas.batchEvaluation` on, an engine built here and autosized columns. Column B holds
+    `=A<n>*1000`, so writing a long number into column A makes column B's value wider than the width it was
+    measured at. `window.valuesUpdates` counts the engine recalculations the grid reports
+    (`afterFormulasValuesUpdate`), which is what `batchEvaluation` reduces from one per write to one per batch.
+    `window.renderLog` records, for every draw, the text of the first formula cell and whether it fits its box.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const ROWS = 6;
+    const container = document.querySelector('[data-testid="grid"]');
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    window.valuesUpdates = 0;
+    window.renderLog = [];
+    container.className = `ht-theme-${window.htTheme}`;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: ROWS }, (_, row) => [row + 1, `=A${row + 1}*1000`]),
+        formulas: { engine, sheetName: 'Sheet1', batchEvaluation: true },
+        colHeaders: true,
+        rowHeaders: true,
+        width: 500,
+        height: 200,
+        afterFormulasValuesUpdate() {
+          window.valuesUpdates += 1;
+        },
+        afterRender() {
+          // What the draw left on screen for the formula cell of the first row, kept for the spec.
+          const td = document.querySelector('[data-testid="cell-0-1"]');
+
+          if (td) {
+            window.renderLog.push({ text: td.textContent, fits: td.scrollWidth <= td.clientWidth });
+          }
+        },
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

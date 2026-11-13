@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
-import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { emulate, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
+import { A11Y_PAGES, type A11yPage } from '../pages.mjs';
+import { fixtureUrl, emulate, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   cancellationFindings, DRAG_FIELDS, DRAG_INVENTORY_FILE, dragFindings, dragInventoryLines, gestureFindings, gestureInventory, operationCriteria,
