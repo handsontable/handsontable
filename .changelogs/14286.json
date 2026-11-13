@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a double line between the scrolled rows and the frozen bottom rows, and a fill handle partly hidden under them, after a keyboard move scrolled a row up to the frozen bottom rows.",
+  "type": "fixed",
+  "issueOrPR": 14286,
+  "breaking": false,
+  "framework": "none"
+}
