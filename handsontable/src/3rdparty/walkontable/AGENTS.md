@@ -282,7 +282,11 @@ keeps the handle out of the strip the frozen overlays already keep clear (`axisS
   `fixedRowsBottom` the last track is drawn by an end clone, and a frozen row's or column's handle by
   the `top` or `inline_start` clone. Those clones are clipped out of the strip while its band is open
   (the clip-path `InlineEndOverlay` / `BottomOverlay` publish), so a handle they draw on the last track
-  is cut, not covered; that case is not handled here.
+  is cut, not covered; that case is not handled here. The cut lasts only while the band is open: a pointer
+  holds the band open with no timer, and only from the band itself (`OVERLAY_SCROLLBAR_PROXIMITY` equals
+  `OVERLAY_SCROLLBAR_CLEARANCE`, DEV-3975). A wider reach (it was 26px) held the band from the visible part
+  of a `fixedColumnsEnd` column, so its last 16px stayed cut for as long as the pointer rested on the cell.
+  Keep the two constants equal, and mirror a change in `visual-tests/src/test-runner.ts`.
 - **A grid the window scrolls is not covered.** `holderOwnsAxisScrollbar` gates the clearance, so an
   axis the window owns (a grid with no `height`) gets 0, while the page's own overlay scrollbar can
   still sit over a last column that reaches the viewport edge. The changelog names the holder case

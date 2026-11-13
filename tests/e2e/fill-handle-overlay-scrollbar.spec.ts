@@ -103,6 +103,39 @@ test.describe('fill handle next to an overlay scrollbar', { tag: [THEMES_TAG, CR
       .toEqual({ bandShown: true, overlaps: false });
   });
 
+  test('lets the band over a fixed end column close while the pointer rests on the column beside the strip', async() => {
+    await grid.initGrid({ data: WIDE_TALL_DATA, width: 500, height: 300, fixedColumnsEnd: 1 });
+    // On the end column's visible part: past the strip, inside the reach that used to hold the band (26px).
+    await grid.restPointerFromInlineEndEdge(SCROLLBAR_STRIP + 4);
+    // Selecting a cell far down scrolls the grid vertically, which opens the band.
+    await grid.selectCells(25, 19, 25, 19);
+
+    // Precondition: the band opened and cut the strip out of the end column.
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe(`inset(0px ${SCROLLBAR_STRIP}px 0px 0px)`);
+    // The pointer is not over the scrollbar, so the band fades and the column is whole again.
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe('');
+  });
+
+  test('holds the band over a fixed end column while the pointer rests on the scrollbar strip', async() => {
+    await grid.initGrid({ data: WIDE_TALL_DATA, width: 500, height: 300, fixedColumnsEnd: 1 });
+    await grid.restPointerFromInlineEndEdge(SCROLLBAR_STRIP / 2);
+
+    const scrolledAt = Date.now();
+
+    await grid.selectCells(25, 19, 25, 19);
+
+    // Read after the fade delay (1s) has passed: the band is still open, because the pointer is on the strip.
+    await expect.poll(async() => {
+      const clip = await grid.inlineEndCloneClip();
+
+      return Date.now() - scrolledAt > 1500 ? clip : 'before the fade delay';
+    }).toBe(`inset(0px ${SCROLLBAR_STRIP}px 0px 0px)`);
+
+    // Positive control for the hold: once the pointer leaves the strip, the same band closes.
+    await grid.restPointerFromInlineEndEdge(SCROLLBAR_STRIP + 4);
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe('');
+  });
+
   test('clears the strip for a last column that ends a few pixels short of the holder edge', async() => {
     // Eight 60px columns and no row headers in a 490px grid: the last column ends 10px before the
     // edge, close enough for its handle to hang into the strip, too far for the plain lift.

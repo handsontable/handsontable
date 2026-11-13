@@ -600,7 +600,7 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
   instead of its message.
 - A click on the grid's far corner pins the scrollbar clearance band (#10370) open. The pointer then
-  rests within 26 px of both scrollbars, which keeps their bands up by design
+  rests within 16 px of both scrollbars, which keeps their bands up by design
   (`OVERLAY_SCROLLBAR_PROXIMITY`), so the next scroll's wait for the band to close times out. Park the
   pointer off the grid before scrolling (`GridLayoutsPage.scrollViewportTo()`), and wait for the band to
   close before a click near an edge, or the scrollbar takes the click.

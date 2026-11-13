@@ -1757,6 +1757,41 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Rests the pointer inside the master holder, the given distance from its inline-end edge (the right
+   * one in LTR) and at half its height. The pointer arrives in two steps, so the grid sees a move there.
+   *
+   * @param {number} distance The distance from the holder's inline-end edge, in pixels.
+   */
+  async restPointerFromInlineEndEdge(distance: number): Promise<void> {
+    const box = await this.grid.locator('.ht_master .wtHolder').boundingBox();
+
+    if (!box) {
+      throw new Error('The master holder is not rendered.');
+    }
+
+    const y = box.y + (box.height / 2);
+
+    await this.page.mouse.move(box.x + box.width - distance - 40, y);
+    await this.page.mouse.move(box.x + box.width - distance, y);
+  }
+
+  /**
+   * The clip the grid puts on the `fixedColumnsEnd` clone while the vertical scrollbar's clearance band is
+   * open: the `clip-path` written on the clone's root, `''` while the band is closed.
+   */
+  async inlineEndCloneClip(): Promise<string> {
+    return this.page.evaluate(() => {
+      const clone = document.querySelector<HTMLElement>('[data-testid="grid"] .ht_clone_inline_end');
+
+      if (!clone) {
+        throw new Error('The inline-end clone is not rendered.');
+      }
+
+      return clone.style.clipPath === 'none' ? '' : clone.style.clipPath;
+    });
+  }
+
+  /**
    * The layout space the master holder gives its vertical and horizontal scrollbars. `0` on both
    * axes is an overlay ("floating") scrollbar, painted over the cells.
    */
