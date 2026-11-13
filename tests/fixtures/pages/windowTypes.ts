@@ -486,6 +486,7 @@ declare global {
     resizeSideSlotContainer(width: number): boolean;
     /**
      * Side layout slots fixture: registers a click-counting button into the `top` slot.
+     */
     addTopButton(key: string): boolean;
     /**
      * Side layout slots fixture: appends a click-counting button into a registered side panel.
