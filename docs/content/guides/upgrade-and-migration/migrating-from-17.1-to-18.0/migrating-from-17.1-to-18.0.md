@@ -18,7 +18,9 @@ category: Upgrade and migration
 
 Migrate from Handsontable 17.1 to Handsontable 18.0.
 
-The [migration codemod](@/guides/upgrade-and-migration/migration-codemod/migration-codemod.md) automates part of this migration. It rewrites the changes that are certain and reports the rest.
+The migration codemod automates part of this migration. It rewrites the changes that are certain and reports the rest. To run it, see:
+
+- [How to run the migration codemod](@/guides/upgrade-and-migration/migration-codemod/migration-codemod.md)
 
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 
