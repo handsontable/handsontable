@@ -150,13 +150,13 @@ entries. Each entry takes these fields:
 | `kind` | yes | `plugin`, `cell_type`, `editor`, `renderer`, `validator`, `sub_feature`, or `core_area` |
 | `module` | registry kinds | The registered name: `Filters`, `checkbox`, `intl-date`. Checked against the source constant and the runtime registry. |
 | `plugins` | `sub_feature` | The plugins whose behavior the sub-feature changes. |
-| `name`, `description` | yes | English text shown where keys are built. Not translated. Never prices. |
+| `name`, `description` | yes | English text shown in the tier matrix of the license key guide and in `dist/manifest.json`. Not translated. Never prices. |
 | `since` | no | The release that first ships the id. Default `19.0.0` (`FIRST_RELEASE`); a feature added later declares its own. |
 | `status` | yes | `stable`, or `planned` (listed but not issued yet, not recorded as released, may still be renamed). |
 | `licensing` | yes | `token` (sold in one or more tiers), `none` (never in a tier). Fixed by kind, see below. |
 | `gate` | when `token` | How Handsontable checks it: `enable` (plugin turns on), `call` (an always-on plugin, checked in its methods), `degrade` (sub-feature left out of the result), `report` (listed, keeps working, never turned off). |
 | `tiers` | when `token` | The tiers that include it, each declared in `tiers.json`, none listed twice. An entry with `none` lists no tiers. |
-| `requires` | no | `{ "allOf": [...], "anyOf": [...] }`. `anyOf` means at least one, which the key builder cannot choose on its own. |
+| `requires` | no | `{ "allOf": [...], "anyOf": [...] }`. `anyOf` means at least one: a tier that includes the entry includes at least one of them. |
 | `enforceAtInit` | plugins | `true` turns `requires.allOf` into `PLUGIN_DEPS` (see above), so it needs a non-empty `allOf`. |
 | `packages` | no | npm packages the user supplies (`hyperformula`, `hyperformula-ui`). |
 

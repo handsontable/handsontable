@@ -259,8 +259,9 @@ describe('feature manifest', () => {
 
     // `xlsx:styles` requires any of `xlsx:import`, `xlsx:export`; a tier with neither sells a feature nothing can use.
     it('should report a tier that includes a feature and none of its "anyOf" requirements', () => {
-      const changed = withEntry(sources, 'xlsx:styles', entry => ({ ...entry, tiers: [...entry.tiers, 'basic'] }));
-      const problems = checkSources({ ...changed, tiers: [...sources.tiers, 'basic'] });
+      // The tier holds what is never switched off, and of the rest only `xlsx:styles`.
+      const always = [...byId.values()].filter(entry => entry.gate === 'report').map(entry => entry.id);
+      const problems = checkSources(withTier(sources, 'basic', [...always, 'xlsx:styles']));
 
       expect(problems).toEqual([expect.stringContaining(
         'tier "basic" includes "xlsx:styles" but none of "xlsx:import", "xlsx:export", one of which it requires')]);
@@ -276,6 +277,57 @@ describe('feature manifest', () => {
       expect(checkSources(changed)).toEqual(requirers.map(id => expect.stringContaining(
         `tier "alpha" includes "${id}" but not "feat:comments", which it requires`)));
       expect(checkSources(withTier(sources, 'alpha', sold))).toEqual([]);
+    });
+
+    it('should require every tier on an entry the runtime never switches off', () => {
+      const [first, ...rest] = sources.tiers;
+      const reported = [...byId.values()].filter(entry => entry.gate === 'report').map(entry => entry.id);
+
+      expect(reported).toEqual(expect.arrayContaining(['grid', 'cell:text', 'xlsx:import_report']));
+      ['grid', 'cell:date', 'xlsx:import_report'].forEach((id) => {
+        expect([id, checkSources(withEntry(sources, id, entry => ({ ...entry, tiers: rest })))]).toEqual([id, [
+          expect.stringContaining('"gate": "report" is never switched off, so "tiers" must list every tier; ' +
+            `"${first}" is missing`),
+        ]]);
+      });
+
+      // A tier added to `tiers.json` alone is missing from every such entry.
+      const added = { ...sources, tiers: [...sources.tiers, 'added_tier'] };
+
+      expect(checkSources(added)).toHaveLength(reported.length);
+      expect(checkSources(added).every(problem => problem.includes('"added_tier" is missing'))).toBe(true);
+    });
+
+    it('should check a requirement reached through another requirement', () => {
+      // Filters requires the column menu, which requires AutoColumnSize: a tier with Filters needs all three.
+      const sold = [...byId.values()].filter(entry => entry.licensing === 'token').map(entry => entry.id);
+
+      expect(entryOf('feat:filters').requires.allOf).toContain('feat:dropdown_menu');
+      expect(entryOf('feat:filters').requires.allOf).not.toContain('feat:auto_column_size');
+      expect(entryOf('feat:dropdown_menu').requires.allOf).toContain('feat:auto_column_size');
+      expect(checkSources(withTier(sources, 'alpha', sold.filter(id => id !== 'feat:auto_column_size'))))
+        .toContainEqual(expect.stringContaining(
+          'tier "alpha" includes "feat:filters" but not "feat:auto_column_size"'));
+    });
+
+    describe('tiers.json', () => {
+      const FILE = 'src/featureManifest/tiers.json';
+      const withTiersFile = tiersFile => ({ ...sources, tiersFile, tiers: tiersFile?.tiers });
+
+      it('should report a missing file', () => {
+        expect(checkSources(withTiersFile(null))).toContain(`${FILE}: the file is missing`);
+      });
+
+      it.each([
+        ['a format version this generator does not read', { schemaVersion: 2 }, '"schemaVersion" must be 1, found 2'],
+        ['a key it does not know', { order: [] }, 'unknown top-level key "order"'],
+        ['an empty list', { tiers: [] }, '"tiers" must be a non-empty list of tier names'],
+        ['a list that is not a list', { tiers: 'standard' }, '"tiers" must be a non-empty list of tier names'],
+        ['a name listed twice', { tiers: ['standard', 'standard'] }, 'tier "standard" is listed twice'],
+        ['a name that is not a string', { tiers: ['standard', 7] }, 'tier 7 must match /^[a-z][a-z0-9_]*$/'],
+      ])('should report %s', (label, change, problem) => {
+        expect(checkSources(withTiersFile({ ...sources.tiersFile, ...change }))).toContain(`${FILE}: ${problem}`);
+      });
     });
 
     it('should report a tier name that cannot be written as a key token', () => {
@@ -487,7 +539,7 @@ describe('feature manifest', () => {
         const row = lines.find(line => line.startsWith(`| ${rowNameOf(entry)} |`));
 
         expect({ id: entry.id, cells: row.split('|').slice(2, -1).map(cell => cell.trim()) })
-          .toEqual({ id: entry.id, cells: sources.tiers.map(tier => (entry.tiers.includes(tier) ? 'Yes' : '')) });
+          .toEqual({ id: entry.id, cells: sources.tiers.map(tier => (entry.tiers.includes(tier) ? 'Yes' : 'No')) });
       });
     });
 
@@ -515,7 +567,7 @@ describe('feature manifest', () => {
 
       expect(lines[0]).toBe(`| Feature | ${[...sources.tiers, 'alpha']
         .map(tier => tier[0].toUpperCase() + tier.slice(1)).join(' | ')} |`);
-      expect(lines).toContain(rowOf('Filters', [...sources.tiers.map(() => ''), 'Yes']));
+      expect(lines).toContain(rowOf('Filters', [...sources.tiers.map(() => 'No'), 'Yes']));
       // The plugin's generated LICENSE carries its tiers too, and the record of released ids lists the new tier.
       expect(findStaleOutputs(changed))
         .toEqual(['src/plugins/filters/feature.generated.ts', RELEASED_FILE, LICENSE_GUIDE_FILE]);
@@ -523,8 +575,8 @@ describe('feature manifest', () => {
 
     it('should read the guide as stale when the block is edited, and keep the text around it', () => {
       const row = rowOf('Filters',
-        sources.tiers.map(tier => (entryOf('feat:filters').tiers.includes(tier) ? 'Yes' : '')));
-      const edited = sources.licenseGuideText.replace(row, rowOf('Filters', sources.tiers.map(() => '')));
+        sources.tiers.map(tier => (entryOf('feat:filters').tiers.includes(tier) ? 'Yes' : 'No')));
+      const edited = sources.licenseGuideText.replace(row, rowOf('Filters', sources.tiers.map(() => 'No')));
       const output = buildCommittedOutputs(sources).find(({ file }) => file === LICENSE_GUIDE_FILE);
 
       expect(edited).not.toBe(sources.licenseGuideText);
@@ -539,6 +591,16 @@ describe('feature manifest', () => {
 
       expect(() => buildCommittedOutputs({ ...sources, licenseGuideText: withoutMarkers }))
         .toThrow('license-tiers:end');
+    });
+
+    it('should refuse a guide without the start marker, and one whose end marker comes first', () => {
+      const [before, rest] = sources.licenseGuideText.split('<!-- license-tiers:start -->');
+      const [block, after] = rest.split('<!-- license-tiers:end -->');
+      const build = licenseGuideText => () => buildCommittedOutputs({ ...sources, licenseGuideText });
+
+      expect(build(`${before}${block}<!-- license-tiers:end -->${after}`)).toThrow('license-tiers:start');
+      expect(build(`${before}<!-- license-tiers:end -->${block}<!-- license-tiers:start -->${after}`))
+        .toThrow('license-tiers:start');
     });
 
     it('should name the guide file when it is missing, not ask for its markers', () => {

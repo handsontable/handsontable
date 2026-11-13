@@ -193,6 +193,9 @@ describe('xlsxEngine/xlsxEntitlement', () => {
       const { tiers } = _getLicenseState(keyWithTier([tier]));
 
       expect(resolveXlsxEntitlement(tiers).export).toBe(true);
+      // A tier the generated map does not list turns every gated feature off.
+      expect(resolveXlsxEntitlement(['zz_unknown']).missing).toEqual([...XLSX_CAPABILITY_IDS]);
+      expect(resolveXlsxEntitlement(['zz_unknown']).export).toBe(false);
     });
   });
 });

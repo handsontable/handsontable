@@ -13,9 +13,11 @@ import {
  * read. Styles are named because the tests below assert on them; which tier leaves them out, and what
  * else it leaves out, is the manifest's.
  *
- * The keys name the build's real tiers, read from `dist/manifest.json` when a test runs, so no test
- * assumes which features a tier holds. A test that needs a feature off takes the first tier that leaves
- * it out, and fails when every tier lists it.
+ * The keys name the build's real tiers, read from `dist/manifest.json` when a test runs: the fixture cannot
+ * add a made-up tier to the bundle's XLSX tier table, as `license-capabilities.html` does for plugins. A
+ * test picks its tier by the feature it needs off (or on) and reads everything else it asserts from the
+ * manifest. It still depends on the assignment in one way: it fails, with the reason, when no tier fits
+ * (every tier lists the feature, or none lists a feature the test needs on beside it).
  *
  * A feature every real tier lists cannot be switched off by a real key, so those cases live in the unit
  * suite, which builds keys with made-up tiers: the export refused and the menu item hidden without
@@ -150,11 +152,10 @@ for (const engine of ['native', 'exceljs'] as const) {
       page, theme, bundle,
     }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
-      const tier = requiredTierWithout(PARTIAL_TIER_LACKS);
+      // The date assertion below is about a tier without number formats, so the tier is picked by that
+      // feature and nothing is assumed about what else it leaves out.
+      const tier = requiredTierWithout('xlsx:number_formats');
       const missing = featuresMissingFrom(tier, EXPORT_FEATURE_TOKENS);
-
-      // The date assertion below is about a tier without number formats: pinned, not branched on.
-      expect(missing).toContain('xlsx:number_formats');
 
       await lic.goto();
       await lic.create(keyWithTier([tier]));

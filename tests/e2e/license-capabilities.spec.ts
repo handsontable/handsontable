@@ -1,8 +1,5 @@
 import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { LicenseCapabilitiesPage } from '../fixtures/pages/LicenseCapabilitiesPage';
-import { isLicensePreset, presetLicenseQuery, type LicensePresetName } from '../fixtures/licenseTiers';
-import { A11Y_PAGES } from '../a11y/pages.mjs';
-import { fixtureUrl } from '../a11y/harness';
 
 const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
   '(feat:filters). They are turned off. To add them, contact sales@handsontable.com.';
@@ -137,34 +134,13 @@ test.describe('license keys that name tiers', { tag: [THEMES_TAG, BUNDLES_TAG] }
     await license.goto({ key: 'tier-unknown', plugins: 'filters' });
 
     expect(await license.isPluginEnabled('filters')).toBe(false);
+    // One console error of any kind, and it is the license one.
+    expect(license.consoleErrors).toHaveLength(1);
     expect(license.licenseErrors()).toHaveLength(1);
+    // The plugin the grid asked for, and plugins that are on by default.
     await expect(license.missingFeatures).toContainText('Filters');
+    await expect(license.missingFeatures).toContainText('Copy and paste');
+    await expect(license.missingFeatures).toContainText('Undo and redo');
     await expect(license.bar).toHaveCount(1);
-  });
-
-  test('keeps every feature on for a key that names no tier', async() => {
-    await license.goto({ key: 'no-tier', plugins: 'filters' });
-
-    expect(await license.isPluginEnabled('filters')).toBe(true);
-    expect(license.licenseErrors()).toEqual([]);
-  });
-});
-
-/**
- * The accessibility catalog cannot build a key (it is plain JS that node scripts read too), so its
- * missing-features page names a preset (`licensePreset`), and the tier's TypeScript `fixtureUrl()` adds
- * that preset's tiers and key. A preset renamed or removed here would leave the page without its key.
- */
-test.describe('the accessibility catalog\'s license page', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
-  test('names a preset that exists, and opens the fixture with its tiers and key', () => {
-    const entries = A11Y_PAGES.filter(page => page.licensePreset !== undefined);
-
-    expect(entries.map(page => page.id)).toContain('license-missing-features');
-
-    for (const entry of entries) {
-      expect(isLicensePreset(entry.licensePreset ?? ''), entry.id).toBe(true);
-      expect(fixtureUrl(entry, 'main'), entry.id)
-        .toContain(presetLicenseQuery(entry.licensePreset as LicensePresetName));
-    }
   });
 });

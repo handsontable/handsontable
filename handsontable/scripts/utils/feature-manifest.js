@@ -712,7 +712,8 @@ function checkTierClosure(entry, byId, tiers) {
 
 /**
  * Checks the `tiers` of one entry: a sold entry lists one or more distinct tiers that `tiers.json` declares, an
- * entry that is not sold lists none, and every tier sells what the entry requires.
+ * entry that is not sold lists none, an entry the runtime never switches off lists every tier, and every tier
+ * sells what the entry requires.
  *
  * @param {object} entry A manifest entry.
  * @param {Map<string, object>} byId Every entry, by id.
@@ -734,6 +735,13 @@ function checkTiers(entry, byId, tierNames) {
     ...tiers.filter(name => !tierNames.includes(name)).map(name => `unknown tier "${name}"`),
     ...findRepeatedTiers(tiers),
   ];
+
+  // The runtime never switches a `report` entry off (the grid, a cell type, the import report), so the manifest and
+  // the guide must not say a tier lacks it.
+  if (entry.gate === 'report') {
+    problems.push(...tierNames.filter(name => !tiers.includes(name))
+      .map(name => `"gate": "report" is never switched off, so "tiers" must list every tier; "${name}" is missing`));
+  }
 
   problems.push(...checkTierClosure(entry, byId, [...new Set(known)]));
 
@@ -1183,7 +1191,7 @@ function renderTierMatrix(sources) {
     `| Feature | ${titles.join(' | ')} |`,
     `| --- | ${titles.map(() => ':---:').join(' | ')} |`,
     ...rows.map(({ entry, name }) => `| ${name} | ${sources.tiers
-      .map(tier => (entry.tiers.includes(tier) ? 'Yes' : '')).join(' | ')} |`),
+      .map(tier => (entry.tiers.includes(tier) ? 'Yes' : 'No')).join(' | ')} |`),
     '',
   ].join('\n');
 }

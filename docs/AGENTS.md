@@ -789,14 +789,14 @@ The pages in this shape today:
 | Page | Markers | Edit instead | Regenerate with |
 |---|---|---|---|
 | `guides/configuration/configuration-option-levels/configuration-option-levels.md` | `<!-- option-levels:start -->` / `<!-- option-levels:end -->` | levels: the `@configScope` tag on the option in `handsontable/src/dataMap/metaManager/metaSchema.ts`; Notes column: the `NOTES` map in `handsontable/scripts/utils/option-levels.js` | `npm run generate:option-levels --prefix handsontable` |
-| `guides/getting-started/license-key/license-key.md` | `<!-- license-tiers:start -->` / `<!-- license-tiers:end -->` | the feature-to-tier matrix: the `tiers` of each sold entry in the feature manifest sources (`feature.json`, `features.json`) and the tier names in `handsontable/src/featureManifest/tiers.json`; the row names and layout: `renderTierMatrix()` in `handsontable/scripts/utils/feature-manifest.js` | `npm run generate:feature-manifest --prefix handsontable` |
+| `guides/getting-started/license-key/license-key.md` | `<!-- license-tiers:start -->` / `<!-- license-tiers:end -->` | the feature-to-tier matrix: the `tiers` of each sold entry in the feature manifest sources (`feature.json`, `features.json`) and the tier names in `handsontable/src/featureManifest/tiers.json`; the row names: the `name` of each entry, prefixed by `toMatrixName()`; the layout: `renderTierMatrix()`, both in `handsontable/scripts/utils/feature-manifest.js` | `npm run generate:feature-manifest --prefix handsontable` |
 
 The tier matrix is checked twice: by `should keep the committed generated files in sync with the sources` in
 `handsontable/test/__tests__/featureManifest.unit.js`, and by `scripts/__tests__/license-tiers-matrix.test.mjs` in the
 root `test:tooling`, which runs on a pull request that changes only the page. The rows name features, never ids, and
-the prose around the block names no plan's contents; a change to a plan is a manifest source edit.
+the prose around the block names no tier's contents; a change to a tier is a manifest source edit.
 
-The option-levels page has two more traps, and both cost a red pipeline:
+The option-levels page has more traps, and each costs a red pipeline:
 
 - **The levels and the Notes column have different sources.** The `@configScope` tag is levels-only
   by design, so prose caveats live in the `NOTES` map in the generator's utility, not in

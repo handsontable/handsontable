@@ -405,15 +405,15 @@ The table lists the tiers that include each feature. For prices, see the
 | Cell type: Time (Intl) | Yes | Yes |
 | XLSX export | Yes | Yes |
 | XLSX import | Yes | Yes |
-| XLSX: Cell styles |  | Yes |
-| XLSX: Comments |  | Yes |
-| XLSX: Conditional formatting |  | Yes |
-| XLSX: Data validation |  | Yes |
+| XLSX: Cell styles | No | Yes |
+| XLSX: Comments | No | Yes |
+| XLSX: Conditional formatting | No | Yes |
+| XLSX: Data validation | No | Yes |
 | XLSX: Formulas | Yes | Yes |
 | XLSX: Import report | Yes | Yes |
-| XLSX: Number formats |  | Yes |
+| XLSX: Number formats | No | Yes |
 | XLSX: Sheet layout | Yes | Yes |
-| XLSX: Sheet protection |  | Yes |
+| XLSX: Sheet protection | No | Yes |
 
 <!-- license-tiers:end -->
 

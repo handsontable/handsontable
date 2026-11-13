@@ -155,14 +155,14 @@ function buildTierKey(includes, flags, dates) {
 }
 
 /**
- * Builds a current subscription key that names one new tier, which every registered plugin and every
+ * Builds a perpetual key (maintenance to 2099-12-31) that names one new tier, which every registered plugin and every
  * xlsx feature include, except `featureIds`.
  *
  * @param {string[]} [featureIds] The features the key leaves out: plugin tokens (`feat:filters`) and
  * xlsx ids (`xlsx:styles`).
  * @param {string[]} [flags] The product flags.
  * @param {object} [dates] The license window, for example `{ release_until: '2020-01-01' }` for a
- * perpetual license past its maintenance date. A current subscription by default.
+ * perpetual license past its maintenance date. Maintenance to 2099-12-31 by default.
  * @returns {string}
  */
 export function tierKeyWithout(featureIds = [], flags = [], dates = undefined) {
@@ -170,7 +170,7 @@ export function tierKeyWithout(featureIds = [], flags = [], dates = undefined) {
 }
 
 /**
- * Builds a current subscription key that names one new tier, which only `featureIds` include.
+ * Builds a perpetual key (maintenance to 2099-12-31) that names one new tier, which only `featureIds` include.
  *
  * @param {string[]} featureIds The features the key unlocks: plugin tokens (`feat:filters`) and xlsx
  * ids (`xlsx:styles`).

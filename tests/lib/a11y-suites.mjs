@@ -22,9 +22,6 @@ export const DOCS_BASELINE_FILE = 'a11y/docs/docs-baseline.json';
 export const A11Y_SUITE_IDS = ['product', 'docs'];
 
 /**
- * The product scan.
- */
-/**
  * A suite whose `locate()` passes the URL each scan opened, so a page that needs one (see
  * `PRODUCT_SUITE.locate()`) links to what was scanned.
  *
@@ -45,6 +42,9 @@ export function withScannedUrls(suite, scans = []) {
   });
 }
 
+/**
+ * The product scan.
+ */
 export const PRODUCT_SUITE = Object.freeze({
   id: 'product',
   title: 'A11y / axe',

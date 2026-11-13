@@ -65,22 +65,12 @@ export function manifestTiers(): string[] {
 }
 
 /**
- * The first tier of the manifest that lists a feature.
- *
- * @param {string} id The feature id.
- * @returns {string | null} The tier, or `null` when no tier lists it.
- */
-export function tierWith(id: string): string | null {
-  return manifestTiers().find(tier => tiersOf(id).includes(tier)) ?? null;
-}
-
-/**
  * The first tier of the manifest that does not list a feature.
  *
  * @param {string} id The feature id.
  * @returns {string | null} The tier, or `null` when every tier lists it.
  */
-export function tierWithout(id: string): string | null {
+function tierWithout(id: string): string | null {
   return manifestTiers().find(tier => !tiersOf(id).includes(tier)) ?? null;
 }
 
@@ -90,7 +80,7 @@ export function tierWithout(id: string): string | null {
  * @param {string[]} ids The feature ids.
  * @returns {string | null} The tier, or `null` when no tier lists them all.
  */
-export function tierWithEvery(ids: readonly string[]): string | null {
+function tierWithEvery(ids: readonly string[]): string | null {
   return manifestTiers().find(tier => featuresMissingFrom(tier, ids).length === 0) ?? null;
 }
 
