@@ -193,6 +193,22 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 | `dependency` | 3 | 3 | `package.json` ranges, packages to add, and packages to replace or drop. |
 | `custom` | 0 | 2 | Checks that a rule file implements in code. Both report. |
 
+### Draft migrations
+
+A draft migration is one whose guide is still being written. It is not in the table above, a normal run never
+selects it, and `--to` defaults to the newest released migration. To run it, or to list its rules, pass
+`--include-draft`. The rules and messages of a draft can change before its release.
+
+The 18.1 to 19.0 migration is a draft:
+
+```bash
+handsontable-codemod migrate --from 18.1 --to 19.0 --include-draft --dry-run
+handsontable-codemod migrate --list --from 18.1 --to 19.0 --include-draft
+```
+
+Its manifest lists the sections of the guide that no rule covers, with the reason, under `notAutomated`. `--list`
+prints how many there are on the line before the counts.
+
 ### 17.x to 18.0
 
 The tool rewrites:

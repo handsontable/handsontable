@@ -1,0 +1,17 @@
+{
+  "rules": [
+    {
+      "id": "19.0.0/export-column-headers",
+      "kind": "optionRename",
+      "safe": true,
+      "guide": "removed-deprecated-apis",
+      "from": "columnHeaders",
+      "to": "colHeaders",
+      "context": {
+        "callArg": ["exportAsString", "exportAsBlob", "exportAsBlobAsync", "downloadFile", "downloadFileAsync"],
+        "receiver": { "plugin": "exportFile" }
+      },
+      "message": "Rename columnHeaders to colHeaders: 19.0 removes the export option, deprecated since 17.1. An export that still passes columnHeaders writes no header row. colHeaders keeps the meaning of the value."
+    }
+  ]
+}

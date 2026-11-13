@@ -106,15 +106,25 @@ async function packageVersion() {
  * Format the rules of a plan as an aligned text table with a line of counts at the end.
  *
  * @param {ReturnType<typeof describeRules>} rows Rows from `describeRules`.
+ * @param {Array<{version: string}>} [notAutomated] The `notAutomated` entries of the plan. One summary line names how
+ * many there are per version. It comes before the counts, so the last line is always the counts.
  * @returns {string} Text that ends with a newline.
  */
-function renderList(rows) {
+function renderList(rows, notAutomated = []) {
   const idWidth = Math.max(...rows.map(row => row.id.length), 2);
   const kindWidth = Math.max(...rows.map(row => row.kind.length), 4);
   const state = row => (row.implemented ? row.mode : 'not implemented');
   const lines = rows.map(row => `${row.id.padEnd(idWidth)}  ${row.kind.padEnd(kindWidth)}  ${state(row)}`);
   const count = name => rows.filter(row => state(row) === name).length;
   const missing = count('not implemented');
+
+  if (notAutomated.length > 0) {
+    const versions = [...new Set(notAutomated.map(item => item.version))];
+    const perVersion = version => notAutomated.filter(item => item.version === version).length;
+    const parts = versions.map(version => `${perVersion(version)} in ${version}`);
+
+    lines.push('', `Changes with no rule, to read in the guide: ${parts.join(', ')}.`);
+  }
 
   lines.push('', `${rows.length} rules: ${count('rewrite')} rewrite, ${count('report')} report`
     + `${missing > 0 ? `, ${missing} not implemented` : ''}.`);
@@ -233,7 +243,7 @@ export async function main(argv, {
       const { plan, notes } = await resolvePlan({ ...range, lenientFrom: true });
 
       notes.forEach(note => stderr(`${note}\n`));
-      stdout(renderList(describeRules(plan)));
+      stdout(renderList(describeRules(plan), plan.notAutomated));
 
       return 0;
     }

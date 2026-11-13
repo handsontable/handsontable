@@ -6,7 +6,7 @@ import { describe, it } from 'node:test';
 import { ManifestError } from '../src/errors.mjs';
 import { PACKAGE_ROOT, RULE_KINDS, buildPlan, loadManifest, loadManifests, validateRule } from '../src/manifest.mjs';
 import { KIND_ORDER, registry } from '../src/transforms/index.mjs';
-import { anchorsOf, slugOf } from './helpers/guide-anchors.mjs';
+import { anchorsOf, checkAnchors, slugOf } from './helpers/guide-anchors.mjs';
 import { guidePath, skipWithoutGuides } from './helpers/guide-source.mjs';
 
 const schema = JSON.parse(await readFile(join(PACKAGE_ROOT, 'src', 'manifest.schema.json'), 'utf8'));
@@ -94,7 +94,7 @@ describe('every shipped manifest', () => {
     }
   });
 
-  it('names an anchor in every rule `guide` that is a heading of the guide page', async(context) => {
+  it('names an anchor in every rule `guide` of a released manifest that is a heading of its guide', async(context) => {
     const manifests = await loadManifests();
 
     if (skipWithoutGuides(context, manifests)) {
@@ -102,12 +102,7 @@ describe('every shipped manifest', () => {
     }
 
     for (const manifest of manifests) {
-      const page = await readFile(guidePath(manifest), 'utf8');
-      const anchors = anchorsOf(page);
-
-      for (const rule of manifest.rules.filter(item => item.guide)) {
-        assert.ok(anchors.has(rule.guide), `${rule.id}: ${rule.guide} is not a heading of ${manifest.guide.source}`);
-      }
+      checkAnchors(manifest, await readFile(guidePath(manifest), 'utf8'), context);
     }
   });
 

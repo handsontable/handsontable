@@ -33,7 +33,16 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   `test/helpers/literals.mjs`, a plain parser walk that does not use `src/lib/literals.mjs`.
 - `test/indirect-sites.test.mjs` pins the code that holds options without showing it: the one-hop resolver, the custom renderer and file-read guards of `numericFormat.culture`, references and spreads as the value, the unrecognized-holder reports, wrapped selectors, indirect column-move hooks, dates from variables, and the marker of an entry inside a template literal.
 - `test/manifest.test.mjs` checks every rule's `guide` anchor against the headings of the guide page with
-  `anchorsOf()` in `test/helpers/guide-anchors.mjs`, the one slug function of the tests.
+  `checkAnchors()` in `test/helpers/guide-anchors.mjs`, which owns the one slug function of the tests (`anchorsOf()`).
+  A missing anchor fails for a `released` manifest. For a `draft` one it is a test diagnostic (a line in the test
+  output), because the guide of a draft is still edited by other people and a renamed heading there must not fail this
+  package's CI. `test/draft-manifest.test.mjs` pins both halves with a temporary manifest and guide, and also pins
+  that a draft stays out of a default run and of the default `--to`, the `notAutomated` list, and that every rule of a
+  draft is named by the `report.json` of some fixture. `type-rules.test.mjs` reads one guide of its own (the first
+  manifest with type rules), so it does not cover a draft.
+- A test that checks the behavior of a released range builds its plan from `loadReleasedManifests()`
+  (`test/helpers/manifests.mjs`), not from `loadManifests()`: the latter includes every draft, and a draft's rules
+  would join the run. `idempotency.test.mjs` keeps the draft rules in a plan of their own (`draftPlan`).
 
 ## Layout
 
@@ -255,19 +264,53 @@ project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `
    has no section for the rule), and `safe` (a boolean, except on `detect` and `exportRemoved` rules). Pick the kind
    and its fields from "Rule fields by kind". A malformed rule fails when the manifests load.
 4. Add fixtures (below), one per rule at least, with a negative case next to each positive one.
-5. Add a row to the "Supported migrations" table of `README.md` and update the kind table. The first column is
+5. For a released migration, add a row to the "Supported migrations" table of `README.md` and update the kind table. The first column is
    `<from line> to <major.minor>`, for example `18.0 to 18.1`. `test/readme.test.mjs` requires one row per released
    manifest and compares the counts with `--list`.
 6. Decide `status`. A `draft` manifest runs only with `--include-draft`, and `--to` defaults to the latest
-   `released` one, so a migration under work stays `draft` until its guide is final.
+   `released` one, so a migration under work stays `draft` until its guide is final. A draft has no row in the
+   README table (`readme.test.mjs` counts the released ones only) and gets a "Draft migrations" note instead.
+   **Flipping a draft to `released` makes the anchors binding**: every `guide` anchor of a rule must then be a heading
+   of the guide, or the manifest test fails. The flip also needs three more changes: the "Supported migrations"
+   row of the README, and the kind table counts; a fresh `exports-diff.generated.json` made from the released
+   tarballs (the draft's diff compares the last release with the `experimental` build, whose version is a moving
+   tag such as `0.0.0-next-<sha>-<date>`); and the removal of the draft-only test of that manifest
+   (`is what the 19.0.0 manifest is until its guide is final` in `draft-manifest.test.mjs`).
+   `notAutomated` (optional, top level) lists the guide sections that no rule covers, as `{ guide, reason }`, or
+   `{ title, reason }` for a change the guide has no section for (a row of the deprecation table). It changes
+   nothing in a run. `--list` prints how many there are, on the line before the counts, so the last line is always the
+   counts. Write one sentence of reason per entry, and drop an entry when a rule starts to cover its section.
 7. Run the package tests, the lint, and the smoke test. `manifest.test.mjs` checks that every manifest loads, ids
    are unique and prefixed, `from` is valid, and the guide source file and anchors exist.
 
-### Planned for 19.0
+### The 19.0 draft
 
-A first read of the 19.0 migration guide sorted its sections into four buckets: 18 can be written with the existing
-kinds, 11 need a small extension of a kind, 4 need a custom module, and 26 cannot be automated. Draft the manifest
-in that order and start with the first bucket.
+`versions/19.0.0/` is a draft (`status: "draft"`, `from: "18.1"`). Its guide is not final, so its `guide` anchors are not
+binding yet (see step 6), and its exports diff compares 18.1.2 with the `experimental` build of `develop`. The rules:
+
+- **Rewrites (`safe: true`):** the four package ranges, `columnHeaders` to `colHeaders` in the export calls, the four
+  resize-state methods (removed in 19.0), the two `Formulas` shortcut methods (no-ops), and the two type aliases
+  `Settings` of `handsontable/plugins/exportFile` and `DataProviderOptions` of `handsontable/plugins/dataProvider`.
+- **Reports:** one `detect` rule per change that has a pattern in user code, and `19.0.0/helper-sanitize`. The latter
+  is a `callUnwrap` with `safe: false` on purpose. The guide says to remove the call, and from 18.1 that is right,
+  because the helper returned its input unchanged. In a chained run from 17.x the 18.0 rule has already left the
+  call, because 17.x sanitized, and a rewriting 19.0 rule would delete it.
+- **`notAutomated`:** the sections with no pattern (a behavior change, a compiler error, a default).
+
+Traps of this draft:
+
+- A rule that exists in two migrations (`resize-state-methods`, `export-column-headers`, `helper-sanitize`) is repeated
+  with its own id, because a run from 18.1 never loads the 18.0 manifest. A chained run from 17.x therefore leaves one
+  TODO per version on a call that stays (the first sentence names the version of the rule).
+- A `detect` `regex` rule reads the comments of the part, and the marker the run leaves is one of them. The first
+  sentence of such a rule (`non-commercial-license-key`, `sr-sp-language-code`, `loading-without-dialog`,
+  `editor-set-value`) therefore never contains text its own pattern matches, or the second run reports the marker.
+- `valueIs` and `import` read js only, so a rule that uses them lists `files: ["js"]`, never `template`. `property`
+  with `valueMatches` and `regex` also read templates.
+- Every fixture of this draft has `options.json` with `only`, so a rule that matches a common input (the license
+  regex, `rowHeights`) cannot change the exact `report.json` of another rule's fixture.
+- `19.0.0/helper-sanitize` has no `namespaceType` rule for `Handsontable.helper.sanitize`. `type-rules.test.mjs`
+  counts a `callUnwrap` rule whose `callee` equals the removed member as its cover.
 
 ## How to add a rule
 

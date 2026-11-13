@@ -1,0 +1,30 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/non-commercial-license-key",
+      "severity": "manual",
+      "line": 2
+    },
+    {
+      "ruleId": "19.0.0/non-commercial-license-key",
+      "severity": "manual",
+      "line": 6
+    },
+    {
+      "ruleId": "19.0.0/non-commercial-license-key",
+      "severity": "manual",
+      "line": 9
+    },
+    {
+      "ruleId": "19.0.0/non-commercial-license-key",
+      "severity": "manual",
+      "line": 10
+    },
+    {
+      "ruleId": "19.0.0/non-commercial-license-key",
+      "severity": "manual",
+      "line": 12
+    }
+  ]
+}

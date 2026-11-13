@@ -5,13 +5,14 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
-import { buildPlan, loadManifests, VERSIONS_DIR } from '../src/manifest.mjs';
+import { buildPlan } from '../src/manifest.mjs';
 import { MAX_FILE_BYTES, run, transformFile } from '../src/runner.mjs';
+import { loadReleasedManifests } from './helpers/manifests.mjs';
 import { createSampleProject, git } from './helpers/sample-project.mjs';
 
 const BIN = fileURLToPath(new URL('../bin/handsontable-codemod.mjs', import.meta.url));
 const RANGE = ['--from', '17.1', '--to', '18.1'];
-const plan = buildPlan(await loadManifests(VERSIONS_DIR), []);
+const plan = buildPlan(await loadReleasedManifests(), []);
 
 /**
  * Transform one file with every shipped rule and return the `skipped-file` entries.

@@ -5,10 +5,13 @@ import { describe, it } from 'node:test';
 import { VERSIONS_DIR, buildPlan, loadManifest, loadManifests } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { listFixtures } from './helpers/fixtures.mjs';
+import { loadReleasedManifests } from './helpers/manifests.mjs';
 
 const TODO = 'TODO(handsontable-codemod';
-const allManifests = await loadManifests(VERSIONS_DIR);
-const fullPlan = buildPlan(allManifests, []);
+// The one-line shapes run against the released migrations, as a default run selects them. A draft is a separate plan
+// below, because a chained run of two versions that act on one call leaves a TODO from each.
+const fullPlan = buildPlan(await loadReleasedManifests(), []);
+const draftPlan = buildPlan((await loadManifests(VERSIONS_DIR)).filter(manifest => manifest.status === 'draft'), []);
 
 /**
  * Transform a text three times in a row, each run on the output of the one before.
@@ -130,6 +133,24 @@ const ONE_LINE_CASES = [
       + 'new Handsontable(el, { licenseKey: \'k\', sanitizer(c, s) { return s === \'innerHTML\' ? c : c; } });\n',
   },
   {
+    name: 'a draft methodRemove on a used result',
+    file: 'a.js',
+    todos: 1,
+    plan: draftPlan,
+    source: 'import Handsontable from \'handsontable\';\n'
+      + 'const hot = new Handsontable(el, { manualColumnResize: true });\n'
+      + 'const columns = hot.getPlugin(\'manualColumnResize\');\n'
+      + 'const w = columns.loadManualColumnWidths();\n',
+  },
+  {
+    name: 'a draft detect rule on a one-line object',
+    file: 'a.js',
+    todos: 2,
+    plan: draftPlan,
+    source: 'import Handsontable from \'handsontable\';\n'
+      + 'new Handsontable(el, { licenseKey: \'non-commercial-and-evaluation\', rowHeights: 20 });\n',
+  },
+  {
     name: 'cssVariable removal in one-line css',
     file: 'a.css',
     todos: 1,
@@ -140,7 +161,7 @@ const ONE_LINE_CASES = [
 describe('idempotency of TODO comments', () => {
   for (const item of ONE_LINE_CASES) {
     it(`${item.name}: runs 2 and 3 change nothing and add no second comment`, async() => {
-      const [first, second, third] = await threeRuns(item.file, item.source, fullPlan);
+      const [first, second, third] = await threeRuns(item.file, item.source, item.plan ?? fullPlan);
       const count = text => text.split(TODO).length - 1;
 
       assert.equal(count(first), item.todos, `run 1 should leave ${item.todos} TODO comment(s):\n${first}`);
@@ -149,7 +170,7 @@ describe('idempotency of TODO comments', () => {
     });
 
     it(`${item.name}: the result still parses and keeps its comments on their own lines`, async() => {
-      const [first] = await threeRuns(item.file, item.source, fullPlan);
+      const [first] = await threeRuns(item.file, item.source, item.plan ?? fullPlan);
 
       if (item.file.endsWith('.css')) {
         return;

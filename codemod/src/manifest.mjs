@@ -220,6 +220,43 @@ export function validateRule(rule, version) {
 }
 
 /**
+ * Check the `notAutomated` list of a manifest: the parts of the migration that have no rule, each with the reason. An
+ * item names a section of the guide by its anchor (`guide`), or, for a change the guide has no section for, by a
+ * short `title`.
+ *
+ * @param {unknown} list The `notAutomated` value.
+ * @returns {string[]} Problem descriptions.
+ */
+function validateNotAutomated(list) {
+  if (!Array.isArray(list) || list.length === 0) {
+    return ['"notAutomated" must be a non-empty array of { "guide" or "title", "reason" } objects'];
+  }
+
+  const problems = [];
+  const seen = new Set();
+
+  list.forEach((item, index) => {
+    const name = FIELD_TYPES.object(item) ? item.guide ?? item.title : undefined;
+
+    if (!FIELD_TYPES.object(item) || !FIELD_TYPES.string(item.reason) || !FIELD_TYPES.string(name)
+      || ('guide' in item && 'title' in item)) {
+      problems.push(`"notAutomated[${index}]" must be an object with a string "reason" and exactly one of the `
+        + 'string fields "guide" and "title"');
+
+      return;
+    }
+
+    if (seen.has(name)) {
+      problems.push(`"notAutomated[${index}]" repeats "${name}"`);
+    }
+
+    seen.add(name);
+  });
+
+  return problems;
+}
+
+/**
  * Check the top-level shape of a manifest, without its rules.
  *
  * @param {object} raw The parsed manifest.
@@ -266,6 +303,10 @@ function validateHeader(raw, dirName) {
 
   if ('rules' in raw && !Array.isArray(raw.rules)) {
     problems.push('"rules" must be an array');
+  }
+
+  if ('notAutomated' in raw) {
+    problems.push(...validateNotAutomated(raw.notAutomated));
   }
 
   return problems;
@@ -406,6 +447,7 @@ export async function loadManifest(dir) {
     status: raw.status,
     guide: raw.guide,
     inlineScriptChecks: raw.inlineScriptChecks ?? [],
+    notAutomated: raw.notAutomated ?? [],
     rules: loadedRules,
     dir,
   };
@@ -470,6 +512,8 @@ export function buildPlan(manifests, only = []) {
   }
 
   const inlineScriptChecks = [...new Set(manifests.flatMap(manifest => manifest.inlineScriptChecks ?? []))];
+  const notAutomated = manifests.flatMap(manifest => (manifest.notAutomated ?? [])
+    .map(item => ({ ...item, version: manifest.version })));
 
-  return { versions, rulesById, inlineScriptChecks };
+  return { versions, rulesById, inlineScriptChecks, notAutomated };
 }

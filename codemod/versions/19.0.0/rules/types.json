@@ -1,0 +1,24 @@
+{
+  "rules": [
+    {
+      "id": "19.0.0/export-settings-type",
+      "kind": "exportRename",
+      "safe": true,
+      "guide": "removed-deprecated-apis",
+      "source": "handsontable/plugins/exportFile",
+      "from": "Settings",
+      "to": "ExportFileSettings",
+      "reason": "Settings is removed in 19.0."
+    },
+    {
+      "id": "19.0.0/data-provider-options-type",
+      "kind": "exportRename",
+      "safe": true,
+      "guide": "removed-deprecated-apis",
+      "source": "handsontable/plugins/dataProvider",
+      "from": "DataProviderOptions",
+      "to": "DataProviderFetchOptions",
+      "reason": "DataProviderOptions is removed in 19.0."
+    }
+  ]
+}

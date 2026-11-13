@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/after-render-engine-write",
+      "severity": "manual",
+      "line": 8
+    }
+  ]
+}

@@ -14,6 +14,12 @@ How versions are chosen:
 
 ## [Unreleased]
 
+### Added
+
+- The 18.1 to 19.0 migration, as a draft: it runs only with `--include-draft` and its rules can change before the
+  release of Handsontable 19.0.
+- A `notAutomated` list in a manifest for the changes that have no rule. `--list` prints how many there are.
+
 ## [0.1.0] – not published
 
 ### Added

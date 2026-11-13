@@ -34,6 +34,21 @@
       "minItems": 1,
       "description": "Short phrases that say what to check in an inline script of an HTML page, which the tool does not read. The report of a run that selects the manifest lists them after \"Check by hand:\"."
     },
+    "notAutomated": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["reason"],
+        "oneOf": [{ "required": ["guide"] }, { "required": ["title"] }],
+        "properties": {
+          "guide": { "type": "string", "description": "Anchor of a section of the guide that no rule covers." },
+          "title": { "type": "string", "description": "Short title of a change that the guide has no section for, such as a row of the deprecation table." },
+          "reason": { "type": "string", "description": "One sentence that says why the tool cannot detect or rewrite it." }
+        }
+      },
+      "description": "Guide sections that have no rule, each with the reason. It has no effect on a run. `--list` prints how many there are."
+    },
     "include": {
       "type": "array",
       "items": { "type": "string" },

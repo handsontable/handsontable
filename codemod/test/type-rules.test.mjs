@@ -101,13 +101,18 @@ function coversExport(rule, specifier, name) {
 }
 
 /**
- * Whether a rule covers a member path of the `Handsontable` namespace.
+ * Whether a rule covers a member path of the `Handsontable` namespace. A `namespaceType` rule covers a type member
+ * by its `from` pattern. A `callUnwrap` rule covers the value member it unwraps, named by its `callee`.
  *
  * @param {object} rule A loaded rule.
  * @param {string} path Full path such as `Handsontable.plugins.Autofill.Settings`.
- * @returns {boolean} `true` when a `from` pattern of the rule matches.
+ * @returns {boolean} `true` when a `from` pattern or the `callee` of the rule matches.
  */
 function coversMember(rule, path) {
+  if (rule.kind === 'callUnwrap') {
+    return toList(rule.callee).includes(path);
+  }
+
   return rule.kind === 'namespaceType'
     && toList(rule.from).some(from => matchDotted(from.slice(NAMESPACE.length), path.slice(NAMESPACE.length)));
 }
@@ -334,7 +339,7 @@ describe('every migration covers what its exports diff removed', () => {
     it(`covers every removed export and namespace member of ${item.version}`, { skip: !available && 'no exports diff' },
       async() => {
         const versionDiff = JSON.parse(await readFile(file, 'utf8'));
-        const versionRules = item.rules.filter(rule => TYPE_KINDS.includes(rule.kind));
+        const versionRules = item.rules.filter(rule => [...TYPE_KINDS, 'callUnwrap'].includes(rule.kind));
         const first = item.version === VERSION;
         const uncovered = removedExports(versionDiff)
           .filter(([specifier, name]) => !versionRules.some(rule => coversExport(rule, specifier, name))

@@ -93,6 +93,9 @@
  * @property {string} version Semver, equal to the directory name.
  * @property {'released'|'draft'} status Release state.
  * @property {{url: string, source: string}} guide Public URL and repository path of the migration guide.
+ * @property {Array<{guide?: string, title?: string, reason: string}>} notAutomated Parts of the migration that have no rule,
+ * with the reason.
+ * Empty for a manifest that lists none.
  * @property {Rule[]} rules Inline rules followed by the rules of every included file.
  * @property {string} dir Absolute path of the version directory.
  */
@@ -103,6 +106,8 @@
  * @typedef {object} Plan
  * @property {Array<{version: string, rules: Rule[]}>} versions Selected versions with their rules.
  * @property {Map<string, Rule>} rulesById Every selected rule by id.
+ * @property {Array<{version: string, guide?: string, title?: string, reason: string}>} [notAutomated] The `notAutomated` entries of the
+ * selected manifests.
  * @property {string} [fromText] The `--from` of the run as text (given or detected). Absent in a plan built without
  * a range, as the fixture tests do.
  */

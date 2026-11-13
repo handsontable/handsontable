@@ -1,0 +1,172 @@
+{
+  "version": "19.0.0",
+  "from": "18.1",
+  "status": "draft",
+  "guide": {
+    "url": "https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0",
+    "source": "docs/content/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md"
+  },
+  "inlineScriptChecks": [
+    "the license key",
+    "size options",
+    "removed methods"
+  ],
+  "include": [
+    "rules/dependencies.json",
+    "rules/options.json",
+    "rules/methods.json",
+    "rules/types.json",
+    "rules/detect.json"
+  ],
+  "rules": [],
+  "notAutomated": [
+    {
+      "guide": "date-cells-reach-the-formula-engine-the-same-way-on-every-data-path",
+      "reason": "It changes what the formula engine reads from a date cell, and no pattern in your code shows which cells or formulas that touches."
+    },
+    {
+      "guide": "confirming-an-editor-without-typing-writes-nothing",
+      "reason": "It changes what an editor writes on a confirm without typing, for every grid, and no pattern in your code marks it."
+    },
+    {
+      "guide": "a-sanitizer-that-returns-a-trustedhtml-skips-paste-normalization",
+      "reason": "It affects a sanitizer that returns a TrustedHTML, and the tool does not follow what a sanitizer function returns."
+    },
+    {
+      "guide": "tohtml-puts-headers-through-your-sanitizer",
+      "reason": "It changes the output of toHTML() only for header markup that your sanitizer strips, which no pattern in your code shows."
+    },
+    {
+      "guide": "character-references-in-grid-copy-and-cell-text",
+      "reason": "It depends on character references inside the text you give to titles, labels, and cell text, which the tool does not read."
+    },
+    {
+      "guide": "kbdcmdkbdkbdctrlkbd--click-on-a-selected-cell-moves-the-highlight",
+      "reason": "It changes what a click does inside a selection, and no code or setting of yours selects it."
+    },
+    {
+      "guide": "removing-a-parent-row-removes-every-row-below-it",
+      "reason": "It changes which rows a removal reports for a tree of three or more levels, which depends on your data."
+    },
+    {
+      "guide": "a-plain-value-written-into-a-keyvalue-source-cell-resolves-to-the-matching-object",
+      "reason": "It changes what a cell stores for a key/value source, which depends on the source and on how code writes to the cell."
+    },
+    {
+      "guide": "leaving-a-merged-cell-with-a-left-or-right-arrow-lands-on-its-top-row",
+      "reason": "It changes where keyboard navigation lands next to a merged cell, and no pattern in your code marks it."
+    },
+    {
+      "guide": "row-elements-move-with-their-rows-on-a-vertical-scroll",
+      "reason": "It changes which DOM element a row uses during a scroll, and only code that keeps element references is affected."
+    },
+    {
+      "guide": "autocolumnsize-includes-the-list-cell-arrow-in-the-column-width",
+      "reason": "It widens the autosized columns of three cell types, a visual change that no pattern in your code marks."
+    },
+    {
+      "guide": "the-list-cell-types-default-to-a-single-line",
+      "reason": "It changes the default of textEllipsis for three cell types, a default your code does not show."
+    },
+    {
+      "guide": "dropdown-editor-lists-are-no-longer-confined-to-the-grid",
+      "reason": "It changes where editor lists are positioned, which depends on the page layout around the grid."
+    },
+    {
+      "guide": "a-numeric-cell-aligns-itself-by-its-type-not-by-its-value",
+      "reason": "It changes how a numeric cell aligns, which depends on the values the cell holds."
+    },
+    {
+      "guide": "the-filters-option-is-type-checked",
+      "reason": "The TypeScript compiler reports it: a filters object with an unknown key or a wider type stops compiling."
+    },
+    {
+      "guide": "the-narrowest-column-width-depends-on-the-theme",
+      "reason": "It depends on the theme values and the column widths users reach at run time."
+    },
+    {
+      "guide": "frozen-columns-can-be-dragged-and-the-unfreeze-hooks-get-a-target",
+      "reason": "It changes which columns a drag freezes, and the unfreeze hooks gain an argument that a listener with two parameters ignores."
+    },
+    {
+      "guide": "license-keys-are-checked-more-strictly",
+      "reason": "It depends on the form of the entitlement key that you pass, and the tool never reads or changes a license key."
+    },
+    {
+      "guide": "kbdcmdkbdkbdctrlkbd--arrow-keys-on-a-row-header-expand-and-collapse-row-groups",
+      "reason": "It changes what two keyboard shortcuts do on a row header, and no pattern in your code marks it."
+    },
+    {
+      "guide": "hotcolumn-no-longer-types-hook-props",
+      "reason": "The TypeScript compiler reports it, and a hook passed to HotColumn never ran, so only code that passes one is affected."
+    },
+    {
+      "guide": "changing-dataschema-resets-the-grids-index-state",
+      "reason": "It applies to an updateSettings() call that changes dataSchema, and no matcher reads the arguments of that call."
+    },
+    {
+      "guide": "colwidths-addresses-columns-by-physical-index",
+      "reason": "It applies when columns can move or be inserted or removed, which depends on how users and code treat the grid at run time."
+    },
+    {
+      "guide": "an-auto-sized-column-is-no-longer-capped-at-the-width-of-the-grid",
+      "reason": "It changes how wide an autosized column gets, which depends on the text in the column."
+    },
+    {
+      "guide": "xlsx-export-no-longer-needs-exceljs",
+      "reason": "It is not a breaking change: every configuration that exported XLSX in 18.1 still does."
+    },
+    {
+      "guide": "removecellmeta-accepts-an-index-past-the-grids-range",
+      "reason": "It is a bug fix: a call with an index past the range stops throwing."
+    },
+    {
+      "guide": "ten-options-are-type-checked",
+      "reason": "The TypeScript compiler reports it: an option with a wrong type or a null value stops compiling."
+    },
+    {
+      "guide": "a-hook-set-to-null-through-updatesettings-is-removed",
+      "reason": "It applies when a hook is set to null through updateSettings() or a wrapper prop, and no matcher reads the arguments of that call."
+    },
+    {
+      "guide": "plugins-apply-their-settings-before-the-first-render",
+      "reason": "It changes when the hooks of several plugins fire while the grid is built, and the tool cannot tell which listeners read the drawn grid."
+    },
+    {
+      "guide": "loaddata-drops-a-change-that-waits-for-its-validator",
+      "reason": "It depends on the order of a loadData() call and an edit that waits for its validator, which no single pattern shows."
+    },
+    {
+      "guide": "sheet-keeps-a-sheets-number-after-an-earlier-sheet-is-removed",
+      "reason": "It changes what SHEET() returns after a sheet is removed, which depends on the formulas in your workbook."
+    },
+    {
+      "guide": "updatesettings-keeps-the-rows-of-a-server-backed-grid",
+      "reason": "It applies to an updateSettings() call on a grid with a dataProvider, and no matcher reads the arguments of that call."
+    },
+    {
+      "guide": "the-react-and-angular-wrappers-pass-only-the-settings-that-changed",
+      "reason": "It changes which settings the React and Angular wrappers pass on a render, and no pattern in your code marks a reliance on the old reset."
+    },
+    {
+      "guide": "the-minimum-browser-versions-are-higher",
+      "reason": "It concerns the browsers your app supports, which the tool reads from no file it handles, such as a Browserslist config."
+    },
+    {
+      "guide": "rowheights-and-minrowheights-address-rows-by-physical-index",
+      "reason": "It applies when rows can move, sort, filter, trim, or collapse, or you insert or remove rows, which depends on how users and code treat the grid at run time."
+    },
+    {
+      "guide": "turning-loading-off-turns-the-dialog-plugin-off",
+      "reason": "It applies when you turn loading off and still use the Dialog plugin, which depends on the order of calls at run time."
+    },
+    {
+      "guide": "a-row-dragged-into-a-gap-with-hidden-rows-lands-after-them",
+      "reason": "It changes where a dragged row lands next to hidden rows, and no pattern in your code marks it."
+    },
+    {
+      "title": "Writing past the last column of an object data source (deprecated in 19.0, removed in 20.0)",
+      "reason": "The deprecation table of the deprecation policy lists it, the guide has no section for it, and no pattern in your code shows a write past the last column."
+    }
+  ]
+}
