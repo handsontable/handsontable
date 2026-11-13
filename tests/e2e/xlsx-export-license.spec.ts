@@ -23,8 +23,8 @@ import {
  * warnings without xlsx:formulas or xlsx:layout
  * (`handsontable/src/plugins/exportFile/__tests__/xlsxLicenseGates.unit.js`). That suite counts any column
  * width other than the default as layout ("counts explicit layout only toward xlsx:layout"), which is why an
- * auto-sized width counts too, but it sets the widths on a mocked sheet: no test exports widths that
- * AutoColumnSize measured.
+ * auto-sized width counts too; `xlsxAutoSizedWidthLicense.unit.js` beside it exports a width the grid computed
+ * through the real data provider.
  */
 const PARTIAL_TIER_LACKS = 'xlsx:styles';
 
