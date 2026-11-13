@@ -590,7 +590,7 @@ describe('feature manifest', () => {
       manifest.capabilities.forEach((capability) => {
         expect(Object.keys(capability)).toEqual([
           'id', 'kind', 'module', 'plugins', 'name', 'description', 'since', 'status', 'licensing', 'gate',
-          'requires', 'enforceAtInit', 'packages', 'implies', 'tiers',
+          'requires', 'enforceAtInit', 'packages', 'tiers',
         ]);
       });
     });

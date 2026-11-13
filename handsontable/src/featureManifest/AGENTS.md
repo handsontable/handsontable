@@ -77,8 +77,8 @@ A plugin entry looks like this (`src/plugins/filters/feature.json`):
 `requires.allOf` lists what the feature needs to work. It feeds two things:
 
 1. **The tier closure.** A tier that includes an entry must include every sold entry it requires (the generator
-   fails otherwise, see "Tiers"). `dist/manifest.json` still publishes the closure per capability as `implies`;
-   the runtime does not read it.
+   fails otherwise, see "Tiers"). `dist/manifest.json` publishes `requires` and `tiers` only: the closure (`computeImplies()`)
+   is a build check, never published and never read at runtime.
 2. **`PLUGIN_DEPS`, when `"enforceAtInit": true`.** The generator turns `requires.allOf` into the
    `'type:Name'` strings `initializePlugins()` checks (`plugins/base/base.ts`; `plugin:DropdownMenu`,
    `cell-type:checkbox`) and writes them

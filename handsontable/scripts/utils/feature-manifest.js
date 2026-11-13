@@ -919,10 +919,9 @@ function toPluginDeps(entry, byId) {
  * Builds one capability of `dist/manifest.json`. Every key is always present, so consumers need no defaults.
  *
  * @param {object} entry A manifest entry.
- * @param {Map<string, object>} byId Every entry, by id.
  * @returns {object}
  */
-function toPublishedCapability(entry, byId) {
+function toPublishedCapability(entry) {
   return {
     id: entry.id,
     kind: entry.kind,
@@ -940,7 +939,6 @@ function toPublishedCapability(entry, byId) {
     },
     enforceAtInit: entry.enforceAtInit ?? false,
     packages: entry.packages ?? [],
-    implies: computeImplies(entry, byId),
     tiers: entry.tiers ?? [],
   };
 }
@@ -957,7 +955,7 @@ function buildManifest(sources, version) {
   const byId = indexEntries(sources);
   const capabilities = [...byId.values()]
     .sort((a, b) => (KINDS.indexOf(a.kind) - KINDS.indexOf(b.kind)) || (a.id < b.id ? -1 : 1))
-    .map(entry => toPublishedCapability(entry, byId));
+    .map(entry => toPublishedCapability(entry));
 
   return {
     schemaVersion: SCHEMA_VERSION,
