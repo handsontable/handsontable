@@ -1508,7 +1508,8 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   `exportEngineOrder(true)`, `#loadSheet` (before the switch), the MoveCells copy, `#syncHotDataAfterMoveCells`,
   `#syncPeerSources` (only when a peer grid writes), the `#restoreStructure` pre-read and `#onChangesDropped`.
   Other plugins call the `@private` `flushEngineEvaluation(engine?)`: FormulaBuilder (`afterRenderer`,
-  `#readCellText`), ExportFile (`getNamedExpressions`, `getEngineCellFacts`), SheetsBar (`#flushEngine` before
+  `#readCellText`, and `commitInlineEdit()`/`commitInlineEditToSelection()` right after their
+  `finishEditing()`), ExportFile (`getNamedExpressions`, `getEngineCellFacts`), SheetsBar (`#flushEngine` before
   `planEngineWorkbook()`, the copy's named expressions and serialized sheet, `getFillRangeData`) and ImportFile
   (before the mapping). `#readEngineContent()` after a
   `setDataAtCell()` write is deferred, not flushed: it would recalculate once per write.
