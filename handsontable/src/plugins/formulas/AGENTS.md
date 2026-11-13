@@ -18,12 +18,19 @@ both variants.
 `rowAxisSyncer` / `columnAxisSyncer` (`indexSyncer/axisSyncer.ts`) translate:
 `getHfIndexFromVisualIndex()` and `getVisualIndexFromHfIndex()`. **Always go through them.**
 
-> **Known open defect.** `Formulas#validateDependentCells` treats HF indexes as **visual** indexes: it
-> bounds-checks `row >= hot.countRows()` and then calls `getDataAtCell(row, col)` / `getCellMeta(row, col)`
-> on the raw HF index, with no `getVisualIndexFromHfIndex()`. HF is fed trimmed rows too, so with
-> `trimRows` or Filters active the two diverge and the wrong cell is validated — or the dependent is
-> skipped when the HF index runs past `countRows()`. Do not assume `valid` lands on the right cell in a
-> trimmed grid.
+> **`Formulas#validateDependentCells` translates before it reads (DEV-4027).** HF is fed trimmed rows and
+> columns too, so with `trimRows` or Filters active an HF address is the visual one plus the trimmed lines
+> before it. The method resolves each dependent's grid from the engine registry and translates through **that
+> grid's own** Formulas plugin (`boundHot.getPlugin('formulas').rowAxisSyncer` / `columnAxisSyncer`), never
+> `this.*AxisSyncer`: the syncers describe one sheet, and a dependent on another sheet lives in another grid
+> with its own trims. An address with no visual position (`-1`, a trimmed line) is skipped, and the bounds are
+> the bound grid's, not `this.hot`'s. A new reader of an engine address must do the same.
+> The axis syncer's translation cache is also dropped when the mapper reports `indexesSequenceChanged`, not
+> only `trimmedIndexesChanged`: inside a suspended execution a sort fires the sequence hook long before the
+> mapper rebuilds its not-trimmed cache, so a table built in that window held the previous visual order and
+> the dependent of a write after a sort in the same `batch()` was validated one row off
+> (`batchEvaluation.unit.js`, "validates the row that holds the write after a sort inside the batch").
+> Pinned by `__tests__/validateDependentCellsTrimmedRows.unit.js`.
 
 Related, on the hook side: **`afterSetDataAtCell` carries visual rows while
 `afterSetSourceDataAtCell` carries physical ones** (`core.ts`), so never feed the latter to
@@ -1479,8 +1486,7 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   destroys the data map before those hooks, so the dependents on this grid's own sheet of a write made before a
   host's `loadData()`/`updateData()` in the same hold are not validated (without the option they are, against the
   data the load replaces; pinned by "never validates the loaded data ..."). A throw there is reported with `warn`,
-  or the load stops with no data map. A reorder that follows a write keeps the pre-existing HF-versus-visual
-  defect of `validateDependentCells()` (top of this file), with the option and without it.
+  or the load stops with no data map.
 - **Ownership is `owned` AND `engine.isEvaluationSuspended()`.** An `evaluationSuspended` listener sets `owned`
   from `suspending`, which is set only around the plugin's own `suspendEvaluation()`. HyperFormula 3.3.0 emits
   `valuesUpdated` BEFORE `evaluationResumed`, and a listener of the first can suspend the
@@ -1531,9 +1537,10 @@ every path below takes the branch it took before: no hold exists, so `runEngineB
   (DEV-2036): `#runRestoreWrite()` flushes right after the write and takes that recalculation out of the hold
   (`flushEvaluationHoldNow()`). **Each dependent is validated by the grid bound to its sheet**
   (`#validateHeldDependents()`), whichever grid ends the hold or inserts, removes, moves or loads before it:
-  `validateDependentCells()` checks an address against the size of the grid it runs on, so a one-row grid that
-  inserted a row inside a taller grid's `batch()` skipped every dependent below its first row, and a grid built
-  inside the hold (no data map yet) read its row count from nothing.
+  `validateDependentCells()` used to check an address against the size of the grid it runs on, so a one-row grid
+  that inserted a row inside a taller grid's `batch()` skipped every dependent below its first row, and a grid
+  built inside the hold (no data map yet) read its row count from nothing. It now bounds and translates through
+  the grid bound to the dependent's sheet itself; the held path still hands each dependent to that grid's plugin.
 - **A grid that leaves while another grid on the engine is still suspended recalculates and validates its writes
   anyway** (`#recalculateAndValidateHeldWrites()`, from `#releaseEvaluationHold()`): the hold stays open for the other
   grid, but this grid's execution is over, and left to the last grid's release its dependents would wait for a
