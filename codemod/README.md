@@ -291,6 +291,9 @@ the tool reads the version from `package.json`, which the run raised, and answer
   silent. The same holds for a plugin: it rewrites `saveManualColumnWidths()` and `downloadFile({ columnHeaders })`
   only on `hot.getPlugin('<key>')` or a variable the file sets from it, and a call on any other receiver is
   reported or left alone. A call whose receiver or arguments can have effects of their own is kept, with a TODO.
+- A JavaScript or TypeScript file with mixed line endings is written in the line ending most of its lines use. The
+  value of a string or template literal does not change, because JavaScript reads every line break in a template
+  literal as a line feed.
 - It never follows a symbolic link, and it never writes a file whose real path is outside the project directory. A
   link goes to "Skipped files".
 - It edits `package.json` by text offset, so only the changed values and one added line differ. When it cannot

@@ -121,6 +121,20 @@ export function createJsPart(source, parser, lineOffset = 0) {
 }
 
 /**
+ * The line terminator most lines of a text end with. The printer writes one terminator for the whole part, so a file
+ * with mixed line endings comes out in the one it mostly uses, and a single stray `\r\n` does not convert the file.
+ *
+ * @param {string} source Text of the part.
+ * @returns {string} `\r\n` when at least half of the line breaks are `\r\n`, otherwise `\n`.
+ */
+function dominantTerminator(source) {
+  const crlf = source.split('\r\n').length - 1;
+  const all = source.split('\n').length - 1;
+
+  return crlf > 0 && crlf * 2 >= all ? '\r\n' : '\n';
+}
+
+/**
  * Print a `js` part back to text. Recast reprints only the nodes a transform touched. A CRLF source keeps its line
  * terminator, and a tab-indented source keeps tabs in the lines recast prints again.
  *
@@ -143,7 +157,7 @@ export function createJsPart(source, parser, lineOffset = 0) {
  * @throws {Error} When a string or template literal cannot be kept as intended, or the text does not parse.
  */
 export function printJsPart(part, source) {
-  const lineTerminator = source.includes('\r\n') ? '\r\n' : '\n';
+  const lineTerminator = dominantTerminator(source);
   const tabs = usesTabs(source);
   const parser = part.parser ?? 'babylon';
   const intended = intendedLiterals(part);
