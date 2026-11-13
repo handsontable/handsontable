@@ -501,12 +501,17 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
   editor shim does not have, and giving it a hidden one would not help: the composition would start in that
   element and could not move into the package's input when the editor opens. It needs a `hyperformula-ui`
   input that is mounted and focusable before the edit opens.
-- The horizon theme's accent focus ring measures below 3:1; it is the theme token every grid surface uses.
-  The formula bar's own rings (the address box and the bar-hosted editor) do not use it:
-  `--hfe-formula-bar-input-focus-ring` is the text accent (`$accent-text-color`, 5.33:1 on horizon). The
-  bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
+- **The bar's focus rings and the accent colors map to theme tokens; the theme owns their contrast.** The
+  rings (`--hfe-formula-bar-input-focus-ring`) read `--ht-cell-selection-border-color`, so a focused bar
+  reads like the selected cell. The accent text (matched letters, the active parameter name), the active
+  argument chip and the paren match read `--ht-accent-color`, like every other grid surface that draws the
+  accent. Do not mix a darker plugin-local color to fix their contrast: that was tried, and the bar looked
+  like a different control next to the cell. Where the theme accent misses a contrast threshold (horizon,
+  classic), the fix belongs in the theme token, and it then reaches the formula builder with no change here.
+  The bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
   of the ring width (the idle overlay too, so the text does not shift on focus); drawing the ring outward
-  instead is clipped by the top slot. Pinned by "the bar editor's focus ring" in
+  instead is clipped by the top slot. Pinned by "the bar editor's focus ring", "the address box's focus
+  ring" and "the matched letters, the active argument chip and the paren match use the theme accent" in
   `tests/e2e/formula-builder-popups.spec.ts`.
 - `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
   exact version because the 0.x line may break in a minor.
