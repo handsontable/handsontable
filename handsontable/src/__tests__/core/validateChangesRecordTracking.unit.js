@@ -819,6 +819,84 @@ describe('Core validation of a change while its record moves', () => {
 
       expect(() => hot.setDataAtCell(null, 0, 'x')).toThrow();
     });
+
+    /**
+     * Creates a grid whose validator answers first and keeps a correction of `zzz` to `ZZZ` through its own
+     * `this.visualRow` for the test to write later, the way a validator that corrects after a timer does.
+     *
+     * @param {Array} corrections Receives the corrections, as functions that return the row they wrote to.
+     * @returns {Handsontable}
+     */
+    function createAnswerFirstGrid(corrections) {
+      return createGrid({
+        cells: (row, col) => (col === 0 ? {
+          validator(value, callback) {
+            pending.push({
+              value,
+              answer: (result) => {
+                callback(result);
+
+                if (value === 'zzz') {
+                  corrections.push(() => {
+                    const visualRow = this.visualRow;
+
+                    this.instance.setDataAtCell(visualRow, this.visualCol, 'ZZZ', 'upperValidator');
+
+                    return visualRow;
+                  });
+                }
+              },
+            });
+          },
+        } : {}),
+      });
+    }
+
+    it('should drop a correction written through a null this.visualRow after its validator answered', async() => {
+      const corrections = [];
+
+      createAnswerFirstGrid(corrections);
+      hot.setDataAtCell(1, 0, 'zzz');
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [5]);
+      filters.filter();
+      await answerAll();
+
+      const rows = [];
+
+      expect(() => rows.push(corrections.shift()())).not.toThrow();
+      await settle();
+
+      expect(rows).toEqual([null]);
+      expect(sourceNames()).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
+
+    it('should drop a correction written through a null this.visualRow after its validator answered while another validation waits', async() => {
+      const corrections = [];
+
+      createAnswerFirstGrid(corrections);
+      hot.setDataAtCell(1, 0, 'zzz');
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [5]);
+      filters.filter();
+      await answerAll();
+      hot.setDataAtCell(0, 0, 'other');
+      await settle();
+
+      const rows = [];
+
+      expect(() => rows.push(corrections.shift()())).not.toThrow();
+      await answerAll();
+
+      expect(rows).toEqual([null]);
+      expect(sourceNames()).toEqual(['other', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
   });
 
   describe('the row the validation hooks report', () => {

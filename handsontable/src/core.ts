@@ -3621,14 +3621,15 @@ export default function Core(
   /**
    * Tells whether a write of a change to a `null` row is a validator's correction for a record a filter or a trim
    * took out of the visual space while its validator call waits. The validator writes it through `this.visualRow`,
-   * which is `null` then.
+   * which is `null` then. It does not depend on a waiting validator call: a correction written after its own call
+   * answered has no change left to fold into, and is dropped the same way.
    *
    * @param {number|null} visualRow The visual row of the change.
    * @param {string} [source] The change source.
    * @returns {boolean}
    */
   function isUnplacedCorrection(visualRow: number | null, source: string | undefined) {
-    return visualRow === null && isValidatorCorrection(source) && waitingMetaStamps.size > 0;
+    return visualRow === null && isValidatorCorrection(source);
   }
 
   /**
