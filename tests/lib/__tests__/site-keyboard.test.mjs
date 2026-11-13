@@ -10,7 +10,7 @@ import {
   walkProblem,
   walkVerdict,
 } from '../site-keyboard.mjs';
-import { boundaryFindings, isFieldShape, orientationFindings, pageReflowFindings, stateLostFindings } from '../site-visual.mjs';
+import { boundaryFindings, isFieldShape, isFieldStop, orientationFindings, pageReflowFindings, stateLostFindings } from '../site-visual.mjs';
 
 // tests/AGENTS.md ("A11y: the site checks beyond axe"): the verdicts of the keyboard walk on a site (2.1.1, 2.1.2,
 // 2.1.4, 2.4.1, 2.4.3, 3.2.1, 3.2.2, 4.1.2) and the visual judges the site checks add (1.4.10, 1.3.4, 1.4.11, 1.4.1).
@@ -174,6 +174,19 @@ test('1.4.11 measures every field stop, a plain one named inside its ancestor to
   // An ancestor's or an element's class named like a field, a custom element, and a role word are not fields.
   for (const shape of ['div.input button', 'div.select', 'input-group', 'a.link', 'div.copy button', 'button[role="input"]']) {
     assert.equal(isFieldShape(shape), false, shape);
+  }
+});
+
+test('1.4.11 judges a field\'s own box only when the tree gives it a field\'s role, never a toggle\'s or a choice\'s', () => {
+  for (const [shape, role] of [['input', 'textbox'], ['input.search', 'searchbox'], ['select.ht-select', 'combobox'],
+    ['input[role="combobox"]', 'combobox'], ['select', 'listbox'], ['input', 'spinbutton'], ['div.form textarea', 'textbox']]) {
+    assert.equal(isFieldStop({ shape, role }), true, `${shape} as ${role}`);
+  }
+  // A styled toggle, radio button or range draws its look in a sibling, so its own box reads as a field with no edge;
+  // a role read as nothing is no field either, and a field's role on a shape that is no field is the shape's call.
+  for (const [shape, role] of [['span.slider input', 'switch'], ['span.slider input', 'checkbox'], ['label.option-label input', 'radio'],
+    ['input.range', 'slider'], ['input', ''], ['div[role="textbox"]', 'textbox']]) {
+    assert.equal(isFieldStop({ shape, role }), false, `${shape} as ${role || 'no role'}`);
   }
 });
 

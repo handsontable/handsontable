@@ -2,11 +2,11 @@ import { test } from '@playwright/test';
 import { siteCheckId, siteOf } from '../../lib/a11y-site-checks.mjs';
 import { distinctName, focusFindings, obscuredFindings } from '../../lib/contrast.mjs';
 import { walkProblem, walkVerdict } from '../../lib/site-keyboard.mjs';
-import { boundaryFindings, isFieldShape } from '../../lib/site-visual.mjs';
-import { openAxSession } from '../checks/walker';
+import { boundaryFindings, isFieldShape, isFieldStop } from '../../lib/site-visual.mjs';
+import { focusedAx, openAxSession } from '../checks/walker';
 import { attachEvidence, readEnvironment, type EvidenceFinding } from '../evidence';
 import { indicator, samplePoints } from './focus';
-import { declareSiteTarget, installSentinels, instantScrolling, isEmbed, tabWalk, walkBudget, type SiteStop } from './harness';
+import { declareSiteTarget, focusByKey, installSentinels, instantScrolling, isEmbed, tabWalk, walkBudget, type SiteStop } from './harness';
 import { siteDefinition } from './sites';
 
 /**
@@ -112,6 +112,18 @@ for (const theme of SITE.themes) {
 
         const indicators = [];
         const boundaries = [];
+        // The role the accessibility tree gives a stop, read with the focus on it; `null` when it took no focus.
+        const roleOf = async(stop: SiteStop) => {
+          if (!(await focusByKey(page, stop.key))) {
+            return null;
+          }
+
+          const { role } = await focusedAx(cdp);
+
+          await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+
+          return role;
+        };
         const names: string[] = [];
 
         for (const [shape, stop] of shapes) {
@@ -127,11 +139,19 @@ for (const theme of SITE.themes) {
           }
           indicators.push({ selector: name, ...measured.summary });
           findings.push(...focusFindings({ selector: name, step: 'Tab', change: measured.change }) as EvidenceFinding[]);
+          // The walk reads no roles (`ax: false`), so a stop shaped like a field has its role read here: a toggle or a
+          // radio button is an input too, and its own box is not what a visitor sees.
           if (isFieldShape(shape)) {
-            const boundary = measured.boundary;
+            const role = await roleOf(stop);
 
-            boundaries.push({ selector: name, ...boundary });
-            findings.push(...boundaryFindings({ selector: name, ...boundary }) as EvidenceFinding[]);
+            if (role === null) {
+              problems.push(`${name}: the focus could not be put back on it to read its role, so its boundary was not judged`);
+            } else if (isFieldStop({ shape, role })) {
+              const boundary = measured.boundary;
+
+              boundaries.push({ selector: name, role, ...boundary });
+              findings.push(...boundaryFindings({ selector: name, ...boundary }) as EvidenceFinding[]);
+            }
           }
         }
 
