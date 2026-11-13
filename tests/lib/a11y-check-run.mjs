@@ -108,6 +108,25 @@ export function websitePageLines(source) {
 }
 
 /**
+ * The line of each page in a page list, by page id, the way that list declares its pages: the product's by an `id:`
+ * line (`pageLines()`), the docs' with the guide pages on the function that builds them (`docsPageLines()`), and the
+ * website's by its `page()` calls, most of which take their id from the route (`websitePageLines()`). Every report that
+ * annotates a page reads its lines here, so a scan's check run and its checks' check runs put one page on one line.
+ *
+ * @param {'product'|'docs'|'website'} list The page list.
+ * @param {string} source The list's text.
+ * @param {string[]} [ids] Every page id; the docs list needs them (`DOCS_PAGES`).
+ * @returns {Map<string, number>} The 1-based lines.
+ */
+export function pageLinesOf(list, source, ids = []) {
+  if (list === 'docs') {
+    return docsPageLines(source, ids);
+  }
+
+  return list === 'website' ? websitePageLines(source) : pageLines(source);
+}
+
+/**
  * The line of each entry in the baseline, by its key. The file holds one entry per line.
  *
  * @param {string} source The file's text.

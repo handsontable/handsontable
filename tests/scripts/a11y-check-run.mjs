@@ -31,7 +31,7 @@
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, docsPageLines, pageLines, websitePageLines } from '../lib/a11y-check-run.mjs';
+import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, pageLinesOf } from '../lib/a11y-check-run.mjs';
 import { LEDGER_URL, driftNotes, driftOf, siteAudit } from '../lib/a11y-docs-drift.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
@@ -59,9 +59,7 @@ const comparison = existsSync(COMPARISON) ? JSON.parse(readFileSync(COMPARISON, 
 const pagesSource = readFileSync(fromTests(scan.pagesFile), 'utf8');
 // The docs guide pages have no entry of their own (`guidePages()` builds them), so they are annotated on the function
 // that does. The page list is loaded for the docs only: it reads the docs visual list and every guide's source.
-const pages = suite === 'docs'
-  ? docsPageLines(pagesSource, (await import('../a11y/docs/pages.mjs')).DOCS_PAGES.map(page => page.id))
-  : suite === 'website' ? websitePageLines(pagesSource) : pageLines(pagesSource);
+const pages = pageLinesOf(suite, pagesSource, suite === 'docs' ? (await import('../a11y/docs/pages.mjs')).DOCS_PAGES.map(page => page.id) : []);
 // On a change run of a site's scan, a new finding the site's latest audit also saw is baseline drift, a warning at
 // most, and so is a grown one the audit counted at least as many nodes for (`lib/a11y-docs-drift.mjs`).
 // `A11Y_LEDGER_FILE` reads a saved ledger instead, for a dry run.

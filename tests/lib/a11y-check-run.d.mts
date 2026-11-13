@@ -35,6 +35,7 @@ export const PRODUCT_SCAN: Readonly<ScanReport>;
 export const DOCS_SCAN: Readonly<ScanReport>;
 export const WEBSITE_SCAN: Readonly<ScanReport>;
 export function websitePageLines(source: string): Map<string, number>;
+export function pageLinesOf(list: 'product' | 'docs' | 'website', source: string, ids?: string[]): Map<string, number>;
 export function buildCheckRun(input: {
   comparison: object | null;
   pages: Map<string, number>;

@@ -15,6 +15,7 @@ import {
   docsPageLines,
   websitePageLines,
   pageLines,
+  pageLinesOf,
 } from '../a11y-check-run.mjs';
 import { AXE_SCAN_CHECK, DOCS_SCAN_CHECK, ISSUES_FILE, compileIssuesCatalog, trackedBy } from '../a11y-issues.mjs';
 import { DOCS_BASELINE_FILE, suiteFor } from '../a11y-suites.mjs';
@@ -244,6 +245,12 @@ test('websitePageLines finds every website page on its page() call, by the id it
   }
   assert.equal(WEBSITE_SCAN.name, 'A11y / website-axe report');
   assert.equal(WEBSITE_SCAN.source, 'website');
+  // Every report reads a list's lines through pageLinesOf(): the product's `id:` lines would find 21 of the 53
+  // website ids and put the rest on line 1.
+  assert.deepEqual(pageLinesOf('website', source), lines);
+  assert.ok(WEBSITE_PAGES.filter(page => !pageLines(source).has(page.id)).length > 0, 'most website ids have no `id:` line');
+  assert.deepEqual(pageLinesOf('product', PAGES_SOURCE), pageLines(PAGES_SOURCE));
+  assert.deepEqual(pageLinesOf('docs', DOCS_PAGES_SOURCE, ['js-introduction']), docsPageLines(DOCS_PAGES_SOURCE, ['js-introduction']));
 });
 
 test('docsPageLines finds every docs page: an extra page on its entry, a guide page on the function that builds it', () => {
