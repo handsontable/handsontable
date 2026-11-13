@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt } from '../bundle';
+import { afterAnimationFrames } from '../frames';
 
 type HotWindow = {
   hot: {
@@ -188,14 +189,13 @@ export class FrozenSeamEdgeEndCornersPage {
 
       return hot.getCell(hot.countRows() - 2, 98) !== null;
     })).toBe(true);
-    await this.waitForFrames();
+    await afterAnimationFrames(this.page, 2);
   }
 
   /**
-   * Turns the mouse wheel over the middle of the grid, waits until the master holder has moved, then waits two
-   * frames: the browser dispatches the holder's `scroll` event at the start of the next frame, and the engine
-   * draws and syncs the clones from it. A wheel is delivered asynchronously, so without the first wait a slow
-   * run measured before the scroll and let two steps land together.
+   * Turns the mouse wheel over the middle of the grid, then waits until the grid has drawn the new viewport. A
+   * wheel is delivered asynchronously, so without the wait a slow run measured before the scroll and let two
+   * steps land together.
    *
    * @param {number} deltaX The horizontal wheel delta.
    * @param {number} deltaY The vertical wheel delta.
@@ -207,42 +207,53 @@ export class FrozenSeamEdgeEndCornersPage {
       throw new Error('The master table has no box');
     }
 
-    const readOffset = () => this.page.evaluate(() => {
-      const holder = document.querySelector('[data-testid="grid"] .ht_master .wtHolder') as HTMLElement;
-
-      return [holder.scrollLeft, holder.scrollTop];
+    await this.scrollAndAwaitDraw(async() => {
+      await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
+      await this.page.mouse.wheel(deltaX, deltaY);
     });
-    const before = await readOffset();
-
-    await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
-    await this.page.mouse.wheel(deltaX, deltaY);
-    await expect.poll(readOffset).not.toEqual(before);
-    await this.waitForFrames();
   }
 
   /**
-   * Scrolls the master holder by a delta, the way a scrollbar drag or a script does, then waits two frames.
+   * Scrolls the master holder by a delta, the way a scrollbar drag or a script does, then waits until the
+   * grid has drawn the new viewport.
    *
    * @param {number} deltaX The horizontal delta.
    * @param {number} deltaY The vertical delta.
    */
   async scrollHolderBy(deltaX: number, deltaY: number): Promise<void> {
-    await this.page.evaluate(([dx, dy]) => {
+    await this.scrollAndAwaitDraw(() => this.page.evaluate(([dx, dy]) => {
       const holder = document.querySelector('[data-testid="grid"] .ht_master .wtHolder') as HTMLElement;
 
       holder.scrollLeft += dx;
       holder.scrollTop += dy;
-    }, [deltaX, deltaY]);
-    await this.waitForFrames();
+    }, [deltaX, deltaY]));
   }
 
   /**
-   * Waits for two animation frames, so a scroll written in the last task has had its `scroll` event handled.
+   * Runs a scroll and waits until the grid has handled it: the `afterScroll` hook fires after the engine drew
+   * the master and synced the clones from the holder's `scroll` event, which the browser dispatches a frame
+   * after the offset moved. A render-state probe, so a slow run cannot measure the previous viewport.
+   *
+   * @param {Function} scroll Performs the scroll.
    */
-  async waitForFrames(): Promise<void> {
-    await this.page.evaluate(() => new Promise((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
-    }));
+  async scrollAndAwaitDraw(scroll: () => Promise<unknown>): Promise<void> {
+    const before = await this.page.evaluate(() => {
+      const win = window as unknown as HotWindow & { htScrollDraws?: number };
+
+      if (win.htScrollDraws === undefined) {
+        win.htScrollDraws = 0;
+        win.hot.addHook('afterScroll', () => {
+          win.htScrollDraws = (win.htScrollDraws ?? 0) + 1;
+        });
+      }
+
+      return win.htScrollDraws;
+    });
+
+    await scroll();
+    await expect.poll(() => this.page.evaluate(() => (
+      window as unknown as { htScrollDraws: number }
+    ).htScrollDraws)).toBeGreaterThan(before);
   }
 
   /**
