@@ -1,0 +1,51 @@
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: #1e6b34;
+}
+
+.badge.is-offline {
+  background: #fdecea;
+  color: #a12622;
+}
+
+/* A streamed change fades from yellow. */
+.handsontable td.is-changed {
+  animation: cell-flash 800ms ease-out;
+}
+
+@keyframes cell-flash {
+  from {
+    background-color: #fff3b0;
+  }
+}
+
+/* Available stock below the reorder point. */
+.handsontable td.is-low {
+  color: #b3261e;
+  font-weight: 600;
+}

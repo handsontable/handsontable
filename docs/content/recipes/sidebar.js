@@ -6,6 +6,8 @@ const realTimeItems = [
   { path: 'real-time/a2ui-agent-grid/a2ui-agent-grid', title: 'Agent-driven grid with A2UI', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/copilotkit-agent-grid/copilotkit-agent-grid', title: 'Agent-driven grid with CopilotKit', onlyFor: ['react'] },
   { path: 'real-time/ai-columns-jev/ai-columns-jev', title: 'AI-classified columns with Jev', onlyFor: ['javascript'] },
+  { path: 'real-time/kafka-stream/kafka-stream', title: 'Stream Kafka topics into the grid', onlyFor: ['javascript'] },
+  { path: 'real-time/google-sheets-sync/google-sheets-sync', title: 'Two-way sync with Google Sheets', onlyFor: ['javascript'] },
 ];
 
 const columnManagementItems = [
