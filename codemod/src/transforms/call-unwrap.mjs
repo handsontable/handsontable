@@ -1,4 +1,4 @@
-import { propertyName, unwrapPath } from '../lib/ast.mjs';
+import { memberName, propertyName, unwrapPath } from '../lib/ast.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { lookup, referenceSpace } from '../lib/scope.mjs';
@@ -44,16 +44,84 @@ function prepare(rule) {
 }
 
 /**
+ * Find the local names that stand for a member of the namespace: `const { helper } = Handsontable` and
+ * `const { helper: tools } = Handsontable`. Only `const` bindings count.
+ *
+ * @param {object} j The jscodeshift API.
+ * @param {object} root The file's Collection.
+ * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Bindings of the file.
+ * @returns {Map<object, string>} Declaring identifier node to the member path it holds (`helper`).
+ */
+function findNamespaceAliases(j, root, bindings) {
+  const found = new Map();
+
+  root.find(j.VariableDeclarator).forEach((path) => {
+    const { id, init } = path.node;
+
+    if (!init || id.type !== 'ObjectPattern' || path.parent.node.kind !== 'const'
+      || !bindings.isNamespaceIdentifier(unwrapPath(path.get('init')))) {
+      return;
+    }
+
+    for (const property of id.properties) {
+      const key = property.type === 'RestElement' ? null : propertyName(property);
+
+      if (key !== null && property.value?.type === 'Identifier') {
+        found.set(property.value, key);
+      }
+    }
+  });
+
+  return found;
+}
+
+/**
+ * The member path under the namespace that an expression reads: `helper.sanitize` for `Handsontable.helper.sanitize`,
+ * and for `helper.sanitize` after `const { helper } = Handsontable`.
+ *
+ * @param {object} path NodePath of an expression.
+ * @param {Map<object, string>} roots Local names that hold a namespace member, from `findNamespaceAliases()`.
+ * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Bindings of the file.
+ * @returns {string|null} The member path, or `null`.
+ */
+function memberOf(path, roots, bindings) {
+  const direct = bindings.resolveNamespaceMember(path);
+
+  if (direct !== null) {
+    return direct;
+  }
+
+  const target = unwrapPath(path);
+
+  if (target.node.type === 'Identifier') {
+    const binding = referenceSpace(target) === 'value' ? lookup(target, target.node.name, 'value') : null;
+
+    return binding ? roots.get(binding.idNode) ?? null : null;
+  }
+
+  if (MEMBER_TYPES.includes(target.node.type)) {
+    const name = memberName(target.node);
+    const holder = name === null ? null : memberOf(target.get('object'), roots, bindings);
+
+    return holder === null ? null : `${holder}.${name}`;
+  }
+
+  return null;
+}
+
+/**
  * Find the local names that alias a rule's function: `const clean = Handsontable.helper.sanitize` and
- * `const { sanitize } = Handsontable.helper`. Only `const` bindings count.
+ * `const { sanitize } = Handsontable.helper`, also through a destructured helper (`const { helper } = Handsontable`).
+ * Only `const` bindings count.
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The file's Collection.
  * @param {Spec[]} specs Prepared rules.
  * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Bindings of the file.
+ * @param {Map<object, string>} roots Local names that hold a namespace member.
  * @returns {Map<object, Spec>} Declaring identifier node to the rule it aliases.
  */
-function findAliases(j, root, specs, bindings) {
+function findAliases(j, root, specs, bindings, roots) {
   const aliases = new Map();
 
   root.find(j.VariableDeclarator).forEach((path) => {
@@ -66,12 +134,12 @@ function findAliases(j, root, specs, bindings) {
     const initPath = path.get('init');
 
     for (const spec of specs) {
-      if (id.type === 'Identifier' && bindings.resolveNamespaceMember(initPath) === spec.member) {
+      if (id.type === 'Identifier' && memberOf(initPath, roots, bindings) === spec.member) {
         aliases.set(id, spec);
       } else if (id.type === 'ObjectPattern') {
         const holder = spec.prefix === ''
           ? bindings.isNamespaceIdentifier(unwrapPath(initPath))
-          : bindings.resolveNamespaceMember(initPath) === spec.prefix;
+          : memberOf(initPath, roots, bindings) === spec.prefix;
 
         for (const property of holder ? id.properties : []) {
           if (property.type !== 'RestElement' && propertyName(property) === spec.last
@@ -87,15 +155,33 @@ function findAliases(j, root, specs, bindings) {
 }
 
 /**
+ * Whether the declaring identifier of an alias belongs to an exported declaration (`export const clean = ...` or
+ * `export const { sanitize } = ...`), so the places that use the alias are in other files.
+ *
+ * @param {object} path NodePath of the identifier that declares the alias, or of the initializer's declarator.
+ * @returns {boolean} `true` for an exported declaration.
+ */
+function isExported(path) {
+  let current = path;
+
+  while (current && ['Identifier', 'ObjectProperty', 'Property', 'ObjectPattern'].includes(current.node.type)) {
+    current = current.parent;
+  }
+
+  return current?.node.type === 'VariableDeclarator' && current.parent?.parent?.node.type === 'ExportNamedDeclaration';
+}
+
+/**
  * The rule a callee expression refers to, directly through the namespace or through a `const` alias.
  *
  * @param {object} path NodePath of an expression.
  * @param {Spec[]} specs Prepared rules.
  * @param {Map<object, Spec>} aliases Alias table from `findAliases`.
  * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Bindings of the file.
+ * @param {Map<object, string>} roots Local names that hold a namespace member.
  * @returns {Spec|null} The rule, or `null`.
  */
-function specOf(path, specs, aliases, bindings) {
+function specOf(path, specs, aliases, bindings, roots) {
   const target = unwrapPath(path);
 
   if (target.node.type === 'Identifier') {
@@ -108,7 +194,7 @@ function specOf(path, specs, aliases, bindings) {
     return null;
   }
 
-  const member = bindings.resolveNamespaceMember(target);
+  const member = memberOf(target, roots, bindings);
 
   return specs.find(spec => spec.member === member) ?? null;
 }
@@ -161,7 +247,8 @@ const callUnwrap = {
       return;
     }
 
-    const aliases = findAliases(j, root, specs, bindings);
+    const roots = findNamespaceAliases(j, root, bindings);
+    const aliases = findAliases(j, root, specs, bindings, roots);
     const handled = new Set();
     const manual = (spec, node, text) => ctx.report({
       ruleId: spec.rule.id,
@@ -176,7 +263,7 @@ const callUnwrap = {
 
     for (const call of calls.values()) {
       const calleePath = unwrapPath(call.get('callee'));
-      const spec = specOf(calleePath, specs, aliases, bindings);
+      const spec = specOf(calleePath, specs, aliases, bindings, roots);
 
       if (!spec) {
         continue;
@@ -216,7 +303,7 @@ const callUnwrap = {
     MEMBER_TYPES.forEach(type => root.find(j[type]).forEach(path => members.set(path.node, path)));
     members.forEach((path) => {
       const declaresAlias = path.parent.node.type === 'VariableDeclarator' && aliases.has(path.parent.node.id);
-      const spec = handled.has(path.node) || declaresAlias ? null : specOf(path, specs, new Map(), bindings);
+      const spec = handled.has(path.node) || declaresAlias ? null : specOf(path, specs, new Map(), bindings, roots);
 
       if (spec) {
         manual(spec, path.node, `Replace ${spec.rule.callee} by hand: it is used without a call.`);
@@ -228,7 +315,15 @@ const callUnwrap = {
     }
 
     root.find(j.Identifier).forEach((path) => {
-      const spec = aliases.has(path.node) || handled.has(path.node) ? null : specOf(path, specs, aliases, bindings);
+      if (aliases.has(path.node) && isExported(path)) {
+        manual(aliases.get(path.node), path.node,
+          `Replace ${aliases.get(path.node).rule.callee} by hand: it is exported here, so it is used in other files.`);
+
+        return;
+      }
+
+      const skip = aliases.has(path.node) || handled.has(path.node);
+      const spec = skip ? null : specOf(path, specs, aliases, bindings, roots);
 
       if (spec) {
         manual(spec, path.node, `Replace ${spec.rule.callee} by hand: it is used without a call.`);

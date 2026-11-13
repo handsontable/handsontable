@@ -172,6 +172,75 @@ describe('ranges, overrides, and aliases in a chained run', () => {
       assert.equal(output.dependencies.hot17, 'npm:handsontable@17.1.0');
     });
   });
+
+  it('names the section of a pin in the sentence that says the tool does not edit it', async() => {
+    const input = pkg({
+      dependencies: { handsontable: '^18.1.0' },
+      overrides: { handsontable: '17.1.0' },
+      resolutions: { handsontable: '17.1.0' },
+      pnpm: { overrides: { handsontable: '17.1.0' } },
+    });
+
+    await migrate({ 'package.json': input }, { from: '18.1', to: '19.0', includeDraft: true }, async({ result }) => {
+      const pins = result.report.entries.filter(entry => / pins handsontable /.test(entry.message));
+      const ending = section => pins.find(entry => entry.message.startsWith(`${section}[`))?.message.split('. ').pop();
+
+      assert.equal(pins.length, 3);
+      assert.equal(ending('overrides'), 'The tool does not edit overrides.');
+      assert.equal(ending('resolutions'), 'The tool does not edit resolutions.');
+      assert.equal(ending('pnpm.overrides'), 'The tool does not edit pnpm.overrides.');
+    });
+
+    await migrate({ 'package.json': input }, {}, async({ result }) => {
+      const resolutions = result.report.entries.find(entry => entry.message.startsWith('resolutions['));
+
+      assert.match(resolutions.message, /The tool does not edit resolutions\.$/);
+    });
+  });
+
+  it('reports a repository or URL spec of handsontable, and leaves a local spec and a tag alone', async() => {
+    const specs = {
+      '@handsontable/vue3': 'github:handsontable/handsontable#18.1.0',
+      handsontable: 'git+https://github.com/handsontable/handsontable.git#18.1.0',
+      '@handsontable/react-wrapper': 'https://example.com/react-wrapper.tgz',
+      '@handsontable/angular-wrapper': 'handsontable/handsontable#semver:^18.1.0',
+    };
+    const local = {
+      '@handsontable/vue3': 'workspace:*',
+      handsontable: 'file:../handsontable',
+      '@handsontable/react-wrapper': 'link:../react',
+      '@handsontable/angular-wrapper': 'latest',
+    };
+
+    await migrate({ 'package.json': pkg({ dependencies: specs }) }, { from: '18.1', to: '19.0', includeDraft: true },
+      async({ result, read }) => {
+        const manual = result.report.entries.filter(entry => entry.severity === 'manual').map(entry => entry.message);
+
+        assert.equal(manual.length, 4, manual.join('\n'));
+        assert.ok(manual.includes('handsontable "git+https://github.com/handsontable/handsontable.git#18.1.0" in '
+          + 'dependencies installs from a repository or a URL, so the tool cannot tell its version. '
+          + 'Point it at 19.0.0 by hand.'));
+        assert.ok(manual.some(text => text.startsWith('@handsontable/vue3 "github:handsontable/handsontable#18.1.0"')));
+        assert.deepEqual(JSON.parse(await read('package.json')).dependencies, specs);
+      });
+
+    await migrate({ 'package.json': pkg({ dependencies: local }) }, { from: '18.1', to: '19.0', includeDraft: true },
+      async({ result }) => {
+        assert.deepEqual(result.report.entries.filter(entry => entry.severity === 'manual'), []);
+      });
+  });
+
+  it('reports a repository spec once in a run that crosses two migrations, with the last target', async() => {
+    const input = pkg({ dependencies: { handsontable: 'github:handsontable/handsontable#17.1.0' } });
+
+    await migrate({ 'package.json': input }, { from: '17.1', to: '19.0', includeDraft: true }, async({ result }) => {
+      const manual = result.report.entries.filter(entry => entry.severity === 'manual'
+        && entry.message.startsWith('handsontable "github:'));
+
+      assert.equal(manual.length, 1);
+      assert.match(manual[0].message, /Point it at 19\.0\.0 by hand\.$/);
+    });
+  });
 });
 
 describe('facts', () => {

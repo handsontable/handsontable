@@ -260,8 +260,11 @@ const h = { opt: 'text' };
 
     assert.deepEqual(problems('array'), []);
     assert.match(problems('string')[0], /valueIs must be true, false, null, "array", "function", or "object"/);
-    assert.match(validateDetectRule(rule({ files: ['js', 'template'], match: { property: 'opt', valueIs: true } }))[0],
-      /valueIs reads js only/);
+    const inTemplate = value => validateDetectRule(rule({ files: ['js', 'template'],
+      match: { property: 'opt', valueIs: value } }));
+
+    assert.match(inTemplate('array')[0], /in a template, valueIs reads true, false, and null only/);
+    assert.deepEqual(inTemplate(false), []);
   });
 
   it('matches without valueMatches whatever the value is', async() => {

@@ -388,6 +388,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog 
     filePath,
     fileKind: part.fileKind,
     source: part.source,
+    parser: part.parser ?? null,
     j: part.j,
     root: part.root,
     json: part.json ?? null,
@@ -536,7 +537,16 @@ export async function transformFile({
   }
 
   const precheckOf = step => (step.scan && step.transform.scan.precheck) || adapter.precheck;
-  const steps = candidates.filter(step => precheckOf(step).test(source));
+  const steps = candidates.flatMap((step) => {
+    if (precheckOf(step).test(source)) {
+      return [step];
+    }
+
+    // A module may keep a few rules alive on a file the precheck rejects, and only those rules then run.
+    const rescued = step.transform.rescue?.(step.rules, source) ?? [];
+
+    return rescued.length > 0 ? [{ ...step, rules: rescued }] : [];
+  });
 
   if (steps.length === 0) {
     return unchanged('precheck');
@@ -806,7 +816,12 @@ export async function resolvePlan({
   const newest = selected[selected.length - 1];
 
   if (isNewerLine(parseVersion(toText), parseVersion(newest.version))) {
-    const note = `No migration for ${toText} is known. Migrated up to ${newest.version}.`;
+    const draft = skippedDrafts.find(manifest => !isNewerLine(parseVersion(toText), parseVersion(manifest.version)));
+    const note = draft
+      ? `${toText} is a draft migration${toText === draft.version ? '' : ` (${draft.version})`} and was skipped. `
+        + `The run stops at ${newest.version}. `
+        + 'Add --include-draft to run it.'
+      : `No migration for ${toText} is known. Migrated up to ${newest.version}.`;
 
     notes.push(note);
     reportNotes.push(note);
@@ -816,6 +831,15 @@ export async function resolvePlan({
   const unknown = only.filter(pattern => !ids.some(id => matchesOnly(pattern, id)));
 
   if (unknown.length > 0) {
+    const drafts = includeDraft ? [] : manifests.filter(manifest => manifest.status === 'draft'
+      && manifest.rules.some(rule => unknown.some(pattern => matchesOnly(pattern, rule.id))));
+
+    if (drafts.length > 0) {
+      throw new UsageError(`Unknown rule id: ${unknown.join(', ')}. That rule belongs to the draft migration `
+        + `${drafts.map(manifest => manifest.version).join(', ')}, which a run leaves out. Add --include-draft to `
+        + 'run it.');
+    }
+
     throw new UsageError(`Unknown rule id: ${unknown.join(', ')}. Run with --list to see the ids in range. `
       + 'A trailing * names every id with that prefix, for example --only "18.0.0/type-*".');
   }

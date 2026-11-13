@@ -197,8 +197,7 @@
       "files": ["js"],
       "requires": "hot-file",
       "guide": "the-loading-plugin-needs-the-dialog-plugin-registered",
-      "unlessFileMatches": "registerPlugin\\(\\s*Dialog\\s*\\)",
-      "match": { "regex": "registerPlugin\\(\\s*Loading\\s*\\)" },
+      "match": { "pluginRegistration": "Loading", "withoutPlugin": "Dialog" },
       "message": "Add the Dialog plugin next to Loading. Handsontable 19.0 throws when you create a grid with Loading registered and Dialog not, because Loading shows its overlay through Dialog. Call registerPlugin(Dialog) beside the call that registers Loading. registerAllModules() and the full handsontable package register both. Ignore this entry if another file registers Dialog."
     },
     {
@@ -233,9 +232,16 @@
       "files": ["js", "template"],
       "requires": "none",
       "guide": "the-non-commercial-and-evaluation-license-key-no-longer-works",
+      "precheck": "non-commercial-and-evaluation|ht68e-1f2b7-47158-70b05-0842f",
       "match": {
-        "regex": "non-commercial-and-evaluation|ht68e-1f2b7-47158-70b05-0842f|\\bNON_COMMERCIAL_LICENSE\\b",
-        "flags": "i"
+        "anyOf": [
+          {
+            "regex": "^\\s*(?:non-commercial-and-evaluation|ht68e-1f2b7-47158-70b05-0842f)\\s*$",
+            "in": "strings",
+            "flags": "i"
+          },
+          { "regex": "\\bNON_COMMERCIAL_LICENSE\\b" }
+        ]
       },
       "message": "Replace this license key with your own before you upgrade. Handsontable 19.0 reads the non-commercial-and-evaluation key, in any letter case, and the second key of the same kind as invalid, so a lock screen covers the grid. The Angular NON_COMMERCIAL_LICENSE constant holds the first key and is deprecated. Get a trial key to evaluate, apply for a sponsored license for non-commercial use, or buy a commercial license. The codemod never inserts or changes a license key."
     },
@@ -250,7 +256,7 @@
         "anyOf": [
           { "property": "language", "valueMatches": "^sr-SP$", "flags": "i" },
           { "import": "handsontable/i18n/languages/sr-SP" },
-          { "regex": "\\bsrSP\\b" }
+          { "regex": "\\bsrSP\\b", "code": true }
         ]
       },
       "message": "Replace the sr-SP language code with sr-Latn-RS. Handsontable 19.0 deprecates sr-SP, because IANA deprecated the SP region subtag, and 20.0 removes it. The phrases are the same. The new code is the sr-Latn-RS language file and the srLatnRS export, and you register and select it like any other language."
@@ -265,7 +271,7 @@
       "guide": "checked-is-a-reserved-context-menu-item-property",
       "match": {
         "allOf": [
-          { "property": "checked" },
+          { "property": "checked", "in": "menu-item" },
           { "anyOf": [{ "property": "contextMenu" }, { "property": "dropdownMenu" }] }
         ]
       },
@@ -276,13 +282,13 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
-      "files": ["js"],
+      "files": ["js", "template"],
       "requires": "hot-file",
       "guide": "a-dropdown-column-with-strict-false-validates-strictly",
       "match": {
         "allOf": [
           { "property": "strict", "valueIs": false },
-          { "string": "^dropdown$" }
+          { "regex": "^dropdown$", "in": "strings" }
         ]
       },
       "message": "Check whether a dropdown column with this strict: false expects values outside its source list to be valid. Handsontable 19.0 validates such a column strictly on every path, not only in cells the user clicked: a paste, setDataAtCell(), populateFromArray(), autofill, and validateCells() all mark a value outside the list invalid. To keep accepting custom values, use an autocomplete column with strict: false, or keep allowInvalid at true and accept the invalid mark."
@@ -307,7 +313,8 @@
       "requires": "hot-file",
       "guide": "a-custom-editors-setvalue-receives-the-cell-value",
       "match": {
-        "regex": "extends\\s+(?:[\\w$]+\\.)*BaseEditor\\b|\\beditorFactory\\s*\\(|\\buseHotEditor\\b|\\bEditorComponent\\b|\\bHotCellEditorComponent\\b"
+        "regex": "extends\\s+(?:[\\w$]+\\.)*BaseEditor\\b|\\beditorFactory\\s*\\(|\\buseHotEditor\\b|\\bEditorComponent\\b|\\bHotCellEditorComponent\\b",
+        "code": true
       },
       "message": "Check the setValue() method of this custom editor. Handsontable 19.0 passes it the cell value as stored, where 18.1 passed a string: a number, an object, or null arrives as it is, and an array no longer turns into '1,2,3,4'. Turn the value into a string where the editor needs one, for example value == null ? '' : String(value). TextEditor and the editors that extend it still stringify inside setValue()."
     },

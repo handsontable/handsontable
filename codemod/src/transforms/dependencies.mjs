@@ -1,5 +1,5 @@
 import { attributeName, propertyName } from '../lib/ast.mjs';
-import { parseCatalogSpec, planRange, rangeAdmits } from '../lib/dependency-range.mjs';
+import { isRemoteSource, parseCatalogSpec, planRange, rangeAdmits } from '../lib/dependency-range.mjs';
 import { addFact, dirOf, factSite, hasFactFor } from '../lib/facts.mjs';
 import { memberPosition } from '../lib/json-edit.mjs';
 import { rewrites } from '../lib/safety.mjs';
@@ -437,6 +437,14 @@ function bump(ctx, rule) {
           mergeKey,
           message: `${name} "${current}" in ${section} ${plan.reason}. Set it to ^${target} by hand.`,
         });
+      } else if (plan.action === 'skip' && isRemoteSource(current)) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          mergeKey,
+          message: `${name} "${current}" in ${section} installs from a repository or a URL, so the tool cannot tell `
+            + `its version. Point it at ${target} by hand.`,
+        });
       }
     }
   }
@@ -500,7 +508,7 @@ function reportPins(ctx, rule) {
         severity: 'manual',
         mergeKey: `pin:${label}`,
         message: `${label} pins ${name} to "${value}", which does not allow ${bumps[name]}. `
-          + 'Update or remove it by hand. The tool does not edit overrides.',
+          + `Update or remove it by hand. The tool does not edit ${label.replace(/\[.*$/s, '')}.`,
       });
     }
   };

@@ -94,6 +94,63 @@ describe('a draft manifest', () => {
     });
   });
 
+  it('targets the newest draft with includeDraft and no --to, and the help and the README say so', async() => {
+    await withTempDir(async(root) => {
+      await writeVersion(root, '18.1.0', { from: '18.0', rules: [{ ...rule, id: '18.1.0/a' }] });
+      await writeVersion(root, '19.0.0', { from: '18.1', status: 'draft', rules: [rule] });
+
+      const plan = await resolvePlan({ cwd: root, from: '18.0', includeDraft: true, versionsDir: root });
+
+      assert.equal(plan.toText, '19.0.0');
+    });
+
+    const help = (await cli(['--help'])).out.replace(/\s+/g, ' ');
+    const readme = (await readFile(new URL('../README.md', import.meta.url), 'utf8')).replace(/\s+/g, ' ');
+
+    assert.match(help, /--to <version> .*or to the latest draft with --include-draft/);
+    assert.match(help, /--include-draft Run migrations that are still drafts\. Without --to, the run goes up to/);
+    assert.match(readme, /`--to` defaults to the newest released migration, or to the newest draft with/);
+  });
+
+  it('says a --to on a draft line was skipped as a draft, not that no migration is known', async() => {
+    for (const to of ['19', '19.0', '19.0.0']) {
+      const { notes, reportNotes } = await resolvePlan({ cwd: tmpdir(), from: '17.1', to });
+
+      assert.deepEqual(reportNotes, [`${to} is a draft migration${to === '19.0.0' ? '' : ' (19.0.0)'} and was skipped. `
+        + 'The run stops at 18.1.0. Add --include-draft to run it.'], to);
+      assert.ok(notes.some(note => /Skipped draft migrations: 19\.0\.0/.test(note)), to);
+      assert.ok(!notes.some(note => /is known/.test(note)), to);
+    }
+
+    const beyond = await resolvePlan({ cwd: tmpdir(), from: '17.1', to: '20' });
+
+    assert.deepEqual(beyond.reportNotes, ['No migration for 20 is known. Migrated up to 18.1.0.']);
+  });
+
+  it('names the draft and --include-draft for a --only that selects a rule of a draft', async() => {
+    const only = ['19.0.0/*'];
+    const error = await resolvePlan({ cwd: tmpdir(), from: '17.1', only }).catch(failure => failure);
+
+    assert.ok(error instanceof UsageError);
+    assert.match(error.message, /^Unknown rule id: 19\.0\.0\/\*\. That rule belongs to the draft migration 19\.0\.0/);
+    assert.match(error.message, /Add --include-draft to run it\./);
+
+    const exact = await resolvePlan({ cwd: tmpdir(), from: '17.1', only: ['19.0.0/export-column-headers'] })
+      .catch(failure => failure);
+
+    assert.match(exact.message, /draft migration 19\.0\.0/);
+
+    const typo = await resolvePlan({ cwd: tmpdir(), from: '17.1', only: ['19.0.0/no-such-rule'] })
+      .catch(failure => failure);
+
+    assert.match(typo.message, /^Unknown rule id: 19\.0\.0\/no-such-rule\. Run with --list/);
+    assert.doesNotMatch(typo.message, /draft/);
+
+    const stale = await resolvePlan({ cwd: tmpdir(), from: '18.1', to: '19.0', includeDraft: true, only });
+
+    assert.ok(stale.plan.versions.length === 1);
+  });
+
   it('keeps every shipped draft out of a default run, and selects it with includeDraft', async() => {
     const manifests = await loadManifests();
     const drafts = manifests.filter(manifest => manifest.status === 'draft');

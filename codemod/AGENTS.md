@@ -26,7 +26,17 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   its rules to `safe: false`, and a sweep that flips every rule of a manifest for every fixture input. Both expect
   reports and TODO comments only, and no `transform-error`.
 - `test/idempotency.test.mjs` runs every fixture output a second and a third time, and runs one-line shapes of every
-  TODO-emitting kind three times. A new kind that leaves a TODO adds a one-line case there.
+  TODO-emitting kind three times. A new kind that leaves a TODO adds a one-line case there. Its last block sweeps every
+  fixture input of every manifest, drafts included, twice (with the rules of the fixture, and with every rule of the
+  manifest): runs 2 and 3 change no file, run 3 reports what run 2 reports, no rule reports more in run 2 than in run 1
+  (a rule that reads its own marker as a second spot), and a `detect` rule reports exactly as many in every run. A
+  `changed` entry is left out of the counts, and a rewrite can drop the note about its own spot, so only a `detect` rule
+  is held to equality.
+- `test/detect-comments.test.mjs` pins the comments the tool writes (never matched by a `regex` or an
+  `unlessFileMatches`), the `regex` modifiers `in: "strings"` and `code: true`, and the license key rule on every
+  shape. `test/draft19-rules.test.mjs` pins the rule-level behavior of the 19.0 draft that a fixture cannot show in
+  three runs: variables passed to an export call, aliases of `helper.sanitize`, imports of `Loading` and `Dialog`, the
+  menu item places, template attributes, and the names in a TODO.
 - `test/literals.test.mjs` pins the literal invariant (see Traps): a matrix of literal shapes in files indented with
   spaces, tabs, and CRLF, the deliberate-edit cases, `guardLiterals()` itself, and a sweep that compares the template
   literals and multi-line strings of every fixture input with its output. It reads literals through
@@ -61,6 +71,338 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/transforms/css-variables.mjs`, `theme-tokens.mjs` | `cssVariable` (css, js strings, template report) and `themeToken` kinds. |
 | `src/lib/string-literal.mjs` | `replaceStringLiteral()`: edit a string literal and keep its quote style. |
 | `src/lib/literals.mjs` | The literal guard of `printJsPart()`: `intendedLiterals()` (what the final tree holds), `guardLiterals()` (compare with the printed text, repair or throw), `linesInsideLiterals()` (for `restoreTabs()`), and `templateRaw()` / `stringRaw()`, which a transform uses to read the text of a literal it edits (see Traps). |
+| `src/lib/tool-comments.mjs` | `blankToolComments()` (the `TODO(handsontable-codemod ...)` comments of the tool, as spaces, line breaks kept) and `blankCodeComments()` (every comment of a js part, read with the parser on the original text, so the offsets are real in a tab-indented file). |
+| `src/lib/todo.mjs` | The writer of TODO comments in the AST, and the only source of their text (`formatTodo()`; `carrier.mjs` places the same text after printing): `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
+| `src/lib/anchor.mjs` | Where a comment about a property can go: `enclosingAnchor()`, `hasOwnLines()`, `anchorForProperty()`. |
+| `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
+| `src/adapters/unsupported-style.mjs` | `.less`, `.styl`, `.stylus`, `.sass`: never parsed, only reported through `skipReason`. |
+| `src/lib/safety.mjs` | The meaning of `safe`: `rewrites(rule)`, `modeOf(rule)`, `requiresSafe(kind)`, `reportInstead()`. |
+| `src/lib/json-edit.mjs` | `JsonDocument`: edits a `package.json` by offset (`setString()`, `addMember()`), `scanJson()`, `memberPosition()`. Every edit is verified against the parsed model. |
+| `src/lib/css-edit.mjs` | `CssDocument`: edits a stylesheet by offset (`replaceInDeclaration()`, `replaceInAtRule()`, `insertCommentBefore()`) and prints the original text with the edits spliced in. `print()` parses the result again and compares it with the postcss model. |
+| `src/lib/validate.mjs` | `problemsOf()` and `assertRenameOrRemoval()`, the helpers behind the `validate(rule)` hook of a transform. |
+| `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
+| `src/lib/resolve.mjs` | `createHop()`: the one-hop resolver of a file. `hop()` follows an identifier or a member read (`PRESET.chf`) to the value a `const` of the same file holds, through `as const`; `stringOf()` reads the string behind it; `spreadsOf()` resolves the spreads of an object. Nothing else is followed (see Traps). |
+| `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, ...) and `isUnresolvedReceiver()`. |
+| `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
+| `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
+| `src/lib/carrier.mjs` | `MarkerCarriers` and `spliceCarriers()`: a generic marker on an untouched one-line array element is added as text after printing, so recast does not reprint the element (see "TODO comments"). |
+| `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. `isSourceSpec()` (a path, URL, git, `workspace:`, `catalog:` spec: no version in it), `parseCatalogSpec()`, and `aliasRange()` are shared with `versions.mjs`. |
+| `src/lib/pnpm-catalog.mjs` | `parseCatalogs()` (a line scan of the `catalog:` and `catalogs:` blocks of a `pnpm-workspace.yaml`, no YAML dependency) and `findCatalog()` (the nearest workspace file between a `package.json` and the project directory). |
+| `src/transforms/import-source.mjs`, `export-rename.mjs`, `namespace-type.mjs`, `export-removed.mjs` | `importSource`, `exportRename`, `namespaceType`, and `exportRemoved` (rule shapes in Traps). |
+| `src/lib/type-rules.mjs` | Shared by those four: `*` module and path patterns, option keys and advice placeholders, `chooseSource()` (which candidate module a name is imported from), `reportOpaqueReferences()`. |
+| `src/transforms/methods.mjs`, `call-unwrap.mjs` | `methodRemove` and `methodMove` (receiver rule, see Traps), and `callUnwrap`. |
+| `src/transforms/options.mjs` | `optionRename`, `optionMove`, `optionRemove` on option objects, wrapper attributes, and `context.callArg` arguments (see Traps). |
+| `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportMissing`, `reportPresent`, `replaced`, and `facts` (item fields in "Rule fields by kind"). `matchesWhen(j, root, when)` is the fact matcher. |
+| `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id, `notes` for the top of the report), `renderConsole()`, `renderMarkdown()` (title with the versions and the date), `summaryLine()` (both renderers print it), `clusterByMessage()` (a message that several locations share is printed once, then the locations), `SKIPPED_RULE_ID`, `BELOW_FROM_RULE_ID`, and `counts().marked`. |
+| `src/discover.mjs`, `git.mjs`, `diff.mjs` | Support modules. |
+| `versions/<semver>/` | `manifest.json`, optional `custom/*.mjs`, optional extra rule files, `__fixtures__/`. |
+| `test/*.test.mjs`, `test/helpers/` | Tests (`node:test`). Helpers are not listed in the test script. |
+
+## Run model
+
+1. `resolvePlan()` loads every manifest, resolves `--from` and `--to`, and selects manifests with
+   `from < version <= to`. A partial `--from` stands for the end of its line (`17` means "any 17.x"), a partial
+   `--to` for the highest known manifest of that line (`18` means the latest 18.x). `--from` falls back to
+   `node_modules/handsontable/package.json`, then the `package.json` range minimum. `--to` defaults to the latest
+   `released` manifest, or to the latest manifest of any status with `--include-draft` (`defaultTo()`). `draft` manifests
+   need `--include-draft`.
+   `--only` takes a full rule id or a prefix that ends in `*`. A pattern that selects no rule in range is a usage error,
+   and when it selects a rule of a draft manifest that the run leaves out, the error names the draft and `--include-draft`.
+   A range with no manifest (`--from` not below `--to`) is a usage error that lists the known migrations. The
+   auto-detect (`detectProjectVersion()`) runs once per path argument, from the path up to `cwd`, and paths that
+   resolve to different versions are a usage error that asks for `--from`.
+   The `from` of every manifest says which line it migrates from, and the lowest one is the oldest covered version
+   (`oldestCovered()`). A `--from` below it is a usage error that names the earlier guides from `EARLIER_GUIDES` in
+   `versions.mjs` (`uncoveredSteps()`), unless `--allow-uncovered` turns the same text into a note at the top of the
+   report. A `--to` on a later minor line than the newest migration in range (`isNewerLine()`) runs up to that
+   migration and says so, in the notes and at the top of the report. When the line `--to` names holds a draft that was
+   left out, the note says that the draft was skipped and where the run stops, not that no migration is known. An empty range explains itself through
+   `nothingToMigrate()`: a version that came from `package.json` or `node_modules` gets "already names", and a
+   partial `--from` gets the `--from <minor>` hint taken from the `from` of a manifest. A `handsontable` range that
+   names no version (`latest`) is a usage error that asks for `--from`. With no `--from` and no range at the path or above
+   it (a monorepo root), `scanPackageVersions()` reads the `package.json` files below the path arguments: different
+   versions are a usage error that lists the packages, equal ones become the `--from` and the note names the files.
+   A spec that points at a source is not a version: `minimumOfRange()` returns `null` for `file:`, `link:`, `portal:`,
+   `workspace:`, `catalog:`, git, `github:`, URL, path, and `owner/repo` specs (`isSourceSpec()`), so detection says
+   "... is not a version. Pass --from." and `scanPackageVersions()` skips them, and names the first one when no
+   package names a version. An `npm:` alias reads the range after its last `@`.
+   `plan.fromText` carries the resolved `--from` to the transforms as `ctx.fromText`.
+   A `dependency` range below `--from` (`lineBelowFrom()`: an earlier line that does not admit the `--from` version)
+   is never bumped. `dependencies.mjs` reports one `below-from` warning per `package.json` (`reportBelowFrom()`), the CLI
+   repeats it on stderr after the report, and the exit code stays 0. A CDN URL below `--from` gets a sentence in its own
+   entry. A raised `peerDependencies` range also gets a `manual` entry (`reportPeerRaised()`).
+2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. It does not apply to `--dry-run`,
+   `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
+   the first write. An untracked file at the `--report` path (`reportPath`) is not a change.
+3. `discover()` lists files (`git ls-files -z --cached --others --exclude-standard`, or an fs walk), drops
+   `node_modules`, `dist`, `build`, `coverage`, `.git`, `*.min.*`, `*.d.ts`, files deleted on disk, and any
+   extension no adapter handles. JSON is limited to `package.json`. A file named on the command line bypasses the
+   generated-output filter. It never follows a symbolic link: a link to a file or a directory, a path argument that
+   is one or sits below one, goes to its `skipped` list and the report shows it under "Skipped files". Git lists a
+   link to a directory as one entry without a handled extension, so `directoryLinks()` checks the entries of the git
+   list that no adapter handles with `lstat`, and the fs walk checks every entry. A path
+   check uses `leavesDirectory()`, so a directory named `..odd` is inside the project. Before a write, `run()` asks
+   `resolvesInside()`: the real path of the file must be inside the real project directory. `--report` is refused
+   (exit 2) when its target is a symbolic link, a file git tracks, or a file the run migrates
+   (`assertReportTarget()`). The skipped entry of a link says where it points when the target is inside the project
+   (`linkMessage()`), and whether the run migrates it.
+4. Phase 1 visits every file through `transformFile()`: adapter by extension, skip when no selected rule has a
+   registered transform for the adapter's kinds, skip when the adapter's cheap `precheck` regex does not match,
+   parse once, run versions ascending and kinds in `KIND_ORDER`, print only parts that called `markChanged()`.
+   Parse and transform failures become `parse-error` and `transform-error` warning entries, the file is left
+   byte for byte alone, and the run ends with exit code 1. A file above `MAX_FILE_BYTES` (1 MB, `--max-file-size`) is
+   not read and becomes a `skipped-file` warning. `transformFile()` also turns what an adapter cannot read into
+   `skipped-file` warnings: `skipReason` (whole file), `handle.skippedBlocks` entries with `relevant: true` (Vue), and
+   `skipNotes(source)` (inline scripts of an HTML page). The report lists them under "Skipped files".
+5. Phase 2 visits only `package.json` files and runs the kinds in `PHASE_TWO_KINDS` (`dependency`) after phase 1
+   has filled `ctx.facts`. Before phase 1 the runner records the directory of every discovered `package.json`
+   (`registerPackageDir`), so a fact is credited to the nearest `package.json` above the file it came from.
+   A phase 2 module that needs facts declares `scan: { fileKinds, precheck? }` on the transform: phase 1 then also
+   calls its `apply`, with its rules, on parts of those kinds, using `scan.precheck` instead of the adapter's.
+   That call collects facts and never edits. The `dependency` module is the only user.
+
+A transform may export `rescue(rules, source)`: the rules that may still run on a file the adapter's `precheck` rejected.
+The runner calls it only for such a file and then runs the module with the returned rules alone, so every other rule
+keeps the guard. `detect` is the only user (see the `precheck` field).
+
+`transformFile({ filePath, source, plan, options, facts, registry, phase })` reads and writes nothing. The run
+loop and the fixture tests both call it, so a fixture needs no temp directory, no git, and no discovery.
+
+## The transform contract
+
+Every file in `src/transforms/` default-exports a `Transform` (typedefs in `src/types.mjs`):
+
+```js
+export default {
+  kinds: ['cssVariable'],     // rule kinds the module handles
+  fileKinds: ['css'],         // part kinds it may edit: js, css, vue, json, template
+  apply(ctx, rules) {},       // sync or async
+};
+```
+
+`apply` runs once per part whose kind is in `fileKinds`, once per selected version, with that version's rules of
+the module's own `kinds` in manifest order. A module serving several kinds runs once per version, at the position
+of its earliest kind in `KIND_ORDER`.
+
+`ctx`:
+
+| Field | Meaning |
+|---|---|
+| `filePath` | Project-relative path, forward slashes. For extension checks and messages only. |
+| `fileKind` | `js`, `css`, `vue`, `json`, or `template`. Always one of the module's `fileKinds`. |
+| `source` | Original text of this part. |
+| `parser` | `ts`, `tsx`, or `babylon` for a `js` part, `null` for any other kind. |
+| `j` | jscodeshift API bound to the right parser. `null` unless `fileKind` is `js`. |
+| `root` | Parsed form, edited in place. `js`: a jscodeshift Collection. `css`: a postcss Root. `json`: the parsed value. |
+| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. `markLine` is the line the generic marker is placed from when `line` names a spot inside a literal that cannot hold a comment (a line of a multi-line template literal, a key of a Sass map): the report keeps `line`. |
+| `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
+| `comment(target, ruleId, text)` | The comment half of `todo()`: the same TODO comment, no report entry. A removal uses it, so its one `changed` entry carries the advice. |
+| `json` | For a `json` part, the `JsonDocument` that edits the text by offset: `setString(section, name, value)` and `addMember(section, name, value)` return `false` and change nothing when the scan of the text and the parsed file disagree, and the transform then reports `manual`. `null` for every other kind. A transform never prints a `package.json` with `JSON.stringify`. |
+| `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
+| `cssScope`, `lineOffset`, `fromText` | `'scoped'`, `'module'`, or `null` for the Vue `<style>` block of a `css` part; the part's zero-based line offset (add it by hand when a line is stored outside `report()`); the run's `--from` as text. |
+| `catalog` | For a `package.json` in phase 2 that holds a `catalog:` spec: `{ file, catalogs }` of the nearest `pnpm-workspace.yaml` (`catalogs` maps a catalog name, `''` for the default, to package ranges), else `null`. The runner reads it, so a transform stays free of file reads. |
+| `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
+| `options` | `{ aggressive, dryRun, todo }`. `todo: false` (`--no-todo`) makes `todo()` and `comment()` write nothing and switches the generic markers off. `markers: false` (tests use it) switches off only the generic markers. Never write to disk from a transform. |
+| `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
+
+Report line numbers are one-based and relative to the part's own source. The `todo` entry is reported on every
+run, while the comment is inserted only once: idempotency means zero changed files, not zero entries.
+
+Rules for transforms:
+
+- Rewrite only what is certain. When there is no type information, report instead of guessing.
+- Never insert a sanitizer, and never insert or invent a license key.
+- Do not mention tickets, tasks, or reviews in comments. Cite code by a greppable symbol, not by a line number.
+- Edit `root` in place, report every edit as `changed`, and leave every other byte alone. In a `css` part edit through
+  `ctx.css`, which splices the original text (see the `css` row above).
+
+## Rule kinds and manifest fields
+
+`RULE_KINDS` in `src/manifest.mjs` is the validator's table: required and optional fields per kind, on top of
+the common fields (`id`, `kind`, optional `guide`, `safe`, `minConfidence`, `message`, `advice`). `safe` is
+required for every kind except `detect` and `exportRemoved` (see "The `safe` contract"). The field sets
+are provisional. The author of a kind's transform owns its row: add the fields the transform reads and mirror the
+change in `src/manifest.schema.json`. Extra properties on a rule are allowed. `test/manifest.test.mjs` pins the
+kind list and each required list against the schema, and `KIND_ORDER` against both.
+
+`include` files (`{ "rules": [...] }`, relative to the version directory) are appended after the inline rules.
+`custom` rules name a module, relative to the version directory, that default-exports
+`{ fileKinds, apply(ctx, rule) }`; `src/transforms/custom.mjs` runs it with the same `ctx`.
+
+A transform may export `validate(rule)`: it returns the problems of one rule that the table cannot express (a
+`cssVariable` with neither `to` nor `removed`, a `methodMove` with a bad `via`, a `detect` without `message`). The
+registry exposes it as `registry.validate(rule)` and `loadManifest()` calls it for every rule that passed the shape
+check, so a malformed rule fails `--list` and `manifest.test.mjs` with the rule id and the field, and never shows up
+as a per-file `transform-error`. Write the check as a function that throws, use it in `apply`, and wrap it with
+`problemsOf()`.
+
+### Rule fields by kind
+
+Fields differ between kinds on purpose (`from` is an option name, a module, or a CSS variable): do not rename a field
+across kinds. Every kind also takes the common fields, and `safe` is required except for `detect` and
+`exportRemoved`. `*` marks a required field.
+
+| Kind | Fields |
+|---|---|
+| `importSource` | `from*` module, `exports*` (name to `{ to, note }` or `{ removed, advice }`), `fallback`, `moduleRemoved`, `todo` |
+| `exportRename` | `source*` (module or list), `from*`, `to*`, `toSource`, `note`, `todo` |
+| `namespaceType` | `from*` (path or list), `to: { name?, source }` or `removed` + `advice`, `positions`, `optionKeys`, `noKeyAdvice`, `note`, `todo` |
+| `exportRemoved` | `source*` (module, list, or `handsontable/plugins/*`), `name*`, `advice*`, `except`, `optionKeys`, `noKeyAdvice`, `message` (replaces the lead sentence "is no longer exported from"; same placeholders as `advice`) |
+| `optionRename` | `from*`, `to*`, `context: { callArg: [methods], receiver?: { plugin } }` |
+| `optionMove` | `from*` (`<option>.<key>`), `to*` (a sibling), `report` |
+| `optionRemove` | `name*`, `todo`, `advice` |
+| `methodRemove` | `methods*`, `receiver*` (`"any"`, `"instance"`, or `{ plugin: key or keys }`), `advice` |
+| `methodMove` | `methods*` (old to new name), `via*` (`{ method, args }`), `receiver*` (`"instance"` or `{ plugin }`), `properties` |
+| `callUnwrap` | `callee*` (dotted path), `arg` |
+| `cssVariable`, `themeToken` | `from*`, then `to` or `removed` + `advice`; `themeToken` also `callees` |
+| `dependency` | `bump`, `replaced`, `add`, `reportMissing`, `reportPresent`, `facts` (item fields below) |
+| `detect` | `match*`, `files`, `message`, `severity`, `requires`, `precheck` (regex source, tested without case, only with `requires: "none"`: a file the adapter's precheck rejects still runs this rule when it matches), `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the earliest one wins), `todo` (`false` leaves no marker for the rule) |
+| `custom` | `module*`, plus whatever the module reads (`mode`) |
+
+`dependency` item fields: `bump` maps a package name to a target version. `replaced` maps a package name to the
+manual text that names its replacement. `add` items take `name*`, `range*`, `whenFact`, `onlyIfDependsOn` (a package
+name or a list; the item applies when the `package.json` declares one of them). `reportMissing` items (the package
+is not declared) take `name*`, `whenFact`, `onlyIfDependsOn`, `message`. `reportPresent` items (the package is
+declared) take `name*`, `message*`, `whenFact`, `onlyIfDependsOn`. `whenFact` names a fact that phase 1 found for the
+project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `{ import: "<module>" }` or
+`{ property: "<key>", withKey?: "<key>" }`, and phase 1 adds the fact when a js part matches.
+
+## How to add a version
+
+1. Create `versions/<major.minor.patch>/manifest.json` with `version` (equal to the directory name), `from` (the
+   version line it migrates from: `"17"` for 18.0.0, `"18.0"` for 18.1.0; it must be below `version`), `status`
+   (`released` or `draft`), `guide: { url, source }`, and `rules`. `guide.source` is the repository path of the
+   migration guide page. `guide.url` is `https://handsontable.com/docs/javascript-data-grid/<permalink>`
+   without a trailing slash, with the permalink read from the guide's frontmatter. Put the rules in
+   `rules/*.json` files and list them in `include`.
+2. Generate the exports diff when the release changed the typings: run `tools/derive-type-map.mjs` on the two
+   packed releases and save the result as `versions/<version>/exports-diff.generated.json`.
+   `test/type-rules.test.mjs` loops over every diff file and fails until every removed export and every removed
+   `Handsontable` namespace member has a rule. A version without a diff file is skipped.
+3. Give each rule an id `<version>/<slug>`, a `guide` anchor that exists on the page (leave it out when the page
+   has no section for the rule), and `safe` (a boolean, except on `detect` and `exportRemoved` rules). Pick the kind
+   and its fields from "Rule fields by kind". A malformed rule fails when the manifests load.
+4. Add fixtures (below), one per rule at least, with a negative case next to each positive one.
+5. For a released migration, add a row to the "Supported migrations" table of `README.md` and update the kind table. The first column is
+   `<from line> to <major.minor>`, for example `18.0 to 18.1`. `test/readme.test.mjs` requires one row per released
+   manifest and compares the counts with `--list`.
+6. Decide `status`. A `draft` manifest runs only with `--include-draft`, and `--to` defaults to the latest
+   `released` one, so a migration under work stays `draft` until its guide is final. A draft has no row in the
+   README table (`readme.test.mjs` counts the released ones only) and gets a "Draft migrations" note instead.
+   **Flipping a draft to `released` makes the anchors binding**: every `guide` anchor of a rule must then be a heading
+   of the guide, or the manifest test fails. The flip also needs three more changes: the "Supported migrations"
+   row of the README, and the kind table counts; a fresh `exports-diff.generated.json` made from the released
+   tarballs (the draft's diff compares the last release with the `experimental` build, whose version is a moving
+   tag such as `0.0.0-next-<sha>-<date>`); and the removal of the draft-only test of that manifest
+   (`is what the 19.0.0 manifest is until its guide is final` in `draft-manifest.test.mjs`).
+   `notAutomated` (optional, top level) lists the guide sections that no rule covers, as `{ guide, reason }`, or
+   `{ title, reason }` for a change the guide has no section for (a row of the deprecation table). It changes
+   nothing in a run. `--list` prints how many there are, on the line before the counts, so the last line is always the
+   counts. Write one sentence of reason per entry, and drop an entry when a rule starts to cover its section.
+7. Run the package tests, the lint, and the smoke test. `manifest.test.mjs` checks that every manifest loads, ids
+   are unique and prefixed, `from` is valid, and the guide source file and anchors exist.
+
+### The 19.0 draft
+
+`versions/19.0.0/` is a draft (`status: "draft"`, `from: "18.1"`). Its guide is not final, so its `guide` anchors are not
+binding yet (see step 6), and its exports diff compares 18.1.2 with the `experimental` build of `develop`. The rules:
+
+- **Rewrites (`safe: true`):** the four package ranges, `columnHeaders` to `colHeaders` in the export calls, the four
+  resize-state methods (removed in 19.0), the two `Formulas` shortcut methods (no-ops), and the two type aliases
+  `Settings` of `handsontable/plugins/exportFile` and `DataProviderOptions` of `handsontable/plugins/dataProvider`.
+- **Reports:** one `detect` rule per change that has a pattern in user code, and `19.0.0/helper-sanitize`. The latter
+  is a `callUnwrap` with `safe: false` on purpose. The guide says to remove the call, and from 18.1 that is right,
+  because the helper returned its input unchanged. In a chained run from 17.x the 18.0 rule has already left the
+  call, because 17.x sanitized, and a rewriting 19.0 rule would delete it.
+- **`notAutomated`:** the sections with no pattern (a behavior change, a compiler error, a default).
+
+Traps of this draft:
+
+- A rule that exists in two migrations (`resize-state-methods`, `export-column-headers`, `helper-sanitize`) is repeated
+  with its own id, because a run from 18.1 never loads the 18.0 manifest. A chained run from 17.x therefore leaves one
+  TODO per version on a call that stays (the first sentence names the version of the rule).
+- A `detect` matcher that reads raw text never sees the comments the tool wrote: `regex`, `selector` in a template, and
+  `unlessFileMatches` (of the rule and of `missingOption`) read the part through `blankToolComments()`. The marker
+  repeats the guide link and the first sentence of its rule, and the anchor of a guide section can name what the rule looks
+  for (the license key section does), so before this guard the second run reported every marker as a new match. The
+  idempotency sweep in `test/idempotency.test.mjs` is what catches a new rule of this kind. `regex` reads the comments of
+  the project too, unless the matcher says `code: true` (js only: every comment is blanked, using the parser on the
+  original text). A matcher for a value says `in: "strings"`: in js it tests each string literal and template text, in a
+  template or a stylesheet each quoted value (overlapping candidates, on one line for `'` and `"`), so a docs URL or a
+  sentence that holds the text is not the value. Anchor the pattern (`^\\s*key\\s*# AGENTS.md: migration codemod (`codemod/`)
+
+`@handsontable/codemod` is a private CLI, `handsontable-codemod migrate`, that applies the mechanical part of a
+Handsontable upgrade to a customer project and reports what it cannot do. Behavior comes from data: one
+`versions/<semver>/manifest.json` per release, consumed by generic transforms. Usage and flags are in
+[`README.md`](./README.md).
+
+Plain `.mjs`, no build step, no `workspace:*`, no lifecycle scripts. The package is in `pnpm-workspace.yaml` only.
+It is deliberately not in the root `package.json` `workspaces`, and not in the `all` list of
+`scripts/translate-to-native-npm.mjs`, so version bumps and publish packing never touch it. Follow the
+`node-scripts-dev` skill.
+
+## Commands
+
+- Lint: `npm run lint --prefix codemod` (also part of the root `npm run lint`).
+- Test: `npm run test --prefix codemod`. CI runs it in the `Codemod tests` step of `lint.yml`, job `core`.
+- The `test` script lists its files literally. `test/test-list.test.mjs` fails until the list and the `test/`
+  directory name the same `*.test.mjs` files, so a new test file must be added to the script.
+- Smoke test: `node codemod/bin/handsontable-codemod.mjs migrate --list --from 17 --to 18.1`. The last line counts the
+  rules that rewrite and the rules that only report.
+- `test/cli.e2e.test.mjs` spawns the real bin on a temp git project built by `test/helpers/sample-project.mjs`
+  (`SAMPLE_FILES`, `createSampleProject()`). Add a file kind there when a transform starts to handle one.
+- `test/readme.test.mjs` compares the rule counts in the README tables with `describeRules()`. A change to a rule's
+  `safe`, or a new rule, changes a count, so update the two tables in `README.md`.
+- `test/safety.test.mjs` pins the `safe` contract: the runner guard, the shipped data, one case per kind that flips
+  its rules to `safe: false`, and a sweep that flips every rule of a manifest for every fixture input. Both expect
+  reports and TODO comments only, and no `transform-error`.
+- `test/idempotency.test.mjs` runs every fixture output a second and a third time, and runs one-line shapes of every
+  TODO-emitting kind three times. A new kind that leaves a TODO adds a one-line case there. Its last block sweeps every
+  fixture input of every manifest, drafts included, twice (with the rules of the fixture, and with every rule of the
+  manifest): runs 2 and 3 change no file, run 3 reports what run 2 reports, no rule reports more in run 2 than in run 1
+  (a rule that reads its own marker as a second spot), and a `detect` rule reports exactly as many in every run. A
+  `changed` entry is left out of the counts, and a rewrite can drop the note about its own spot, so only a `detect` rule
+  is held to equality.
+- `test/detect-comments.test.mjs` pins the comments the tool writes (never matched by a `regex` or an
+  `unlessFileMatches`), the `regex` modifiers `in: "strings"` and `code: true`, and the license key rule on every
+  shape. `test/draft19-rules.test.mjs` pins the rule-level behavior of the 19.0 draft that a fixture cannot show in
+  three runs: variables passed to an export call, aliases of `helper.sanitize`, imports of `Loading` and `Dialog`, the
+  menu item places, template attributes, and the names in a TODO.
+- `test/literals.test.mjs` pins the literal invariant (see Traps): a matrix of literal shapes in files indented with
+  spaces, tabs, and CRLF, the deliberate-edit cases, `guardLiterals()` itself, and a sweep that compares the template
+  literals and multi-line strings of every fixture input with its output. It reads literals through
+  `test/helpers/literals.mjs`, a plain parser walk that does not use `src/lib/literals.mjs`.
+- `test/indirect-sites.test.mjs` pins the code that holds options without showing it: the one-hop resolver, the custom renderer and file-read guards of `numericFormat.culture`, references and spreads as the value, the unrecognized-holder reports, wrapped selectors, indirect column-move hooks, dates from variables, and the marker of an entry inside a template literal.
+- `test/manifest.test.mjs` checks every rule's `guide` anchor against the headings of the guide page with
+  `checkAnchors()` in `test/helpers/guide-anchors.mjs`, which owns the one slug function of the tests (`anchorsOf()`).
+  A missing anchor fails for a `released` manifest. For a `draft` one it is a test diagnostic (a line in the test
+  output), because the guide of a draft is still edited by other people and a renamed heading there must not fail this
+  package's CI. `test/draft-manifest.test.mjs` pins both halves with a temporary manifest and guide, and also pins
+  that a draft stays out of a default run and of the default `--to`, the `notAutomated` list, and that every rule of a
+  draft is named by the `report.json` of some fixture. `type-rules.test.mjs` reads one guide of its own (the first
+  manifest with type rules), so it does not cover a draft.
+- A test that checks the behavior of a released range builds its plan from `loadReleasedManifests()`
+  (`test/helpers/manifests.mjs`), not from `loadManifests()`: the latter includes every draft, and a draft's rules
+  would join the run. `idempotency.test.mjs` keeps the draft rules in a plan of their own (`draftPlan`).
+
+## Layout
+
+| Path | Role |
+|---|---|
+| `bin/handsontable-codemod.mjs` | Entry. Sets `process.exitCode` from `main()`. |
+| `src/cli.mjs` | Argument parsing, `--list`, rendering, exit codes. |
+| `src/runner.mjs` | `run()` (disk), `transformFile()` (pure), `resolvePlan()`, `describeRules()`. |
+| `src/versions.mjs` | Version parsing, range selection, `--from` auto-detect. |
+| `src/manifest.mjs`, `src/manifest.schema.json` | Manifest loading and validation, `RULE_KINDS`. |
+| `src/types.mjs` | JSDoc typedefs for the contracts below. No runtime code. |
+| `src/transforms/index.mjs` | The registry: `KIND_ORDER`, `PHASE_TWO_KINDS`, the module list. |
+| `src/adapters/*.mjs` | File type to parts and back. `template.mjs` gives an `.html` or `.htm` file one read-only `template` part. `vue.mjs` splits a `.vue` file (see Traps). |
+| `src/transforms/detect.mjs` | The `detect` kind: report-only matchers (vocabulary in Traps). `validateDetectRule()` checks a rule. |
+| `versions/18.1.0/custom/sanitizer-source.mjs` | Two `custom` rules for the `sanitizer` option, picked by the rule's `mode` (see Traps). |
+| `src/transforms/css-variables.mjs`, `theme-tokens.mjs` | `cssVariable` (css, js strings, template report) and `themeToken` kinds. |
+| `src/lib/string-literal.mjs` | `replaceStringLiteral()`: edit a string literal and keep its quote style. |
+| `src/lib/literals.mjs` | The literal guard of `printJsPart()`: `intendedLiterals()` (what the final tree holds), `guardLiterals()` (compare with the printed text, repair or throw), `linesInsideLiterals()` (for `restoreTabs()`), and `templateRaw()` / `stringRaw()`, which a transform uses to read the text of a literal it edits (see Traps). |
+| `src/lib/tool-comments.mjs` | `blankToolComments()` (the `TODO(handsontable-codemod ...)` comments of the tool, as spaces, line breaks kept) and `blankCodeComments()` (every comment of a js part, read with the parser on the original text, so the offsets are real in a tab-indented file). |
 | `src/lib/todo.mjs` | The writer of TODO comments in the AST, and the only source of their text (`formatTodo()`; `carrier.mjs` places the same text after printing): `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
 | `src/lib/anchor.mjs` | Where a comment about a property can go: `enclosingAnchor()`, `hasOwnLines()`, `anchorForProperty()`. |
 | `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
@@ -147,6 +489,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    calls its `apply`, with its rules, on parts of those kinds, using `scan.precheck` instead of the adapter's.
    That call collects facts and never edits. The `dependency` module is the only user.
 
+A transform may export `rescue(rules, source)`: the rules that may still run on a file the adapter's `precheck` rejected.
+The runner calls it only for such a file and then runs the module with the returned rules alone, so every other rule
+keeps the guard. `detect` is the only user (see the `precheck` field).
+
 `transformFile({ filePath, source, plan, options, facts, registry, phase })` reads and writes nothing. The run
 loop and the fixture tests both call it, so a fixture needs no temp directory, no git, and no discovery.
 
@@ -173,6 +519,7 @@ of its earliest kind in `KIND_ORDER`.
 | `filePath` | Project-relative path, forward slashes. For extension checks and messages only. |
 | `fileKind` | `js`, `css`, `vue`, `json`, or `template`. Always one of the module's `fileKinds`. |
 | `source` | Original text of this part. |
+| `parser` | `ts`, `tsx`, or `babylon` for a `js` part, `null` for any other kind. |
 | `j` | jscodeshift API bound to the right parser. `null` unless `fileKind` is `js`. |
 | `root` | Parsed form, edited in place. `js`: a jscodeshift Collection. `css`: a postcss Root. `json`: the parsed value. |
 | `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. `markLine` is the line the generic marker is placed from when `line` names a spot inside a literal that cannot hold a comment (a line of a multi-line template literal, a key of a Sass map): the report keeps `line`. |
@@ -237,7 +584,7 @@ across kinds. Every kind also takes the common fields, and `safe` is required ex
 | `callUnwrap` | `callee*` (dotted path), `arg` |
 | `cssVariable`, `themeToken` | `from*`, then `to` or `removed` + `advice`; `themeToken` also `callees` |
 | `dependency` | `bump`, `replaced`, `add`, `reportMissing`, `reportPresent`, `facts` (item fields below) |
-| `detect` | `match*`, `files`, `message`, `severity`, `requires`, `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the earliest one wins), `todo` (`false` leaves no marker for the rule) |
+| `detect` | `match*`, `files`, `message`, `severity`, `requires`, `precheck` (regex source, tested without case, only with `requires: "none"`: a file the adapter's precheck rejects still runs this rule when it matches), `emitsFact`, `unlessFileMatches` (regex on the part text: the rule skips a part that matches), `mergeKey` (rules of other versions with the same key report a spot once, the earliest one wins), `todo` (`false` leaves no marker for the rule) |
 | `custom` | `module*`, plus whatever the module reads (`mode`) |
 
 `dependency` item fields: `bump` maps a package name to a target version. `replaced` maps a package name to the
@@ -302,11 +649,24 @@ Traps of this draft:
 - A rule that exists in two migrations (`resize-state-methods`, `export-column-headers`, `helper-sanitize`) is repeated
   with its own id, because a run from 18.1 never loads the 18.0 manifest. A chained run from 17.x therefore leaves one
   TODO per version on a call that stays (the first sentence names the version of the rule).
-- A `detect` `regex` rule reads the comments of the part, and the marker the run leaves is one of them. The first
-  sentence of such a rule (`non-commercial-license-key`, `sr-sp-language-code`, `loading-without-dialog`,
-  `editor-set-value`) therefore never contains text its own pattern matches, or the second run reports the marker.
-- `valueIs` and `import` read js only, so a rule that uses them lists `files: ["js"]`, never `template`. `property`
-  with `valueMatches` and `regex` also read templates.
+) for the whole value.
+- `19.0.0/non-commercial-license-key` has `requires: "none"` and a `precheck` of the two key texts, so a file that never
+  says Handsontable (a shared `license.ts`) is read. `rescue()` keeps only that rule alive for such a file, so nothing
+  else runs there. The Angular constant `NON_COMMERCIAL_LICENSE` is still found as a word in the raw text. A Vue block or a
+  page that never says Handsontable is not rescued by the adapters that parse blocks (their script precheck is their own).
+- `19.0.0/loading-without-dialog` uses the `pluginRegistration` matcher: the `registerPlugin()` calls (any callee named
+  `registerPlugin`, or a local name of that import) whose argument is `Loading` imported from `handsontable/plugins` or
+  `handsontable/plugins/loading` under any local name, or a member of a namespace import of either, and no such call
+  for `Dialog` in the part (`withoutPlugin`). A `require()` of the plugin is not followed.
+- `19.0.0/checked-menu-item-property` uses `property` with `in: "menu-item"` (js only): the object is an element of the
+  `contextMenu` or `dropdownMenu` array, a value or element of `items` of that option (also in JSX), the same inside the
+  `submenu` of an item, or it has the shape of an item (`name` and one of `callback`, `submenu`, `hidden`, `disabled`,
+  `renderer`, `isCommand`). Assignments are not read. The rule keeps its file gate (a `contextMenu` or `dropdownMenu` key).
+- `valueIs` and `import` read js only, except that `valueIs` of `true`, `false`, or `null` also reads the wrapper
+  attributes of a template, when the attribute is bound (`:strict`, `v-bind:`, `[strict]`, `bind-`) and its text is that
+  word. A rule that uses a js-only form lists `files: ["js"]`, never `template`. `property` with `valueMatches` and
+  `regex` also read templates. `19.0.0/dropdown-strict-false` gates on a quoted `dropdown` anywhere in the part, as it did
+  in js, so a template with a dropdown column reports the bound `strict=false` of any column in it.
 - Every fixture of this draft has `options.json` with `only`, so a rule that matches a common input (the license
   regex, `rowHeights`) cannot change the exact `report.json` of another rule's fixture.
 - `19.0.0/helper-sanitize` has no `namespaceType` rule for `Handsontable.helper.sanitize`. `type-rules.test.mjs`
@@ -408,8 +768,12 @@ before and is reprinted. A sentinel that is missing or stands twice throws, and 
 `transform-error` that leaves the file alone. When only white space and single-line block comments precede the sentinel on its line (`/* fx */ { ... },`), the
 comment lines go above that line, at its indentation, so the element keeps the comments it had; anything else before
 the sentinel keeps the older placement. The second run finds the marker because the parser attaches both comments to
-the element. Only an array element takes this path: a property or statement keeps its
-children's text when it is printed again, so its comment never moves anything. The comment text always comes from
+the element. Only an array element takes this path: a property keeps its children's text when it
+is printed again, so its comment never moves anything. A statement does not: a TODO on the `if` statement of a kept call
+that is the whole body of a statement without braces (`if (c) call();`, from `ctx.todo()` in `methods.mjs`) makes recast
+print the statement as `if (c)` and the call indented on the next line. The carrier would have to stand for a whole
+statement, with its trailing `;` and a `ctx.todo()` that places the comment at once, not after the last transform, so
+this is a documented limitation (README, Limitations) and not a fix. The comment text always comes from
 `formatTodo()`, and `hasJsTodo()` and `MarkerCarriers.has()` are the two dedupes of one run.
 
 A TODO comment is `TODO(handsontable-codemod <ruleId>): <first sentence of the advice> See <guide link>`. The advice
@@ -483,7 +847,10 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `ctx.comment()`. `optionMove` moves nothing into an object that has a spread (or a JSX element with a spread
   attribute), because the spread may already set the destination. `optionRename` with `context.callArg` and
   `context.receiver: { plugin }` rewrites only calls on `x.getPlugin('<key>')` or a variable the file sets from it, and
-  reports a `manual` entry for a call on another unresolved receiver in a hot file that sets the key. `medium` objects exist only in a file that imports or uses Handsontable (`isHotFile`), so a file with
+  reports a `manual` entry for a call on another unresolved receiver in a hot file that sets the key. On a confirmed
+  receiver, an argument that is a variable (or a member of one) holding an object literal of the file that sets the key
+  gets one `manual` entry at the call that names the variable (`reportHeldObject()`), and the object is not renamed,
+  because it may be used elsewhere. An argument the tool cannot resolve, and an object without the key, are silent. `medium` objects exist only in a file that imports or uses Handsontable (`isHotFile`), so a file with
   none is never edited, even under `--aggressive`. A `heuristic` object also needs `corroborated()`: at least two known
   option names besides the key the rule acts on (`ownKey()`), one of them outside `GENERIC_OPTIONS`. So
   `{ locale, numericFormat: {...} }` and `{ correctFormat, datePickerConfig }` stay reports in a hot file. A
@@ -593,13 +960,17 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 - **`receiver: { plugin }`** (`methodRemove` and `methodMove`, and `context.receiver` of `optionRename`) names the
   plugin key or keys the receiver must be. `isPluginReceiver(path, keys)` in `lib/hot-bindings.mjs` says yes for
   `<x>.getPlugin('<key>')` (any `x`, optional chaining included) and for a variable or `this` member that the file
-  sets from such a call, one hop, when every value of the name is a listed plugin. Anything else is never edited. A
+  sets from such a call, one hop, when every value of the name is a listed plugin. `getPlugin()` upper-cases the first
+  letter of its argument, so `'exportFile'` and `'ExportFile'` are the same key here too (`registryName()`). Anything else is never edited. A
   report `manual` happens only when the receiver is unresolved (`isUnresolvedReceiver()`: a global, a parameter, or the
   result of another call) and is not `this`, `super`, a member chain rooted at one, a local object or class, an import,
   or the plugin of another key. `18.0.0/resize-state-methods` uses it, so `storage.saveManualColumnWidths()` and
   `super.loadManualRowHeights()` stay untouched. `receiver: "any"` remains for a `methodRemove` rule whose names are
   unique to Handsontable, and it skips a name the file declares itself.
-- A `methodRemove` rule's `message` may use `{name}` for the method (`name()`). The report entry and the TODO then lead
+- A `methodRemove` rule's `advice` may use `{name}` too, so the TODO of a call that was not confirmed (the receiver may be
+  another object) names the method in its first sentence: `19.0.0/resize-state-methods` starts with "Replace {name} with
+  your own store". `18.0.0/resize-state-methods` does not, so its TODO text is unchanged. A `methodRemove` rule's
+  `message` may use `{name}` for the method (`name()`). The report entry and the TODO then lead
   with it instead of "`name()` is removed", which is wrong for a deprecated no-op (`18.0.0/resize-state-methods`).
   Keep that lead under 40 characters, so the TODO still gets the next sentence that says why the call was kept.
 - `methodRemove` deletes a call only when it is a whole expression statement (`await` and `void` allowed), the call
@@ -613,8 +984,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `properties` lists names that become the `via` call (`undoRedo: null`). Optional chaining is kept by building the
   new links as optional-chain nodes: the first link takes over the `?.`. Computed access (`hot['undo']()`),
   assignment targets, references without a call, and destructuring are reported, never rewritten.
-- `callUnwrap` resolves the callee through `resolveNamespaceMember` or a `const` alias (`const { sanitize } =
-  Handsontable.helper`). The 17.1 exports map has no `handsontable/helpers/*` entry, so a named import of the helper
+- `callUnwrap` resolves the callee through `resolveNamespaceMember`, a `const` alias (`const { sanitize } =
+  Handsontable.helper`), or a destructured member of the namespace (`const { helper } = Handsontable`, also
+  `{ helper: tools }`), which only this transform follows (`memberOf()`; `resolveNamespaceMember` stays as it was for the
+  other rules). An alias that is exported (`export const clean = Handsontable.helper.sanitize`) is a `manual` entry,
+  because its uses are in other files; an alias that is only declared is silent. The 17.1 exports map has no `handsontable/helpers/*` entry, so a named import of the helper
   never existed and is not handled. The alias declaration is left in place.
 - Import and type rule shapes (`rules/imports.json`, `rules/types.json`). `importSource`: `from`, `exports` (name to
   `{ to, note }` or `{ removed: true, advice }`; `to` is a module or a list of candidates), optional `fallback` entry
@@ -658,7 +1032,8 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   values: `true`, `false`, `null`, `"array"`, `"function"`, `"object"`, `in: "option-object"`),
   `call` (`argMatches` reads every string inside the arguments, `receiver` is `"instance"` or the receiver text),
   `hook` (option key, JSX prop, `addHook`, `addHookOnce`, `Handsontable.hooks.add`/`once`), `string`, `selector` and
-  `regex` (also css and template), `missingOption` (`whenAnyKey`, `whenValueMatches`, `unlessFileMatches`). `selector`
+  `regex` (also css and template; modifiers `in: "strings"` and `code: true`, see the traps of the 19.0 draft),
+  `pluginRegistration` (`withoutPlugin`), `missingOption` (`whenAnyKey`, `whenValueMatches`, `unlessFileMatches`). `selector`
   tests stylesheet rule selectors, js strings, and raw template text. SCSS nesting is not resolved.
 - **`missingOption` looks only at configurations the file builds:** `new Handsontable(el, {...})` (also through one
   variable) and `<HotTable>` elements with their `settings`. Not `updateSettings()` (the license key is read once),
@@ -679,6 +1054,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `setCellMeta()`/`setCellMetaObject()` in a hot file. `siblingKey` (one-segment path) wants the object or element
   to set another key too (`pattern` beside `culture`), and `annotatedObject` finds an object literal that a type
   annotation, `as`, or `satisfies` names. Neither reads templates.
+- A `handsontable` or wrapper dependency whose spec installs from a repository or a URL (`isRemoteSource()`: `git:`,
+  `git+...:`, `github:`, `gitlab:`, `bitbucket:`, `http(s):`, `owner/repo`) is never bumped, but it is one `manual` entry that
+  says the tool cannot tell its version (`planRange()` still returns `skip`). `workspace:`, `file:`, `link:`, `portal:`,
+  `patch:`, a path, and a dist-tag stay silent. The note about a pin of `overrides`, `resolutions`, or `pnpm.overrides`
+  names its own section.
 - Dependency ranges (`planRange()`, `rangeAdmits()`): a compound or open range that already allows the target
   (`>=17.1.0 <19`, `*`, `18`, an `npm:` alias to a new enough version) is `keep` and produces no entry. A simple caret,
   tilde, or exact range whose lowest version is below the target is raised to the target, even when it admits it

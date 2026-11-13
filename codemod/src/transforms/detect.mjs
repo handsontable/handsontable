@@ -2,6 +2,7 @@ import {
   attributeName,
   calleeName,
   lineOfNode,
+  memberName,
   propertyName,
   stringValue,
   typeArguments,
@@ -10,12 +11,19 @@ import {
 } from '../lib/ast.mjs';
 import { addFact } from '../lib/facts.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
-import { findDynamicImports, findImports, findReExports, findRequires } from '../lib/imports.mjs';
+import {
+  findDynamicImports,
+  findImports,
+  findReExports,
+  findRequires,
+  getImportedBindings,
+} from '../lib/imports.mjs';
 import { GENERIC_OPTIONS, KNOWN_OPTIONS, findOptionObjects, hasSpread } from '../lib/option-objects.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
 import { lookup } from '../lib/scope.mjs';
+import { blankCodeComments, blankToolComments } from '../lib/tool-comments.mjs';
 
 /**
  * A rule reports its matches one by one up to this number per part. A part with more matches gets one entry, at
@@ -28,7 +36,7 @@ const FILE_KINDS = ['js', 'css', 'template'];
 const SEVERITIES = ['manual', 'warning'];
 const REQUIRES = ['hot-file', 'option-object', 'none'];
 const JS_ONLY_MATCHERS = ['import', 'property', 'call', 'hook', 'string', 'missingOption', 'namespaceMember',
-  'annotatedObject'];
+  'annotatedObject', 'pluginRegistration'];
 const ANY_MATCHERS = ['regex', 'selector'];
 const VALUE_KINDS = [true, false, null, 'array', 'function', 'object'];
 
@@ -42,9 +50,10 @@ const MODIFIERS = {
   call: ['argMatches', 'receiver', 'flags'],
   hook: [],
   namespaceMember: [],
+  pluginRegistration: ['withoutPlugin'],
   string: ['flags'],
   selector: ['flags'],
-  regex: ['flags'],
+  regex: ['in', 'code', 'flags'],
   missingOption: ['whenAnyKey', 'whenValueMatches', 'reportUnresolved', 'unlessFileMatches', 'flags'],
 };
 
@@ -155,12 +164,30 @@ function validateMatch(spec, files, where) {
     problems.push(`${where}.siblingKey must be a key name, and goes with a property of one segment`);
   }
 
+  if (key === 'pluginRegistration' && (typeof spec.pluginRegistration !== 'string' || !spec.pluginRegistration)) {
+    problems.push(`${where}.pluginRegistration must be a plugin export name such as Loading`);
+  }
+
+  if (spec.withoutPlugin !== undefined && (typeof spec.withoutPlugin !== 'string' || !spec.withoutPlugin)) {
+    problems.push(`${where}.withoutPlugin must be a plugin export name such as Dialog`);
+  }
+
   if (key === 'namespaceMember' && !listOf(spec.namespaceMember).every(item => typeof item === 'string' && item)) {
     problems.push(`${where}.namespaceMember must be a member path after the namespace or a list of them`);
   }
 
-  if (spec.in !== undefined && spec.in !== 'option-object') {
-    problems.push(`${where}.in must be "option-object"`);
+  const places = { regex: ['strings'], property: ['option-object', 'menu-item'] }[key] ?? ['option-object'];
+
+  if (spec.in !== undefined && !places.includes(spec.in)) {
+    problems.push(`${where}.in must be ${places.map(place => `"${place}"`).join(' or ')}`);
+  }
+
+  if (spec.in === 'menu-item' && files.some(file => file !== 'js')) {
+    problems.push(`${where}: in "menu-item" reads js only, so "files" must be ["js"]`);
+  }
+
+  if (spec.code !== undefined && (spec.code !== true || key !== 'regex')) {
+    problems.push(`${where}.code must be true, and goes with regex`);
   }
 
   if (spec.valueIs !== undefined) {
@@ -168,8 +195,9 @@ function validateMatch(spec, files, where) {
       problems.push(`${where}.valueIs must be true, false, null, "array", "function", or "object"`);
     }
 
-    if (files.includes('template')) {
-      problems.push(`${where}: valueIs reads js only, so "files" must not list template`);
+    if (files.includes('template') && ![true, false, null].includes(spec.valueIs)) {
+      problems.push(`${where}: in a template, valueIs reads true, false, and null only, `
+        + 'so "files" must not list template');
     }
   }
 
@@ -245,6 +273,18 @@ export function validateDetectRule(rule) {
     }
   }
 
+  if (rule.precheck !== undefined) {
+    if (typeof rule.precheck !== 'string' || rule.requires !== 'none') {
+      problems.push('"precheck" must be a regular expression source, and goes with "requires": "none"');
+    } else {
+      try {
+        regexOf(rule.precheck, 'i');
+      } catch (error) {
+        problems.push(`"precheck" is not a valid regular expression: ${error.message}`);
+      }
+    }
+  }
+
   if (rule.mergeKey !== undefined && (typeof rule.mergeKey !== 'string' || rule.mergeKey === '')) {
     problems.push('"mergeKey" must be a string');
   }
@@ -303,7 +343,8 @@ function compileMatch(spec) {
     key,
     spec,
     re: {
-      primary: ['string', 'selector'].includes(key) ? regexOf(spec[key], flags) : null,
+      primary: ['string', 'selector'].includes(key) || (key === 'regex' && spec.in === 'strings')
+        ? regexOf(spec[key], flags.replace('g', '')) : null,
       raw: key === 'regex' ? regexOf(spec.regex, `${flags.replace('g', '')}g`) : null,
       value: regexOf(spec.valueMatches, flags),
       arg: regexOf(spec.argMatches, flags),
@@ -319,7 +360,8 @@ const compiledRules = new WeakMap();
  * Validate and compile a rule once.
  *
  * @param {import('../types.mjs').Rule} rule A `detect` rule.
- * @returns {{tree: Compiled, files: string[], requires: string, severity: string}} The compiled rule.
+ * @returns {{tree: Compiled, files: string[], requires: string, severity: string, unlessFile: RegExp|null,
+ * precheck: RegExp|null}} The compiled rule.
  * @throws {Error} When the rule is invalid.
  */
 function compileRule(rule) {
@@ -336,6 +378,7 @@ function compileRule(rule) {
       requires: rule.requires ?? 'hot-file',
       severity: rule.severity ?? 'manual',
       unlessFile: regexOf(rule.unlessFileMatches),
+      precheck: regexOf(rule.precheck, 'i'),
     });
   }
 
@@ -479,6 +522,8 @@ function receiverText(node) {
  * @property {() => import('../lib/option-objects.mjs').OptionObject[]} optionList Option objects of the part.
  * @property {() => Set<object>} optionNodes The nodes of those objects.
  * @property {() => ReturnType<import('../lib/resolve.mjs').createHop>} resolver The one-hop resolver of the part.
+ * @property {() => string} clean The text of the part without the comments the tool wrote.
+ * @property {() => string} code The text of a js part without any comment.
  */
 
 /**
@@ -503,6 +548,8 @@ function createEnv(ctx) {
     optionList,
     optionNodes,
     resolver,
+    clean: memo(() => blankToolComments(ctx.source)),
+    code: memo(() => blankCodeComments(ctx.parser, ctx.source)),
   };
 }
 
@@ -570,6 +617,71 @@ function holderOf(container) {
   }
 
   return null;
+}
+
+const MENU_SETTINGS = new Set(['contextMenu', 'dropdownMenu']);
+const MENU_ITEM_KEYS = ['callback', 'submenu', 'hidden', 'disabled', 'renderer', 'isCommand'];
+
+/**
+ * The key or attribute name of a property or JSX attribute path.
+ *
+ * @param {object} path NodePath of an `ObjectProperty` or a `JSXAttribute`.
+ * @returns {string|null} The name.
+ */
+function holderName(path) {
+  return path.node.type === 'JSXAttribute' ? attributeName(path.node) : propertyName(path.node);
+}
+
+/**
+ * Whether an object literal is the item of a context menu or a column menu. It is when it stands where the menu's
+ * items stand: an element of the `contextMenu` or `dropdownMenu` array, a value or element of its `items`, or the same
+ * inside a `submenu` of an item. It is also when it has the shape of an item: a `name` and one of the keys only an
+ * item sets (`callback`, `submenu`, `hidden`, `disabled`, `renderer`, `isCommand`).
+ *
+ * @param {object} objectPath NodePath of an `ObjectExpression`.
+ * @returns {boolean} `true` for a menu item.
+ */
+function isMenuItem(objectPath) {
+  const keys = new Set(objectPath.node.properties.map(item => propertyName(item)));
+
+  if (keys.has('name') && MENU_ITEM_KEYS.some(key => keys.has(key))) {
+    return true;
+  }
+
+  const outer = climbWrappers(objectPath);
+  const parent = outer.parent;
+  let items = null;
+
+  if (parent?.node.type === 'ArrayExpression') {
+    items = parent;
+  } else if ((parent?.node.type === 'ObjectProperty' || parent?.node.type === 'Property')
+    && parent.node.value === outer.node && parent.parent?.node.type === 'ObjectExpression') {
+    items = parent.parent;
+  }
+
+  const holder = items ? holderOf(items) : null;
+
+  if (!holder) {
+    return false;
+  }
+
+  if (items.node.type === 'ArrayExpression' && MENU_SETTINGS.has(holderName(holder))) {
+    return true;
+  }
+
+  const owner = holderName(holder) === 'items' && holder.node.type !== 'JSXAttribute' ? holder.parent : null;
+  const ownerHolder = owner?.node.type === 'ObjectExpression' ? holderOf(owner) : null;
+
+  if (!ownerHolder) {
+    return false;
+  }
+
+  if (MENU_SETTINGS.has(holderName(ownerHolder))) {
+    return true;
+  }
+
+  return holderName(ownerHolder) === 'submenu' && ownerHolder.parent?.node.type === 'ObjectExpression'
+    && isMenuItem(ownerHolder.parent);
 }
 
 /**
@@ -725,6 +837,10 @@ function matchProperty(env, node) {
         continue;
       }
 
+      if (spec.in === 'menu-item' && !(origin.object && isMenuItem(origin.object))) {
+        continue;
+      }
+
       const value = valueOfProperty(path.node);
 
       if (spec.siblingKey !== undefined) {
@@ -781,7 +897,7 @@ function matchProperty(env, node) {
     .filter(Boolean)
     .forEach(type => root.find(type).forEach(visit));
 
-  return [...matches, ...matchDynamicProperty(env, node)];
+  return spec.in === 'menu-item' ? matches : [...matches, ...matchDynamicProperty(env, node)];
 }
 
 /**
@@ -870,6 +986,12 @@ function matchTemplateProperty(env, node) {
       const literal = site.value !== null && /^\s*\{/.test(site.value.replace(/^['"]/, ''));
 
       if (needs.length > 0 && literal && !needs.some(word => named(word).test(site.value))) {
+        return false;
+      }
+
+      // A bound attribute holds an expression: only `false`, `true`, and `null` written out are known.
+      if (spec.valueIs !== undefined && !(/^(?::|v-bind:|bind-|\[)/.test(site.attribute)
+        && site.value?.trim() === String(spec.valueIs))) {
         return false;
       }
 
@@ -993,6 +1115,88 @@ function matchCall(env, node) {
   }));
 
   return matches;
+}
+
+/**
+ * The local names under which a file imports a plugin from the `handsontable/plugins` entry point or from the plugin's
+ * own entry point (`handsontable/plugins/loading`), and the local names of a namespace import of either.
+ *
+ * @param {Env} env Part state.
+ * @param {string} name The plugin export, such as `Loading`.
+ * @returns {{named: Set<string>, namespaces: Set<string>}} The aliases of the plugin and the namespace imports.
+ */
+function pluginAliases(env, name) {
+  const own = `handsontable/plugins/${name.charAt(0).toLowerCase()}${name.slice(1)}`;
+  const imports = getImportedBindings(env.j, env.root, source => source === 'handsontable/plugins' || source === own)
+    .filter(binding => binding.kind === 'value');
+
+  return {
+    named: new Set(imports.filter(binding => binding.form === 'named' && binding.imported === name)
+      .map(binding => binding.local)),
+    namespaces: new Set(imports.filter(binding => binding.form === 'namespace').map(binding => binding.local)),
+  };
+}
+
+/**
+ * Find the `registerPlugin()` calls of one plugin, by what the file imports, whatever the local name is: `registerPlugin(
+ * Loading)`, `registerPlugin(LoadingPlugin)` after `import { Loading as LoadingPlugin }`, and `registerPlugin(plugins.Loading)`
+ * after `import * as plugins`. The callee is any call named `registerPlugin`, or a local name of that import.
+ *
+ * @param {Env} env Part state.
+ * @param {string} name The plugin export.
+ * @returns {Match[]} One match per call.
+ */
+function findPluginRegistrations(env, name) {
+  const { j, root } = env;
+  const aliases = pluginAliases(env, name);
+  const registrars = new Set(['registerPlugin', ...getImportedBindings(j, root,
+    source => source === 'handsontable' || source.startsWith('handsontable/'))
+    .filter(binding => binding.form === 'named' && binding.imported === 'registerPlugin')
+    .map(binding => binding.local)]);
+  const matches = [];
+
+  [j.CallExpression, j.OptionalCallExpression].filter(Boolean).forEach(type => root.find(type).forEach((path) => {
+    const [argument] = path.node.arguments;
+
+    if (!argument || !registrars.has(calleeName(path.node.callee))) {
+      return;
+    }
+
+    const target = unwrapNode(argument);
+    const isPlugin = target.type === 'Identifier'
+      ? aliases.named.has(target.name)
+      : MEMBERS.has(target.type) && memberName(target) === name && target.object.type === 'Identifier'
+        && aliases.namespaces.has(target.object.name);
+
+    if (isPlugin || env.bindings().resolveNamespaceMember(path.get('arguments', 0)) === `plugins.${name}`) {
+      matches.push({ line: lineOfNode(path.node) });
+    }
+  }));
+
+  return matches;
+}
+
+/**
+ * Find the places that register a plugin when another plugin it needs is not registered in the same part.
+ * `pluginRegistration` names the plugin export (`Loading`), `withoutPlugin` the one that must be registered next to it
+ * (`Dialog`). The matches are the registrations of the first, and none when the part also registers the second.
+ *
+ * @param {Env} env Part state.
+ * @param {Compiled} node The compiled matcher.
+ * @returns {Match[]} The matches.
+ */
+function matchPluginRegistration(env, node) {
+  const { pluginRegistration: name, withoutPlugin } = node.spec;
+
+  if (env.ctx.fileKind !== 'js') {
+    return [];
+  }
+
+  if (withoutPlugin && findPluginRegistrations(env, withoutPlugin).length > 0) {
+    return [];
+  }
+
+  return findPluginRegistrations(env, name);
 }
 
 /**
@@ -1159,10 +1363,45 @@ function matchStrings(env, pattern, normalize = text => text) {
  *
  * @param {Env} env Part state.
  * @param {RegExp} pattern A global expression.
+ * @param {string} [text] The text to search, the part without the comments of the tool by default.
  * @returns {Match[]} One match per hit, with its line.
  */
-function matchRaw(env, pattern) {
-  return [...env.source.matchAll(pattern)].map(hit => ({ line: lineAt(env.source, hit.index) }));
+function matchRaw(env, pattern, text = env.clean()) {
+  return [...text.matchAll(pattern)].map(hit => ({ line: lineAt(text, hit.index) }));
+}
+
+/**
+ * Find the quoted values of a part that is raw text (a template, a stylesheet), and test each one as a whole.
+ * Every quote character starts a candidate that ends at the next one of its own kind (on the same line for `'` and
+ * `"`), and the candidates overlap, so an apostrophe in the prose of a page cannot hide a later attribute value.
+ *
+ * @param {Env} env Part state.
+ * @param {RegExp} pattern A non-global expression, tested against the text between two quotes.
+ * @returns {Match[]} One match per quoted value that passes.
+ */
+function matchQuotedValues(env, pattern) {
+  const text = env.clean();
+  const matches = [];
+
+  for (let start = 0; start < text.length; start += 1) {
+    const quote = text[start];
+
+    if (quote !== '"' && quote !== '\'' && quote !== '`') {
+      continue;
+    }
+
+    let end = start + 1;
+
+    while (end < text.length && text[end] !== quote && (quote === '`' || (text[end] !== '\n' && text[end] !== '\r'))) {
+      end += 1;
+    }
+
+    if (text[end] === quote && pattern.test(text.slice(start + 1, end))) {
+      matches.push({ line: lineAt(text, start) });
+    }
+  }
+
+  return matches;
 }
 
 /**
@@ -1478,7 +1717,7 @@ function matchMissingOption(env, node) {
   // Only a check that also needs visible markup can be hedged: without it, an unread source proves nothing.
   const hedges = spec.reportUnresolved === true;
 
-  if (re.unlessFile?.test(env.source)) {
+  if (re.unlessFile?.test(env.clean())) {
     return [];
   }
 
@@ -1552,6 +1791,8 @@ function evaluate(env, node) {
       return matchHook(env, node);
     case 'annotatedObject':
       return env.ctx.fileKind === 'js' ? matchAnnotatedObject(env, node) : [];
+    case 'pluginRegistration':
+      return matchPluginRegistration(env, node);
     case 'namespaceMember':
       return matchNamespaceMember(env, node);
     case 'string':
@@ -1559,7 +1800,12 @@ function evaluate(env, node) {
     case 'selector':
       return matchSelector(env, node);
     case 'regex':
-      return matchRaw(env, node.re.raw);
+      if (node.spec.in === 'strings') {
+        return env.ctx.fileKind === 'js' ? matchStrings(env, node.re.primary) : matchQuotedValues(env, node.re.primary);
+      }
+
+      return matchRaw(env, node.re.raw,
+        node.spec.code === true && env.ctx.fileKind === 'js' ? env.code() : env.clean());
     default:
       return matchMissingOption(env, node);
   }
@@ -1623,7 +1869,7 @@ function applyRule(env, rule) {
     return;
   }
 
-  if (compiled.unlessFile?.test(ctx.source)) {
+  if (compiled.unlessFile?.test(env.clean())) {
     return;
   }
 
@@ -1718,6 +1964,21 @@ const detect = {
   kinds: ['detect'],
   fileKinds: ['js', 'css', 'template'],
   validate: validateDetectRule,
+
+  /**
+   * The rules that may still run on a file the adapter's precheck rejected (it never says Handsontable): the ones with
+   * `requires: "none"` and a `precheck` of their own that the file matches. Every other rule keeps the guard.
+   *
+   * @param {import('../types.mjs').Rule[]} rules `detect` rules.
+   * @param {string} source Text of the file.
+   * @returns {import('../types.mjs').Rule[]} The rules to run.
+   */
+  rescue(rules, source) {
+    const text = blankToolComments(source);
+
+    return rules.filter(rule => rule.requires === 'none' && typeof rule.precheck === 'string'
+      && compileRule(rule).precheck.test(text));
+  },
 
   /**
    * @param {import('../types.mjs').Ctx} ctx Context of a `js`, `css`, or `template` part.

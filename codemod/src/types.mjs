@@ -130,6 +130,7 @@
  * messages, never to read the file.
  * @property {FileKind} fileKind Kind of this part. It is always one of the kinds the transform declared.
  * @property {string} source Original text of this part.
+ * @property {'ts'|'tsx'|'babylon'|null} parser The parser name of a `js` part, `null` for any other kind.
  * @property {object|null} j The jscodeshift API bound to the right parser for this file. `null` unless
  * `fileKind` is `js`.
  * @property {object} root The parsed form of this part, edited in place. `js`: a jscodeshift Collection.
@@ -188,6 +189,9 @@
  * validator cannot express, and return the problems (an empty list for a valid rule). The manifest loader calls it,
  * so a malformed rule fails `--list` and the manifest tests with the rule id and the field, and never surfaces as a
  * per-file `transform-error`.
+ * @property {(rules: Rule[], source: string) => Rule[]} [rescue] The rules that may run on a file the adapter's
+ * precheck rejected. The runner calls it only for a file that fails the precheck, and runs the module with the
+ * returned rules alone, so every other rule keeps the guard.
  * @property {{fileKinds: FileKind[], precheck?: RegExp}} [scan] Only for a module whose kinds run in phase 2.
  * In phase 1 the runner also calls `apply`, with the module's rules, on parts of the listed `fileKinds`, so the
  * module can collect facts. The module must not edit in that call. `precheck` replaces the adapter's precheck for

@@ -274,8 +274,9 @@ describe('transformFile and the transform contract', () => {
 
     assert.deepEqual(Object.keys(seen).sort(), [
       'catalog', 'comment', 'css', 'cssScope', 'facts', 'fileKind', 'filePath', 'fromText', 'j', 'json',
-      'lineOffset', 'markChanged', 'options', 'report', 'root', 'source', 'todo',
+      'lineOffset', 'markChanged', 'options', 'parser', 'report', 'root', 'source', 'todo',
     ]);
+    assert.equal(seen.parser, null);
     assert.equal(seen.catalog, null);
     assert.equal(typeof seen.css.replaceInDeclaration, 'function');
     assert.equal(seen.filePath, 'dir/a.css');
@@ -488,7 +489,7 @@ describe('which versions a run covers', () => {
   });
 
   it('migrates up to the highest known version when --to is above every migration, and says so', async() => {
-    for (const to of ['19', '18.2']) {
+    for (const to of ['20', '18.2']) {
       const { reportNotes, selected } = await resolvePlan({ cwd: tmpdir(), from: '17', to });
 
       assert.deepEqual(reportNotes, [`No migration for ${to} is known. Migrated up to 18.1.0.`], to);

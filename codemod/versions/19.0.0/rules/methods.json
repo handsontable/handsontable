@@ -13,7 +13,7 @@
         "loadManualRowHeights"
       ],
       "message": "{name} is removed in 19.0.",
-      "advice": "Store the widths from the afterColumnResize hook and the heights from the afterRowResize hook yourself, and pass them back as an array to manualColumnResize or manualRowResize. 19.0 removes the method, so the call throws a TypeError."
+      "advice": "Replace {name} with your own store: keep the widths from the afterColumnResize hook and the heights from the afterRowResize hook, and pass them back as an array to manualColumnResize or manualRowResize. 19.0 removes the method, so the call throws a TypeError."
     },
     {
       "id": "19.0.0/formulas-shortcut-methods",

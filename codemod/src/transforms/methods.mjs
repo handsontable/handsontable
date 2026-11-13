@@ -400,7 +400,7 @@ function reportDestructuring(ctx, path, specs, bindings, declared) {
  */
 function guidance(spec, name) {
   if (spec.rule.advice) {
-    return spec.rule.advice;
+    return spec.rule.advice.replaceAll('{name}', `${name}()`);
   }
 
   if (spec.type === 'move') {

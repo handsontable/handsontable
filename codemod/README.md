@@ -58,7 +58,7 @@ path up to the current directory. Paths that resolve to different versions need 
 version and names the files, and when they differ it asks for `--from` and lists the packages. A spec that points at
 a source is not a version: `file:`, `link:`, `workspace:`, `portal:`, a git or `github:` spec, a URL, a path, and
 `catalog:` are skipped, so the digits in a file name never count. When no package names a version, the tool asks for
-`--from`. An `npm:handsontable@^17.1.0` alias still counts. `--to` defaults to the latest released migration.
+`--from`. An `npm:handsontable@^17.1.0` alias still counts. `--to` defaults to the newest released migration, or to the newest draft with `--include-draft`.
 
 ### Which versions it covers
 
@@ -69,7 +69,10 @@ older version stops with exit code 2 and a message that names the earlier migrat
 
 `--to` above the newest migration the tool knows (`--to 19`, `--to 18.2`) is not an error. The tool migrates up to
 the newest one, prints "No migration for 19 is known. Migrated up to 18.1.0.", and puts the same line at the top of
-the report. The `handsontable` ranges in `package.json` go to that newest known version, never beyond it.
+the report. The `handsontable` ranges in `package.json` go to that newest known version, never beyond it. When the
+line `--to` names holds only a draft migration and you did not pass `--include-draft`, the line says so instead
+("19.0 is a draft migration (19.0.0) and was skipped. The run stops at 18.1.0."). `--only '19.0.0/*'` without the flag
+is a usage error that names the draft and `--include-draft`.
 
 ### Install from the repository
 
@@ -114,7 +117,7 @@ command line skips the generated-output filter.
 | Flag | Meaning |
 |---|---|
 | `--from <version>` | Version your project is on: `17`, `17.1`, or `18.0.0`. A partial version means any version of that line. Detected for each path argument from the nearest `node_modules/handsontable`, then the nearest `package.json` range, up to the current directory, when omitted. Paths that differ need `--from`. |
-| `--to <version>` | Version to migrate to. A partial version means the highest known release of that line. Defaults to the latest released migration. |
+| `--to <version>` | Version to migrate to. A partial version means the highest known release of that line. Defaults to the newest released migration, or to the newest draft with `--include-draft`. |
 | `--dry-run` | Print a unified diff and write no project files. The git check does not apply. A file named by `--report` is still written, because you asked for it. |
 | `--allow-dirty` | Run even when the git tree has uncommitted changes. |
 | `--report <file>` | Also write the full report to `<file>` as a Markdown checklist. The git check ignores an untracked file at this path and no other. |
@@ -122,7 +125,7 @@ command line skips the generated-output filter.
 | `--list` | List the rules in the version range and exit. `rewrite` rules edit code, `report` rules only report. |
 | `--aggressive` | Also rewrite settings objects found with medium confidence. |
 | `--no-todo` | Leave no `TODO(handsontable-codemod ...)` comments in the code, not for a manual step and not where an option was deleted. The report is then the only record of the manual steps. |
-| `--include-draft` | Run migrations that are still drafts. |
+| `--include-draft` | Run migrations that are still drafts. Without `--to`, the run goes up to the newest draft. |
 | `--allow-uncovered` | Run although the project is older than the oldest version the tool migrates from (see "Which versions it covers"). The report starts with the guides of the steps the tool does not cover. |
 | `--max-file-size <bytes>` | Skip files larger than this and list them under "Skipped files". The default is 1048576 (1 MB). |
 | `--version` | Print the version of the tool. |
@@ -196,8 +199,8 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 ### Draft migrations
 
 A draft migration is one whose guide is still being written. It is not in the table above, a normal run never
-selects it, and `--to` defaults to the newest released migration. To run it, or to list its rules, pass
-`--include-draft`. The rules and messages of a draft can change before its release.
+selects it, and `--to` defaults to the newest released migration, or to the newest draft with `--include-draft`.
+To run it, or to list its rules, pass `--include-draft`. The rules and messages of a draft can change before its release.
 
 The 18.1 to 19.0 migration is a draft:
 
@@ -342,6 +345,10 @@ the tool reads the version from `package.json`, which the run raised, and answer
   map. A variable name built in JavaScript (`` `--ht-${token}` ``) is not found.
 - The line of a report entry inside a multi-line template literal is the line of the variable. Its TODO marker goes on
   the statement that holds the literal, because a comment cannot sit inside the literal.
+- A kept call that is the whole body of a statement without braces (`if (ready) plugin.saveManualColumnWidths();`) gets its
+  TODO on the statement, and recast prints that statement over two lines: `if (ready)`, then the call indented. The
+  array element and the property of a one-line object keep their layout, because a marker on them goes in as text
+  after printing. A statement does not, so run your formatter, or add the braces first.
 - A receiver it cannot confirm as a grid instance is not rewritten. A generic name such as `editor.undo()` is
   silent. The same holds for a plugin: it rewrites `saveManualColumnWidths()` and `downloadFile({ columnHeaders })`
   only on `hot.getPlugin('<key>')` or a variable the file sets from it, and a call on any other receiver is

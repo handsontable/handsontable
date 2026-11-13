@@ -223,3 +223,68 @@ describe('every fixture output is stable across three runs', async() => {
     });
   }
 });
+
+/**
+ * Count the entries a run leaves for the user to read, by rule id. A `changed` entry says what the run did, so the next
+ * run has none. A `manual` or `warning` entry says what is still there, so the next run reports it again, unless
+ * the run rewrote the spot, which drops the note about it. No entry may be new: a rule that reports its own marker
+ * as a second spot shows up as a count that grows.
+ *
+ * @param {object[]} entries The entries of one run.
+ * @returns {Record<string, number>} Entries by rule id and severity.
+ */
+function standingEntries(entries) {
+  const counts = {};
+
+  for (const entry of entries.filter(item => item.severity !== 'changed')) {
+    const key = `${entry.ruleId} (${entry.severity})`;
+
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+
+  return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)));
+}
+
+describe('every rule of every manifest, drafts included, reports a spot once however many times it runs', async() => {
+  const fixtures = await listFixtures();
+  const manifests = await loadManifests(VERSIONS_DIR);
+
+  for (const fixture of fixtures) {
+    const manifest = manifests.find(item => item.version === fixture.version);
+
+    for (const scope of ['the rules of the fixture', 'every rule of the manifest']) {
+      it(`${fixture.version}/${fixture.name}, ${scope}`, async() => {
+        const config = JSON.parse(await readFile(join(fixture.dir, 'options.json'), 'utf8').catch(() => '{}'));
+        const input = await readFile(join(fixture.dir, fixture.inputName), 'utf8');
+        const plan = buildPlan([manifest], scope === 'every rule of the manifest' ? [] : config.only ?? []);
+        const args = {
+          filePath: fixture.inputName,
+          plan,
+          options: { aggressive: Boolean(config.aggressive) },
+          facts: new Set(config.facts ?? []),
+          phase: config.phase ?? 1,
+        };
+        const first = await transformFile({ ...args, source: input });
+        const second = await transformFile({ ...args, source: first.output });
+        const third = await transformFile({ ...args, source: second.output });
+
+        assert.equal(second.changed, false, 'run 2 changed the output');
+        assert.equal(third.changed, false, 'run 3 changed the output');
+        const [one, two, three] = [first, second, third].map(result => standingEntries(result.entries));
+
+        assert.deepEqual(three, two, 'run 3 reports other entries than run 2');
+
+        for (const [key, count] of Object.entries(two)) {
+          assert.ok(count <= (one[key] ?? 0), `run 2 reports ${key} ${count} times, run 1 ${one[key] ?? 0}`);
+        }
+
+        // A rule that only reports leaves its spots alone, so it reports as many in every run.
+        for (const [key, count] of Object.entries(one)) {
+          if (plan.rulesById.get(key.split(' ')[0])?.kind === 'detect') {
+            assert.equal(two[key] ?? 0, count, `run 2 reports ${key} ${two[key] ?? 0} times, run 1 ${count}`);
+          }
+        }
+      });
+    }
+  }
+});

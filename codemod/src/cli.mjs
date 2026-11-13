@@ -26,7 +26,7 @@ Options:
                         node_modules/handsontable, then the handsontable range in the nearest package.json,
                         up to the current directory. Paths that differ need --from.
   --to <version>        Version to migrate to. A partial version means the highest known release of that line.
-                        Defaults to the latest released migration.
+                        Defaults to the latest released migration, or to the latest draft with --include-draft.
   --dry-run             Print a unified diff and write no project files. A file named by --report is still
                         written.
   --allow-dirty         Run even when the git tree has uncommitted changes.
@@ -40,7 +40,7 @@ Options:
   --aggressive          Also rewrite settings objects found with medium confidence.
   --no-todo             Leave no TODO comments in the code. By default a manual step gets a TODO(handsontable-codemod
                         <rule>) comment at its line. With this flag the report is the only record of them.
-  --include-draft       Run migrations that are still drafts.
+  --include-draft       Run migrations that are still drafts. Without --to, the run goes up to the newest draft.
   --allow-uncovered     Run although the project is older than the oldest version the tool migrates from. The
                         report starts with the guides of the steps the tool does not cover.
   --max-file-size <n>   Skip files larger than <n> bytes and list them in the report. Default: 1048576.

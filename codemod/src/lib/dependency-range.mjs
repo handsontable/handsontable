@@ -1,5 +1,6 @@
 const SIMPLE_RANGE = /^([\^~]?)(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;
 const PROTOCOL_SPEC = /^(?:workspace|file|link|portal|patch|git|git\+[a-z]+|github|gitlab|bitbucket|https?):/i;
+const REMOTE_PROTOCOL_SPEC = /^(?:git|git\+[a-z]+|github|gitlab|bitbucket|https?):/i;
 const PATH_SPEC = /^(?:\.{1,2}\/|\/|~\/)/;
 const REPOSITORY_SPEC = /^[\w-]+\/[\w.-]+(?:#.*)?$/;
 const DIST_TAG = /^[a-z][a-z-]*$/i;
@@ -20,6 +21,21 @@ export function isSourceSpec(spec) {
   const text = String(spec).trim();
 
   return [PROTOCOL_SPEC, PATH_SPEC, REPOSITORY_SPEC, CATALOG_SPEC].some(pattern => pattern.test(text));
+}
+
+/**
+ * Tell whether a dependency spec installs from a repository or a URL: `git:`, `git+...:`, `github:`, `gitlab:`,
+ * `bitbucket:`, `http:`, `https:`, or an `owner/repo` shorthand. Such a spec names a ref or a file, not a version
+ * range, so nothing can bump it, but it is not local code either: the project can still be on the old release. A
+ * `workspace:`, `file:`, `link:`, `portal:`, or `patch:` spec and a path are local, and a `catalog:` spec has its own report.
+ *
+ * @param {string} spec The spec as written in `package.json`.
+ * @returns {boolean} `true` for a repository or URL spec.
+ */
+export function isRemoteSource(spec) {
+  const text = String(spec).trim();
+
+  return REMOTE_PROTOCOL_SPEC.test(text) || REPOSITORY_SPEC.test(text);
 }
 
 /**

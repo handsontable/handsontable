@@ -524,6 +524,38 @@ function renameOnElement(env, openingPath) {
 }
 
 /**
+ * Report a call whose options argument is a variable (or a member of one) that holds an object literal of this file
+ * with the key the rule renames. The object may be used elsewhere, so nothing is renamed in it: the entry is on the
+ * call, and the TODO goes in front of its statement.
+ *
+ * @param {Env} env The state.
+ * @param {object} call NodePath of the call.
+ * @param {object} argument NodePath of the argument (type assertions stripped).
+ * @returns {void}
+ */
+function reportHeldObject(env, call, argument) {
+  const { ctx, rule } = env;
+
+  if (!isReference(argument.node)) {
+    return;
+  }
+
+  const held = env.resolver.hop(argument);
+
+  if (held?.node.type !== 'ObjectExpression' || !getProperty(held, rule.from)) {
+    return;
+  }
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    line: lineOfNode(call.node),
+    message: `Rename ${rule.from} to ${rule.to} in \`${printTree(env.j, argument.node).trim()}\` by hand: `
+      + `the object is passed to ${memberName(unwrapNode(call.node.callee))}() from a variable, so it was left alone.`,
+  });
+}
+
+/**
  * Handle `optionRename` with `context.callArg`: rename the key in object literals passed to the named methods,
  * and in the objects of a `sheets` array inside them. A bare function call is not a method call and is left alone.
  *
@@ -553,6 +585,10 @@ function renameInCallArguments(env) {
       const objectPath = unwrapPath(call.get('arguments', index));
 
       if (objectPath.node.type !== 'ObjectExpression') {
+        if (!receiver) {
+          reportHeldObject(env, call, objectPath);
+        }
+
         return;
       }
 

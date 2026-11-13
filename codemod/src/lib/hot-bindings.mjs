@@ -22,6 +22,16 @@ import {
 import { invalidateScope, lookup, moduleBindings, referenceSpace } from './scope.mjs';
 
 /**
+ * The name `getPlugin()` looks a plugin up by: it upper-cases the first letter of its argument.
+ *
+ * @param {string} key A plugin key as written.
+ * @returns {string} The key with an upper-case first letter.
+ */
+function registryName(key) {
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+/**
  * What `collectHotBindings` returns.
  *
  * @typedef {object} HotBindings
@@ -779,19 +789,20 @@ export function collectHotBindings(j, root) {
   /**
    * Whether an expression is a plugin of one of the given keys: a direct `<x>.getPlugin('<key>')` call, or a
    * variable or `this` member that the file sets from such a call. Every value the name
-   * is set from must be a listed plugin.
+   * is set from must be a listed plugin. `getPlugin()` upper-cases the first letter of its argument, so
+   * `'exportFile'` and `'ExportFile'` name the same plugin.
    *
    * @param {object} path Expression NodePath.
    * @param {string[]} keys Plugin keys the receiver may be.
    * @returns {boolean} `true` when the file shows the receiver is one of those plugins.
    */
   const isPluginReceiver = (path, keys) => {
-    const allowed = new Set(keys);
+    const allowed = new Set(keys.map(registryName));
     const target = unwrapPath(path);
     const direct = pluginKeyOf(target.node);
 
     if (direct !== null) {
-      return allowed.has(direct);
+      return allowed.has(registryName(direct));
     }
 
     pluginTable = pluginTable ?? buildPluginTable();
@@ -810,7 +821,7 @@ export function collectHotBindings(j, root) {
       found = classNode && name !== null ? pluginTable.members.get(classNode)?.get(name) : null;
     }
 
-    return Boolean(found) && [...found].every(key => allowed.has(key));
+    return Boolean(found) && [...found].every(key => allowed.has(registryName(key)));
   };
 
   const getComponent = (path) => {
