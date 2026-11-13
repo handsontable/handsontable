@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -8,7 +8,7 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  *
  * The fixture's data is `R<row+1>C<col+1>` over a 10x10 grid, so cell (0, 0) reads `R1C1`.
  */
-test.describe('redo of a column move that took a cell out of a merge', () => {
+test.describe('redo of a column move that took a cell out of a merge', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
