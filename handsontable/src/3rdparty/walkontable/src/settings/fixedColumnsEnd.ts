@@ -33,3 +33,16 @@ export function clampFixedColumnsEnd(
 
   return Math.min(end, Math.max(0, totalColumns - start));
 }
+
+/**
+ * Returns how many pixels the first column of the end band reaches over the freeze line: `1` while a column
+ * precedes the band, so the end clones cover that column's inline-end border and draw the line with their own
+ * first-cell border on one pixel in every scroll state; `0` without a band, or when the band covers every column.
+ *
+ * @param {number} fixedColumnsEnd The clamped number of end columns (`Settings#getSetting('fixedColumnsEnd')`).
+ * @param {number} totalColumns The number of renderable columns.
+ * @returns {number}
+ */
+export function getFreezeLineOverlap(fixedColumnsEnd: number, totalColumns: number): number {
+  return fixedColumnsEnd > 0 && totalColumns > fixedColumnsEnd ? 1 : 0;
+}

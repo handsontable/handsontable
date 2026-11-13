@@ -85,6 +85,18 @@ export interface ResizeAxis {
    */
   isAnchoredAtInlineEnd?(hot: HotInstance, header: HTMLElement): boolean;
   /**
+   * Returns how many pixels the header renders wider than its track, over the freeze line of the end band: the
+   * band's first header reaches over the border of the column before it. `0` for every other header. Optional:
+   * an axis without an end band leaves it out.
+   */
+  getFreezeLineOverlap?(hot: HotInstance, header: HTMLElement): number;
+  /**
+   * Returns how many pixels the edge before the end band sits before the inline-end edge of the header that
+   * ends there: the band's first column covers that header's border, so the line a user sees is the band's.
+   * Optional, like {@link ResizeAxis#getFreezeLineOverlap}.
+   */
+  getEndBandEdgeShift?(hot: HotInstance): number;
+  /**
    * Returns the size reported to the resize hooks.
    */
   getHookSize(hot: HotInstance, index: number, newSize: number | null): number | null;
@@ -226,6 +238,16 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
     // do not fill it, the end columns rest against the last column, the grid has no edge to anchor
     // to, and the header keeps its inline-start edge as every other header does.
     return isInTopInlineEndCorner(hot, header) && hot.view._wt.wtViewport.hasHorizontalScroll();
+  },
+
+  getFreezeLineOverlap(hot, header) {
+    // The first header of the band is the first cell of its row in the end corner, which renders no row header.
+    return isInTopInlineEndCorner(hot, header) && header.previousElementSibling === null ?
+      hot.view._wt.wtOverlays.inlineEndOverlay.getFreezeLineOverlap() : 0;
+  },
+
+  getEndBandEdgeShift(hot) {
+    return hot.view._wt.wtOverlays.inlineEndOverlay.getFreezeLineOverlap();
   },
 
   canResizeHeader(header) {

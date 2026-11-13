@@ -712,13 +712,13 @@
         border-inline-start-width: 1px;
       }
 
-      // The freeze line at an end clone's inline-start edge is one pixel in every scroll state, and which
-      // element draws it depends on the state. Mid-scroll the clone's edge cuts through a master column,
-      // so the clone's own first-cell inline-start border (inherited from the rules above) is the line.
-      // At the junction (scrolled to the end, or no horizontal scroll) the clone's first column stands on
-      // the boundary of the column before it, whose inline-end border is already the line, and a second
-      // border would make it 2px against the 1px of the start side. The engine sets `htFreezeLineShared`
-      // on the three end clone roots in exactly that state (`Overlays#syncInlineEndFreezeLine`).
+      // The freeze line at an end clone's inline-start edge is the clone's own first-cell inline-start
+      // border (inherited from the rules above), on the same pixel in every scroll state: the engine
+      // renders that column 1px wider, over the inline-end border of the column before the band
+      // (`TableRenderer#getFreezeLineOverlap`). Only when the band covers every column does the row
+      // header draw the line, and a second border would make it 2px against the 1px of the start side.
+      // The engine sets `htFreezeLineShared` on the three end clone roots in exactly that state
+      // (`Overlays#syncInlineEndFreezeLine`).
       &.htFreezeLineShared {
         &.ht_clone_inline_end,
         &.ht_clone_top_inline_end_corner,

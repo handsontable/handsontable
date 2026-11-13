@@ -172,7 +172,7 @@ hot.init() === undefined;
 const isColumnModificationAllowed: boolean = hot.isColumnModificationAllowed();
 const isEmptyCol: boolean = (hot as any).isEmptyCol(123);
 const isEmptyRow: boolean = (hot as any).isEmptyRow(123);
-const isExecutionSuspended: boolean = (hot as any).isExecutionSuspended();
+const isExecutionSuspended: boolean = hot.isExecutionSuspended();
 const isListening: boolean = hot.isListening();
 const isLtr: boolean = hot.isLtr();
 const isRenderSuspended: boolean = hot.isRenderSuspended();

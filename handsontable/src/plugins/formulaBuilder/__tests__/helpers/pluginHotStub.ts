@@ -40,6 +40,11 @@ export interface FormulasStub {
    */
   engineDetachListeners: Set<() => void>;
   addEngineDetachListener: (listener: () => void) => () => void;
+  /**
+   * Recalculates the writes held on the engine (`batchEvaluation`); nothing is held in the stub.
+   */
+  flushEngineEvaluation: () => void;
+  isEngineHeld: () => boolean;
 }
 
 /**
@@ -52,6 +57,7 @@ export interface PluginHotStubShape {
   rootDocument: Document;
   rootWindow: Window & typeof globalThis;
   isDestroyed: boolean;
+  isExecutionSuspended: () => boolean;
   getSettings: () => Record<string, unknown>;
   getPlugin: (pluginName: string) => unknown;
   updateSettings: jest.Mock;
@@ -175,6 +181,8 @@ export function makePluginHotStub(
 
       return () => this.engineDetachListeners.delete(listener);
     },
+    flushEngineEvaluation() {},
+    isEngineHeld: () => false,
   };
   const settings: Record<string, unknown> = {
     formulaBuilder: { builder: core, ...pluginSettings },
@@ -186,6 +194,7 @@ export function makePluginHotStub(
     rootDocument: document,
     rootWindow: window,
     isDestroyed: false,
+    isExecutionSuspended: () => false,
     getSettings: () => settings,
     getPlugin: pluginName => (pluginName === 'formulas' ? formulas : undefined),
     updateSettings: jest.fn((next: Record<string, unknown>) => Object.assign(settings, next)),
