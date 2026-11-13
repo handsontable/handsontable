@@ -12,6 +12,10 @@ export interface StampedMeta {
    * The visual row of the cell.
    */
   visualRow?: number | null;
+  /**
+   * The property of the cell.
+   */
+  prop?: unknown;
 }
 
 /**
@@ -25,12 +29,18 @@ interface StampedIndexMapper {
 /**
  * Keeps the row coordinates of stored cell meta objects current while a validator call waits on them.
  */
-export interface WaitingMetaStamps {
+export interface WaitingMetaStamps<M extends StampedMeta = StampedMeta> {
   /**
    * Keeps the `row` and `visualRow` of a meta object on the rows a tracked record has, until the returned
    * function is called.
    */
-  add(record: TrackedRecord, meta: StampedMeta): () => void;
+  add(record: TrackedRecord, meta: M): () => void;
+  /**
+   * Finds the kept meta of a property whose record still exists but has no visual row (a filter or a trim took it
+   * out of the visual space): `preferred` when it is such a meta, else the meta of the only record that has one.
+   * Returns `null` when no record, or more than one, has such a meta.
+   */
+  findUnplaced(prop: unknown, preferred: M | null): { record: TrackedRecord, meta: M } | null;
   /**
    * The number of meta objects kept current now.
    */
@@ -51,11 +61,11 @@ export interface WaitingMetaStamps {
  * @param {Function} toVisualRow Returns the visual row of a physical row, or `null` for a trimmed one.
  * @returns {object}
  */
-export function createWaitingMetaStamps(
+export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
   getIndexMapper: () => StampedIndexMapper,
   toVisualRow: (physicalRow: number) => number | null,
-): WaitingMetaStamps {
-  const stamps = new Set<{ record: TrackedRecord, meta: StampedMeta }>();
+): WaitingMetaStamps<M> {
+  const stamps = new Set<{ record: TrackedRecord, meta: M }>();
   let listenedMapper: StampedIndexMapper | null = null;
 
   /**
@@ -101,6 +111,25 @@ export function createWaitingMetaStamps(
         stamps.delete(stamp);
         syncListener();
       };
+    },
+    findUnplaced(prop, preferred) {
+      let found: { record: TrackedRecord, meta: M } | null = null;
+      let isAmbiguous = false;
+
+      for (const stamp of stamps) {
+        const { record, meta } = stamp;
+
+        if (meta.visualRow === null && record.physicalRow !== null && meta.prop === prop) {
+          if (meta === preferred) {
+            return stamp;
+          }
+
+          isAmbiguous = isAmbiguous || (found !== null && found.record !== record);
+          found = found ?? stamp;
+        }
+      }
+
+      return isAmbiguous ? null : found;
     },
     get size() {
       return stamps.size;

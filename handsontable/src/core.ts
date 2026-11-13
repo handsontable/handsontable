@@ -128,6 +128,7 @@ import { createRecordTracker } from './core/recordTracker';
 import type { TrackedRecord } from './core/recordTracker';
 import { captureRecord, createWaitingChangeRecords, resolveRecord } from './core/waitingRecords';
 import { createWaitingMetaStamps } from './core/waitingMetaStamps';
+import type { StampedMeta } from './core/waitingMetaStamps';
 import type {
   RecordAnchor, RecordReader, TrackedRecordHandle, WaitingChangeRecords,
 } from './core/waitingRecords';
@@ -498,7 +499,7 @@ export default function Core(
    * rows its record has, so `this.visualRow` in a validator and the row of `afterValidate` name the record
    * whatever moved it while the validator ran, see `core/waitingMetaStamps.ts`.
    */
-  const waitingMetaStamps = createWaitingMetaStamps(
+  const waitingMetaStamps = createWaitingMetaStamps<Record<string, unknown> & StampedMeta>(
     () => instance.rowIndexMapper,
     physicalRow => instance.toVisualRow(physicalRow),
   );
@@ -683,6 +684,11 @@ export default function Core(
    * the change was dropped, its correction is dropped with it.
    */
   let runningValidatorLoadGeneration: number | null = null;
+  /**
+   * The cell meta of the validator call whose validator runs now, or `null` outside one. A correction the validator
+   * writes to a `null` row (its record has no visual row) belongs to the change this call validates first.
+   */
+  let runningValidatorMeta: (Record<string, unknown> & StampedMeta) | null = null;
   /**
    * The `validationLoadGeneration` of every validator call made for a change that has not answered yet, counted
    * in `_hasPendingValidation()` or not (a call a `beforeValidate` load overtook is not counted, but its validator
@@ -3556,6 +3562,81 @@ export default function Core(
   }
 
   /**
+   * Writes a validator's correction into the change of a waiting set it corrects: the change of the same property
+   * whose record holds the corrected physical row, or, for a change no record was captured for, the change made at
+   * the corrected visual row.
+   *
+   * @param {Array} changes The changes of the waiting set.
+   * @param {object} records The records of the set's changes.
+   * @param {string|number|Function} prop The property of the corrected cell.
+   * @param {number|null} physicalRow The physical row of the corrected cell, or `null` when it has none.
+   * @param {number|null} visualRow The visual row of the corrected cell, or `null` when it has none.
+   * @param {*} value The corrected value.
+   */
+  function foldValidatorCorrection(
+    changes: CellChange[],
+    records: WaitingChangeRecords,
+    prop: CellChange[1],
+    physicalRow: number | null,
+    visualRow: number | null,
+    value: unknown,
+  ) {
+    const idx = changes.findIndex((change) => {
+      if (change[1] !== prop) {
+        return false;
+      }
+
+      const record = records.getRecord(change);
+
+      return record === undefined ? visualRow !== null && change[0] === visualRow :
+        record.physicalRow !== null && record.physicalRow === physicalRow;
+    });
+
+    if (idx !== -1) {
+      changes[idx][3] = value;
+    }
+  }
+
+  /**
+   * Tells whether a write of a change to a `null` row is a validator's correction for a record a filter or a trim
+   * took out of the visual space while its validator call waits. The validator writes it through `this.visualRow`,
+   * which is `null` then.
+   *
+   * @param {number|null} visualRow The visual row of the change.
+   * @param {string} [source] The change source.
+   * @returns {boolean}
+   */
+  function isUnplacedCorrection(visualRow: number | null, source: string | undefined) {
+    return visualRow === null && isValidatorCorrection(source) && waitingMetaStamps.size > 0;
+  }
+
+  /**
+   * Folds a validator's correction written to a `null` row into the waiting change of the record it corrects, which
+   * has no visual row to write it through. The record is the one of the validator call that runs now, or, for a
+   * correction written later (after a timer or a request), the only record whose waiting validator call has a `null`
+   * row for the property. A correction no record can be told for is dropped, and the change it corrects lands as it
+   * was.
+   *
+   * @param {string|number} prop The property of the corrected cell.
+   * @param {*} value The corrected value.
+   * @param {string} [source] The change source.
+   */
+  function foldUnplacedCorrection(prop: string | number, value: unknown, source: string | undefined) {
+    const target = waitingMetaStamps.findUnplaced(prop, runningValidatorMeta);
+    const physicalRow = target?.record.physicalRow ?? null;
+
+    if (target === null || physicalRow === null) {
+      return;
+    }
+
+    const correctedValue = getValueSetterValue(value, target.meta, source);
+
+    waitingChangeSets.forEach(({ records }, changes) => {
+      foldValidatorCorrection(changes, records, prop, physicalRow, null, correctedValue);
+    });
+  }
+
+  /**
    * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
@@ -3602,20 +3683,8 @@ export default function Core(
     // convention by passing a source ending in 'Validator' to their setDataAtCell call.
     const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]: CellChange) => {
       const changedPhysicalRow = changedRow === null ? null : instance.toPhysicalRow(changedRow);
-      const idx = changes.findIndex((change) => {
-        if (change[1] !== changedProp) {
-          return false;
-        }
 
-        const record = records.getRecord(change);
-
-        return record === undefined ? change[0] === changedRow :
-          record.physicalRow !== null && record.physicalRow === changedPhysicalRow;
-      });
-
-      if (idx !== -1) {
-        changes[idx][3] = correctedValue;
-      }
+      foldValidatorCorrection(changes, records, changedProp, changedPhysicalRow, changedRow, correctedValue);
     };
     const onAfterChange = (afterChanges: CellChange[] | null | undefined, afterSource: unknown) => {
       if (!isValidatorCorrection(afterSource)) {
@@ -4274,8 +4343,10 @@ export default function Core(
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
         const previousRunningGeneration = runningValidatorLoadGeneration;
+        const previousRunningMeta = runningValidatorMeta;
 
         runningValidatorLoadGeneration = loadGeneration;
+        runningValidatorMeta = cellProperties;
         validatorAnswerDepth += 1;
 
         try {
@@ -4336,6 +4407,7 @@ export default function Core(
           throw error;
         } finally {
           runningValidatorLoadGeneration = previousRunningGeneration;
+          runningValidatorMeta = previousRunningMeta;
           leaveValidatorAnswer();
         }
       });
@@ -4531,7 +4603,7 @@ export default function Core(
 
     const input = setDataInputToArray(row, column, value);
     const changes: CellChange[] = [];
-    let changeSource = source;
+    const changeSource = !source && typeof row === 'object' ? column as string : source;
     let i;
     let ilen;
     let prop;
@@ -4568,16 +4640,18 @@ export default function Core(
         prop = colToPropOrIndex(instance, visualColumnIndex) as string | number;
       }
 
+      if (isUnplacedCorrection(visualRow, changeSource)) {
+        foldUnplacedCorrection(prop, newValue, changeSource);
+
+        continue;
+      }
+
       changes.push([
         visualRow,
         prop,
         dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
         newValue,
       ]);
-    }
-
-    if (!changeSource && typeof row === 'object') {
-      changeSource = column as string;
     }
 
     // Every requested change was skipped above, so there is nothing left to report or apply.
@@ -4722,12 +4796,20 @@ export default function Core(
 
     const input = setDataInputToArray(row, prop, value);
     const changes: CellChange[] = [];
-    let changeSource = source;
+    // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
+    // We should remove it with the next major release.
+    const changeSource = !source && typeof row === 'object' ? prop as string : source;
     let i;
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, inputProp, newValue] = input[i];
+
+      if (isUnplacedCorrection(visualRow, changeSource)) {
+        foldUnplacedCorrection(inputProp, newValue, changeSource);
+
+        continue;
+      }
 
       changes.push([
         visualRow,
@@ -4739,10 +4821,12 @@ export default function Core(
       ]);
     }
 
-    // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
-    // We should remove it with the next major release.
-    if (!changeSource && typeof row === 'object') {
-      changeSource = prop as string;
+    // Every requested change was a correction folded above, so there is nothing left to report or apply, the same
+    // as for `setDataAtCell()`.
+    if (input.length > 0 && changes.length === 0) {
+      instance.runHooks('afterSetDataAtRowProp', [], changeSource);
+
+      return;
     }
 
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);

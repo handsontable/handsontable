@@ -668,6 +668,83 @@ describe('Core validation of a change while its record moves', () => {
 
       expect(sourceNames()).toEqual([null, 'p0', 'ZZZ', 'p2', 'p3', 'p4', 'p5']);
     });
+
+    it('should write the correction made through a null this.visualRow to the edited record a trim took out', async() => {
+      createCorrectingGrid();
+
+      hot.setDataAtCell(1, 0, 'zzz');
+      hot.getPlugin('trimRows').trimRow(1);
+      await answerAll();
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'ZZZ', 'p2', 'p3', 'p4', 'p5']);
+      expect(applied[applied.length - 1]).toEqual([[null, 0, 'p1', 'ZZZ']]);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
+
+    it('should write the correction made through a null this.visualRow of each trimmed record while its validator runs', async() => {
+      createGrid({
+        cells: (row, col) => (col === 0 ? {
+          validator(value, callback) {
+            if (value === 'zzz') {
+              this.instance.setDataAtCell(this.visualRow, this.visualCol, 'ZZZ', 'upperValidator');
+            }
+
+            callback(true);
+          },
+        } : {}),
+      });
+
+      hot.setDataAtCell([[1, 0, 'zzz'], [2, 0, 'zzz']]);
+      hot.getPlugin('trimRows').trimRows([1, 2]);
+      await settle();
+
+      expect(sourceNames()).toEqual(['p0', 'ZZZ', 'ZZZ', 'p3', 'p4', 'p5']);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
+
+    it('should drop a correction made through a null this.visualRow that matches no waiting change, and write the edit', async() => {
+      createGrid({
+        cells: (row, col) => (col === 0 ? {
+          validator(value, callback) {
+            pending.push({
+              value,
+              answer: (result) => {
+                this.instance.setDataAtCell(this.visualRow, 1, 99, 'keyValidator');
+                callback(result);
+              },
+            });
+          },
+        } : {}),
+      });
+
+      hot.setDataAtCell(1, 0, 'zzz');
+      hot.getPlugin('trimRows').trimRow(1);
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+      expect(hot.getSourceDataAtCell(1, 1)).toBe(5);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
+
+    it('should drop a correction made through a null this.visualRow when two trimmed records wait on the column', async() => {
+      createCorrectingGrid();
+
+      hot.setDataAtCell([[1, 0, 'zzz'], [2, 0, 'zzz']]);
+      hot.getPlugin('trimRows').trimRows([1, 2]);
+      await settle();
+      pending.shift().answer(true);
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'ZZZ', 'zzz', 'p3', 'p4', 'p5']);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
+
+    it('should keep throwing for a write to a null row that is no validator correction', async() => {
+      createGrid();
+
+      expect(() => hot.setDataAtCell(null, 0, 'x')).toThrow();
+    });
   });
 
   describe('the row the validation hooks report', () => {
