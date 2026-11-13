@@ -326,13 +326,13 @@ The bar is not a warning, so it shows on a key issued for use in an application 
 too, and no option turns it off. Every other key shows no bar. The grid keeps the height you set:
 the bar takes its room from the grid, as the pagination bar does.
 
-## Keys that name a plan
+## Keys that name a tier
 
-An entitlement key can name one or more plans. The grid turns on the features of those plans and
-keeps every other feature off. A key that names no plan turns on every feature, as every key did
+An entitlement key can name one or more tiers. The grid turns on the features of those tiers and
+keeps every other feature off. A key that names no tier turns on every feature, as every key did
 before 19.0. The 25-character keys also turn on every feature.
 
-The table lists the plans that include each feature. For prices, see the
+The table lists the tiers that include each feature. For prices, see the
 [pricing page](https://handsontable.com/pricing).
 
 <!-- license-tiers:start -->
@@ -417,16 +417,16 @@ The table lists the plans that include each feature. For prices, see the
 
 <!-- license-tiers:end -->
 
-When your key names a plan and your grid turns on a plugin that plan does not include:
+When your key names a tier and your grid turns on a plugin that tier does not include:
 
 - The plugin stays off. The rest of the grid works, and the grid is not locked.
 - The console shows one error, and the same message appears below the grid. See
   [Feature not included in the license key](#feature-not-included-in-the-license-key).
-- The option keeps the value you set, so `getSettings()` still returns it. Pass a key whose plan
+- The option keeps the value you set, so `getSettings()` still returns it. Pass a key whose tier
   includes the feature through [`updateSettings()`](@/api/core.md#updatesettings), and the plugin
   turns on.
 - The plugin's methods work as they do for a plugin whose option is off. Some of them throw, because
-  the plugin never started, so do not call the methods of a plugin your plan does not include.
+  the plugin never started, so do not call the methods of a plugin your tier does not include.
 
 This applies to the plugins that are on by default too: [`CopyPaste`](@/api/copyPaste.md),
 [`UndoRedo`](@/api/undoRedo.md), [`Autofill`](@/api/autofill.md),
@@ -435,18 +435,18 @@ This applies to the plugins that are on by default too: [`CopyPaste`](@/api/copy
 Four plugins are on in every grid: [`ExportFile`](@/api/exportFile.md),
 [`ImportFile`](@/api/importFile.md), [`ViewState`](@/api/viewState.md), and
 [`CheckboxHeader`](@/api/checkboxHeader.md). They check the key when you use them. A method of
-`ExportFile`, `ImportFile`, or `ViewState` that your plan does not cover throws an error with the
-same message, and a header checkbox your plan does not cover is not drawn.
+`ExportFile`, `ImportFile`, or `ViewState` that your tier does not cover throws an error with the
+same message, and a header checkbox your tier does not cover is not drawn.
 
 A key issued for use in an application for external users silences the console and the bar, so on
 such a key a missing feature is off with no message.
 
-Plans can be added after your version of Handsontable is released. Your version does not know such
-a plan, so a key that names only that plan turns off the plugins and the parts of the XLSX add-on in
+Tiers can be added after your version of Handsontable is released. Your version does not know such
+a tier, so a key that names only that tier turns off the plugins and the parts of the XLSX add-on in
 the table, and reports them as missing. The grid itself keeps working. To use the key, upgrade to a
-Handsontable version released after the plan was added.
+Handsontable version released after the tier was added.
 
-The `handsontable` package lists every feature with the plans that include it in
+The `handsontable` package lists every feature with the tiers that include it in
 `dist/manifest.json`.
 
 ## XLSX add-on
@@ -454,12 +454,12 @@ The `handsontable` package lists every feature with the plans that include it in
 An additional add-on extends Excel import and export. Available as a bundle, it carries formulas,
 styles, layout (column widths, row heights, merged cells, and frozen panes), number formats,
 comments, conditional formatting, data validation, and sheet protection into and out of `.xlsx`
-files. The plan your key names decides which parts of the add-on are on. The table in
-[Keys that name a plan](#keys-that-name-a-plan) lists them in the rows that start with `XLSX`. See the
+files. The tier your key names decides which parts of the add-on are on. The table in
+[Keys that name a tier](#keys-that-name-a-tier) lists them in the rows that start with `XLSX`. See the
 [pricing page](https://handsontable.com/pricing) for prices.
 
-A key that names no plan includes the whole add-on, so keys issued before 19.0 work as before. When
-your plan leaves out part of the add-on, an import or export skips that part, does the rest, and
+A key that names no tier includes the whole add-on, so keys issued before 19.0 work as before. When
+your tier leaves out part of the add-on, an import or export skips that part, does the rest, and
 prints one console warning that names what it skipped. An import also reports each skipped part on
 `result.dropped` as a `license:xlsx:<id>` entry. See the
 [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
@@ -496,7 +496,7 @@ The modal covers only the grid. The rest of your page keeps working. The modal d
 
 An **expired key** does not block anything. Its message appears below the table and in the console, and every feature keeps working.
 
-A **key that does not include a feature** your grid uses blocks nothing either. The feature stays off, and its message appears below the table and in the console. See [Keys that name a plan](#keys-that-name-a-plan).
+A **key that does not include a feature** your grid uses blocks nothing either. The feature stays off, and its message appears below the table and in the console. See [Keys that name a tier](#keys-that-name-a-tier).
 
 The messages are as follows:
 
@@ -549,7 +549,7 @@ There's no built-in method to update all existing instances automatically. You h
   Handsontable.defaults.licenseKey = 'your-new-key';
   ```
 
-- **For instances that already exist:** Handsontable checks the license key once, when it creates an instance, so [`updateSettings()`](@/api/core.md#updatesettings) does not change the license status, the notices, or the console messages of a running grid. The plans a key names are the exception: they are read from the current key, so a key passed through `updateSettings()` turns on the features of its plans and applies to the next XLSX import or export. To apply the whole key, destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
+- **For instances that already exist:** Handsontable checks the license key once, when it creates an instance, so [`updateSettings()`](@/api/core.md#updatesettings) does not change the license status, the notices, or the console messages of a running grid. The tiers a key names are the exception: they are read from the current key, so a key passed through `updateSettings()` turns on the features of its tiers and applies to the next XLSX import or export. To apply the whole key, destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
 
 ::: only-for javascript
 
@@ -567,7 +567,7 @@ hot2 = new Handsontable(container2, { ...settings2, licenseKey: 'your-new-key' }
 
 ::: only-for react angular vue
 
-The wrapper component creates its instance once, when it mounts. A later change to its `licenseKey` goes through `updateSettings()`, so it changes only which features the key's plans turn on. Remount the component instead, for example by changing its `key` in React, toggling `*ngIf` in Angular, or toggling `v-if` in Vue.
+The wrapper component creates its instance once, when it mounts. A later change to its `licenseKey` goes through `updateSettings()`, so it changes only which features the key's tiers turn on. Remount the component instead, for example by changing its `key` in React, toggling `*ngIf` in Angular, or toggling `v-if` in Vue.
 
 :::
 

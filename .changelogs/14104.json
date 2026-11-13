@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added support for license keys that name a plan: a plugin the plan leaves out stays off, and the console and the bar under the grid name the missing features. A key that names no plan keeps every feature. A plugin turned off with `disablePlugin()` while its option is on now counts as off for exports, imports, row resizing, the Loading overlay, and the Undo, Redo, and \"Copy with group headers\" context menu items.",
+  "title": "Added support for license keys that name a tier: a plugin the tier leaves out stays off, and the console and the bar under the grid name the missing features. A key that names no tier keeps every feature. A plugin turned off with `disablePlugin()` while its option is on now counts as off for exports, imports, row resizing, the Loading overlay, and the Undo, Redo, and \"Copy with group headers\" context menu items.",
   "type": "added",
   "issueOrPR": 14104,
   "breaking": false,

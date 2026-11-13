@@ -200,6 +200,11 @@ because a record never loses a value.
 - **A tier includes what its features require.** For each tier of an entry, every sold entry its `requires.allOf`
   reaches (the `implies` closure) and at least one member of its `requires.anyOf` must list that tier too.
 - **The `tier` namespace is reserved** for tier tokens: no entry id may start with `tier:`.
+- **A tier name, once merged, is never renamed or removed.** The license portal reads the top-level `tiers` of each
+  published build (the `experimental` tag included) and refuses a build that lacks a tier it sells, and keys that
+  name the tier are already issued. Add a tier; do not rename one.
+- **Public text says "tier"**, never "plan": the key token is `tier:<name>`, the manifest field is `tiers`, and
+  "plan" already names a support product.
 - **`dist/manifest.json`** carries `tiers` at the top level and per capability, and no `keyFlag` (the
   `listed-capabilities` flag is gone).
 - **Moving a feature between tiers is a source edit**: change its `tiers`, run `generate:feature-manifest`, commit the

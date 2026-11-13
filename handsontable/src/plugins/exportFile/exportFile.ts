@@ -543,7 +543,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}
-   * @throws {Error} When the license key names plans and none of them includes Export to file.
+   * @throws {Error} When the license key names tiers and none of them includes Export to file.
    */
   exportAsString(format: string, options: ExportOptions | Record<string, unknown> = {}): string {
     assertLicensedCall(this.hot, LICENSE);
@@ -580,7 +580,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {Blob}
-   * @throws {Error} When the license key names plans and none of them includes Export to file.
+   * @throws {Error} When the license key names tiers and none of them includes Export to file.
    */
   exportAsBlob(format: string, options: ExportOptions | Record<string, unknown> = {}): Blob {
     assertLicensedCall(this.hot, LICENSE);
@@ -629,7 +629,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<Blob>}
    * @since 17.1.0
-   * @throws {Error} The returned promise rejects when the license key names plans and none of them includes Export to file.
+   * @throws {Error} The returned promise rejects when the license key names tiers and none of them includes Export to file.
    */
   async exportAsBlobAsync(format: string, options: ExportOptions | Record<string, unknown> = {}): Promise<Blob> {
     assertLicensedCall(this.hot, LICENSE);
@@ -659,7 +659,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {void}
-   * @throws {Error} When the license key names plans and none of them includes Export to file.
+   * @throws {Error} When the license key names tiers and none of them includes Export to file.
    */
   downloadFile(format: string, options: ExportOptions | Record<string, unknown> = {}): void {
     assertLicensedCall(this.hot, LICENSE);
@@ -713,7 +713,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<void>}
    * @since 17.1.0
-   * @throws {Error} The returned promise rejects when the license key names plans and none of them includes Export to file.
+   * @throws {Error} The returned promise rejects when the license key names tiers and none of them includes Export to file.
    */
   async downloadFileAsync(format: string, options: ExportOptions | Record<string, unknown> = {}) {
     assertLicensedCall(this.hot, LICENSE);
@@ -833,8 +833,8 @@ export class ExportFile extends BasePlugin {
    * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
    * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
    * answers `false` whenever an xlsx export would throw for the license: when the license key names
-   * plans and none of them includes `feat:export_file`, the plugin's own feature, or none includes
-   * `xlsx:export`. A key that names no plan is not restricted. `'csv'` does not read the license here, although the
+   * tiers and none of them includes `feat:export_file`, the plugin's own feature, or none includes
+   * `xlsx:export`. A key that names no tier is not restricted. `'csv'` does not read the license here, although the
    * export methods still need `feat:export_file` for it.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
