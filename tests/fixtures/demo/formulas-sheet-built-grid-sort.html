@@ -14,28 +14,31 @@
     // mislabeled green one (nothing else asserts which file actually loaded).
     const htParams = new URLSearchParams(location.search);
 
-    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
-    if (!window.htTheme) {
-      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
-    }
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value and sail past
+    // a truthiness guard. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
     // handsontable.full.min.js, the exact file `test:production` loads).
-    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
-    if (!window.htBundle) {
-      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
-    }
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
     // An optional initial manual row move, through the same allowlist rule: absent means none.
-    window.htRowMove = ({ none: false, array: [2, 0, 1] })[htParams.get('rowMove') ?? 'none'];
-    if (window.htRowMove === undefined) {
-      throw new Error('Unknown ?rowMove= value: ' + JSON.stringify(htParams.get('rowMove')));
-    }
+    window.htRowMove = htPick({ none: false, array: [2, 0, 1] }, htParams.get('rowMove'), 'none', 'rowMove');
     // An optional validator on column B that holds its callback until the spec answers it, same rule.
-    window.htHeldValidator = ({ none: false, held: true })[htParams.get('validator') ?? 'none'];
-    if (window.htHeldValidator === undefined) {
-      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
-    }
+    window.htHeldValidator = htPick({ none: false, held: true }, htParams.get('validator'), 'none', 'validator');
     window.heldValidations = [];
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>

@@ -14,18 +14,27 @@
     // mislabeled green one (nothing else asserts which file actually loaded).
     const htParams = new URLSearchParams(location.search);
 
-    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
-    if (!window.htTheme) {
-      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
-    }
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value and sail past
+    // a truthiness guard. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
     // handsontable.full.min.js, the exact file `test:production` loads).
-    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
-    if (!window.htBundle) {
-      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
-    }
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
@@ -58,11 +67,7 @@
     container.className = `ht-theme-${window.htTheme}`;
 
     // Mapped through an allowlist, as the theme and the bundle are; an unknown value throws.
-    const build = ({ data: 'data', sheet: 'sheet' })[htParams.get('build') ?? 'data'];
-
-    if (!build) {
-      throw new Error('Unknown ?build= value: ' + JSON.stringify(htParams.get('build')));
-    }
+    const build = htPick({ data: 'data', sheet: 'sheet' }, htParams.get('build'), 'data', 'build');
 
     // Each formula doubles its own row's number, so a sort the engine never got leaves the
     // results on the rows they started on.
