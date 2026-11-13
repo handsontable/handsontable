@@ -1189,7 +1189,8 @@ key of `LICENSE_PRESETS` in `fixtures/licenseTiers.ts`, for a page that shows wh
 key leaves out). `pages.mjs` is plain JavaScript and cannot build a key, so every spec opens a
 catalog page through the TypeScript `fixtureUrl()` in `a11y/harness.ts`, which appends the
 preset's made-up tiers and key and throws on an unknown preset; the `fixtureUrl()` of
-`pages.mjs` leaves them out. Keep
+`pages.mjs` leaves them out, so the HTML report and `a11y-findings.json` link such a page to the
+URL its scan recorded (`withScannedUrls()` in `lib/a11y-suites.mjs`). Keep
 `{ id: '…'` at the start of the entry's first line: the check run annotates a new finding on that
 line, and `lib/__tests__/a11y-check-run.test.mjs` finds every page there. The fixture keeps the
 fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or

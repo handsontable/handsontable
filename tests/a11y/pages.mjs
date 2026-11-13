@@ -152,7 +152,8 @@ export const A11Y_PAGES = [
  *
  * A page with a `licensePreset` also needs that preset's tiers and key, which only the TypeScript side
  * can build: open it through `fixtureUrl()` in `harness.ts`. This one leaves them out, so the grid it opens
- * has no license key.
+ * has no license key. The reports link such a page to the URL its scan opened instead
+ * (`withScannedUrls()` in `lib/a11y-suites.mjs`).
  *
  * @param {{fixture: string, query?: string}} page The page.
  * @param {string} theme The theme.
