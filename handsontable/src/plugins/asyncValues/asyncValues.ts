@@ -8,6 +8,7 @@ import { detachValue, recordCellChange } from '../../dataMap/dataJournal';
 import { Launch, LaunchQueue } from './launchQueue';
 import { getChangeKey, isArrayLike, isProp, toErrorMessage, type Change } from './utils';
 import { normalizeRanges } from '../../utils/copiedRanges';
+import { createIndexedLocator, isRowObject, type RowObjectLocator } from '../../core/waitingRecords';
 import { decorateCell, undecorateCell } from './decoration';
 import { LOADING_TITLE } from '../../i18n/constants';
 import type { CellChange, CellProperties } from '../../settings';
@@ -195,11 +196,12 @@ interface Decisions {
 }
 
 /**
- * A row state captured before a data replacement, with its row id.
+ * A row state captured before a data replacement, with its row id and the source row object its row held.
  */
 interface ReplacedRow {
   state: RowState;
   rowId: unknown;
+  rowObject: unknown;
 }
 
 /**
@@ -3360,30 +3362,56 @@ export class AsyncValues extends BasePlugin {
    * `postAfterValidate` hook callback, which runs once the grid has applied the answer. Ends the flights of
    * the cell whose change the grid took out of its list: a validator rejected it under
    * `allowInvalid: false`, or a newer write overtook it. Such a change never lands, and `afterChange` does
-   * not report it. A validator's answer names no flight, so the list is what tells which one it was.
+   * not report it. A validator's answer names no flight, so the list is what tells which one it was. A tuple
+   * leaves its list only in the answer for its own cell (the rejection, or a newer write's answer to the same
+   * cell), and the grid reports that cell's current visual row. So a number row is looked up alone: its
+   * record's state is the one at that row's physical index, and a row with no state holds no flight to end.
+   * Only a `null` row (a filter or a trim took the record out of the visual space) walks the flights of every
+   * row, because a tuple that left its list never lands on any row.
    *
    * @param {boolean} isValid Whether the value is valid.
    * @param {*} value The validated value.
-   * @param {number} row Visual row index.
+   * @param {number|null} row Visual row index, or `null` for a record out of the visual space.
    * @param {string|number} prop The property of the cell.
    */
-  readonly #onPostAfterValidate = (isValid: boolean, value: unknown, row: number, prop: string | number): void => {
-    const physicalRow = this.#states.size === 0 ? null : this.hot.toPhysicalRow(row);
-    const state = physicalRow === null ? null : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+  readonly #onPostAfterValidate = (
+    isValid: boolean, value: unknown, row: number | null, prop: string | number,
+  ): void => {
+    if (this.#states.size === 0) {
+      return;
+    }
 
-    state?.flights.get(prop)
-      ?.filter(flight => flight.change && !flight.changes?.includes(flight.change))
-      .forEach(flight => this.#endFlight(state, prop, flight, true));
+    const ended: Flight[] = [];
+    const collect = (state: RowState) => {
+      state.flights.get(prop)?.forEach((flight) => {
+        if (flight.change && !flight.changes?.includes(flight.change)) {
+          ended.push(flight);
+        }
+      });
+    };
+
+    if (row === null) {
+      this.#states.forEach(collect);
+
+    } else {
+      const physicalRow = this.hot.toPhysicalRow(row);
+      const state = physicalRow === null ? null : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+
+      if (state) {
+        collect(state);
+      }
+    }
+
+    ended.forEach(flight => this.#endFlight(flight.state, flight.prop, flight, true));
   };
 
   /**
    * Called by the Core for a change set it dropped: the set waited for its validators while `loadData()`
    * replaced the data, so it never lands, and neither `afterChange` nor a spliced-out tuple tells the
    * plugin so. Ends the flight of every tuple the plugin wrote as failed, like a rejected one, so its call
-   * can finalize and its row state is released. A tuple a validator rejected was spliced out of the array
-   * before the drop, and `#onPostAfterValidate` finds its flight by the visual row the validation started
-   * with, which a load that reorders the rows hands to another record. So every flight that holds this
-   * array (`flight.changes`) is ended, not only the flights of the tuples still in it.
+   * can finalize and its row state is released. The last validator's answer drops the set before its own
+   * `postAfterValidate` runs, and a tuple that answer rejected was already spliced out of the array. So every
+   * flight that holds this array (`flight.changes`) is ended, not only the flights of the tuples still in it.
    *
    * @param {Array[]} changes The dropped change array.
    */
@@ -3522,7 +3550,7 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
-    this.#onCellsChanged(changes.map(change => [this.hot.toPhysicalRow(change[0]), change[1], change]), source);
+    this.#onCellsChanged(changes.map(change => [this.hot.getPhysicalRowOfChange(change), change[1], change]), source);
   };
 
   /**
@@ -3629,15 +3657,19 @@ export class AsyncValues extends BasePlugin {
   };
 
   /**
-   * Captures every row state, with its row id, so `after*Data` can put it back on the row that holds the
-   * same record.
+   * Captures every row state, with its row id and its source row object, so `after*Data` can put it back on
+   * the row that holds the same record.
    *
    * @param {boolean} isLoad Whether the data is replaced with `loadData()`.
    */
   #onBeforeDataReplaced(isLoad: boolean): void {
     this.#replacingData = true;
     this.#replacingIsLoad = isLoad;
-    this.#replacedRows = [...this.#states].map(state => ({ state, rowId: this.#rowIdOf(state.physicalRow) }));
+    this.#replacedRows = [...this.#states].map(state => ({
+      state,
+      rowId: this.#rowIdOf(state.physicalRow),
+      rowObject: this.#readRowObject(state.physicalRow),
+    }));
 
     // A load that throws never reaches `after*Data`, so the flag is cleared and the states it orphaned
     // are dropped once the load's task ends.
@@ -3682,7 +3714,11 @@ export class AsyncValues extends BasePlugin {
     const length = rowsMap.getLength();
     const kept = new Set<RowState>();
     const lostReasons = new Map<RowState, AsyncValueCancelReason>();
-    const targets = replaced.map(row => this.#targetRowOf(row, isLoad));
+    const locate = createIndexedLocator({
+      countPhysicalRows: () => this.hot.rowIndexMapper.getNumberOfIndexes(),
+      readRowObject: physicalRow => this.#readRowObject(physicalRow),
+    });
+    const targets = replaced.map(row => this.#targetRowOf(row, isLoad, locate));
 
     // A state that stays on its row is left alone: the React wrapper runs `updateData()` on every commit,
     // and rewriting every state then cost tens of milliseconds per commit with many requests pending.
@@ -3854,19 +3890,48 @@ export class AsyncValues extends BasePlugin {
 
   /**
    * Returns the physical row a captured row state belongs on after a data replacement: the row that holds
-   * the same id now, or, without ids, the same physical row for `updateData()` (as it keeps cell meta) and
-   * none for `loadData()` (a new dataset).
+   * the same id now, or, without ids, none for `loadData()` (a new dataset), and for `updateData()` the row
+   * that holds the same row object now, the way core finds the record of a waiting change, or the same
+   * physical row when no row holds it (the data was replaced by copies, and `updateData()` keeps cell meta by
+   * physical row). A row object two rows hold names no row.
    *
    * @param {object} row The captured row.
    * @param {boolean} isLoad Whether the data was replaced with `loadData()`.
+   * @param {Function} locate Returns the physical row that holds a row object.
    * @returns {number|null}
    */
-  #targetRowOf(row: ReplacedRow, isLoad: boolean): number | null {
+  #targetRowOf(row: ReplacedRow, isLoad: boolean, locate: RowObjectLocator): number | null {
     if (this.#hasId(row)) {
       return this.hot.getPhysicalRowById(row.rowId);
     }
 
-    return isLoad ? null : row.state.physicalRow;
+    if (isLoad) {
+      return null;
+    }
+
+    const { rowObject, state } = row;
+
+    if (!isRowObject(rowObject) || this.#readRowObject(state.physicalRow) === rowObject) {
+      return state.physicalRow;
+    }
+
+    const located = locate(rowObject);
+
+    return located === undefined ? state.physicalRow : located;
+  }
+
+  /**
+   * Reads the source row object a physical row holds, or `undefined` past the last row.
+   *
+   * @param {number} physicalRow The physical row.
+   * @returns {*}
+   */
+  #readRowObject(physicalRow: number): unknown {
+    if (physicalRow >= this.hot.rowIndexMapper.getNumberOfIndexes()) {
+      return undefined;
+    }
+
+    return this.hot._getDataSource().modifyRowData(physicalRow);
   }
 
   /**

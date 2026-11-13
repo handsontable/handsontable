@@ -129,7 +129,7 @@ gridStyles.replaceSync(`
 `);
 
 interface HotGridCellChange {
-  row: number;
+  row: number | null;
   physicalRow: number;
   prop: Handsontable.CellChange[1];
   oldValue: Handsontable.CellValue;
@@ -163,11 +163,18 @@ class HotGridElement extends HTMLElement {
           return;
         }
 
-        changes.forEach(([row, prop, oldValue, newValue]) => {
+        changes.forEach((change) => {
+          const [row, prop, oldValue, newValue] = change;
+          const physicalRow = instance.getPhysicalRowOfChange(change);
+
+          if (physicalRow === null) {
+            return;
+          }
+
           this.dispatchEvent(new CustomEvent<HotGridCellChange>('cell-change', {
             detail: {
               row,
-              physicalRow: instance.toPhysicalRow(row),
+              physicalRow,
               prop,
               oldValue,
               newValue,
@@ -205,7 +212,7 @@ declare global {
 
 `composed: true` is what lets the event leave the shadow root - without it a listener on the host page never fires. Skipping the `loadData` source keeps the first data load from reporting every cell as an edit.
 
-`cell-change` carries both indexes, because `row` is visual and moves when the user sorts - index your store with `physicalRow`. See [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+`cell-change` carries both indexes, because `row` is visual and moves when the user sorts - index your store with `physicalRow`. `row` is `null` when a filter hid the record before its validator answered, and `getPhysicalRowOfChange()` still finds the record. See [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
 Replace `licenseKey` with your commercial key before production use. See [License key](@/guides/getting-started/license-key/license-key.md).
 
@@ -233,7 +240,7 @@ gridStyles.replaceSync(`
 type HotGridRow = Handsontable.RowObject | Handsontable.CellValue[];
 
 interface HotGridCellChange {
-  row: number;
+  row: number | null;
   physicalRow: number;
   prop: Handsontable.CellChange[1];
   oldValue: Handsontable.CellValue;
@@ -279,11 +286,18 @@ class HotGridElement extends HTMLElement {
           return;
         }
 
-        changes.forEach(([row, prop, oldValue, newValue]) => {
+        changes.forEach((change) => {
+          const [row, prop, oldValue, newValue] = change;
+          const physicalRow = instance.getPhysicalRowOfChange(change);
+
+          if (physicalRow === null) {
+            return;
+          }
+
           this.dispatchEvent(new CustomEvent<HotGridCellChange>('cell-change', {
             detail: {
               row,
-              physicalRow: instance.toPhysicalRow(row),
+              physicalRow,
               prop,
               oldValue,
               newValue,

@@ -81,8 +81,15 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   or overtaken one is found by the grid's own list instead: `#onAfterSetDataAtRowProp` keeps, on each flight,
   the change tuple and the list core validates and applies (the list after `beforeChange` and the
   `valueSetter`), the grid splices a rejected or overtaken tuple out of that list, and `#onPostAfterValidate`
-  (it runs after the answer is applied) ends every flight of the cell whose tuple is gone. Source and value
-  cannot do it: two calls can write the same value with the same source. A call's kept write that has not
+  (it runs after the answer is applied) ends every flight on the answer's prop whose tuple is gone. For a
+  number row it checks only that row's state: a tuple leaves its list only in its own cell's answer, and core
+  reports that cell's current visual row, so walking every state there made a run of N answers O(N²) (pinned
+  by "should check only the answered row's flights when the answer reports a row"). The reported row is `null`
+  once a filter or a trim took the record out during the wait, and then every row is walked: a tuple that left
+  the list never lands anywhere. Skipping a `null` row, the rejected flight stayed queued, the call never
+  finalized and its row state was never released (pinned by "should finalize a call whose value a validator
+  rejected after a trim took its record out"). Source and value cannot do it: two calls can write the same
+  value with the same source. A call's kept write that has not
   landed stays under the next call's write to the cell (`PendingWrite#supersedes`): the grid applies the
   last write made, so the older write lands only when the newer one does not, a rejection for one
   (`#removeWrite` reveals it again), and the newer one landing drops it (`#dropSuperseded`). A change of
@@ -217,9 +224,16 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
 - **A data replacement keeps the requests whose rows survive.** The React wrapper sends `data` on every commit,
   so core runs `updateData()` on every re-render, and Angular on every data change; cancelling there killed every
   run on the first re-render. `before*Data` captures every `RowState` with its row id, and `after*Data` (order
-  `-1`) puts each back: on the row that holds the same id now, or, without ids, on the same physical row for
-  `updateData()` (core's convention for cell meta and generated ids) and nowhere for `loadData()` (a new dataset,
-  `'dataReplaced'`). A row not found cancels its requests with `'rowRemoved'`. Settled requests waiting for the
+  `-1`) puts each back: on the row that holds the same id now, or, without ids, nowhere for `loadData()` (a new
+  dataset, `'dataReplaced'`) and, for `updateData()`, on the row that holds the source row object its row held
+  (`#readRowObject()`, the raw row through `_getDataSource().modifyRowData()`, never the `getSourceDataAtRow()`
+  copy), else on the same physical row (copies; core's convention for cell meta and generated ids). That is how
+  core finds the record of a change waiting for its validator (`resolveUnkeyedRecord()` in
+  `core/waitingRecords.ts`, whose `createIndexedLocator()` the plugin reuses): kept on its physical row while core
+  followed the moved object, a state never saw the landing or the overtaking of its write, so the call never
+  finalized and the state was never released. A row object two rows hold names no row. A state whose row still
+  holds its object reads no other row, so the wrapper's per-commit `updateData()` builds no index. A row not found
+  cancels its requests with `'rowRemoved'`. Settled requests waiting for the
   flush keep their place, so a result that lands after the replacement still reaches its record. With
   `dataProvider.rowId`, requests survive a DataProvider refetch too. The capture must happen in `before*Data`:
   `updateData()`'s `fitToLength` has already truncated the map, and `loadData()` re-initialized it, by `after*`.
@@ -246,9 +260,9 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   `undo: 'record'` call never finalized: no step, even for the cells that landed. `#onChangesDropped`,
   added through the Core's `@private` `_addDroppedChangesListener()` in `enablePlugin()` and removed in
   `disablePlugin()` and `destroy()`, ends every queued flight whose `flight.changes` is the dropped array,
-  the way a rejection does. Walking the tuples still in the array is not enough: a tuple rejected under
-  `allowInvalid: false` was spliced out before the drop, and `#onPostAfterValidate` looks its row up by
-  the visual row the validation started with, which a load that reorders the ids hands to another record.
+  the way a rejection does. Walking the tuples still in the array is not enough: the last answer drops the
+  set before its own `postAfterValidate` runs, and a tuple that answer rejected under `allowInvalid: false`
+  was already spliced out.
   The call's promise still reports `resolved` (the value was passed to the grid), as for a rejected value.
   Pinned by "should record a call whose earlier write a data load dropped while its validator ran" and
   "should record a call whose dropped write lost a rejected tuple after a load reordered the rows".

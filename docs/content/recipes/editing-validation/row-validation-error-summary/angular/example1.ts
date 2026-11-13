@@ -86,7 +86,7 @@ export class AppComponent {
         ? 'var(--ht-cell-error-background-color, #ffe4e4)'
         : '';
     },
-    afterChange: (changes: Handsontable.CellChange[] | null, source: string) => {
+    afterChange: (changes: Handsontable.AppliedCellChange[] | null, source: string) => {
       if (source === 'loadData' || !changes) {
         return;
       }
@@ -97,6 +97,11 @@ export class AppComponent {
       }
       for (const change of changes) {
         const [row, prop] = change;
+
+        if (row === null) {
+          continue;
+        }
+
         const col = typeof prop === 'string' ? hot.propToCol(prop) : (prop as number);
         // Skip a property that names no column.
         if (col === null) {

@@ -8,13 +8,13 @@ registerAllModules();
 /* start:skip-in-preview */
 const stockData = [
   { symbol: 'AAPL', company: 'Apple Inc.', price: 189.25, change: 1.45, volume: 52341200, marketCap: '2.94T' },
-  { symbol: 'MSFT', company: 'Microsoft Corp.', price: 415.80, change: -0.72, volume: 18920400, marketCap: '3.08T' },
-  { symbol: 'GOOG', company: 'Alphabet Inc.', price: 175.40, change: 2.13, volume: 21780000, marketCap: '2.19T' },
-  { symbol: 'AMZN', company: 'Amazon.com Inc.', price: 198.60, change: -1.30, volume: 34560000, marketCap: '2.09T' },
-  { symbol: 'NVDA', company: 'NVIDIA Corp.', price: 875.35, change: 14.20, volume: 41230000, marketCap: '2.15T' },
-  { symbol: 'META', company: 'Meta Platforms Inc.', price: 512.90, change: 3.55, volume: 15670000, marketCap: '1.30T' },
-  { symbol: 'TSLA', company: 'Tesla Inc.', price: 248.75, change: -5.60, volume: 98120000, marketCap: '793B' },
-  { symbol: 'BRK', company: 'Berkshire Hathaway', price: 3890.00, change: 12.00, volume: 3450000, marketCap: '876B' },
+  { symbol: 'MSFT', company: 'Microsoft Corp.', price: 415.8, change: -0.72, volume: 18920400, marketCap: '3.08T' },
+  { symbol: 'GOOG', company: 'Alphabet Inc.', price: 175.4, change: 2.13, volume: 21780000, marketCap: '2.19T' },
+  { symbol: 'AMZN', company: 'Amazon.com Inc.', price: 198.6, change: -1.3, volume: 34560000, marketCap: '2.09T' },
+  { symbol: 'NVDA', company: 'NVIDIA Corp.', price: 875.35, change: 14.2, volume: 41230000, marketCap: '2.15T' },
+  { symbol: 'META', company: 'Meta Platforms Inc.', price: 512.9, change: 3.55, volume: 15670000, marketCap: '1.30T' },
+  { symbol: 'TSLA', company: 'Tesla Inc.', price: 248.75, change: -5.6, volume: 98120000, marketCap: '793B' },
+  { symbol: 'BRK', company: 'Berkshire Hathaway', price: 3890.0, change: 12.0, volume: 3450000, marketCap: '876B' },
 ];
 /* end:skip-in-preview */
 
@@ -44,6 +44,10 @@ const ExampleComponent = () => {
     }
 
     changes.forEach(([row]) => {
+      if (row === null) {
+        return;
+      }
+
       [2, 3].forEach((col) => flashCell(hot, row, col));
     });
   };

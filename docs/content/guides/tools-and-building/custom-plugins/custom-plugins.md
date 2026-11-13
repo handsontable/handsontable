@@ -54,7 +54,7 @@ Import the following:
 - [`BasePlugin`](@/api/basePlugin.md) - a built-in interface that lets you work within Handsontable's lifecycle,
 - `registerPlugin` - a utility to register a plugin in the Handsontable plugin registry.
 
-In TypeScript, also import `HotInstance`, `CellChange`, and `ChangeSource`.
+In TypeScript, also import `HotInstance`, `AppliedCellChange`, and `ChangeSource`.
 
 <code-group>
   <code-block title="JavaScript">
@@ -68,7 +68,7 @@ import { BasePlugin, registerPlugin } from 'handsontable/plugins';
 
 ```ts
 import { BasePlugin, registerPlugin } from 'handsontable/plugins';
-import type { CellChange, ChangeSource, HotInstance } from 'handsontable';
+import type { AppliedCellChange, ChangeSource, HotInstance } from 'handsontable';
 ```
 
   </code-block>
@@ -268,7 +268,7 @@ export class CustomPlugin extends BasePlugin {
   /**
    * The afterChange hook callback.
    *
-   * @param {CellChange[]} changes An array of changes.
+   * @param {AppliedCellChange[]} changes An array of changes.
    * @param {string} source Describes the source of the change.
    */
   onAfterChange(changes, source) {
@@ -484,7 +484,7 @@ export class CustomPlugin extends BasePlugin {
    * @param changes An array of changes, or `null`.
    * @param source Describes the source of the change.
    */
-  onAfterChange(changes: CellChange[] | null, source: ChangeSource): void {
+  onAfterChange(changes: AppliedCellChange[] | null, source: ChangeSource): void {
     // afterChange callback goes here.
     console.log(
       `${CustomPlugin.PLUGIN_KEY}.onAfterChange - ${this.configuration?.msg}`,

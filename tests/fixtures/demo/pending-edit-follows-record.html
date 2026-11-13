@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - an edit waiting for its validator follows its record</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    window.htAllowInvalid = ({ true: true, false: false })[htParams.get('allowInvalid') ?? 'true'];
+    if (window.htAllowInvalid === undefined) {
+      throw new Error('Unknown ?allowInvalid= value: ' + JSON.stringify(htParams.get('allowInvalid')));
+    }
+    window.htPageSize = ({ none: false, '3': 3 })[htParams.get('pageSize') ?? 'none'];
+    if (window.htPageSize === undefined) {
+      throw new Error('Unknown ?pageSize= value: ' + JSON.stringify(htParams.get('pageSize')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    /**
+     * The validator answers only when the spec releases it, the way a server-side check answers
+     * later, so the spec can sort, move, or filter the rows while the edit waits.
+     */
+    window.htPending = [];
+
+    const heldValidator = function(value, callback) {
+      window.htPending.push({ value, callback });
+    };
+
+    let hot;
+
+    try {
+      hot = new Handsontable(container, {
+        data: [['p0', 0], ['p1', 5], ['p2', 3], ['p3', 1], ['p4', 6], ['p5', 4]],
+        columns: [
+          { validator: heldValidator, allowInvalid: window.htAllowInvalid, renderer: testIdRenderer },
+          { type: 'numeric', renderer: testIdRenderer },
+        ],
+        colHeaders: ['Name', 'Rank'],
+        rowHeaders: true,
+        columnSorting: true,
+        manualRowMove: true,
+        filters: true,
+        pagination: window.htPageSize ? { pageSize: window.htPageSize } : false,
+        width: 600,
+        height: 'auto',
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+
+      throw error;
+    }
+
+    window.hot = hot;
+
+    /**
+     * Answers the held validator of a value and reports whether one was waiting.
+     */
+    window.htAnswer = function(value, result) {
+      const index = window.htPending.findIndex(item => item.value === value);
+
+      if (index === -1) {
+        return false;
+      }
+
+      const [{ callback }] = window.htPending.splice(index, 1);
+
+      callback(result);
+
+      return true;
+    };
+
+    /**
+     * Sorts the rows by the rank column, ascending.
+     */
+    window.htSortByRank = function() {
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+    };
+
+    /**
+     * Moves the visual row `from` so it ends at the visual row `to`.
+     */
+    window.htMoveRow = function(from, to) {
+      hot.getPlugin('manualRowMove').moveRow(from, to);
+      hot.render();
+    };
+
+    /**
+     * Keeps only the rows whose rank passes the condition.
+     */
+    window.htFilterRank = function(name, value) {
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, name, [value]);
+      filters.filter();
+    };
+
+    /**
+     * Reports the source rows the grid holds, in physical order.
+     */
+    window.htSourceData = function() {
+      return JSON.parse(JSON.stringify(hot.getSourceData()));
+    };
+
+    /**
+     * Reports the active editor's state, the visual row it edits, and the last selected cell.
+     */
+    /**
+     * Reads the page the Pagination plugin shows, or `null` without the plugin.
+     */
+    window.htCurrentPage = function() {
+      const pagination = hot.getPlugin('pagination');
+
+      return pagination && pagination.enabled ? pagination.getPaginationData().currentPage : null;
+    };
+    window.htEditorState = function() {
+      const editor = hot.getActiveEditor();
+      const selected = hot.getSelectedLast();
+
+      return {
+        opened: Boolean(editor && editor.isOpened()),
+        waiting: Boolean(editor && editor.isWaiting()),
+        row: editor && editor.isOpened() ? editor.row : null,
+        selected: selected ? [selected[0], selected[1]] : null,
+      };
+    };
+  </script>
+</body>
+</html>

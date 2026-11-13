@@ -101,6 +101,32 @@ export function getRowIdByVisualRow(
 }
 
 /**
+ * Reads the id of a physical row, the way `readRowIdOrUndefined()` reads the id of a visual one: `undefined` without
+ * a string or function key, or when the key function throws (logged).
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
+ * @param {number|null} physicalRow Physical row index, or `null` for a record that is gone.
+ * @returns {*|undefined}
+ */
+export function readRowIdAtPhysicalRowOrUndefined(
+  hot: HotInstance, rowIdOption: RowIdOption, physicalRow: number | null
+): unknown {
+  if (physicalRow === null || (typeof rowIdOption !== 'string' && !isFunction(rowIdOption))) {
+    return undefined;
+  }
+
+  try {
+    return hot.getRowIdAtPhysicalRow(physicalRow) ?? undefined;
+
+  } catch (err) {
+    logError('Reading the row id failed:', err);
+
+    return undefined;
+  }
+}
+
+/**
  * Reads the id of a row for a CRUD payload. A function key that throws is logged and read as a missing id, so an
  * update takes the missing-id path (revert, `afterRowsMutationError`) instead of rejecting inside the mutation
  * queue, where nothing would report it, and a removal raises the missing-id error instead of the key's own.
@@ -341,7 +367,10 @@ export function shouldIgnoreAfterChangeForServerUpdate(
 }
 
 /**
- * Filters change tuples to those with real edits and passing cell `valid` meta.
+ * Filters change tuples to those with real edits and passing cell `valid` meta. A change whose row is `null` landed
+ * on a record a trimming map took out of the visual space while it waited for its validator; DataProvider cannot be
+ * combined with TrimRows, and its filtering refetches through `loadData()`, which drops a waiting change, so such a
+ * change has no row to save and is skipped.
  *
  * @param {Core} hot Handsontable instance.
  * @param {Array} changes `[visualRow, prop, oldVal, newVal][]`.
@@ -362,6 +391,10 @@ export function filterChangesForBatchedServerUpdate(
   }
 
   return real.filter((c) => {
+    if (c[0] === null) {
+      return false;
+    }
+
     // A write past the last column still lands locally (deprecated, skipped from 20.0.0 on), so it
     // keeps its index and reaches the server too, as it did before `propToCol()` could answer `null`.
     const col = hot.propToCol(c[1]) ?? (typeof c[1] === 'number' ? c[1] : null);
@@ -545,17 +578,51 @@ export interface PreparedRowsUpdate {
 }
 
 /**
- * Validates every row of an update against its cells' validators.
+ * Finds the visual row that holds a row id when an update runs, or the row the payload was read from when the id
+ * is missing or the lookup throws (a `rowId` function that throws on another row).
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {*} id The row id of the payload.
+ * @param {number} visualRow The visual row the payload was read from.
+ * @returns {number|null} The visual row, or `null` when no row holds the id.
+ */
+function findRowOfPayload(hot: HotInstance, id: unknown, visualRow: number): number | null {
+  if (isMissingRowId(id)) {
+    return visualRow;
+  }
+
+  try {
+    return hot.getVisualRowById(id);
+
+  } catch (err) {
+    logError('Reading the row id failed:', err);
+
+    return visualRow;
+  }
+}
+
+/**
+ * Validates every row of an update against its cells' validators. Validated when the update runs
+ * (`findsRowsById`), a row is found by its id, so an update queued behind another save's refetch validates the
+ * record it was made on, wherever the refetch put it; a record the refetch did not bring back is not validated
+ * here, and its update goes to the server by its id. Validated right away, the rows are the ones the payloads were
+ * read from.
  *
  * @param {Core} hot Handsontable instance.
  * @param {number[]} sortedRows The visual rows, in the order of `rowPayloads`.
  * @param {object[]} rowPayloads The per-row payloads.
+ * @param {boolean} findsRowsById Whether to find each row by its id.
  * @returns {Promise<boolean[]>} One result per row.
  */
 function validatePreparedRows(
-  hot: HotInstance, sortedRows: number[], rowPayloads: PreparedRowsUpdate['rowPayloads']
+  hot: HotInstance, sortedRows: number[], rowPayloads: PreparedRowsUpdate['rowPayloads'], findsRowsById: boolean,
 ): Promise<boolean[]> {
-  return Promise.all(sortedRows.map((vr, i) => validateRowChanges(hot, vr, rowPayloads[i].changes)));
+  return Promise.all(sortedRows.map((vr, i) => {
+    const { id, changes } = rowPayloads[i];
+    const visualRow = findsRowsById ? findRowOfPayload(hot, id, vr) : vr;
+
+    return visualRow === null ? Promise.resolve(true) : validateRowChanges(hot, visualRow, changes);
+  }));
 }
 
 /**
@@ -597,8 +664,40 @@ export function prepareUpdateFromChanges(
   return {
     sortedRows,
     rowPayloads,
-    validation: options.validateNow ? validatePreparedRows(hot, sortedRows, rowPayloads) : undefined,
+    validation: options.validateNow ? validatePreparedRows(hot, sortedRows, rowPayloads, false) : undefined,
   };
+}
+
+/**
+ * Points every change tuple of an update at the visual row that holds its record now, found by the id of its row
+ * payload (`findRowOfPayload()`), so a revert that runs after a refetch moved the rows writes the previous values
+ * into the records that were edited. A change whose record no row holds any more is left out.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {Array} changes Change tuples `[visualRow, prop, oldVal, newVal][]`.
+ * @param {number[]} sortedRows The visual rows the payloads were read from, in the order of `rowPayloads`.
+ * @param {object[]} rowPayloads The per-row payloads.
+ * @returns {Array} The change tuples, addressed to the rows their records have now.
+ */
+function readdressChangesById(
+  hot: HotInstance, changes: ChangeTuple[], sortedRows: number[], rowPayloads: PreparedRowsUpdate['rowPayloads'],
+): ChangeTuple[] {
+  const currentRows = new Map<number, number | null>();
+
+  sortedRows.forEach((visualRow, i) => {
+    currentRows.set(visualRow, findRowOfPayload(hot, rowPayloads[i].id, visualRow));
+  });
+
+  return changes.flatMap((change): ChangeTuple[] => {
+    const [visualRow, prop, oldValue, newValue] = change;
+    const currentRow = currentRows.get(visualRow);
+
+    if (currentRow === null) {
+      return [];
+    }
+
+    return [[currentRow ?? visualRow, prop, oldValue, newValue]];
+  });
 }
 
 /**
@@ -629,9 +728,10 @@ export async function runUpdateFromChanges(
   const { getRowIdOption, commitRowsUpdate: commitFn, revertChanges } = ctx;
   const { sortedRows, rowPayloads, validation } = prepared ?? prepareUpdateFromChanges(hot, getRowIdOption(), changes);
   const payload = { rows: rowPayloads };
-  const revert = isFunction(revertChanges)
-    ? () => revertChanges(changes)
-    : () => revertChangeTuples(hot, changes);
+  const revertTuples = isFunction(revertChanges)
+    ? revertChanges
+    : (tuples: ChangeTuple[]) => revertChangeTuples(hot, tuples);
+  const revert = () => revertTuples(readdressChangesById(hot, changes, sortedRows, rowPayloads));
 
   if (rowPayloads.some(p => isMissingRowId(p.id))) {
     revert();
@@ -653,7 +753,7 @@ export async function runUpdateFromChanges(
     return;
   }
 
-  const ok = await (validation ?? validatePreparedRows(hot, sortedRows, rowPayloads));
+  const ok = await (validation ?? validatePreparedRows(hot, sortedRows, rowPayloads, true));
 
   if (hot.isDestroyed) {
     return;

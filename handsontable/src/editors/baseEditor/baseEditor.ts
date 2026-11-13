@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { TrackedRecordHandle } from '../../core/waitingRecords';
 import type { CellProperties } from '../../settings';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { stringify } from '../../helpers/mixed';
@@ -229,6 +230,25 @@ export class BaseEditor {
    * validator answers.
    */
   #validationWait: ValidationWait | null = null;
+  /**
+   * The record the editor saved its value to, followed while the editor waits for the validator (core's
+   * `_trackRecord()`), so a sort, a move, a filter, or an insert or removal made meanwhile cannot make a rejected
+   * value reopen the editor on another record.
+   */
+  #waitRecord: TrackedRecordHandle | null = null;
+  /**
+   * The visual row the waited-on record had when the validator answered: a number, `null` when the record is
+   * gone or not rendered, or `undefined` when no answer was recorded. Read once by `discardEditor()`.
+   */
+  #answeredRow: number | null | undefined = undefined;
+  /**
+   * Brings the waited-on record into view when a rejected value reopens the editor on it, prepared when the wait
+   * started (`Core#_prepareRowReveal()`), so a feature that hides the record can tell a reorder that carried it off
+   * screen from the user moving away. `null` when no record is followed.
+   *
+   * @type {Function|null}
+   */
+  #rowReveal: ((visualRow: number) => boolean) | null = null;
 
   /**
    * The `postAfterValidate` listener of the current wait. It removes itself on the editor's own first
@@ -846,6 +866,8 @@ export class BaseEditor {
 
       this.#validationWait = null;
       this.#validationWaitListener = null;
+      this.#answeredRow = this.#readWaitRecordRow();
+      this.#releaseWaitRecord();
       this.state = EDITOR_STATE.FINISHED;
       onAnswer(result);
     };
@@ -870,6 +892,10 @@ export class BaseEditor {
     };
 
     this.#removeValidationWaitListener();
+    this.#releaseWaitRecord();
+    this.#answeredRow = undefined;
+    this.#waitRecord = this.row === null ? null : this.hot._trackRecord(this.row);
+    this.#rowReveal = this.#waitRecord === null ? null : this.hot._prepareRowReveal();
     this.#validationWait = wait;
     this.#validationWaitListener = onPostAfterValidate;
     this.hot.addHook('postAfterValidate', onPostAfterValidate);
@@ -916,6 +942,47 @@ export class BaseEditor {
   }
 
   /**
+   * Reads the visual row the waited-on record has now: `null` when the record is gone or trimmed out of the visual
+   * space, and `undefined` when no record is followed. A hidden record keeps its visual row; whether it can be
+   * shown again is decided when the editor reopens (`discardEditor()`).
+   *
+   * @returns {number|null|undefined}
+   */
+  #readWaitRecordRow(): number | null | undefined {
+    if (this.#waitRecord === null) {
+      return undefined;
+    }
+
+    return this.#waitRecord.getVisualRow();
+  }
+
+  /**
+   * Points the open editor at the row its record moved to while it waited for the validator, so the next confirm
+   * writes to that record. The value the editor holds stays; the cell, its meta and its position are read again.
+   *
+   * @param {number} row The visual row the record has now.
+   * @param {number} col The visual column of the edited cell.
+   */
+  #moveToRow(row: number, col: number): void {
+    const td = this.hot.getCell(row, col, true);
+
+    this.prepare(row, col, this.prop!, td ?? this.TD!, this.originalValue,
+      this.hot.getCellMeta(row, col));
+
+    if ('refreshDimensions' in this && typeof this.refreshDimensions === 'function') {
+      this.refreshDimensions();
+    }
+  }
+
+  /**
+   * Stops following the waited-on record.
+   */
+  #releaseWaitRecord(): void {
+    this.#waitRecord?.release();
+    this.#waitRecord = null;
+  }
+
+  /**
    * Removes the `postAfterValidate` listener of the current wait, if there is one.
    */
   #removeValidationWaitListener(): void {
@@ -948,6 +1015,7 @@ export class BaseEditor {
     this._closeCallback = null;
     this.#validationWait = null;
     this.#removeValidationWaitListener();
+    this.#releaseWaitRecord();
     this.cancelChanges();
 
     return closeCallback ? () => closeCallback(false) : null;
@@ -961,12 +1029,23 @@ export class BaseEditor {
     // the editor later.
     this.#validationWait = null;
     this.#removeValidationWaitListener();
+    this.#releaseWaitRecord();
     this.state = EDITOR_STATE.FINISHED;
     this.discardEditor();
   }
 
   /**
    * Verifies result of validation or closes editor if user's canceled changes.
+   *
+   * A value the validator rejected under `allowInvalid: false` reopens the editor on the record the value was
+   * typed into, at the visual row that record has when the validator answers (a sort, a move, a filter, or an
+   * insert or removal can move it while the editor waits). A record a feature that can show it again keeps off
+   * screen (a sort moved it to another Pagination page) is brought back first, through the reveal prepared when the
+   * wait started (`Core#_prepareRowReveal()`), and the editor reopens there with the typed text. A page the user
+   * moved to while the editor waited is kept, and the editor closes. When the record is gone, trimmed out of the
+   * visual space (a filter, a collapse), or hidden for good (`hiddenRows`), the editor closes instead: no cell of
+   * that record can be shown.
+   * Nothing was written, so the close callbacks receive `false`.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -976,13 +1055,30 @@ export class BaseEditor {
       return;
     }
 
-    try {
-      this.#discardFinishedEditor(result);
-    } finally {
-      if (!this.hot.isDestroyed) {
-        [...this.#finishListeners].forEach(listener => listener());
-      }
+    const isRejected = result === false && this.cellProperties.allowInvalid !== true;
+    const rowReveal = this.#rowReveal;
+    const answeredRow = this.#answeredRow;
+
+    this.#answeredRow = undefined;
+    this.#rowReveal = null;
+
+    if (!isRejected || typeof answeredRow !== 'number' || rowReveal === null) {
+      this.#finishEdit(isRejected, answeredRow);
+
+      return;
     }
+
+    if (this.hot.rowIndexMapper.getRenderableFromVisualIndex(answeredRow) !== null) {
+      this.#finishEdit(isRejected, rowReveal(answeredRow) ? answeredRow : null);
+
+      return;
+    }
+
+    this.hot._runAfterValidatorAnswer(() => {
+      if (this.state === EDITOR_STATE.FINISHED) {
+        this.#finishEdit(isRejected, rowReveal(answeredRow) ? answeredRow : null);
+      }
+    });
   }
 
   /**
@@ -1009,18 +1105,48 @@ export class BaseEditor {
   }
 
   /**
-   * Closes a finished editor, or reopens it in `EDITING` on a rejection under `allowInvalid: false`.
+   * Reopens or closes the finished editor (`#settleAnswer()`), then runs the finish listeners
+   * (`_addFinishListener()`). A rejection whose reveal waits for the validator's answer to release its hold
+   * finishes the edit only then, so a listener never sees the editor between the answer and its reopen.
    *
-   * @param {boolean|undefined} result The validation result.
+   * @param {boolean} isRejected Whether the validator rejected the value under `allowInvalid: false`.
+   * @param {number|null|undefined} answeredRow The visual row of the record (`null` when no cell of it can be
+   * shown), or `undefined` when no record was followed.
    */
-  #discardFinishedEditor(result?: boolean): void {
-    // validator was defined and failed
-    if (result === false && this.cellProperties.allowInvalid !== true) {
-      if (this.row === null || this.col === null) {
+  #finishEdit(isRejected: boolean, answeredRow: number | null | undefined): void {
+    try {
+      this.#settleAnswer(isRejected, answeredRow);
+    } finally {
+      if (!this.hot.isDestroyed) {
+        [...this.#finishListeners].forEach(listener => listener());
+      }
+    }
+  }
+
+  /**
+   * Reopens the editor on the row of its record after a rejected value, or closes it. A reveal that changes what a
+   * feature shows (Pagination's page) runs as an operation of its own, so `discardEditor()` calls this method for
+   * such a reveal through `Core#_runAfterValidatorAnswer()`, once the validator's answer released its hold on the
+   * transaction of the change it answers (`operationScope.hold()`): a page change made inside it joined that
+   * transaction, so UndoRedo recorded the page change as part of an empty change step.
+   *
+   * @param {boolean} isRejected Whether the validator rejected the value under `allowInvalid: false`.
+   * @param {number|null|undefined} answeredRow The visual row of the record (`null` when no cell of it can be
+   * shown), or `undefined` when no record was followed.
+   */
+  #settleAnswer(isRejected: boolean, answeredRow: number | null | undefined): void {
+    if (isRejected && answeredRow !== null) {
+      const row = answeredRow ?? this.row;
+
+      if (row === null || this.col === null) {
         return;
       }
 
-      this.hot.selectCell(this.row, this.col);
+      if (row !== this.row) {
+        this.#moveToRow(row, this.col);
+      }
+
+      this.hot.selectCell(row, this.col);
       this.focus();
       this.state = EDITOR_STATE.EDITING;
       this._fireCallbacks(false);
@@ -1038,7 +1164,7 @@ export class BaseEditor {
       this.#seededString = null;
       this.#seededCellValue = null;
       this.state = EDITOR_STATE.VIRGIN;
-      this._fireCallbacks(true);
+      this._fireCallbacks(!isRejected);
 
       const shortcutManager = this.hot.getShortcutManager();
 

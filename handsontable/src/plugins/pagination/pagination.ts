@@ -199,7 +199,7 @@ export class Pagination extends BasePlugin {
    * @type {HiddenMap | null}
    */
   #pagedRowsMap: {
-    setValueAtIndex(index: number, value: boolean): boolean;
+    setValueAtIndex(index: number, value: boolean): boolean; getValueAtIndex(index: number): unknown;
     getValues(): unknown[];
     clear(): void;
   } | null = null;
@@ -324,6 +324,7 @@ export class Pagination extends BasePlugin {
     this.#serverSideTotalCount = null;
 
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName!, 'hiding', false);
+    this.hot._addRowRevealer(this.#prepareRowReveal);
 
     if (this.#pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
       warn(AUTO_PAGE_SIZE_WARNING);
@@ -614,6 +615,7 @@ export class Pagination extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.hot._removeRowRevealer(this.#prepareRowReveal);
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName!);
@@ -1220,6 +1222,80 @@ export class Pagination extends BasePlugin {
 
       coords.row = lastVisibleRowIndex;
     }
+  };
+
+  /**
+   * Returns the page that shows a visual row, or `null` when no page does: the row is hidden by another feature
+   * too, the rows come from a `dataProvider` (one page at a time), or no page state exists.
+   *
+   * @param {number} visualRow The visual row.
+   * @returns {number|null}
+   */
+  #getPageOfRow(visualRow: number): number | null {
+    if (this.#isDataProviderActive() || !this.#calcStrategy || !this.#pagedRowsMap) {
+      return null;
+    }
+
+    const { rowIndexMapper } = this.hot;
+    const isHiddenElsewhere = (physicalRow: number) => rowIndexMapper.isHidden(physicalRow)
+      && this.#pagedRowsMap!.getValueAtIndex(physicalRow) !== true;
+    const targetPhysicalRow = this.hot.toPhysicalRow(visualRow);
+
+    if (targetPhysicalRow === null || isHiddenElsewhere(targetPhysicalRow)) {
+      return null;
+    }
+
+    let position = 0;
+
+    for (let row = 0; row < visualRow; row++) {
+      const physicalRow = this.hot.toPhysicalRow(row);
+
+      if (physicalRow !== null && !isHiddenElsewhere(physicalRow)) {
+        position += 1;
+      }
+    }
+
+    const totalPages = this.#calcStrategy.getTotalPages();
+
+    for (let page = 1; page <= totalPages; page++) {
+      const state = this.#calcStrategy.getState(page);
+
+      if (state && position >= state.startIndex && position < state.startIndex + state.pageSize) {
+        return page;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Prepares a reveal of a row the plugin keeps on another page. Core calls it through `_prepareRowReveal()` when
+   * an editor starts to wait for its validator, and the editor uses the returned function when a rejected value
+   * reopens it on its record after a sort moved the record to another page. The returned function shows the
+   * record's page only while the page shown is still the one shown when the wait started: a page the user moved
+   * to meanwhile is kept, and the editor closes. A plain selection of a row on another page does not ask, and keeps
+   * working as before.
+   *
+   * @returns {Function} Takes a visual row and returns whether the page changed.
+   */
+  #prepareRowReveal = (): ((visualRow: number) => boolean) => {
+    const pageAtStart = this.#currentPage;
+
+    return (visualRow: number): boolean => {
+      if (!this.enabled || this.#currentPage !== pageAtStart) {
+        return false;
+      }
+
+      const page = this.#getPageOfRow(visualRow);
+
+      if (page === null || page === this.#currentPage) {
+        return false;
+      }
+
+      this.setPage(page);
+
+      return this.#currentPage === page;
+    };
   };
 
   /**

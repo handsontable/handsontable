@@ -19,6 +19,7 @@ import type { FocusGridManager as FocusManagerInstance } from '../focusManager/g
 import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusManager/scopeManager';
 import type { LayoutManager } from './layout';
 import type { MinimumSizes } from './minimumSizes';
+import type { TrackedRecordHandle } from './waitingRecords';
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { default as DataSourceInstance } from '../dataMap/dataSource';
 import type { default as MetaManagerInstance } from '../dataMap/metaManager';
@@ -180,6 +181,7 @@ export interface HotInstance {
   getVisualRowById(id: unknown): number | null;
   getPhysicalRowById(id: unknown): number | null;
   getRowIdAtPhysicalRow(physicalRow: number): unknown;
+  getPhysicalRowOfChange(change: readonly unknown[]): number | null;
   getRowIds(rows?: number[]): unknown[];
   getVisualRowsByIds(ids: unknown[]): Array<number | null>;
   getPhysicalRowsByIds(ids: unknown[]): Array<number | null>;
@@ -352,9 +354,14 @@ export interface HotInstance {
   _releasePlugin(pluginKey: string, requirer: object): void;
   _isPluginRequired(pluginKey: string): boolean;
   _getWaitingChangeSets(): Array<{ changes: CellChange[], source: string | undefined }>;
+  _trackRecord(visualRow: number): TrackedRecordHandle | null;
+  _runAfterValidatorAnswer(callback: () => void): void;
   _addDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   ): void;
+  _addRowRevealer(revealer: () => (visualRow: number) => boolean): void;
+  _removeRowRevealer(revealer: () => (visualRow: number) => boolean): void;
+  _prepareRowReveal(): (visualRow: number) => boolean;
   _removeDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   ): void;

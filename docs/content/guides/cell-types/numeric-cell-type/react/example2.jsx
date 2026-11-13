@@ -26,6 +26,11 @@ const ExampleComponent = () => {
     }
 
     const [row, prop] = changes[changes.length - 1];
+
+    if (row === null) {
+      return;
+    }
+
     const column = prop;
     const value = this.getDataAtCell(row, column);
     const label = column === 1 ? 'Default' : 'preserveNumericLiteral';

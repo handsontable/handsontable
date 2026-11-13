@@ -4,7 +4,7 @@ import { shallow } from "@liveblocks/client";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";
 import { textRenderer } from "handsontable/renderers";
-import type { CellChange, ChangeSource } from "handsontable";
+import type { AppliedCellChange, ChangeSource } from "handsontable";
 import {
   useMutation,
   useOthersListener,
@@ -42,18 +42,21 @@ export function Table() {
 
   // Update the grid when a cell is changed
   const afterChange = useCallback(
-    (changes: CellChange[] | null, source: ChangeSource) => {
+    (changes: AppliedCellChange[] | null, source: ChangeSource) => {
       if (!changes || source === "loadData") {
         return;
       }
 
-      for (const [row, prop, , newVal] of changes) {
-        if (typeof prop !== "number") {
+      for (const change of changes) {
+        const [, prop, , newVal] = change;
+        const physicalRow = hotRef.current?.hotInstance?.getPhysicalRowOfChange(change) ?? null;
+
+        if (physicalRow === null || typeof prop !== "number") {
           continue;
         }
 
         updateCell(
-          row,
+          physicalRow,
           prop,
           newVal === null || newVal === undefined ? "" : String(newVal)
         );

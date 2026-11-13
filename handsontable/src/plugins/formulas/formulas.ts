@@ -7449,8 +7449,16 @@ export class Formulas extends BasePlugin {
 
     const engine = this.engine!;
     const dependentCells = this.#writeOwnSheet(engine, () => runEngineBatch(engine, () => {
-      changes.forEach(([visualRow, prop, oldValue, newValue]) => {
+      changes.forEach((change) => {
+        const [visualRow, prop, oldValue, newValue] = change;
+
         if (typeof prop !== 'string' && typeof prop !== 'number') {
+          return;
+        }
+
+        if (visualRow === null) {
+          this.#writeTrimmedRecordChange(change, writtenCells, changedCells);
+
           return;
         }
 
@@ -7496,6 +7504,52 @@ export class Formulas extends BasePlugin {
     }
 
     return { dependentCells, changedCells, writtenCells };
+  }
+
+  /**
+   * Writes into the engine a change whose row reads `null`: a change that waited for its validator and landed
+   * on a record a trimming map (a filter, a collapse) took out of the visual space meanwhile. The engine keeps
+   * trimmed rows, so the record is addressed by its physical row (`getPhysicalRowOfChange()`).
+   *
+   * @param {Array} change The change.
+   * @param {Array} writtenCells Collects the cells written.
+   * @param {Array} changedCells Collects the addresses written.
+   */
+  #writeTrimmedRecordChange(change: CellChange, writtenCells: WrittenCell[], changedCells: unknown[]) {
+    const [, prop, oldValue, value] = change;
+    const physicalRow = this.hot.getPhysicalRowOfChange(change);
+    const visualColumn = this.hot.propToCol(prop as string | number);
+    const physicalColumn = visualColumn === null ? null : this.hot.toPhysicalColumn(visualColumn);
+
+    if (physicalRow === null || visualColumn === null || physicalColumn === null) {
+      return;
+    }
+
+    const address = {
+      row: this.rowAxisSyncer!.getHfIndexFromPhysicalIndex(physicalRow),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      sheet: this.sheetId,
+    };
+
+    if (!this.engine!.isItPossibleToSetCellContents(address)) {
+      return;
+    }
+
+    const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+      physicalRow, physicalColumn, { visualRow: physicalRow, visualColumn },
+    );
+    let newValue = this.#getValueGetterValue(physicalRow, physicalColumn, value);
+
+    if (typeof newValue === 'string') {
+      newValue = this.#escapeEngineBoundValue(newValue, cellMeta);
+    }
+
+    this.engine!.setCellContents(address, newValue);
+    this.#recordSyncedCell(physicalRow, visualColumn, newValue);
+    writtenCells.push({
+      address, physicalRow, physicalColumn, visualRow: physicalRow, visualColumn, oldValue, writtenContent: undefined,
+    });
+    changedCells.push({ address });
   }
 
   /**

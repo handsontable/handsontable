@@ -145,6 +145,11 @@ const hot = new Handsontable(container, {
 
     for (const change of changes) {
       const [row, prop] = change;
+
+      if (row === null) {
+        continue;
+      }
+
       const col =
         typeof prop === "string" ? this.propToCol(prop) : (prop as number);
 

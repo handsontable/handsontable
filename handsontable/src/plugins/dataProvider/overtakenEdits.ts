@@ -1,6 +1,6 @@
 import { isRootInstance } from '../../utils/rootInstance';
 import { isValidatorCorrection } from '../../core/writeLedger';
-import { readRowIdOrUndefined } from './query/crud';
+import { readRowIdAtPhysicalRowOrUndefined, readRowIdOrUndefined } from './query/crud';
 import type { HotInstance } from '../../core/types';
 import type { CellChange } from '../../settings';
 import type { RowIdOption } from '../../utils/rowId';
@@ -135,7 +135,9 @@ export class OvertakenEdits {
   /**
    * Called right before a refetch that follows a save loads its rows. Every set core still lists as waiting for
    * its validators will be dropped by the load, so the row id each change of a set DataProvider saves addresses is
-   * read now, while the rows it was made on are still loaded. An editor that waits for its validator is closed by
+   * read now, while the rows it was made on are still loaded. The id is read from the record core tracks for the
+   * change (`getPhysicalRowOfChange()`), not from the visual row it was made at: a row move or an insert made while
+   * it waits leaves another record there. An editor that waits for its validator is closed by
    * the load; its cell and the text the user typed are kept with the set it saved.
    *
    * @param {Function} isSaved Tells whether DataProvider saves a set of the given changes and source.
@@ -152,7 +154,9 @@ export class OvertakenEdits {
       let editorChange: CellChange | undefined;
 
       changes.forEach((change) => {
-        const rowId = this.#readRowId(change[0]);
+        const rowId = readRowIdAtPhysicalRowOrUndefined(
+          this.#hot, this.#getRowIdOption(), this.#hot.getPhysicalRowOfChange(change),
+        );
 
         rowIds.set(change, rowId);
         this.#addOvertakenCell(rowId, change[1]);

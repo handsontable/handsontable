@@ -150,6 +150,27 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(hot.getDataAtCell(2, 0)).toBe(3);
   });
 
+  it('records a write-back into a record a trim took out of the visual rows, so the next resync writes nothing',
+    async() => {
+      const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']], { trimRows: true });
+      const sheet = hot.getPlugin('formulas').sheetId;
+
+      hot.setDataAtCell(1, 0, 5);
+      hot.getPlugin('trimRows').trimRow(1);
+      hot.updateSettings({});
+
+      await waitForValidation();
+
+      expect(hot.getSourceDataAtCell(1, 0)).toBe(5);
+      expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(5);
+
+      const sheetWrites = jest.spyOn(engine, 'setSheetContent');
+
+      hot.updateSettings({});
+
+      expect(sheetWrites).not.toHaveBeenCalled();
+    });
+
   it('writes a change to a cell without a validator once, before the validated one of its set', async() => {
     // `allowInvalid: false`: the Core can reject A's change, so it waits for the apply.
     const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']], { columns: REJECTING_COLUMNS });
@@ -179,6 +200,25 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(engine.getCellFormula({ sheet, row: 2, col: 1 })).toBe('=SUM(A1:A2)');
     expect(hot.getDataAtCell(2, 1)).toBe(3);
     expect(hot.getDataAtCell(2, 0)).toBe(4);
+  });
+
+  it('writes a validated change into the engine when a trim took its record out of the visual rows', async() => {
+    const engine = buildGrid([[1, 'a'], [2, '=A2*2'], [null, 'c']], {
+      columns: REJECTING_COLUMNS,
+      trimRows: true,
+    });
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell(1, 0, 5);
+    hot.getPlugin('trimRows').trimRow(1);
+
+    expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(2);
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(1, 0)).toBe(5);
+    expect(engine.getCellValue({ sheet, row: 1, col: 0 })).toBe(5);
+    expect(engine.getCellValue({ sheet, row: 1, col: 1 })).toBe(10);
   });
 
   it('drops the change from both sheets when the sheet switched while the change was validated', async() => {

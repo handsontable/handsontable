@@ -119,7 +119,7 @@ export class AppComponent {
     },
     afterChange(
       this: Handsontable,
-      changes: Handsontable.CellChange[] | null,
+      changes: Handsontable.AppliedCellChange[] | null,
       source: Handsontable.ChangeSource,
     ): void {
       if (!changes || (source as string) === SUMMARY_SOURCE) {

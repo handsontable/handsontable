@@ -115,13 +115,13 @@ Everything about that machinery is load-bearing:
   has written or dropped every change set an editor save made that waited for its validators at press time
   (snapshot of `getWaitingEditorSaveChangeSets()` from `src/editors/baseEditor/editorSaveChangeSets.ts`, re-read
   per answer; BaseEditor marks the sets its save makes, at the save). Core applies a Ctrl+Enter fill only once every cell of it
-  answered, after the edited cell's own answer ended the editor's wait, so a sort on that answer moved the rows
-  and core then wrote the rest of the fill by visual row onto other records. The sets come from the grid, never
+  answered, after the edited cell's own answer ended the editor's wait, so a sort on that answer ordered the
+  rows by the old values of the rest of the fill. The sets come from the grid, never
   from an editor: the press's selection change has already prepared the clicked column's editor (another
   instance when its class differs, e.g. a `numeric` column B), and a later save on the same editor must not make
   the sort forget a set. Only an editor save's sets count, and sets made after the press do not. An API write
-  (`setDataAtCell()` with an async validator) does not hold the sort, and lands by visual row
-  after it (known limit); waiting for it let a validator that never answers block every later header sort until
+  (`setDataAtCell()` with an async validator) does not hold the sort: it lands on its record after the sort,
+  which ordered the rows by the old value (known limit); waiting for it let a validator that never answers block every later header sort until
   `loadData()`. A set leaves core's list right before its last answer's
   `postAfterValidate`, so the listener sees it gone in that same run. A press takes a wait when the editor
   validates or any set waits. It reads the validator from `activeEditor.cellProperties`, the meta the save
@@ -130,8 +130,8 @@ Everything about that machinery is load-bearing:
   whose validator never answers, or throws asynchronously, never leaves core's list, so every header sort
   pressed while it waits stays queued until the set is written or dropped (`loadData()`). That holds also when
   the editor is already closed: a Ctrl+Enter fill whose edited cell answered closes the editor while another
-  filled cell still waits, and each later press snapshots the same set again. Sorting earlier would let core
-  write the late cell by visual row onto another record. Once the set is written, the queued sorts run once
+  filled cell still waits, and each later press snapshots the same set again. Sorting earlier would order the
+  rows by the late cell's old value. Once the set is written, the queued sorts run once
   each, in press order. Pinned by "should keep every later header sort queued while a closed editor's fill
   waits for one cell (known limit)". The listener sits at
   `orderIndex: Number.MAX_SAFE_INTEGER` as a defensive measure, so an editor listener added after it would
@@ -141,8 +141,7 @@ Everything about that machinery is load-bearing:
   be observed today. An unrelated
   validation that answers first (a Formulas dependent cell, a `validateCells()` batch, the batch's validation
   of the edited cell's old value) leaves the editor `WAITING` and the rows in place. Waiting on the first
-  answer of any cell, as before, sorted the rows before the edit landed, and core wrote the edit by visual row
-  onto another record. Do not match the cell here: the editor already owns the rules (the edited cell by its
+  answer of any cell, as before, sorted the rows before the edit landed, by the old value. Do not match the cell here: the editor already owns the rules (the edited cell by its
   meta's `visualRow` and `prop`, the sources its save validated with, any answer when its save validated no
   cell yet, `acceptsAnyAnswer`), and a copy would drift from them. So the sort follows the editor on every
   edge: an unchanged edit waits for its stored value's answer; a save a `beforeChange` veto drops cancels the
@@ -182,9 +181,10 @@ Everything about that machinery is load-bearing:
   one waiting through `loadData()` sorted the loaded rows. `updateData()` keeps the sorts on purpose: the wrappers
   call it with the same records while an edit waits, and dropping there would lose the click. The plugin cannot
   tell the same records from other ones, so an `updateData()` with other records keeps them too and they sort
-  those records, the same way core still writes the waiting edit into them. Core still writes a waiting change
-  by visual row, so this wait is what keeps a header sort from moving another record under it; once core keeps
-  a waiting change on its record, the wait can go.
+  those records, the same way core still writes the waiting edit into them. Core keeps a waiting change on its
+  record, so a header sort during the wait no longer moves another record under it; the wait stays because
+  ColumnSorting never sorts again after an edit, and a sort made before the value lands orders the rows by the
+  old value.
 
 `applyHeaderClickSort(press)` is the extension seam: MultiColumnSorting overrides it to build a different
 sort config for the same gesture without repeating any of the click-versus-drag handling.

@@ -821,8 +821,8 @@ export class ColumnSummary extends BasePlugin {
         return;
       }
 
-      const [visualRow, prop] = change;
-      const physicalRow = this.hot.toPhysicalRow(visualRow as number);
+      const [, prop] = change;
+      const physicalRow = this.hot.getPhysicalRowOfChange(change);
       const row = physicalRow === null ? undefined : data[physicalRow];
 
       if (isDataRow(row) && (typeof prop === 'string' || typeof prop === 'number' || typeof prop === 'function')) {

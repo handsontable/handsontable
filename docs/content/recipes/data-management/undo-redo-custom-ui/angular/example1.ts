@@ -43,7 +43,7 @@ export class AppComponent {
       { data: 'status', type: 'text', width: 130 },
       { data: 'owner', type: 'text', width: 120 },
     ],
-    afterChange: (_changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
+    afterChange: (_changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) => {
       if (source !== 'loadData') {
         this.updateButtonsState();
       }
