@@ -88,6 +88,7 @@
     "fs-extra": "^4.0.2",
     "globals": "^17.13.0",
     "handsontable": "^18.0.0",
+    "hyperformula": "^3.0.0",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "jest-preset-angular": "^17.0.3",

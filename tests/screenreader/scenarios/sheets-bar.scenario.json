@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "id": "sheets-bar",
+  "group": "status",
+  "surface": "The sheets bar: its buttons, the tab strip, a switch to another sheet and its announcement, the sheet menu, and a rename.",
+  "page": "sheets-bar",
+  "start": "page",
+  "criteria": ["2.1.1", "2.4.3", "4.1.2", "4.1.3"],
+  "setup": [{"selectCell": [0, 1]}],
+  "steps": [
+    {
+      "id": "tab-add-sheet",
+      "action": {"press": "Tab"},
+      "expect": [["add sheet"]],
+      "note": "Tab leaves the grid for the bar's first control, the add sheet button. VoiceOver with WebKit said nothing on this first key, as on the first key of other scenarios."
+    },
+    {
+      "id": "tab-all-sheets",
+      "action": {"press": "Tab"},
+      "expect": [["all sheets"]],
+      "note": "The all sheets button, which opens a menu of the sheets."
+    },
+    {
+      "id": "tab-active-sheet",
+      "action": {"press": "Tab"},
+      "expect": [["alpha"]],
+      "note": "The strip is one Tab stop, on the active sheet's tab, `Alpha`."
+    },
+    {
+      "id": "arrow-right-sheet",
+      "action": {"press": "ArrowRight"},
+      "expect": [["beta"]],
+      "note": "ArrowRight moves along the strip to the next tab, `Beta`, without switching to it."
+    },
+    {
+      "id": "enter-switch-sheet",
+      "action": {"press": "Enter"},
+      "expect": [["sheet beta activated"]],
+      "note": "Enter on an inactive tab switches to its sheet, and the plugin announces it (`Sheet Beta activated`, assertive)."
+    },
+    {
+      "id": "enter-sheet-menu",
+      "action": {"press": "Enter"},
+      "expect": [["rename"]],
+      "note": "Enter on the active tab opens its sheet menu, with the focus on its first item, Rename."
+    },
+    {
+      "id": "enter-rename",
+      "action": {"press": "Enter"},
+      "expect": [["sheet name"], ["beta"]],
+      "note": "Rename opens the field over the tab, named `Sheet name`, holding the name selected. Finding: VoiceOver with WebKit reads only the value, `Beta`, not the field's name."
+    },
+    {
+      "id": "type-name",
+      "action": {"type": "Budget"},
+      "expect": [],
+      "note": "Typing replaces the selected name. Nothing is required: a reader may echo the keys."
+    },
+    {
+      "id": "enter-commit-rename",
+      "action": {"press": "Enter"},
+      "expect": [["budget"]],
+      "note": "Enter commits the name and puts the focus back on the tab, now `Budget`. The plugin announces only a rejected or unchanged name."
+    },
+    {
+      "id": "shift-tab-all-sheets",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["all sheets"]],
+      "note": "Back along the bar."
+    },
+    {
+      "id": "shift-tab-add-sheet",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["add sheet"]],
+      "note": "The add sheet button."
+    },
+    {
+      "id": "shift-tab-grid",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["b4", "b 4"], ["budget"]],
+      "note": "Shift+Tab goes back into the grid, now showing the Budget sheet, on its cell `B4`. The grid takes its name from the active tab, so a reader that names the grid it enters says `Budget`. NVDA with Firefox once said `Beta` here: the rename handed the label back without a change to `aria-labelledby`, so Firefox kept the old name, and the bar now writes the attribute again (`handsontable/src/plugins/sheetsBar/AGENTS.md`)."
+    }
+  ]
+}

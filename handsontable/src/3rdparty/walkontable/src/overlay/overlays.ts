@@ -704,6 +704,14 @@ class Overlays {
   }
 
   /**
+   * Re-binds the listeners that depend on the scrollable elements, leaving the ones on the document
+   * and the window bound.
+   */
+  registerScrollableElementListeners() {
+    this.#nativeScrollInput.registerScrollableElementListeners();
+  }
+
+  /**
    * Register all necessary event listeners.
    */
   registerListeners() {
@@ -914,19 +922,19 @@ class Overlays {
    */
   syncScrollPositions() {
     this.#scrollSync.syncScrollPositions();
-    this.syncInlineEndFreezeLine();
   }
 
   /**
    * Whether each end clone root last got the freeze-line state class, so the DOM is written only when the
-   * state changes (this runs on every scroll event).
+   * state changes (this runs after every draw).
    */
   #freezeLineShared = new Map<Overlay, boolean>();
 
   /**
-   * Toggles `INLINE_END_FREEZE_LINE_SHARED_CLASS` on the three inline-end clone roots: set while the master
-   * draws the freeze line, cleared while the clones' own first-cell border does. Runs after every draw and
-   * on every scroll event; reads go through the geometry reader and a root is written only on a change.
+   * Toggles `INLINE_END_FREEZE_LINE_SHARED_CLASS` on the three inline-end clone roots: set while the row
+   * header draws the freeze line, cleared while the clones' own first-cell border does. The state depends
+   * on the settings only, never on the scroll position, so it runs after every draw; a root is written
+   * only on a change.
    */
   syncInlineEndFreezeLine() {
     const { inlineEndOverlay } = this;

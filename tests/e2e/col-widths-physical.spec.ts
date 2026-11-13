@@ -1,4 +1,4 @@
-import { test } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { ColWidthsPhysicalPage } from '../fixtures/pages/ColWidthsPhysicalPage';
 
 /**
@@ -31,4 +31,29 @@ test.describe('colWidths by physical column index', () => {
       await grid.expectOffset(1, 2, 220);
     });
   }
+
+  test('keeps the widths with their columns when a column is inserted from the context menu and removed', async () => {
+    await grid.goto('array');
+
+    await grid.pickContextMenuItem(0, 1, 'Insert column left');
+
+    // the new column has no width of its own, and B and C keep theirs
+    await grid.expectWidth(0, 100);
+    await grid.expectWidth(1, 50);
+    await grid.expectWidth(2, 160);
+    await grid.expectWidth(3, 220);
+
+    await grid.pickContextMenuItem(0, 0, 'Remove column');
+
+    await grid.expectWidth(0, 50);
+    await grid.expectWidth(1, 160);
+
+    // undo brings A back with its width
+    await grid.undo();
+
+    await grid.expectWidth(0, 100);
+    await grid.expectWidth(1, 50);
+    await grid.expectWidth(2, 160);
+    expect(await grid.declaredArrayIsUntouched()).toBe(true);
+  });
 });

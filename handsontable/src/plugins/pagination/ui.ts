@@ -20,6 +20,21 @@ import type { IconSlotSync } from '../../themes/engine/icons';
  */
 const ICON_SLOT_CLASS = 'ht-page-icon';
 
+/**
+ * The class of the block that holds the body open while there are no rows to draw.
+ *
+ * @type {string}
+ */
+const EMPTY_BODY_RESERVE_CLASS_NAME = 'ht-pagination-placeholder';
+
+/**
+ * The height, in pixels, the body keeps while there are no rows. The same value the
+ * `emptyDataState` placeholder uses, so turning that plugin on does not move the pager.
+ *
+ * @type {number}
+ */
+const EMPTY_BODY_RESERVE_HEIGHT = 150;
+
 const TEMPLATE: TemplateSpec = {
   tag: 'div',
   ref: 'container',
@@ -118,6 +133,19 @@ export class PaginationUI {
    * @type {object}
    */
   #refs: PaginationRefs | null = null;
+  /**
+   * The empty block that keeps the body of a grid with no rows from collapsing.
+   *
+   * @type {HTMLElement | null}
+   */
+  #emptyBodyReserve: HTMLElement | null = null;
+  /**
+   * The table holder the last `syncEmptyBodyReserve()` call named, and whether it asked for the block.
+   * Kept so a change of the pager's visibility can re-apply the block without waiting for a render.
+   *
+   * @type {{ holder: HTMLElement | null, needed: boolean }}
+   */
+  #emptyBodyReserveRequest: { holder: HTMLElement | null; needed: boolean } = { holder: null, needed: false };
   /**
    * The name of the current theme.
    *
@@ -555,6 +583,7 @@ export class PaginationUI {
     }
 
     container.style.display = isSectionVisible ? '' : 'none';
+    this.#applyEmptyBodyReserve();
   }
 
   /**
@@ -571,8 +600,51 @@ export class PaginationUI {
       }
     }
 
+    this.#emptyBodyReserve?.remove();
+    this.#emptyBodyReserve = null;
+    this.#emptyBodyReserveRequest = { holder: null, needed: false };
     this.#refs?.container.remove();
     this.#refs = null;
+  }
+
+  /**
+   * Keeps an empty block in the table holder while the grid has no rows to draw, so a root whose
+   * height is free does not collapse to its column headers and leave the pager touching them.
+   * Removes the block as soon as it is not needed, and does not add it while every section of the
+   * pager is hidden, because then there is no pager to separate from the headers. A later change
+   * of the pager's visibility applies the same request again.
+   *
+   * @param {HTMLElement} holder The table holder.
+   * @param {boolean} needed Whether the grid should reserve the body space now.
+   */
+  syncEmptyBodyReserve(holder: HTMLElement, needed: boolean) {
+    this.#emptyBodyReserveRequest = { holder, needed };
+    this.#applyEmptyBodyReserve();
+  }
+
+  /**
+   * Adds or removes the empty block according to the last request and the pager's visibility.
+   */
+  #applyEmptyBodyReserve() {
+    const { holder, needed } = this.#emptyBodyReserveRequest;
+
+    if (!holder || !needed || this.#refs?.container.style.display === 'none') {
+      this.#emptyBodyReserve?.remove();
+      this.#emptyBodyReserve = null;
+
+      return;
+    }
+
+    if (!this.#emptyBodyReserve) {
+      this.#emptyBodyReserve = holder.ownerDocument.createElement('div');
+      this.#emptyBodyReserve.classList.add(EMPTY_BODY_RESERVE_CLASS_NAME);
+      this.#emptyBodyReserve.style.width = '100%';
+      this.#emptyBodyReserve.style.height = `${EMPTY_BODY_RESERVE_HEIGHT}px`;
+    }
+
+    if (this.#emptyBodyReserve.parentElement !== holder) {
+      holder.appendChild(this.#emptyBodyReserve);
+    }
   }
 }
 

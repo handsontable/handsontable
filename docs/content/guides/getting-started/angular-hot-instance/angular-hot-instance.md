@@ -14,6 +14,7 @@ angular:
 searchCategory: Guides
 onlyFor: angular
 category: Getting started
+menuTag: updated
 ---
 Use @ViewChild to get a reference to the Handsontable instance from your Angular component, then call API methods programmatically.
 
@@ -31,6 +32,40 @@ The following example implements the [`HotTableComponent`](@/guides/getting-star
 @[code](@/content/guides/getting-started/angular-hot-instance/angular/example1.html)
 
 :::
+
+## Call the API outside Angular's zone
+
+An API call can add DOM event listeners, for example when [`updateSettings()`](@/api/core.md#updatesettings) changes how the grid scrolls. A listener added inside Angular's zone runs change detection each time its event fires. To keep those events out of change detection, call the API through `NgZone.runOutsideAngular()`:
+
+```ts
+import { Component, NgZone, ViewChild, inject } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  selector: 'app-example',
+  template: `
+    <button (click)="enablePagination()">Enable pagination</button>
+    <hot-table [settings]="gridSettings"></hot-table>
+  `,
+})
+export class AppComponent {
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  private readonly ngZone = inject(NgZone);
+
+  readonly gridSettings: GridSettings = { height: 300 };
+
+  enablePagination() {
+    this.ngZone.runOutsideAngular(() => {
+      this.hotTable.hotInstance?.updateSettings({ pagination: true });
+    });
+  }
+}
+```
+
+Settings passed through the `[settings]` input already run outside Angular's zone.
 
 ## Result
 

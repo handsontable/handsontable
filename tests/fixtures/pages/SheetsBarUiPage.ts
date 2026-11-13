@@ -112,6 +112,40 @@ export class SheetsBarUiPage {
   }
 
   /**
+   * The grid's root element, which the bar names after the active sheet.
+   *
+   * @returns {Locator} The grid.
+   */
+  grid(): Locator {
+    return this.page.getByRole('treegrid');
+  }
+
+  /**
+   * Starts recording every write of `aria-labelledby` on the grid's root, by the value the
+   * attribute held before it: a removal records the `id`, and setting it back records `null`.
+   */
+  async recordGridNameWrites(): Promise<void> {
+    await this.page.evaluate(() => {
+      const root = (window as any).hot.rootElement as HTMLElement;
+      const writes: (string | null)[] = [];
+
+      (window as any).htGridNameWrites = writes;
+      new MutationObserver((records) => {
+        records.forEach(record => writes.push(record.oldValue));
+      }).observe(root, { attributes: true, attributeFilter: ['aria-labelledby'], attributeOldValue: true });
+    });
+  }
+
+  /**
+   * Reads what `recordGridNameWrites()` recorded so far.
+   *
+   * @returns {Promise<(string | null)[]>} The value before each write, in order.
+   */
+  async gridNameWrites(): Promise<(string | null)[]> {
+    return this.page.evaluate(() => [...(window as any).htGridNameWrites]);
+  }
+
+  /**
    * Shows the container a `hidden` build put the grid in.
    */
   async showHost(): Promise<void> {

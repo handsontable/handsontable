@@ -954,7 +954,7 @@ type NamedExpressionPredicate = (name: string, expression: string) => boolean;
  * the result is about to be applied to.
  *
  * Handsontable resolves `layoutDirection` once, while the instance is built, and `metaSchema.ts`
- * documents that a later `updateSettings` is ignored, so the applier cannot follow the workbook's
+ * documents that a later `updateSettings` throws, so the applier cannot follow the workbook's
  * direction. Recording the mismatch here keeps it inside the plugin's one warning per call; nothing
  * is recorded when the result is not applied. The full reasoning is in this plugin's `AGENTS.md`.
  */
@@ -1463,6 +1463,13 @@ export class ImportFile extends BasePlugin {
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
     const formulasEnabled = formulasPlugin?.enabled === true;
+
+    // The mapping reads named expression values from the engine, which it refuses while the Formulas plugin
+    // holds its recalculation (`batchEvaluation`).
+    if (formulasPlugin?.enabled) {
+      formulasPlugin.flushEngineEvaluation();
+    }
+
     // Scoped to the import's own tokens, so the warning and the `license:` entries never name an
     // export-only token (`xlsx:export`, `xlsx:number_formats`).
     const entitlement = scopeXlsxEntitlement(getXlsxEntitlement(this.hot), IMPORT_FILE_CAPABILITY_IDS);

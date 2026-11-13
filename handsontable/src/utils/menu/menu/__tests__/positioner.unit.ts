@@ -223,4 +223,40 @@ describe('Positioner', () => {
       expect(topAfterOpeningAt(new Positioner(false), 123)).toBe(124);
     });
   });
+
+  describe('keeping only the vertical edges of a menu inside the viewport', () => {
+    it('should leave a menu that fits below the point where the below placement put it', () => {
+      layOutVertically(200);
+
+      expect(topAfterOpeningAt(new Positioner(false, true), 100)).toBe(101);
+    });
+
+    it('should pull a menu that would end below the viewport up to the bottom edge, not above the point', () => {
+      layOutVertically(200);
+
+      // The keeping mode puts this menu above the point (150); this one stays below it and is pulled up.
+      expect(topAfterOpeningAt(new Positioner(false, true), 350)).toBe(VIEWPORT_HEIGHT - 200);
+    });
+
+    it('should keep the top edge of a menu taller than the viewport', () => {
+      layOutVertically(542);
+
+      expect(topAfterOpeningAt(new Positioner(false, true), 27)).toBe(0);
+    });
+
+    it('should measure the viewport from the window\'s scroll offset', () => {
+      layOutVertically(372, 1000);
+
+      expect(topAfterOpeningAt(new Positioner(false, true), 123)).toBe(1000 + VIEWPORT_HEIGHT - 372);
+    });
+
+    it('should not move the menu sideways', () => {
+      layOutVertically(200);
+      // Wider than the viewport: the keeping mode would move it to the left edge.
+      Object.defineProperty(container, 'offsetWidth', { value: VIEWPORT_WIDTH + 80, configurable: true });
+
+      expect(leftAfterOpeningAt(new Positioner(false, true), 150)).toBe(150);
+      expect(leftAfterOpeningAt(new Positioner(true), 150)).toBe(0);
+    });
+  });
 });

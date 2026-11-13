@@ -41,17 +41,22 @@ export default class A11yChecksReporter implements Reporter {
 
   #startedAt = new Date();
 
-  // `checks` and `outputDir` exist for `e2e/a11y-checks-reporter.spec.ts`, which proves the reporter on
-  // synthetic projects; `playwright.a11y-checks.config.ts` passes neither.
+  // `checks` and `outputDir` are a registry and a folder of their own: `playwright.a11y-sites.config.ts` passes a
+  // site's checks and folder, and `e2e/a11y-checks-reporter.spec.ts` proves the reporter on synthetic projects;
+  // `playwright.a11y-checks.config.ts` passes neither. `baseUrl` is the deploy a site check read, which the
+  // documents carry for the findings ledger.
   #checks: Record<string, { title: string; criteria: string[]; triage?: boolean }>;
 
   #outputDir: string;
 
-  constructor(options: { checks?: Record<string, { title: string; criteria: string[]; triage?: boolean }>; outputDir?: string } = {}) {
+  #baseUrl: string | undefined;
+
+  constructor(options: { checks?: Record<string, { title: string; criteria: string[]; triage?: boolean }>; outputDir?: string; baseUrl?: string } = {}) {
     const packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
     this.#checks = options.checks ?? EVIDENCE_CHECKS;
     this.#outputDir = options.outputDir ?? path.join(packageDir, 'test-results/a11y-checks');
+    this.#baseUrl = options.baseUrl;
   }
 
   onBegin(_config: FullConfig, suite: Suite): void {
@@ -60,7 +65,7 @@ export default class A11yChecksReporter implements Reporter {
   }
 
   async onEnd(_result: FullResult): Promise<void> {
-    const run = runMetadata(this.#startedAt);
+    const run = { ...runMetadata(this.#startedAt), ...(this.#baseUrl ? { baseUrl: this.#baseUrl } : {}) };
     const summaries: string[] = [];
 
     mkdirSync(this.#outputDir, { recursive: true });

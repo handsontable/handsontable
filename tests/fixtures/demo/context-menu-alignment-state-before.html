@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Context menu alignment stateBefore e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    DEV-857. The `stateBefore` argument of `beforeCellAlignment` used to hold the cell's whole
+    `className`, so a custom class such as `htBlue` showed up in a payload documented as alignment state.
+    Column 0 holds one case per row, set through the `cell` option (which `cells()` would re-apply over the
+    alignment the menu writes, hiding the result):
+      row 0  'htBlue'                 custom class only
+      row 1  'htBlue htCenter'        custom class beside an alignment class
+      row 2  ['htBlue', 'htTop']      array form of className
+      row 3  (none)                   control: no class at all
+    Row 4, column 1 is a numeric cell: `numericRenderer` adds `htRight` to its `className` and the cell
+    shows right-aligned, but that class is the renderer's, not the user's.
+    `window.alignmentLog` and `window.undoLog` collect the `stateBefore` each hook saw, as
+    `[row, [value-or-null, ...]]` pairs, `null` standing for `undefined`.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    window.alignmentLog = [];
+    window.undoLog = [];
+    window.mutateStateBefore = false;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // A numeric cell gets `numericRenderer` from its type, which would drop the test id the shared renderer
+    // stamps, so this one runs the numeric renderer first and stamps the id after it.
+    const numericTestIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.NumericRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Plain data, so the page object reads the payload without holding a reference to the hook's own object.
+    // `Array.from` walks the holes of a sparse row, and `?? null` keeps `''` apart from `undefined`.
+    const serializeState = (stateBefore) => Object.keys(stateBefore)
+      .map(row => [Number(row), Array.from(stateBefore[row], value => value ?? null)]);
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. The message is stamped on the container and the page object rethrows it.
+    try {
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 5 }, (_, row) => [`A${row}`, row === 4 ? 42 : `B${row}`, `C${row}`]),
+        renderer: testIdRenderer,
+        rowHeaders: true,
+        colHeaders: true,
+        width: 400,
+        height: 300,
+        contextMenu: true,
+        cell: [
+          { row: 0, col: 0, className: 'htBlue' },
+          { row: 1, col: 0, className: 'htBlue htCenter' },
+          { row: 2, col: 0, className: ['htBlue', 'htTop'] },
+          { row: 4, col: 1, type: 'numeric', renderer: numericTestIdRenderer },
+        ],
+        beforeCellAlignment(stateBefore) {
+          window.alignmentLog.push(serializeState(stateBefore));
+
+          // A listener that edits the snapshot it receives, switched on by the page object.
+          if (window.mutateStateBefore) {
+            Object.keys(stateBefore).forEach((row) => { delete stateBefore[row]; });
+          }
+        },
+        afterUndo(action) {
+          if (action.actionType === 'cell_alignment') {
+            window.undoLog.push(serializeState(action.stateBefore));
+          }
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+  </script>
+</body>
+</html>

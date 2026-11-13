@@ -22,6 +22,7 @@
  * `tests/AGENTS.md`, "A11y: the checks beyond axe" and "A11y: the verdict of a check run". No I/O in here.
  */
 import { escapeMarkdownText as escape, isSafeLink } from './a11y-baseline.mjs';
+import { namedSubset } from './a11y-subset.mjs';
 import { annotationLevel, capAnnotations, renderVerdict, verdictOf, verdictTitle } from './a11y-verdict.mjs';
 
 export const EVIDENCE_SCHEMA = 1;
@@ -208,7 +209,8 @@ export const EVIDENCE_CHECKS = Object.freeze({
 });
 /**
  * Which checks a run covers: `pull-request` (the short suite: the checks with `pullRequest`) or
- * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check.
+ * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check, and
+ * a run with `A11Y_CHECKS` covers the checks it names instead (`checksForRun()`).
  */
 export const CHECK_SUITES = ['pull-request', 'nightly'];
 
@@ -225,6 +227,23 @@ export function checksForSuite(suite, checks = EVIDENCE_CHECKS) {
   }
 
   return Object.entries(checks).filter(([, check]) => suite !== 'pull-request' || check.pullRequest === true).map(([id]) => id);
+}
+
+/**
+ * The checks a run covers: the ones `A11Y_CHECKS` names (a subset run, the A11y nightly's `checks`
+ * input: comma-separated, no spaces, each entry a check id exactly, `namedSubset()`), otherwise the
+ * suite `HOT_A11Y_CHECKS_SUITE` picks. The config builds its projects from this, so an entry the
+ * registry does not know is refused before a test runs; the report script expects a document of each,
+ * and the run verdict a check run of each, read through the same function.
+ *
+ * @param {Record<string, string|undefined>} env The environment (`A11Y_CHECKS`, `HOT_A11Y_CHECKS_SUITE`).
+ * @param {Record<string, {pullRequest?: boolean}>} [checks] The registry; defaults to `EVIDENCE_CHECKS`.
+ * @returns {string[]} The check ids, in registry order.
+ */
+export function checksForRun(env, checks = EVIDENCE_CHECKS) {
+  const suite = checksForSuite(env.HOT_A11Y_CHECKS_SUITE, checks);
+
+  return namedSubset(env.A11Y_CHECKS, Object.keys(checks), { label: 'A11Y_CHECKS', noun: 'check' }) ?? suite;
 }
 
 /**
@@ -392,7 +411,8 @@ export function validatePart(part, { triage = false } = {}) {
  * @param {object[]} input.parts The evidence parts of the tests that measured their target.
  * @param {Array<{title: string, target: object|null, error: string, flaky?: boolean}>} [input.failures]
  *   The tests that did not measure (`error`), and the ones that measured only on a retry (`flaky`).
- * @param {object} [input.run] The run's metadata: commit, ref, runUrl, startedAt, durationMs.
+ * @param {object} [input.run] The run's metadata: commit, ref, runUrl, startedAt, durationMs, and for a site check the
+ *   deploy it read (`baseUrl`).
  * @param {string[]} [input.problems] Tooling problems found while reading.
  * @param {Record<string, {title: string, criteria: string[], triage?: boolean}>} [input.checks] The registry; defaults to `EVIDENCE_CHECKS`.
  * @returns {object} The evidence document.
@@ -515,6 +535,9 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
       runUrl: run.runUrl ?? null,
       startedAt: run.startedAt ?? null,
       durationMs: run.durationMs ?? null,
+      // A site check's documents say which deploy they read (`siteBaseUrl()` of the site config), so the findings
+      // ledger records the develop deploy's only; a product check's carry no such field.
+      ...(run.baseUrl ? { baseUrl: run.baseUrl } : {}),
       project: check,
       browser: environment.browser ?? null,
       browserVersion: environment.browserVersion ?? null,
@@ -745,9 +768,14 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
  * @param {'audit'|'change'} [input.scope] What the run counts (`countingScope()` of `lib/a11y-verdict.mjs`).
  * @param {(source: string, check: string, finding: object) => boolean} [input.tracked] Whether a finding's
  * cluster has a tracker (`trackedBy()` of `lib/a11y-issues.mjs`); read on a change run only.
+ * @param {string} [input.pagesFile] The page list a finding's annotation goes on: the product catalog, or a site's.
+ * @param {string} [input.source] The finding source the catalog files the check's findings under: `checks` for a
+ * product check, `<site>-checks` for a site check.
  * @returns {{name: string, conclusion: 'success'|'neutral'|'failure', title: string, summary: string, annotations: object[]}} The payload.
  */
-export function buildEvidenceCheckRun({ doc, check, problems = [], pages = new Map(), runUrl, artifactUrl, scope = 'change', tracked = () => false }) {
+export function buildEvidenceCheckRun({
+  doc, check, problems = [], pages = new Map(), runUrl, artifactUrl, scope = 'change', tracked = () => false, pagesFile = PAGES_FILE, source = 'checks',
+}) {
   const name = checkRunName(doc?.check ?? check ?? 'unknown');
 
   if (!doc || problems.length > 0) {
@@ -774,11 +802,11 @@ export function buildEvidenceCheckRun({ doc, check, problems = [], pages = new M
     finding,
     severity: finding.severity,
     warningOnly: finding.severity !== 'advisory'
-      && (!atTargetLevel(finding) || (scope === 'change' && Boolean(tracked('checks', doc.check, finding)))),
+      && (!atTargetLevel(finding) || (scope === 'change' && Boolean(tracked(source, doc.check, finding)))),
   }));
   const verdict = verdictOf({ findings, tooling });
   const { annotations, omitted } = capAnnotations(findings.map(({ finding, severity, warningOnly }) => {
-    const path = finding.file ?? PAGES_FILE;
+    const path = finding.file ?? pagesFile;
     const line = finding.line ?? (finding.file ? 1 : pages.get(finding.page) ?? 1);
 
     return {

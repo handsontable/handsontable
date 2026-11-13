@@ -99,4 +99,25 @@ describe('intlDatetimeRenderer valueFormatter', () => {
     );
     expect(valueFormatter('2024-12-25T14:30:00', cellProperties)).not.toBe('14:30');
   });
+
+  it('renders year 0000 differently from year 0001 and keeps the time', () => {
+    const cellProperties = {
+      dateTimeFormat: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      },
+      locale: 'en-GB',
+    };
+    const yearZero = valueFormatter('0000-01-01T14:30', cellProperties);
+    const yearOne = valueFormatter('0001-01-01T14:30', cellProperties);
+
+    expect(yearZero).not.toBe(yearOne);
+    expect(yearZero).toContain('BC');
+    expect(yearZero).toContain('14:30');
+    expect(yearOne).not.toContain('BC');
+  });
 });

@@ -842,7 +842,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   re-imports) `background-color:<hex>` alone, with no leading `color:`.
 - **`layoutDirection` is init-only, so the import reports it instead of applying it.** `core.ts:545`
   resolves it from the merged user settings while the instance is built and `isRtl()` closes over the
-  result; `metaSchema.ts` documents that a later `updateSettings` is ignored. `mapLayout` therefore puts
+  result; `metaSchema.ts` documents that a later `updateSettings` throws. `mapLayout` therefore puts
   `'rtl'`/`'ltr'` on `result.layoutDirection` under `importLayout`, `applier.ts#toSettings` deliberately
   keeps it out of the carried-keys list, and `importFile.ts#recordLayoutDirectionMismatch` records
   `layoutDirection` in `dropped` when the sheet and the target grid disagree - before `dropped.warn()`,

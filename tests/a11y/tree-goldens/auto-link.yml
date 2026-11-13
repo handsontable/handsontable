@@ -1,7 +1,7 @@
 # grid
 - treegrid:
   - rowgroup:
-    - row "https://example.com/one https://example.com/optout go https://example.com/marked user link https://example.com/memo HF label https://example.com/whole google.com":
+    - row "https://example.com/one https://example.com/optout go https://example.com/marked user anchor https://example.com/memo HF label https://example.com/whole google.com":
       - gridcell "https://example.com/one":
         - link "https://example.com/one":
           - /url: https://example.com/one
@@ -10,8 +10,8 @@
         - text: go
         - link "https://example.com/marked":
           - /url: https://example.com/marked
-      - gridcell "user link":
-        - link "user link":
+      - gridcell "user anchor":
+        - link "user anchor":
           - /url: https://example.com/user
       - gridcell "https://example.com/memo":
         - link "https://example.com/memo":

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Frozen seam edge in the end corners e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects, mapped
+    // through fixed allowlists to LITERALS so a crafted param is never reflected into the document. An
+    // unknown value THROWS instead of falling back, so a typo is one red leg, not a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    A grid frozen on all four edges (one row and one column each), so it has both end corners
+    (`top_inline_end_corner`, `bottom_inline_end_corner`). Query params: rtl=1, fixedColumnsEnd (default 1),
+    numericEnd=1 (the last
+    column is `type: 'numeric'`, whose renderer sets `dir="ltr"` on its cells, also in an RTL grid).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    try {
+      const container = document.querySelector('[data-testid="grid"]');
+      const isRtl = htParams.get('rtl') === '1';
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      if (isRtl) {
+        document.documentElement.setAttribute('dir', 'rtl');
+      }
+
+      const numericEnd = htParams.get('numericEnd') === '1';
+      const fixedColumnsEnd = Number(htParams.get('fixedColumnsEnd') ?? 1);
+
+      if (!Number.isInteger(fixedColumnsEnd) || fixedColumnsEnd < 1) {
+        throw new Error('Invalid ?fixedColumnsEnd= value: ' + JSON.stringify(htParams.get('fixedColumnsEnd')));
+      }
+
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 100 }, (_, r) => Array.from({ length: 100 }, (__, c) =>
+          (numericEnd && c === 99 ? r * 100 + c : `R${r}C${c}`))),
+        columns: numericEnd ? c => (c === 99 ? { type: 'numeric' } : {}) : undefined,
+        colHeaders: true,
+        rowHeaders: true,
+        fixedRowsTop: 1,
+        fixedRowsBottom: 1,
+        fixedColumnsStart: 1,
+        fixedColumnsEnd: fixedColumnsEnd,
+        layoutDirection: isRtl ? 'rtl' : 'ltr',
+        width: 900,
+        height: 500,
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      // A build failure is reported by the page object's goto(), not as a mute timeout.
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

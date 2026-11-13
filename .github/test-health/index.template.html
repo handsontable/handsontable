@@ -163,7 +163,7 @@
 <section class="a11y viz" aria-labelledby="a11y">
   <h2 id="a11y">Accessibility</h2>
   <div class="meta" id="a11y-meta">
-    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan) and of the <code>Screen reader nightly</code> on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
+    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan), of the <code>Screen reader nightly</code> and of the docs site scan and checks (<code>Docs a11y</code>) on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
   </div>
   <div class="empty" id="a11y-empty" hidden>No accessibility night collected yet.</div>
   <div id="a11y-body">
@@ -225,7 +225,7 @@
   A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
   A <em>visual</em> row is a screenshot capture: the file is its spec, the legs are the variants it differed on, and <em>failed</em> means it differed from its golden record beyond <code>regconfig.json</code>'s tolerances. It needs a ticket once it differed on <span id="visual-threshold"></span>+ <code>Visual nightly</code> runs, or on that many distinct branches (the nightly counts as develop): nothing in that tier is ever flaky, and a pull request's own intended change, recorded before approval, stays on one branch however often it is pushed. A quarantined capture is listed in <code>visual-tests/visual-quarantine.json</code> (<code>visual-tests/AGENTS.md</code>, Guardrails); an entry names the legs it covers, so a row shows its most recent entry and only the legs outside it count toward the ticket.
   Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
-  <br>Accessibility: a finding is keyed by its check, kind, page, theme, state and a masked selector or step (a generated instance id, a positional index and a state class are masked out), so it keeps its identity across nights; a row is resolved only when its target was measured again and the finding was gone, so a check that did not run, a target that errored or reported a tooling problem, a finding the collector could not read, an incomplete axe scan, a transcript that stopped and a golden that was not compared resolve nothing; a resolved row that comes back is flapping until it has been seen <span id="a11y-flap-nights"></span> nights in a row, the night it came back included. A re-run attempt of a night fills in what the recorded attempt did not measure. The clusters are the catalog <code>tests/a11y/issues.json</code> (<code>tests/AGENTS.md</code>, A11y: the findings ledger and the cluster catalog); a cluster's tracker is code there and never printed here. Rows stay <span id="a11y-retention"></span> days from their last sighting; past the file's cap the oldest resolved rows go first. A reader row carries no criterion: the lanes are report-only evidence of what a screen reader announces. Only the A11y and Screen reader nightlies on develop are recorded, by schedule or dispatch; a pull request's evidence comes from its own code and stays in its own run. Source: <code>.github/scripts/lib/a11y-ledger.mjs</code>.
+  <br>Accessibility: a finding is keyed by its check, kind, page, theme, state and a masked selector or step (a generated instance id, a positional index and a state class are masked out), so it keeps its identity across nights; a row is resolved only when its target was measured again and the finding was gone, so a check that did not run, a target that errored or reported a tooling problem, a finding the collector could not read, an incomplete axe scan, a transcript that stopped and a golden that was not compared resolve nothing; a resolved row that comes back is flapping until it has been seen <span id="a11y-flap-nights"></span> nights in a row, the night it came back included. A re-run attempt of a night fills in what the recorded attempt did not measure. The clusters are the catalog <code>tests/a11y/issues.json</code> (<code>tests/AGENTS.md</code>, A11y: the findings ledger and the cluster catalog); a cluster's tracker is code there and never printed here. Rows stay <span id="a11y-retention"></span> days from their last sighting; past the file's cap the oldest resolved rows go first. A reader row carries no criterion: the lanes are report-only evidence of what a screen reader announces. Only the <code>A11y nightly</code>, the <code>Screen reader nightly</code> and the docs site scan (<code>Docs a11y</code>) on develop are recorded, by schedule or dispatch; a pull request's evidence comes from its own code and stays in its own run. Source: <code>.github/scripts/lib/a11y-ledger.mjs</code>.
   <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included; a leg that runs in shards is one record whose wall-clock is its longest shard (what the leg costs when the shards start together), whose tests add up, and whose parts are listed under each run with the span from the first shard's start to the last shard's end when they queued (a push with a shard missing is left out of the budget and keeps the rows it had). Runs stay 30 days. The per-test rows come from each leg's latest develop push and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Only develop pushes are recorded: a pull request's leg files stay in its own run's artifacts for 3 days.
 </footer>
 <script id="summary" type="application/json">__SUMMARY_JSON__</script>
@@ -721,7 +721,7 @@ var runPage = (function() {
 
   var runs = document.getElementById('a11y-runs');
   runs.appendChild(document.createTextNode('Updated ' + when(view.updatedAt) + '. Latest nights: '));
-  [['a11y', view.latest.a11y], ['reader', view.latest.reader]].forEach(function(entry, index) {
+  [['a11y', view.latest.a11y], ['reader', view.latest.reader], ['docs', view.latest.docs]].forEach(function(entry, index) {
     if (index) { runs.appendChild(document.createTextNode('; ')); }
     if (!entry[1]) {
       runs.appendChild(document.createTextNode(entry[0] + ': none yet'));
@@ -734,14 +734,14 @@ var runPage = (function() {
     runs.appendChild(link);
     runs.appendChild(document.createTextNode(' (' + when(entry[1].seenAt) + ', develop ' + entry[1].headSha + ')'));
   });
-  runs.appendChild(document.createTextNode('. The run page holds the artifacts: the evidence documents, the axe report and the transcripts.'));
+  runs.appendChild(document.createTextNode('. The run page holds the artifacts: the evidence documents, the axe reports and the transcripts.'));
 
   // An own property, or undefined: a project or a scenario named `constructor` must not read the prototype's.
   function own(object, key) {
     return object && Object.prototype.hasOwnProperty.call(object, key) ? object[key] : undefined;
   }
 
-  var SOURCE_NAMES = { a11y: 'A11y nightly', reader: 'Screen reader nightly' };
+  var SOURCE_NAMES = { a11y: 'A11y nightly', reader: 'Screen reader nightly', docs: 'Docs a11y' };
 
   // The trend: one series per source the cluster comes from, over that source's nights only (the two nightlies
   // run an hour apart, so one series over both would draw every other night at zero), one bar per night, the
@@ -886,7 +886,7 @@ var runPage = (function() {
     var status = document.createElement('td');
     status.appendChild(badge(row.status, row.status));
     tr.appendChild(status);
-    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.check);
+    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.source === 'docs' || row.source === 'docs-checks' ? row.check + ' (docs site)' : row.check);
     var kind = cell(tr, row.kind + (row.rule ? ' ' + row.rule : '') + (row.cause ? ' (' + row.cause + ')' : ''));
     kind.appendChild(text('div', row.reason, 'error'));
     cell(tr, row.where, 'where');
@@ -910,7 +910,7 @@ var runPage = (function() {
     link.textContent = when(night[1]);
     td.appendChild(link);
     tr.appendChild(td);
-    cell(tr, night[2] === 'reader' ? 'Screen reader nightly' : 'A11y nightly');
+    cell(tr, own(SOURCE_NAMES, night[2]) || night[2]);
     cell(tr, night[3], 'num');
     cell(tr, night[4], 'num');
     cell(tr, night[5], 'num');

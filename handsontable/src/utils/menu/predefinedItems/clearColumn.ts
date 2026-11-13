@@ -4,6 +4,24 @@ import type { HotInstance } from '../../../core/types';
 export const KEY = 'clear_column';
 const SOURCE = 'ContextMenu.clearColumn';
 
+type ClearColumnSelection = {
+  start: { row: number | null; col: number | null };
+  end: { row: number | null; col: number | null };
+};
+
+/**
+ * Reads the current selection in the shape a menu click hands to a callback.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {object[]}
+ */
+function getSelection(hot: HotInstance): ClearColumnSelection[] {
+  return (hot.getSelectedRange() ?? []).map(range => ({
+    start: range.getTopStartCorner(),
+    end: range.getBottomEndCorner(),
+  }));
+}
+
 /**
  * @returns {object}
  */
@@ -13,11 +31,22 @@ export default function clearColumnItem() {
     name(this: HotInstance): string {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
     },
-    callback(this: HotInstance, key: string,
-             selection: { start: { row: number; col: number }; end: { row: number; col: number } }[]) {
-      const startColumn = selection[0].start.col;
-      const endColumn = selection[0].end.col;
-      const endRow = Math.max(selection[0].start.row, selection[0].end.row);
+    callback(this: HotInstance, key: string, selection?: ClearColumnSelection[]) {
+      // A menu click passes the selection. `executeCommand()` passes nothing, so read it off the instance.
+      const [range] = selection?.length ? selection : getSelection(this);
+
+      if (!range) {
+        return;
+      }
+
+      const { col: startColumn, row: startRow } = range.start;
+      const { col: endColumn, row: lastRow } = range.end;
+
+      if (startColumn === null || endColumn === null) {
+        return;
+      }
+
+      const endRow = Math.max(startRow ?? 0, lastRow ?? 0);
       const clearVisibleRows = () => {
         if (this.countRows()) {
           this.populateFromArray(0, startColumn, [[null]], endRow, endColumn, SOURCE);

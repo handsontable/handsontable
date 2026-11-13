@@ -261,20 +261,26 @@ If you have a commercial license, feel free to contact us directly at [**support
 
 ## 📖 Licenses
 
-Handsontable DataGrid is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
+Handsontable DataGrid is available under the following licensing options. Each license comes with its own terms and conditions, as outlined below:
 
-### ① Free license for non-commercial use, and evaluation purposes
-This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.  
-[Learn more here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
+### ① Free trial for evaluation
+Businesses and other organizations can evaluate Handsontable DataGrid for free. Start a trial at [handsontable.com/pricing](https://handsontable.com/pricing/) to get a trial license key. The trial covers internal evaluation outside production, runs once, and can't be renewed. During the trial, you can contact our technical support team. When it ends, you need a commercial license to keep using Handsontable DataGrid.
 
 ### ② Commercial license
 For commercial use, a paid license is required. This license includes support and maintenance to ensure you get the most out of Handsontable. The commercial license can be purchased directly from Handsoncode or through an [authorized reseller](https://handsontable.com/resellers). See the [pricing page](https://handsontable.com/pricing) for details.
+
+### ③ Free license for non-commercial projects
+Non-commercial projects, such as teaching or academic research, may qualify for a free license. To apply, [contact our sales team](https://handsontable.com/contact/) and tell us about your project.
 
 <br>
 
 ## 🔑 License Key
 
-Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key. To evaluate Handsontable, get a trial key. For non-commercial use, apply for a sponsored license.
+Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key.
+
+To evaluate Handsontable, [get a trial key](https://handsontable.com/pricing/). During the trial, the grid shows the Handsontable badge and a "Powered by Handsontable DataGrid" bar below the table, and the console warns how many days remain. After the trial expires, the grid shows an expiration message and the console reports an error. When the grace period stored in the key also passes, a blocking screen replaces the grid. See [Trial keys](https://handsontable.com/docs/license-key/#trial-keys) for details.
+
+For non-commercial use, [contact our sales team](https://handsontable.com/contact/) to apply for a free license.
 
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
 

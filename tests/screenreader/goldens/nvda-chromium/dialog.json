@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "dialog",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T13:52:19.524Z"
+  },
+  "steps": {
+    "dialog-opens": "confirm dialog this is a confirm cancel button confirm dialog this is a confirm button cancel",
+    "tab-ok": "ok button",
+    "tab-past-ok": "input 2 edit blank",
+    "shift-tab-ok": "confirm dialog this is a confirm ok button",
+    "escape-closes": "table country 1 country row 3 company name column 3",
+    "arrow-down-after-close": "country 2 country row 4 company name column 3",
+    "dialog-opens-again": "confirm dialog this is a confirm cancel button confirm dialog this is a confirm button cancel",
+    "tab-ok-again": "ok button",
+    "enter-ok": "table country 2 country row 4 company name column 3"
+  }
+}

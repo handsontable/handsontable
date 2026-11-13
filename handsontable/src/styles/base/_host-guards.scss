@@ -1,0 +1,25 @@
+@use "../utils/mixins";
+
+@mixin output {
+  div:where(.handsontable)#{mixins.$host-guard-weight} {
+    span:where(.colHeader),
+    span:where(.rowHeader),
+    span:where(.ht-page-size-section__label),
+    span:where(.ht-page-navigation-section__label),
+    span:where(.ht-multi-select-arrow),
+    span:where(.ht-multi-select-chip),
+    span:where(.ht-multi-select-chip-label),
+    span:where(.ht-multi-select-chip-remove),
+    span:where(.ht-multi-select-overflow),
+    span:where(.htUISelectCaptionLabel),
+    span:where(.htCheckboxRendererBox),
+    input:where(.htCheckboxRendererInput),
+    span:where(.htCheckboxRendererLabelText),
+    span:where(.ht_nestingLevel_empty),
+    :where(.htUIInput) > input:where([type="text"], [type="date"], [type="datetime-local"], [type="time"], [type="button"]),
+    :where(.htUIRadio) > input:where([type="radio"]),
+    :where(.htItemWrapper) > span:where(.selected, .htMixed) {
+      @include mixins.revert-host-element;
+    }
+  }
+}

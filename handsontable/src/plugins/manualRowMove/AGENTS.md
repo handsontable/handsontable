@@ -35,10 +35,36 @@ row's own position, it moved the row to the far side of the trimmed row, and unt
 breaking. Because the mapper is not touched, a drop onto the same position no longer fires
 `afterRowSequenceChange` and `afterRowSequenceCacheUpdate` (source `move`), no longer forces a full render, and
 no longer runs the selection repair of the cache update: nothing moved, so there is nothing to react to. Do not
-move the computation back below the mapper call. A move that does change the order still
-lands on the same side of a trimmed row as before: that placement is a separate, open design question.
+move the computation back below the mapper call.
 `../manualColumnMove/` has the identical guard. NestedRows moves rows by its own path and is not covered.
 Pinned by `__tests__/noopMoveTrimmedRows.unit.js` and `tests/e2e/manual-move-trimmed.spec.ts`.
+
+## A move that changes the order lands next to a visible row
+
+`moveIndexes()` puts the moved rows right before the physical row of the visible row at `finalIndex`, after any
+trimmed rows in front of it. A move to the last visible position puts them right after the last visible row,
+before the trailing trimmed rows. The rows never split a run of neighboring trimmed rows (they can land between
+two trimmed rows that have a visible row between them). The rule is specified and pinned by
+`__tests__/moveTrimmedPlacement.unit.js`, and the row-moving guide documents it. Landing on the other side of a
+trimmed block would change the physical order users see after untrimming, so it is a breaking change.
+
+With HIDDEN rows the same visible gap has two drop indexes: the lower half of the row above the hidden block
+and the upper half of the row below it. `moveIndexes()` counts a hidden row as an item, so the lower-half index
+(it points at the first hidden row) would land the rows in front of the block and the upper-half one after it.
+The pointer resolution steps over the hidden rows (`getLowerHalfDropIndex()`, called from the lower-half branch of
+`refreshPositions()`), so both give the same drop index and the rows land after the block, right before
+the next visible row, the same side as the trimmed rule and as `ManualColumnMove` (which gets it from its
+zero-width hidden columns). Do not move the fix into `moveIndexes()` or `countFinalIndex()`: `dragRows()` and
+`moveRows()` keep the literal meaning of the index a caller passes, and `moveIndexes()` is a public mapper method.
+When the hidden rows run to the end of the grid there is no visible row to step to, and the index is left
+alone, so the rows land in front of the trailing hidden rows, as they do in front of trailing trimmed ones.
+**The step is skipped in four more cases.** (1) A step that would cross into or out of a fixedRowsTop or fixedRowsBottom band: the guideline shows the old spot, and the row would land in the other band. (2) The NestedRows plugin is enabled: its move path reads the parent of the row at the drop index, so a step over hidden rows could make the row a child of a hidden row. (3) The visible row after the hidden ones is inside a merged cell but not its first row (the merge starts at a hidden row): landing before it would put the rows between the merged rows, and the MergeCells `afterRowMove` handler would shrink the merge (`isInsideMergedCell()`). (4) **The hovered row is one of the moved rows.** Grabbing a row and releasing it on its own
+lower half is the "drop it back in place" gesture, which must stay a no-op: stepping would move the row across
+the hidden block, fire `afterRowMove` with `orderChanged: true` and record an undo step for a visibly unchanged
+grid. Pinned by the self-drop case of `tests/e2e/manual-row-move-hidden-gap.spec.ts`.
+The hooks report the resolved drop index. Landing on the far side is a change from 18.1 for the lower-half drop
+(migration guide, section 60). Pinned by `__tests__/moveTrimmedPlacement.unit.js` (`getLowerHalfDropIndex()`, bands and NestedRows included) and
+`tests/e2e/manual-row-move-hidden-gap.spec.ts`. NestedRows moves rows by its own path and the e2e spec does not drive it; the unit tests only pin that the step is skipped.
 
 ## Row heights are read defensively
 
@@ -63,6 +89,8 @@ grid's own top (`Math.max(tdStartPixel - 1, 0)`). Do not reintroduce the old
 border trade that no longer happens, and with headers on it now moves the guideline off by a pixel.
 
 There are also clamps for the backlight below the table and the guideline below the table.
+
+**A zero size is a size.** `ui/_base.ts` `setSize()` writes `0` through `isNumeric()`, like `../manualColumnMove/ui/_base.ts`. The backlight is sized `hider.offsetWidth - leftPos`, and with no rendered column (every column hidden) that is `0`. A truthiness check skipped it, so the CSS `width: 100%` stayed and a box as wide as the row headers was drawn right of the grid. With no columns the backlight is therefore zero wide; the guideline stays, because the rows can still be moved by their headers. Pinned by `__tests__/ui/_base.unit.ts` and `tests/e2e/manual-row-move-no-columns.spec.ts`.
 
 `isFixedRowTop(row)` and `isFixedRowBottom(row)` exist because a row inside `fixedRowsTop` or
 `fixedRowsBottom` behaves differently as a drop target. Both are checked — a fix aimed at only the top

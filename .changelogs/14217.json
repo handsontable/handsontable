@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the pagination bar touched the column headers when a grid with a free height (no `height` option or `height: 'auto'`) had no rows to show, for example after a filter removed every row. The grid now keeps 150 px of empty space in that state, as the `emptyDataState` plugin does.",
+  "type": "fixed",
+  "issueOrPR": 14217,
+  "breaking": false,
+  "framework": "none"
+}

@@ -309,6 +309,212 @@ Two performance rules and one mid-batch guard:
 `removeRows`/`removeColumns` spans are chunked, because an unbounded variadic argument spread could overflow
 the call stack.
 
+**A reload that changes no data writes nothing (DEV-3972).** A grid built with `data` resyncs its sheet from the
+source data on every `updateSettings()` (`#resyncSheet()`, every React or Vue re-render). Writing it feeds the
+content in physical order and then replays the grid's order, and no replay ends where the user's own moves left the
+engine: the references other sheets and named expressions hold into the sheet already followed each drag and a
+replay moves them again on every re-render; a range on the sheet ends on other cells when the replay takes another
+path than the drags (`=SUM(A1:A3)` became `=SUM(A5:A5)`). So `#writeSheet(array, true)`, the resync's write, skips
+the write and the replay when the escaped array reads the same as `#syncedContent`:
+- **`#syncedContent`** is the escaped array the last full write fed the engine, in physical row order, kept in step
+  with the grid's own writes: a cell write (`syncChangeWithEngine()`, `#writeSourceChangesToEngine()`, the
+  write-back of rewritten formulas) records the value the ENGINE got at the cell's place in the array
+  (`#recordSyncedCell()`), so a value a validator later rejects reads as a change and is written; an undo or redo
+  that only writes cells writes each one through the same path, so it keeps the record (an edit and its undo were
+  a full write and a replay of the order by the planned path, which moved a `SUM` range off its rows); a row insert
+  or removal follows it by physical index (an empty row reads as `null`s, so a `minSpareRows` row matches; the rows
+  go in with a loop, `insertEmptyRows()`, because a spread into `splice()` overflows the stack on a large insert,
+  and a removal compacts the array in one pass, because a splice per row or per span is quadratic on a large or
+  scattered removal: 50,000 of 100,000 rows took about 5.1 s per row, and per span for every other row 147 ms to
+  2.6 s (large run-to-run noise), 3 ms in one pass); a column insert or removal, a `moveCells` move, a NestedRows
+  detach (and any row change while NestedRows is on), an undo or redo restore that reloads the sheet, an adopted
+  or loaded engine sheet, a rejected sheet, a sheet built from the engine, a column move on object rows or a projected `columns` list (read in visual order),
+  and a reset of the grid's order (`IndexSyncer#onOrderReset()`, below) drop it, and the next resync writes in
+  full. The array's column space, and for a projected `columns` list the place of each visual column, is
+  read once when it is written (`#readSyncedColumnSpace()`), because a write can run inside an engine batch, where
+  a read through the data hooks throws, and so a recorded cell is a lookup.
+- **Equal is not enough**: the engine and the sheet id must be the recorded ones, and both axis syncers must hold
+  the grid's order (`AxisSyncer#holdsGridOrder()`: not held, and the engine's order as the syncer knows it is the
+  grid's sequence), so a load that reset the grid's order still writes. A reset no engine call follows (a
+  `columns` update without `data` runs `initIndexMappers()`, a sequence change with the `init` source) makes the
+  axis syncer store the reset order as the engine's, so `holdsGridOrder()` cannot see it: the syncer reports it
+  (`IndexSyncer#onOrderReset()`) and the record is dropped. Skipped, the engine kept the dragged rows while the
+  grid showed them in physical order, and every row read another row's values. A reset to the order the engine
+  already holds (physical, as on a grid never dragged) reports nothing: Vue sends `columns` without `data` on every
+  column change, and dropping the record there wrote the sheet in full each time where the base wrote nothing.
+- **Cells compare with `Object.is()`, a `Date` by its time, any other object as changed** (`areSyncedValuesEqual()`).
+  `!==` kept a sheet holding `NaN` from ever skipping, and took a `Date` the host changed in place
+  (`setFullYear()`) for the same value, since the record held the same object. The record keeps a copy of each
+  `Date` it is fed (`toSyncedValue()`).
+- **An order sent as one order drops the record** (`IndexSyncer#onOrderSent()`, called by the axis syncer after
+  every `setRowOrder()`/`setColumnOrder()`: a sort, a cleared sort, `setIndexesSequence()`, an order the move
+  guards or the cost choice sent as one, a hold's release). Such an order keeps each moved formula's relative
+  offsets (DEV-917), so the engine's text stops following the data, and only a write of the data repairs it once
+  the order is gone. Skipping it made the damage permanent: sort, re-render, `clearSort()`, re-render showed
+  `#REF!` where develop showed the value, and `getSourceData()` returned the engine's `=#REF!+A4`. The next resync
+  therefore writes in full and replays the order as develop does; a write inside it that sends an order (a sorted
+  grid's replay) records the content after it, because a second write of the same data and order would reproduce
+  the same engine. So a sorted grid pays one full write per sort change and skips after that, and a cleared sort is
+  repaired on the next re-render. Pinned by the `a re-render after a sort is cleared` cases (ColumnSorting,
+  MultiColumnSorting, an edit between) in `__tests__/loadOrderAsMoves.unit.js`.
+- **What still writes:** a value the host changed in place (`data[0][0] = 50; updateSettings({})`), a row count or
+  layout change (DEV-2978, NestedRows toggled), a meta change that changes what the engine reads (a cell type, a
+  `valueGetter`, the date and preserved-text escaping, since the comparison runs on the escaped array). A skipped
+  resync still records the layout (`#recordSyncedLayout()`), bumps no `#sheetWriteCount` (the engine still holds
+  every in-flight change) and leaves `#sourceHasStaleFormulas` as it was (the engine still holds the rewritten
+  text). The scan itself stays: a resync reads and escapes the source as before, and only the `setSheetContent()`
+  and the order replay are saved.
+- **Cost:** a second array of the grid's size is kept (arrays of pointers, the values shared: 4.4 MB for a 200,000-cell
+  sheet whose grid and engine took 481 MB in Jest), and every resync compares it cell by cell (the strict check comes
+  first: a type tag read per cell took the comparison of 10,000 x 50 from 3 ms to 44 ms). It is kept from
+  the first write, not from the first resync: started on the first resync, the first re-render after two or more
+  drags would write in full and replay the order by the planned path, so a range can land on other rows (the
+  reviewer's two-drag data: `SUM` rows 46 and 38 became 12 and 4; `moveRows([0], 4)` then `moveRows([0], 2)` took
+  `=SUM(A1:A3)` from 4 to 2). One drag still replays to the same place, and the other-sheet and named-expression
+  references stay right on that path, because a reload with them sends one order. Pinned by the `after two drags on
+  the first re-render` cases.
+- **Known limits:** a host that writes into the grid's engine sheet directly (`engine.setCellContents()`) is not
+  overwritten by a re-render that leaves the data unchanged: develop's resync replaced it with the source data on
+  the wrapper path (vanilla JavaScript kept it until some rewrite there too). A host that mutates in place a cell
+  of a row the grid then writes is still seen (cell-precise records). An object-rows grid whose columns were moved,
+  and a grid after an undo or a redo that changed its rows or columns (or the stale bit), write in full on the next
+  re-render.
+
+**A reload that does write takes an order reached by moves as moves.** Every full write (init, a resync whose data
+changed, a sheet switch) feeds the engine its content in physical order and then runs `setupSyncEndpoint()`, which
+sends the grid's current order (`#syncInitialOrder()`). The engine call decides what the formulas read afterwards:
+`moveRows`/`moveColumns` keep every reference on its cell, while `setRowOrder`/`setColumnOrder` keep each moved
+formula's relative offsets, so a reference across the moved lines becomes `#REF!` or reads a line past the data.
+Sent as one order, a `manualRowMove: [2, 3, 4, 0, 1]` array showed `#REF!` at init, and `manualColumnMove: [0, 2,
+1, 3]` turned `=A1+10` into `=B1+10` at init while a `loadData()` with the same array kept it (the move path). The
+rules:
+- **The kind of order follows how the grid reached it.** `#orderShifts` records what the engine took as an order (a
+  sort, `setIndexesSequence()`); a move, an insert and a removal leave nothing there. `#applyInitialOrder()` reads
+  `#orderShifts.size === 0` BEFORE it resets the stored order. A syncer built after a sort has no shifts, so the
+  grid answers too: `IndexSyncer#isOrderSorted()` asks ColumnSorting and MultiColumnSorting (through
+  `hot.getPlugin()`, `#isRowOrderSorted()` in the plugin), and a sorted row order goes as one order. A postponed
+  `#applyInitialOrder()` carries the kind read when it was postponed, because by then the shifts are reset. So a
+  reload reproduces what the grid showed only for an order reached by drags alone, or by drags and then orders: an
+  insert or a removal after a drag leaves no shifts either, and the planned moves then take another path than the
+  drags (`moveRow(4, 0)`, `alter('insert_row_above', 2, 1)`, a data-changing reload turned column B from `[30, 20,
+  -, 40, 10, 50]` into `[20, 0, -, 30, 10, 40]`; develop's one order is wrong there too).
+- **An order sent on top of moves is replayed the way the grid reached it** (`#orderBase`). When the first order
+  since the engine's order was last physical is sent, the axis syncer records the order the moves had reached, and
+  a reload sends the moves to it as moves (when they can go as moves) and only the rest as one order. A
+  `manualRowMove` array with a `columnSorting.initialConfig` showed one set of values at init and another after the
+  first `updateSettings({})`; it now shows the init values on every re-render. The record is dropped with the
+  shifts, by an adopted engine order, and by an insert or a removal, whose renumbering the recorded moves no longer
+  describe: the reload then sends one order, as develop does. **A sort keeps the documented sort limitation on a
+  reload that writes**, and a sort always makes the next resync write (an order sent drops the record, above), so a
+  re-render of a sorted grid replays the sort as one order exactly as develop does, and a re-render after the sort
+  is cleared repairs what the sort rewrote. An initial `columnSorting.initialConfig` sorts after the engine is set
+  up, so it reaches the engine as an order.
+- **Moves are planned as blocks** (`planOrderMoves()` in `indexSyncer/orderMoves.ts`). Walking the places from the
+  start, the line due at a place and the lines that follow it in both orders form a block; either the block moves
+  up to the place, or the lines between the place and the block move down behind it, and the move that carries
+  fewer lines is planned, so a line dragged down a long way moves as that line, not as the block it passed. A plan
+  that needs a move of more than `ORDER_MOVE_MAX_LINES` (10,000) lines gives up: HyperFormula spreads a moved block
+  into one call's arguments, which can overflow the stack (`RangeError`) for a block of about 100,000 rows,
+  depending on how deep the call stack already is (seen through the grid, not in a bare engine). The moves go
+  through `#runBatched()`, the one place that keeps a nested `engine.batch()` out of a host's open batch (the pad
+  `#extendAndSetOrder()` uses it too).
+- **Moves fall back to one order** (`#planSafeMoves()`), checked before anything is sent, because a batch of moves
+  is not rolled back when one throws:
+  - **an array formula in any line a move displaces**, not only in the lines the order moves (which is all
+    `#isOrderAllowed()` checks): a move from below an array row to above it throws `SourceLocationHasArrayError`
+    (`manualRowMove: [2, 1, 0]` with `=ARRAYFORMULA(B1:C1*10)` in row 1 threw at init). A move displaces only the
+    lines between its block and its target, and each move starts at or after the place the one before settled, so
+    every line ever displaced lies between the lowest start or target and the highest block end or target, read
+    before the moves. The moves to an order base (`movesOnly`) are only tried, so a refused order warns once, from
+    the call that sends the order;
+  - **the engine's `maxRows`/`maxColumns`**: a move adds `count` lines before it moves them, so the sheet plus the
+    largest block must fit (`maxRows: 3` with 3 rows and a `manualRowMove` array threw at init);
+  - **another sheet or a named expression on the engine** (global or scoped to this sheet): a reload replaces this
+    sheet only, so their references into it already follow the order, and a move would move them again; one order
+    leaves them alone (coarse: no per-line dependents check);
+  - **the cost** (`chooseOrderMoves()`), an estimate, not a guarantee. A move costs about one pass over the sheet,
+    whatever lines it carries (a one-line move of 200,000 x 2 took 31 to 35 ms), so it is priced against what it
+    follows or replaces. Every reorder sent as moves comes right after a full write of the sheet, and a move costs
+    about a sixtieth of that write (10,000 x 4: 5 ms after a 210 ms write; 10,000 x 20: 18 ms after 1.2 s; 200,000
+    x 2: 35 ms after 2.2 s), so `ORDER_MOVES_WITHIN_WRITE` (4) moves always go as moves, however tall the axis is:
+    a one-row `manualRowMove` array or a short drag on a tall grid never falls back to the order that gives
+    `#REF!`. Past those, moves are priced against one order, which rewrites every line that changes place and costs
+    more per line as more change (100,000 x 2: 3,006 lines in 30 ms, 30,006 in 1.5 s, 100,001 in 12 to 17 s):
+    `LINES_PER_CHANGED_LINE` (40) axis lengths per changed line, and never past `ORDER_MOVES_MAX` (30) moves, where
+    HyperFormula's batch slows down sharply (40 moves of 2,000 x 4 took 21 ms, 50 took 216 to 988 ms). So the
+    choice avoids the order's seconds on long sheets, and the moves it sends can cost a few to some tens of
+    milliseconds more than one order, which stays within the run-to-run spread of the write they follow, on a
+    reload that writes the sheet only, in exchange for references that stay right where one order gives `#REF!`. An
+    earlier version priced every move as a full-axis rewrite against one order alone, so a one-row move array on a
+    grid taller than about 80 rows fell back to one order; one before it planned the larger move and was slower
+    than one order on small sheets (reviewer, 2,000 x 4 with ten drags of 50 rows: 27 ms against 9 ms). Measured on
+    HyperFormula 3.3.0 in Jest, a full reload (`setSheetContent()`, then one order or the chosen moves inside
+    `engine.batch()`), a formula per cell reading 7 rows down (`=A{r+7}+A{r}`), two runs, the second on a loaded
+    machine ("+N": each one-row drag moves N rows down; "to top": to row 0):
+
+    | Shape, drags | Lines changed | Write | One order (develop) | Chosen |
+    |---|---|---|---|---|
+    | 100 x 4, 1 drag +1 | 2 | 7 to 8 ms | 1 ms | 1 move, 2 ms |
+    | 10,000 x 4, 1 drag +1 | 2 | 210 to 224 ms | 0 ms | 1 move, 4 to 5 ms |
+    | 10,000 x 4, 3 drags +1 | 6 | 221 to 224 ms | 0 to 1 ms | 3 moves, 10 to 11 ms |
+    | 200,000 x 2, 1 drag +1 | 2 | 2.2 s | 0 ms | 1 move, 35 ms |
+    | 10,000 x 20, 1 drag +1 | 2 | 1.2 to 1.3 s | 0 ms | 1 move, 18 ms |
+    | 100,000 x 2, 6 drags +500, 1,000 apart | 3,006 | 1.0 s | 31 to 32 ms | one order |
+    | 100,000 x 2, 6 drags +5,000, 10,000 apart | 30,006 | 1.0 s | 1.5 to 1.6 s | 6 moves, 80 to 84 ms |
+    | 200,000 x 2, row 0 dragged 100,000 rows down | 100,001 | 2.0 to 2.1 s | 11.8 to 16.8 s | 1 move, 57 to 63 ms |
+    | 2,000 x 4, 10 drags +50, 100 apart | 510 | 44 to 81 ms | 11 to 12 ms | 10 moves, 7 to 18 ms |
+    | 2,000 x 4, 20 drags +5, 10 apart | 120 | 42 to 87 ms | 2 to 5 ms | one order |
+    | 10,000 x 4, 6 drags +500, 1,000 apart | 3,006 | 226 to 370 ms | 72 to 129 ms | 6 moves, 21 to 31 ms |
+    | 10,000 x 4, 3 drags +1,500, 3,000 apart | 4,002 | 224 to 415 ms | 92 to 186 ms | 3 moves, 10 to 15 ms |
+    | 5,000 x 30, 3 drags +500, 1,000 apart | 1,503 | 1.0 to 1.7 s | 352 to 607 ms | 3 moves, 40 to 55 ms |
+    | 10,000 x 20, 3 drags +1,000, 2,000 apart | 3,003 | 1.2 to 2.3 s | 500 to 901 ms | 3 moves, 43 to 91 ms |
+    | 10,000 x 20, 30 drags to top | 9,001 | 1.2 to 2.2 s | 1.7 to 3.9 s | 30 moves, 459 to 470 ms |
+
+    A reorder the choice sends as one order records its shifts like a sort. Known limit: such an order keeps the
+    old `#REF!` behavior. That includes five or more separate short drags on a tall grid (1,000 or 10,000 rows):
+    past the four moves that always go, each short move is priced against an order of a few lines, so the reload
+    sends one order, as develop does.
+- **The hold's release follows the reload rule** (`AxisSyncer#setOrderHeld(false)`). The engine fed its content
+  again inside `runWithEngineOrderHeld()` (`#reloadedWhileHeld`, set by `#applyInitialOrder()` while held) holds it
+  in physical order, so the release sends an order reached by moves as moves, unless an order change other than a
+  move was held back in the hold (`#orderChangedWhileHeld`) or the grid is sorted. An order reached by moves and
+  then an order keeps its `#orderBase` across that reload (`#heldOrderBase`), and the release replays the moves to
+  it as moves and only the rest as one order, as a reload outside the hold does; any order change in the hold after
+  the reload drops it. A release with no reload in the hold, or with an engine order adopted (`adoptEngineOrder()`
+  clears the flag), still sends one order: the engine there holds the order an earlier step left, not a fresh
+  physical one. The base travels with the engine order (`EngineOrder.orderBase`), so an adopted order keeps it
+  while it keeps its shifts. In the sheets bar the replay never runs: a workbook's engine holds several sheets, so
+  the moves guard sends one order on any reload that writes, and a sheet's move array reaches the engine on its
+  first visit through the move path. A re-render of a returned sheet whose sort sits on a move array therefore
+  shows the one-order values, as develop does; the first visit and the return show a plain grid's values
+  (`../sheetsBar/__tests__/formulaSheets.unit.js`).
+- **Known limit, drags after drags:** a reload that writes (the data changed) after drags replays the order by the
+  planned path, not by the drags' own moves, so a range on the sheet can end on other cells than the drags left it
+  on, and where develop's one order showed `#REF!` this can show a plausible wrong number (row 0 dragged to the end
+  of `[1, 2, 4, 8, 16]` with `=SUM(A1:A3)`, another cell changed in place, `updateSettings({})`: 1, where 204 is
+  right and develop showed `#REF!`). An `ARRAYFORMULA` row moved by drags can likewise read another row after a
+  data-changing re-render, as develop's does on any re-render. Replaying the recorded drag moves when no insert or
+  removal happened since is the follow-up that would close it.
+- **Known limit, a drag after a sort:** a drag made after a sort, with no reload between, is folded into the one
+  order the next writing reload sends, the same class of result as develop's one order and inside the documented
+  sort limitation. The values change on that reload, and differently from develop: a drag, a sort, a drag and a
+  data-changing reload took rows `[4, 3, 2, 5, 1]` from `['#REF!', '#REF!', 1000, 1003, 1000]` to `['#REF!',
+  '#REF!', 1001, 1000, 1000]` here and to `['#REF!', 1005, 1001, 1004, 1000]` on develop. With a reload between the
+  sort and the drag the values stay as shown.
+- Pinned by `__tests__/loadOrderAsMoves.unit.js` (the skip on a re-render after a drag, an edit, a range, other
+  sheets and named expressions, a second grid, an edit and its undo, the same `data` array sent again, a removal of
+  scattered rows, two drags on the first re-render, a `columns` update without `data` on a grid never dragged; the
+  write after an undo that changed the rows, after a `columns` update without `data` on both axes; `NaN` and a `Date`
+  changed in place; the host's in-place change; the array-formula, `maxRows` and other-sheet fallbacks; the hold
+  release; the moves under an initial sort, also after a reload in a hold; a few moves on a tall grid; init, both axes, the sort control), `__tests__/indexSyncer/axisSyncerInitialOrder.unit.js`
+  (moves on the mock engine, the cost fallback, a sort replayed as an order, the moves under an order replayed as
+  moves, one order after an insert and after an insert and a removal that keep the length, one warning for a
+  refused order, a sorted order from a new syncer and from a postponed sync),
+  `__tests__/indexSyncer/orderMoves.unit.js` (the smaller move, the block cap, the cost choice),
+  `__tests__/utils.unit.ts` (`insertEmptyRows()`), `__tests__/deferredResync.unit.js` (a settings update that
+  leaves the data unchanged writes nothing), `__tests__/plugins/initialManualColumnMove.spec.js` and
+  `tests/e2e/formulas-load-order-moves.spec.ts`.
+
 **Removed indexes are translated physically** (`AxisSyncer#setRemovedHfIndexes`). The engine holds trimmed
 rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, including a descendant trimmed
 by `trimRows`. A visual translation reported that row as `-1`, and `engine.removeRows()` threw in the middle
@@ -338,12 +544,11 @@ data path is unaffected either way — with `source === 'updateSettings'` this l
 engine is fed from `afterCellMetaReset`.
 
 **The listener also overtakes `manualColumnMove` / `manualRowMove`, and that changed which engine call
-carries a configured order on a later `loadData()`.** Init is untouched: those plugins apply their arrays in
+carries a configured order on a later `loadData()`.** At init those plugins apply their arrays in
 `enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
-`setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder` on both develop and this
-branch (measured with the engine methods spied; the reference rewrite that
-`__tests__/plugins/initialManualColumnMove.spec.js` pins at init is unchanged). On a `loadData()` after
-init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
+`setupSyncEndpoint()` → `#syncInitialOrder()` sends it, as moves since DEV-3972 (see "A reload that does write
+takes an order reached by moves as moves" in "Sequence syncing" above). On a `loadData()` after init the two
+plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
 and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
 `setColumnOrder` from `#syncInitialOrder()` — a double transform that rewrote `=A1+10` to `=B1+10` (510
 instead of 15 on the spec's data). Now this listener runs first, `#syncInitialOrder()` sees the identity
@@ -498,7 +703,9 @@ Rules that keep it correct:
   the drain runs. No core plugin reads any of those inside the window.
 - **A listener throw is self-healing; a scan throw is not retried.** If a default-order listener throws,
   `updateSettings()` unwinds before the late listener runs and the flag stays set; the next draw or engine
-  read drains it, and so does the next `updateSettings()` or `loadData()`. If the SCAN throws — a `cells()`
+  read drains it, and so does the next `updateSettings()` or `loadData()`. A call that carries `data` makes
+  that draw itself before it rethrows (`repaintAfterFailedDataCall()` in `core.ts`), so the resync runs there
+  and not on a later read. If the SCAN throws — a `cells()`
   handler that throws for one cell, a dependent grid whose `afterRender` throws — `#resyncSheet()` leaves
   the flag cleared and the layout unrecorded, and the next `updateSettings()` retries. It must not re-arm
   the flag: measured with a persistently throwing write, a re-armed flag turned every later `getDataAtCell()`
@@ -545,6 +752,9 @@ Rules that keep it correct:
   the handler had just made. A `loadData()` from a default-order listener records too, so the gate does not
   take the rows it loaded for a foreign layout change — covered by `lets a default-order listener load data
   without a second scan`.
+- **An update whose data reads the same writes nothing (DEV-3972).** The scan still runs, but the write and the
+  order replay are skipped (see "A reload that changes no data writes nothing" above), so the counts below are
+  "at most one": `__tests__/deferredResync.unit.js` changes a value in place where it counts a write.
 - **One `setSheetContent` per update is also one engine undo entry per update.** Every write pushes a
   HyperFormula undo entry and clears its redo stack, and the grid records no action for a settings update,
   so the discarded second scan used to add an entry the grid could never match. Covered by `pushes exactly
@@ -1108,6 +1318,13 @@ group and flips the winner. Only `addHook('beforeAutofill', cb, 1)` is independe
 `tests/e2e/formulas-before-autofill-precedence.spec.ts`. Do not change the plugin's `orderIndex` or its
 registration point without treating it as a behavior change.
 
+## Sheets other grids are bound to
+
+`getSheetNamesBoundElsewhere(engine)` (`@private`) names every sheet of `engine` that a Handsontable instance
+other than this one is bound to, read from the engine registry list (`getRegisteredHotInstanceList()`). Not `getRegisteredHotInstances()`: its map is keyed by `sheetId`, so two grids on one sheet collapse into the later one. The sheets bar
+leaves those sheets out when it builds tabs from a shared engine, so it never lists, renames over, or removes
+another grid's sheet. It takes the engine as an argument because the bar asks before it binds a sheet.
+
 ## Engine-detach listeners
 
 `addEngineDetachListener()` (`@private`) lets another plugin release what it subscribed on the engine
@@ -1208,6 +1425,163 @@ dependent measurement path.
 A plugin write runs inside `withPluginEngineWrite` (`indexSyncer/pluginEngineWrite.ts`), a per-engine scope. While one is open, the listener only hands its grid's paint to the scope. When the outermost scope on that engine ends, in a `finally`, each such grid paints once. A paint that throws does not stop the others, and the first error is rethrown to the caller after all have run (unless the write itself threw), as a dependent grid's render error reached the caller on develop. The scope is dropped before the paints run, so an engine write a paint's `afterRender` makes is an external write. HyperFormula emits inside `batch()` before `batch()` returns, so the scope wraps the `batch()` call, not a `setCellContents` nested in it. The grid that made the write is left out through `#writeOwnSheet()`, because the Core or the caller paints it. Plain `withPluginEngineWrite` is used where this grid must paint too (the out-of-bounds `afterChange` write, the `restored` undo write, the public `addSheet`). The axis syncer reaches `#writeOwnSheet()` through `IndexSyncer#getOwnEngineWrite()` for the two writes that emit: `batch` in `syncMoves`, and the order write in `#syncOrderWithEngine()`. The latter is one scope around the whole write, so the pad (`setCellContents` twice, then `setRowOrder` / `setColumnOrder`, see "The engine's sheet size" below) paints a dependent grid once, not once per engine call. `#isOrderAllowed()` only reads, and stays outside it. Pinned by the `a padded sheet, with a second grid that reads it` cases of `__tests__/externalEngineRender.unit.js`: a sequence or a sort that pads the sheet paints the dependent grid once and the editing grid not at all or once (its own sort render), where an unscoped write painted the editing grid one extra time. The SheetsBar plugin calls `Formulas#runEngineWrite` for its own engine calls, so a standalone grid on the engine paints whether or not the bar's grid has Formulas bound to it. A missing engine (a listener disabled the plugin mid-flow) runs `fn` with no scope, as develop did: `withPluginEngineWrite()` takes `null`, so a call site passes `this.engine` without `!`. A repaint that throws at the end of `addSheet` does not undo the registration: `#addSheet()` returns the name the engine took and the paint errors apart, `enablePlugin()` and `updatePlugin()` bind the sheet first and throw the first paint error at the end of the call, and the public `addSheet()` throws it after the sheet is in. Reading the error as "no sheet" left the grid unbound, and the next sync added a second sheet. A new plugin write needs a scope, or the listener paints it once per emit.
 
 A grid whose data is written into its sheet registers it inside one `#writeOwnSheet()`: `addSheet` re-resolves a formula in another grid that named the sheet first (`#REF!` becomes the cell's value, or empty), and the fill follows. On the `updateSettings` path the fill comes later, from `#resyncSheet()` at the first render, so the registration scope calls `holdPluginEngineWritePaints()` and the grids it named paint when the resync scope ends, once, after the data is in. A grid whose fill never comes (a throw before the resync) keeps its stale paint until the next plugin write on that engine. A grid built from the sheet (`#hotWasInitializedWithEmptyData`) writes nothing and registers unscoped. `updateConfig` is not wrapped: it does not emit `valuesUpdated`.
+
+## `batchEvaluation`: one recalculation per suspended execution (DEV-202)
+
+With `formulas.batchEvaluation: true`, the plugin writes a grid makes while its execution is suspended
+(`batch()`, `batchExecution()`, `suspendExecution()`) are recalculated once, when it resumes. Off (the default),
+every path below takes the branch it took before: no hold exists, so `runEngineBatch()` is `engine.batch(fn)`.
+
+- **The hold is per engine** (`engine/evaluationHold.ts`, a module-level `WeakMap`). A grid joins it on
+  `afterSuspendExecution` (the setting is read there, live) and leaves on `afterResumeExecution`. Every render
+  suspends the execution (AutoColumnSize, AutoRowSize), so join and leave must stay a `Set` add and delete: the
+  engine listeners are attached at the first suspension the plugin makes, not on join.
+- **Lazy suspension.** The engine is suspended at the first plugin engine write made while the hold has a
+  holder (`beginHeldEngineWrite()`), so a suspension that writes only index maps (filters, hiding, autosizing)
+  never touches the engine. Any grid's write joins an owned suspension, a grid that did not opt in included.
+- **The join helper replaces the 11 plugin `engine.batch()` calls** (`runEngineBatch(engine, fn,
+  { joinsAnySuspension, movesCells })`): an owned suspension, or one started now, is joined and returns `[]`;
+  otherwise `engine.batch(fn)`, so a host-owned suspension is ended as before. `#restorePeerRewrites()` and
+  `AxisSyncer#extendAndSetOrder()` pass `joinsAnySuspension`: they already joined any suspension. The direct writes
+  (`#writeSourceChangesToEngine()` forward, `addRows`, `addColumns`) call `beginHeldEngineWrite()` and keep their
+  direct call. `#writeSheet()` calls `beginHeldSheetWrite()` first, only while the engine is held (an empty write
+  scope would release the paints `holdPluginEngineWritePaints()` parked), before `#internalOperationPending`: it
+  joins a suspension that is open and never starts one. `#clearRejectedSheet()`, `#loadEngineSheet()` (the restore
+  flushes before it) and `#adoptEngineSheet()` (a load, see below) are unchanged. `paste()` throws while suspended,
+  so the MoveCells copy flushes first and stays unheld.
+- **A removal never shares a recalculation with a cell write.** The two removals pass `movesCells`, and so does
+  a sheet write (`beginHeldSheetWrite()`); a held write of the other kind than the ones held since the last
+  recalculation recalculates those first (`heldWriteKind`). A cell write that shared a recalculation with a removal
+  validated the `#REF!` the removal made (a row or a column), which nothing validates without the option, and a
+  sheet rewrite that joined a held write validated every cell it set. Inserts, moves, orders, `moveCells` and the
+  restore pass nothing: no test showed a difference, so they join.
+- **Before an insert, a removal or a move, the held writes are validated, not only recalculated**
+  (`#validateHeldWritesNow()`, `takeHeldRecalculations()`). HyperFormula reports the changes of a suspension that
+  set a cell and then moved it at the addresses from after the move, while the written cells are recorded at the
+  addresses from before it (a formula write, then an insert above it: the release validated the cell above the
+  dependent `SUM`). The grid moves its cells before the engine does (`afterCreateRow` writes the engine), so they
+  are validated from `beforeCreateRow`/`Col` and `beforeRemoveRow`/`Col` (not for `auto`, which adds and gives back
+  rows at the end), `beforeRowMove`, `beforeColumnMove` and `beforeColumnSort` (a write, then a sort: the order
+  reports every value cell it moves at its new address, and the release validated them all). The sort listener
+  also runs for a sort that is cancelled or impossible, which costs one early recalculation and validation, the
+  per-write result without the option. A freeze, `moveCells` and a NestedRows detach showed no difference and
+  have no listener. A sort that comes BEFORE a write inside the same `batch()` takes effect
+  when the batch resumes, because the index mappers are suspended until then. So the write lands on the row the
+  unsorted order names, and its dependents are validated at the release, on the sorted rows, which hold the
+  write (`hot.batch(() => { sort; setDataAtCell(4, 0, 50) })` on the `runValidatedBatch` fixture: `5:2=100`, the
+  row that holds the 50 after the sort). Without the option the dependents are validated at the write, against
+  the mapping that is not sorted yet, so `afterValidate` reports `4:2=66`, an untouched row (develop does the
+  same). The option's result is the right one, so the sort-then-write case is pinned with the option on only
+  ("validates the row that holds the write after a sort inside the batch"), not against parity with the option
+  off. `switchSheet()` validates in
+  `#loadSheet()`, before the load.
+  `beforeLoadData`/`beforeUpdateData` validate only the other sheets' dependents (`leavingSheetId`): the Core
+  destroys the data map before those hooks, so the dependents on this grid's own sheet of a write made before a
+  host's `loadData()`/`updateData()` in the same hold are not validated (without the option they are, against the
+  data the load replaces; pinned by "never validates the loaded data ..."). A throw there is reported with `warn`,
+  or the load stops with no data map. A reorder that follows a write keeps the pre-existing HF-versus-visual
+  defect of `validateDependentCells()` (top of this file), with the option and without it.
+- **Ownership is `owned` AND `engine.isEvaluationSuspended()`.** An `evaluationSuspended` listener sets `owned`
+  from `suspending`, which is set only around the plugin's own `suspendEvaluation()`. HyperFormula 3.3.0 emits
+  `valuesUpdated` BEFORE `evaluationResumed`, and a listener of the first can suspend the
+  engine again, so the `evaluationResumed` listener always records the change list, but drops `owned` and runs the
+  deferred reads (`runAfterEvaluationFlush()`) only while the engine is still resumed. Every resume is recorded,
+  whoever makes it: a host's `resumeEvaluation()` that ends the plugin's suspension leaves nothing to resume
+  later, and its changes are still validated. Pinned by "a suspension the host owns" (red without the listener).
+- **The plugin's own resume claims its recalculation after it returns** (`claimOwnRecalculation()`). An
+  `afterFormulasValuesUpdate` listener runs inside the resume, before its `evaluationResumed`, and a write it makes
+  resumes first (an unheld `engine.batch()`, or a `hot.batch()` of its own): read at event time, `hold.changed`
+  gave those inner resumes the outer writes' cells, and the outer recalculation validated nothing. So
+  `flushEvaluationHold()` takes `hold.changed` before `resumeEvaluation()`, and once it returns it finds its own
+  entry by the change list (the event and the return value are the same array) and gives it those cells; cells
+  written during the resume go back to `hold.changed`. `resuming` is a depth counter: a nested release resets
+  nothing, so its settle leaves the end of the hold to the outer release.
+- **Flush on read.** `#flushEvaluation()` comes after the cheap type early return, so a plain cell never ends
+  the hold: `#onModifyData`, `#onModifySourceData`, `#onBeforeValidate`, `#onPaintFormulaText`,
+  `#onBeforeCopyOrCut`, `#getHyperlinkHref`, `#onBeforeAutofill`, `#captureEngineSheet`,
+  `exportEngineOrder(true)`, `#loadSheet` (before the switch), the MoveCells copy, `#syncHotDataAfterMoveCells`,
+  `#syncPeerSources` (only when a peer grid writes), the `#restoreStructure` pre-read and `#onChangesDropped`.
+  Other plugins call the `@private` `flushEngineEvaluation(engine?)`: FormulaBuilder (`afterRenderer`,
+  `#readCellText`), ExportFile (`getNamedExpressions`, `getEngineCellFacts`), SheetsBar (`#flushEngine` before
+  `planEngineWorkbook()`, the copy's named expressions and serialized sheet, `getFillRangeData`) and ImportFile
+  (before the mapping). `#readEngineContent()` after a
+  `setDataAtCell()` write is deferred, not flushed: it would recalculate once per write.
+- **AutoColumnSize needs no pre-draw recalculation.** Recalculating a holder from `#onBeforeRenderStart`, ahead of
+  AutoColumnSize's `beforeRender` listener, was tried (an `afterFormulasValuesUpdate` that fires after that
+  listener consumed its queue looked able to paint a changed value at the old width) and removed: in a browser a
+  full render makes AutoColumnSize sample the visible columns, and the sampling reads the cells through
+  `modifyData`, which recalculates first, so no draw paints the new value cut off (`tests/e2e/
+  formulas-batch-evaluation.spec.ts`, "measures the formula column before the draw"). Do not add the earlier flush back
+  without a reproduction in a real browser.
+- **`#onBeforeRender` flushes only for a grid that holds the engine.** Unconditional, a second grid that writes
+  inside the first grid's `batch()` ended the hold on each of its own renders. A non-holder therefore flushes from
+  the first formula cell of its draw. A paint asked for while this grid prepares a draw that starts with the engine
+  held (`#onBeforeRenderStart`, `beforeRender` at `orderIndex: -1`, to the end of `#onBeforeRender`: AutoColumnSize's
+  sampling reads cells in between) or draws a held engine (`#isDrawingHeldEngine`, to `afterRender`) is left to that
+  draw
+  (`#deferPaintToDraw()`), never rendered inside it. A full draw reads every cell after the recalculation, so
+  nothing more is needed. A fast draw (a selection) repaints only what it adds, so `#onAfterRender` renders once
+  more: dropping the paint there left the formula cells on screen at their old values. A draw that throws never
+  reaches `afterRender`, so a microtask (`#onDrawEndCheck`) resets the state and paints. A draw that starts with
+  nothing held paints as before, so the option off changes nothing there.
+- **Validation.** A held cell write records its cells (`recordHeldWrite()`). Each recalculation keeps the cells
+  the writes before it set, and the release validates the dependents of every recalculation that ended held cell
+  writes, minus those cells, each cell once (`collectHeldDependents()`). A recalculation with no held cell write
+  (a load, an insert, a host batch) validates nothing, as before. Undo and redo need their change list at once
+  (DEV-2036): `#runRestoreWrite()` flushes right after the write and takes that recalculation out of the hold
+  (`flushEvaluationHoldNow()`). **Each dependent is validated by the grid bound to its sheet**
+  (`#validateHeldDependents()`), whichever grid ends the hold or inserts, removes, moves or loads before it:
+  `validateDependentCells()` checks an address against the size of the grid it runs on, so a one-row grid that
+  inserted a row inside a taller grid's `batch()` skipped every dependent below its first row, and a grid built
+  inside the hold (no data map yet) read its row count from nothing.
+- **A grid that leaves while another grid on the engine is still suspended recalculates and validates its writes
+  anyway** (`#recalculateAndValidateHeldWrites()`, from `#releaseEvaluationHold()`): the hold stays open for the other
+  grid, but this grid's execution is over, and left to the last grid's release its dependents would wait for a
+  resume that may never come (a grid that suspends across an `await`). Without the setting they are validated at
+  once. Pinned by "validates the dependents of its writes when it leaves".
+- **Release.** The grid leaves first, then the flush and the settle run in one write scope, so the grids paint
+  after the validation. A paint can suspend a grid's execution again (its render's autosizing), so a release
+  re-entered during the plugin's own resume (`resuming`) leaves the end to the outer one. When the host holds the
+  engine suspended, the hold ends and validates at the host's resume, unless a grid holds the engine again before
+  then: `joinEvaluationHold()` clears `onSettled`, so that grid's release ends it. Left set, the host's resume
+  kept the hold open, and the next owned resume ended it from its own `evaluationResumed`, before it claimed the
+  cells of its writes, so their dependents were never validated. The settle runs in a `finally`, so a throwing
+  `afterFormulasValuesUpdate` listener leaves no stale entries for the next hold. A holder's `disablePlugin()`
+  releases first and drops `#sheetResyncPending` before it: the validation reads the grid, which drained the owed
+  resync into an extra full write (measured); a grid that holds nothing keeps the old order. `destroy()` releases after its engine listeners are off and before `unregisterEngine()`: the
+  view, the data and the index mappers are gone by then, so its own sheet's dependents are skipped and the grids
+  bound to the other sheets validate theirs. A sheet switch only flushes; the grid stays a holder.
+- **A release a throwing listener skipped is made before the next draw.** `Hooks.run` runs the global bucket
+  first, so a global `afterResumeExecution` listener that throws skips the plugin's release whatever its
+  `orderIndex`, and the grid stayed a holder: every later plugin write on the engine, from any grid, was held.
+  `#onBeforeRender` of any grid on the engine takes out the holders whose execution is not suspended
+  (`leaveResumedHolders()`) and ends the hold when none is left. A `batch()` renders on its way out, so its hold
+  ends there; a `batchExecution()` or a bare pair keeps the engine held until any grid on it draws. A read
+  recalculates the held writes but leaves the stale holder in place, so the next write is held again. `enablePlugin()`
+  resets the draw state (`#isPreparingDraw`, `#isDrawingHeldEngine`): a plugin turned off inside a draw never
+  reached the listener that ends it, and the next engine change was then left to a draw that never came.
+- **`SHEET()`/`SHEETS()` under an owned suspension** clear the engine's undo stack at once, without resuming.
+
+Measured on the 11x3 fixture (jsdom, HyperFormula 3.3.0, `valuesUpdated` with the option off / on): ten
+`setDataAtCell()` in `batch()` 10 / 1; in `batchExecution()` 10 / 10 and in a bare `suspendExecution()` pair
+10 / 10 (each write renders, each render flushes); ten formulas into plain cells in `batch()` 1 (on); ten `setSourceDataAtCell()` in
+`batch()` 10 / 1; a write, an insert, a write and a removal in `batch()` 3 / 3 (each structure change validates the
+writes before it); ten writes over formula cells in `batch()` 10 / 1; the undo and the redo of the batch 1 each.
+**`#onModifySourceData` reads a formula cell with `getCellFormula()`, not `getCellSerialized()`.** The Core reads
+the old value of every cell it writes there, and `getCellSerialized()` (`getCellFormula() ?? getRawValue()` in
+HyperFormula) refuses while the engine is suspended, so a flush per write made ten overwrites 10 / 10. The text
+needs no recalculation. Only a cell with no formula of its own (a value an array formula spilled) still flushes
+and reads `getCellSerialized()`. Pinned by the two `getSourceDataAtCell()`/overwrite cases; the spilled-value flush by the
+"a value an array formula spilled" cases (removing it throws "Computations are suspended"). **Known limit:** ten
+formulas written into a validated column (`numeric`, `date`, `dropdown`, a `validator`) in `batch()` stay 10 / 10:
+`afterSetDataAtCell` writes the engine before the Core validates (`core.ts`), and `#onBeforeValidate` reads the
+formula's value for the validator. It is in the guide.
+Other limits: a later write
+to the same cell in one hold makes `writtenContent` the later content; a cell written in a hold is validated by the
+Core only, also when a later write in the same recalculation changes it; the last holder leaving inside a host's
+resume (its `valuesUpdated`) ends the hold before that resume is recorded; and a Walkontable scroll draw fires no
+`beforeRender`, so a hold that outlives the task (a host pair across an `await`) can paint a grid inside such a
+draw. Tests: `__tests__/batchEvaluation.unit.js`.
 
 ## Testing
 

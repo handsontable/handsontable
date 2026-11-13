@@ -59,6 +59,16 @@ The `touchend` **target** is the element captured at `touchstart`, so a release 
 
 `#onAfterScroll` re-extends the selection at the last known finger position after each scroll, because a finger held still past the edge emits no further `touchmove`. It does not run away: the target is resolved against the *current* viewport and then de-duplicated on coordinates, so it reaches a fixed point after one step — measured with `dragToScroll: false`, where nothing suppresses the scroll-into-view, it stops after one row and stays there.
 
+## The legacy mobile Jasmine suite is manual, and handle positions are whole pixels
+
+`__tests__/mobile/` runs only when someone builds it and opens `test/MobileRunner.html` on a device; no CI job runs it. Build `dist/` first (`npm --prefix handsontable run build:umd` and `build:languages`), then `npm --prefix handsontable run test:mobile.dump`. The dump task builds only the styles and the spec bundles, while the runner loads `../dist/handsontable.js` and `../dist/languages/all.js`, so without the build it fails in a fresh checkout and tests a stale `dist/` in an older one.
+
+`Border#measure` builds each handle's position from the integer `offsetTop`/`offsetLeft` chain and `offsetWidth`/`offsetHeight` (through the geometry reader), so the handle sits on integer coordinates. In the runner's jQuery 1.11.1, `outerWidth()` and `outerHeight()` return `offsetWidth` and `offsetHeight`, so they are whole numbers too. Only `offset()` is fractional, because it comes from `getBoundingClientRect()`, for the handle as much as for the cell. Comparing two `offset()` values exactly therefore fails by a fraction of a pixel on a fractional layout and passes on an integer one (DEV-601). The `parseInt` calls in `updateMultipleSelectionHandlesPosition` are not the cause: their inputs are already integers.
+
+The `positioning.spec.js` files read both the cell and the handle through `Handsontable.dom.offset()`, the same integer chain, and compare with `toEqual`. That keeps the one-pixel constants in the handle math pinned on every layout: a tolerance on `offset()` would let a one-pixel shift pass whenever it runs against an existing fractional miss. A real Pixel 7 (Android 13, Chrome, DPR 2.625) reproduces the `offset()` miss (0.476px), while stock Chromium emulation at DPR 2 and 2.625 does not. To see it without a device, add `.handsontable { zoom: 1.0005 }` to the runner page and temporarily compare jQuery's `.offset()` instead. Keep the zoom near 1: at about 1.02 the touch coordinates scale too, and the drag specs then fail for another reason.
+
+Do not "fix" this by placing the handles at fractional coordinates in `border.ts`.
+
 ## Where to look next
 
 - The auto-scroller this plugin arms: `../dragToScroll/AGENTS.md`.

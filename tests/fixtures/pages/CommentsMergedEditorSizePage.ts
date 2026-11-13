@@ -103,6 +103,109 @@ export class CommentsMergedEditorSizePage {
   }
 
   /**
+   * Selects a cell, opens its comment editor, and reads where the editor's textarea sits against the
+   * outer edges of the cell's selection border, in viewport pixels, in one evaluation.
+   *
+   * The border's corner handle is left out: it sticks out past the border and is not part of its edge.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<{
+   *   editor: { top: number, left: number, borderStart: number },
+   *   border: { top: number, right: number },
+   *   cell: { top: number },
+   * }>}
+   */
+  async selectionAlignment(row: number, col: number): Promise<{
+    editor: { top: number, left: number, borderStart: number },
+    border: { top: number, right: number },
+    cell: { top: number },
+  }> {
+    await this.page.evaluate(({ r, c }) => {
+      (window as any).hot.selectCell(r, c);
+    }, { r: row, c: col });
+    await this.showEditorAt(row, col);
+
+    return this.page.evaluate(({ testId }) => {
+      const edges = Array.from(document.querySelectorAll('.ht_master .wtBorder.current:not(.corner)'))
+        .map(border => border.getBoundingClientRect());
+      const textarea = document.querySelector('.htCommentTextArea') as HTMLElement;
+      const editorBox = textarea.getBoundingClientRect();
+      const cell = document.querySelector(`.ht_master [data-testid="${testId}"]`) as HTMLElement;
+
+      return {
+        editor: {
+          top: editorBox.top,
+          left: editorBox.left,
+          borderStart: parseFloat(getComputedStyle(textarea).borderInlineStartWidth),
+        },
+        border: {
+          top: Math.min(...edges.map(edge => edge.top)),
+          right: Math.max(...edges.map(edge => edge.right)),
+        },
+        cell: { top: cell.getBoundingClientRect().top },
+      };
+    }, { testId: `cell-${row}-${col}` });
+  }
+
+  /**
+   * Selects one cell and opens the comment editor of another through the plugin API, so the selection
+   * border belongs to a cell the editor does not.
+   *
+   * @param {{ row: number, col: number }} selected The cell to select.
+   * @param {{ row: number, col: number }} commented The cell whose comment editor opens.
+   */
+  async selectCellAndShowEditorAt(
+    selected: { row: number, col: number },
+    commented: { row: number, col: number }
+  ): Promise<void> {
+    await this.page.evaluate(({ r, c }) => {
+      (window as any).hot.selectCell(r, c);
+    }, { r: selected.row, c: selected.col });
+    await this.showEditorAt(commented.row, commented.col);
+  }
+
+  /**
+   * Clears the selection and opens a cell's comment editor through the plugin API, the way a hover does.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async showEditorWithoutSelection(row: number, col: number): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).hot.deselectCell();
+    });
+    await this.showEditorAt(row, col);
+  }
+
+  /**
+   * Scrolls the window until a cell's top edge is `viewportTop` px from the viewport's top edge. The page
+   * is made taller first, so it has room to scroll, and the method ends on the cell's measured position.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number} viewportTop The wanted distance of the cell's top edge from the viewport's top, in px.
+   */
+  async scrollWindowToCellTop(row: number, col: number, viewportTop: number): Promise<void> {
+    await this.page.evaluate(({ testId, wanted }) => {
+      const spacer = document.createElement('div');
+
+      spacer.style.height = '4000px';
+      document.body.appendChild(spacer);
+
+      const cell = document.querySelector(`.ht_master [data-testid="${testId}"]`) as HTMLElement;
+
+      window.scrollTo(0, cell.getBoundingClientRect().top + window.scrollY - wanted);
+    }, { testId: `cell-${row}-${col}`, wanted: viewportTop });
+
+    await expect.poll(() => this.page.evaluate(({ testId }) => {
+      const cell = document.querySelector(`.ht_master [data-testid="${testId}"]`) as HTMLElement;
+
+      return cell.getBoundingClientRect().top;
+    }, { testId: `cell-${row}-${col}` })).toBeCloseTo(viewportTop, 0);
+  }
+
+  /**
    * Freezes the top rows of the grid, so an overlay draws the part of a merged range that sits in them.
    *
    * @param {number} count How many rows to freeze.

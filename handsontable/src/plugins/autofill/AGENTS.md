@@ -312,8 +312,9 @@ The rules for the row insertion, each a DEV-140 defect:
 NestedRows recognizes the fill handle's rows by that source and adds them to the parent of the last
 visible row, so a drag from a child keeps adding children. Two shapes look equivalent and are not.
 Changing the source string silently brings back the new top-level parents. Passing the last row's index
-instead of `undefined` makes the Core move that row's index map values (a hidden flag, a manual row
-height) onto the new row, on every grid. Details in `../nestedRows/AGENTS.md`.
+instead of `undefined` made the Core move that row's index map values (a hidden flag, a manual row
+height) onto the new row, on every grid, until 19.0 (DEV-508 fixed the slot); keep `undefined` anyway,
+because the anchor rule below reads it. Details in `../nestedRows/AGENTS.md`.
 
 ## Read cell meta transiently
 

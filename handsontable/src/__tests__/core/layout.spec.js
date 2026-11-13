@@ -406,13 +406,20 @@ describe('Layout slots', () => {
 
   it('applies the filled-slot holder styling through the state class (not `:has()`)', async() => {
     // Explicit size: the holder styling only targets grids that are not scrollable by the window.
+    // Wide enough that the pagination bar keeps to one line, and tall enough that the rows fit
+    // next to it on every theme: a grid that scrolls gets the same frame from `htHasScrollX` and
+    // `htHasScrollY`, so the shadow would not change when the slot empties.
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
-      width: 300,
-      height: 200,
+      width: 600,
+      height: 300,
       pagination: true,
     });
     const holder = hot.rootWrapperElement.querySelector('.ht_master .wtHolder');
+
+    expect(hot.rootElement.classList.contains('htHasScrollX')).toBe(false);
+    expect(hot.rootElement.classList.contains('htHasScrollY')).toBe(false);
+
     const filledBoxShadow = getComputedStyle(holder).boxShadow;
 
     await updateSettings({ pagination: false });

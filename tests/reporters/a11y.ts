@@ -5,7 +5,6 @@ import type { FullConfig, FullResult, Reporter, Suite, TestError } from '@playwr
 import {
   A11Y_MODE,
   A11Y_MODES,
-  BASELINE_FILE,
   compareViolations,
   engineVersionNote,
   findingsFromScan,
@@ -19,13 +18,17 @@ import {
 } from '../lib/a11y-baseline.mjs';
 import { renderHtmlReport } from '../lib/a11y-report.mjs';
 import { agentFindings } from '../lib/a11y-findings.mjs';
-import { A11Y_PAGES } from '../a11y/pages.mjs';
+import { A11Y_SUITE_IDS, suiteFor, type A11ySuite } from '../lib/a11y-suites.mjs';
 
 /**
  * Compares the run's axe scans with the committed baseline, writes every report, and sets the
  * run's exit status.
  *
- * Each test of `a11y/axe.spec.ts` attaches its scan (`axe-scan`, a JSON file under
+ * It serves both axe scans (`lib/a11y-suites.mjs`): the product scan (`playwright.a11y.config.ts`, the
+ * default) and the docs site scan (`playwright.a11y-docs.config.ts`, the `suite: 'docs'` option), which
+ * differ in their pages, themes and baseline and in nothing this reporter does with them.
+ *
+ * Each test of `a11y/axe.spec.ts` (or `a11y/docs/docs-axe.spec.ts`) attaches its scan (`axe-scan`, a JSON file under
  * `test-results/a11y/scans/`, with a screenshot beside it when the scan marked findings). This
  * reporter reads the last attempt of every test, flattens the scans into findings
  * (`findingsFromScan()`), and asks `compareViolations()` what is new, grown, matched, improved,
@@ -35,7 +38,7 @@ import { A11Y_PAGES } from '../a11y/pages.mjs';
  *   themes and engines (the check run and the pull request comment are built from it,
  *   `scripts/a11y-check-run.mjs` and `scripts/a11y-pr-comment.mjs`);
  * - `summary.md`: the job summary, also appended to the GitHub job summary;
- * - `a11y-report.html`: the HTML report (`lib/a11y-report.mjs`), one self-contained file built to
+ * - `a11y-report.html` (`docs-a11y-report.html` for the docs suite): the HTML report (`lib/a11y-report.mjs`), one self-contained file built to
  *   locate every element, with the scans' screenshots inlined;
  * - `a11y-findings.json`: the same findings, concise and machine-readable, for an implementer
  *   agent (`lib/a11y-findings.mjs`).
@@ -58,6 +61,9 @@ export default class A11yReporter implements Reporter {
 
   #optionProblem: string | null = null;
 
+  // Which axe scan this run is (`lib/a11y-suites.mjs`); `#suite` is Playwright's tree of tests.
+  #scan: A11ySuite;
+
   // The package root (`tests/`), where the baseline lives: `config.rootDir` is the a11y
   // config's `testDir`, one level down.
   #packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -66,14 +72,22 @@ export default class A11yReporter implements Reporter {
 
   #hadErrors = false;
 
-  constructor(options: { baseline?: string; mode?: string } = {}) {
-    this.#baselinePath = options.baseline ?? path.join(this.#packageDir, BASELINE_FILE);
+  constructor(options: { baseline?: string; mode?: string; suite?: string } = {}) {
+    const suiteId = options.suite ?? 'product';
+
+    if (A11Y_SUITE_IDS.includes(suiteId)) {
+      this.#scan = suiteFor(suiteId, { docsBaseUrl: process.env.DOCS_A11Y_BASE_URL });
+    } else {
+      this.#scan = suiteFor('product');
+      this.#optionProblem = `the reporter's suite option ${JSON.stringify(options.suite)} is not one of ${A11Y_SUITE_IDS.join(', ')}`;
+    }
+    this.#baselinePath = options.baseline ?? path.join(this.#packageDir, this.#scan.baselineFile);
     this.#mode = A11Y_MODE;
     if (options.mode !== undefined) {
       if ((A11Y_MODES as readonly string[]).includes(options.mode)) {
         this.#mode = options.mode as A11yMode;
       } else {
-        this.#optionProblem = `the reporter's mode option ${JSON.stringify(options.mode)} is not one of ${A11Y_MODES.join(', ')}`;
+        this.#optionProblem ??= `the reporter's mode option ${JSON.stringify(options.mode)} is not one of ${A11Y_MODES.join(', ')}`;
       }
     }
   }
@@ -90,12 +104,14 @@ export default class A11yReporter implements Reporter {
   async onEnd(result: FullResult): Promise<{ status?: FullResult['status'] }> {
     const problems: string[] = this.#optionProblem ? [this.#optionProblem] : [];
     const baseline = readJson<BaselineDocument>(this.#baselinePath, problems);
-    const pages = A11Y_PAGES.map(page => page.id);
+    const suite = this.#scan;
+    const pages = suite.pages.map(page => page.id);
 
     if (baseline) {
       const label = path.relative(path.dirname(this.#packageDir), this.#baselinePath);
 
-      problems.push(...validateBaseline(baseline, { pages }).map(problem => `${label}: ${problem}`));
+      problems.push(...validateBaseline(baseline, { pages, themes: suite.themes, pagesFile: suite.pagesFile })
+        .map(problem => `${label}: ${problem}`));
     }
 
     const scans: Scan[] = [];
@@ -127,11 +143,12 @@ export default class A11yReporter implements Reporter {
       violations: scans.flatMap(scan => findingsFromScan(scan)),
       scanned: scans.map(({ page, theme }) => ({ page, theme })),
       mode: this.#mode,
+      baselineFile: suite.baselineFile,
     });
     const scannedPages = new Set(scans.map(scan => scan.page)).size;
     const scannedThemes = new Set(scans.map(scan => scan.theme)).size;
     const summary = [
-      renderSummary(verdict),
+      renderSummary(verdict, { title: suite.title }),
       `${scans.length} scans completed (${scannedPages} pages × ${scannedThemes} themes); axe-core ${engines.join(', ') || 'none'}.`,
       ...notes.map(note => `\n> ${note}`),
       ...(problems.length > 0 ? ['', '### Tooling problems', '', ...problems.map(problem => `- ${problem}`)] : []),
@@ -142,25 +159,25 @@ export default class A11yReporter implements Reporter {
     writeFileSync(path.join(this.#outputDir, 'comparison.json'),
       `${JSON.stringify({ ...verdict, problems, notes, engines, scans: scans.length, scannedPages, scannedThemes }, null, 2)}\n`);
     writeFileSync(path.join(this.#outputDir, 'summary.md'), summary);
-    writeFileSync(path.join(this.#outputDir, 'a11y-report.html'), renderHtmlReport({
+    writeFileSync(path.join(this.#outputDir, this.#scan.reportFile), renderHtmlReport({
       verdict,
       scans: scans.map(scan => ({ ...scan, screenshot: inlineScreenshot(scan, path.join(this.#outputDir, 'scans')) })),
-      pages: A11Y_PAGES,
-      run: { ...runDetails(), engines, notes, problems, generatedAt: new Date().toISOString() },
+      run: { ...runDetails(suite), engines, notes, problems, generatedAt: new Date().toISOString() },
+      suite,
     }));
     writeFileSync(path.join(this.#outputDir, 'a11y-findings.json'),
-      `${JSON.stringify(agentFindings({ verdict, pages: A11Y_PAGES, problems }), null, 2)}\n`);
-    process.stdout.write(`\n${summary}\nHTML report: ${path.join(this.#outputDir, 'a11y-report.html')}\n`);
+      `${JSON.stringify(agentFindings({ verdict, problems, suite }), null, 2)}\n`);
+    process.stdout.write(`\n${summary}\nHTML report: ${path.join(this.#outputDir, this.#scan.reportFile)}\n`);
 
     if (process.env.GITHUB_ACTIONS === 'true') {
-      for (const line of renderAnnotations(verdict)) {
+      for (const line of renderAnnotations(verdict, { label: suite.title.replace(' / ', ' ') })) {
         process.stdout.write(`${line}\n`);
       }
       for (const note of notes) {
-        process.stdout.write(`${workflowCommand('warning', 'A11y axe: engine version', note)}\n`);
+        process.stdout.write(`${workflowCommand('warning', `${suite.title.replace(' / ', ' ')}: engine version`, note)}\n`);
       }
       for (const problem of problems) {
-        process.stdout.write(`${workflowCommand('error', 'A11y axe: tooling', problem)}\n`);
+        process.stdout.write(`${workflowCommand('error', `${suite.title.replace(' / ', ' ')}: tooling`, problem)}\n`);
       }
       if (process.env.GITHUB_STEP_SUMMARY) {
         appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
@@ -209,9 +226,10 @@ function inlineScreenshot(scan: Scan, scansDir: string): string | null {
 /**
  * The links the HTML report carries, from the GitHub Actions environment; only the commit locally.
  *
+ * @param suite The scan, whose policy section the report links.
  * @returns The commit and the pull request, run and policy URLs that apply.
  */
-function runDetails(): { commit?: string; prUrl?: string; runUrl?: string; docsUrl?: string } {
+function runDetails(suite: A11ySuite): { commit?: string; prUrl?: string; runUrl?: string; docsUrl?: string } {
   const { GITHUB_SERVER_URL: server, GITHUB_REPOSITORY: repository, GITHUB_RUN_ID: runId, GITHUB_REF: ref } = process.env;
   const commit = process.env.A11Y_HEAD_SHA || process.env.GITHUB_SHA;
 
@@ -225,7 +243,7 @@ function runDetails(): { commit?: string; prUrl?: string; runUrl?: string; docsU
     commit,
     prUrl: pull ? `${server}/${repository}/pull/${pull}` : undefined,
     runUrl: runId ? `${server}/${repository}/actions/runs/${runId}` : undefined,
-    docsUrl: `${server}/${repository}/blob/${commit ?? 'develop'}/tests/AGENTS.md#a11y-the-axe-scan-and-its-baseline`,
+    docsUrl: `${server}/${repository}/blob/${commit ?? 'develop'}/${suite.policy.file}#${suite.policy.anchor}`,
   };
 }
 
