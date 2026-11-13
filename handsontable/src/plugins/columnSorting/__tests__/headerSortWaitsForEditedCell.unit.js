@@ -537,6 +537,46 @@ describe.each([
     expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
   });
 
+  it('should not sort on an unrelated validation while the editor the press found is still open', async() => {
+    buildGrid();
+    editCell(1, 'zzz');
+    pressHeaderKeepingEditor(1);
+    releaseHeader(1);
+    await flush();
+
+    // An unrelated validation answers while the editor has not saved yet.
+    hot.validateRows([4]);
+    await flush();
+    await answer(() => true);
+    await flush();
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+    expect(hot.getDataAtCol(0)).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+
+    hot.getActiveEditor().finishEditing();
+    await flush();
+    await answer(() => true);
+
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+  });
+
+  it('should not sort on an unrelated validation answered before the release while the editor is still open', async() => {
+    buildGrid();
+    editCell(1, 'zzz');
+    pressHeaderKeepingEditor(1);
+    hot.validateRows([4]);
+    await flush();
+    await answer(() => true);
+    await flush();
+    releaseHeader(1);
+    await flush();
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([]);
+  });
+
   it('should sort on release when Escape ended the edit after the press', async() => {
     buildGrid();
     editCell(1, 'zzz');

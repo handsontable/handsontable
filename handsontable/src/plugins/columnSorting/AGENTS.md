@@ -157,7 +157,14 @@ Everything about that machinery is load-bearing:
   The check is the same on every signal: the press-time editor no longer waits and no marked set is pending.
   The release adds one condition: the press-time editor is not open. An editor the press did not close (a
   `beforeOnCellMouseDown` that keeps the selection) has not saved yet, and releasing then sorted the rows
-  before the save; its save's answer or its finish ends the wait instead.
+  before the save; its save's answer or its finish ends the wait instead. **The check itself holds such an
+  editor too** (`isEditorUnsaved` in `#waitForEditor()`): open and not waiting at the press, it has made no
+  save, so it neither waits nor has a set, and an unrelated `postAfterValidate` in that window (a Formulas
+  dependent, a `validateCells()` batch) passed the check and sorted under the open editor, before or after the
+  release. The flag is cleared by the editor's next finish (its own listener, `onFinish`: the save's answer, a
+  rejection that reopens it, Escape, a veto), never by `isOpened()` alone: an editor stays open while it waits and
+  after a rejection under `allowInvalid: false`, and a plain `isOpened()` guard would leave those sorts queued. An
+  editor without `_addFinishListener()` is not held this way.
   Each waiting press owns one entry (`#editorWaitListeners`: the check, registered on both the hook and the
   editor), removed when its wait settles, when the press turns into a drag, when a new press replaces a stale
   one, and by every drop below. Pinned by

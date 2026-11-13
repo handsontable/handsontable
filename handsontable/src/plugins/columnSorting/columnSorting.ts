@@ -259,7 +259,9 @@ export class ColumnSorting extends BasePlugin {
    * The `postAfterValidate` listener of each press that waits for the editor, removed when the wait
    * settles or the press is dropped.
    */
-  #editorWaitListeners: Map<HeaderSortPress, { check: () => void, editor: EditorToWaitFor | null }> = new Map();
+  #editorWaitListeners: Map<HeaderSortPress, {
+    check: () => void, onFinish: () => void, editor: EditorToWaitFor | null,
+  }> = new Map();
   /**
    * `true` from an `enablePlugin()` until the settings sort of that enable runs in the ready step.
    * `onDataReady()` sorts itself, so it clears it too.
@@ -1702,11 +1704,16 @@ export class ColumnSorting extends BasePlugin {
     press: HeaderSortPress, editor: EditorToWaitFor | null, waitingSets: CellChange[][]
   ): Promise<void> {
     let setsToWaitFor = waitingSets;
+    // An editor the press did not close (a `beforeOnCellMouseDown` that keeps the selection) is open and has
+    // not saved yet, so it does not wait and no set of its save exists: an unrelated validation that answers
+    // then must not end the wait. Its next finish (its save's answer, a rejection that reopens it, Escape, a
+    // veto) does. An editor without the finish listener cannot report that, so it is not held this way.
+    let isEditorUnsaved = !!editor && !editor.isWaiting() && typeof editor._addFinishListener === 'function';
 
     return new Promise<void>((resolve) => {
       const check = () => {
         // An earlier `postAfterValidate` listener destroyed the grid; the plugin's destroy drops this wait.
-        if (!this.hot || this.hot.isDestroyed || editor?.isWaiting()) {
+        if (!this.hot || this.hot.isDestroyed || editor?.isWaiting() || (isEditorUnsaved && editor?.isOpened())) {
           return;
         }
 
@@ -1724,11 +1731,16 @@ export class ColumnSorting extends BasePlugin {
         resolve();
       };
 
-      this.#editorWaitListeners.set(press, { check, editor });
+      const onFinish = () => {
+        isEditorUnsaved = false;
+        check();
+      };
+
+      this.#editorWaitListeners.set(press, { check, onFinish, editor });
       this.hot.addHook('postAfterValidate', check, Number.MAX_SAFE_INTEGER);
       // An edit can end with no validation at all (a `beforeChange` veto, Escape, a wait canceled without an
       // answer), so the editor's finish checks the wait as well.
-      editor?._addFinishListener?.(check);
+      editor?._addFinishListener?.(onFinish);
     });
   }
 
@@ -1762,7 +1774,7 @@ export class ColumnSorting extends BasePlugin {
     if (wait) {
       this.#editorWaitListeners.delete(press);
       this.hot.removeHook('postAfterValidate', wait.check);
-      wait.editor?._removeFinishListener?.(wait.check);
+      wait.editor?._removeFinishListener?.(wait.onFinish);
     }
   }
 
