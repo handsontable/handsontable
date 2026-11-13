@@ -81,9 +81,12 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   or overtaken one is found by the grid's own list instead: `#onAfterSetDataAtRowProp` keeps, on each flight,
   the change tuple and the list core validates and applies (the list after `beforeChange` and the
   `valueSetter`), the grid splices a rejected or overtaken tuple out of that list, and `#onPostAfterValidate`
-  (it runs after the answer is applied) ends every flight on the answer's prop whose tuple is gone, on every
-  row: the reported row is `null` once a filter or a trim took the record out during the wait, and a tuple that
-  left the list never lands anywhere. Looked up by that row, the rejected flight stayed queued, the call never
+  (it runs after the answer is applied) ends every flight on the answer's prop whose tuple is gone. For a
+  number row it checks only that row's state: a tuple leaves its list only in its own cell's answer, and core
+  reports that cell's current visual row, so walking every state there made a run of N answers O(N²) (pinned
+  by "should check only the answered row's flights when the answer reports a row"). The reported row is `null`
+  once a filter or a trim took the record out during the wait, and then every row is walked: a tuple that left
+  the list never lands anywhere. Skipping a `null` row, the rejected flight stayed queued, the call never
   finalized and its row state was never released (pinned by "should finalize a call whose value a validator
   rejected after a trim took its record out"). Source and value cannot do it: two calls can write the same
   value with the same source. A call's kept write that has not

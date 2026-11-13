@@ -613,6 +613,40 @@ describe('AsyncValues: progress, retry, and request options', () => {
       destroy();
     });
 
+    it('should check only the answered row\'s flights when the answer reports a row', async() => {
+      const answers: Map<unknown, () => void> = new Map();
+      const validator = (value: unknown, callback: (valid: boolean) => void) => {
+        answers.set(value, () => callback(value !== 'bad'));
+      };
+      const { hot, plugin, destroy } = createGrid({
+        columns: [{ data: 'sku' }, { data: 'name', validator, allowInvalid: false }, { data: 'price' }],
+      });
+      const values = ['bad', 'new B', 'new C', 'new D'];
+      const results = plugin.setAsyncValues(0, 1, 3, 1, ({ row }) => Promise.resolve(values[row!]));
+
+      await settle();
+
+      const states = hot.rowIndexMapper.variousMapsCollection.get('AsyncValues')!
+        .getValues() as Array<{ flights: Map<string, unknown> } | null>;
+      const otherRowLookups = states.slice(1).map(state => jest.spyOn(state!.flights, 'get'));
+
+      answers.get('bad')?.();
+      answers.delete('bad');
+
+      expect(otherRowLookups.map(lookup => lookup.mock.calls.length)).toEqual([0, 0, 0]);
+
+      answers.forEach(answer => answer());
+      await results;
+      await settle();
+
+      expect(hot.getSourceDataAtCol(1)).toEqual(['old A', 'new B', 'new C', 'new D']);
+      expect(plugin.countPending()).toBe(0);
+      expect(hot.rowIndexMapper.variousMapsCollection.get('AsyncValues')?.getValues().every(state => state === null))
+        .toBe(true);
+
+      destroy();
+    });
+
     it('should finalize a call whose value a validator rejected after a trim took its record out', async() => {
       const answers: Array<() => void> = [];
       const validator = (value: unknown, callback: (valid: boolean) => void) => {

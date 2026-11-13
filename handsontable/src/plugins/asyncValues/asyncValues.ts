@@ -3360,9 +3360,12 @@ export class AsyncValues extends BasePlugin {
    * `postAfterValidate` hook callback, which runs once the grid has applied the answer. Ends the flights of
    * the cell whose change the grid took out of its list: a validator rejected it under
    * `allowInvalid: false`, or a newer write overtook it. Such a change never lands, and `afterChange` does
-   * not report it. A validator's answer names no flight, so the list is what tells which one it was. The
-   * flights of every row are checked, not only the one at the reported row: the row is `null` once a filter
-   * or a trim took the record out of the visual space, and a tuple that left its list never lands on any row.
+   * not report it. A validator's answer names no flight, so the list is what tells which one it was. A tuple
+   * leaves its list only in the answer for its own cell (the rejection, or a newer write's answer to the same
+   * cell), and the grid reports that cell's current visual row. So a number row is looked up alone: its
+   * record's state is the one at that row's physical index, and a row with no state holds no flight to end.
+   * Only a `null` row (a filter or a trim took the record out of the visual space) walks the flights of every
+   * row, because a tuple that left its list never lands on any row.
    *
    * @param {boolean} isValid Whether the value is valid.
    * @param {*} value The validated value.
@@ -3372,15 +3375,30 @@ export class AsyncValues extends BasePlugin {
   readonly #onPostAfterValidate = (
     isValid: boolean, value: unknown, row: number | null, prop: string | number,
   ): void => {
-    const ended: Flight[] = [];
+    if (this.#states.size === 0) {
+      return;
+    }
 
-    this.#states.forEach((state) => {
+    const ended: Flight[] = [];
+    const collect = (state: RowState) => {
       state.flights.get(prop)?.forEach((flight) => {
         if (flight.change && !flight.changes?.includes(flight.change)) {
           ended.push(flight);
         }
       });
-    });
+    };
+
+    if (row === null) {
+      this.#states.forEach(collect);
+
+    } else {
+      const physicalRow = this.hot.toPhysicalRow(row);
+      const state = physicalRow === null ? null : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+
+      if (state) {
+        collect(state);
+      }
+    }
 
     ended.forEach(flight => this.#endFlight(flight.state, flight.prop, flight, true));
   };
