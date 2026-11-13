@@ -197,6 +197,8 @@
  * @property {import('./lib/json-edit.mjs').JsonDocument} [json] The editor of a `json` part.
  * @property {import('./lib/css-edit.mjs').CssDocument} [document] The editor of a `css` part.
  * @property {object|null} j The jscodeshift API for `js` parts, otherwise `null`.
+ * @property {'ts'|'tsx'|'babylon'} [parser] The jscodeshift parser of a `js` part. `printJsPart()` parses the printed
+ * text with the same one.
  * @property {number} lineOffset Zero-based line of the part inside the file, added to reported lines.
  * @property {boolean} [scoped] `true` for a Vue `<style scoped>` block. Set by the Vue adapter on `css` parts.
  * @property {boolean} [module] `true` for a Vue `<style module>` block. Set by the Vue adapter on `css` parts.

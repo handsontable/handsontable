@@ -1,6 +1,7 @@
 import { extname } from 'node:path';
 import jscodeshift from 'jscodeshift';
 import { spliceCarriers } from '../lib/carrier.mjs';
+import { guardLiterals, intendedLiterals, linesInsideLiterals } from '../lib/literals.mjs';
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.mts', '.cts']);
 
@@ -68,20 +69,22 @@ const TAB_WIDTH = 4;
  * prints the first statement of a block it reprints with spaces. A line that the source already had is left as it
  * is, so a file that mixes the two styles keeps its minority lines. Any other line that starts with spaces is
  * measured in columns (a tab is `TAB_WIDTH` columns) and written with as many tabs as fit, and the rest stay spaces,
- * as alignment.
+ * as alignment. A line that begins inside a string or template literal is never changed, because its white space is
+ * part of the string.
  *
  * @param {string} printed The text recast printed.
  * @param {string} source Original text of the part.
  * @param {string} lineTerminator Line terminator of the part.
+ * @param {Set<number>} insideLiterals Indexes of the lines that begin inside a literal.
  * @returns {string} The text with tab indentation.
  */
-function restoreTabs(printed, source, lineTerminator) {
+function restoreTabs(printed, source, lineTerminator, insideLiterals) {
   const original = new Set(source.split(lineTerminator));
 
-  return printed.split(lineTerminator).map((line) => {
+  return printed.split(lineTerminator).map((line, index) => {
     const [indent] = /^[ \t]*/.exec(line);
 
-    if (!indent.includes(' ') || original.has(line) || /^ +\*/.test(line)) {
+    if (!indent.includes(' ') || original.has(line) || /^ +\*/.test(line) || insideLiterals.has(index)) {
       return line;
     }
 
@@ -114,28 +117,60 @@ export const JS_PRECHECK = /handsontable|--ht-/i;
 export function createJsPart(source, parser, lineOffset = 0) {
   const j = jscodeshift.withParser(parser);
 
-  return { fileKind: 'js', source, root: j(source), j, lineOffset, changed: false };
+  return { fileKind: 'js', source, root: j(source), j, parser, lineOffset, changed: false };
 }
 
 /**
- * Print a `js` part back to text. Recast reprints only the nodes a transform touched. A CRLF source keeps its
- * line terminator, and a tab-indented source keeps tabs in the lines recast prints again.
+ * Print a `js` part back to text. Recast reprints only the nodes a transform touched. A CRLF source keeps its line
+ * terminator, and a tab-indented source keeps tabs in the lines recast prints again.
+ *
+ * The steps, in this order:
+ *
+ * 1. Read the intended text of every literal that spans lines from the final tree (`intendedLiterals()`).
+ * 2. Print, splice the marker carriers in (a sentinel is not valid code, so nothing can be parsed before this), and
+ * remove a stray `;`.
+ * 3. Parse the text with a plain parser and put back any literal that printing changed (`guardLiterals()`). It
+ * comes before the tab fix so that the fix learns which lines begin inside a literal, and it parses only a part
+ * that changed, because `printJsPart()` runs for no other.
+ * 4. Fix the tabs of a tab-indented file, never in a line that begins inside a literal, and check the result once
+ * more when that changed the text.
+ *
+ * A failure in step 3 or 4 throws, and `transformFile()` leaves the file alone.
  *
  * @param {import('../types.mjs').Part} part A part made by `createJsPart`.
  * @param {string} source Original text of the part, used to detect the quote style and line terminator.
  * @returns {string} Printed text.
+ * @throws {Error} When a string or template literal cannot be kept as intended, or the text does not parse.
  */
 export function printJsPart(part, source) {
   const lineTerminator = source.includes('\r\n') ? '\r\n' : '\n';
   const tabs = usesTabs(source);
+  const parser = part.parser ?? 'babylon';
+  const intended = intendedLiterals(part);
   const printed = part.root.toSource({
     quote: detectQuote(source),
     lineTerminator,
     ...(tabs ? { useTabs: true, tabWidth: TAB_WIDTH } : {}),
   });
   const spliced = spliceCarriers(part.carriers, printed, lineTerminator);
+  const guarded = guardLiterals({
+    parser,
+    intended,
+    text: stripStraySemicolons(part, spliced, source),
+    source,
+    lineTerminator,
+  });
 
-  return stripStraySemicolons(part, tabs ? restoreTabs(spliced, source, lineTerminator) : spliced, source);
+  if (!tabs) {
+    return guarded.text;
+  }
+
+  const insideLiterals = linesInsideLiterals(guarded.text, guarded.literals, lineTerminator);
+  const restored = restoreTabs(guarded.text, source, lineTerminator, insideLiterals);
+
+  return restored === guarded.text
+    ? restored
+    : guardLiterals({ parser, intended, text: restored, source, lineTerminator, repair: false }).text;
 }
 
 /**

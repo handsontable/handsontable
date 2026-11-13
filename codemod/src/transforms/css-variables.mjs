@@ -1,5 +1,6 @@
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { removalAdvice } from '../lib/rename-key.mjs';
+import { templateRaw } from '../lib/literals.mjs';
 import { replaceStringLiteral } from '../lib/string-literal.mjs';
 import { assertRenameOrRemoval, problemsOf } from '../lib/validate.mjs';
 
@@ -323,7 +324,7 @@ function applyToJs(ctx, entries) {
 
     const line = path.node.loc?.start?.line;
 
-    value.raw = edit(value.raw);
+    value.raw = edit(templateRaw(path.node));
 
     if (typeof value.cooked === 'string') {
       value.cooked = edit(value.cooked);

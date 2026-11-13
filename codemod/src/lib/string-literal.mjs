@@ -1,3 +1,5 @@
+import { stringRaw } from './literals.mjs';
+
 /**
  * Replace the value of a string literal and keep its original quote style.
  *
@@ -16,9 +18,9 @@
 export function replaceStringLiteral(j, path, edit) {
   const { node } = path;
   const value = edit(node.value);
-  const raw = node.extra?.raw ?? node.raw;
+  const raw = stringRaw(node);
 
-  if (typeof raw !== 'string') {
+  if (raw === null) {
     node.value = value;
 
     return;

@@ -27,6 +27,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   reports and TODO comments only, and no `transform-error`.
 - `test/idempotency.test.mjs` runs every fixture output a second and a third time, and runs one-line shapes of every
   TODO-emitting kind three times. A new kind that leaves a TODO adds a one-line case there.
+- `test/literals.test.mjs` pins the literal invariant (see Traps): a matrix of literal shapes in files indented with
+  spaces, tabs, and CRLF, the deliberate-edit cases, `guardLiterals()` itself, and a sweep that compares the template
+  literals and multi-line strings of every fixture input with its output. It reads literals through
+  `test/helpers/literals.mjs`, a plain parser walk that does not use `src/lib/literals.mjs`.
 - `test/manifest.test.mjs` checks every rule's `guide` anchor against the headings of the guide page with
   `anchorsOf()` in `test/helpers/guide-anchors.mjs`, the one slug function of the tests.
 
@@ -46,6 +50,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `versions/18.1.0/custom/sanitizer-source.mjs` | Two `custom` rules for the `sanitizer` option, picked by the rule's `mode` (see Traps). |
 | `src/transforms/css-variables.mjs`, `theme-tokens.mjs` | `cssVariable` (css, js strings, template report) and `themeToken` kinds. |
 | `src/lib/string-literal.mjs` | `replaceStringLiteral()`: edit a string literal and keep its quote style. |
+| `src/lib/literals.mjs` | The literal guard of `printJsPart()`: `intendedLiterals()` (what the final tree holds), `guardLiterals()` (compare with the printed text, repair or throw), `linesInsideLiterals()` (for `restoreTabs()`), and `templateRaw()` / `stringRaw()`, which a transform uses to read the text of a literal it edits (see Traps). |
 | `src/lib/todo.mjs` | The writer of TODO comments in the AST, and the only source of their text (`formatTodo()`; `carrier.mjs` places the same text after printing): `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
 | `src/lib/anchor.mjs` | Where a comment about a property can go: `enclosingAnchor()`, `hasOwnLines()`, `anchorForProperty()`. |
 | `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
@@ -465,6 +470,35 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   first statement of a block it reprints. A line the source already had is never changed, so a file that mixes styles
   keeps its minority lines. The width of a space indent is recast's own guess from the source (`guessTabWidth`), and
   `test/indentation.test.mjs` pins two spaces, four spaces, and tabs in `.js`, `.ts`, and a Vue `<script>`.
+- **The invariant: the tool never changes the bytes of a string or template literal it did not deliberately edit.**
+  recast keeps the text of an untouched node, but not for a literal that spans lines inside a node it prints again.
+  It copies the original lines into the new layout and indents them with the line they now stand in, and neither
+  of its two protections applies: the generic printer locks the indentation of a template literal's own lines
+  (`lockIndentTail()`) only for a template it prints itself, and a slice of the original lines (the reprinter cuts the
+  node out of its line) always drops the lock. So a one-line object that gets a key moved gains indentation in a
+  multi-line template inside it, and the string changes. The same goes for a string with a line continuation, a JSX
+  attribute string, a tagged template (`String.raw` shows it), and a template nested in a `${}`. Fixing recast was
+  not an option, so `printJsPart()` enforces the invariant for every printed part (plain js, ts, jsx, tsx, and a Vue
+  script block) with `guardLiterals()` from `src/lib/literals.mjs`:
+  1. Before printing, `intendedLiterals()` reads the literals that span lines from the final tree. An element nobody
+     edited is read from the original source, an edited one is read from the tree, so a deliberate edit is the
+     intended text.
+  2. After printing and `spliceCarriers()`, a plain `@babel/parser` parse of the printed text (no recast, so offsets
+     are real) lists the same literals with their ranges. The two lists are matched by content apart from white space,
+     in any order. A count that differs, or characters that differ, throw. A white-space difference is repaired by
+     splicing the intended text back by range, last to first, and the text is parsed and compared once more.
+  3. Only then does `restoreTabs()` run, with `linesInsideLiterals()` telling it which lines begin inside a literal
+     (it skips them), and the result is checked again when the tab fix changed anything.
+  The order matters: the sentinels of the carriers are not code, so the parse must follow `spliceCarriers()`;
+  and the tab fix needs the literal ranges, so it must follow the guard. A throw becomes a `transform-error` and
+  the file is left alone. A source with a line terminator that a `Lines` slice cannot return (a lone `\r`, `U+2028`,
+  `U+2029`) is never repaired, only checked. A literal on one line cannot be re-indented, so it is not compared, which
+  also keeps the elements a carrier holds out of the lists. The guard parses only a part that changed.
+- **A transform that edits a literal reads it with `templateRaw()` or `stringRaw()`.** recast parses a copy of the
+  source with the leading tabs of every line turned into spaces, so the `raw` of a template literal does not hold the
+  tab of a continuation line, and an edit of that `raw` would write spaces. Both helpers return the original text of a
+  node nobody edited (from the `Lines` of the parse, with tabs) and the current `raw` of an edited one. A new test for
+  a literal edit uses a continuation line that starts with a tab.
 - **`catalog:` specs.** `bump()` in `dependencies.mjs` never plans a range for them (`reportCatalog()`): the entry says
   to set the range in the `catalog` or `catalogs.<name>` section of `pnpm-workspace.yaml`, names the current value
   when `ctx.catalog` has it, and is dropped when `planRange()` keeps it or `rangeAdmits()` is true. It keeps the

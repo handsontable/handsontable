@@ -314,6 +314,13 @@ the tool reads the version from `package.json`, which the run raised, and answer
   rewritten, is wrapped in parentheses, or spans several lines, the printer reprints it as described above.
 - A tab-indented file keeps its tabs: a statement the printer prints again, next to a removed call or a changed
   object, is indented with tabs, and so is every added line. The width of a space indent comes from the file.
+- A string or template literal that a rule did not edit keeps its bytes, even when the printer reprints the object
+  around it. This matters for a literal that spans lines (a template literal, a string with a line continuation, a
+  JSX attribute string), because the white space inside it is part of the value. The tool checks every file it
+  prints: it reads the literals of the printed text again and compares them with the ones it meant to write. A
+  literal that the printer re-indented is put back as it was. When a literal is lost or cannot be put back, the tool
+  reports a `transform-error` and leaves the file alone. A literal that a rule does edit (a `--ht-` variable
+  renamed inside a template literal) changes only the renamed name.
 - A `cells` function the tool cannot read (see "How confidence works") is not checked. A `cells` function from another
   file, or one handed in as a parameter, may still set removed options, so search for them by hand.
 - After a rewrite, a default import can become unused. The tool does not remove an import that may be needed for its side
