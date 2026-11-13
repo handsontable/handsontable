@@ -1,4 +1,5 @@
 import type { TrackedRecord } from './recordTracker';
+import type { TrackedColumn } from './columnTracker';
 
 /**
  * The coordinates a stored cell meta object carries, which a validator reads through `this`.
@@ -16,12 +17,38 @@ export interface StampedMeta {
    * The property of the cell.
    */
   prop?: unknown;
+  /**
+   * The physical column of the cell.
+   */
+  col?: number | null;
+  /**
+   * The visual column of the cell.
+   */
+  visualCol?: number | null;
+}
+
+/**
+ * What the stamps need to keep the column coordinates of a meta object current.
+ */
+export interface StampedColumns {
+  /**
+   * Returns the column index mapper.
+   */
+  getIndexMapper(): StampedIndexMapper;
+  /**
+   * Returns the visual column of a physical column, or `null` for a trimmed one.
+   */
+  toVisualColumn(physicalColumn: number): number | null;
+  /**
+   * Returns the property of a column from its physical index.
+   */
+  toProp(physicalColumn: number): unknown;
 }
 
 /**
  * The part of the index mapper the stamps listen to.
  */
-interface StampedIndexMapper {
+export interface StampedIndexMapper {
   addLocalHook(key: string, callback: Function): unknown;
   removeLocalHook(key: string, callback: Function): unknown;
 }
@@ -31,10 +58,10 @@ interface StampedIndexMapper {
  */
 export interface WaitingMetaStamps<M extends StampedMeta = StampedMeta> {
   /**
-   * Keeps the `row` and `visualRow` of a meta object on the rows a tracked record has, until the returned
-   * function is called.
+   * Keeps the `row` and `visualRow` of a meta object on the rows a tracked record has, and, when a tracked column
+   * is given, its `col`, `visualCol` and `prop` on the column that has, until the returned function is called.
    */
-  add(record: TrackedRecord, meta: M): () => void;
+  add(record: TrackedRecord, meta: M, column?: TrackedColumn): () => void;
   /**
    * Finds the kept meta of a property whose record still exists but has no visual row (a filter or a trim took it
    * out of the visual space): `preferred` when it is such a meta, else the meta of the only record that has one.
@@ -59,14 +86,19 @@ export interface WaitingMetaStamps<M extends StampedMeta = StampedMeta> {
  *
  * @param {Function} getIndexMapper Returns the row index mapper.
  * @param {Function} toVisualRow Returns the visual row of a physical row, or `null` for a trimmed one.
+ * @param {object} [columns] Keeps the column coordinates current the same way, on every `cacheUpdated` of the
+ *   column index mapper. A removed column leaves `visualCol` `null`.
  * @returns {object}
  */
 export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
   getIndexMapper: () => StampedIndexMapper,
   toVisualRow: (physicalRow: number) => number | null,
+  columns?: StampedColumns,
 ): WaitingMetaStamps<M> {
-  const stamps = new Set<{ record: TrackedRecord, meta: M }>();
+  const stamps = new Set<{ record: TrackedRecord, meta: M, column?: TrackedColumn }>();
   let listenedMapper: StampedIndexMapper | null = null;
+  let listenedColumnMapper: StampedIndexMapper | null = null;
+  let columnStampsCount = 0;
 
   /**
    * Writes the rows each record holds now on its meta.
@@ -87,6 +119,29 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
   };
 
   /**
+   * Writes the columns each tracked column holds now on its meta.
+   */
+  const onColumnCacheUpdated = () => {
+    stamps.forEach(({ column, meta }) => {
+      if (column === undefined || columns === undefined) {
+        return;
+      }
+
+      const { physicalColumn } = column;
+
+      if (physicalColumn === null) {
+        meta.visualCol = null;
+
+        return;
+      }
+
+      meta.col = physicalColumn;
+      meta.visualCol = columns.toVisualColumn(physicalColumn);
+      meta.prop = columns.toProp(physicalColumn);
+    });
+  };
+
+  /**
    * Starts or stops listening, so the stamps listen exactly while they keep a meta.
    */
   const syncListener = () => {
@@ -98,17 +153,30 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
       listenedMapper.removeLocalHook('cacheUpdated', onCacheUpdated);
       listenedMapper = null;
     }
+
+    if (columns !== undefined && listenedColumnMapper === null && columnStampsCount > 0) {
+      listenedColumnMapper = columns.getIndexMapper();
+      listenedColumnMapper.addLocalHook('cacheUpdated', onColumnCacheUpdated);
+
+    } else if (listenedColumnMapper !== null && columnStampsCount === 0) {
+      listenedColumnMapper.removeLocalHook('cacheUpdated', onColumnCacheUpdated);
+      listenedColumnMapper = null;
+    }
   };
 
   return {
-    add(record, meta) {
-      const stamp = { record, meta };
+    add(record, meta, column) {
+      const stamp = { record, meta, column };
 
       stamps.add(stamp);
+      columnStampsCount += column === undefined ? 0 : 1;
       syncListener();
 
       return () => {
-        stamps.delete(stamp);
+        if (stamps.delete(stamp)) {
+          columnStampsCount -= column === undefined ? 0 : 1;
+        }
+
         syncListener();
       };
     },

@@ -1,4 +1,5 @@
 import type { RecordTracker, TrackedRecord } from './recordTracker';
+import type { ColumnTracking, TrackedColumn } from './columnTracker';
 import type { CellChange } from '../settings';
 
 /**
@@ -73,7 +74,12 @@ export interface TrackedRecordHandle {
    */
   getVisualRow(): number | null;
   /**
-   * Stops following the record. Call it once the wait ends.
+   * Returns the visual column the followed column has now, `null` once a removal took it or a trim hid it, or
+   * `undefined` when no column is followed (the handle was made without one).
+   */
+  getVisualColumn(): number | null | undefined;
+  /**
+   * Stops following the record, and the column. Call it once the wait ends.
    */
   release(): void;
 }
@@ -350,6 +356,17 @@ export interface WaitingChangeRecords {
    */
   getPhysicalRow(change: object): number | null | undefined;
   /**
+   * Returns the property a change addresses now. A change made at a column's physical index follows the column
+   * across inserts and removals, so this is the property of the column it holds now, `undefined` once a removal
+   * took it. Any other change keeps the property it was made with.
+   */
+  getProp(change: CellChange): CellChange[1] | undefined;
+  /**
+   * Returns the tracked column of a change, or `undefined` for a change whose property names its column some
+   * other way.
+   */
+  getColumn(change: CellChange): TrackedColumn | undefined;
+  /**
    * Stops tracking the records.
    */
   release(): void;
@@ -366,6 +383,8 @@ export interface WaitingChangeRecords {
  *   its records, so the record of one change is found in O(1) whatever number of sets waits.
  * @param {Function} observeRowShifts Tells the changes of rows past the last one about the rows inserted and
  *   removed while they wait.
+ * @param {object} [columns] Follows the columns the changes are made at by their physical index. Left out, a
+ *   change keeps the property it was made with.
  * @returns {object}
  */
 export function createWaitingChangeRecords(
@@ -374,8 +393,10 @@ export function createWaitingChangeRecords(
   toPhysicalRow: (visualRow: number) => number | null,
   registry: WeakMap<object, WaitingChangeRecords>,
   observeRowShifts: RowShiftObserver,
+  columns?: ColumnTracking,
 ): WaitingChangeRecords {
   const anchorsByChange = new Map<object, RecordAnchor>();
+  const columnsByChange = new Map<object, TrackedColumn>();
   const anchors = new Set<RecordAnchor>();
   const settledRows = new Map<object, number>();
   const pastEndRows = new Map<CellChange, number>();
@@ -423,6 +444,44 @@ export function createWaitingChangeRecords(
     stopObservingRows = null;
   };
 
+  /**
+   * Starts to follow the column a change is made at, when its property is that column's physical index.
+   *
+   * @param {Array} change The change.
+   */
+  const captureColumn = (change: CellChange) => {
+    const physicalColumn = columns?.toTrackedPhysicalColumn(change[1]) ?? null;
+
+    if (columns === undefined || physicalColumn === null) {
+      return;
+    }
+
+    columnsByChange.set(change, columns.tracker.track(physicalColumn));
+    registry.set(change, records);
+  };
+
+  /**
+   * Puts the property of the column a change holds now into the change, and tells whether the column is gone.
+   *
+   * @param {Array} change The change.
+   * @returns {boolean} `true` when a removal took the column.
+   */
+  const settleColumn = (change: CellChange): boolean => {
+    const column = columnsByChange.get(change);
+
+    if (column === undefined || columns === undefined) {
+      return false;
+    }
+
+    if (column.physicalColumn === null) {
+      return true;
+    }
+
+    Reflect.set(change, 1, columns.toProp(column.physicalColumn));
+
+    return false;
+  };
+
   const records: WaitingChangeRecords = {
     capture(changes) {
       if (captured) {
@@ -435,6 +494,8 @@ export function createWaitingChangeRecords(
       const visualRowsCount = reader.countVisualRows();
 
       changes.forEach((change) => {
+        captureColumn(change);
+
         const physicalRow = Number.isInteger(change[0]) ? toPhysicalRow(change[0]) : null;
 
         if (physicalRow === null) {
@@ -484,7 +545,7 @@ export function createWaitingChangeRecords(
       stopShifting();
       pastEndRows.forEach((row, change) => writeChangeRow(change, row));
 
-      if (anchorsByChange.size === 0) {
+      if (anchorsByChange.size === 0 && columnsByChange.size === 0) {
         return [];
       }
 
@@ -495,22 +556,21 @@ export function createWaitingChangeRecords(
       for (let i = changes.length - 1; i >= 0; i--) {
         const change = changes[i];
         const anchor = anchorsByChange.get(change);
+        let physicalRow: number | null | undefined;
 
-        if (anchor === undefined) {
-          continue;
+        if (anchor !== undefined) {
+          if (!resolved.has(anchor)) {
+            resolved.set(anchor, resolveRecord(reader, anchor, locate));
+          }
+
+          physicalRow = resolved.get(anchor);
         }
 
-        if (!resolved.has(anchor)) {
-          resolved.set(anchor, resolveRecord(reader, anchor, locate));
-        }
-
-        const physicalRow = resolved.get(anchor)!;
-
-        if (physicalRow === null) {
+        if (physicalRow === null || settleColumn(change)) {
           changes.splice(i, 1);
           removed.unshift(change);
 
-        } else {
+        } else if (physicalRow !== undefined) {
           settledRows.set(change, physicalRow);
           writeChangeRow(change, toVisualRow(physicalRow));
         }
@@ -520,6 +580,18 @@ export function createWaitingChangeRecords(
     },
     getSettledPhysicalRow(change) {
       return settledRows.get(change);
+    },
+    getProp(change) {
+      const column = columnsByChange.get(change);
+
+      if (column === undefined || columns === undefined) {
+        return change[1];
+      }
+
+      return column.physicalColumn === null ? undefined : columns.toProp(column.physicalColumn);
+    },
+    getColumn(change) {
+      return columnsByChange.get(change);
     },
     getPhysicalRow(change) {
       const settledRow = settledRows.get(change);
@@ -534,11 +606,19 @@ export function createWaitingChangeRecords(
     },
     release() {
       anchors.forEach(anchor => tracker.release(anchor.record));
+      columnsByChange.forEach((column, change) => {
+        columns?.tracker.release(column);
+
+        if (registry.get(change) === records) {
+          registry.delete(change);
+        }
+      });
       anchorsByChange.forEach((_, change) => {
         if (registry.get(change) === records) {
           registry.delete(change);
         }
       });
+      columnsByChange.clear();
       anchors.clear();
       anchorsByChange.clear();
       settledRows.clear();

@@ -3477,6 +3477,13 @@ In 19.0, the change is written into the record it was made on:
   [`Pagination`](@/api/pagination.md) page, that page is shown first. When you changed the page yourself while
   the validator ran, the page stays and the editor closes without saving. When the record is gone, filtered out,
   or hidden with [`hiddenRows`](@/api/options.md#hiddenrows), the editor closes without saving too.
+- The change also stays on its column. An array data source without a [`columns`](@/api/options.md#columns)
+  option addresses a column by its physical index, so a column inserted or removed before the edited one, or a
+  column move, no longer sends the value, the correction made through `this.visualCol`, or the reopened editor to
+  a neighbor column. The `prop` that `afterChange` reports is the column's physical index when the value lands.
+  When the column was removed in the meantime, the change is dropped, and the editor closes without saving. When
+  `hiddenColumns` hid the column, the value is still written and the editor closes without saving. Object data and
+  `columns[].data` already name the column by a property, so they are unchanged.
 
 The TypeScript types follow: the `changes` of `afterChange` and `beforeChangeRender` are `AppliedCellChange[]`,
 whose row is `number | null`, and the `row` of `modifyData` and `afterValidate` is `number | null`. `CellChange`
