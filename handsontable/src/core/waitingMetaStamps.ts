@@ -38,7 +38,9 @@ export interface WaitingMetaStamps<M extends StampedMeta = StampedMeta> {
   /**
    * Finds the kept meta of a property whose record still exists but has no visual row (a filter or a trim took it
    * out of the visual space): `preferred` when it is such a meta, else the meta of the only record that has one.
-   * Returns `null` when no record, or more than one, has such a meta.
+   * Returns `null` when no record, or more than one, has such a meta, or when a meta of the property was released
+   * without a visual row while another meta is kept: its validator answered, and a correction it writes later
+   * cannot be told from one of the waiting call.
    */
   findUnplaced(prop: unknown, preferred: M | null): { record: TrackedRecord, meta: M } | null;
   /**
@@ -66,6 +68,7 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
   toVisualRow: (physicalRow: number) => number | null,
 ): WaitingMetaStamps<M> {
   const stamps = new Set<{ record: TrackedRecord, meta: M }>();
+  const releasedUnplaced = new Set<M>();
   let listenedMapper: StampedIndexMapper | null = null;
 
   /**
@@ -87,7 +90,8 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
   };
 
   /**
-   * Starts or stops listening, so the stamps listen exactly while they keep a meta.
+   * Starts or stops listening, so the stamps listen exactly while they keep a meta. With no meta kept, no
+   * correction can be folded, so the released metas without a visual row are forgotten too.
    */
   const syncListener = () => {
     if (stamps.size > 0 && listenedMapper === null) {
@@ -98,17 +102,49 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
       listenedMapper.removeLocalHook('cacheUpdated', onCacheUpdated);
       listenedMapper = null;
     }
+
+    if (stamps.size === 0) {
+      releasedUnplaced.clear();
+    }
+  };
+
+  /**
+   * Tells whether a meta of the property was released without a visual row and has none still. A meta that got
+   * a visual row again (a render read it) is forgotten.
+   *
+   * @param {*} prop The property.
+   * @returns {boolean}
+   */
+  const hasReleasedUnplaced = (prop: unknown) => {
+    let isFound = false;
+
+    releasedUnplaced.forEach((meta) => {
+      if (meta.visualRow !== null) {
+        releasedUnplaced.delete(meta);
+
+      } else if (meta.prop === prop) {
+        isFound = true;
+      }
+    });
+
+    return isFound;
   };
 
   return {
     add(record, meta) {
       const stamp = { record, meta };
 
+      releasedUnplaced.delete(meta);
       stamps.add(stamp);
       syncListener();
 
       return () => {
         stamps.delete(stamp);
+
+        if (meta.visualRow === null) {
+          releasedUnplaced.add(meta);
+        }
+
         syncListener();
       };
     },
@@ -129,7 +165,7 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
         }
       }
 
-      return isAmbiguous ? null : found;
+      return isAmbiguous || hasReleasedUnplaced(prop) ? null : found;
     },
     get size() {
       return stamps.size;

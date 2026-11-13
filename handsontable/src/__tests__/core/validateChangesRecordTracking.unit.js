@@ -801,7 +801,7 @@ describe('Core validation of a change while its record moves', () => {
       expect(hot._hasPendingValidation()).toBe(false);
     });
 
-    it('should drop a correction made through a null this.visualRow when two trimmed records wait on the column', async() => {
+    it('should drop both corrections made through a null this.visualRow when two trimmed records wait on the column', async() => {
       createCorrectingGrid();
 
       hot.setDataAtCell([[1, 0, 'zzz'], [2, 0, 'zzz']]);
@@ -810,7 +810,7 @@ describe('Core validation of a change while its record moves', () => {
       pending.shift().answer(true);
       await answerAll();
 
-      expect(sourceNames()).toEqual(['p0', 'ZZZ', 'zzz', 'p3', 'p4', 'p5']);
+      expect(sourceNames()).toEqual(['p0', 'zzz', 'zzz', 'p3', 'p4', 'p5']);
       expect(hot._hasPendingValidation()).toBe(false);
     });
 
@@ -895,6 +895,126 @@ describe('Core validation of a change while its record moves', () => {
 
       expect(rows).toEqual([null]);
       expect(sourceNames()).toEqual(['other', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
+
+    /**
+     * Creates a grid whose validator corrects `yyy` to `YYY` when its answer is released, before it answers, and
+     * answers `zzz` first, keeping a correction of `zzz` to `ZZZ` for the test to write later.
+     *
+     * @param {Array} corrections Receives the late corrections.
+     * @returns {Handsontable}
+     */
+    function createMixedCorrectionGrid(corrections) {
+      return createGrid({
+        cells: (row, col) => (col === 0 ? {
+          validator(value, callback) {
+            pending.push({
+              value,
+              answer: (result) => {
+                if (value === 'yyy') {
+                  this.instance.setDataAtCell(this.visualRow, this.visualCol, 'YYY', 'upperValidator');
+                }
+
+                callback(result);
+
+                if (value === 'zzz') {
+                  corrections.push(() => {
+                    this.instance.setDataAtCell(this.visualRow, this.visualCol, 'ZZZ', 'upperValidator');
+                  });
+                }
+              },
+            });
+          },
+        } : {}),
+      });
+    }
+
+    it('should drop a late correction of an answered record a filter took out instead of folding it into another waiting record', async() => {
+      const corrections = [];
+
+      createAnswerFirstGrid(corrections);
+      hot.setDataAtCell(1, 0, 'aaa');
+      hot.setDataAtCell(4, 0, 'zzz');
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'lt', [5]);
+      filters.filter();
+      await settle();
+      pending.splice(1, 1)[0].answer(true);
+      await settle();
+
+      expect(() => corrections.shift()()).not.toThrow();
+
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'aaa', 'p2', 'p3', 'zzz', 'p5']);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
+
+    it('should fold the correction a validator makes while it runs into its trimmed record when an answered record a filter took out has a null row', async() => {
+      const corrections = [];
+
+      createGrid({
+        cells: (row, col) => (col === 0 ? {
+          validator(value, callback) {
+            if (value === 'yyy') {
+              this.instance.setDataAtCell(this.visualRow, this.visualCol, 'YYY', 'upperValidator');
+              callback(true);
+
+              return;
+            }
+
+            pending.push({
+              value,
+              answer: (result) => {
+                callback(result);
+                corrections.push(() => {
+                  this.instance.setDataAtCell(this.visualRow, this.visualCol, 'ZZZ', 'upperValidator');
+                });
+              },
+            });
+          },
+        } : {}),
+      });
+      hot.setDataAtCell(4, 0, 'zzz');
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [6]);
+      filters.filter();
+      await answerAll();
+      hot.setDataAtCell(1, 0, 'yyy');
+      hot.getPlugin('trimRows').trimRow(1);
+      await settle();
+      corrections.shift()();
+      await settle();
+
+      expect(sourceNames()).toEqual(['p0', 'YYY', 'p2', 'p3', 'zzz', 'p5']);
+      expect(hot._hasPendingValidation()).toBe(false);
+    });
+
+    it('should fold a correction written before the answer into the only waiting trimmed record once the answered record has a visual row again', async() => {
+      const corrections = [];
+
+      createMixedCorrectionGrid(corrections);
+      hot.setDataAtCell(4, 0, 'zzz');
+      hot.setDataAtCell(1, 0, 'yyy');
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'neq', [6]);
+      filters.filter();
+      hot.getPlugin('trimRows').trimRow(1);
+      await settle();
+      pending.splice(0, 1)[0].answer(true);
+      await settle();
+      filters.clearConditions();
+      filters.filter();
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'YYY', 'p2', 'p3', 'zzz', 'p5']);
       expect(hot._hasPendingValidation()).toBe(false);
     });
   });

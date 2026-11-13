@@ -3469,6 +3469,9 @@ In 19.0, the change is written into the record it was made on:
   drops the correction and writes the entered value when it can't tell which record the correction is for: two
   records out of the visual space wait for the same column, and the validator corrects after it returns. A
   correction written after the validator called back is dropped too, because the entered value has already landed.
+  A correction written from outside the validator call, for example from a timer, is also dropped when another
+  record out of the visual space has already answered for the same column, because Handsontable can't tell which
+  record it is for.
 - [`updateData()`](@/api/core.md#updatedata) with copies of the rows in a new order follows the record only
   with a [`rowId`](@/api/options.md#rowid). Without one, the change goes to the row at the record's position:
   the copies are new objects, and the cell meta stays with the physical row.
