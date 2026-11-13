@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a validated edit being saved into another column when columns are inserted, removed, or moved before its validator answers.",
+  "type": "fixed",
+  "issueOrPR": 14288,
+  "breaking": false,
+  "framework": "none"
+}
