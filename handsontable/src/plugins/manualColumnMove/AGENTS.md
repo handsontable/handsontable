@@ -6,6 +6,12 @@ The `manualColumnMove` plugin reorders columns by dragging their header. Read th
 `../manualRowMove/` is the mirror plugin. The public API shape, the `move` vs `drag` distinction and
 `isMovePossible()` are identical; read that file's AGENTS.md for the row-specific parts.
 
+Formulas reloading the engine sheet a grid built without `data` is bound to reloads through `updateData()`, which
+keeps the index maps and fires no `afterLoadData`, so no replay runs. When anything but the grid changed the
+sheet it falls back to `loadData()` and puts the grid's previous order back after the load
+(`../formulas/AGENTS.md`, "A reload of the sheet the syncers are synced with keeps the grid's order"). It reads
+this plugin's state through nothing but the index mapper, as for ManualRowMove (`../manualRowMove/AGENTS.md`).
+
 ## `move*` and `drag*` take DIFFERENT indexes
 
 This is the single most common mistake with this plugin:
@@ -42,9 +48,11 @@ after any trimmed columns in front of it. A move to the last visible position pu
 visible column, before the trailing trimmed columns. The columns never split a run of neighboring trimmed
 columns. The rule is pinned by `__tests__/moveTrimmedPlacement.unit.js`, which mirrors the row plugin's test of
 the same name, and the column-moving guide documents it. Landing on the other side of a trimmed block would
-change the physical order users see after untrimming, so it is a breaking change. With HIDDEN columns the two
-drop indexes around a hidden block land on either side of it with the same visible order, and the test pins only
-the visible order.
+change the physical order users see after untrimming, so it is a breaking change. With HIDDEN columns the drop
+target steps over the zero-width hidden columns ("Hidden columns have zero width, and the drop target steps over them" below), so a pointer drop on either side of a hidden
+block between two visible columns gives one physical order, with the columns after the block. Hidden columns that
+end the grid are stepped past too, and there is no self-drop exemption, which the row plugin has. `tests/e2e/manual-row-move-hidden-gap.spec.ts`
+pins it for both axes, and the row plugin steps over hidden rows the same way (`getLowerHalfDropIndex()`).
 
 ## `isDragging()` is the shared click-versus-drag verdict
 

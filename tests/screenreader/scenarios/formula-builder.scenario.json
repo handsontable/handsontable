@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "id": "formula-builder",
+  "surface": "The formula builder from the keyboard: Tab from the page through the formula bar's address box and formula input into the grid, the formula editor opened on a cell, its function suggestions with a named expression among them, the function help, and a formula error cell's description.",
+  "group": "editors",
+  "fixture": "formula-builder.html",
+  "catalogPages": ["formula-builder", "formula-builder-suggestions", "formula-builder-function-help", "formula-builder-tokens", "formula-builder-named-expression"],
+  "query": "variant=design-colors",
+  "start": "page",
+  "criteria": ["1.3.1", "2.1.1", "2.4.3", "4.1.2", "4.1.3"],
+  "setup": [{"selectCell": [0, 2]}, {"focus": "[data-testid=\"before-grid\"]"}],
+  "steps": [
+    {
+      "id": "tab-address-box",
+      "action": {"press": "Tab"},
+      "after": {"visible": ".hfe-formula-bar__address-input:focus"},
+      "expect": [["cell address"], ["c1", "c 1"]],
+      "note": "Tab from the text field before the grid enters the formula bar on its address box, named `Cell address`, which holds the address of the selected cell, C1. Finding: VoiceOver announces nothing when the address box takes the focus, with WebKit and with Chromium."
+    },
+    {
+      "id": "tab-formula-input",
+      "action": {"press": "Tab"},
+      "after": {"visible": ".ht-formula-builder__formula-bar .hfe-editor__input:focus"},
+      "expect": [["formula editor"], ["a1", "a 1"]],
+      "note": "Tab moves to the bar's formula input, a combo box named `Formula editor` holding C1's formula, `=A1+B1`. Required: its name and the formula's first reference."
+    },
+    {
+      "id": "tab-into-grid",
+      "action": {"press": "Tab"},
+      "expect": [["3"]],
+      "note": "Tab leaves the bar for the grid, on the cell the bar showed: C1, whose formula shows 3."
+    },
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "after": {"visible": ".handsontable .hfe-editor__input:focus"},
+      "expect": [["formula editor"], ["a1", "a 1"]],
+      "note": "Enter opens the formula editor in the cell: the same `Formula editor` combo box, holding the cell's formula."
+    },
+    {
+      "id": "select-formula-text",
+      "action": {"press": "ControlOrMeta+KeyA"},
+      "expect": [],
+      "note": "Selects the editor's text, so the next step's typing replaces the formula. Asserts nothing: it sets up the suggestions."
+    },
+    {
+      "id": "type-function-prefix",
+      "action": {"type": "=SU"},
+      "after": {"visible": ".hfe-suggestions [role=\"option\"]"},
+      "expect": [["substitute"]],
+      "note": "Typing `=SU` opens the function suggestions list (the combo box expands) with its first match, SUBSTITUTE, active through aria-activedescendant. Required: the active suggestion. Moving within the list is hyperformula-ui's and is not read here. Finding: VoiceOver echoes the typed letters and does not announce the active suggestion."
+    },
+    {
+      "id": "type-named-prefix",
+      "action": {"type": "MM"},
+      "after": {"visible": ".hfe-suggestions__item--named.hfe-suggestions__item--active"},
+      "expect": [["summary"]],
+      "note": "Typing `MM` narrows the list to `=SUMM`, whose only match is the fixture's named expression SUMMARY, now the active suggestion. Finding: NVDA with Chromium and VoiceOver do not announce the named expression that becomes the active suggestion."
+    },
+    {
+      "id": "erase-to-function",
+      "action": {"press": "Backspace"},
+      "expect": [["sum"]],
+      "note": "Backspace leaves `=SUM`, and the list makes SUM, its exact match, the active suggestion. Finding: NVDA with Chromium and VoiceOver do not announce the active suggestion after the edit."
+    },
+    {
+      "id": "open-function-help",
+      "action": {"type": "("},
+      "after": {"visible": ".hfe-fn-help"},
+      "expect": [["sum"]],
+      "note": "Typing `(` closes the suggestions, closes the parenthesis (`=SUM()`) and opens the function help, which the editor names as its description. Required: the function's name; the signature text is hyperformula-ui's and is not asserted."
+    },
+    {
+      "id": "close-function-help",
+      "action": {"press": "Escape"},
+      "after": {"hidden": ".hfe-fn-help"},
+      "expect": [],
+      "note": "The first Escape closes the function help and keeps the edit open. Asserts nothing: the focus stays in the editor."
+    },
+    {
+      "id": "cancel-edit",
+      "action": {"press": "Escape"},
+      "expect": [["3"]],
+      "note": "The second Escape cancels the edit: C1 keeps its formula, and the focus is back on the cell, which shows 3."
+    },
+    {
+      "id": "move-down",
+      "action": {"press": "ArrowDown"},
+      "expect": [["5"]],
+      "note": "ArrowDown moves to C2, whose formula `=A2+B1` shows 5."
+    },
+    {
+      "id": "error-cell",
+      "action": {"press": "ArrowDown"},
+      "after": {"visible": ".hfe-error"},
+      "expect": [["name"], ["nope"]],
+      "note": "ArrowDown moves to C3, whose formula calls an unknown function (`=NOPE(A3)+N(\"check\")`). The cell shows `#NAME?` and carries the error's short message as its description (`Function name NOPE not recognized.`), and the error popup opens for it. Required: the error value and the unknown name; the message wording is HyperFormula's and is not asserted. Finding: VoiceOver reads the error value and the invalid state but not the description that names the unknown function."
+    }
+  ]
+}

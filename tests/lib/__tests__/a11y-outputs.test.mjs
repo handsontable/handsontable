@@ -47,6 +47,33 @@ test('agentFindings lists what needs action with where to open it and the elemen
     steps: 'select cell (2, 1) (hot.selectCell(2, 1)), then press Shift+F10', surface: null });
 });
 
+test('agentFindings links a page with a license preset to the URL its scan opened, and any other page to the catalog URL', () => {
+  const pages = [...PAGES, { id: 'license', fixture: 'license-capabilities.html', query: 'plugins=filters', licensePreset: 'tier-base', state: 'none' }];
+  const scannedUrl = '/tests/fixtures/demo/license-capabilities.html?theme=main&plugins=filters&presets=%7B%7D&licenseKey=abc';
+  const verdict = compareViolations({
+    baseline: [],
+    issues: [],
+    violations: [finding({ page: 'license', rule: 'label' }), finding({ rule: 'label' })],
+    scanned: [{ page: 'license', theme: 'main' }, { page: 'grid', theme: 'main' }],
+    mode: 'warn',
+  });
+  const scans = [
+    { page: 'license', theme: 'main', url: scannedUrl },
+    { page: 'grid', theme: 'main', url: '/tests/fixtures/demo/grid.html?theme=main&other=1' },
+  ];
+  const urlOf = document => Object.fromEntries(document.needsAction.map(item => [item.page, item.url]));
+
+  assert.deepEqual(urlOf(agentFindings({ verdict, pages, scans })), {
+    grid: '/tests/fixtures/demo/grid.html?theme=main',
+    license: scannedUrl,
+  });
+  // Without the scans, or with a URL that is not a fixture's, the catalog URL stays: it has no license key.
+  assert.equal(urlOf(agentFindings({ verdict, pages })).license,
+    '/tests/fixtures/demo/license-capabilities.html?theme=main&plugins=filters');
+  assert.equal(urlOf(agentFindings({ verdict, pages, scans: [{ page: 'license', theme: 'main', url: 'https://example.com/x' }] })).license,
+    '/tests/fixtures/demo/license-capabilities.html?theme=main&plugins=filters');
+});
+
 test('agentFindings stays concise: at most ten elements per finding, one locator per known location', () => {
   const many = Array.from({ length: 14 }, (_, index) => finding({ rule: 'label', target: 'td', selector: [`td${index}`] }));
   const document = agentFindings({ verdict: verdictOf([entry()], [finding(), ...many]), pages: PAGES });

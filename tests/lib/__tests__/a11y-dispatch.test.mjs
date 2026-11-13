@@ -78,6 +78,19 @@ test('a subset on develop is refused: the dispatch there is the audit, and the a
   assert.throws(() => dispatchSubset({ ref: AUDIT_REF, projects: 'nope' }), /projects names no project "nope"/, 'an entry that names nothing is refused first, on any ref');
 });
 
+test('a site workflow\'s checks input names its site checks: every one by default, a subset on a branch, never on develop', () => {
+  const docs = ['docs-structure', 'docs-keyboard', 'docs-focus-contrast', 'docs-reflow', 'docs-forced-colors-motion'];
+
+  assert.deepEqual(dispatchSubset({ ref: AUDIT_REF, site: 'docs' }).siteChecks, docs);
+  assert.deepEqual(dispatchSubset({ ref: AUDIT_REF, site: 'docs', siteChecks: '' }).siteChecks, docs);
+  assert.deepEqual(dispatchSubset({ ref: 'refs/heads/feature/x', site: 'docs', siteChecks: 'docs-reflow,docs-keyboard' }),
+    { checks: Object.keys(EVIDENCE_CHECKS), projects: null, groups: null, siteChecks: ['docs-keyboard', 'docs-reflow'], subset: true });
+  assert.throws(() => dispatchSubset({ ref: AUDIT_REF, site: 'docs', siteChecks: 'docs-reflow' }), /checks=docs-reflow is for a proof run on a branch/);
+  assert.throws(() => dispatchSubset({ ref: 'refs/heads/feature/x', site: 'docs', siteChecks: 'keyboard-walker' }),
+    /checks names no docs site check "keyboard-walker"/);
+  assert.equal(Object.hasOwn(dispatchSubset({ ref: AUDIT_REF }), 'siteChecks'), false, 'a nightly\'s dispatch has no site checks');
+});
+
 test('the guard script says what the run covers, and refuses with an error annotation and exit 1', () => {
   const audit = guard(['--ref', AUDIT_REF, '--suite', 'nightly', '--checks', '']);
 

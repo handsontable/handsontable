@@ -1071,6 +1071,25 @@ export class TabStrip {
   }
 
   /**
+   * Returns the element that holds the active tab's label `id`: the label, or, while the tab is
+   * renamed, the hidden span that keeps the saved name (`startRename()`).
+   *
+   * @returns {HTMLElement|null} The element, or `null` when no tab is active or its tab holds none.
+   */
+  getActiveLabelElement(): HTMLElement | null {
+    const active = [...this.#sheets.values()].find(sheet => sheet.isActive);
+
+    if (active === undefined) {
+      return null;
+    }
+
+    const labelId = this.#labelId(active.id);
+    const holder = Array.from(this.getTab(active.id)?.children ?? []).find(child => child.id === labelId);
+
+    return isHTMLElement(holder) ? holder : null;
+  }
+
+  /**
    * Builds the `id` of a tab's label.
    *
    * @param {number} sheetId The sheet the tab represents.
@@ -1629,6 +1648,9 @@ export class TabStrip {
     mirror.className = 'ht-sheets-bar__tab-rename-mirror';
     mirror.setAttribute('aria-hidden', 'true');
 
+    // The grid's `aria-labelledby` points at this span while the edit is open. When the rebuilt
+    // tab's label takes the `id` back, the plugin writes the attribute again (`#syncGridName()`),
+    // or Firefox keeps the name it read from this span.
     const savedName = this.#host.ownerDocument.createElement('span');
 
     savedName.hidden = true;

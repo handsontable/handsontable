@@ -369,7 +369,9 @@ Optional methods, found by `typeof plugin.captureState === 'function'`:
   reset the order. A plugin uses it to apply only what the step changed, so a change made outside
   any step survives: MergeCells adds and removes only the merges that differ between `other` and
   `state` (and falls back to a full rebuild when `reordered` or when a merge to remove is not where
-  it was, or when a merge to put back overlaps a live merge the step did not make), Formulas reads
+  it was, or when a merge to put back overlaps a live merge the step did not make) and, unless
+  `reordered`, clears the covered-cell flags of the cells `other` covered and `state` does not, by
+  the recorded physical columns (a redo of a column move), Formulas reads
   the peer rewrites from `other` on undo. No context is passed when the restore puts back a state no
   step changed.
 - `getStateColumns(state, other)` - the physical columns whose state differs between the two sides

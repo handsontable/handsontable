@@ -374,39 +374,51 @@ describe('InlineStartOverlay#scrollTo with an end band', () => {
   });
 });
 
-describe('InlineEndOverlay#isFreezeLineShared in a window-scrolled grid', () => {
+describe('InlineEndOverlay#isFreezeLineShared', () => {
   /**
-   * Builds a stub for a window-scrolled grid whose columns scroll, with five scrolling columns before the band.
+   * Builds a stub that answers settings only: the predicate must not read the scroll position or the
+   * viewport, so the stub has neither and a read would throw.
    *
-   * @param {number} offset What `getOverlayOffset()` reports.
+   * @param {object} settings The settings the stub answers.
+   * @param {number} settings.totalColumns The renderable column count.
+   * @param {number} settings.fixedColumnsEnd The end band size.
+   * @param {number} settings.rowHeaders The number of row headers.
    * @returns {object}
    */
-  function createStub(offset: number) {
+  function createStub({ totalColumns, fixedColumnsEnd, rowHeaders }:
+    { totalColumns: number, fixedColumnsEnd: number, rowHeaders: number }) {
     return {
-      isScrolledByWindow: () => true,
-      getOverlayOffset: () => offset,
       wtSettings: {
         getSetting: (key: string) => {
-          const settings: Record<string, unknown> = { fixedColumnsEnd: 2, totalColumns: 7, rowHeaders: [] };
+          const settings: Record<string, unknown> = {
+            fixedColumnsEnd,
+            totalColumns,
+            rowHeaders: new Array(rowHeaders).fill(() => {}),
+          };
 
           return settings[key];
         },
       },
-      deps: { getWtViewport: () => ({ hasHorizontalScroll: () => true }) },
     };
   }
 
-  it('should be true at the junction', () => {
-    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(0))).toBe(true);
+  it('should be false while a column precedes the band, whatever the scroll (the clone draws the line)', () => {
+    const shared = (rowHeaders: number) => run(InlineEndOverlay, 'isFreezeLineShared',
+      createStub({ totalColumns: 7, fixedColumnsEnd: 2, rowHeaders }));
+
+    expect(shared(1)).toBe(false);
+    expect(shared(0)).toBe(false);
   });
 
-  it('should still be true when a fraction of a pixel is left at the junction (browser zoom)', () => {
-    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(0.4))).toBe(true);
-    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(-0.4))).toBe(true);
+  it('should be true when the band covers every column and the row header draws the line', () => {
+    const self = createStub({ totalColumns: 3, fixedColumnsEnd: 3, rowHeaders: 1 });
+
+    expect(run(InlineEndOverlay, 'isFreezeLineShared', self)).toBe(true);
   });
 
-  it('should be false once a whole pixel or more is left', () => {
-    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(1))).toBe(false);
-    expect(run(InlineEndOverlay, 'isFreezeLineShared', createStub(250))).toBe(false);
+  it('should be false when nothing precedes the band (the clone draws the grid frame)', () => {
+    const self = createStub({ totalColumns: 3, fixedColumnsEnd: 3, rowHeaders: 0 });
+
+    expect(run(InlineEndOverlay, 'isFreezeLineShared', self)).toBe(false);
   });
 });

@@ -10,6 +10,7 @@ import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
   makeElementContentEditableAndSelectItsContent,
+  getDeepActiveElement,
   isHTMLElement,
   isInternalElement,
   isShadowRoot,
@@ -130,6 +131,14 @@ function padRowsToWidest(data: unknown[][]) {
  * key would let one suppress the other.
  */
 const CLIPBOARD_PARSE_WARN_KEY = 'copyPaste.clipboardParse';
+
+/**
+ * The `type`s of an `input` the user cannot enter text into. A focus on one is no reason to skip the
+ * Safari `mouseleave` workaround.
+ */
+const NON_TEXT_INPUT_TYPES = new Set([
+  'checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'file', 'image', 'color',
+]);
 
 /**
  * Reads the `text/plain` clipboard flavor.
@@ -896,10 +905,29 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Checks whether the focus sits in a control the user enters a value into, such as the comment editor's
+   * text area or an open cell editor. Selecting the highlighted cell's content takes the focus from such a
+   * control. The input of a closed cell editor, which keeps the focus in a grid with `imeFastEdit`, is not
+   * one: its holder is hidden, and the Safari workaround still has to run there. Neither is a checkbox, a
+   * button, or another input that takes no text.
+   *
+   * @returns {boolean}
+   */
+  #isTypingIntoFormControl() {
+    const { HTMLTextAreaElement, HTMLInputElement, HTMLSelectElement } = this.hot.rootWindow;
+    const activeElement = getDeepActiveElement(this.hot.rootDocument);
+    const isEntryControl = activeElement instanceof HTMLTextAreaElement ||
+      activeElement instanceof HTMLSelectElement ||
+      (activeElement instanceof HTMLInputElement && !NON_TEXT_INPUT_TYPES.has(activeElement.type));
+
+    return isEntryControl && activeElement.closest('.ht_editor_hidden') === null;
+  }
+
+  /**
    * Add the `contenteditable` attribute to the highlighted cell and select its content.
    */
   #addContentEditableToHighlightedCell() {
-    if (this.hot.isListening()) {
+    if (this.hot.isListening() && !this.#isTypingIntoFormControl()) {
       const activeSelectedRange = this.hot.getSelectedRangeActive();
 
       if (activeSelectedRange) {

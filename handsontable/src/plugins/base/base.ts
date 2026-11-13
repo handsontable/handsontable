@@ -375,7 +375,7 @@ export class BasePlugin {
     }
 
     // Unlike a hard conflict, the license gate leaves the setting as the user wrote it, so a later
-    // `updateSettings()` with a key that lists the plugin can still turn it on.
+    // `updateSettings()` with a key whose tiers include the plugin can still turn it on.
     if (this.isLicenseBlocked()) {
       return;
     }
@@ -1000,7 +1000,7 @@ export class BasePlugin {
       this.enablePlugin();
     }
 
-    // A key passed later that does not list the plugin turns it off, like a hard conflict that appears.
+    // A key passed later whose tiers leave the plugin out turns it off, like a hard conflict that appears.
     if (
       this.enabled &&
       this.isEnabled() &&

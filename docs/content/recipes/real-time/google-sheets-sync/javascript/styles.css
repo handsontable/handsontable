@@ -1,0 +1,32 @@
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.is-error {
+  color: #b3261e;
+}
+
+button {
+  padding: 6px 12px;
+  font: inherit;
+  cursor: pointer;
+}

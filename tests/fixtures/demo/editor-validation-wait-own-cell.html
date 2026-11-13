@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Editor validation wait e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value and sail past
+    // a truthiness guard. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+    // The editor column B edits with, through the same kind of allowlist: `formula` is the
+    // FormulaBuilder editor the other columns use too, `text` is the plain text editor.
+    window.htEditor = htPick({ formula: 'formula', text: 'text' }, htParams.get('editor'), 'formula', 'editor');
+    // `?dependent=held` gives column C an async validator too, held in `window.htDependentPending`.
+    window.htDependent = htPick({ none: 'none', held: 'held' }, htParams.get('dependent'), 'none', 'dependent');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    #grid { height: 360px; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    The editor's validation wait. Column B is numeric with an async validator that rejects
+    negatives, under `allowInvalid: false`; column C holds `=B<n>*2`, numeric too, so the Formulas
+    plugin validates it (synchronously) whenever B changes. B's validator answers only when the
+    spec releases it (`window.htPending`, in the order the validations were asked), so the spec
+    decides which answer lands first. Row 12 holds B = -5, so a `validateCells()` batch (the
+    button) ends invalid: the batch walks the rows from last to first, so row 12 is asked first.
+    No column headers: a data row's `aria-rowindex` is its visual row + 1.
+  -->
+  <button type="button" data-testid="validate-cells">Validate cells</button>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The full bundle bakes HyperFormula in; the base bundle needs it as an external script.
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script type="module">
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    /**
+     * The B validations asked and not answered yet, in the order they were asked.
+     */
+    window.htPending = [];
+    /**
+     * The C validations asked and not answered yet (`?dependent=held` only).
+     */
+    window.htDependentPending = [];
+
+    /**
+     * Rejects negative numbers once the spec releases the call: an async validator.
+     *
+     * @param {*} value The value to validate.
+     * @param {Function} callback Takes the result.
+     */
+    function heldNonNegative(value, callback) {
+      window.htPending.push({ row: this.visualRow, value, callback });
+    }
+
+    // B values 9, 18, 27, …; row 12 (index 11) holds -5.
+    const data = Array.from({ length: 12 }, (_, row) => [
+      `r${row + 1}`,
+      row === 11 ? -5 : 9 * (row + 1),
+      `=B${row + 1}*2`,
+    ]);
+
+    // The shared fixture contract: a failed module import or a constructor throw lands in
+    // `window.htBuildError`, which `awaitFixtureBuilt()` rethrows with its stack.
+    try {
+      const FormulaBuilderModule = await import('/tests/node_modules/hyperformula-ui/dist/index.js');
+      // `type: 'numeric'` brings its own editor, so the column names the one under test explicitly.
+      const columnB = {
+        type: 'numeric',
+        editor: window.htEditor,
+        validator: heldNonNegative,
+        allowInvalid: false,
+      };
+
+      window.hot = new Handsontable(container, {
+        data,
+        rowHeaders: true,
+        // Wide enough for the formula bar's address box and formula area side by side.
+        colWidths: 160,
+        editor: 'formula',
+        columns: [{}, columnB, window.htDependent === 'held' ? {
+          type: 'numeric',
+          validator(value, callback) {
+            window.htDependentPending.push({ row: this.visualRow, value, callback });
+          },
+        } : { type: 'numeric' }],
+        formulas: {
+          engine: HyperFormula,
+        },
+        formulaBuilder: {
+          builder: FormulaBuilderModule,
+          showFormulaBar: true,
+        },
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+
+    document.querySelector('[data-testid="validate-cells"]').addEventListener('click', () => {
+      window.hot.validateCells();
+    });
+  </script>
+</body>
+</html>

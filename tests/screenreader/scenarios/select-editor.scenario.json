@@ -18,7 +18,7 @@
       "id": "arrow-down-first",
       "action": {"press": "ArrowDown"},
       "expect": [["option a"]],
-      "note": "The editor answers ArrowDown itself and chooses the next option, so the native popup never opens. Finding: VoiceOver with WebKit says nothing on this step or the next; with Chromium it reads the option."
+      "note": "The editor answers ArrowDown itself and chooses the next option, so the native popup never opens. VoiceOver with WebKit says nothing on this step or the next. It says nothing on a plain select either, whether the same script changes its option or its own type-ahead does (its behavior). With Chromium it reads the option."
     },
     {
       "id": "arrow-down-second",

@@ -210,6 +210,18 @@ does **not** take the focus when a dialog opens — a deliberate "don't steal fo
 not touched" rule that predates the focus-scope rewrite. It is also a WAI-ARIA APG deviation, since APG
 moves focus into a modal in all circumstances; re-deciding it is a product call, not a bug fix.
 
+### `dialogFocusNextElement` / `dialogFocusPreviousElement` fire AFTER the native Tab move
+
+The Tab shortcut is registered with `preventDefault: false` and runs the hook inside `_registerTimeout`, so the
+browser has already moved the focus when the hook runs, and the hook gets no arguments. A handler reads
+`document.activeElement`. It fires for a Tab pressed while the focus is inside the dialog, including the press
+that leaves it, and not for a press that brings the focus in from the page. The hook JSDoc once said "before focusing", which is wrong; do not restore that
+wording, and do not pass an element or move the timing without a product call (public hooks).
+
+A report of "Safari does not Tab to the buttons" (DEV-1118) is the browser's default: Safari skips buttons on
+Tab unless "Press Tab to highlight each item" is on (or Option+Tab). Playwright's WebKit does the same, so a
+cross-browser spec walks inputs only (`tests/e2e/dialog-focus-hooks.spec.ts`).
+
 ### The container carries `tabindex="-1"` for EVERY template
 
 `ui.ts` used to set it only when `TEMPLATE_NAME === 'base'`. That made `focusDialog()` — the public
