@@ -183,7 +183,7 @@ any of them.
 
 ## The license check: the three public methods
 
-The plugin is on in every grid, so a license key that lists its features is checked when it is used
+The plugin is on in every grid, so a license key that names tiers is checked when it is used
 (`gate: 'call'` in `feature.json`). `getViewState()`, `setViewState()` and `validateViewState()` call
 `assertLicensedCall(this.hot, LICENSE)` first: a key that does not cover `feat:view_state` writes the license
 message and throws it. The SheetsBar saves and restores sheets through `utils/viewState/` directly, never through

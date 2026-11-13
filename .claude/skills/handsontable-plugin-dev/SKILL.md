@@ -79,7 +79,7 @@ To change a dependency, edit `feature.json` and run `generate:feature-manifest`;
 
 ## The license token (`LICENSE`) is generated too
 
-A plugin with `licensing: "token"` (every new one) gets a `LICENSE` export in the same `feature.generated.ts`: its token, display name, `gate` and `implies`. The class returns it, and the unit suite fails until it does:
+A plugin with `licensing: "token"` (every new one) gets a `LICENSE` export in the same `feature.generated.ts`: its token (`capability`), display name, `gate` and `tiers`. The class returns it, and the unit suite fails until it does:
 
 ```ts
 import { LICENSE } from './feature.generated';
@@ -89,7 +89,7 @@ static get LICENSE() {
 }
 ```
 
-With it, a license key that lists its features keeps the plugin off when it does not list the token (`BasePlugin#isLicenseBlocked()`, at the same places as a hard conflict, never rewriting the setting). Pick `gate: "enable"` for a plugin turned on by its option. A plugin on in every grid (`isEnabled()` returns `true`) takes `gate: "call"` and checks the token itself at the top of each public method that does work: `assertLicensedCall(this.hot, LICENSE)` from `utils/licenseNotification.ts`, or `isLicensedUse()` where a throw would break a render. And when your plugin asks another plugin whether it runs, read `.enabled`, never `isEnabled()`: a plugin the key leaves out keeps its setting. Rules: `src/utils/entitlementLicenseKey/AGENTS.md`.
+With it, the plugin stays off when the license key names tiers and none of them is in the plugin's `LICENSE.tiers` (`BasePlugin#isLicenseBlocked()`, at the same places as a hard conflict, never rewriting the setting). Pick `gate: "enable"` for a plugin turned on by its option. A plugin on in every grid (`isEnabled()` returns `true`) takes `gate: "call"` and checks the token itself at the top of each public method that does work: `assertLicensedCall(this.hot, LICENSE)` from `utils/licenseNotification.ts`, or `isLicensedUse()` where a throw would break a render. And when your plugin asks another plugin whether it runs, read `.enabled`, never `isEnabled()`: a plugin the key leaves out keeps its setting. Rules: `src/utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Focus management
 

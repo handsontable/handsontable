@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { A11Y_PAGES, fixtureUrl, type A11yPage, type A11yState } from '../pages.mjs';
-import { PORTAL, STATES, emulate, highlightMenuItem, markPortal, openTarget, releaseParkedFetches, selectCell, type RootWrapper } from '../harness';
+import { A11Y_PAGES, type A11yPage, type A11yState } from '../pages.mjs';
+import { fixtureUrl, PORTAL, STATES, emulate, highlightMenuItem, markPortal, openTarget, releaseParkedFetches, selectCell, type RootWrapper } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { pageLines } from '../../lib/a11y-check-run.mjs';

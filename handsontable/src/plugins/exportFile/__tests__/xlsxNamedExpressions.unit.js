@@ -14,7 +14,7 @@ import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
-import { keyWithout } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
@@ -46,6 +46,7 @@ describe('Xlsx export: named expressions as defined names', () => {
   });
 
   afterEach(() => {
+    resetTierKeys();
     writeSpy.mockRestore();
     hot?.destroy();
     hot = null;
@@ -981,7 +982,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     const engine = createGrid({
       data: [['=R+0.5']],
       columns: [{ type: 'numeric', numericFormat: { minimumFractionDigits: 2 } }],
-      licenseKey: keyWithout('xlsx:number_formats'),
+      licenseKey: tierKeyWithout(['xlsx:number_formats']),
     });
 
     engine.addNamedExpression('R', 5);

@@ -894,14 +894,15 @@ The plugin only exposes it. The rules and traps live in `../../utils/columnTypeI
 
 ## The license check: every public method that does work
 
-The plugin is on unless `importFile: false`, so a license key that lists its features is checked when it is
+The plugin is on unless `importFile: false`, so a license key that names tiers is checked when it is
 used, not at enable (`gate: 'call'` in `feature.json`). `inferColumnTypes()`, `convertToInferredTypes()`,
 `importFromArrayBuffer()` and `importFromBlob()` call `assertLicensedCall(this.hot, LICENSE)` first, before
 `#assertEnabled()`: a key that does not cover `feat:import_file` writes the license message and throws it (the
 async methods reject). `supportsImportFormat()` writes no message, but for `'xlsx'` it reads the same token with
 `hasLicenseCapability(this.hot, LICENSE.capability)` before the `xlsx:import` entitlement, so it answers `false`
-whenever an xlsx import would throw, for either token. Pinned by "on a key that lists its features" in
-`__tests__/importFile.unit.js`, which builds keys without `feat:all` and registers the fake grid as a root instance
+whenever an xlsx import would throw, for either token. Pinned by "on a key that unlocks only the features it names" in
+`__tests__/importFile.unit.js`, which builds its keys with `tierKeyWith()` (a made-up tier that includes only the
+given ids) and registers the fake grid as a root instance
 (`registerAsRootInstance`), because a non-root grid is never checked. The SheetsBar calls only the `_`-prefixed members,
 which are not checked. The import asks Formulas, Comments and CustomBorders whether they RUN (`.enabled`),
 never whether their option is on: a plugin a license key keeps off keeps its option, and an import that read the

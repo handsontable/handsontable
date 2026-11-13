@@ -9,7 +9,11 @@
       "description": "Draws borders around individual cells and ranges.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

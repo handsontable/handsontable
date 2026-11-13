@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added license tiers: a license key can name the Standard or Professional tier, and the license key guide lists the features each tier includes. A key that names no tier keeps every feature.",
+  "type": "added",
+  "issueOrPR": 14284,
+  "breaking": false,
+  "framework": "none"
+}

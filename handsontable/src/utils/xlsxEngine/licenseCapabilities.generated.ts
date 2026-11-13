@@ -1,6 +1,7 @@
 // Generated from `features.json` by `npm run generate:feature-manifest`. Do not edit it by hand.
 
-// The XLSX tokens a key must list (`licensing: "token"`), in the order `features.json` declares them.
+// The XLSX tokens a gate checks (`licensing: "token"`, `gate` "call" or "degrade"), in the order
+// `features.json` declares them.
 export const XLSX_CAPABILITY_IDS: readonly string[] = Object.freeze([
   'xlsx:import',
   'xlsx:export',
@@ -53,5 +54,40 @@ export const XLSX_FLAG_BY_ID: Readonly<Record<string, string>> = Object.freeze({
   'xlsx:protection': 'protection',
 });
 
-// The per-product key flag that makes a key unlock exactly the tokens it lists (the manifest's `keyFlag`).
-export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
+// The license tiers that include each feature.
+export const XLSX_TIERS_BY_ID: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  'xlsx:import': Object.freeze([
+    'standard',
+    'professional',
+  ]),
+  'xlsx:export': Object.freeze([
+    'standard',
+    'professional',
+  ]),
+  'xlsx:formulas': Object.freeze([
+    'standard',
+    'professional',
+  ]),
+  'xlsx:layout': Object.freeze([
+    'standard',
+    'professional',
+  ]),
+  'xlsx:number_formats': Object.freeze([
+    'professional',
+  ]),
+  'xlsx:comments': Object.freeze([
+    'professional',
+  ]),
+  'xlsx:styles': Object.freeze([
+    'professional',
+  ]),
+  'xlsx:conditional_formatting': Object.freeze([
+    'professional',
+  ]),
+  'xlsx:data_validation': Object.freeze([
+    'professional',
+  ]),
+  'xlsx:protection': Object.freeze([
+    'professional',
+  ]),
+});

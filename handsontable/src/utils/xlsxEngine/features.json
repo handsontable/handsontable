@@ -12,6 +12,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "call",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "feat:import_file"
@@ -29,6 +33,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "call",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "feat:export_file"
@@ -47,6 +55,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "degrade",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "feat:formulas"
@@ -69,6 +81,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "degrade",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "anyOf": [
           "xlsx:import",
@@ -87,6 +103,9 @@
       "status": "stable",
       "licensing": "token",
       "gate": "degrade",
+      "tiers": [
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "xlsx:export"
@@ -105,6 +124,9 @@
       "status": "stable",
       "licensing": "token",
       "gate": "degrade",
+      "tiers": [
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "feat:comments"
@@ -124,7 +146,12 @@
       "name": "Import report",
       "description": "The list of workbook features the import did not carry over, returned in the import result. Always produced, because it is also where a missing license token is reported.",
       "status": "stable",
-      "licensing": "core"
+      "licensing": "token",
+      "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     },
     {
       "id": "xlsx:styles",
@@ -138,6 +165,9 @@
       "status": "stable",
       "licensing": "token",
       "gate": "degrade",
+      "tiers": [
+        "professional"
+      ],
       "requires": {
         "anyOf": [
           "xlsx:import",
@@ -157,6 +187,9 @@
       "status": "stable",
       "licensing": "token",
       "gate": "degrade",
+      "tiers": [
+        "professional"
+      ],
       "requires": {
         "anyOf": [
           "xlsx:import",
@@ -176,6 +209,9 @@
       "status": "stable",
       "licensing": "token",
       "gate": "degrade",
+      "tiers": [
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "cell:dropdown"
@@ -198,6 +234,9 @@
       "status": "stable",
       "licensing": "token",
       "gate": "degrade",
+      "tiers": [
+        "professional"
+      ],
       "requires": {
         "anyOf": [
           "xlsx:import",

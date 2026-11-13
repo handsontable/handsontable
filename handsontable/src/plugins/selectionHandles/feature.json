@@ -9,7 +9,11 @@
       "description": "Draws handles on the edges of the selection that resize it when dragged.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

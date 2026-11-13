@@ -20,6 +20,11 @@ export interface A11yPage {
   fixture: string;
   /** Extra query parameters, appended after the theme. */
   query?: string;
+  /**
+   * A preset of `tests/fixtures/licenseTiers.ts` whose made-up tiers and key the TypeScript side adds to the
+   * query (`fixtureUrl()` in `harness.ts`). The plain `fixtureUrl()` of this module leaves them out.
+   */
+  licensePreset?: string;
   /** The selector of the grid container the scan includes; `[data-testid="grid"]` when absent. */
   root?: string;
   /** The cell a menu or an editor opens on; `[1, 1]` when absent. */

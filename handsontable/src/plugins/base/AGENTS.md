@@ -429,15 +429,16 @@ A hard conflict is a blunt instrument: it disables the plugin outright. Use it o
 cannot be made to work. Anything softer belongs in the plugin's own logic.
 
 **A setting whose plugin the license key keeps off conflicts with nothing** (`#isKeptOffByLicense()`, passed to
-`getHardConflict()` as `isIgnored`): that plugin does not run, so the combination cannot fail. A key that lists
-Pagination and leaves NestedRows out runs Pagination with `nestedRows: true` set, and does not rewrite
+`getHardConflict()` as `isIgnored`): that plugin does not run, so the combination cannot fail. A key whose tiers
+include Pagination but not NestedRows runs Pagination with `nestedRows: true` set, and does not rewrite
 `pagination` to `false`. A setting no plugin owns (`fixedRowsTop`) still conflicts.
 
 ## The license gate: `isLicenseBlocked()`
 
 A plugin's static `LICENSE` (generated from its `feature.json`, see `../../featureManifest/AGENTS.md`) names the
-token a license key must list. When the grid's key lists its features (the `listed-capabilities` flag) and does not
-cover the token, `isLicenseBlocked()` keeps a `gate: 'enable'` plugin off and reports it for the license message.
+id and the tiers that include it. When the grid's key names tiers and none of them is in `LICENSE.tiers`,
+`isLicenseBlocked()` keeps a `gate: 'enable'` plugin off and reports it for the license message. A key that names no
+tier blocks nothing.
 It is checked right after `isHardConflictBlocked()`, at the same three places, never before branch 1:
 
 | Site | On a block |
@@ -447,7 +448,7 @@ It is checked right after `isHardConflictBlocked()`, at the same three places, n
 | `onUpdateSettings` branch 3 | reports and calls `disablePlugin()` (a key passed later that leaves the plugin out) |
 
 The difference from a hard conflict is deliberate: the license gate **never writes `getSettings()[PLUGIN_KEY] =
-false`**, so the user's setting stays as written and a later `updateSettings({ licenseKey })` that lists the plugin
+false`**, so the user's setting stays as written and a later `updateSettings({ licenseKey })` whose tiers include the plugin
 turns it on through branch 2. Three things follow:
 
 - **`isEnabled()` answers `true` for a blocked plugin**, because it reads the setting. Code that asks whether another
@@ -457,7 +458,8 @@ turns it on through branch 2. Three things follow:
   allowlist with the reason. The rules are in `../../utils/entitlementLicenseKey/AGENTS.md`.
 - **A direct `getPlugin(name).enablePlugin()` call is gated too**, in the lifecycle wrapper
   (`#routeLifecycleCalls()`), so an app cannot turn on a plugin the key leaves out. The built-in direct calls are
-  Filters turning on DropdownMenu and Loading turning on Dialog, each granted by the caller's own `LICENSE.implies`.
+  Filters turning on DropdownMenu and Loading turning on Dialog. Both pass, because the generator refuses a tier that
+  includes a plugin without what its `requires.allOf` names; there is no `implies` at run time.
 - **A read of another plugin's SETTING has the same trap as `isEnabled()`**, and the guard test does not see it.
   Asked at run time, read `getPlugin(name)?.enabled` (the "Copy with group headers" menu item asks NestedHeaders
   that way). At init the other plugin may not have started yet, so the setting is the only answer there:
