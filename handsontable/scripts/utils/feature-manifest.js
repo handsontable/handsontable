@@ -29,8 +29,11 @@ const TOKEN_RULE = /^[a-z][a-z0-9_]*(?::[a-z0-9_]+(?:\.[a-z0-9_]+)*)?$/;
 /**
  * The format version of `dist/manifest.json`. A new field or capability keeps it. Removing or renaming a field,
  * changing what a value means, or adding a `kind` or `licensing` value raises it.
+ *
+ * Version 2: a license key names tiers. Every capability lists its `tiers`, the manifest lists the tier names, and
+ * the `keyFlag` and `implies` fields of version 1 are gone.
  */
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 /**
  * The format version of the source files, separate from the published one. Only the generator reads the sources,

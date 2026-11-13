@@ -578,7 +578,7 @@ describe('feature manifest', () => {
 
       expect(JSON.stringify(manifest)).toBe(first);
       expect(manifest).toMatchObject({
-        schemaVersion: 1,
+        schemaVersion: 2,
         product: 'handsontable',
         version: '19.0.0',
       });
@@ -598,7 +598,7 @@ describe('feature manifest', () => {
     it('should publish the tier names and the tiers of every capability', () => {
       const manifest = buildManifest(sources, '19.0.0');
 
-      expect(manifest.schemaVersion).toBe(1);
+      expect(manifest.schemaVersion).toBe(2);
       expect(manifest.tiers).toEqual(sources.tiers);
       manifest.capabilities.forEach((capability) => {
         expect({ id: capability.id, tiers: capability.tiers })

@@ -171,6 +171,8 @@ without the other.
 - **`dist/manifest.json` is public** (npm, jsDelivr), and the license portal reads it. A reader ignores fields it
   does not know, and stops on a version it does not know. A new field or a new capability keeps the version.
   Removing or renaming a field, changing what a value means, or adding a `kind` or `licensing` value raises it.
+  It is `2` since keys name tiers: version 1 published `keyFlag` and `implies` and no `tiers`, and `next` builds
+  carried it, so a reader written for version 1 must stop on this one rather than read fields that are gone.
 - **The source files** are read only by the generator, which accepts only the current version. Raising it
   rewrites every source file in the same commit.
 - `released-tokens.json` has no version: only the generator reads it, and it changes in the same commit.
