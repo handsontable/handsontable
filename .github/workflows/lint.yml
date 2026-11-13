@@ -21,6 +21,10 @@ on:
         description: 'Also run the determinism ratchet (a handsontable spec/unit tree changed)'
         type: boolean
         default: false
+      run-codemod:
+        description: 'Also run the codemod suite on Windows and on the other supported Node versions (its scope changed)'
+        type: boolean
+        default: false
 
 jobs:
   core:
@@ -96,3 +100,35 @@ jobs:
       # workspace installed and runs whenever the visual-tests scope changed.
       - name: Lint config self-test
         run: npm run in visual-tests test:lint-config
+
+  # The codemod is a CLI customers run on their own machines, so its suite also
+  # runs where they do: Windows (path separators, CRLF, git) and the Node versions
+  # its `engines` field allows. The `core` job above covers Linux on the Node
+  # version of `.nvmrc`. Only the codemod's own dependencies are installed.
+  codemod:
+    name: codemod (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    if: inputs.run-codemod
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-26.04
+            node: 20
+          - os: ubuntu-26.04
+            node: 24
+          - os: windows-2025-vs2026
+            node: 22
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+        with:
+          version: 10 # On Windows the `packageManager` field of `package.json` seems to not be recognized.
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install the codemod's dependencies
+        run: pnpm install --filter @handsontable/codemod --ignore-scripts --frozen-lockfile
+      - name: Codemod tests
+        run: npm run test --prefix codemod

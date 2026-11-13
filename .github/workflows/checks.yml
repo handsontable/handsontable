@@ -43,6 +43,9 @@ on:
       # determinism ratchet (lint.yml) reads. Same trees as RATCHETED_FILES in
       # .github/scripts/lib/lint-ratchet.mjs.
       lint-ratchet: { value: '${{ jobs.scope.outputs.lint-ratchet }}' }
+      # True when the migration codemod package changed. lint.yml then also runs its
+      # suite on the other Node versions it supports and on Windows.
+      test-codemod: { value: '${{ jobs.scope.outputs.test-codemod }}' }
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
@@ -82,6 +85,7 @@ jobs:
       docs: ${{ steps.path-filter.outputs.docs }}
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
       lint-ratchet: ${{ steps.path-filter.outputs.lint-ratchet }}
+      test-codemod: ${{ steps.path-filter.outputs.test-codemod }}
       wrapper-matrix: ${{ steps.wrappers.outputs.list }}
       visual-full: ${{ steps.path-filter.outputs.visual-full }}
       visual-wrappers: ${{ steps.visual-wrappers.outputs.list }}
@@ -315,6 +319,10 @@ jobs:
             lint-ratchet:
               - './handsontable/src/**'
               - './handsontable/test/**'
+            # The codemod is a CLI that runs on customer machines, so its suite also
+            # runs on Windows and on the Node versions its `engines` allows.
+            test-codemod:
+              - './codemod/**'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra

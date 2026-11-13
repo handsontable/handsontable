@@ -132,6 +132,7 @@ ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 - **One task ID only.** The ClickUp GitHub integration attaches every task ID it finds in a PR title, body, commit message, or comment, and moves each through the PR lifecycle ("code review" on open, onward on merge). The attachment is permanent: editing the ID out later does not detach the task. The PR title, body, commits, and every PR or review comment may name at most one ID: the task in the branch name, or none when the branch has no task. Never name a parent task, a follow-up, a related task, or a cherry-pick source; describe it in words or by PR number. Every prefix counts (`DEV-`, `PRO-`, `RELEASE-`, `IT-`, `SU-`); check drafted text with `grep -oE '\b[A-Z]{2,}-[0-9]+\b' <file> | sort -u` before the write.
 - Start **Context** with "The PR fixes/adds/changes/..." and be direct.
 - A breaking change needs the `Breaking change` label and a migration section with before/after examples. Update migration guides in `docs/content/guides/upgrade-and-migration/`.
+- A breaking change, a deprecation, or a rename also adds its migration codemod rule in the same PR (`codemod/versions/<version>/`), or the Context says in one sentence why no rule can express it. Steps: `.ai/BREAKING-CHANGES.md` → Codemod rule.
 - **If you tick "MANUAL QA NEEDED", also apply the red `Requires Manual QA` label** (nothing applies it automatically):
 
   ```bash

@@ -45,6 +45,18 @@ When you deprecate a public API, do all of the following in the same PR:
 4. Docs: add a row to `docs/content/guides/upgrade-and-migration/deprecation-policy/deprecation-policy.md` ("List of current deprecations") and, when the release has a migration guide (minor releases usually do not), a step in it.
 5. Changelog: `.changelogs/<PR>.json` with `"type": "deprecated"`.
 6. Removal happens only in the next major release, at least 3 months later: delete the code, move the docs row to "Removed in version N.0", add a `"type": "removed", "breaking": true` changelog entry, and add a migration step.
+7. Codemod: add a rule for the replacement at deprecation time, not at removal (see [Codemod rule](#codemod-rule)), so users can migrate before the old name is gone.
+
+## Codemod rule
+
+`codemod/` holds the migration CLI that customers run on their own code. It only knows what its rule files say, so a change that users have to react to adds its rule in the same PR:
+
+- **When:** a breaking change, a deprecation, and any rename that keeps the old name working (an option, a method, a hook, an export, a type, a CSS variable, a theme token). A deprecation gets its rule when it is deprecated: the rewrite to the new name is already valid, and users who run the tool early never see the removal.
+- **Where:** `codemod/versions/<version>/rules/*.json`, in the version that ships the change. When that version has no directory yet, create its manifest with `"status": "draft"`; a draft runs only with `--include-draft`, so it does not affect users until the release flips it to `released`.
+- **What:** a rewrite rule (`safe: true`) when the old and the new form behave the same, otherwise a report rule that tells the user what to do. Add a fixture for the rule and a negative case. Kinds, fields, and the `safe` contract: `codemod/AGENTS.md`.
+- **When no rule fits:** some changes cannot be found in user code (a behavior change, a DOM structure change with no selector to match). Say so in the PR description in one sentence. The migration guide step is still required.
+
+This is a convention, not a gate: no check fails a PR without a rule.
 
 ## What is NOT considered breaking
 
