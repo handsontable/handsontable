@@ -10,6 +10,7 @@ tags:
   - calculations
   - functions
   - suppressDataTypeErrors
+  - includeSummaryResults
   - destinationRow
   - destinationColumn
   - reversedRowCoords
@@ -117,6 +118,8 @@ The `sum` and `count` functions return `0`.
 You can customize each of your column summaries with configuration options.
 
 For the full list of available options, see the [API reference](@/api/columnSummary.md#options).
+
+To let a summary count the result of another summary, use the [`includeSummaryResults`](#include-nested-summary-results) option.
 
 ## Set up a column summary
 
@@ -530,7 +533,7 @@ Set the [`destinationRow`](@/api/columnSummary.md#options) and [`destinationColu
 
 Because all column summary coordinates are physical, [moving columns](@/guides/columns/column-moving/column-moving.md) or [rows](@/guides/rows/row-moving/row-moving.md) doesn't change what a column summary covers. The summary moves together with its column, the result moves together with its destination row, and the summary keeps summarizing the same rows, wherever they're displayed.
 
-The [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) feature is the exception: it moves a row by moving its data, so with a column summary set up as an array, a fixed range keeps covering the same positions instead. To keep a summary accurate there, [set up column summaries using a function](#set-up-column-summaries-using-a-function).
+The [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) feature is the exception: it moves a row by moving its data, so with a column summary set up as an array, a fixed range keeps covering the same positions instead. To keep a summary accurate there, [set up column summaries using a function](#set-up-column-summaries-using-a-function). To sum subtotals in a nested tree, also see [include nested summary results](#include-nested-summary-results).
 
 ::: only-for javascript
 
@@ -793,6 +796,77 @@ Using a function to provide a column summary configuration lets you set up all s
 ::: example #example8 :vue3
 
 @[code](@/content/guides/columns/column-summary/vue/example8.vue)
+
+:::
+
+:::
+
+## Include nested summary results
+
+By default, a column summary skips every other summary result inside its range. A total whose range covers its subtotals counts each data row once.
+
+If the range names the subtotal row itself, and not the rows under it, set the `includeSummaryResults` option to `true` on the summary that should count it. The option is `false` by default, and is available since version 19.0.0.
+
+For example, a subtotal row sums the values 7, 8, and 9, so its result is 24. A parent summary adds the rows holding 5 and 6, and the subtotal row:
+
+| Range of the parent summary                         | `includeSummaryResults` | Parent result |
+| --------------------------------------------------- | ----------------------- | ------------- |
+| Covers the rows under the subtotal (5, 6, 7, 8, 9)  | Leave it off            | 35            |
+| Names the subtotal row (5, 6, and the subtotal row) | Turn it on              | 35            |
+
+With the option off, the second range returns 11, because the parent skips the subtotal's result.
+
+These rules apply to an included result:
+
+- It counts as one entry for the `count` and `average` summary types.
+- A summary uses the rounded result, if you set the [`roundFloat`](@/api/columnSummary.md#options) option.
+- A `'Not enough data'` result adds nothing.
+- If two summaries include each other, the plugin logs a warning in the console, and skips the result that closes the loop.
+- The [`custom`](#implement-a-custom-summary-function) summary type is not affected, unless your custom function calls the plugin's own `getCellValue()` or `calculateSum()` method for a summary that has the option: then it gets the included results too.
+- A summary never includes its own destination cell.
+
+The example below builds a budget tree with the [`NestedRows`](@/api/nestedRows.md) plugin. A function gives every parent row a `sum` summary. Its ranges are the parent's direct children, and the `includeSummaryResults` option lets it count the subtotal of the `Payroll` group. The function walks the data tree, not the visible rows, because the coordinates are physical and the rows of a collapsed group are not visible. The `Payroll` row shows `31000`, and the `Operations` row shows `35850`.
+
+The function reads the data array that you pass to the grid. If your code adds, removes, or moves rows in another copy of the data, apply the same change to that array, so the summaries keep pointing at the right rows:
+
+::: only-for javascript
+
+::: example #example13 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-summary/javascript/example13.js)
+@[code](@/content/guides/columns/column-summary/javascript/example13.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example13 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-summary/react/example13.jsx)
+@[code](@/content/guides/columns/column-summary/react/example13.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example9 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example9.ts)
+@[code](@/content/guides/columns/column-summary/angular/example9.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example13 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example13.vue)
 
 :::
 

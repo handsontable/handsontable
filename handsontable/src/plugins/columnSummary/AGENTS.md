@@ -42,6 +42,57 @@ Two related helpers, with a deliberate split:
   user's own value on the first calculation pass, before any result was written, and that value counts
   toward the summary. Three long-standing specs pin exactly that.
 
+## A summary result is skipped unless the reading endpoint opts in (DEV-495)
+
+`getCellValue()` returns `null` for a cell that holds a summary result, so a range that covers another
+summary's destination does not count it. An endpoint with `includeSummaryResults: true` reads that
+destination through `#readIncludedSummaryResult()` instead. The option is off by default and stays off.
+
+- **The skip is what keeps a whole-subtree range from double counting.** A parent range that spans its
+  children's subtotals would count every leaf twice. Never flip the default: measured, `count` goes from 5
+  to 6.
+- **The included value comes from the endpoint object of the same pass, never from the cell.** Cell writes
+  are batched, and a trimmed destination is never written, so the cell can hold a stale or no value.
+  `Endpoints#resolveDependencyResult()` calculates the dependency on demand and applies its `roundFloat`.
+  A dependency whose `roundFloat` gives a string (`roundFloat: 0`) still sums, because the built-in types
+  test every value with `holdsNoNumber`, and the summing ones convert it with `Number()`.
+- **The memo holds the raw result and lives for at most one outermost calculation.** `#passResults` keeps
+  the result before `setEndpointValue()` rounds `endpoint.result` in place, and `#runPass()` drops it when
+  the outermost pass exits (passes nest, because a cell read can run a Formulas resync). A nested pass also
+  drops it earlier: `cacheSummaryDestinations()` clears `#passResults` and `#cycleWarned` whenever it runs,
+  so a nested refresh makes the outer pass recalculate a dependency it already had, and can warn about a loop
+  a second time. That is the safe direction (a recalculation, never a stale value). Otherwise a dependency
+  is calculated once per pass, whatever the declaration order.
+- **Identity-keyed state must use the pass's own endpoint array.** A function-form `columnSummary` returns
+  new endpoint objects on every call, so `#passResults`, `#resolving` and `#destinationEndpoints` hold or are
+  keyed by the objects of the pass's endpoint array (the one `cacheSummaryDestinations()` received), never
+  by a fresh `getAllEndpoints()` result.
+- **The own-destination check compares coordinates as well as identity.** A nested pass under function-form
+  settings swaps the destination cache for new endpoint objects while the outer endpoint is still being
+  calculated, so its own destination answers a copy of it. Identity alone double counted (254 instead of
+  127); `includeSummaryResults.unit.js` pins it.
+- **`#resolving` is deliberately not cleared in `cacheSummaryDestinations()`.** A `try`/`finally` in
+  `#calculateInPass()` keeps it balanced. Clearing it during a nested pass would drop the outer
+  calculation's cycle guard. Two endpoints that include each other warn once per pass, and the result that
+  closes the loop counts as empty.
+- **`#withDependents()` exists because the refresh paths select by `sourceColumn`.** An edit in a leaf
+  column selects only the endpoints reading that column, so a parent that reads a subtotal column would
+  stay stale. The method adds every `includeSummaryResults` endpoint whose range covers the destination row
+  of another selected endpoint and whose source column is that endpoint's destination column, repeated
+  until the set stops growing, so a change reaches a parent through several levels.
+- **The refresh order of a grid without the option must not change.** When no selected endpoint has
+  `includeSummaryResults`, `#withDependents()` returns the endpoints in the order the caller collected them:
+  change order for `refreshChangedEndpoints()` (each change in turn, every endpoint reading its column in
+  declaration order, each once), declaration order for `refreshEndpointsBySourceColumns()`. The order is
+  observable: the entries of the `ColumnSummary.reset` batch, the value that lands when two endpoints share a
+  destination, and the call order of `custom` functions. Once an endpoint with the option takes part, the
+  set is refreshed in declaration order, as `refreshAllEndpoints()` does. An acyclic result is the same in any
+  order, but a loop of endpoints that include each other is broken at the endpoint calculated first, so
+  declaration order keeps the break where the initial pass put it (refreshed in change order, the loop in
+  `includeSummaryResults.unit.js` read 11 instead of 127 after an edit).
+- Pinned by `__tests__/includeSummaryResults.unit.js` and
+  `tests/e2e/column-summary-include-summary-results.spec.ts`.
+
 ## Empty ranges report "Not enough data", not `NaN` (DEV-2691)
 
 `min` and `max` have always returned the `NOT_ENOUGH_DATA` string for a range with nothing to calculate

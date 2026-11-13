@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `includeSummaryResults` option of a column summary, which lets a summary count the results of other summaries inside its range.",
+  "type": "added",
+  "issueOrPR": 14271,
+  "breaking": false,
+  "framework": "none"
+}

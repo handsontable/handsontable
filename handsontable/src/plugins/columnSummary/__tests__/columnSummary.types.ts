@@ -9,6 +9,7 @@ interface Endpoint {
   suppressDataTypeErrors: boolean;
   readOnly: boolean;
   roundFloat: number | false | 'auto';
+  includeSummaryResults: boolean;
   ranges: number[][];
   sourceColumn: number;
   type: string;
@@ -82,6 +83,7 @@ const endpoint: SummaryEndpoint = {
   suppressDataTypeErrors: false,
   readOnly: true,
   roundFloat: 4,
+  includeSummaryResults: true,
   ranges: [[1, 1, 2, 2]],
   sourceColumn: 0,
   type: 'sum',

@@ -22,6 +22,7 @@ export interface SummaryEndpoint {
   destinationRow?: number;
   destinationColumn?: number;
   forceNumeric?: boolean;
+  includeSummaryResults?: boolean;
   type?: string;
   result?: number | string;
   customFunction?: ((this: ColumnSummary, endpoint: SummaryEndpoint) => number | string) | null;
@@ -52,6 +53,7 @@ export interface SummaryEndpoint {
  * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors) |
  * | `readOnly` | No | Boolean | `true` | Makes summary cell [read-only](@/api/options.md#readonly). The plugin keeps the cell read-only: the "Read only" menu item and [`setCellMeta()`](@/api/core.md#setcellmeta) can't make it editable |
  * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result) |
+ * | `includeSummaryResults` | No | Boolean | `false` | [Includes the results of other summaries that sit inside the range](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results) |
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function) |
  *
  * @example
@@ -626,6 +628,14 @@ export class ColumnSummary extends BasePlugin {
       return null;
     }
 
+    const includedResult = this.#readIncludedSummaryResult(row, col);
+
+    // Another endpoint's result counts as it is, so it skips `forceNumeric` and the data-type check:
+    // a result that holds no number has already been turned into `null`.
+    if (includedResult !== null) {
+      return includedResult.value;
+    }
+
     let cellValue: number | string | null = (visualRowIndex !== null
       ? this.hot.getDataAtCell(visualRowIndex, visualColumnIndex)
       : this.hot.getSourceDataAtCell(row, visualColumnIndex)) as number | string | null;
@@ -715,6 +725,46 @@ export class ColumnSummary extends BasePlugin {
 
     return Boolean(cellMeta.readOnly) &&
       normalizeClassNames(cellMeta.className as string | string[]).includes('columnSummaryResult');
+  }
+
+  /**
+   * Reads the result another endpoint writes into a cell, for an endpoint calculated with
+   * `includeSummaryResults`. The result comes from the endpoint, calculated in the same pass, never
+   * from the cell. The calculated endpoint's own destination is read as before. It is recognized by its
+   * coordinates as well as by identity: a nested pass (a Formulas resync run from a cell read) can
+   * cache new objects of function-form endpoints while this one is still being calculated, and its own
+   * destination then answers a copy of itself.
+   *
+   * @param {number} row Physical row index.
+   * @param {number} col Physical column index.
+   * @returns {{value: number|string|null}|null} The included value, or `null` when the cell is read as
+   * before.
+   */
+  #readIncludedSummaryResult(row: number, col: number): { value: number | string | null } | null {
+    const endpoints = this.endpoints!;
+    const currentEndpoint = endpoints.currentEndpoint;
+
+    // No calculation is running (a direct `getCellValue()` call), so the cell is read as before.
+    if (currentEndpoint?.includeSummaryResults !== true) {
+      return null;
+    }
+
+    const destinationEndpoint = endpoints.getDestinationEndpoint(row, col);
+
+    if (destinationEndpoint === undefined) {
+      return null;
+    }
+
+    const isOwnDestination = destinationEndpoint === currentEndpoint || (
+      destinationEndpoint.destinationRow === currentEndpoint.destinationRow &&
+      destinationEndpoint.destinationColumn === currentEndpoint.destinationColumn
+    );
+
+    if (isOwnDestination) {
+      return null;
+    }
+
+    return { value: endpoints.resolveDependencyResult(destinationEndpoint) };
   }
 
   /**
